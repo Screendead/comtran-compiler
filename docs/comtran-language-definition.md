@@ -1298,7 +1298,7 @@ F chapter 4 closes with the storage-areas doctrine (F p. 84–85):
 | Mixed A/9 pictorials | not addressed | illegal; treated as alphameric (J 90.01.03) |
 | Mode meanings | machine-dependent, deferred to processor manuals (F p. 78) | I = binary, E = BCD (J 02.05.04) |
 
-Open flags for the compiler writer (detailed in the structured ambiguity list accompanying this section): the maximum subscript/quantity-nesting depth under J; the exact written form and card position of BLANK WHEN ZERO; the meaning of "non-format field"; whether a named REDEF line is accepted; and the exact reading of the External Decimal row of the J 02.05.05 chart.
+Open flags for the compiler writer (detailed in the §8.5 catalog): the maximum subscript/quantity-nesting depth under J; the exact written form and card position of BLANK WHEN ZERO; the meaning of "non-format field"; and whether a named REDEF line is accepted. (The exact reading of the External Decimal row of the J 02.05.05 chart, formerly flagged here, has been scan-resolved — see §8.5.8.)
 
 ---
 
@@ -1364,7 +1364,7 @@ The F statement agrees for the binary operators: "the order of operations (worki
 
 Additional rules a compiler writer must observe:
 
-1. **Repeated exponentiation must be parenthesized.** "The expression Aᴮᶜ, which is sometimes considered meaningful, cannot be written as A**B**C; it should be written as (A**B)**C or A**(B**C), whichever is intended" (F p. 107). J does not restate this rule; the J left-to-right rule for equal hierarchy would read `A**B**C` as `(A**B)**C`, but F flatly forbids the form — treat it as illegal (see ambiguity list).
+1. **Repeated exponentiation must be parenthesized.** "The expression Aᴮᶜ, which is sometimes considered meaningful, cannot be written as A**B**C; it should be written as (A**B)**C or A**(B**C), whichever is intended" (F p. 107). J does not restate this rule; the J left-to-right rule for equal hierarchy would read `A**B**C` as `(A**B)**C`, but F flatly forbids the form — treat it as illegal (see the §8.5 catalog).
 2. **No two successive binary operators.** "The programmer must not write two successive arithmetic operators unless the second of them is either the operator TR or the operator ABS. Where the effect of two successive operators is required, one term may be enclosed in parentheses; thus, while the expression A * -B is illegal, the same value may be written A * (-B)" (F p. 27, rule 6).
 3. **Operators bind to the next item.** "All operators act on the next named item, or the next parenthetical expression, following the operator" (F p. 28, rule 9). Parentheses "may be used wherever needed ... for the sake of clarity; where ambiguity would result from their omission, they *must* be used" (F p. 28, rule 11).
 4. **Blanks around operators are optional** and ignored: `A + B * C` may be written `A+B*C` (F p. 27, rule 6).
@@ -1382,7 +1382,7 @@ The legal symbol-pair table from F Appendix 2 ("1" = permissible pair, "0" = not
 
 (F p. 106. Note the table permits "Negation − Variable" and "Negation − (" but no operator directly after negation, and forbids "ABS ABS", "TR TR", "ABS TR" chains.)
 
-**F/J divergence (negation precedence):** J places unary negation in the *highest* group ("TR or ABS or - (Negation)" honored before `**`), so under a literal reading `-A**2` would mean `(-A)**2`, not `-(A**2)` (J 02.04.05.01). F is compatible: the "next named item" rule (F p. 28, rule 9) has negation act on the immediately following item only. This differs from later-language conventions; see ambiguity list.
+**F/J divergence (negation precedence):** J places unary negation in the *highest* group ("TR or ABS or - (Negation)" honored before `**`), so under a literal reading `-A**2` would mean `(-A)**2`, not `-(A**2)` (J 02.04.05.01). F is compatible: the "next named item" rule (F p. 28, rule 9) has negation act on the immediately following item only. This differs from later-language conventions; see the §8.5 catalog.
 
 #### 4.1.3 Operands: variables, constants, literals
 
@@ -1510,7 +1510,7 @@ These examples collectively use every element that may appear in an arithmetic e
 #### 4.3.1 Result editing and multiple results
 
 - "If required, the result of a computation will be edited automatically according to the format of a receiving field as specified in the data description. For example, if a result represents an amount of money, editing appropriate to the defined format of the money field will be performed" (F p. 44).
-- Multiple result fields are permitted (`SET A, B, C = D.`); the expression is written once and each named variable is replaced by its value (F p. 44). The manuals do not state the order of the stores nor whether each store draws on the full-precision intermediate (see ambiguity list; the natural reading of "replace the value of the variable(s) ... with the value of the expression" is that each target independently receives the expression value, edited/aligned to its own format).
+- Multiple result fields are permitted (`SET A, B, C = D.`); the expression is written once and each named variable is replaced by its value (F p. 44). The manuals do not state the order of the stores nor whether each store draws on the full-precision intermediate (see the §8.5 catalog; the natural reading of "replace the value of the variable(s) ... with the value of the expression" is that each target independently receives the expression value, edited/aligned to its own format).
 
 #### 4.3.2 Rounding and TRUNCATED
 
@@ -1534,7 +1534,7 @@ at the end of the SET command. In the event of an overflow, the object program w
 
 - ON OVERFLOW is legal **only when there is a single result field** (F p. 44; same restriction for ADD, F p. 47).
 - With ON OVERFLOW present, the erroneous result is **not stored**; the imperative clause executes instead (F p. 44).
-- Behavior when overflow occurs and no ON OVERFLOW clause was written is not stated in either manual. Observed processor mechanism: communication cell SYS)130 "is set non-zero whenever any one of the numeric move or convert subroutines of MOVPAK detects the truncation of significant high order values (i.e. overflow)" (J 90.02.10); there is also SYS)131 for "an improper data condition" and SYS)134 for floating point underflow resulting from a Move (J 90.02.10, 90.02.11). See ambiguity list.
+- Behavior when overflow occurs and no ON OVERFLOW clause was written is not stated in either manual. Observed processor mechanism: communication cell SYS)130 "is set non-zero whenever any one of the numeric move or convert subroutines of MOVPAK detects the truncation of significant high order values (i.e. overflow)" (J 90.02.10); there is also SYS)131 for "an improper data condition" and SYS)134 for floating point underflow resulting from a Move (J 90.02.10, 90.02.11). See the §8.5 catalog.
 - OVERFLOW is a reserved word in J (J 02.03.02).
 
 #### 4.3.4 SET side effects on subscripting
@@ -1626,7 +1626,7 @@ F's 1960 statement:
 1. "Information from numeric fields may be moved to other numeric fields, to alphameric fields, and to report fields."
 2. "Information from alphabetic or alphameric fields may be moved only to other alphabetic or alphameric fields." (F p. 42)
 
-("Report fields" is F's term for fields carrying editing symbols; J's term is "edited field" — see ambiguity list.)
+("Report fields" is F's term for fields carrying editing symbols; J's term is "edited field" — see the §8.5 catalog.)
 
 J's 1962 statement, in terms of the six 7090 field types (alphameric, external decimal, internal decimal, edited, floating point, scientific decimal — see §3 and J 02.05.05): "all types of data may be moved into an alphameric field but the contents of an alphameric field may only be moved to another alphameric field" (J 02.04.03). Combined with the F rules, every numeric-to-numeric combination is legal, with automatic conversion; alphameric is a universal sink and an alphameric-only source.
 
@@ -1731,7 +1731,7 @@ Result of MOVEing/SETting figurative constants into each target type (J 02.04.02
 Restrictions:
 
 - "Figurative constants may not be moved to variable length arrays, i.e., to fields with which QUANTITY IN is associated ... However, figurative constants may be moved to a particular element of a variable length array" (J 02.04.01); with the illustrated data description, "the sentence MOVE BLANKS TO ARRAY is illegal, whereas MOVE BLANKS TO FIELD(3) is proper" (J 02.04.01). Restated in the deferred-features appendix: "Figurative constants may not be moved to variable length arrays; they may, however, be moved to fixed length arrays or to array elements" (J 90.01.02). Diagnostic: "MOVE OF FIGURATIVE CONSTANT TO VARIABLE LENGTH FIELD NOT YET HANDLED BY SYSTEM." (J 90.04.01, message 180,00).
-- "Figurative constants may not be moved to fields which are longer than 2^15 - 1 characters" (J 02.04.01). The corresponding diagnostic reads "MOVE OF FIGURATIVE CONSTANT TO FIELD LONGER THAN 32766 CHARACTERS NOT YET HANDLED BY SYSTEM." (J 90.04.01, message 181,00) — an off-by-one against 2^15−1 = 32767; see ambiguity list.
+- "Figurative constants may not be moved to fields which are longer than 2^15 - 1 characters" (J 02.04.01). The corresponding diagnostic reads "MOVE OF FIGURATIVE CONSTANT TO FIELD LONGER THAN 32766 CHARACTERS NOT YET HANDLED BY SYSTEM." (J 90.04.01, message 181,00) — an off-by-one against 2^15−1 = 32767; see the §8.5 catalog.
 - In comparisons (relevant inside TR): "ZERO may be compared to either numeric or alphameric fields. HIGH.VALUE, LOW.VALUE and BLANK may be compared to alphameric fields only" (J 02.04.01).
 
 #### 4.7.5 Other MOVE facts and limits
@@ -1837,7 +1837,7 @@ Declaration side (1960): "All function-names and all parameter-names used in the
 
 #### 4.9.2 F/J divergence: PARAM and FUNCT type codes withdrawn
 
-**F/J divergence:** "These two type codes [PARAM and FUNCT] described in the General Information Manual are no longer in the language" (J 02.05.03). The function *machinery* itself nevertheless survives in the 1962 processor: the compiler's error-message file includes "FUNCTION 'NAME.1' LACKS EXPLICIT SPECIFICATION OF ALL ARGUMENTS." (30,00), "EVALUATION IGNORED FOR FUNCTION 'NAME.1'. TOO MANY ARGUMENTS SPECIFIED." (68,00), and TOO MANY/TOO FEW -USING-/-GIVING- PARAMETERS IN -DO- STATEMENT (72,00–75,00) (J 90.04.01); USING and GIVING remain reserved words (J 02.03.02). The most plausible reading is that in J, parameters and functions are declared as ordinary data description entries (no special type code), while the reference forms — function-name with double-parenthesized arguments, DO/BEGIN SECTION with USING/GIVING — are unchanged; see ambiguity list. Message 30,00 additionally implies that a J function reference must specify **all** arguments explicitly.
+**F/J divergence:** "These two type codes [PARAM and FUNCT] described in the General Information Manual are no longer in the language" (J 02.05.03). The function *machinery* itself nevertheless survives in the 1962 processor: the compiler's error-message file includes "FUNCTION 'NAME.1' LACKS EXPLICIT SPECIFICATION OF ALL ARGUMENTS." (30,00), "EVALUATION IGNORED FOR FUNCTION 'NAME.1'. TOO MANY ARGUMENTS SPECIFIED." (68,00), and TOO MANY/TOO FEW -USING-/-GIVING- PARAMETERS IN -DO- STATEMENT (72,00–75,00) (J 90.04.01); USING and GIVING remain reserved words (J 02.03.02). The most plausible reading is that in J, parameters and functions are declared as ordinary data description entries (no special type code), while the reference forms — function-name with double-parenthesized arguments, DO/BEGIN SECTION with USING/GIVING — are unchanged; see the §8.5 catalog. Message 30,00 additionally implies that a J function reference must specify **all** arguments explicitly.
 
 ### 4.10 Restrictions and limits affecting this section (consolidated)
 
