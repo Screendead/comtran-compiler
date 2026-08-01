@@ -8,8 +8,8 @@
 |---|---|
 | `6aaf8e1` | Original repo: the manual conversions (`comtran-manuals/`) |
 | `d5ad2a2` | **`docs/comtran-language-definition.md`** (the deliverable) + `CLAUDE.md` — *pushed to origin* |
-| `083fd79` | Scan-resolution pass: six disputed readings settled from the page scans — **local, unpushed** |
-| `2331242` | Cross-reference cleanup — **local, unpushed** |
+| `083fd79` | Scan-resolution pass: six disputed readings settled from the page scans |
+| `2331242` | Cross-reference cleanup |
 
 The deliverable is a ~4,250-line, fully-cited definition of historical COMTRAN, structured in nine sections plus an Open Questions list. `CLAUDE.md` records the maintenance rules: **J28-6169 is authoritative over F28-8043**; §8 and Open Questions are living lists (update entries, don't delete); correct the document only against the manuals or their scans; never add implementation material to it.
 
@@ -29,9 +29,9 @@ The deliverable is a ~4,250-line, fully-cited definition of historical COMTRAN, 
 
 ## What's left
 
-### 1. Decisions waiting on Jack
-- **Amend the manual conversions?** `CLAUDE.md` marks them read-only, so five verified defects were recorded in the definition (§8.5.8) but *not* fixed in the conversion files: the item-k note's "(CP)+NN" conjecture (refuted — it's a hyphen + `CP)+NN`); the "nj." note's bleed-through guess (it's real type) and its phantom period (dust); the IR999 note's "1/I identical" premise (false — the face distinguishes them); the editorial closing `)` appended to 90.01.05 item h; and the unflagged "CHKS" token in 90.08.
-- **Push** the two local commits.
+### 1. Decisions waiting on Jack — both resolved 2026-08-01
+- **Manual conversions amended** under a one-time authorization from Jack (who also manually re-confirmed the item-k text, the IR999 reading, and the "nj" mark against the pages): the item-k, IR999, and "nj" conversion notes corrected; `nj` added verbatim to the Input FILE form block; item h's editorial `)` retained but flagged in the note; "SPECIF CHKS" and the message-187 run-on now flagged in their files' notes. The conversions remain read-only per `CLAUDE.md` going forward.
+- **Pushed** by Jack.
 
 ### 2. Optional deepening passes (would resolve more Open Questions)
 - **Mine J Appendix 90.02 systematically.** The generated-code appendix was consulted only opportunistically. A dedicated pass could settle or narrow Q26–28 (rounding of negatives, overflow interaction, intermediate precision), Q31 (SYS)131 behaviour), Q40 (DO return linkage), Q42 (constant folding).
