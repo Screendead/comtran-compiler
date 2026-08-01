@@ -67,18 +67,16 @@ Rules about the blank:
 **Machine character set vs. source character set.** Constants defined in the data description "may include any of the characters in the machine's character set" (F p. 19), which is larger than the twelve source special characters. The J manual exhibits the full machine set via the two collating sequences (J 02.06.16). The 709/7090 native sequence, lowest to highest, is:
 
 ```
-0 through 9  =  '  +  A through I  0̅  .  )  −  J through R  0̅  $  *  blank  /  S through Z
-                                                                              ‡  ,  (
+0 through 9   =   '   +   A through I   ⟨+0⟩   .   )   −   J through R   ⟨−0⟩   $   *   blank   /   S through Z   ⟨rm⟩   ,   (
 ```
 
 and the Commercial (705) sequence, selected by `COLLATE COM` on an Environment OPTION card, is:
 
 ```
-Blank  .  ×  ‡  &  $  *  −  /  ,  %  #  @  0̅  A through I  0̅  J through R  ‡  S through Z
-0 through 9
+Blank   .   ⟨loz⟩   ⟨gm⟩   &   $   *   −   /   ,   %   #   @   ⟨+0⟩   A through I   ⟨−0⟩   J through R   ⟨rm⟩   S through Z   0 through 9
 ```
 
-(both J 02.06.16; the conversion flags the transcription of several special print-train glyphs in these two displays as uncertain — check `J28-6169/images/page-050.png` before relying on the exact identity of the marks rendered `0̅`, `×`, `‡`). Note that `&`, `%`, `#`, `@` and the record/group-mark-type characters exist in the machine set (and hence can occur in data) but are not part of the source-language special-character list. The figurative constants HIGH.VALUE/LOW.VALUE take their values from whichever collating sequence is in effect — see §1.7.4.
+(both J 02.06.16 — **scan-resolved reading**, 2026-08-01: both displays re-read from the source scan at 600 dpi and independently verified; each prints as one logical line — the second physical line in each is a plain wrap. Glyph legend, shapes certain, BCDIC names inferred: `⟨+0⟩` = full-size zero with a plus above it, the 12-0 "plus zero" zone punch; `⟨−0⟩` = zero with a plain bar above it, the 11-0 "minus zero"; `⟨rm⟩` = two-bar double-dagger form, the IBM record mark (0-8-2); `⟨gm⟩` = three-bar form, the IBM group mark; `⟨loz⟩` = the IBM lozenge, a hollow squarish ring with corner spurs. Each letter zone group is followed by its own zone special — A–I by ⟨+0⟩, J–R by ⟨−0⟩, S–Z by ⟨rm⟩ — and the `=` after the digits is a listed collating character, not prose. The conversion's earlier best-effort rendering (`0̅` for both zero forms, `×` and `‡` for the others) under-differentiated these glyphs; see §8.5.8.) Note that `&`, `%`, `#`, `@` and the record/group-mark-type characters exist in the machine set (and hence can occur in data) but are not part of the source-language special-character list. The figurative constants HIGH.VALUE/LOW.VALUE take their values from whichever collating sequence is in effect — see §1.7.4.
 
 **Overpunched digits.** The sign of an external-decimal field is carried as an overpunch (a 12- or 11-zone punch combined with a digit punch in one column). In the manual conversions an overpunched digit is rendered with a combining overline, e.g. `9̅`, `8̅`, `123̅` (see conversion notes to J 02.05.05–02.05.07). **F/J divergence:** F allows the `+`/`-` sign to be "entered as an 'overpunch' with either of the format characters 8 or 9, in either the units or high-order position of a field" (F p. 80); J restricts it: "The only sign specification which may be used for an external decimal field is an overpunched + or - in the rightmost position of the field. A + and - may not appear in the character by itself." (J 02.05.05, note 1). Details of pictorials belong to §3.
 
@@ -127,7 +125,7 @@ Other name-like entities a compiler must recognize:
 - **Division headers** `*PROCEDURE`, `*DATA`, `*ENVIRONMENT` — the division name preceded by an asterisk, written with the asterisk in the left-most name column (column 7); every entry following a header belongs to that division until the next header (F p. 27; F p. 37, rule 1; F p. 65). Division headers must begin with single asterisks (F p. 28, rule 12). Omission of a division header is a catastrophic compile error (J 05.06.01).
 - **`deck.name`** on the $CMPLE compiler control card: "six or less characters chosen from the set appropriate for use in CT names", no imbedded blanks, leading blanks ignored (J 02.01.01). The compiler accepts an imbedded-blank deck.name without comment but the Loader then rejects it (J 90.01.05, B.5).
 - **PROGRAM.START** — a distinguished statement/section name recognized by the 7090 compiler as the execution starting point: "MORE THAN ONE -PROGRAM.START-. FIRST USED."; it "MUST BE A STATEMENT OR SECTION NAME" and "CANNOT BE A STATEMENT OR SECTION NAME ADDRESSED BY A -DO-" (J 90.04, messages 141,00–143,00; also J 90.02). It appears nowhere in F.
-- **Compiler-generated names** contain a right parenthesis, which no programmer name can contain — e.g. `GN)nnn` for unnamed statements/entries in the listing (J 02.02.01), `SYS)294` (J 02.08.03), constant-pool names `-CP)+NN` (J 90.01.05, printed thus), `SRAIJ`-style symbolic registers (J 02.08.02). Also duplicate source names are printed as `1)C`, `2)C` in listings (J 90.02).
+- **Compiler-generated names** contain a right parenthesis, which no programmer name can contain — e.g. `GN)nnn` for unnamed statements/entries in the listing (J 02.02.01), `SYS)294` (J 02.08.03), constant-pool names `CP)+NN` (the "SYM)NNN" generated-name form, J 90.02.03; the leading hyphen printed at J 90.01.05 item k is a dash introducing the notation, not part of the name — see §8.5.8), `SRAIJ`-style symbolic registers (J 02.08.02). Also duplicate source names are printed as `1)C`, `2)C` in listings (J 90.02).
 - **Synonyms** created by the CALL verb are names in the ordinary sense; a synonym must always be a single name rather than a compound name, though it may be applied to a compound name (F p. 59). The (old.name) in CALL must be unique (or made unique by qualifiers) and may not be subscripted (J 02.04.05 §5; J 90.01.01).
 - **F/J divergence:** function-names and parameter-names (with type codes FUNCT and PARAM) are part of the 1960 language (F p. 32–34, p. 72–73); "These two type codes described in the General Information Manual are no longer in the language" (J 02.05.03, §6). See §3.
 
@@ -477,9 +475,9 @@ Compiler control cards (J only): a `$CMPLE` card must precede each source progra
 
 - The Set H quotation mark (4-8 punch) is rendered `'` throughout both conversions (F ch. 2 conversion note).
 - Overpunched digits are rendered with a combining overline (`9̅`, `8̅`, `123̅`); in the J source the overpunch is printed as a small raised +/− above the digit on 02.05.07 but as an overline on 02.05.05 (J ch. 02.05 conversion note).
-- The two collating-sequence displays at J 02.06.16 contain print-train glyphs transcribed only approximately (`0̅`, `×`, `‡`); consult `images/page-050.png` for disputed identities.
+- The two collating-sequence displays at J 02.06.16 contain print-train glyphs the conversion transcribed only approximately (`0̅`, `×`, `‡`); the identities are now scan-resolved — see the legend in §1.1 and §8.5.8.
 - F's subtraction/negation dash is rendered `−` (minus sign) in some F chunks and `-` in others; the `±` in the subscript form `a * VARIABLE ± b` is a distinct glyph in the source (F ch. 2/3 conversion notes).
-- The J example mode indicator "IR999" (J 02.03.03) is a best-effort reading — the typewriter font renders digit 1 and letter I identically (J ch. 02.03 conversion note).
+- The J example mode indicator "IR999" (J 02.03.03) was flagged best-effort by the conversion note; scan-resolved as the letter I — the face distinguishes 1 (flagged) from I (bare stem). See §8.5.8.
 
 ---
 
@@ -1172,7 +1170,7 @@ Chart notes (J 02.05.05):
 
 The 709/7090 storage model, as stated by J:
 
-- **Arithmetic is binary only:** "Arithmetic operations are performed only in the internal (binary) mode." (J 02.03.03) External (BCD) fields entering arithmetic are unpacked and converted each time; the manual's remedy is MOVE-ing them once to an internal-mode area (J 02.03.03 — e.g., the `IR999` field X in the worked example, J 02.03.03/02.03.03.01; note the conversion caveat that `I` vs `1` in "IR999" is a best-effort reading).
+- **Arithmetic is binary only:** "Arithmetic operations are performed only in the internal (binary) mode." (J 02.03.03) External (BCD) fields entering arithmetic are unpacked and converted each time; the manual's remedy is MOVE-ing them once to an internal-mode area (J 02.03.03 — e.g., the `IR999` field X in the worked example, J 02.03.03/02.03.03.01; the `I` is scan-confirmed as the letter I, see §8.5.8).
 - **Internal mode, right justified (R):** the numeric field "appears by itself in the low order positions of a full word (two if double precision) with the sign value in the sign bit of the word." (J 02.05.04)
 - **Internal mode, left justified (L) or unjustified (blank):** "The length of a numeric internal mode fixed point field designated as left justified or without justification specification is the least multiple of 6 bits sufficient to contain the number and its sign (leftmost bit of the field so designated)." (J 02.05.04)
 - **Left justification (any mode):** "reserves storage beginning with the leftmost bit of a new word and extending through as many words and bits as necessary." **No justification** "differs only in that storage reservation begins immediately to the right (within the same word if possible) of the preceding storage reservation" — i.e., packing (J 02.05.04; F p. 79).
@@ -1989,7 +1987,7 @@ Name   Type     Description
 ```
 (J 02.06.16)
 
-The 709/7090 sequence runs (lowest to highest) `0 through 9  =  '  +  A through I  0̅  .  )  −  J through R  0̅  $  *  blank  /  S through Z ...` and the Commercial (705) sequence runs `Blank  .  ...  A through I  ...  J through R  ...  S through Z  0 through 9` (J 02.06.16; the conversion flags several special print-train characters in these two display lines as uncertain — consult images/page-050.png before relying on exact positions of the special characters). Note the operational consequence: under the native 709/7090 sequence *digits collate low and letters high*; under COM, blank collates lowest and digits highest.
+The 709/7090 sequence runs (lowest to highest) `0 through 9 = ' + A–I ⟨+0⟩ . ) − J–R ⟨−0⟩ $ * blank / S–Z ⟨rm⟩ , (` — digits lowest, `(` highest — and the Commercial (705) sequence runs from `Blank` (lowest) through the specials and letters to `0 through 9` (highest) (J 02.06.16; scan-resolved reading — full displays and glyph legend in §1.1). Note the operational consequence: under the native 709/7090 sequence *digits collate low and letters high*; under COM, blank collates lowest and digits highest.
 
 Consistently, the figurative-constant extremes depend on the sequence chosen: "HIGH.VALUE will be considered to be the left parenthesis, (, and LOW.VALUE the zero, 0, unless the Commercial collating sequence (COM) is specified in the Environment Description. The Commercial HIGH.VALUE is 9 and the LOW.VALUE is blank" (J 02.04.01). F defines LOW.VALUE/HIGH.VALUE only abstractly as "the lowest and highest characters in the collating sequence of the system for which the program is written" (F p. 20).
 
@@ -2838,7 +2836,7 @@ file.name   FILE    INPUT    [ ,{BCD}    ]    [ ,{CARD} ]
                      [ record.name.2 . . . ]
 ```
 
-(A faint mark reading approximately "nj." follows `record.name.1` on the source page; it corresponds to no defined syntax element — see the conversion note and page image for J 02.06.03.)
+(The mark "nj" following `record.name.1` on the source page is real typed characters — scan-resolved: not bleed-through, with the apparent trailing period a dust speck; it corresponds to no defined syntax element and is ignored. See §8.5.8.)
 
 General form — output files (J 02.06.03):
 
@@ -3066,16 +3064,14 @@ Name   Type     Description
 - **CONSERVE TIME** — minimum execution time via in-line instructions. "This is the normal mode of operation" (J 02.06.17).
 - **IN section.name** — usable with either CONSERVE or COLLATE; limits the modal specification to a particular section, reverting to the normal mode at the section's end. "There is no restriction on the number of times these modes may be altered" (J 02.06.17).
 
-The two collating sequences, lowest to highest (J 02.06.16; several special print-train glyphs are transcription-uncertain — consult the page image, J28-6169 images/page-050.png):
+The two collating sequences, lowest to highest (J 02.06.16; scan-resolved reading — glyph legend and details in §1.1):
 
 ```
-709/7090:    0 through 9  =  '  +  A through I  0̅  .  )  −  J through R  0̅  $  *  blank  /  S through Z
-                                                                                          ‡  ,  (
+709/7090:    0 through 9   =   '   +   A through I   ⟨+0⟩   .   )   −   J through R   ⟨−0⟩   $   *   blank   /   S through Z   ⟨rm⟩   ,   (
 ```
 
 ```
-Commercial (705):  Blank  .  ×  ‡  &  $  *  −  /  ,  %  #  @  0̅  A through I  0̅  J through R  ‡  S through Z
-                   0 through 9
+Commercial (705):  Blank   .   ⟨loz⟩   ⟨gm⟩   &   $   *   −   /   ,   %   #   @   ⟨+0⟩   A through I   ⟨−0⟩   J through R   ⟨rm⟩   S through Z   0 through 9
 ```
 
 COLLATE COM also changes the figurative constants: HIGH.VALUE is `(` and LOW.VALUE is `0` under the 709/7090 sequence; under COM, HIGH.VALUE is `9` and LOW.VALUE is blank (J 02.04.01; see §2/§4 on figurative constants).
@@ -3422,9 +3418,10 @@ are stated as *approximate* maxima):
 | j | Number of levels in a data hierarchy | 23 |
 | k | Number of generated constants in the constant pool `-CP)+NN` | 500 |
 
-(Item k's `-CP)+NN` is printed exactly so; the conversion note judges it a printing
-artifact of `(CP)+NN`, the constant-pool addressing notation used elsewhere. See
-ambiguity list.) (J 90.01.05)
+(Item k's `-CP)+NN` is printed exactly so; scan check 2026-08-01 resolves it — the
+mark is a plain hyphen, a dash introducing the notation `CP)+NN`, the manual's own
+generated-name form ("SYM)NNN", J 90.02.03), which has no opening parenthesis.
+See §8.5.8.) (J 90.01.05)
 
 Overflow of these tables is reported at compile time by diagnostics 148, 149, 172,
 177, 183, 184, 200–205 (see §8.4).
@@ -3897,7 +3894,7 @@ Every genuine ambiguity, contradiction, or underspecification flagged anywhere i
 #### 8.5.7 Environment, control cards, and processor surface
 
 - ***SPEC blocksize "(0-999)" vs Environment maximum 9999.** The Environment FILE card allows BLOCKSIZE up to 9999 words; the Loader *SPEC card the compiler generates from it is described as "normally a number (0-999)" — in a four-column field (17–20). *Resolution:* a typographical slip for (0-9999): the field is four columns and the compiler must punch Environment blocksizes up to 9999 into it. Honor 9999. (J 03.02.05; J 02.06.04)
-- **"SPECIF CHKS" in Appendix 90.08.** The *FILE-card table sources checkpoint code C from "FILE CHECKPOINT AND SPECIF CHKS"; no SPECIF option CHKS exists. *Resolution:* read CHKS as CHECKC (checkpoint at reel switch on the checkpoint file), which exactly matches code C's meaning; CKSUMS (block checksums) already feeds a different column. (J 90.08.01; J 02.06.11; J 02.06.04)
+- **"SPECIF CHKS" in Appendix 90.08.** The *FILE-card table sources checkpoint code C from "FILE CHECKPOINT AND SPECIF CHKS"; no SPECIF option CHKS exists. Scan check (2026-08-01): the printed token is certainly the four glyphs C-H-K-S — not CHECKC, CKSUMS, or CHKPT, and not truncated (the line ends at the normal right margin with clean paper beyond) — so the error is in the original text, not the transcription. *Resolution:* read CHKS as CHECKC (checkpoint at reel switch on the checkpoint file), which exactly matches code C's meaning; CKSUMS (block checksums) already feeds a different column. (J 90.08.01; J 02.06.11; J 02.06.04; images/page-219.png)
 - **Who assigns the default BUFFERCOUNT.** The POOL text says an unspecified BUFFERCOUNT "will be assigned automatically by the compiler"; the GROUP text says "the loader will attempt to assign at least twice the OPENCOUNT number of buffers to the GROUP"; 02.06.13/02.07.02 credit IOCS/the Loader (02.06.02 says "the processor"). *Resolution:* agency shorthand, not a conflict — the compiler computes and punches default counts into the generated Loader control cards; the loader/IOCS performs the actual allocation. (J 02.06.13–14; J 02.06.02; J 90.08.01–02)
 - **INCLUDE placement "at the end of the present program".** F never anchors "end of program" (relative to STOP RUN, later divisions, or other INCLUDEs). *Resolution:* moot for the implemented language (INCLUDE deferred); for an F-faithful implementation, append in encounter order after the last procedure sentence — consistent with its stated use for closed subroutines "set off from the main flow". (F p. 58; J 90.01.02)
 - **Per-message severity codes are nowhere specified.** The 90.04 listing prints CODE 0 for every message "because the value may vary", and no table assigns the 210 messages their actual severities 1–5 — though severity determines deck production, compile-and-go, and abort. *Resolution:* severities must be assigned by consequence stated in each message's text: auto-repair warnings ("PERIOD ASSUMED", "ZERO COUNT… REPLACED BY ONE") plausibly 1; deletions/"NOTHING DONE" 2–4; unrecoverable conditions (internal errors, table overflow, read errors) 5. "May vary" may even mean one message carries different severities in different contexts. (J 90.04.01–02; J 02.01.01)
@@ -3912,16 +3909,16 @@ Every genuine ambiguity, contradiction, or underspecification flagged anywhere i
 
 #### 8.5.8 Transcription and printing artifacts (conversion-level cautions)
 
-These are uncertainties in the *scans or the printed originals*, not in the language. Consult the cited page images before relying on the affected readings.
+These are uncertainties in the *scans or the printed originals*, not in the language. A scan-resolution pass was run on 2026-08-01 — the disputed pages were re-read at 400–600 dpi from the source PDF, with the two most load-bearing results independently verified — and each entry below records its outcome.
 
-- **Collating-sequence special characters.** Several 709/7090 print-train glyphs in the native and Commercial (705) collating displays could not be transcribed with certainty (rendered `0̅`, `×`, `‡` as best effort). The alphameric portions are certain; for the special characters consult `J28-6169/images/page-050.png` (and contemporary 7090 BCD tables) before fixing COLLATE-affecting behaviour. The uncertain glyphs cannot appear in legal source text outside literals/constants. (J 02.06.16 and conversion note; F p. 12)
+- **Collating-sequence special characters — resolved by scan (2026-08-01).** The page-050 displays were re-read at 600 dpi and independently verified; the full sequences and glyph legend are now in §1.1. The conversion's `0̅` stood for two *distinct* glyphs (the 12-0 "plus zero" and 11-0 "minus zero" zone specials); its `×` for the IBM lozenge (a hollow ring with corner spurs, not a multiplication sign); and the commercial line's first `‡` for a *three*-bar group mark, distinct from the two-bar record mark. Glyph shapes are certain; only the BCDIC names are inference. Confirmed: `(` highest and `0` lowest natively; blank lowest and `9` highest under COM. The specials cannot appear in legal source text outside literals/constants. (J 02.06.16; images/page-050.png)
 - **External Decimal row of the J field-type chart.** The transcribed "Legitimate Format Characters" cell reads `9 (n) SV9̅ or 9̅ in rightmost character` — a run-together reading of a ruled chart. Read as: characters 9, (n), S, V, with "9̅ or 9̅" being the minus- and plus-overpunched 9 (distinct glyphs in the scan, both rendered `9̅` under the conversion's overline convention), permitted only in the rightmost character — consistent with chart note 1 and the parallel Edited-field cell. (J 02.05.05 and conversion note; images/page-031.png)
-- **The "IR999" mode example.** J 02.03.03's example field is transcribed `IR999`; the typewriter face renders digit 1 and letter I identically. Read as letter I (internal mode) + R (right justify) + pictorial 999 — the passage is about moving external data "to an area which has been defined with the mode as internal" for right-justified internal arithmetic (cf. "converted to internal form right justified", J 02.04.05, and "converted to this internal right justified", J 02.05.04). (J 02.03.03 and conversion note; J 02.04.05; J 02.05.04)
-- **Stray "nj." in the Input FILE general form.** A faint 2–3 character mark after record.name.1 corresponds to no syntax element; the conversion note judges it print bleed-through. Ignore. (J 02.06.03; images/page-037.png)
-- **Missing comma before record.name.2 in the Input FILE form.** The Input form prints `[ record.name.2 . . . ]` where the Output form prints `[ ,record.name.2 . . . ]`. Treat the comma as required (or at least accepted) in both — every other 02.06 option is comma-separated; almost certainly a layout accident. (J 02.06.03–04)
-- **90.08 density table sources both H and L from "HIGH".** Original printing error: L derives from SPECIF LOW (default HIGH). (J 90.08.01 and conversion note; J 02.06.10)
-- **Message 187's garbled tail.** As printed: "CONDITIONAL EXPRESSION TEST CAPACITY EXCEEDED. REWRITE AS TWO OR MORE SEPARATE EXPRESSIONS, EACH WITH ILLEGAL SENTENCE STRUCTURE NOTHING DONE." — most plausibly the continuation line merged with msg 196's text in the printed listing. The implied rule stands: conditional expressions have bounded test capacity and oversized ones must be split. (J 90.04.01 msgs 187, 196)
-- **90.01.05 item k `-CP)+NN`.** A printing artifact of `(CP)+NN`, the constant-pool addressing notation. (J 90.01.05 and conversion note)
+- **The "IR999" mode example — resolved by scan.** The disputed first character is the letter I, settled visually: in this face (proportional, not typewriter) the digit 1 carries a top-left flag and runs 11–13 px wide at 400 dpi, while the letter I is a bare 9-px stem; the disputed glyph is a bare 9-px stem, and the reserved word UNIT1 on the same page shows both forms side by side as an internal control. The conversion note's premise that the face renders 1 and I identically is false for this page. The internal-mode semantics (I = internal, R = right justify, pictorial 999 — cf. "converted to internal form right justified", J 02.04.05, and "converted to this internal right justified", J 02.05.04) are corroboration, not the basis. (J 02.03.03; J 02.04.05; J 02.05.04; images/page-015.png)
+- **Stray "nj." in the Input FILE general form — resolved by scan.** Not bleed-through: the mark is two full-strength, right-reading, baseline-locked lowercase letters `nj`, really typed on the page (show-through and set-off print mirrored, and the 1-bit scan cannot carry faint ghosts); the transcribed trailing "." is an 8-pixel dust speck, a fraction of the ink of a real period on the same line. Why "nj" was typed is unrecoverable (stray keystroke, abandoned annotation, or erasure remnant); it corresponds to no syntax element and is ignored for syntax. (J 02.06.03; images/page-037.png)
+- **Missing comma before record.name.2 in the Input FILE form — print confirmed by scan.** The asymmetry is exactly as transcribed: the Input form's bracket contains no comma (nothing of comma size inside it at 400 dpi), while the Output form's `[ ,record.name.2 . . . ]` comma is full-size. Treat the comma as required (or at least accepted) in both — every other 02.06 option is comma-separated; almost certainly a layout accident of the printed box. (J 02.06.03–04; images/page-037.png)
+- **90.08 density table sources both H and L from "HIGH" — print confirmed by scan.** The two source cells are geometrically identical impressions of HIGH (0.87 pixel overlap after 1-px alignment; the correctly printed LOW elsewhere on the page is visibly narrower and differently shaped), excluding a faint or damaged LOW — a genuine original printing error. L derives from SPECIF LOW (default HIGH). (J 90.08.01; J 02.06.10; images/page-219.png)
+- **Message 187's garbled tail — resolved by scan: a defect of the original 1962 listing, not the conversion.** Message 187 spans two print lines; its continuation is one unbroken 95-character line on a continuous character grid — `REWRITE AS TWO OR MORE SEPARATE EXPRESSIONS, EACH WITH ILLEGAL SENTENCE STRUCTURE NOTHING DONE.` — with a normal single-space word gap at the "WITH|ILLEGAL" junction (no splice, no overprint). 187's own wording truncates mid-phrase after "EACH WITH", and the appended 40 characters are byte-identical to message 196's text — evidently the message-print routine ran on into 196's stored text. The implied rule stands: conditional expressions have bounded test capacity and oversized ones must be split. (J 90.04.01 msgs 187, 196; images/page-185.png)
+- **90.01.05 item k `-CP)+NN` — prior conjecture refuted by scan (independently verified).** The mark before CP is a plain hyphen (23×8 px at 400 dpi, metrically identical to the "Appox-Max" hyphen; every parenthesis on the page runs ~14–16×49–56 px), and `(CP)+NN` is not a form this manual uses anywhere: the compiler-generated-name form is "SYM)NNN" with a bare right parenthesis — "In the case of constants (CP references), the designation CP)+NN is used" (J 90.02.03) — used throughout the 90.05 listing. Read item k as "Number of generated constants in the constant pool — CP)+NN", the dash introducing the notation. Same scan check: the closing ")" the transcription prints at the end of item h is editorial — the original never closes the parenthesis opened at "(each unique combination". (J 90.01.05; J 90.02.03; images/page-137.png)
 - **Cross-reference errata.** J 02.04.06 refers to the SPECIF card as "(Section 02.07)" — read 02.06. (J 02.04.06; J 02.06.07)
 
 ---
@@ -4180,7 +4177,7 @@ Questions that remain after studying both manuals end to end — things neither 
 20. What does Justify = L or R on a group (non-format-level) entry do — honored, ignored, or applied to the group as an alphameric whole? (J 02.05.04 D.3; msg 39)
 21. May V and the true decimal point `.` coexist in one pictorial, and how do S, V, and `.` interact in edited output? Each character is defined separately; no combination rules are given. (F p. 80; J 02.05.05)
 22. How are COND values other than quoted one-character constants handled (figurative constants, unquoted values)? All examples show quoted single characters. (F p. 72; J 02.05.02)
-23. What collating sequence governs alphameric comparison of *data* under the native option — F gives only blank-then-digits for serial checking and defers alphabetics to "the particular machine system". (F p. 67; J 02.06.16)
+23. What collating sequence governs alphameric comparison of *data* under the native option — F gives only blank-then-digits for serial checking and defers alphabetics to "the particular machine system" (F p. 67). **Resolved (scan check, 2026-08-01):** the native J 02.06.16 display, now fully read (§1.1), governs on the 7090 — digits lowest (0 = LOW.VALUE) rising through the letters to `(` (HIGH.VALUE) highest; only the BCDIC names of the zone specials remain inferred. (F p. 67; J 02.06.16; images/page-050.png)
 24. What happens at object time when a QUANTITY IN value exceeds the compile-time Quantity reservation? J says no execute-time check is made against the Quantity value, implying silent overrun — nowhere confirmed for this case. (J 02.05.04)
 25. Do editing characters (`8 $ * ,` …) have any meaning on input-describing pictorials, or only when the field is a target of MOVE/SET editing? (F p. 80; J 02.05.05; J 02.04.06–07)
 
@@ -4245,5 +4242,5 @@ Questions that remain after studying both manuals end to end — things neither 
 
 71. What do non-zero clause digits in statement numbers (e.g. 219,03) look like in a real error listing? The sample compiles clean, so only ,00 forms appear. (J 02.02.01; J 90.05)
 72. What was the MASTER field TRIGGERS (pictorial AAA) for? Declared, pads NAME to a word boundary, never referenced — presumably reserved switch positions. (J 90.05 listing PDF p. 192)
-73. Does the native 709 collating sequence place `(` (HIGH.VALUE) above the digits, as the sample's sentinel less-than routing requires? Confirm against the page-050 scan. (J 02.04.01; J 02.06.16; J 90.05)
+73. Does the native 709 collating sequence place `(` (HIGH.VALUE) above the digits, as the sample's sentinel less-than routing requires? **Resolved (scan check, 2026-08-01): yes** — `(` is the final, highest character of the native sequence, above all letters and digits (independently verified on the page-050 scan); the sentinel idiom is sound. (J 02.04.01; J 02.06.16; images/page-050.png)
 74. Was F's serial-number sequence-checking claim ever true of any processor, given J disclaims it and the sample deck carries no serials? (F p. 37; J 02.03.01; J 90.05)
