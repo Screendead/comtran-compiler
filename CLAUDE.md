@@ -11,6 +11,11 @@ Markdown conversions of the two surviving IBM manuals, in `comtran-manuals/`.
 These conversions are the ground truth for all language-definition work; treat
 them as read-only reference material, not as documentation to be "improved".
 
+## Rules for you
+
+- When running in Ultracode mode, you must always hand-pick models for each worker in a workflow, using the least-powerful model that will have enough capability to do the job. Use your judgement. Do not spawn workflows with 15 Fable agents.
+- Make branches and commits and PRs as appropriate. Use short, imperative, jargonless commit messages. Make atomic commits - each component should "work" (serve its purpose) in each commit. No broken half-commits.
+
 ## The language definition
 
 `docs/comtran-language-definition.md` is the **working language reference** for
