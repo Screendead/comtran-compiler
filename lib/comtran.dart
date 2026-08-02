@@ -28,4 +28,6 @@ export 'src/cards/canon_codec.dart';
 export 'src/cards/card_image.dart';
 export 'src/cards/text_codec.dart';
 export 'src/chars/char_code.dart';
+export 'src/lexer/source_card.dart';
+export 'src/lexer/source_program.dart';
 export 'src/version.dart';
