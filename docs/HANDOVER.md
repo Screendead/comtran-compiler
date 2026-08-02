@@ -10,6 +10,7 @@
 | `d5ad2a2` | **`docs/comtran-language-definition.md`** (the deliverable) + `CLAUDE.md` — *pushed to origin* |
 | `083fd79` | Scan-resolution pass: six disputed readings settled from the page scans |
 | `2331242` | Cross-reference cleanup |
+| `f1bd24e` → `390c0df` | **Deepening passes** (merged as PR #1, 2026-08-02): 16 Open Questions annotated with adversarially verified evidence; catalog and §8.5.8 kept in step |
 
 The deliverable is a ~4,250-line, fully-cited definition of historical COMTRAN, structured in nine sections plus an Open Questions list. `CLAUDE.md` records the maintenance rules: **J28-6169 is authoritative over F28-8043**; §8 and Open Questions are living lists (update entries, don't delete); correct the document only against the manuals or their scans; never add implementation material to it.
 
@@ -43,8 +44,17 @@ Sixteen Open Questions now carry verified annotations. Newly **resolved**: Q12 (
 - **Raw agent outputs** (drafts, adversarial verdicts, scout page-maps, 9PAC Part 1 notes): `docs/research-2026-08-01-interrupted.md`. External scans used (all bitsavers, re-downloadable): `pdf/ibm/7090/C28-6100-2_7090_IOCS.pdf`, `pdf/ibm/7090/22-6528-4_7090Manual.pdf`, `pdf/ibm/7090/J28-6166_9PAC_Part1_1961.pdf`, `pdf/ibm/705/A22-6506-0_705_Reference_Man_May59.pdf`, `pdf/ibm/1401/A24-1403-5_1401_Reference_Apr62.pdf`, plus the 705 pocket code card 22-6642-0.
 - Everything else in Open Questions is either an implementation decision (severity values, unstated limits) or genuinely unrecoverable.
 
-### 3. The actual mission: the compiler (not started)
-The definition was deliberately design-free. Next steps when design begins: commit to the target language (the definition recommends **J**, the 1962 field-test language, with F-only features as documented-but-unimplemented); then architecture, in new documents — never inside the definition. The §8.5 catalog doubles as the semantic-decision checklist, and §8.4's diagnostic-implied rules as a de-facto conformance list.
+### 3. The actual mission: the compiler — roadmap (updated 2026-08-02, not started)
+
+The definition stays design-free; all design work goes in new documents under `docs/` (suggested: `docs/design/`), never inside the definition. The §8.5 catalog doubles as the semantic-decision checklist, and §8.4's diagnostic-implied rules are the de-facto conformance list. Sequence:
+
+- **M0 — Commitments** (`docs/design/decisions.md`). Target language: **J**, the 1962 field-test language, with F-only features treated as documented-but-unimplemented (the definition's recommendation). Walk §8.5 end to end recording one decision per entry, citing the entry. Up-front decisions that are Jack's to make: implementation language; backend strategy (emit C / LLVM / interpreter-first); fidelity level — behavioral decimal-and-BCD semantics vs bit-faithful 36-bit emulation (recommendation: behavioral, going bit-faithful only where the definition makes it observable, e.g. collating sequences, truncation/rounding, field overflow); character-set representation and both collating sequences (§1.1); how tape files, labels, and PATTERN map onto modern files.
+- **M1 — Card reader, lexer, listing.** Column-aware source model (serials 1–6, procedure-name margin 7–12, text 13–72, continuation rules), reserved words (F App. 2 + J key-word lists), compound names, literals. First observable output: the compilation listing format. First test input: the 90.05 sample deck, re-keyed from the transcription.
+- **M2 — Parser + diagnostics**, all three divisions plus control cards; statement numbering (`n,cc`); the 90.04 message catalog as the diagnostic vocabulary (severity values are ours to assign — Open Question 65).
+- **M3 — Data Description semantics**: levels, pictorials, type codes, storage mapping (definition §3, corroborated by the 90.05-derived layout evidence), REDEF, QUANTITY.
+- **M4 — Core-verb code generation**: MOVE/SET/IF/WHEN/GO TO/DO — DO per the verified Q40 return-cell semantics (including its non-reentrancy), arithmetic per §4.3 and the Q26–28 annotations.
+- **M5 — I/O runtime**: OPEN/CLOSE/GET/FILE, buffering and locate-mode semantics, AT END/ON ERROR per Q41, labels per Q45/Q46 at the M0-chosen fidelity, DISPLAY and report output.
+- **M6 — Acceptance**: compile and run the 90.05 payroll sample end to end and reproduce the manual's printed report output (PDF p. 217); second corpus, F's payroll example with the documented F/J divergences applied (§9.8).
 
 ## Pointers
 
