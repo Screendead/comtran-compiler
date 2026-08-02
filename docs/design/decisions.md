@@ -10,11 +10,12 @@ definition: (F p. N) / (J xx.xx.xx) / (J 90.05 listing, PDF p. NNN).*
 
 - **D0 (top-level slate): locked with Jack, 2026-08-02.**
 - **D1–D9 (the §8.5 walk + the §8.4 severity/conformance decisions): recorded
-  2026-08-02**, adversarially verified; 84 records. Five carry an
-  **OPEN — needs Jack** marker and bind nothing until he answers: D4.1
-  (MOVPAK round-step emission), D6.1 and D9.12 (PATTERN reconstruction),
-  D7.11 (deck.name blanks default), D9.7 (table-capacity policy; D9.6
-  follows it).
+  2026-08-02**, adversarially verified; 84 records. Jack's calls, 2026-08-02:
+  PATTERN (D6.1/D9.12 — bind rules now, syntax at M5), deck.name blanks
+  (D7.11 — accept silently, --pedantic warns), and table capacities
+  (D9.7/D9.6 — hard-enforce the printed numbers) are **resolved**; D4.1
+  (MOVPAK round-step emission) is **deliberately deferred — decide no later
+  than M4**.
 
 ## D0 — Top-level slate (Jack's calls, locked 2026-08-02)
 
@@ -110,7 +111,9 @@ the 1962 compilation listing, "report" = the printed payroll register,
 "decision-conformance only" = no surviving oracle — the decision itself is the
 spec). Anything labelled a "design decision", "D0.4 decision", or
 "non-historical" is unattested and amendable; it is our choice, not history.
-Records marked **OPEN — needs Jack** await his call and bind nothing yet.
+Records opening with a **Resolved by Jack** note carry his dated call; a
+record marked **OPEN — deferred** binds nothing yet and names the milestone
+by which it must be decided.
 The definition's §8.5 remains the evidence record; this section is the design
 record built on it.*
 
@@ -340,7 +343,7 @@ record built on it.*
 
 ### D4.1 — Rounding: threshold stated, edge cases not
 
-> **OPEN — needs Jack:** Part (d): when does codegen emit a MOVPAK round step? J attests five round step-subroutines but no algorithm and no emission rule, and the sample emits none, so three readings are open: (i) SET stores through a step-list package round, MOVE stores truncate (this record's choice, keyed to F p. 44 for SET and F p. 42 for MOVE); (ii) any step-list package that must discard digits rounds, MOVE included (Open Question 26 notes the four MOVE-serving packages are precisely the ones carrying round steps); (iii) the default mode never emits a round step. No oracle can decide between them — the 90.05 sample exercises no step-list package that discards low-order digits. The choice changes emitted object code for a whole verb class. Confirm (i), or pick another.
+> **OPEN — deferred by Jack, 2026-08-02; decide no later than M4 codegen.** Part (d): when does codegen emit a MOVPAK round step? J attests five round step-subroutines but no algorithm and no emission rule, and the sample emits none, so three readings are open: (i) SET stores through a step-list package round, MOVE stores truncate (this record's provisional choice, keyed to F p. 44 for SET and F p. 42 for MOVE); (ii) any step-list package that must discard digits rounds, MOVE included (Open Question 26 notes the four MOVE-serving packages are precisely the ones carrying round steps); (iii) the default mode never emits a round step. No oracle can decide between them — the 90.05 sample exercises no step-list package that discards low-order digits. The choice changes emitted object code for a whole verb class. Presented 2026-08-02; Jack chose to leave it open, so part (d) stays provisional and M4 must not treat it as settled.
 
 **Decision.** Default SET rounding is a half-adjust away from zero, applied at the store only.
 
@@ -598,7 +601,7 @@ record built on it.*
 
 ### D6.1 — The PATTERN option — used but never defined
 
-> **OPEN — needs Jack:** PATTERN's keyword syntax is unrecoverable from the manuals (Open Question 44), but msgs 48–50 and `GET RECORD FROM file.name` prove the option existed in the field-test compiler. Do you want (a) an invented FILE-card form — `PATTERN record.name.1, … record.name.n`, 1–16 names, msg 48 for an empty list, msg 49 warning for a single name, msg 50 above 16 — clearly marked non-historical, so GET RECORD FROM is usable; or (b) PATTERN rejected and GET RECORD FROM left documented-but-unimplemented until evidence appears?
+> **Resolved by Jack, 2026-08-02:** per D9.12 — bind the attested rules now and reserve the key word with the non-historical recognized-but-not-implemented diagnostic; adopt an invented, clearly-marked FILE-card syntax at M5 (option (a), deferred to D6/M5). GET RECORD FROM becomes usable when M5 lands that syntax.
 
 **Decision.** Implement PATTERN as a FILE-card option that declares the repeating sequence of record.names on the file, so the compiler knows each record's successor without control words. PATTERN is the precondition for `GET RECORD FROM file.name`. Accept 1 to 16 record.names, with the attested diagnostics mapped one to one: an empty PATTERN takes msg 48,00 "NO RECORDS SPECIFIED IN -PATTERN- ON -FILE- CARD FOR 'NAME.1'."; exactly one record.name is accepted and warned with msg 49,00 "SINGLE RECORD IN THE -PATTERN- ON -FILE- CARD FOR 'NAME.1'. INEFFICIENT PROGRAM PRODUCED."; more than 16 takes msg 50,00 "NUMBER OF RECORDS IN -PATTERN- CANNOT EXCEED 16.". Message severities are unknown (Open Question 65: the listing prints 0 throughout and no assignment table survives), so ours are a recorded, non-historical assignment. The exact keyword syntax is unrecoverable (Open Question 44), so our surface form is an invented, documented and amendable decision: the FILE-card option `PATTERN record.name.1, record.name.2, … record.name.n`, following the same option grammar as the other FILE-card options. Every use is marked non-historical in our documentation.
 
@@ -806,7 +809,7 @@ record built on it.*
 
 ### D7.11 — Deck.name with imbedded blanks
 
-> **OPEN — needs Jack:** This record departs from the definition's written Resolution for this entry. §8.5.7 says "At minimum warn"; the slate's field-test-default rule says default mode must reproduce the attested lenient behavior (accept without comment) and move strictness to --pedantic. Confirm the departure, and confirm that §8.5.7's Resolution should be amended to record the default / --pedantic split rather than left in conflict with this record.
+> **Resolved by Jack, 2026-08-02:** the departure is confirmed — default mode accepts silently (the attested field-test behavior, D0.8); --pedantic warns. The definition's §8.5.7 entry is deliberately left unannotated: its evidence is unchanged and the definition stays design-free, so this record is the design supersession of its "at minimum warn" sentence.
 
 **Decision.** In default mode, reproduce the field-test compiler's attested lenient behavior exactly: accept a deck.name containing imbedded blanks with no compile-time diagnostic, and punch it verbatim into columns 1-6 of all generated Loader symbolic control cards. Our CT Loader then implements the documented downstream failure — it refuses execution of the object program for a deck.name of this form (J 90.01.05 B.5). Leading blanks are a separate matter and are simply ignored by the compiler (J 02.01.01); only imbedded blanks are at issue. In --pedantic mode the parser emits a compile-time warning, since J 02.01.01 states the name "must not include imbedded blanks".
 
@@ -1028,7 +1031,7 @@ record built on it.*
 
 ### D9.6 — Message 187: the garbled tail
 
-> **OPEN — tied to D9.7:** this record follows the table-capacity policy answer.
+> **Tied to D9.7, resolved with it 2026-08-02:** this record follows the hard-enforcement policy.
 
 **Decision.** Store message 187 as the truncated text that ends after EACH WITH, and do not append message 196's text when we issue the diagnostic. Record the run-on in the message table as a note about the 1962 appendix, not as behavior. Keep the implied rule: a conditional expression has a bounded internal test capacity, and an oversized one must be split into separate expressions. The capacity value is our design decision (see the internal-table record), because no number is printed.
 
@@ -1042,7 +1045,7 @@ record built on it.*
 
 ### D9.7 — Internal-table capacity diagnostics (msgs 148, 149, 172, 177, 183, 184, 200-205)
 
-> **OPEN — needs Jack:** Default table-capacity policy: do you want the 90.01.05 "Appox-Max" numbers enforced in the default mode with each threshold set at the printed number (my recommendation, so that a program which compiles for us would have compiled in 1962, at the cost of over-rejecting in the unknown band above the printed number), with a non-historical --no-table-limits switch to lift them? Or should the limits be advisory (message issued, compilation continues) so that larger programs are usable out of the box?
+> **Resolved by Jack, 2026-08-02:** hard-enforce — each threshold set at the printed "Appox-Max" number, diagnosed with the attested overflow messages, so a program that compiles for us would have compiled in 1962 (over-rejecting in the unknown band above the printed number); the non-historical --no-table-limits switch lifts them.
 
 **Decision.** Enforce the 90.01.05 capacities in the default mode, with each threshold set at the printed number, and issue the matching message when a program exceeds one. Our compiler has no 1962 tables, so each limit becomes an explicit counter checked at the point where the 1962 compiler would have overflowed. Message-to-limit map, taken from 90.01.05: 149 from b) sections 35; 204 from c) edited field formats 35; 202 from d) base locators 127; 200 from e) QUANTITY IN specifications 25; 183 from g) index expressions 50; 184 and 205 from h) positional indicators 90; 203 from i) array dimensions 85; 201 from j) levels in a data hierarchy 23; 172 from k) generated constants in the constant pool 500. Message 200 takes the printed 25 of item e: Open Question 67 asks whether msg 200 counts the 25-item QUANTITY IN table or a distinct counter, and Open Question 14 states that only nested-section depth (18) and the internal dictionary (3500) have no visible message, which leaves item e with msg 200 as its only candidate diagnostic. The distinct-counter reading is not excluded and the table row carries that note. Message 148 (alphabetic-constant length) takes a documented limit derived from the constant pool, per the §8.5.7 resolution "Maximum alphabetic-constant length": constants live in the pool whose capacity is about 500 generated constants (J 90.01.05 k), so the cap is a share of that table; the share we pick is ours and is marked non-historical. Only two limits keep a wholly invented number, both marked non-historical: 177 (sentence capacity, Open Question 9) and 187 (conditional-expression test capacity). Two 90.01.05 limits have no 1962 message at all: f) nested-section depth 18 and a) internal dictionary 3500 (Open Question 14). For those we raise a non-historical diagnostic with a distinct id outside the 0-209 range, severity 5, flagged in the listing and in the table as having no 1962 counterpart; we do not reuse an attested id for a condition the 1962 listing never named. A non-historical switch (--no-table-limits) disables the whole class for users who want to compile larger programs; it is off by default. All invented and derived numbers live in the same reviewable table as the severities.
 
@@ -1104,7 +1107,7 @@ record built on it.*
 
 ### D9.12 — PATTERN rules with no recoverable syntax (msgs 48, 49, 50)
 
-> **OPEN — needs Jack:** PATTERN has attested rules (2 to 16 records, single-record warning) but no recoverable card syntax (§8.5.6, Open Question 44). I propose to bind the rules now, reserve the key word with a clearly non-historical "recognized but not implemented" diagnostic, and defer the syntax to D6/M5, where any form we adopt is marked a non-historical reconstruction. Do you agree, or would you rather we never accept PATTERN at all and let GET RECORD FROM stay limited to files whose record length is determinable by other means?
+> **Resolved by Jack, 2026-08-02:** as proposed — bind the rules now, reserve the key word with the clearly non-historical "recognized but not implemented" diagnostic, defer the syntax to D6/M5 where any adopted form is marked a non-historical reconstruction.
 
 **Decision.** Do not invent a PATTERN card syntax at M0. Bind the three rules now, and defer the syntax to D6 (input/output) at M5: a PATTERN names 2 to 16 records; a PATTERN with no record name gives message 48; a PATTERN with one record gives message 49 and compiles; more than 16 records gives message 50. Until a syntax is fixed, reserve the key word PATTERN in the FILE-card reader and emit a clearly marked non-historical diagnostic with an id outside the 0-209 range ("PATTERN option recognized but not implemented; see D6"). Do NOT emit message 96 (THERE IS AN ILLEGAL WORD IN THE -FILE- CARD.) or message 89 (-FILE- CARD FORMAT ERROR.) for the word PATTERN: §8.5.6 establishes PATTERN as a real FILE-card option, so an attested message would carry a false claim about 1962-valid source. GET RECORD FROM file.name remains unavailable for pattern files until the syntax lands. Any syntax we later adopt is a non-historical reconstruction and must be marked as such wherever it appears.
 
