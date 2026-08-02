@@ -4,7 +4,7 @@
 
 ## Where things stand
 
-The language-recovery phase is **done**: `docs/comtran-language-definition.md` is a complete, fully cited, adversarially verified definition of COMTRAN, with its §8.5 ambiguity catalog and Open Questions list current (8 of 74 resolved, 10 narrowed; the rest are implementation decisions or genuinely unrecoverable). The manual conversions in `comtran-manuals/` are read-only ground truth. **There is no compiler code yet.** See `README.md` for orientation.
+The language-recovery phase is **done**: `docs/comtran-language-definition.md` is a complete, fully cited, adversarially verified definition of COMTRAN, with its §8.5 ambiguity catalog and Open Questions list current (8 of 74 resolved, 10 narrowed; the rest are implementation decisions or genuinely unrecoverable). The manual conversions in `comtran-manuals/` are read-only ground truth. **M0 is done**: `docs/design/decisions.md` holds the locked D0 slate, the verified D1–D9 walk (84 records), and Jack's calls on the items that needed them (one deliberate deferral: D4.1, decide by M4). The Dart package (`comtran`) is scaffolded with CI; **no compiler passes exist yet**. See `README.md` for orientation.
 
 ## Rules that bind future work
 
@@ -25,13 +25,19 @@ The language-recovery phase is **done**: `docs/comtran-language-definition.md` i
 
 **First concrete task — DONE (2026-08-02): the 90.05 sample deck is re-keyed** as `tests/90.05-payroll.deck` (293 cards, program lines only, column layout measured from the page scans line by line; provenance, layout facts, reconstruction decisions, and residual ±1-space caveats in `tests/90.05-payroll-deck-notes.md`). It is the only surviving COMTRAN program with known-correct output (the printed report, PDF p. 217), so it makes every milestone below immediately testable.
 
-- **M0 — Commitments** (`docs/design/decisions.md`). Target language: **J**, with F-only features documented-but-unimplemented (the definition's recommendation). Walk §8.5 end to end, one recorded decision per entry; §8.4's diagnostic-implied rules serve as the conformance list. Jack's calls, up front: implementation language; backend strategy (emit C / LLVM / interpreter-first); fidelity level (recommended: behavioral decimal-and-BCD semantics, bit-faithful only where the definition makes machine behavior observable — collating, truncation/rounding, overflow, DO non-reentrancy); character-set representation and both §1.1 collating sequences; how tape files, labels, and PATTERN map onto modern files.
-- **M1 — Card reader, lexer, listing.** Column model (serials 1–6, procedure-name margin 7–12, text 13–72, continuation), reserved words (F App. 2 + J key-word lists), compound names, literals; first observable output is the compilation listing. Test input: the re-keyed deck.
+- **M0 — Commitments** (`docs/design/decisions.md`) — **DONE 2026-08-02.** The D0 slate is locked: target language J; implementation in Dart; backend = real 7090 object code on our own emulator with a high-level-emulated SYS)/IOC) runtime; evidence-bounded bit-faithfulness; punch-level canonical decks with generated text mirrors; the 1962 listing diff as the codegen oracle. The §8.5 walk and §8.4 conformance/severity decisions are recorded as D1–D9 (drafted, adversarially verified, repaired); Jack's calls on PATTERN (bind rules now, syntax at M5), deck.name blanks (accept silently; `--pedantic` warns), and table capacities (hard-enforce the printed numbers) are recorded in place. One deliberate deferral remains: **D4.1, the MOVPAK round-step emission rule — decide no later than M4.**
+- **M1 — Card reader, lexer, listing.** Column model (serials 1–6, procedure-name margin 7–12, text 13–72, continuation), reserved words (F App. 2 + J key-word lists), compound names, literals; first observable output is the compilation listing. Test input: the re-keyed deck. **Exit criteria (D0.5):** the punch-level card-image format is frozen; the T1 converter round-trips it losslessly against the text form; the 90.05 canon file is generated and becomes authoritative, with the text deck re-created as a CI-slaved mirror.
 - **M2 — Parser + diagnostics** for all three divisions plus control cards; statement numbering (`n,cc`); the 90.04 message catalog as the diagnostic vocabulary.
 - **M3 — Data Description semantics**: levels, pictorials, type codes, storage mapping (definition §3, corroborated by the 90.05 layout evidence), REDEF, QUANTITY.
 - **M4 — Core-verb code generation**: MOVE/SET/IF/WHEN/GO TO/DO — DO per the verified Q40 return-cell semantics (including non-reentrancy), arithmetic per §4.3 and the Q26–28 annotations.
 - **M5 — I/O runtime**: OPEN/CLOSE/GET/FILE, buffering and locate mode, AT END/ON ERROR per Q41, labels per Q45/Q46 at the M0-chosen fidelity, DISPLAY and report output.
 - **M6 — Acceptance**: compile and run the 90.05 payroll sample end to end and reproduce its printed report output (PDF p. 217); second corpus, F's payroll example with the documented F/J divergences applied (§9.8).
+
+Parallel tooling track (shares the compiler's card-image core; blocks nothing in M2–M6):
+
+- **T1 — Deck CLI** (`deckconv`): convert canon ↔ text mirror, validate, diff, regenerate mirrors; doubles as the pre-commit hook, CI freshness check, and git textconv driver. Lands with M1 (it is M1's exit criterion).
+- **T2 — VS Code punchcard editor**: webview custom editor over canon files — punch holes per card code, interpreted row, field rulers per division form. Startable any time after the M1 format freeze.
+- **T3 — MCP server + skill**: structured read/write of canon decks for agents, wrapping the same core as T1/T2.
 
 ## Pointers
 
