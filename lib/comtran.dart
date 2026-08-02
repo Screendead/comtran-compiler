@@ -26,6 +26,7 @@ library;
 
 export 'src/cards/canon_codec.dart';
 export 'src/cards/card_image.dart';
+export 'src/cards/deck_files.dart';
 export 'src/cards/text_codec.dart';
 export 'src/chars/char_code.dart';
 export 'src/version.dart';
