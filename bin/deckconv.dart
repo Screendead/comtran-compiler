@@ -22,7 +22,12 @@ Usage: dart run comtran:deckconv <command> ...
                                     and that its committed mirror is fresh
 ''';
 
-Future<int> main(List<String> arguments) async {
+void main(List<String> arguments) {
+  // Dart discards main's return value; the exit status must be set explicitly.
+  exitCode = _run(arguments);
+}
+
+int _run(List<String> arguments) {
   if (arguments.isEmpty) {
     stderr.write(_usage);
     return 2;
@@ -79,7 +84,13 @@ int _regen(List<String> args) {
     stderr.write(_usage);
     return 2;
   }
-  for (final String canonPath in _findCanonFiles(args)) {
+  _requireExists(args);
+  final List<String> canonFiles = _findCanonFiles(args);
+  if (canonFiles.isEmpty) {
+    stderr.writeln('error: no canon files found under: ${args.join(' ')}');
+    return 1;
+  }
+  for (final String canonPath in canonFiles) {
     File(
       _mirrorPathFor(canonPath),
     ).writeAsStringSync(deckToMirror(_readCanon(canonPath)));
@@ -99,31 +110,35 @@ int _check(List<String> args) {
     failures++;
   }
 
-  for (final String canonPath in _findCanonFiles(args)) {
-    final Uint8List bytes = File(canonPath).readAsBytesSync();
-    final List<CardImage> deck;
+  _requireExists(args);
+  final List<String> canonFiles = _findCanonFiles(args);
+  final List<String> mirrorFiles = _findFiles(args, '.deck');
+  if (canonFiles.isEmpty && mirrorFiles.isEmpty) {
+    fail('no canon or mirror files found under: ${args.join(' ')}');
+  }
+  for (final String canonPath in canonFiles) {
     try {
-      deck = decodeCanon(bytes);
-    } on FormatException catch (e) {
-      fail('$canonPath: ${e.message}');
-      continue;
-    }
-    final String text = deckToMirror(deck);
-    final Uint8List roundTrip = encodeCanon(mirrorToDeck(text));
-    if (!_bytesEqual(roundTrip, bytes)) {
-      fail('$canonPath: mirror text does not round-trip to the same bytes');
-      continue;
-    }
-    final mirror = File(_mirrorPathFor(canonPath));
-    if (!mirror.existsSync()) {
-      fail('$canonPath: mirror ${mirror.path} is missing');
-    } else if (mirror.readAsStringSync() != text) {
-      fail('${mirror.path}: stale mirror — regenerate with deckconv regen');
-    } else {
-      stdout.writeln('OK: $canonPath');
+      final Uint8List bytes = File(canonPath).readAsBytesSync();
+      final List<CardImage> deck = decodeCanon(bytes);
+      final String text = deckToMirror(deck);
+      final Uint8List roundTrip = encodeCanon(mirrorToDeck(text));
+      if (!_bytesEqual(roundTrip, bytes)) {
+        fail('$canonPath: mirror text does not round-trip to the same bytes');
+        continue;
+      }
+      final mirror = File(_mirrorPathFor(canonPath));
+      if (!mirror.existsSync()) {
+        fail('$canonPath: mirror ${mirror.path} is missing');
+      } else if (mirror.readAsStringSync() != text) {
+        fail('${mirror.path}: stale mirror — regenerate with deckconv regen');
+      } else {
+        stdout.writeln('OK: $canonPath');
+      }
+    } on Object catch (e) {
+      fail('$canonPath: $e');
     }
   }
-  for (final String mirrorPath in _findFiles(args, '.deck')) {
+  for (final String mirrorPath in mirrorFiles) {
     final String canonPath =
         '${mirrorPath.substring(0, mirrorPath.length - '.deck'.length)}.ctdeck';
     if (!File(canonPath).existsSync()) {
@@ -136,8 +151,22 @@ int _check(List<String> args) {
 List<CardImage> _readCanon(String path) =>
     decodeCanon(File(path).readAsBytesSync());
 
-String _mirrorPathFor(String canonPath) =>
-    '${canonPath.substring(0, canonPath.length - '.ctdeck'.length)}.deck';
+String _mirrorPathFor(String canonPath) {
+  if (canonPath.split(Platform.pathSeparator).last == '.ctdeck') {
+    throw FormatException(
+      'canon file has no name before its extension: $canonPath',
+    );
+  }
+  return '${canonPath.substring(0, canonPath.length - '.ctdeck'.length)}.deck';
+}
+
+void _requireExists(List<String> paths) {
+  for (final String path in paths) {
+    if (FileSystemEntity.typeSync(path) == FileSystemEntityType.notFound) {
+      throw FileSystemException('no such file or directory', path);
+    }
+  }
+}
 
 List<String> _findCanonFiles(List<String> paths) =>
     _findFiles(paths, '.ctdeck');
@@ -149,7 +178,9 @@ List<String> _findFiles(List<String> paths, String extension) {
       final Iterable<File> files = Directory(path)
           .listSync(recursive: true)
           .whereType<File>()
-          .where((File f) => f.path.endsWith(extension));
+          .where(
+            (File f) => f.path.endsWith(extension) && !_inHiddenDir(f.path),
+          );
       found.addAll(files.map((File f) => f.path));
     } else if (path.endsWith(extension)) {
       found.add(path);
@@ -157,6 +188,13 @@ List<String> _findFiles(List<String> paths, String extension) {
   }
   return found..sort();
 }
+
+// Skips .git, .dart_tool, and the like when a directory is searched.
+bool _inHiddenDir(String path) => path
+    .split(Platform.pathSeparator)
+    .any(
+      (String part) => part.length > 1 && part != '..' && part.startsWith('.'),
+    );
 
 bool _bytesEqual(Uint8List a, Uint8List b) {
   if (a.length != b.length) {

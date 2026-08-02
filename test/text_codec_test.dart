@@ -117,5 +117,13 @@ void main() {
         File('tests/90.05-payroll.deck').readAsStringSync(),
       );
     });
+
+    test('canon to mirror to canon reproduces the bytes exactly', () {
+      final bytes = File('tests/90.05-payroll.ctdeck').readAsBytesSync();
+      expect(
+        encodeCanon(mirrorToDeck(deckToMirror(decodeCanon(bytes)))),
+        bytes,
+      );
+    });
   });
 }

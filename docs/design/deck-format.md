@@ -23,12 +23,12 @@ mirrors are fresh (see §6).
   `2`, … `9`. Rows 12 and 11 are the upper **zone** rows; row 0 serves as both
   a zone row and a digit row.
 - **Card code** — the set of punched rows in one column, written as row names
-  joined by hyphens in top-to-bottom order, e.g. `12-8-5`. A column with no
-  punches is **blank**.
+  joined by hyphens in top-to-bottom order, e.g. `12-5-8` (row 5 sits above
+  row 8). A column with no punches is **blank**.
 - **BCD readout** — the 6-bit character code that a column yields under the
   read rules of §4. The codes in this document are the 709/7090 **core
   storage** codes (external: 22-6528-4 p. 80), not the tape codes; the two
-  differ only in the zone bits, by a fixed table (§4.4).
+  differ in the zone bits and in the code for zero (§4.4).
 
 ## 2. Canon format (`.ctdeck`)
 
@@ -131,29 +131,37 @@ blanks.
 A column reads as zone bits + digit bits.
 
 **Zone bits** (core storage): no zone punch → `00`; punch 12 → `01`; punch
-11 → `10`; punch 0-as-zone → `11`. A blank column reads `110000` (blank is a
-character). (External: 22-6528-4 p. 80 — numeric `00`, A–I `01`, J–R `10`,
-S–Z `11`.)
+11 → `10`; punch 0-as-zone → `11`. (External: 22-6528-4 p. 80 — numeric
+`00`, A–I `01`, J–R `10`, S–Z `11`.) A blank column reads `110000` (blank is
+a character); the value is fixed by the §4.2 anchor — blank sits between `*`
+and `/` in J's native order.
 
 **Digit bits**: no digit punch → `0000`; a single punch 1–9 → its binary
-value; punch 0 as a digit (alone, or under zone 12 or 11) → `1010`; the
-combinations 8-2 … 8-7 → `1010` … `1111` (the sum of the two punches).
-(External: 22-6528-4 p. 80 — digits are "their exact values as binary
-integers", zero is the `1010` code, altered to `000000` for the bare digit
-zero; the 8-3/8-4 pairing for specials, p. 104.)
+value (external: 22-6528-4 p. 80 — "their exact values as binary integers");
+the combinations 2-8 … 7-8 → `1010` … `1111`, the sum of the two punches
+(only 3-8 and 4-8 are period-attested — 22-6528-4 p. 104 and fig. 83; the
+2-8/5-8/6-8/7-8 extension is arithmetic extrapolation, and those rows are
+marked unattested in §4.3). The 0 punch reads three ways: **alone**, it is
+the digit zero and the column reads `000000` (fig. 83 p. 103, the 0-zone
+no-digit cell); **under zone 12 or 11**, it is a digit with value `1010`
+(the tape-zero configuration, 22-6528-4 p. 80); **above a digit part** (1–9
+or an 8-combination), it is the zone punch.
 
-**One special translation**: `12-5-8` reads `011111` — the 705 group mark.
-The 705 character chart puts the group mark at internal `1111`, and IBM's own
-1401 note distinguishes this 705 code `12-5-8` from the 1401's `12-7-8`
-(external: A22-6506-0 p. 8; 22-6642-0 front panel; A24-1403-5 p. 170 note 1).
-COMTRAN's Commercial collating sequence is the 705's, so the 705 translation
-governs (definition §8.5.8). Consequence, recorded as a design decision: the
-arithmetic value `1101` under zone 12 (octal 35) has no card code, and
+**One special translation — itself a recorded design decision**: `12-5-8`
+reads `011111`, the 705 group mark. No source states what 709/7090 card
+conversion yields for this combination. We adopt the 705 translation because
+COMTRAN's Commercial collating sequence is the 705's, the 705 character
+chart puts the group mark at internal `1111`, its card chart puts it at
+`12-5-8`, and IBM's own 1401 note distinguishes that code from the 1401's
+`12-7-8` (external: A22-6506-0 p. 8; 22-6642-0 front panel; A24-1403-5
+p. 170 note 1; definition §8.5.8). Consequences, equally design decisions:
+the arithmetic value `1101` under zone 12 (octal 35) has no card code, and
 `12-7-8` is **not** a legal combination in this system.
 
 **Legal combinations.** A column is BCD-readable when its punches are one
 zone part (none, `12`, `11`, or `0`) plus one digit part (none, `0`, `1` …
-`9`, `8-2` … `8-7`), with two provisos: `0-0` is impossible (one row cannot
+`9`, `2-8` … `7-8`), where a lone `0` punch is the digit zero per the
+three-way rule above, with two provisos: `0-0` is impossible (one row cannot
 punch twice), and `12-7-8` has **no** readout — its arithmetic value `1111`
 under zone 12 is the group mark, whose only card code here is the 705's
 `12-5-8` (`7-8`, `11-7-8`, and `0-7-8` keep the arithmetic rule; all three
@@ -161,10 +169,11 @@ are unattested rows in §4.3). Every other pattern — e.g. two digit punches
 without an 8, or two zone punches — has no readout; a card containing such a
 column is not BCD-readable (it is an object-deck or illegal-punch card).
 
-Two collisions are inherent in the code and documented by IBM: `0` and `8-2`
-both give digit value `1010`, and (under our 705 rule) nothing gives `1101`
-under zone 12. The **canonical card code** column of §4.3 resolves every
-collision one way for writing; reading accepts every legal combination.
+One collision is inherent in the code: `0` and `2-8` both give digit value
+`1010`, so `12-0`/`12-2-8` and `11-0`/`11-2-8` each share a code. One gap
+follows from our 705 rule: nothing gives `1101` under zone 12. The
+**canonical card code** column of §4.3 resolves the collisions one way for
+writing; reading accepts every legal combination.
 
 ### 4.2 Verification anchor
 
@@ -173,7 +182,10 @@ J 02.06.16's native 709/7090 collating sequence, scan-resolved in definition
 reproduces that list **exactly, character for character**. The 13 codes
 absent from J's display are the 12 unattested rows below plus the group
 mark, which J lists only in the Commercial sequence. This cross-check is the
-evidence that binds the external code table to COMTRAN's manuals.
+evidence that binds the external code table to COMTRAN's manuals. Its scope:
+it confirms the 51 rows the native display lists, and it cannot confirm the
+group mark (octal 37) — that row rests on the 705 chart plus the COLLATE COM
+identification, per §4.1's design decision.
 
 ### 4.3 The 64 codes
 
@@ -187,37 +199,37 @@ total; they are design-decision rows.
 |---|---|---|---|---|
 | 00 | `0` | `0` | — | digit zero (tape stores 12; core 00) |
 | 01–11 | `1` … `9` | `1` … `9` | — | digits one through nine |
-| 12 | `8-2` | — | — | unattested; the tape-zero code, unreachable from a BCD tape read |
-| 13 | `8-3` | `=` | `#` | equal sign |
-| 14 | `8-4` | `'` | `@` | quotation mark (the literal delimiter) |
-| 15 | `8-5` | — | — | unattested |
-| 16 | `8-6` | — | — | unattested |
-| 17 | `8-7` | — | — | unattested; equals the tape mark on tape |
+| 12 | `2-8` | — | — | unattested; the tape-zero code, unreachable from a BCD tape read |
+| 13 | `3-8` | `=` | `#` | equal sign |
+| 14 | `4-8` | `'` | `@` | quotation mark (the literal delimiter) |
+| 15 | `5-8` | — | — | unattested |
+| 16 | `6-8` | — | — | unattested |
+| 17 | `7-8` | — | — | unattested; equals the tape mark on tape |
 | 20 | `12` | `+` | `&` | plus sign |
 | 21–31 | `12-1` … `12-9` | `A` … `I` | — | letters A through I |
 | 32 | `12-0` | — | ⟨+0⟩ | plus zero (machine special) |
-| 33 | `12-8-3` | `.` | — | period / decimal point |
-| 34 | `12-8-4` | `)` | ⟨loz⟩ | right parenthesis; prints as the lozenge on 705-set chains |
+| 33 | `12-3-8` | `.` | — | period / decimal point |
+| 34 | `12-4-8` | `)` | ⟨loz⟩ | right parenthesis; prints as the lozenge on 705-set chains |
 | 35 | *(none)* | — | — | unattested; displaced by the 705 group-mark translation (§4.1) |
-| 36 | `12-8-6` | — | — | unattested |
-| 37 | `12-8-5` | — | ⟨gm⟩ | group mark (machine special; 705 card code) |
+| 36 | `12-6-8` | — | — | unattested |
+| 37 | `12-5-8` | — | ⟨gm⟩ | group mark (machine special; 705 card code) |
 | 40 | `11` | `-` | — | minus sign |
 | 41–51 | `11-1` … `11-9` | `J` … `R` | — | letters J through R |
 | 52 | `11-0` | — | ⟨−0⟩ | minus zero (machine special) |
-| 53 | `11-8-3` | `$` | — | dollar sign |
-| 54 | `11-8-4` | `*` | — | multiplication sign |
-| 55 | `11-8-5` | — | — | unattested |
-| 56 | `11-8-6` | — | — | unattested |
-| 57 | `11-8-7` | — | — | unattested |
+| 53 | `11-3-8` | `$` | — | dollar sign |
+| 54 | `11-4-8` | `*` | — | multiplication sign |
+| 55 | `11-5-8` | — | — | unattested |
+| 56 | `11-6-8` | — | — | unattested |
+| 57 | `11-7-8` | — | — | unattested |
 | 60 | *(blank)* | blank | — | blank |
 | 61 | `0-1` | `/` | — | division sign |
 | 62–71 | `0-2` … `0-9` | `S` … `Z` | — | letters S through Z |
-| 72 | `0-8-2` | — | ⟨rm⟩ | record mark (machine special) |
-| 73 | `0-8-3` | `,` | — | comma |
-| 74 | `0-8-4` | `(` | `%` | left parenthesis |
-| 75 | `0-8-5` | — | — | unattested |
-| 76 | `0-8-6` | — | — | unattested |
-| 77 | `0-8-7` | — | — | unattested |
+| 72 | `0-2-8` | — | ⟨rm⟩ | record mark (machine special) |
+| 73 | `0-3-8` | `,` | — | comma |
+| 74 | `0-4-8` | `(` | `%` | left parenthesis |
+| 75 | `0-5-8` | — | — | unattested |
+| 76 | `0-6-8` | — | — | unattested |
+| 77 | `0-7-8` | — | — | unattested |
 
 The five machine specials (octal 32, 37, 52, 72, and the lozenge reading of
 34) occur in COMTRAN data and collating but have no Set H glyph; a source
@@ -240,7 +252,10 @@ this document uses core codes.
   digit values, zero, tape mark; p. 103 — figs. 82 (alternate type-wheel
   characters) and 83 (punched card code); p. 104 — 8-3/8-4 special pairing.
 - F p. 12 — the twelve Set H source specials with card codes; the same-code,
-  different-glyph note. All twelve agree with fig. 83.
+  different-glyph note. All the card codes agree with fig. 83; one glyph
+  differs — fig. 83 (the standard/FORTRAN print set) shows `-` at code `4-8`
+  where Set H prints `'` — which is exactly the same-code, different-glyph
+  effect F p. 12 note 1 describes.
 - J 02.06.16 via definition §1.1 — both collating sequences; the §4.2 anchor.
 - Definition §8.5.8 — the scan-resolved machine-special names and card codes,
   from A22-6506-0 p. 8, 22-6642-0, and A24-1403-5 p. 170.

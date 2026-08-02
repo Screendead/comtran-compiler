@@ -11,18 +11,28 @@ final class CardImage {
 
   /// A card from 80 column values, copied.
   CardImage.fromColumns(Iterable<int> columns)
-    : _columns = Uint16List.fromList(List.of(columns)) {
-    if (_columns.length != columnCount) {
+    : _columns = Uint16List(columnCount) {
+    var i = 0;
+    for (final int c in columns) {
+      // Validate before storing: Uint16List would silently truncate.
+      if (c < 0 || c > 0xFFF) {
+        throw ArgumentError.value(c, 'columns', 'a column holds 12 bits');
+      }
+      if (i >= columnCount) {
+        throw ArgumentError.value(
+          columns,
+          'columns',
+          'a card has exactly $columnCount columns',
+        );
+      }
+      _columns[i++] = c;
+    }
+    if (i != columnCount) {
       throw ArgumentError.value(
-        _columns.length,
+        i,
         'columns',
         'a card has exactly $columnCount columns',
       );
-    }
-    for (final int c in _columns) {
-      if (c > 0xFFF) {
-        throw ArgumentError.value(c, 'columns', 'a column holds 12 bits');
-      }
     }
   }
 
