@@ -1,0 +1,293 @@
+      *COMPILE LIST                                   CT PUBLICATIONS
+      *DATA
+      MASTER           1RECORD      L
+        DAT            2
+          EMPLOYEE.NUM 3                                               X
+                   BER
+            DEPARTMENT 4             AA
+            EMPLOYEE   4             AAAA
+          NAME         3             A(15)
+        TRIGGERS       2             AAA
+        RATE           2           IR99V999
+        DATE           2
+          MONTH        3             AA
+          DAY          3             AA
+          YEAR         3             AA
+        EXEMPTIONS     2           IR99
+        TOTALS         2
+          GROSS        3           IR9(4)V99
+          RETIREMENT   3           IR999V99
+          INSURANCE    3           IR999V99
+        FICA           2           IR999V99
+        WHT            2           IR9(4)V99
+        BONDEDUCTION   2           IR99V99
+        BONDACCUMULATI 2           IR999V99                            X
+                    ON
+        BONDENOMINATIO 2           IR999V99                            X
+                     N
+      DETAIL          01RECORD
+       EMPLOYEE.NUMBER02
+        DEPARTMENT    03             AA
+        EMPLOYEE      03             AAAA
+       DATE           02
+        MONTH         03             AA
+        DAY           03             AA
+        YEAR          03             AA
+       HOURS          02             99V9
+      CHECK           01RECORD
+       CNTRLCHAR      02             A '1'
+       DATE           02
+        MONTH         03             AA
+                      03             A '-'
+        DAY           03             AA
+                      03             A '-'
+        YEAR          03             AA
+                      03             A(30) ' '
+       EMPLOYEE.NUMBER02             A(6)
+       ENDFRSTLINE    02RCDMRK       A
+       CNTRLCHARSECLIN02             A '2'
+       NAME           02             A(18)
+                      02             A(20) ' '
+       AMOUNT         02             $8889.99
+      PAYRECORD        1RECORD
+       EMPLOYEE.NUMBER 2
+        DEPARTMENT     3             AA
+                       3             A ' '
+        EMPLOYEE       3             AAAA
+                       3             A ' '
+       NAME            2             A(15)
+                       2             A ' '
+       DATE            2
+        MONTH          3             AA
+                       3             A '-'
+        DAY            3             AA
+                       3             A '-'
+        YEAR           3             AA
+                       2             AAA ' '
+       HRS             2             8889.9
+                       2             AA ' '
+       GROSS           2             88889.99
+                       2             AA ' '
+       WHT             2             88889.99
+                       2             AA ' '
+       FICA            2             8889.99
+                       2             AA ' '
+       BONDEDUCTION    2             8889.99
+                       2             AA ' '
+       INS.PREM        2             8889.99
+                       2             AA ' '
+       RET.PREM        2             8889.99
+                       2             AAA ' '
+       NETPAY          2             8889.99
+                       2             AA ' '
+       BONDENOMINATION 2             88889.99
+      DEPARTMENT.TOTAL 1RECORD
+                       2             A(21) '          DEPARTMENT '
+       CURRENT.DEPT    2             AA
+                       2             A(12) ' TOTALS     '
+       HOURS           2             8889.9
+                       2             AA ' '
+       GROSS           2             88889.99
+                       2             AA ' '
+       WHT             2             88889.99
+                       2             AA ' '
+       FICA            2             8889.99
+                       2             AA ' '
+       BONDEDUCTION    2             8889.99
+                       2             AA ' '
+       INSURANCE       2             8889.99
+                       2             AA ' '
+       RETIREMENT      2             8889.99
+                       2             AA ' '
+       NETPAY          2             88889.99
+                       2             AA ' '
+       BONDPURCHASES   2             88889.99
+      BONDORDER        1RECORD
+                       2             A ' '
+        DAT            2
+          EMPLOYEE.NUM 3             A(6)                              X
+                   BER
+                       3             A ' '
+          NAME         3             A(15)
+                       3             A ' '
+        BONDENOMINATIO 2             899V99                            X
+                     N
+                       2             A ' '
+        DATE           2             A(6)
+      ERROROUT         1RECORD
+        ERRORTYPE      2             A
+        INFO           2             A(23)
+      WORKING          1
+        GROSS          2           IR9(5)V99
+        RETIREMENT     2           IR9(4)V99
+        INSURANCE      2           IR9(4)V99
+        FICA           2           IR9(4)V99
+        WHT            2           IR9(5)V99
+        NETPAY         2           IR9(5)V99
+        HOURS          2           IR99V9
+        INDEX          2           IR99
+        POS            2           IR99
+      INTERNAL.TOTALS  1
+       HOURS           2           IR9999V9
+       GROSS           2           IR9(5)V99
+       WHT             2           IR9(5)V99
+       FICA            2           IR9(4)V99
+       BONDEDUCTION    2           IR9(4)V99
+       INSURANCE       2           IR9(4)V99
+       RETIREMENT      2           IR9(4)V99
+       NETPAY          2           IR9(5)V99
+       BONDPURCHASES   2           IR9(5)V99
+      GRAND.TOTALS     1
+       HOURS           2           IR9(4)V9
+       GROSS           2           IR9(5)V99
+       WHT             2           IR9(5)V99
+       FICA            2           IR9(4)V99
+       BONDEDUCTION    2           IR9(4)V99
+       INSURANCE       2           IR9(4)V99
+       RETIREMENT      2           IR9(4)V99
+       NETPAY          2           IR9(5)V99
+       BONDPURCHASES   2           IR9(5)V99
+      TABLE            1
+                       2           IR9(5) '00999'
+                       2             '080060'
+                       2           IR9(5) '01499'
+                       2             '100060'
+                       2           IR9(5) '01999'
+                       2             '120090'
+                       2           IR9(5) '02499'
+                       2             '150090'
+                       2           IR9(5) '02999'
+                       2             '150120'
+                       2           IR9(5) '03499'
+                       2             '200120'
+                       2           IR9(5) '03999'
+                       2             '200150'
+                       2           IR9(5) '04499'
+                       2             '250150'
+                       2           IR9(5) '04999'
+                       2             '300180'
+                       2           IR9(5) '06499'
+                       2             '300250'
+                       2           IR9(5) '07999'
+                       2             '300350'
+                       2           IR9(5) '99999'
+                       2             '300500'
+                        REDEF        TABLE
+      TABLE.ITEM       1         12
+      RATE             2           IR99V999
+      INSPREM          2             9V99
+      RETPREM          2             9V99
+      *ENVIRONMENT
+      INPUTMASTER       FILE  INPUT,BINARY,TAPE,MASTER,BLOCKSIZE 300
+                        SPECIFINPUTMASTER, UNIT1 'D1',OPENW,CLOSER
+      OUTPUTMASTER      FILE  OUTPUT,BINARY,TAPE,MASTER,BLOCKSIZE 300
+                        SPECIFOUTPUTMASTER, UNIT1 'C1',OPENW,CLOSER
+      DETAILFILE        FILE  INPUT,BCD,TAPE,DETAIL,BLOCKSIZE 3
+                        SPECIFDETAILFILE,UNIT1 'C2',OPENW,CLOSER,LOW
+      CHECKFILE         FILE  OUTPUT,BCD,TAPE,CHECK,BLOCKSIZE 20
+                        SPECIFCHECKFILE,UNIT1 'D2',OPENW,CLOSER,LOW
+      PAYFILE           FILE  OUTPUT,BCD,TAPE,PAYRECORD,               X
+                              DEPARTMENT.TOTAL,BLOCKSIZE 20
+                        SPECIFPAYFILE,  UNIT1 'D3',OPENW, CLOSER,LOW
+      BONDORDERFILE     FILE  OUTPUT,BCD,TAPE,BONDORDER,BLOCKSIZE 6
+                        SPECIFBONDORDERFILE,UNIT1 'C3',OPENW,CLOSER,LOW
+      ERRORFILE         FILE  OUTPUT,BCD,TAPE,ERROROUT,BLOCKSIZE 6
+                        SPECIFERRORFILE,UNIT1 'D4',OPENW,CLOSER,LOW
+       *PROCEDURE
+            CALL (MASTER EMPLOYEE.NUMBER)   M.EMP.NO,
+                 (DETAIL EMPLOYEE.NUMBER)   D.EMP.NO,
+                 (DETAIL DEPARTMENT)        D.DEPT,
+                 (MASTER BONDEDUCTION)      M.BND.DED,
+                 (MASTER BONDACCUMULATION)  M.BND.ACC.
+      START.          OPEN ALL FILES,
+            MOVE ZEROS TO INTERNAL.TOTALS, GRAND.TOTALS,
+            GET MASTER, AT END DO END.OF.MASTERS.
+            MOVE MASTER DEPARTMENT TO CURRENT.DEPT,  GO TO GET.DETAIL.
+      GET.MASTER.  GET MASTER, AT END DO END.OF.MASTERS.
+      GET.DETAIL.  GET DETAIL, AT END GO TO END.OF.DETAILS.
+      COMPARE.EMPLOYEE.NUMBERS.  GO TO CHECK.NEW.DEPT WHEN D.EMP.NO =
+            M.EMP.NO,  LOW.DETAIL WHEN D.EMP.NO LT M.EMP.NO.
+      HIGH.DETAIL.  MOVE 'M' TO ERRORTYPE,  MOVE MASTER DAT  TO
+            ERROROUT INFO,
+            FILE ERROROUT.
+            GET MASTER, AT END DO END.OF.MASTERS.
+            GO TO COMPARE.EMPLOYEE.NUMBERS.
+      LOW.DETAIL. MOVE DETAIL TO ERROROUT INFO, MOVE 'D' TO ERRORTYPE,
+            FILE ERROROUT,
+            GO TO GET.DETAIL.
+      END.OF.MASTERS.  IF D.EMP.NO = HIGH.VALUE THEN GO TO END.OF.RUN
+            OTHERWISE SET M.EMP.NO = HIGH.VALUE.
+      END.OF.DETAILS.  IF M.EMP.NO = HIGH.VALUE THEN GO TO END.OF.RUN
+            OTHERWISE SET D.EMP.NO = HIGH.VALUE,  GO TO HIGH.DETAIL.
+      END.OF.RUN.  DO DEPARTMENT.END,
+            MOVE CORRESPONDING GRAND.TOTALS TO PAYRECORD,
+            MOVE GRAND.TOTALS HOURS TO PAYRECORD HRS,
+            MOVE GRAND.TOTALS INSURANCE TO PAYRECORD INS.PREM,
+            MOVE GRAND.TOTALS RETIREMENT TO PAYRECORD RET.PREM,
+            MOVE 'GT' TO PAYRECORD DEPARTMENT,
+            MOVE  BLANKS TO PAYRECORD NAME, PAYRECORD EMPLOYEE,
+            PAYRECORD MONTH, PAYRECORD DAY, PAYRECORD YEAR,
+            MOVE GRAND.TOTALS BONDPURCHASES TO PAYRECORD
+            BONDENOMINATION,  FILE PAYRECORD,
+            CLOSE ALL FILES,  STOP RUN.
+      CHECK.NEW.DEPT.  IF CURRENT.DEPT IS NOT EQUAL TO D.DEPT THEN
+            DO DEPARTMENT.END OTHERWISE GO TO COMPUTE.PAY.
+            MOVE ZEROS TO INTERNAL.TOTALS,
+            MOVE D.DEPT TO CURRENT.DEPT.
+      COMPUTE.PAY.  MOVE DETAIL DATE TO MASTER DATE,  MOVE DETAIL
+            HOURS TO WORKING HOURS, PAYRECORD HRS.
+            IF WORKING HOURS GT 40.0 THEN SET WORKING GROSS = (WORKING
+            HOURS * 1.5 -20) * MASTER RATE OTHERWISE SET WORKING
+            GROSS = WORKING HOURS * MASTER RATE.
+            DO FICA.ROUTINE,
+            DO WITHOLDING.TAX.ROUTINE.
+            IF M.BND.DED IS NOT EQUAL TO ZERO THEN DO BOND.ROUTINE
+            OTHERWISE MOVE BLANKS TO PAYRECORD BONDEDUCTION,PAYRECORD
+            BONDENOMINATION.
+            DO SEARCH FOR INDEX = 1(1)12.
+      NET.  SET WORKING NETPAY = WORKING GROSS - WORKING FICA - WORKING
+            WHT - WORKING RETIREMENT - WORKING INSURANCE - M.BND.DED.
+            ADD CORRESPONDING WORKING TO MASTER TOTALS, INTERNAL.TOTALS,
+            MOVE CORRESPONDING DETAIL TO PAYRECORD, CHECK,
+            MOVE CORRESPONDING WORKING TO PAYRECORD,
+            MOVE MASTER NAME TO PAYRECORD NAME, CHECK NAME,
+            MOVE WORKING NETPAY TO CHECK AMOUNT,
+            FILE CHECK,
+            FILE PAYRECORD,
+            FILE MASTER.
+            GO TO GET.MASTER.
+      FICA.ROUTINE.  BEGIN SECTION.
+            SET WORKING FICA = .03 * WORKING GROSS,
+            ADD WORKING FICA TO MASTER FICA.
+            IF MASTER FICA GT 144.00 THEN SET WORKING FICA = WORKING
+            FICA - (MASTER FICA - 144.00), SET MASTER FICA = 144.00.
+            END FICA.ROUTINE.
+      WITHOLDING.TAX.ROUTINE.  BEGIN SECTION.
+            SET WORKING WHT = 0.18 * (WORKING GROSS - 13 * MASTER
+            EXEMPTIONS),
+            SET WORKING WHT = WORKING WHT * TR(WORKING WHT GT 0),
+            ADD WORKING WHT TO MASTER WHT.
+            END WITHOLDING.TAX.ROUTINE.
+      BOND.ROUTINE.  BEGIN SECTION.
+            ADD M.BND.DED TO M.BND.ACC,INTERNAL.TOTALS BONDEDUCTION.
+            MOVE M.BND.DED TO PAYRECORD BONDEDUCTION.
+            IF MASTER BONDENOMINATION NOT GT M.BND.ACC THEN SET
+            M.BND.ACC = M.BND.ACC - MASTER BONDENOMINATION OTHERWISE
+            MOVE BLANKS TO PAYRECORD BONDENOMINATION,  GO TO BOND.END.
+            MOVE CORRESPONDING MASTER TO BONDORDER,  ADD BONDORDER
+            BONDENOMINATION TO INTERNAL.TOTALS BONDPURCHASES,MOVE
+            BONDORDER BONDENOMINATION TO PAYRECORD BONDENOMINATION.
+            FILE BONDORDER.
+      BOND.END.  END BOND.ROUTINE.
+      SEARCH.  BEGIN SECTION.
+            IF MASTER RATE GT TABLE.ITEM RATE (INDEX) THEN GO TO
+            SEARCH.END OTHERWISE MOVE INDEX TO POS,
+            MOVE INSPREM (POS) TO INS.PREM, WORKING INSURANCE,
+            MOVE RETPREM (POS) TO RET.PREM, WORKING RETIREMENT,
+            GO TO NET.
+      SEARCH.END.  END SEARCH.
+      DEPARTMENT.END. BEGIN SECTION.
+            MOVE CORRESPONDING INTERNAL.TOTALS TO DEPARTMENT.TOTAL,
+            FILE DEPARTMENT.TOTAL,
+            ADD CORRESPONDING INTERNAL.TOTALS TO GRAND.TOTALS.
+            END DEPARTMENT.END.
