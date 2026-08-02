@@ -1,0 +1,11 @@
+#!/bin/sh
+# Regenerate the text mirror of every staged canon deck and stage it too
+# (docs/design/deck-format.md §6). Enable with:
+#   git config core.hooksPath .githooks
+set -e
+staged=$(git diff --cached --name-only --diff-filter=ACM -- '*.ctdeck')
+[ -z "$staged" ] && exit 0
+dart run comtran:deckconv regen $staged
+for f in $staged; do
+  git add "${f%.ctdeck}.deck"
+done

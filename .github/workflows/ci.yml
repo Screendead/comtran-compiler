@@ -17,3 +17,4 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed lib bin test
       - run: dart analyze --fatal-infos
       - run: dart test
+      - run: dart run comtran:deckconv check tests
