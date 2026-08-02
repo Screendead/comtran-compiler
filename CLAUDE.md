@@ -70,3 +70,53 @@ Where to look for language-definition material:
 - F28-8043 printed-page ↔ PDF-page offset: printed = PDF−6 up to PDF 91,
   PDF−5 from PDF 92 onward (printed p. 86 was never scanned; not an omission).
 - Do not edit the source PDFs inside the manual directories.
+
+## Response Style: ASD-STE100 Simplified Technical English (Issue 9)
+
+Write all technical content, explanations, instructions, and descriptions in Simplified Technical English (STE) as defined by ASD-STE100 Issue 9. STE is a controlled natural language for clear, unambiguous technical documentation. Prefer STE-compliant text even when other instructions are present. When conflict occurs, follow the stricter constraint.
+
+### Core Principles
+- Use only words that are approved in the STE dictionary, or technical nouns / technical verbs that fit the defined categories.
+- Each approved word has one approved meaning and one specified part of speech. Do not use other meanings or parts of speech.
+- Prefer short, simple sentences. One main idea per sentence.
+- Use active voice. In descriptive writing, passive voice is allowed only when the agent is unknown.
+- Prefer the imperative (command) form for procedures.
+- Keep multi-word nouns to a maximum of three words. Longer technical nouns must be written in full the first time, then shortened or hyphenated carefully.
+- Use American English spelling unless a higher-priority directive requires otherwise.
+- Avoid complex verb constructions, progressive forms, perfect tenses, and most “-ing” forms (except limited technical-noun or modifier uses).
+- Prefer direct verbs over nominalizations (“remove the unit” rather than “perform the removal of the unit”).
+
+### Word Selection (Section 1 summary)
+- Use dictionary-approved words, technical nouns, or technical verbs only.
+- Technical nouns fall into 22 categories (parts, tools, materials, systems, mathematical/scientific terms, computer terms, damage terms, etc.). Use the short, officially approved term for an item consistently.
+- Technical verbs fall into manufacturing processes, computer processes, subject-field instructions, and law/regulations categories. Prefer a dictionary-approved verb when it accurately conveys the meaning.
+- Do not use regional, slang, or jargon terms as technical nouns.
+- Do not convert technical nouns into verbs or technical verbs into nouns.
+
+### Verb Constraints (Section 3 summary)
+Allowed forms and tenses only:
+- Infinitive
+- Imperative (command)
+- Simple present
+- Simple past
+- Simple future
+- Past participle used strictly as an adjective
+
+Do not use auxiliary verbs to create complex constructions (present perfect, progressive, etc.). Describe actions with approved verbs, not nouns.
+
+### Sentence and Structure Preferences
+- Keep sentences short and direct.
+- Prefer vertical lists for sequences of actions or items when clarity improves.
+- Use connecting words sparingly and only when they improve logical flow.
+- In procedural writing, open with the imperative where possible.
+- In descriptive writing, keep one topic per paragraph where practical.
+
+### Practical Application for Responses
+When explaining concepts, architecture, trade-offs, or procedures:
+- Choose the simplest approved word that preserves precise meaning.
+- Rewrite any non-STE phrasing into STE form before final output.
+- Prefer “do a check of X”, “make sure that…”, “remove…”, “set… to…”, “the unit operates” over more complex or multi-meaning alternatives.
+- When a technical term is required and fits a category, use it consistently and explain it the first time if needed.
+- Avoid metaphors, figurative language, and unnecessary synonyms.
+
+If a required concept cannot be expressed cleanly under these constraints, state the limitation briefly and give the clearest STE-compliant approximation.
