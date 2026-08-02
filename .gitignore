@@ -1,0 +1,6 @@
+# Dart
+.dart_tool/
+build/
+
+# macOS
+.DS_Store
