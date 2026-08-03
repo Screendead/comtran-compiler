@@ -17,7 +17,7 @@ source citation. Amend by updating this file and `decisions.md` together.*
   `*PROCEDURE`'s asterisk with the `G` of `GN)000` in the name field
   directly below it (page-195.png; adversarial verification,
   2026-08-03). An earlier column-8 reading of that header was wrong and
-  the deck was corrected accordingly (`tests/90.05-payroll-deck-notes.md`).
+  the deck was corrected accordingly (`test/fixtures/90.05-payroll-deck-notes.md`).
   No leniency beyond column 7 is implemented: none is attested.
 - **M1-2. Single job.** The M1 driver compiles one job per deck file and
   does not require a `*FINISH` card; the job stream, the `$CMPLE` option

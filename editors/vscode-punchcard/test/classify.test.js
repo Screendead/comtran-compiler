@@ -20,7 +20,7 @@ const {
 } = require('../out/columns.js');
 
 const REPO = path.join(__dirname, '..', '..', '..');
-const CANON = path.join(REPO, 'tests', '90.05-payroll.ctdeck');
+const CANON = path.join(REPO, 'test', 'fixtures', '90.05-payroll.ctdeck');
 
 function cardFromText(text) {
   const card = new Uint16Array(80);
@@ -36,7 +36,7 @@ test('the 90.05 deck classifies into its documented card ranges', () => {
   const deck = decodeCanon(new Uint8Array(fs.readFileSync(CANON)));
   const kinds = classifyCards(deck);
   assert.equal(kinds.length, 293);
-  // tests/90.05-payroll-deck-notes.md: card 1 *COMPILE; 2-179 *DATA header +
+  // test/fixtures/90.05-payroll-deck-notes.md: card 1 *COMPILE; 2-179 *DATA header +
   // 177 data cards; 180-195 *ENVIRONMENT header + 15 cards; 196-293
   // *PROCEDURE header + 97 cards.
   assert.equal(kinds[0], 'control');

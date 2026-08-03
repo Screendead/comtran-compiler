@@ -39,7 +39,7 @@ Terms that appear without expansion:
 | Language definition | Complete and verified | `docs/comtran-language-definition.md` |
 | M0 design decisions (84 records) | Locked 2026-08-02 | `docs/design/decisions.md` |
 | Punch-level deck format | Frozen | `docs/design/deck-format.md` |
-| 90.05 canon deck (293 cards) | Authoritative; its mirror is CI-slaved | `tests/90.05-payroll.ctdeck` |
+| 90.05 canon deck (293 cards) | Authoritative; its mirror is CI-slaved | `test/fixtures/90.05-payroll.ctdeck` |
 | M1 front end | Done 2026-08-03 | `lib/src/lexer/`, `lib/src/listing/` |
 | M2 stage 1 — AST and fixed-form parsers | Merged 2026-08-03 (PR #15) | `lib/src/ast/`, `lib/src/parser/` |
 | M2 stage 2 — procedure division | Merged 2026-08-03 (PR #17) | `lib/src/parser/procedure_parser.dart` |
@@ -47,16 +47,16 @@ Terms that appear without expansion:
 | M3 to M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
-| T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `tools/vscode-punchcard/` |
+| T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
 | T3 MCP server and skill | Done 2026-08-03 (PR #8) | `bin/deckmcp.dart`, `.claude/skills/comtran-decks/` |
-| T4 deck syntax highlighting | Done 2026-08-03 (PR #14) | `tools/vscode-punchcard/` |
+| T4 deck syntax highlighting | Done 2026-08-03 (PR #14) | `editors/vscode-punchcard/` |
 
 One M0 deferral is open: **D4.1**, the MOVPAK round-step emission rule. Decide
 it no later than M4.
 
 Test baseline, measured 2026-08-03: 401 Dart tests pass, and 73 extension tests
 pass. Both suites must stay green; re-measure the counts, do not trust them.
-`dart run comtran:comtranc tests/90.05-payroll.ctdeck` compiles the manual's
+`dart run comtran:comtranc test/fixtures/90.05-payroll.ctdeck` compiles the manual's
 own payroll sample through the front end and the parser. It prints the
 listing, numbered 1,00 to 229,00 exactly as the 1962 compile numbered it, with
 zero diagnostics. A golden test guards that listing byte for byte.
@@ -93,7 +93,7 @@ binds work outside the definition.
      with level 02 abutting at columns 23–24 — not `CNTRLCHARSECLINE`.
      Statement 203 prints `1.5 -20)`, not `1.5 - 20)`. Both readings come from
      the page scans, measured during the deck re-keying.
-     `tests/90.05-payroll-deck-notes.md` holds the details and the minor
+     `test/fixtures/90.05-payroll-deck-notes.md` holds the details and the minor
      spacing normalizations.
   3. On the transcription of PDF p. 197, the statement numbers of 218,00–221,00
      and 228,00 sit one line low. A printer half-line stagger causes this.
@@ -121,9 +121,9 @@ binds work outside the definition.
 ## The mission: the compiler — roadmap
 
 The first concrete task is done. The 90.05 sample deck is re-keyed as
-`tests/90.05-payroll.deck` (2026-08-02): 293 cards, program lines only, with
+`test/fixtures/90.05-payroll.deck` (2026-08-02): 293 cards, program lines only, with
 every column layout measured from the page scans line by line.
-`tests/90.05-payroll-deck-notes.md` holds the provenance, the layout facts, the
+`test/fixtures/90.05-payroll-deck-notes.md` holds the provenance, the layout facts, the
 reconstruction decisions, and the residual one-space caveats. This deck is the
 only surviving COMTRAN program with known-correct output — the printed report,
 PDF p. 217. It makes every milestone below testable at once.
@@ -187,7 +187,7 @@ M2 to M6.
   as the pre-commit hook (`.githooks/`), the CI freshness step, and the git
   textconv driver. `docs/design/deck-format.md` holds the setup.
 - **T2 — VS Code punchcard editor** — **DONE 2026-08-03** (PR #9). A custom
-  binary editor for `*.ctdeck` in `tools/vscode-punchcard/`: punch grid,
+  binary editor for `*.ctdeck` in `editors/vscode-punchcard/`: punch grid,
   interpreted Set H row, field rulers, and click- or type-to-punch editing.
   To install it, package the `.vsix` and run
   `code --profile <name> --install-extension`. The profile matters.
@@ -196,7 +196,7 @@ M2 to M6.
   `.claude/skills/comtran-decks` skill documents the deck workflow.
 - **T4 — Deck syntax highlighting** — **DONE 2026-08-03** (PR #14). Both deck
   views color the card fields from one shared column table
-  (`tools/vscode-punchcard/src/columns.ts`).
+  (`editors/vscode-punchcard/src/columns.ts`).
   - A `comtran-deck` language contribution colors `.deck` mirrors from a
     **generated** TextMate grammar (`npm run grammar`; a freshness test guards
     the committed file): column fields, literals, the period-blank terminator

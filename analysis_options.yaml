@@ -20,7 +20,7 @@ analyzer:
     strict-raw-types: true
 
   # No excludes. `dart analyze` covers lib/, bin/, test/ and tool/, and all of
-  # them must stay clean. tools/vscode-punchcard/ is TypeScript and holds no
+  # them must stay clean. editors/vscode-punchcard/ is TypeScript and holds no
   # Dart. The generated lib/src/lexer/message_catalog.dart stays IN scope; its
   # two exceptions are pinned in the file with `ignore_for_file` plus a reason,
   # which `document_ignores` and `unnecessary_ignore` then police.

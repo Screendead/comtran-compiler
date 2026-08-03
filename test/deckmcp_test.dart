@@ -316,7 +316,8 @@ void main() {
         const defaultPage = 25;
         final Map<String, Object?> json = _content(
           await client.call('deck_read', {
-            'path': '${Directory.current.path}/tests/90.05-payroll.ctdeck',
+            'path':
+                '${Directory.current.path}/test/fixtures/90.05-payroll.ctdeck',
             'include_cards': true,
           }),
         );
@@ -1015,7 +1016,7 @@ void main() {
           // is the server's working directory when no roots are declared.
           final Map<String, Object?> ok = _content(
             await plain.call('deck_read', {
-              'path': 'tests/90.05-payroll.ctdeck',
+              'path': 'test/fixtures/90.05-payroll.ctdeck',
             }),
           );
           expect(ok['card_count'], 293);

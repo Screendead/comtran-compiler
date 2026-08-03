@@ -94,15 +94,15 @@ file is opened in a session.
 ## How to run it
 
 ```
-cd tools/vscode-punchcard
+cd editors/vscode-punchcard
 npm install
 npm run compile
 npm test
 ```
 
-To try the editor, open **this folder** (`tools/vscode-punchcard`) in VS Code and
+To try the editor, open **this folder** (`editors/vscode-punchcard`) in VS Code and
 press <kbd>F5</kbd>. VS Code compiles the extension and starts an Extension
-Development Host on the repository root. Open `tests/90.05-payroll.ctdeck` there.
+Development Host on the repository root. Open `test/fixtures/90.05-payroll.ctdeck` there.
 
 `npm test` compiles first, then runs the unit tests with `node --test`. The
 tests cover the header, the two-columns-per-three-bytes packing, the read rules,
@@ -122,7 +122,7 @@ handlers to check the grid, the card list, type-to-punch mode, zoom, and
 ## How to package it
 
 ```
-cd tools/vscode-punchcard
+cd editors/vscode-punchcard
 npm run package
 ```
 

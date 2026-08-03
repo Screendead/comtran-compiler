@@ -92,7 +92,9 @@ void main() {
 
   group('the 90.05 deck', () {
     test('the mirror is normal form and round-trips', () {
-      final String text = File('tests/90.05-payroll.deck').readAsStringSync();
+      final String text = File(
+        'test/fixtures/90.05-payroll.deck',
+      ).readAsStringSync();
       final List<CardImage> deck = mirrorToDeck(text);
       expect(deck.length, 293);
       expect(deckToMirror(deck), text);
@@ -100,7 +102,7 @@ void main() {
 
     test('columns 73-80 are blank on every card', () {
       final List<CardImage> deck = mirrorToDeck(
-        File('tests/90.05-payroll.deck').readAsStringSync(),
+        File('test/fixtures/90.05-payroll.deck').readAsStringSync(),
       );
       for (final card in deck) {
         for (var column = 73; column <= 80; column++) {
@@ -111,17 +113,17 @@ void main() {
 
     test('the committed canon file matches the mirror', () {
       final List<CardImage> canon = decodeCanon(
-        File('tests/90.05-payroll.ctdeck').readAsBytesSync(),
+        File('test/fixtures/90.05-payroll.ctdeck').readAsBytesSync(),
       );
       expect(
         deckToMirror(canon),
-        File('tests/90.05-payroll.deck').readAsStringSync(),
+        File('test/fixtures/90.05-payroll.deck').readAsStringSync(),
       );
     });
 
     test('canon to mirror to canon reproduces the bytes exactly', () {
       final Uint8List bytes = File(
-        'tests/90.05-payroll.ctdeck',
+        'test/fixtures/90.05-payroll.ctdeck',
       ).readAsBytesSync();
       expect(
         encodeCanon(mirrorToDeck(deckToMirror(decodeCanon(bytes)))),
