@@ -67,6 +67,15 @@ void main() {
       runOne(typeB(0x1F7, address: 5, tag: 1)); // 5 - 2 = 3.
       expect(m.acMagnitude, 8);
     });
+
+    test('the maximum count (255) clears the register', () {
+      // TSTC-08: the maximum count, after the modulo-400-octal mask
+      // (0o377 = 255), is untested for every shift.
+      m.acMagnitude = 5;
+      runOne(typeB(0x1F7, address: 255));
+      expect(m.acMagnitude, 0);
+      expect(m.overflow, isTrue); // A 1-bit passed through P on the way.
+    });
   });
 
   // ARS: 22-6528-4 p. 32 (external).
@@ -120,6 +129,27 @@ void main() {
       expect(m.acMagnitude, 0);
       expect(m.mq, data(5));
     });
+
+    test('a count above 35 continues draining Q and P into the MQ', () {
+      // TSTC-08: a count above 35 drains the AC-MQ pair further than the
+      // 35-count case above; Q and P (positions above 1-35) still have
+      // 2 more places to move at count 35, so a count of 37 is needed to
+      // carry the Q bit all the way into the MQ.
+      m.acMagnitude = MachineState.acQBit;
+      runOne(typeB(0x1F5, address: 37));
+      expect(m.acMagnitude, 0);
+      expect(m.mq, data(1 << 34));
+    });
+
+    test('the maximum count (255) drains the pair to zero', () {
+      // TSTC-08: the maximum count, after the modulo-400-octal mask.
+      m
+        ..acMagnitude = MachineState.acMagnitudeMask
+        ..mq = data(Word36.magnitudeMask);
+      runOne(typeB(0x1F5, address: 255));
+      expect(m.acMagnitude, 0);
+      expect(m.mq, 0);
+    });
   });
 
   // LGL: 22-6528-4 p. 32 (external).
@@ -147,6 +177,16 @@ void main() {
       expect(m.acMagnitude, 1);
       expect(m.mq, 0);
     });
+
+    test('the maximum count (255) drains the pair to zero', () {
+      // TSTC-08: the maximum count, after the modulo-400-octal mask.
+      m
+        ..acMagnitude = MachineState.acMagnitudeMask
+        ..mq = data(Word36.magnitudeMask, negative: true);
+      runOne(typeB(0x9F3, address: 255));
+      expect(m.acMagnitude, 0);
+      expect(m.mq, 0);
+    });
   });
 
   // LGR: 22-6528-4 p. 32 (external).
@@ -162,6 +202,26 @@ void main() {
     test('bits shifted past MQ(35) are lost', () {
       m.mq = data(1);
       runOne(typeB(0x9F5, address: 1));
+      expect(m.mq, 0);
+    });
+
+    test('a count above 35 continues draining Q and P into the MQ', () {
+      // TSTC-08: at 36 the Q bit has only reached the AC's own low end
+      // (positions 1-35 hold room for it); a 37th step is needed to move
+      // it out of the AC and into the MQ's own sign position.
+      m.acMagnitude = MachineState.acQBit;
+      runOne(typeB(0x9F5, address: 37));
+      expect(m.acMagnitude, 0);
+      expect(m.mq, data(0, negative: true));
+    });
+
+    test('the maximum count (255) drains the pair to zero', () {
+      // TSTC-08: the maximum count, after the modulo-400-octal mask.
+      m
+        ..acMagnitude = MachineState.acMagnitudeMask
+        ..mq = Word36.wordMask;
+      runOne(typeB(0x9F5, address: 255));
+      expect(m.acMagnitude, 0);
       expect(m.mq, 0);
     });
   });
@@ -186,6 +246,15 @@ void main() {
       m.mq = data(0x3F); // One character at positions 30-35.
       runOne(typeB(0x9FB, address: 6));
       expect(m.mq, data(0x3F << 6));
+    });
+
+    test('the maximum count (255) is 255 mod 36 places', () {
+      // TSTC-08: the maximum count, after the modulo-400-octal mask
+      // (M p. 31). 255 = 7 * 36 + 3, so a 255-place rotation is the same
+      // as a 3-place rotation; no bits are lost either way.
+      m.mq = 1;
+      runOne(typeB(0x9FB, address: 255));
+      expect(m.mq, 1 << 3);
     });
   });
 

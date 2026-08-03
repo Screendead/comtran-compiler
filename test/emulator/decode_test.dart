@@ -81,6 +81,12 @@ void main() {
       expect(inst.address, 0x123);
       expect(inst.operationOctal, '-3');
     });
+
+    test('operationOctal prints -1 for prefix 5 (STR)', () {
+      // TSTC-08: only +2 and -3 are asserted elsewhere; STR (outside the
+      // subset) is the remaining unasserted type-A prefix.
+      expect(Instruction.decode(typeA(5)).operationOctal, '-1');
+    });
   });
 
   group('decode: convert sub-format', () {

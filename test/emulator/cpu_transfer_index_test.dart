@@ -73,6 +73,16 @@ void main() {
         ..step();
       expect(m.ic, 0x103);
     });
+
+    test('at location zero, the return index wraps to zero', () {
+      // TSTC-08: 0x8000 - 0 masks to 0, not 0x8000.
+      m
+        ..write(0x000, typeB(0x03C, address: 0x300, tag: 4))
+        ..ic = 0x000;
+      cpu.step();
+      expect(m.xrRead(4), 0);
+      expect(m.ic, 0x300);
+    });
   });
 
   // TXI/TXH/TXL: 22-6528-4 pp. 39-40 (external).
