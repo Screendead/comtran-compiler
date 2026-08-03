@@ -34,7 +34,7 @@ void main() {
 
   test('documented F/J divergences hold', () {
     // Dropped by J: AS, COND, COPY, FUNCT, PARAM, REDEF.
-    for (final String word in [
+    for (final word in [
       'AS', 'COND', 'COPY', 'FUNCT', 'PARAM', //
       'REDEF',
     ]) {
@@ -42,7 +42,7 @@ void main() {
       expect(keyWordClassOf(word), isNull, reason: word);
     }
     // New in J: CRYPT, EQUALS, RUN (list 2; decision D1.5 for EQUALS).
-    for (final String word in ['CRYPT', 'EQUALS', 'RUN']) {
+    for (final word in ['CRYPT', 'EQUALS', 'RUN']) {
       expect(keyWordClassOf(word), KeyWordClass.notDataOrProcedureName);
       expect(fReservedWords, isNot(contains(word)));
     }

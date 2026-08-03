@@ -176,7 +176,7 @@ final class ProcedureParser {
   /// Every clause of [clauses], including those nested in IF arms, ON
   /// OVERFLOW slots, and AT END slots.
   Iterable<Clause> _clauseTree(List<Clause> clauses) sync* {
-    for (final Clause clause in clauses) {
+    for (final clause in clauses) {
       yield clause;
       switch (clause) {
         case IfClause(:final thenArm, :final otherwiseArm):
@@ -255,7 +255,7 @@ final class ProcedureParser {
 
   int _operatorCount(List<Token> tokens) {
     var count = 0;
-    for (final Token token in tokens) {
+    for (final token in tokens) {
       if (token.kind == TokenKind.symbol &&
               _operatorSymbols.contains(token.text) ||
           token.kind == TokenKind.word && _operatorWords.contains(token.text)) {

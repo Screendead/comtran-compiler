@@ -75,7 +75,7 @@ void main() {
         () => decodeCanon(Uint8List.sublistView(bytes, 0, bytes.length - 1)),
         throwsA(isA<FormatException>()),
       );
-      final Uint8List padded = Uint8List(bytes.length + 1)..setAll(0, bytes);
+      final padded = Uint8List(bytes.length + 1)..setAll(0, bytes);
       expect(() => decodeCanon(padded), throwsA(isA<FormatException>()));
     });
   });

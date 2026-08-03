@@ -493,7 +493,7 @@ final class DoClause extends Clause {
 /// a syntax error (D2.7).
 final class StopClause extends Clause {
   /// Creates the clause.
-  StopClause(this.verb, {this.number, required this.run});
+  StopClause(this.verb, {required this.run, this.number});
 
   /// The `STOP` token.
   final Token verb;

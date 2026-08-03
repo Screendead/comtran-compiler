@@ -5,8 +5,8 @@ import 'package:test/test.dart';
 
 void main() {
   test('version constant matches pubspec.yaml', () {
-    final pubspec = File('pubspec.yaml').readAsStringSync();
-    final version = RegExp(
+    final String pubspec = File('pubspec.yaml').readAsStringSync();
+    final String? version = RegExp(
       r'^version:\s*(\S+)\s*$',
       multiLine: true,
     ).firstMatch(pubspec)?.group(1);
@@ -14,7 +14,9 @@ void main() {
   });
 
   test('the re-keyed 90.05 deck is present and card-shaped', () {
-    final lines = File('tests/90.05-payroll.deck').readAsLinesSync();
+    final List<String> lines = File(
+      'tests/90.05-payroll.deck',
+    ).readAsLinesSync();
     expect(lines, hasLength(293));
     for (final line in lines) {
       expect(line.length, lessThanOrEqualTo(72));

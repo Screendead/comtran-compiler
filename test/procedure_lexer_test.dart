@@ -213,7 +213,7 @@ void main() {
 
     test('a machine special in a word draws 134,00 and reads as zero', () {
       final columns = List<int>.filled(80, 0);
-      const String text = 'MOVE AXB TO C.';
+      const text = 'MOVE AXB TO C.';
       for (var i = 0; i < text.length; i++) {
         if (text[i] != ' ') {
           columns[12 + i] = punchesFromBcd(bcdFromGlyph(text[i])!)!;
@@ -233,7 +233,7 @@ void main() {
 
     test('a machine special inside a literal is legal (D9.10 layer c)', () {
       final columns = List<int>.filled(80, 0);
-      const String text = "MOVE 'AXB' TO C.";
+      const text = "MOVE 'AXB' TO C.";
       for (var i = 0; i < text.length; i++) {
         if (text[i] != ' ') {
           columns[12 + i] = punchesFromBcd(bcdFromGlyph(text[i])!)!;
@@ -251,7 +251,7 @@ void main() {
 
     test('a special in commentary after the terminator is not gated', () {
       final columns = List<int>.filled(80, 0);
-      const String text = 'GO TO A.';
+      const text = 'GO TO A.';
       for (var i = 0; i < text.length; i++) {
         if (text[i] != ' ') {
           columns[12 + i] = punchesFromBcd(bcdFromGlyph(text[i])!)!;
@@ -268,7 +268,7 @@ void main() {
 
   group('the 90.05 deck', () {
     test('scans to exactly 43 sentences with no diagnostics', () {
-      final SourceProgram program = SourceProgram.fromDeck(
+      final program = SourceProgram.fromDeck(
         decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
       );
       final ProcedureScan scan = scanProcedure(

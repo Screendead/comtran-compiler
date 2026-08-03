@@ -45,7 +45,7 @@ void main() {
       expect(parse.groups[1], isA<ParsedEnvironmentGroup>());
       expect(parse.groups[2], isA<ParsedProcedureGroup>());
       expect((parse.groups[0] as ParsedDataGroup).items, hasLength(172));
-      final ParsedDataGroup data = parse.groups[0] as ParsedDataGroup;
+      final data = parse.groups[0] as ParsedDataGroup;
       // The division's twelve level-1 entries: seven records, the four
       // working/total/table groups, and TABLE.ITEM.
       expect(data.roots, hasLength(12));

@@ -205,7 +205,7 @@ final Message msgSentenceStartsOtherwise = messageCatalog['208,00']!;
 /// Ours — the PATTERN option on a FILE card: the key word is reserved
 /// and its rules are bound, but the card syntax is adopted only at M5
 /// (D9.12, D6.1). D9.12 forbids msgs 89 and 96 for this word.
-final Message msgPatternNotImplemented = Message.ours(
+const Message msgPatternNotImplemented = Message.ours(
   '905,00',
   '-PATTERN- OPTION RECOGNIZED BUT NOT IMPLEMENTED. SEE DECISION D6. '
       '(NON-HISTORICAL.)',
@@ -218,7 +218,7 @@ final Message msgPatternNotImplemented = Message.ours(
 /// punches an explicit `A`), a COND entry without exactly one quoted
 /// constant (F pp. 71–72), or a QUANTITY IN with no following name. The
 /// rules are J's; no 90.04 entry covers them.
-final Message msgDataCardCodingConflict = Message.ours(
+const Message msgDataCardCodingConflict = Message.ours(
   '906,00',
   'DATA DESCRIPTION CARD CODING CONFLICTS WITH ITS TYPE CODE. '
       '(NON-HISTORICAL.)',
@@ -226,21 +226,21 @@ final Message msgDataCardCodingConflict = Message.ours(
 
 /// Ours — a type code the 7090 language does not have: F's withdrawn
 /// FUNCT and PARAM (J 02.05.03) or an unrecognized code.
-final Message msgTypeCodeNotInLanguage = Message.ours(
+const Message msgTypeCodeNotInLanguage = Message.ours(
   '907,00',
   "TYPE CODE 'NAME.1' IS NOT IN THE 7090 LANGUAGE. (NON-HISTORICAL.)",
 );
 
 /// Ours — a Quantity field outside 1–32767 or not a number
 /// (J 02.05.04 states the maximum; no diagnostic is attested).
-final Message msgQuantityOutOfRange = Message.ours(
+const Message msgQuantityOutOfRange = Message.ours(
   '908,00',
   'QUANTITY MUST BE A NUMBER FROM 1 TO 32767. (NON-HISTORICAL.)',
 );
 
 /// Ours — an unrecognized option word on the compile control card
 /// (J 02.01.01 lists the eight options; no diagnostic is attested).
-final Message msgUnknownCompileOption = Message.ours(
+const Message msgUnknownCompileOption = Message.ours(
   '909,00',
   "COMPILE CARD OPTION 'NAME.1' IS NOT RECOGNIZED AND IS IGNORED. "
       '(NON-HISTORICAL.)',
@@ -249,7 +249,7 @@ final Message msgUnknownCompileOption = Message.ours(
 /// Ours — a subscript on a condition-name (J 90.01.03 prohibits the
 /// construct; D5.6: reject it, leaving the element semantics
 /// unimplemented rather than invented). The sentence is deleted.
-final Message msgSubscriptedConditionName = Message.ours(
+const Message msgSubscriptedConditionName = Message.ours(
   '910,00',
   'A CONDITION NAME CANNOT BE SUBSCRIPTED. SENTENCE DELETED FROM TEXT. '
       '(NON-HISTORICAL.)',
@@ -258,14 +258,14 @@ final Message msgSubscriptedConditionName = Message.ours(
 /// Ours — an AT END clause that is a single imperative but not a
 /// transfer (`DO name`, `GO TO name`, or a bare name). Accepted at low
 /// severity per D6.6; `--pedantic` will raise it.
-final Message msgAtEndNotTransfer = Message.ours(
+const Message msgAtEndNotTransfer = Message.ours(
   '911,00',
   '-AT END- CLAUSE IS NOT A TRANSFER. ACCEPTED. (NON-HISTORICAL.)',
 );
 
 /// Ours — an alphameric literal as a bare arithmetic operand outside
 /// TR (F p. 45 permits it only inside a TR conditional expression).
-final Message msgAlphamericArithOperand = Message.ours(
+const Message msgAlphamericArithOperand = Message.ours(
   '912,00',
   'ALPHABETIC LITERAL CANNOT BE AN ARITHMETIC OPERAND OUTSIDE -TR-. '
       '(NON-HISTORICAL.)',
@@ -273,7 +273,7 @@ final Message msgAlphamericArithOperand = Message.ours(
 
 /// Ours — `A**B**C` without parentheses (F p. 107; D4.10: reject,
 /// group left for recovery only, no code generated).
-final Message msgUnparenthesizedPower = Message.ours(
+const Message msgUnparenthesizedPower = Message.ours(
   '913,00',
   'CONSECUTIVE EXPONENTIATIONS MUST BE PARENTHESIZED. '
       '(NON-HISTORICAL.)',
@@ -281,7 +281,7 @@ final Message msgUnparenthesizedPower = Message.ours(
 
 /// Ours — more than three subscripts in one reference (F p. 30; D3.1:
 /// no J message number is attested for the check).
-final Message msgTooManySubscripts = Message.ours(
+const Message msgTooManySubscripts = Message.ours(
   '914,00',
   'A REFERENCE CANNOT HAVE MORE THAN THREE SUBSCRIPTS. '
       '(NON-HISTORICAL.)',
@@ -289,14 +289,14 @@ final Message msgTooManySubscripts = Message.ours(
 
 /// Ours — section nesting deeper than 18 (J 90.01.05; D9.7: the limit
 /// has no 1962 message and takes a non-historical id at severity 5).
-final Message msgSectionsTooDeep = Message.ours(
+const Message msgSectionsTooDeep = Message.ours(
   '915,00',
   'SECTION NESTING EXCEEDS THE DEPTH OF 18. (NON-HISTORICAL.)',
 );
 
 /// Ours — LOAD or OVERLAP, deferred in the field-test implementation
 /// (J 90.01.03; design note M2-11): parsed, no code generated.
-final Message msgDeferredVerb = Message.ours(
+const Message msgDeferredVerb = Message.ours(
   '916,00',
   "VERB 'NAME.1' IS DEFERRED IN THE 7090 IMPLEMENTATION AND GENERATES "
       'NO CODE. (NON-HISTORICAL.)',
@@ -305,7 +305,7 @@ final Message msgDeferredVerb = Message.ours(
 /// Ours — a function-reference argument that is not a data-name
 /// (F p. 28, rule 15). The token is dropped; no 90.04 entry states
 /// that recovery (D10.6).
-final Message msgFunctionArgumentDropped = Message.ours(
+const Message msgFunctionArgumentDropped = Message.ours(
   '917,00',
   'FUNCTION ARGUMENT IS NOT A DATA NAME AND IS DROPPED. '
       '(NON-HISTORICAL.)',
@@ -314,7 +314,7 @@ final Message msgFunctionArgumentDropped = Message.ours(
 /// Ours — an F-style name on a REDEF line: accepted with this warning
 /// and discarded, never entered in the dictionary (D3.4; no J message
 /// covers the case).
-final Message msgRedefNameDiscarded = Message.ours(
+const Message msgRedefNameDiscarded = Message.ours(
   '918,00',
   'NAME ON -REDEF- LINE IS DISCARDED. (NON-HISTORICAL.)',
 );

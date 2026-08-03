@@ -260,7 +260,7 @@ Map<String, Object?> describeCardCode({
   String? cardCode,
   String? bcdOctal,
 }) {
-  final List<String> given = [
+  final given = <String>[
     if (glyph != null) 'glyph',
     if (cardCode != null) 'card_code',
     if (bcdOctal != null) 'bcd_octal',
@@ -423,7 +423,7 @@ void _checkNotConflicting(String mirrorPath, String? expectedMirror) {
   if (expectedMirror == null) {
     return;
   }
-  final File mirror = File(mirrorPath);
+  final mirror = File(mirrorPath);
   final String? current = mirror.existsSync()
       ? mirror.readAsStringSync()
       : null;

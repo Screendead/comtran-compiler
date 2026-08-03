@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
@@ -61,7 +62,7 @@ void main() {
     });
 
     test('accepts a full 80-column glyph line', () {
-      final String text = '${'A' * 80}\n';
+      final text = '${'A' * 80}\n';
       expect(deckToMirror(mirrorToDeck(text)), text);
     });
 
@@ -101,7 +102,7 @@ void main() {
       final List<CardImage> deck = mirrorToDeck(
         File('tests/90.05-payroll.deck').readAsStringSync(),
       );
-      for (final CardImage card in deck) {
+      for (final card in deck) {
         for (var column = 73; column <= 80; column++) {
           expect(card.punchesAt(column), 0);
         }
@@ -119,7 +120,9 @@ void main() {
     });
 
     test('canon to mirror to canon reproduces the bytes exactly', () {
-      final bytes = File('tests/90.05-payroll.ctdeck').readAsBytesSync();
+      final Uint8List bytes = File(
+        'tests/90.05-payroll.ctdeck',
+      ).readAsBytesSync();
       expect(
         encodeCanon(mirrorToDeck(deckToMirror(decodeCanon(bytes)))),
         bytes,

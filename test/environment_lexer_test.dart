@@ -192,7 +192,7 @@ void main() {
 
   group('the 90.05 deck', () {
     test('scans to exactly 14 specifications with no diagnostics', () {
-      final SourceProgram program = SourceProgram.fromDeck(
+      final program = SourceProgram.fromDeck(
         decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
       );
       final EnvironmentScan scan = scanEnvironment(

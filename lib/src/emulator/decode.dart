@@ -101,7 +101,7 @@ final class Instruction {
   String get operationOctal {
     final int prefix = Word36.prefix(word);
     if (prefix & 3 != 0) {
-      final String sign = prefix & 4 != 0 ? '-' : '+';
+      final sign = prefix & 4 != 0 ? '-' : '+';
       return '$sign${prefix & 3}';
     }
     return Word36.operationOctal(Word36.operationField(word));

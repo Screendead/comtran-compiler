@@ -36,7 +36,7 @@ final class Message {
   /// [text] with each `'NAME.n'` parameter replaced by the matching
   /// operand, quoted as the compiler printed names.
   String substitute(List<String> operands) {
-    var result = text;
+    String result = text;
     for (var i = 0; i < operands.length; i++) {
       result = result.replaceFirst("'NAME.${i + 1}'", "'${operands[i]}'");
     }
@@ -86,7 +86,7 @@ const Message msgPictorialTooLong = Message(
 /// digit zero in the internal text, dollar sign in the external text).
 const Message msgIllegalCharacterReplaced = Message(
   '134,00',
-  r'ILLEGAL CHARACTER REPLACED IN INTERNAL TEXT BY 0, AND IN EXTERNAL '
+  'ILLEGAL CHARACTER REPLACED IN INTERNAL TEXT BY 0, AND IN EXTERNAL '
       r'TEXT BY $.',
 );
 

@@ -206,7 +206,7 @@ void main() {
         msgKeyWordAsDataName,
         msgKeyWordAsDataName,
       ]);
-      final FileCard card = cards.single as FileCard;
+      final card = cards.single as FileCard;
       expect(card.records.single.name.text, 'MOVE');
     });
 
@@ -577,7 +577,7 @@ void main() {
             // 164 (no names at all).
             _card(type: 'GROUP', options: 'OPENCOUNT 5'),
             // 176 (malformed shape) plus 90.
-            _card(name: 'BAD1', type: 'CONTRL', options: ''),
+            _card(name: 'BAD1', type: 'CONTRL'),
             // 207 (over-length) plus 90.
             _card(name: 'TOOLONGNAME', type: 'CONTRL', options: 'SECTIONA'),
             // 3.
@@ -610,7 +610,7 @@ void main() {
           ]),
         );
 
-        for (final Diagnostic d in diagnostics) {
+        for (final d in diagnostics) {
           expect(() => d.severity, returnsNormally);
           expect(d.severity, messageSeverities[d.message.number]);
         }

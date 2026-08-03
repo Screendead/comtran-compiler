@@ -49,7 +49,7 @@ final class Cpu {
   void step() {
     final int location = state.ic;
     final int word = state.read(location);
-    final Instruction inst = Instruction.decode(word);
+    final inst = Instruction.decode(word);
     if (inst.op == Op.unknown) {
       throw UnimplementedOpcode7090(inst.operationOctal, location, word);
     }
@@ -75,7 +75,7 @@ final class Cpu {
   /// the tag and address parts of the indirectly addressed word give the
   /// direct effective address (M p. 11).
   int _effectiveAddress(Instruction inst, {required bool indirectable}) {
-    var ea = (inst.address - state.xrRead(inst.tag)) & Word36.fieldMask15;
+    int ea = (inst.address - state.xrRead(inst.tag)) & Word36.fieldMask15;
     if (indirectable && inst.flagged) {
       final int indirectWord = state.read(ea);
       ea =
@@ -106,7 +106,7 @@ final class Cpu {
       case Op.acl: // M pp. 21-22: logical add to AC(P,1-35), end-around
         // carry from P into position 35; S and Q are not affected.
         final int y = state.read(_effectiveAddress(inst, indirectable: true));
-        var sum = (state.acMagnitude & Word36.wordMask) + y;
+        int sum = (state.acMagnitude & Word36.wordMask) + y;
         if (sum > Word36.wordMask) {
           sum = (sum & Word36.wordMask) + 1;
         }
@@ -136,7 +136,7 @@ final class Cpu {
         final BigInt dividend =
             (BigInt.from(state.acMagnitude) << 35) |
             BigInt.from(Word36.magnitude(state.mq));
-        final BigInt big = BigInt.from(divisor);
+        final big = BigInt.from(divisor);
         final int quotient = (dividend ~/ big).toInt();
         final int remainder = (dividend % big).toInt();
         // MQ sign: the algebraic sign of the quotient; AC sign: the sign
@@ -290,7 +290,7 @@ final class Cpu {
       case Op.als: // M p. 31: AC(Q,P,1-35) left; overflow when a 1 moves
         // from position 1 into P.
         final int n = _shiftCount(inst);
-        var accumulator = state.acMagnitude;
+        int accumulator = state.acMagnitude;
         for (var i = 0; i < n; i++) {
           if (accumulator & (1 << 34) != 0) {
             state.overflow = true;
@@ -304,8 +304,8 @@ final class Cpu {
       case Op.lrs: // M p. 32: AC and MQ(1-35) as one register, right; the
         // MQ sign is made to agree with the AC sign.
         final int n = _shiftCount(inst);
-        var accumulator = state.acMagnitude;
-        var mqMagnitude = Word36.magnitude(state.mq);
+        int accumulator = state.acMagnitude;
+        int mqMagnitude = Word36.magnitude(state.mq);
         for (var i = 0; i < n; i++) {
           mqMagnitude = (mqMagnitude >> 1) | ((accumulator & 1) << 34);
           accumulator >>= 1;
@@ -315,8 +315,8 @@ final class Cpu {
       case Op.lgl: // M p. 32: AC(Q,P,1-35) and MQ(S,1-35) as one register,
         // left; MQ(S) enters AC(35); overflow when a 1 passes into P.
         final int n = _shiftCount(inst);
-        var accumulator = state.acMagnitude;
-        var mq = state.mq;
+        int accumulator = state.acMagnitude;
+        int mq = state.mq;
         for (var i = 0; i < n; i++) {
           if (accumulator & (1 << 34) != 0) {
             state.overflow = true;
@@ -331,8 +331,8 @@ final class Cpu {
       case Op.lgr: // M p. 32: the same register pair, right; AC(35) enters
         // MQ(S); bits past MQ(35) are lost; no indicators.
         final int n = _shiftCount(inst);
-        var accumulator = state.acMagnitude;
-        var mq = state.mq;
+        int accumulator = state.acMagnitude;
+        int mq = state.mq;
         for (var i = 0; i < n; i++) {
           mq = (mq >> 1) | ((accumulator & 1) << 35);
           accumulator >>= 1;
@@ -341,7 +341,7 @@ final class Cpu {
         state.mq = mq;
       case Op.rql: // M p. 32: rotate MQ(S,1-35) left, circular.
         final int n = _shiftCount(inst);
-        var mq = state.mq;
+        int mq = state.mq;
         for (var i = 0; i < n; i++) {
           mq = ((mq << 1) & Word36.wordMask) | ((mq >> 35) & 1);
         }
@@ -351,8 +351,8 @@ final class Cpu {
       case Op.cvr: // M p. 56, the seven numbered steps. The instruction
         // starts in the SR, so the SR's address part is Y (step 1); each
         // table fetch replaces the whole SR (step 4b).
-        var storageRegister = inst.word;
-        var count = inst.count;
+        int storageRegister = inst.word;
+        int count = inst.count;
         while (count != 0) {
           // Step 4b: X = SR(21-35) + AC(30-35); the address registers are
           // 15 bits wide, higher bits drop (M p. 13).
@@ -362,8 +362,8 @@ final class Cpu {
           storageRegister = state.read(x);
           // Step 5: AC(Q,P,1-35) right six; an initial 1 in Q lands in
           // position 5 and remains regardless of the table word.
-          final bool qWasSet = state.acMagnitude & MachineState.acQBit != 0;
-          var magnitude = state.acMagnitude >> 6;
+          final qWasSet = state.acMagnitude & MachineState.acQBit != 0;
+          int magnitude = state.acMagnitude >> 6;
           // Step 6: SR(S,1-5) replace AC(P,1-5).
           magnitude =
               (magnitude & ~(0x3F << 30)) |

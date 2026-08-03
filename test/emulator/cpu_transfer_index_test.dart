@@ -31,7 +31,7 @@ void main() {
       expect(m.ic, 0x2F0);
     });
 
-    test('TRA* takes one level of indirection with the word\'s own tag', () {
+    test("TRA* takes one level of indirection with the word's own tag", () {
       // The TRA* shape: J 90.05 listing, PDF p. 202, LOC 00350.
       m.xrWrite(1, 3);
       m.write(0x300, typeA(0, tag: 1, address: 0x403)); // Tag 1, addr 0x403.
@@ -53,7 +53,7 @@ void main() {
 
   // TSX: 22-6528-4 p. 39 (external).
   group('TSX', () {
-    test('places the 2\'s complement of its location and transfers', () {
+    test("places the 2's complement of its location and transfers", () {
       runOne(typeB(0x03C, address: 0x300, tag: 4)); // +0074
       expect(m.ic, 0x300);
       expect(m.xrRead(4), (0x8000 - 0x100) & 0x7FFF);
@@ -100,10 +100,10 @@ void main() {
       // The SYS)294 guard shape: LAC BL)N,N / TXL SYS)294,N,0 transfers
       // exactly when the base locator is unloaded (J 90.02.33).
       m.xrWrite(1, 0);
-      runOne(typeA(7, decrement: 0, tag: 1, address: 0x300));
+      runOne(typeA(7, tag: 1, address: 0x300));
       expect(m.ic, 0x300);
       m.xrWrite(1, 1);
-      runOne(typeA(7, decrement: 0, tag: 1, address: 0x300));
+      runOne(typeA(7, tag: 1, address: 0x300));
       expect(m.ic, 0x101);
     });
   });
@@ -132,7 +132,7 @@ void main() {
       final int stored = m.read(0x200);
       expect(Word36.address(stored), 0x77);
       expect(stored & ~0x7FFF, data(0x123456789, negative: true) & ~0x7FFF);
-      runOne(typeB(0x19C, address: 0x200, tag: 0));
+      runOne(typeB(0x19C, address: 0x200));
       expect(Word36.address(m.read(0x200)), 0);
     });
 
@@ -142,7 +142,7 @@ void main() {
       expect(m.xrRead(1), 0x555);
     });
 
-    test('LAC loads the 2\'s complement; CAL DATANAME,T reaches the base', () {
+    test("LAC loads the 2's complement; CAL DATANAME,T reaches the base", () {
       // The base-locator idiom: LAC BL)2,4 / CAL DATANAME,4 (J 90.02.04).
       m.write(0x200, data(0x400)); // BL)2 holds the base 0x400.
       m.write(0x405, data(9)); // The data item, displacement 5.

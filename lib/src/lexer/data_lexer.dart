@@ -129,11 +129,11 @@ DataEntry _scanEntry(List<SourceCard> group, List<Diagnostic> diagnostics) {
 
   // Name: all cards' name fields, blanks eliminated (J 02.03.01, §2.b).
   final nameBuffer = StringBuffer();
-  for (final SourceCard card in group) {
+  for (final card in group) {
     gate(card, 7, 22);
     nameBuffer.write(card.internalText(7, 22).replaceAll(' ', ''));
   }
-  final String name = nameBuffer.toString();
+  final name = nameBuffer.toString();
   if (name.length > 30) {
     diagnostics.add(Diagnostic(msgNameTooLong, first, operands: [name]));
   }
@@ -220,7 +220,7 @@ List<Token> _scanDescription(
     if (run.isEmpty) {
       return;
     }
-    final String text = run.toString();
+    final text = run.toString();
     if (text.length > 30) {
       if (_formatChars.hasMatch(text)) {
         // A pictorial is limited to 30 characters (J 90.04, message
@@ -244,7 +244,7 @@ List<Token> _scanDescription(
   }
 
   void endConstant() {
-    final String text = constant.toString();
+    final text = constant.toString();
     if (text.length > 120) {
       // Our Data Description constant limit is 120 characters (decision
       // D7.9; J 90.04, message 148,00 — the 1962 capacity is unstated).
@@ -260,13 +260,13 @@ List<Token> _scanDescription(
     inConstant = false;
   }
 
-  for (final SourceCard card in group) {
+  for (final card in group) {
     // Leading unpunched columns of a continuation card never join an
     // open constant: both card edges drop their unpunched columns, so
     // the parts join in card order with no padding or alignment between
     // them (D1.1; the card tail is dropped below).
     var beforeCardContent = inConstant;
-    for (var column = _descriptionFirst; column <= _textLast; column++) {
+    for (int column = _descriptionFirst; column <= _textLast; column++) {
       if (inConstant) {
         if (!card.isPunched(column)) {
           if (!beforeCardContent) {

@@ -130,13 +130,13 @@ EnvironmentSpec? _scanSpec(
   // characters compressed to one name (J 02.03.01, §2.b — "Data and
   // Environment Names").
   final nameBuffer = StringBuffer();
-  for (final SourceCard card in group) {
+  for (final card in group) {
     if (!identical(card, first)) {
       gate(card, 7, 22);
     }
     nameBuffer.write(card.internalText(7, 22).replaceAll(' ', ''));
   }
-  final String name = nameBuffer.toString();
+  final name = nameBuffer.toString();
   if (name.length > 30) {
     // Names may contain 1 to 30 characters (F p. 15, rule 3; J
     // 02.08.02); the compressed name can exceed one card's 16 columns.
@@ -188,7 +188,7 @@ List<Token> _scanOptions(List<SourceCard> group, List<Diagnostic> diagnostics) {
     if (run.isEmpty) {
       return;
     }
-    final String text = run.toString();
+    final text = run.toString();
     final TokenKind kind;
     if (text.split('').every(_isDigit)) {
       kind = TokenKind.numericLiteral;
@@ -201,8 +201,8 @@ List<Token> _scanOptions(List<SourceCard> group, List<Diagnostic> diagnostics) {
     run.clear();
   }
 
-  for (final SourceCard card in group) {
-    var column = _optionsFirst;
+  for (final card in group) {
+    int column = _optionsFirst;
     while (column <= _textLast) {
       if (!card.isPunched(column)) {
         endRun();
@@ -252,7 +252,7 @@ int _scanLiteral(
   List<Diagnostic> diagnostics,
 ) {
   final buffer = StringBuffer();
-  var column = openColumn + 1;
+  int column = openColumn + 1;
   var closed = false;
   while (column <= _textLast) {
     if (!card.isPunched(column)) {

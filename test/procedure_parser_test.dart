@@ -67,7 +67,7 @@ void main() {
       final Sentence compare = group.sentences.singleWhere(
         (Sentence s) => s.scan.label == 'COMPARE.EMPLOYEE.NUMBERS',
       );
-      final GoToClause goTo = compare.clauses.single as GoToClause;
+      final goTo = compare.clauses.single as GoToClause;
       expect(goTo.targets, hasLength(2));
       expect(goTo.targets[0].name.text, 'CHECK.NEW.DEPT');
       expect(goTo.targets[0].when, isA<Relation>());
@@ -79,7 +79,7 @@ void main() {
       final Sentence endOfMasters = group.sentences.singleWhere(
         (Sentence s) => s.scan.label == 'END.OF.MASTERS',
       );
-      final IfClause ifClause = endOfMasters.clauses.single as IfClause;
+      final ifClause = endOfMasters.clauses.single as IfClause;
       expect(ifClause.thenArm.single, isA<GoToClause>());
       expect(ifClause.otherwiseArm.single, isA<SetClause>());
       expect(ifClause.clause, 1);
@@ -88,8 +88,7 @@ void main() {
     });
 
     test('parses the CALL synonym pairs of statement 187', () {
-      final CallClause call =
-          group.sentences.first.clauses.single as CallClause;
+      final call = group.sentences.first.clauses.single as CallClause;
       expect(call.pairs, hasLength(5));
       expect(call.pairs.first.oldName.text, 'MASTER EMPLOYEE.NUMBER');
       expect(call.pairs.first.newName.text, 'M.EMP.NO');
@@ -102,7 +101,7 @@ void main() {
           .expand((Sentence s) => s.clauses)
           .whereType<GetClause>();
       expect(gets, isNotEmpty);
-      for (final GetClause get in gets) {
+      for (final get in gets) {
         expect(get.recordFrom, isFalse);
         expect(get.atEnd, isNotNull);
         expect(get.atEnd!.statement, anyOf(isA<DoClause>(), isA<GoToClause>()));
@@ -116,7 +115,7 @@ void main() {
         "            MOVE 'M' TO ERRORTYPE.",
       ]);
       expect(diagnostics, isEmpty);
-      final MoveClause move = sentences.single.clauses.single as MoveClause;
+      final move = sentences.single.clauses.single as MoveClause;
       expect((move.source as LiteralOperand).literal.text, 'M');
     });
 
@@ -162,7 +161,7 @@ void main() {
         '            GO TO (FIRST.CASE, SECOND.CASE, THIRD.CASE) ON SWITCH.',
       ]);
       expect(diagnostics, isEmpty);
-      final GoToClause goTo = sentences.single.clauses.single as GoToClause;
+      final goTo = sentences.single.clauses.single as GoToClause;
       expect(goTo.targets, hasLength(3));
       expect(goTo.index!.text, 'SWITCH');
     });
@@ -172,7 +171,7 @@ void main() {
         '            MOVE PAGE (150) LINE (10) WORD (4) TO X.',
       ]);
       expect(diagnostics, isEmpty);
-      final MoveClause move = sentences.single.clauses.single as MoveClause;
+      final move = sentences.single.clauses.single as MoveClause;
       final NameReference source = (move.source as NameOperand).name;
       expect(source.text, 'PAGE LINE WORD');
       expect(source.subscripts, hasLength(3));
@@ -183,7 +182,7 @@ void main() {
         '            ADD CORRESPONDING G TO T TRUNCATED, ON OVERFLOW GO TO E.',
       ]);
       expect(diagnostics, isEmpty);
-      final AddClause add = sentences.single.clauses.single as AddClause;
+      final add = sentences.single.clauses.single as AddClause;
       expect(add.corresponding, isTrue);
       expect(add.truncated, isTrue);
       expect(add.onOverflow, isA<GoToClause>());
@@ -236,7 +235,7 @@ void main() {
         '            STOP 77.',
       ]);
       expect(diagnostics, isEmpty);
-      final StopClause stop = sentences.single.clauses.single as StopClause;
+      final stop = sentences.single.clauses.single as StopClause;
       expect(stop.run, isFalse);
       expect(stop.number!.text, '77');
       final (List<Sentence> seven, List<Diagnostic> overSeven) = _parse([
@@ -251,7 +250,7 @@ void main() {
         '            DO RTN EXACTLY 5 TIMES.',
       ]);
       expect(diagnostics, isEmpty);
-      final DoClause doClause = sentences.single.clauses.single as DoClause;
+      final doClause = sentences.single.clauses.single as DoClause;
       expect((doClause.exactlyTimes! as LiteralOperand).literal.text, '5');
       final (_, List<Diagnostic> noTimes) = _parse([
         '            DO RTN EXACTLY 5.',
@@ -264,7 +263,7 @@ void main() {
         '            DO REORDER.RTN FOR PART.NO = 1001(1)1499.',
       ]);
       expect(diagnostics, isEmpty);
-      final DoClause doClause = sentences.single.clauses.single as DoClause;
+      final doClause = sentences.single.clauses.single as DoClause;
       expect(doClause.indices, hasLength(1));
       expect(
         (doClause.indices.single.from as LiteralOperand).literal.text,
@@ -281,7 +280,7 @@ void main() {
         '            DO RTN FOR I = P(1)10, J = 1(Q)R.',
       ]);
       expect(diagnostics, isEmpty);
-      final DoClause doClause = sentences.single.clauses.single as DoClause;
+      final doClause = sentences.single.clauses.single as DoClause;
       expect(doClause.indices, hasLength(2));
       expect((doClause.indices[0].from as NameOperand).name.text, 'P');
       expect((doClause.indices[1].by as NameOperand).name.text, 'Q');
@@ -293,7 +292,7 @@ void main() {
         '            DO MINIMUM USING GROSS, 15.00 GIVING TAX.',
       ]);
       expect(diagnostics, isEmpty);
-      final DoClause doClause = sentences.single.clauses.single as DoClause;
+      final doClause = sentences.single.clauses.single as DoClause;
       expect(doClause.usingArguments, hasLength(2));
       expect(doClause.givingResults.single.text, 'TAX');
     });
@@ -303,7 +302,7 @@ void main() {
         '            GET MASTER, AT END WRAP.UP.',
       ]);
       expect(diagnostics, isEmpty);
-      final GetClause get = sentences.single.clauses.single as GetClause;
+      final get = sentences.single.clauses.single as GetClause;
       expect(get.atEnd!.bareName!.text, 'WRAP.UP');
       final (_, List<Diagnostic> junk) = _parse([
         '            GET MASTER, AT END THEN.',
@@ -332,7 +331,7 @@ void main() {
         '            CLOSE PAYFILE, MASTERFILE.',
       ]);
       expect(diagnostics, isEmpty);
-      final CloseClause close = sentences.single.clauses.single as CloseClause;
+      final close = sentences.single.clauses.single as CloseClause;
       expect(close.allFiles, isFalse);
       expect(close.files.map((NameReference f) => f.text), [
         'PAYFILE',
@@ -350,8 +349,7 @@ void main() {
         "            DISPLAY 'GROSS IS' WORKING GROSS, NET.",
       ]);
       expect(diagnostics, isEmpty);
-      final DisplayClause display =
-          sentences.single.clauses.single as DisplayClause;
+      final display = sentences.single.clauses.single as DisplayClause;
       expect(display.items, hasLength(3));
       expect((display.items[0] as LiteralOperand).literal.text, 'GROSS IS');
       expect((display.items[1] as NameOperand).name.text, 'WORKING GROSS');
@@ -365,8 +363,7 @@ void main() {
         '            DISPLAY 45, NET.',
       ]);
       expect(numeric.single.message, msgInvalidDisplay);
-      final DisplayClause display =
-          sentences.single.clauses.single as DisplayClause;
+      final display = sentences.single.clauses.single as DisplayClause;
       expect(display.items.single, isA<NameOperand>());
     });
 
@@ -499,8 +496,7 @@ void main() {
 
     test('the 61st operator deletes the sentence (msg 171; M2-6)', () {
       List<String> deck(int operands) {
-        final String text =
-            'SET A = ${List.filled(operands, 'B').join(' + ')}.';
+        final text = 'SET A = ${List.filled(operands, 'B').join(' + ')}.';
         final lines = <String>[];
         var line = '';
         for (final String word in text.split(' ')) {
@@ -657,7 +653,7 @@ void main() {
   });
 
   group('clause numbering (design note M2-6)', () {
-    test("a deleted sentence keeps n,00 and loses its STOP RUN", () {
+    test('a deleted sentence keeps n,00 and loses its STOP RUN', () {
       final FrontEndResult result = runFrontEnd(
         mirrorToDeck(
           '      *PROCEDURE\n'
@@ -710,7 +706,7 @@ void main() {
         "            SET MARITAL.STATUS = 'M'.",
       ]);
       expect(diagnostics, isEmpty);
-      final SetClause set = sentences.single.clauses.single as SetClause;
+      final set = sentences.single.clauses.single as SetClause;
       expect(set.value, isA<LiteralOperand>());
     });
 
@@ -727,8 +723,8 @@ void main() {
         '            HIGH.VALUES)) TO PRICE.LIST.',
       ]);
       expect(diagnostics, isEmpty);
-      final MoveClause move = sentences.single.clauses.single as MoveClause;
-      final FunctionCall call = move.source as FunctionCall;
+      final move = sentences.single.clauses.single as MoveClause;
+      final call = move.source as FunctionCall;
       expect(call.function.text, 'MINIMUM');
       expect(call.arguments.map((NameReference a) => a.text), [
         'CALCULATED.PRICE',
@@ -743,7 +739,7 @@ void main() {
         '            DO CALC USING MINIMUM ((A, B)), RATE.',
       ]);
       expect(diagnostics, isEmpty);
-      final DoClause doClause = sentences.single.clauses.single as DoClause;
+      final doClause = sentences.single.clauses.single as DoClause;
       expect(doClause.usingArguments.first, isA<FunctionCall>());
       expect(doClause.usingArguments, hasLength(2));
     });
@@ -754,7 +750,7 @@ void main() {
       ]);
       expect(diagnostics.single.message, msgWhenSubstitutedForIf);
       expect(sentences.single.deleted, isFalse);
-      final GoToClause go = sentences.single.clauses.single as GoToClause;
+      final go = sentences.single.clauses.single as GoToClause;
       expect(go.targets.single.when, isNotNull);
     });
 
@@ -763,19 +759,18 @@ void main() {
         '            GO TO A WHEN X GT Y, B IF X LT Y.',
       ]);
       expect(diagnostics.single.message, msgWhenSubstitutedForIf);
-      final GoToClause go = sentences.single.clauses.single as GoToClause;
+      final go = sentences.single.clauses.single as GoToClause;
       expect(go.targets, hasLength(2));
       expect(go.targets.last.when, isNotNull);
     });
 
-    test('OTHERWISE ends a deferred verb\'s operands (PROC-4)', () {
+    test("OTHERWISE ends a deferred verb's operands (PROC-4)", () {
       final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
         '            IF A GT B THEN LOAD OVERLAY.ONE OTHERWISE GO TO Y.',
       ]);
       expect(diagnostics.single.message, msgDeferredVerb);
-      final IfClause ifClause = sentences.single.clauses.single as IfClause;
-      final DeferredVerbClause load =
-          ifClause.thenArm.single as DeferredVerbClause;
+      final ifClause = sentences.single.clauses.single as IfClause;
+      final load = ifClause.thenArm.single as DeferredVerbClause;
       expect(load.operands.map((Token t) => t.text), ['OVERLAY.ONE']);
       expect(ifClause.otherwiseArm.single, isA<GoToClause>());
     });
@@ -794,7 +789,7 @@ void main() {
         '            ADD -1 TO COUNTER.',
       ]);
       expect(diagnostics, isEmpty);
-      final AddClause add = sentences.single.clauses.single as AddClause;
+      final add = sentences.single.clauses.single as AddClause;
       expect(add.source, isA<UnaryExpr>());
     });
 
@@ -811,10 +806,10 @@ void main() {
         '            GET MASTER, AT END GO TO EXIT.',
       ]);
       expect(diagnostics, isEmpty);
-      final SetClause set = sentences[0].clauses.single as SetClause;
+      final set = sentences[0].clauses.single as SetClause;
       expect(set.clause, 1);
       expect(set.onOverflow!.clause, 2);
-      final GetClause get = sentences[1].clauses.single as GetClause;
+      final get = sentences[1].clauses.single as GetClause;
       expect(get.clause, 1);
       expect(get.atEnd!.statement!.clause, 2);
     });

@@ -22,9 +22,11 @@ import '../chars/char_code.dart';
 final class SourceCard {
   /// Decodes [image], the card at 1-based deck position [cardNumber].
   SourceCard(this.image, this.cardNumber)
-    : _bcds = List<int?>.generate(CardImage.columnCount, (int i) {
-        return bcdFromPunches(image.punchesAt(i + 1));
-      }, growable: false);
+    : _bcds = List<int?>.generate(
+        CardImage.columnCount,
+        (int i) => bcdFromPunches(image.punchesAt(i + 1)),
+        growable: false,
+      );
 
   /// The punch-level card.
   final CardImage image;
@@ -69,7 +71,7 @@ final class SourceCard {
 
   String _render(int from, int to, String Function(int) unreadable) {
     final buffer = StringBuffer();
-    for (var c = _checkColumn(from); c <= _checkColumn(to); c++) {
+    for (int c = _checkColumn(from); c <= _checkColumn(to); c++) {
       buffer.write(glyphAt(c) ?? (isPunched(c) ? unreadable(c) : ' '));
     }
     return buffer.toString();

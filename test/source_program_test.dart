@@ -9,7 +9,7 @@ SourceProgram _program(List<String> lines) =>
 void main() {
   group('SourceCard', () {
     test('splits the card into serial, body, and identification', () {
-      final SourceCard card = SourceCard(
+      final card = SourceCard(
         mirrorToDeck('123456ABC DEF${' ' * 59}IDENT99\n').single,
         1,
       );
@@ -26,7 +26,7 @@ void main() {
       columns[7] = punchesFromBcd(0x3A)!; // record mark, 0-2-8
       columns[8] = rowBit12 | rowBit11; // no readout
       columns[9] = punchesFromBcd(bcdFromGlyph('B')!)!;
-      final SourceCard card = SourceCard(CardImage.fromColumns(columns), 1);
+      final card = SourceCard(CardImage.fromColumns(columns), 1);
       expect(card.textRange(7, 10), 'A  B');
       expect(card.unreadableColumns(7, 10), [8, 9]);
       expect(card.glyphAt(8), isNull);
@@ -35,7 +35,7 @@ void main() {
 
   group('SourceProgram.fromDeck', () {
     test('splits the 90.05 deck into its control card and divisions', () {
-      final SourceProgram program = SourceProgram.fromDeck(
+      final program = SourceProgram.fromDeck(
         decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
       );
       expect(program.compileCard?.cardNumber, 1);
@@ -97,28 +97,24 @@ void main() {
       // M1-1: the header word "and nothing else in the body". A record
       // mark at column 40 is punched content, although it renders blank.
       final columns = List<int>.filled(80, 0);
-      const String word = '*DATA';
+      const word = '*DATA';
       for (var i = 0; i < word.length; i++) {
         columns[6 + i] = punchesFromBcd(bcdFromGlyph(word[i])!)!;
       }
       columns[39] = punchesFromBcd(0x3A)!; // record mark, column 40
-      final SourceProgram program = SourceProgram.fromDeck([
-        CardImage.fromColumns(columns),
-      ]);
+      final program = SourceProgram.fromDeck([CardImage.fromColumns(columns)]);
       expect(program.groups, isEmpty);
       expect(program.problems.single.message, msgTextBeforeHeader);
     });
 
     test('an unreadable punch in the body disqualifies *FINISH', () {
       final columns = List<int>.filled(80, 0);
-      const String word = '*FINISH';
+      const word = '*FINISH';
       for (var i = 0; i < word.length; i++) {
         columns[6 + i] = punchesFromBcd(bcdFromGlyph(word[i])!)!;
       }
       columns[39] = punchesFromBcd(0x3A)!; // record mark, column 40
-      final SourceProgram program = SourceProgram.fromDeck([
-        CardImage.fromColumns(columns),
-      ]);
+      final program = SourceProgram.fromDeck([CardImage.fromColumns(columns)]);
       expect(program.finishCard, isNull);
       expect(program.problems.single.message, msgTextBeforeHeader);
     });

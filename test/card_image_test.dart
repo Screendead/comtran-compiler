@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('rejects out-of-range column values before storage truncates them', () {
-    final List<int> base = List<int>.filled(80, 0);
+    final base = List<int>.filled(80, 0);
     expect(
       () => CardImage.fromColumns([...base]..[0] = 0x1000),
       throwsArgumentError,

@@ -22,8 +22,8 @@ Uint8List encodeCanon(List<CardImage> deck) {
   bytes[6] = canonFormatVersion;
   bytes[7] = 0; // Flags, reserved.
   ByteData.sublistView(bytes).setUint32(8, deck.length);
-  var offset = _headerLength;
-  for (final CardImage card in deck) {
+  int offset = _headerLength;
+  for (final card in deck) {
     final Uint16List columns = card.toColumnList();
     for (var i = 0; i < CardImage.columnCount; i += 2) {
       final int a = columns[i];
@@ -66,7 +66,7 @@ List<CardImage> decodeCanon(Uint8List bytes) {
     );
   }
   final deck = <CardImage>[];
-  var offset = _headerLength;
+  int offset = _headerLength;
   final columns = Uint16List(CardImage.columnCount);
   for (var card = 0; card < count; card++) {
     for (var i = 0; i < CardImage.columnCount; i += 2) {

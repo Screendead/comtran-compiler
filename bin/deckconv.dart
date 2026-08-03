@@ -101,7 +101,7 @@ int _regen(List<String> args) {
     stderr.writeln('error: no canon files found under: ${args.join(' ')}');
     return 1;
   }
-  for (final String canonPath in canonFiles) {
+  for (final canonPath in canonFiles) {
     final String mirrorPath = mirrorPathFor(canonPath);
     final String text = deckToMirror(_readCanon(canonPath));
     writeAtomic(mirrorPath, (File f) => f.writeAsStringSync(text));
@@ -123,7 +123,7 @@ int _check(List<String> args) {
     return 1;
   }
   var failures = 0;
-  for (final DeckCheckResult result in results) {
+  for (final result in results) {
     if (result.passed) {
       stdout.writeln(result.message);
     } else {

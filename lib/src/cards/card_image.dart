@@ -13,7 +13,7 @@ final class CardImage {
   CardImage.fromColumns(Iterable<int> columns)
     : _columns = Uint16List(columnCount) {
     var i = 0;
-    for (final int c in columns) {
+    for (final c in columns) {
       // Validate before storing: Uint16List would silently truncate.
       if (c < 0 || c > 0xFFF) {
         throw ArgumentError.value(c, 'columns', 'a column holds 12 bits');

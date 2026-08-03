@@ -54,7 +54,7 @@ void main() {
       expect(m.ic, 0x101); // No skip.
     });
 
-    test('the listing\'s switch sequence behaves as a resettable flag', () {
+    test("the listing's switch sequence behaves as a resettable flag", () {
       m.si = 0;
       runOne(typeB(0x02D) | 1); // SIR 000001: set the flag.
       runOne(typeB(0x02C) | 1); // RFT 000001: flag on, no skip.
@@ -159,7 +159,7 @@ void main() {
     });
 
     test('the message carries the octal word and location', () {
-      final UnimplementedOpcode7090 e = UnimplementedOpcode7090(
+      final e = UnimplementedOpcode7090(
         '+0522',
         0x150,
         typeB(0x152, address: 5),

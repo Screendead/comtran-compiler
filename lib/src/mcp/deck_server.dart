@@ -293,7 +293,7 @@ base class DeckMcpServer extends MCPServer
     inputSchema: Schema.object(
       properties: {
         'glyph': Schema.string(
-          description: 'One Set H character, e.g. "A", "5", "\$", or a space.',
+          description: r'One Set H character, e.g. "A", "5", "$", or a space.',
         ),
         'card_code': Schema.string(
           description:
@@ -348,7 +348,7 @@ base class DeckMcpServer extends MCPServer
 
   Future<CallToolResult> _read(CallToolRequest request) => _guard(() async {
     final Map<String, Object?> args = request.arguments ?? const {};
-    final String path = args['path']! as String;
+    final path = args['path']! as String;
     await _requireWithinRoots(path);
     return readDeck(
       path,
@@ -360,7 +360,7 @@ base class DeckMcpServer extends MCPServer
 
   Future<CallToolResult> _write(CallToolRequest request) => _guard(() async {
     final Map<String, Object?> args = request.arguments ?? const {};
-    final String path = args['path']! as String;
+    final path = args['path']! as String;
     await _requireWithinRoots(path);
     return writeDeck(
       path,
@@ -372,7 +372,7 @@ base class DeckMcpServer extends MCPServer
   Future<CallToolResult> _editCards(CallToolRequest request) =>
       _guard(() async {
         final Map<String, Object?> args = request.arguments ?? const {};
-        final String path = args['path']! as String;
+        final path = args['path']! as String;
         await _requireWithinRoots(path);
         return editDeckCards(
           path,
@@ -386,7 +386,7 @@ base class DeckMcpServer extends MCPServer
 
   Future<CallToolResult> _card(CallToolRequest request) => _guard(() async {
     final Map<String, Object?> args = request.arguments ?? const {};
-    final String path = args['path']! as String;
+    final path = args['path']! as String;
     await _requireWithinRoots(path);
     return readCard(path, args['card_index']! as int);
   });
@@ -402,9 +402,9 @@ base class DeckMcpServer extends MCPServer
 
   Future<CallToolResult> _check(CallToolRequest request) => _guard(() async {
     final Map<String, Object?> args = request.arguments ?? const {};
-    final List<Object?> given = args['paths']! as List<Object?>;
+    final given = args['paths']! as List<Object?>;
     final List<String> paths = given.cast<String>();
-    for (final String path in paths) {
+    for (final path in paths) {
       await _requireWithinRoots(path);
     }
     return checkDecks(paths);
@@ -483,7 +483,7 @@ bool _isWithinRoot(String root, String path) {
   if (path == root) {
     return true;
   }
-  final String prefix = root.endsWith(Platform.pathSeparator)
+  final prefix = root.endsWith(Platform.pathSeparator)
       ? root
       : '$root${Platform.pathSeparator}';
   return path.startsWith(prefix);

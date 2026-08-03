@@ -227,7 +227,7 @@ void main() {
       m.mq = data(5);
       m.write(0x200, data(3));
       runOne(typeB(0x091, address: 0x200));
-      final int dividend = (1 << 35) + 5;
+      const int dividend = (1 << 35) + 5;
       expect(m.mq, data(dividend ~/ 3));
       expect(m.acMagnitude, dividend % 3);
     });

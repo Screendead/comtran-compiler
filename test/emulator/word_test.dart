@@ -23,7 +23,7 @@ void main() {
     test('prefix, decrement, tag, address', () {
       // TXI SYS)245,1,6 shape: prefix +1, decrement 6, tag 1 (J 90.05
       // listing, PDF p. 202).
-      final int word = (1 << 33) | (6 << 18) | (1 << 15) | 0x0F5;
+      const int word = (1 << 33) | (6 << 18) | (1 << 15) | 0x0F5;
       expect(Word36.prefix(word), 1);
       expect(Word36.decrement(word), 6);
       expect(Word36.tag(word), 1);
@@ -40,7 +40,7 @@ void main() {
     test('operation field equals the listing print', () {
       // TRA* END.OF.MASTERS prints 0020 60 0 00331 (J 90.05 listing,
       // PDF p. 202). 0o331 = 0xD9.
-      final int word = (0x010 << 24) | (3 << 22) | 0xD9;
+      const int word = (0x010 << 24) | (3 << 22) | 0xD9;
       expect(Word36.operationField(word), 0x010); // +0020
       expect(Word36.flagged(word), isTrue);
       expect(Word36.address(word), 0xD9);

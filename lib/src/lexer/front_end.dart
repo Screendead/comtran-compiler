@@ -107,7 +107,7 @@ final class FrontEndResult {
 /// the result carries everything scanned and numbered up to it, with
 /// [FrontEndResult.stopped] set.
 FrontEndResult runFrontEnd(List<CardImage> deck, {DiagnosticSink? sink}) {
-  final SourceProgram program = SourceProgram.fromDeck(deck);
+  final program = SourceProgram.fromDeck(deck);
   final groupScans = <GroupScan>[];
   final DiagnosticSink diagnostics = sink ?? DiagnosticSink();
   final statementNumberByCard = <int, String>{};
@@ -116,10 +116,10 @@ FrontEndResult runFrontEnd(List<CardImage> deck, {DiagnosticSink? sink}) {
   var stopped = false;
 
   void number(List<List<SourceCard>> units) {
-    for (final List<SourceCard> unit in units) {
+    for (final unit in units) {
       statement++;
       numberedCards.add(unit.first.cardNumber);
-      for (final SourceCard card in unit) {
+      for (final card in unit) {
         statementNumberByCard[card.cardNumber] = '$statement,00';
       }
     }

@@ -134,7 +134,7 @@ final class _ListingWriter {
     // processor "replaces the contents of column 72 with a blank"
     // (J 02.03.01, §2.c), which is why the sample listing never shows a
     // continuation character. Procedure text reads through column 72.
-    final int lastColumn =
+    final lastColumn =
         division == Division.data || division == Division.environment ? 71 : 72;
     final String body = _externalBody(card, 7, lastColumn).trimRight();
     // Scan-anchored geometry (see m1-front-end.md M1-15): with D = the

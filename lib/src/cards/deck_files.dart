@@ -42,7 +42,7 @@ String canonPathFor(String mirrorPath) =>
 /// [write] receives the temporary [File] to write to. The CLI and the MCP
 /// server both write every deck file through this function.
 void writeAtomic(String path, void Function(File file) write) {
-  final File temp = File('$path.$pid.tmp');
+  final temp = File('$path.$pid.tmp');
   try {
     write(temp);
     temp.renameSync(path);
@@ -64,7 +64,7 @@ void writeAtomic(String path, void Function(File file) write) {
 /// [FileSystemException] when a path does not exist.
 List<String> findDeckFiles(Iterable<String> paths, String extension) {
   final found = <String>[];
-  for (final String path in paths) {
+  for (final path in paths) {
     final FileSystemEntityType type = FileSystemEntity.typeSync(path);
     if (type == FileSystemEntityType.notFound) {
       throw FileSystemException('no such file or directory', path);
@@ -231,7 +231,7 @@ DeckCheckResult checkCanonFile(String canonPath) {
 // itself, and never for an ancestor of [root] that happens to start with a
 // dot (a clone checked out under a dot directory must still be searchable).
 bool _hiddenBelowRoot(String root, String filePath) {
-  String relative = filePath;
+  var relative = filePath;
   if (relative.startsWith(root)) {
     relative = relative.substring(root.length);
   }
