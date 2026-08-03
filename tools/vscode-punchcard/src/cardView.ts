@@ -14,35 +14,28 @@ import {
   glyphFromBcd,
   machineSpecialName,
 } from './charCode';
+import {
+  DIVISION_FIELDS,
+  DIVISION_HEADERS,
+  DeckField,
+  DivisionName,
+  GENERIC_FIELDS,
+} from './columns';
 
 /** A card column field (definition §1.9.1, F p. 37). */
-export interface Field {
-  /** First column, 1-based. */
-  start: number;
-  /** Last column, 1-based and inclusive. */
-  end: number;
-  /** Short label for the ruler. */
-  label: string;
-  /** Full name for the status area. */
-  name: string;
-}
+export type Field = DeckField;
 
-/** The four card fields of the Procedure Description form. */
-export const FIELDS: Field[] = [
-  { start: 1, end: 6, label: 'SERIAL', name: 'serial (ctl 1-3, serial 4-6)' },
-  { start: 7, end: 12, label: 'NAME', name: 'name margin' },
-  { start: 13, end: 72, label: 'TEXT', name: 'text' },
-  { start: 73, end: 80, label: 'IDENT', name: 'identification' },
-];
+/** The four card fields of the generic (Procedure Description) form. */
+export const FIELDS: Field[] = GENERIC_FIELDS;
 
-/** The field that contains `column` (1-based). */
-export function fieldAt(column: number): Field {
-  for (const f of FIELDS) {
+/** The field of `fields` that contains `column` (1-based). */
+export function fieldAt(column: number, fields: Field[] = FIELDS): Field {
+  for (const f of fields) {
     if (column >= f.start && column <= f.end) {
       return f;
     }
   }
-  return FIELDS[FIELDS.length - 1];
+  return fields[fields.length - 1];
 }
 
 /** What kind of read-out a column has. */
@@ -136,4 +129,92 @@ export function isGlyphCard(card: Card): boolean {
     }
   }
   return true;
+}
+
+/**
+ * What a card is within its deck. Determines the field table that colors it
+ * in the card list and the ruler shown when it is current.
+ */
+export type CardKind =
+  | 'blank'
+  | 'binary'
+  | 'control'
+  | 'header-data'
+  | 'header-environment'
+  | 'header-procedure'
+  | 'finish'
+  | 'data'
+  | 'environment'
+  | 'procedure'
+  | 'loose';
+
+/** The body of a card: columns 7-72 of `text`, right-trimmed. */
+function bodyOf(text: string): string {
+  return text.slice(6, 72).replace(/ +$/, '');
+}
+
+/**
+ * Classifies every card of `deck` by walking the division headers, with the
+ * same rules as the compiler's deck splitter (`lib/src/lexer/
+ * source_program.dart`): a header has `*` in column 7 and only the header
+ * word in the body; `*FINISH` ends the deck; `$CMPLE` in columns 1-6 or
+ * `*COMPILE` from column 7 is a control card before the first header.
+ */
+export function classifyCards(deck: readonly Card[]): CardKind[] {
+  let division: DivisionName | null = null;
+  let finished = false;
+
+  const classify = (card: Card): CardKind => {
+    let blank = true;
+    for (let i = 0; i < COLUMN_COUNT; i++) {
+      if (card[i] !== 0) {
+        blank = false;
+        break;
+      }
+    }
+    if (blank) {
+      return 'blank';
+    }
+    if (finished) {
+      return 'loose';
+    }
+    if (!isGlyphCard(card)) {
+      return 'binary';
+    }
+    const text = previewOf(card);
+    const body = bodyOf(text);
+    if (text[6] === '*') {
+      for (const name of Object.keys(DIVISION_HEADERS) as DivisionName[]) {
+        if (body === DIVISION_HEADERS[name]) {
+          division = name;
+          return `header-${name}`;
+        }
+      }
+    }
+    if (body.startsWith('*FINISH') && body.slice(7).trim() === '') {
+      finished = true;
+      return 'finish';
+    }
+    if (division === null) {
+      if (text.slice(0, 6) === '$CMPLE' || body.startsWith('*COMPILE')) {
+        return 'control';
+      }
+      return 'loose';
+    }
+    return division;
+  };
+
+  return deck.map(classify);
+}
+
+/** The field table for a card of `kind`. */
+export function fieldsFor(kind: CardKind): Field[] {
+  switch (kind) {
+    case 'data':
+    case 'environment':
+    case 'procedure':
+      return DIVISION_FIELDS[kind];
+    default:
+      return GENERIC_FIELDS;
+  }
 }
