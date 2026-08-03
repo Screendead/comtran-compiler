@@ -5,6 +5,9 @@ on:
     branches: [master]
   pull_request:
 
+permissions:
+  contents: read
+
 # A newer push to the same branch supersedes the running build.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,18 +16,19 @@ concurrency:
 jobs:
   dart:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
         with:
-          sdk: stable
+          sdk: '3.12.2' # Pinned deliberately; to bump, update this version and test locally before commit
       - uses: actions/cache@v4
         with:
           path: ~/.pub-cache
           key: pub-${{ hashFiles('pubspec.lock') }}
           restore-keys: pub-
       - run: dart pub get
-      - run: dart format --output=none --set-exit-if-changed lib bin test
+      - run: dart format --output=none --set-exit-if-changed lib bin test tool
       - run: dart analyze --fatal-infos
       - run: dart test
       - run: dart run comtran:deckconv check .

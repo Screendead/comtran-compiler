@@ -5,11 +5,18 @@ on:
     branches: [master]
     paths:
       - 'tools/vscode-punchcard/**'
+      - 'lib/src/cards/canon_codec.dart'
+      - 'lib/src/chars/char_code.dart'
       - '.github/workflows/vscode-ext.yml'
   pull_request:
     paths:
       - 'tools/vscode-punchcard/**'
+      - 'lib/src/cards/canon_codec.dart'
+      - 'lib/src/chars/char_code.dart'
       - '.github/workflows/vscode-ext.yml'
+
+permissions:
+  contents: read
 
 # A newer push to the same branch supersedes the running build.
 concurrency:
@@ -19,6 +26,7 @@ concurrency:
 jobs:
   punchcard:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: tools/vscode-punchcard
