@@ -33,6 +33,11 @@ class MarkdownString {
     this.value += text;
     return this;
   }
+  appendText(text) {
+    // Mirror the real API: markdown syntax in the text is escaped.
+    this.value += text.replace(/([\\`*_{}[\]()#+\-.!<>])/g, '\\$1');
+    return this;
+  }
 }
 
 class DocumentLink {
@@ -115,6 +120,15 @@ const FIXTURE_MAP = {
       heading: 'Commands',
       pdfPage: 42,
       // No scan: exercises the hover's "no scan link" path.
+    },
+    'J:03.02.03': {
+      file: 'comtran-manuals/J28-6169/03-loader.md',
+      line: 31,
+      slug: 'c-file-card',
+      // A literal asterisk: exercises the hover's markdown escaping.
+      heading: 'C. *FILE Card',
+      pdfPage: 31,
+      scan: 'comtran-manuals/J28-6169/images/page-031.png',
     },
   },
 };
@@ -204,9 +218,20 @@ test('the hover provider shows the heading and an "open text" link', () => {
   const document = fakeDocument('See J 02.03.02 for the rule.');
   const hover = provider.provideHover(document, new Position(0, 6));
   assert.ok(hover);
-  assert.match(hover.contents.value, /A\. Use of Coding Forms/);
+  // appendText escapes markdown syntax, so the dot arrives escaped.
+  assert.ok(hover.contents.value.includes('A\\. Use of Coding Forms'));
   assert.match(hover.contents.value, /\[open text\]/);
   assert.match(hover.contents.value, /\[open scan\]/);
+});
+
+test('the hover escapes a heading that holds a literal asterisk', () => {
+  const provider = new ManualCitationHoverProvider(FIXTURE_MAP);
+  const document = fakeDocument('// See J 03.02.03 for the card.');
+  const hover = provider.provideHover(document, new Position(0, 8));
+  assert.ok(hover);
+  // "*FILE" must not become emphasis: the asterisk arrives escaped.
+  assert.ok(hover.contents.value.includes('C\\. \\*FILE Card'));
+  assert.doesNotMatch(hover.contents.value, /\*\*C\. \*FILE/);
 });
 
 test('the hover omits "open scan" when the map entry carries no scan', () => {

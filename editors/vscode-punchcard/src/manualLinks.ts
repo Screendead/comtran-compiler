@@ -158,7 +158,11 @@ export class ManualCitationHoverProvider implements vscode.HoverProvider {
       return undefined;
     }
     const markdown = new vscode.MarkdownString(undefined);
-    markdown.appendMarkdown(`**${entry.heading}**\n\n`);
+    // Headings hold literal asterisks (card names like *FILE); appendText
+    // escapes them so the renderer shows them verbatim.
+    markdown.appendMarkdown('**');
+    markdown.appendText(entry.heading);
+    markdown.appendMarkdown('**\n\n');
     markdown.appendMarkdown(`[open text](${targetUri(manualsRoot, entry).toString()})`);
     const scan = scanUri(manualsRoot, entry);
     if (scan !== undefined) {
