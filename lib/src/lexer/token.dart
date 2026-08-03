@@ -30,6 +30,11 @@ enum TokenKind {
   /// The free text of a NOTE command, kept raw because punctuation and
   /// spacing rules do not apply to it (F p. 59).
   noteText,
+
+  /// An unclassified blank-separated run in a Description field —
+  /// pictorial, name, or clause word; classification is semantic and
+  /// happens at M3 (F p. 79).
+  descriptionItem,
 }
 
 /// One token, tied to the card and column it starts at.
