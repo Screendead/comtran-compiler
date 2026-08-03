@@ -12,6 +12,8 @@
 library;
 
 import '../cards/card_image.dart';
+import 'diagnostic.dart';
+import 'messages.dart';
 import 'source_card.dart';
 
 /// The three divisions of a program (F p. 13; definition §2.1).
@@ -45,19 +47,6 @@ final class DivisionGroup {
   final List<SourceCard> cards;
 }
 
-/// A structural problem found while splitting the deck, reported against a
-/// card. Message wording is ours; where J 90.04 documents a matching
-/// message its number is kept for the listing.
-final class StructureProblem {
-  StructureProblem._(this.card, this.text);
-
-  /// The card the problem is reported against.
-  final SourceCard card;
-
-  /// A one-line description of the problem.
-  final String text;
-}
-
 /// A source deck split into control cards and division groups.
 final class SourceProgram {
   SourceProgram._({
@@ -76,12 +65,12 @@ final class SourceProgram {
     SourceCard? compileCard;
     SourceCard? finishCard;
     final groups = <DivisionGroup>[];
-    final problems = <StructureProblem>[];
+    final problems = <Diagnostic>[];
     List<SourceCard>? currentGroup;
 
     for (final SourceCard card in cards) {
       if (finishCard != null) {
-        problems.add(StructureProblem._(card, 'card after *FINISH is ignored'));
+        problems.add(Diagnostic(msgCardAfterFinish, card));
         continue;
       }
       if (card.isBlank) {
@@ -102,18 +91,13 @@ final class SourceProgram {
           if (compileCard == null) {
             compileCard = card;
           } else {
-            problems.add(
-              StructureProblem._(card, 'duplicate compile control card'),
-            );
+            problems.add(Diagnostic(msgDuplicateCompileCard, card));
           }
           continue;
         }
-        problems.add(
-          StructureProblem._(
-            card,
-            'card precedes the first division header (J 05.06.01)',
-          ),
-        );
+        // Omission of a division header is a catastrophic compile error
+        // (J 05.06.01); the message is ours (decision D2.3).
+        problems.add(Diagnostic(msgTextBeforeHeader, card));
         continue;
       }
       currentGroup.add(card);
@@ -141,8 +125,8 @@ final class SourceProgram {
   /// The division groups in deck order.
   final List<DivisionGroup> groups;
 
-  /// Structural problems found during the split.
-  final List<StructureProblem> problems;
+  /// Structural diagnostics found during the split.
+  final List<Diagnostic> problems;
 
   /// The content cards of every group of [division], in deck order.
   List<SourceCard> cardsOf(Division division) => [

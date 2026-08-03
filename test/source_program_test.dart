@@ -75,10 +75,10 @@ void main() {
       ]);
       expect(program.problems, hasLength(2));
       expect(program.problems[0].card.cardNumber, 1);
-      expect(program.problems[0].text, contains('precedes'));
+      expect(program.problems[0].message, msgTextBeforeHeader);
       expect(program.finishCard?.cardNumber, 4);
       expect(program.problems[1].card.cardNumber, 5);
-      expect(program.problems[1].text, contains('*FINISH'));
+      expect(program.problems[1].message, msgCardAfterFinish);
     });
 
     test('accepts repeated division groups and skips blank cards', () {

@@ -176,3 +176,17 @@ const Message msgTextBeforeHeader = Message.ours(
   'CARD PRECEDES THE FIRST DIVISION HEADER AND IS IGNORED. '
       '(NON-HISTORICAL.)',
 );
+
+/// Ours — a card after the *FINISH card, which delimits the source
+/// statements (J 02.01.02). The M1 driver compiles one job; the job
+/// stream lands at M2 (decision D9.14).
+const Message msgCardAfterFinish = Message.ours(
+  '903,00',
+  'CARD FOLLOWS THE *FINISH CARD AND IS IGNORED. (NON-HISTORICAL.)',
+);
+
+/// Ours — a second compile control card in one job's deck.
+const Message msgDuplicateCompileCard = Message.ours(
+  '904,00',
+  'DUPLICATE COMPILE CONTROL CARD IS IGNORED. (NON-HISTORICAL.)',
+);

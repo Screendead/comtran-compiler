@@ -57,4 +57,8 @@ const Map<String, int> messageSeverities = {
   '901,00': 2,
   // C3 (ours, D2.3): the card is ignored — statement-level loss.
   '902,00': 3,
+  // C3 (ours, D9.14): the card is ignored — statement-level loss.
+  '903,00': 3,
+  // C1 (ours): the duplicate card is ignored and compilation carries on.
+  '904,00': 1,
 };
