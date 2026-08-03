@@ -214,6 +214,18 @@ test('a backup writes a file that reopens', async () => {
   assert.equal(memory.has(destination.toString()), false);
 });
 
+test('an untitled document restores from its hot-exit backup', async () => {
+  const { document } = await openDeck('untitled-backup', [blankCard()]);
+  document.togglePunch(0, 7, 0); // Row 12 of column 7.
+  const destination = vscodeStub.Uri.file('/untitled-backup.bak');
+  const backup = await document.backup(destination, NO_CANCEL);
+
+  const untitledUri = makeUri('untitled', '/Untitled-1.ctdeck');
+  const restored = await PunchcardDocument.create(untitledUri, backup.id);
+  assert.equal(restored.cardCount, 1);
+  assert.equal(restored.card(0)[6], document.card(0)[6]);
+});
+
 test('the document rejects an out-of-range column, row or card', async () => {
   const { document } = await openDeck('range', [blankCard()]);
   assert.throws(() => document.setColumn(0, 0, 0), RangeError);
