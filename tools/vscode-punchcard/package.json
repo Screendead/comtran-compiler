@@ -5,6 +5,11 @@
   "version": "0.2.0",
   "publisher": "comtran-compiler",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Screendead/comtran-compiler",
+    "directory": "tools/vscode-punchcard"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -69,11 +74,13 @@
     "compile": "tsc -p ./",
     "watch": "tsc -w -p ./",
     "grammar": "tsc -p ./ && node out/generateGrammar.js",
-    "test": "npm run compile && node --test \"test/**/*.test.js\""
+    "test": "npm run compile && node --test \"test/**/*.test.js\"",
+    "package": "npm run compile && vsce package"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "3.9.2",
     "typescript": "^5.9.3"
   }
 }
