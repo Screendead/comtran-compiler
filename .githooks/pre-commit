@@ -1,0 +1,35 @@
+#!/bin/bash
+# Keep text mirrors in step with staged canon decks (docs/design/deck-format.md
+# §6). Enable with: git config core.hooksPath .githooks
+set -e
+
+staged=()
+while IFS= read -r -d '' f; do staged+=("$f"); done \
+  < <(git diff --cached --name-only -z --diff-filter=ACM -- '*.ctdeck')
+
+deleted=()
+while IFS= read -r -d '' f; do deleted+=("$f"); done \
+  < <(git diff --cached --name-only -z --diff-filter=D -- '*.ctdeck')
+
+# A deleted canon deck takes its mirror with it.
+for f in ${deleted[@]+"${deleted[@]}"}; do
+  m="${f%.ctdeck}.deck"
+  git rm -q --cached --ignore-unmatch -- "$m"
+  rm -f -- "$m"
+done
+
+[ ${#staged[@]} -eq 0 ] && exit 0
+
+# Regeneration reads the working tree; refuse a half-staged canon file, whose
+# mirror would not match the staged content.
+for f in "${staged[@]}"; do
+  if ! git diff --quiet -- "$f"; then
+    echo "pre-commit: $f has unstaged changes; stage or stash them first" >&2
+    exit 1
+  fi
+done
+
+dart run comtran:deckconv regen "${staged[@]}"
+for f in "${staged[@]}"; do
+  git add -- "${f%.ctdeck}.deck"
+done

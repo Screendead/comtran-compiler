@@ -24,4 +24,8 @@
 ///                (M4–M5; D0.3, D0.7).
 library;
 
+export 'src/cards/canon_codec.dart';
+export 'src/cards/card_image.dart';
+export 'src/cards/text_codec.dart';
+export 'src/chars/char_code.dart';
 export 'src/version.dart';

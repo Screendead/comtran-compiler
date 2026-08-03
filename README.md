@@ -23,7 +23,16 @@ This repository is the recovery-and-rebuild effort: first the language, reconstr
 
 The definition was built by parallel extraction over both manuals, then adversarially verified — every verbatim quote checked character for character, numeric limits and citations re-derived, disputed readings settled at 400–600 dpi against the page scans. Deepening passes then mined the generated-code appendix (J 90.02), the compiled sample-program listing (J 90.05, pixel-verified), and external period sources (the 709/7090 IOCS manual C28-6100-2, the IBM 705 and 1401 references) to settle questions the manuals delegate.
 
-**Status:** the language definition is complete and verified. Of its 74 Open Questions, 8 are resolved and 10 narrowed; the remainder are implementation decisions (e.g. per-message severity values) or genuinely unrecoverable. **There is no compiler code yet** — the roadmap below is the next phase.
+**Status:** the language definition is complete and verified. Of its 74 Open Questions, 8 are resolved and 10 narrowed; the remainder are implementation decisions (e.g. per-message severity values) or genuinely unrecoverable. M0 (the design commitments, `docs/design/decisions.md`) is done; the Dart package is scaffolded; the punch-level deck format is frozen with its converter built (`docs/design/deck-format.md`). **No compiler passes exist yet.**
+
+## Working with card decks
+
+Program sources are punch-level card-image files (`*.ctdeck`, binary); each has a generated text mirror (`*.deck`) committed beside it for review and diffs. The compiler and all tools read canon only; never hand-edit a mirror (CI rejects stale mirrors). The `deckconv` tool converts and checks: `dart run comtran:deckconv` prints usage. One-time local setup:
+
+```sh
+git config core.hooksPath .githooks   # regenerate mirrors on commit
+git config diff.ctdeck.textconv 'dart run comtran:deckconv to-text'   # readable git diffs
+```
 
 ## Ground rules
 
