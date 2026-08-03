@@ -11,6 +11,11 @@ on:
       - 'tools/vscode-punchcard/**'
       - '.github/workflows/vscode-ext.yml'
 
+# A newer push to the same branch supersedes the running build.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   punchcard:
     runs-on: ubuntu-latest

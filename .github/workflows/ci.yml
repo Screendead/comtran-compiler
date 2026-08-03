@@ -5,6 +5,11 @@ on:
     branches: [master]
   pull_request:
 
+# A newer push to the same branch supersedes the running build.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   dart:
     runs-on: ubuntu-latest
@@ -13,6 +18,11 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: stable
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: pub-
       - run: dart pub get
       - run: dart format --output=none --set-exit-if-changed lib bin test
       - run: dart analyze --fatal-infos
