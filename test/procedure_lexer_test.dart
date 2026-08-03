@@ -70,6 +70,22 @@ void main() {
       expect(_texts(scan.sentences.single), ['GO', 'TO', 'END.OF.MASTERS']);
       expect(scan.diagnostics, isEmpty);
     });
+
+    test('a label without its period is repaired silently (D9.4)', () {
+      // F p. 37 requires the period after a margin procedure-name; J
+      // 90.01.03 A.1.a.ix accepts its absence with no diagnostic.
+      final ProcedureScan scan = _scan(['      START MOVE A TO B.']);
+      expect(scan.diagnostics, isEmpty);
+      final ProcedureSentence s = scan.sentences.single;
+      expect(s.label, 'START');
+      expect(s.labelHadPeriod, isFalse);
+      expect(_texts(s), ['MOVE', 'A', 'TO', 'B']);
+    });
+
+    test('a label with its period sets labelHadPeriod', () {
+      final ProcedureScan scan = _scan(['      START. MOVE A TO B.']);
+      expect(scan.sentences.single.labelHadPeriod, isTrue);
+    });
   });
 
   group('literals and numbers', () {
@@ -207,13 +223,8 @@ void main() {
     });
 
     test('a machine special in a word draws 134,00 and reads as zero', () {
-      final columns = List<int>.filled(80, 0);
-      const text = 'MOVE AXB TO C.';
-      for (var i = 0; i < text.length; i++) {
-        if (text[i] != ' ') {
-          columns[12 + i] = punchesFromBcd(bcdFromGlyph(text[i])!)!;
-        }
-      }
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 13, 'MOVE AXB TO C.');
       columns[18] = punchesFromBcd(0x3A)!; // record mark over the X
       final ProcedureScan scan = scanProcedure([
         SourceCard(CardImage.fromColumns(columns), 1),
@@ -227,13 +238,8 @@ void main() {
     });
 
     test('a machine special inside a literal is legal (D9.10 layer c)', () {
-      final columns = List<int>.filled(80, 0);
-      const text = "MOVE 'AXB' TO C.";
-      for (var i = 0; i < text.length; i++) {
-        if (text[i] != ' ') {
-          columns[12 + i] = punchesFromBcd(bcdFromGlyph(text[i])!)!;
-        }
-      }
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 13, "MOVE 'AXB' TO C.");
       columns[19] = punchesFromBcd(0x3A)!; // record mark over the X
       final ProcedureScan scan = scanProcedure([
         SourceCard(CardImage.fromColumns(columns), 1),
@@ -244,14 +250,25 @@ void main() {
       expect(literal.text, 'A?B');
     });
 
+    test('a punch with no read-out inside a literal draws 134,00 '
+        '(D9.10 layer a)', () {
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 13, "MOVE 'AXB' TO C.");
+      columns[19] = rowBit12 | rowBit11; // no BCD readout, over the X
+      final ProcedureScan scan = scanProcedure([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      final Diagnostic d = scan.diagnostics.single;
+      expect(d.message, msgIllegalCharacterReplaced);
+      expect(d.column, 20);
+      final Token literal = scan.sentences.single.tokens[1];
+      expect(literal.kind, TokenKind.alphamericLiteral);
+      expect(literal.text, 'A0B');
+    });
+
     test('a special in commentary after the terminator is not gated', () {
-      final columns = List<int>.filled(80, 0);
-      const text = 'GO TO A.';
-      for (var i = 0; i < text.length; i++) {
-        if (text[i] != ' ') {
-          columns[12 + i] = punchesFromBcd(bcdFromGlyph(text[i])!)!;
-        }
-      }
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 13, 'GO TO A.');
       columns[40] = punchesFromBcd(0x3A)!; // record mark in commentary
       final ProcedureScan scan = scanProcedure([
         SourceCard(CardImage.fromColumns(columns), 1),

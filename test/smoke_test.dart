@@ -21,5 +21,12 @@ void main() {
     for (final line in lines) {
       expect(line.length, lessThanOrEqualTo(72));
     }
+    // Columns 73-80 are blank on every card of this deck (identification
+    // field, F p. 37, F p. 84; also pinned in text_codec_test.dart), so
+    // 72 is not a loose guess: a line reaches it exactly, at least once.
+    expect(
+      lines.map((String l) => l.length).reduce((a, b) => a > b ? a : b),
+      72,
+    );
   });
 }

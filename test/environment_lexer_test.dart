@@ -184,6 +184,71 @@ void main() {
     });
   });
 
+  group('the character gate (D9.10)', () {
+    test('a record mark in a continuation name field draws 134,00', () {
+      final List<int> columns1 = blankColumns();
+      punchGlyphs(columns1, 7, 'PAYFILE');
+      punchGlyphs(columns1, 25, 'FILE');
+      columns1[71] = punchesFromBcd(bcdFromGlyph('X')!)!; // continuation
+      final List<int> columns2 = blankColumns();
+      columns2[6] = punchesFromBcd(0x3A)!; // record mark, column 7
+      final EnvironmentScan scan = scanEnvironment([
+        SourceCard(CardImage.fromColumns(columns1), 1),
+        SourceCard(CardImage.fromColumns(columns2), 2),
+      ]);
+      final Diagnostic d = scan.diagnostics.single;
+      expect(d.message, msgIllegalCharacterReplaced);
+      expect(d.column, 7);
+      expect(scan.specs.single.name, 'PAYFILE0');
+    });
+
+    test('a record mark in an option run draws 134,00', () {
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 7, 'F');
+      punchGlyphs(columns, 25, 'FILE');
+      punchGlyphs(columns, 31, 'ABC');
+      columns[31] = punchesFromBcd(0x3A)!; // record mark, column 32
+      final EnvironmentScan scan = scanEnvironment([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      final Diagnostic d = scan.diagnostics.single;
+      expect(d.message, msgIllegalCharacterReplaced);
+      expect(d.column, 32);
+      expect(scan.specs.single.optionTokens.single.text, 'A0C');
+    });
+
+    test('a punch with no read-out inside a literal draws 134,00 '
+        '(D9.10 layer a)', () {
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 7, 'F');
+      punchGlyphs(columns, 25, 'FILE');
+      punchGlyphs(columns, 31, "UNIT1 'A");
+      columns[38] = rowBit12 | rowBit11; // no BCD readout, column 39
+      punchGlyphs(columns, 40, "B'");
+      final EnvironmentScan scan = scanEnvironment([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      final Diagnostic d = scan.diagnostics.single;
+      expect(d.message, msgIllegalCharacterReplaced);
+      expect(d.column, 39);
+      expect(scan.specs.single.optionTokens[1].text, 'A0B');
+    });
+
+    test('a record mark inside a literal is legal, read as ? (layer c)', () {
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 7, 'F');
+      punchGlyphs(columns, 25, 'FILE');
+      punchGlyphs(columns, 31, "UNIT1 'A");
+      columns[38] = punchesFromBcd(0x3A)!; // record mark, column 39
+      punchGlyphs(columns, 40, "B'");
+      final EnvironmentScan scan = scanEnvironment([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      expect(scan.diagnostics, isEmpty);
+      expect(scan.specs.single.optionTokens[1].text, 'A?B');
+    });
+  });
+
   group('the 90.05 deck', () {
     test('scans to exactly 14 specifications with no diagnostics', () {
       final program = SourceProgram.fromDeck(loadPayrollDeck());

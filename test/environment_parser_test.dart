@@ -246,6 +246,63 @@ void main() {
     });
   });
 
+  group('FILE keyword coverage (TSTC-02)', () {
+    FileCard parse(String options) {
+      final EnvironmentScan scan = scanEnvironment(
+        sourceCards([
+          environmentCard(name: 'F', type: 'FILE', options: options),
+        ]),
+      );
+      final diagnostics = <Diagnostic>[];
+      final List<EnvironmentCard> cards = parseEnvironmentGroup(
+        scan,
+        diagnostics,
+      );
+      expect(diagnostics, isEmpty, reason: options);
+      return cards.single as FileCard;
+    }
+
+    test('CARD forces BEGIN (J 02.06.04)', () {
+      final FileCard card = parse('INPUT,CARD,MASTER,BLOCKSIZE 10');
+      expect(card.card, isTrue);
+      expect(card.begin, isTrue);
+    });
+
+    test('HOLD and SPANS both set holdOrSpans, undifferentiated', () {
+      // "The compiler does not differentiate" (J 02.06.04).
+      expect(parse('INPUT,MASTER,BLOCKSIZE 10,HOLD').holdOrSpans, isTrue);
+      expect(parse('INPUT,MASTER,BLOCKSIZE 10,SPANS').holdOrSpans, isTrue);
+    });
+
+    test('BEGIN sets begin without forcing CARD', () {
+      final FileCard card = parse('INPUT,MASTER,BLOCKSIZE 10,BEGIN');
+      expect(card.begin, isTrue);
+      expect(card.card, isFalse);
+    });
+
+    test('FOR LABEL sets forLabel (J 02.06.04)', () {
+      // The options field is 41 columns wide (J 02.06.01): the option
+      // text below must fit inside it, on one card.
+      final FileCard card = parse('INPUT,BLOCKSIZE 10,FOR LABEL ERR');
+      expect(card.forLabel!.text, 'ERR');
+    });
+
+    test('FIND LENGTH IN sets the current record clause (J 02.06.05)', () {
+      final FileCard card = parse('OUTPUT,BLOCKSIZE 10,R,FIND LENGTH IN LEN');
+      expect(card.records.single.findLengthIn!.text, 'LEN');
+    });
+
+    test('PLACE LENGTH IN sets the current record clause (J 02.06.05)', () {
+      final FileCard card = parse('OUTPUT,BLOCKSIZE 10,R,PLACE LENGTH IN LEN');
+      expect(card.records.single.placeLengthIn!.text, 'LEN');
+    });
+
+    test('NO CONTROL WORD sets noControlWord on an output record', () {
+      final FileCard card = parse('OUTPUT,BLOCKSIZE 10,REC1,NO CONTROL WORD');
+      expect(card.records.single.noControlWord, isTrue);
+    });
+  });
+
   group('SPECIF operand errors (D10.1)', () {
     List<Diagnostic> diagnose(String options) {
       final EnvironmentScan scan = scanEnvironment(
@@ -385,6 +442,83 @@ void main() {
       final SpecifCard card = parse('F1,HIGH');
       expect(card.density, 'HIGH');
       expect(card.labelDensity, isNull);
+    });
+  });
+
+  group('SPECIF keyword coverage (TSTC-02)', () {
+    SpecifCard parse(String options) {
+      final EnvironmentScan scan = scanEnvironment(
+        sourceCards([environmentCard(type: 'SPECIF', options: options)]),
+      );
+      final diagnostics = <Diagnostic>[];
+      final List<EnvironmentCard> cards = parseEnvironmentGroup(
+        scan,
+        diagnostics,
+      );
+      expect(diagnostics, isEmpty, reason: options);
+      return cards.single as SpecifCard;
+    }
+
+    test('UNIT2 takes a quoted literal (J 02.06.10)', () {
+      expect(parse("MASTER,UNIT2 'D2'").unit2, 'D2');
+    });
+
+    test('UNIT2 takes the bare * form (J 02.06.10)', () {
+      expect(parse('MASTER,UNIT2 *').unit2, '*');
+    });
+
+    test('DEFER sets defer (J 02.06.11)', () {
+      expect(parse('MASTER,DEFER').defer, isTrue);
+    });
+
+    test('OPENF sets openF (J 02.06.11)', () {
+      expect(parse('MASTER,OPENF').openF, isTrue);
+    });
+
+    test('CLOSEW sets closeMode (J 02.06.11)', () {
+      expect(parse('MASTER,CLOSEW').closeMode, 'CLOSEW');
+    });
+
+    test('ACTIVITY takes an integer 1-99 (J 02.06.11)', () {
+      expect(parse('MASTER,ACTIVITY 50').activity, 50);
+    });
+
+    test('CHECKC sets checkpoint (J 02.06.11)', () {
+      expect(parse('MASTER,CHECKC').checkpoint, 'CHECKC');
+    });
+
+    test('CHECKF sets checkpoint (J 02.06.11)', () {
+      expect(parse('MASTER,CHECKF').checkpoint, 'CHECKF');
+    });
+
+    test('CHKS is read silently as CHECKC (D7.2)', () {
+      // Appendix 90.08 mislabels CHECKC as CHKS; the parser accepts the
+      // mislabeling with no diagnostic and stores it as CHECKC.
+      expect(parse('MASTER,CHKS').checkpoint, 'CHECKC');
+    });
+
+    test('MULTI sets multi (J 02.06.11)', () {
+      expect(parse('MASTER,MULTI').multi, isTrue);
+    });
+
+    test('SEQ sets seq (J 02.06.12)', () {
+      expect(parse('MASTER,SEQ').seq, isTrue);
+    });
+
+    test('CKSUMS sets cksums (J 02.06.12)', () {
+      expect(parse('MASTER,CKSUMS').cksums, isTrue);
+    });
+
+    test('SERIAL takes a literal of 5 characters or fewer (J 02.06.12)', () {
+      expect(parse("MASTER,SERIAL '12'").serial, '12');
+    });
+
+    test('REEL takes a literal of 4 numeric characters (J 02.06.12)', () {
+      expect(parse("MASTER,REEL '1234'").reel, '1234');
+    });
+
+    test('RETAIN takes a number of 3 digits or fewer (J 02.06.12)', () {
+      expect(parse('MASTER,RETAIN 123').retain, '123');
     });
   });
 
@@ -641,21 +775,48 @@ void main() {
         final diagnostics = <Diagnostic>[];
         parseEnvironmentGroup(scan, diagnostics);
 
-        // A representative spread of the message ids this parser issues.
+        // The exact spread of message ids this parser issues, in source
+        // order, each paired with its card: a duplicated, missing, or
+        // misattributed diagnostic fails this (TSTC-09). Card 1 (F1) draws
+        // 89 twice — once for the missing direction word, once because
+        // BLOCKSIZE, unreachable after that, is never seen either. Card 4
+        // (F3) likewise draws 89 at the end: its options never mention
+        // BLOCKSIZE at all.
         expect(
-          diagnostics.map((Diagnostic d) => d.message.number),
-          containsAll(<String>[
-            '89,00', '91,00', '92,00', '93,00', '96,00', '905,00', //
-            '94,00', '95,00', //
-            '153,00', //
-            '154,00', '155,00', '156,00', '157,00', '158,00', '159,00', //
-            '160,00', //
-            '161,00', '163,00', //
-            '164,00', //
-            '176,00', '207,00', '90,00', //
-            '3,00', //
-            '4,00', '6,00', '7,00', //
-          ]),
+          diagnostics.map(
+            (Diagnostic d) => (d.message.number, d.card.cardNumber),
+          ),
+          [
+            ('89,00', 1),
+            ('89,00', 1),
+            ('91,00', 2),
+            ('92,00', 2),
+            ('93,00', 3),
+            ('905,00', 3),
+            ('96,00', 3),
+            ('95,00', 4),
+            ('94,00', 5),
+            ('89,00', 4),
+            ('153,00', 6),
+            ('154,00', 7),
+            ('155,00', 7),
+            ('156,00', 7),
+            ('157,00', 8),
+            ('158,00', 8),
+            ('159,00', 8),
+            ('160,00', 8),
+            ('161,00', 9),
+            ('163,00', 10),
+            ('164,00', 11),
+            ('90,00', 12),
+            ('176,00', 12),
+            ('207,00', 13),
+            ('90,00', 13),
+            ('3,00', 14),
+            ('4,00', 15),
+            ('6,00', 16),
+            ('7,00', 17),
+          ],
         );
 
         for (final d in diagnostics) {

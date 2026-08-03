@@ -91,7 +91,7 @@ void main() {
       final Iterable<GetClause> gets = group.sentences
           .expand((Sentence s) => s.clauses)
           .whereType<GetClause>();
-      expect(gets, isNotEmpty);
+      expect(gets, hasLength(4));
       for (final get in gets) {
         expect(get.recordFrom, isFalse);
         expect(get.atEnd, isNotNull);
