@@ -60,7 +60,7 @@ int _toCanon(List<String> args) {
     return 2;
   }
   final List<CardImage> deck = mirrorToDeck(File(args[0]).readAsStringSync());
-  File(args[1]).writeAsBytesSync(encodeCanon(deck));
+  writeAtomic(args[1], (File f) => f.writeAsBytesSync(encodeCanon(deck)));
   return 0;
 }
 
@@ -73,7 +73,7 @@ int _toText(List<String> args) {
   if (args.length == 1 || args[1] == '-') {
     stdout.write(text);
   } else {
-    File(args[1]).writeAsStringSync(text);
+    writeAtomic(args[1], (File f) => f.writeAsStringSync(text));
   }
   return 0;
 }
@@ -90,7 +90,8 @@ int _regen(List<String> args) {
   }
   for (final String canonPath in canonFiles) {
     final String mirrorPath = mirrorPathFor(canonPath);
-    File(mirrorPath).writeAsStringSync(deckToMirror(_readCanon(canonPath)));
+    final String text = deckToMirror(_readCanon(canonPath));
+    writeAtomic(mirrorPath, (File f) => f.writeAsStringSync(text));
     stdout.writeln('regenerated $mirrorPath');
   }
   return 0;

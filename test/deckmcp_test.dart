@@ -488,6 +488,32 @@ void main() {
   });
 
   group('deck_check', () {
+    test('passes a fresh pair addressed by its mirror path', () async {
+      final Map<String, Object?> json = _content(
+        await client.call('deck_check', {
+          'paths': <Object?>[mirrorPath],
+        }),
+      );
+      expect(json['ok'], isTrue);
+      final results = json['results']! as List<Object?>;
+      final entry = results.single! as Map<String, Object?>;
+      expect(entry['status'], 'ok');
+      expect(entry['path'], canonPath);
+    });
+
+    test('reports a stale pair addressed by its mirror path', () async {
+      File(mirrorPath).writeAsStringSync('TAMPERED\n');
+      final Map<String, Object?> json = _content(
+        await client.call('deck_check', {
+          'paths': <Object?>[mirrorPath],
+        }),
+      );
+      expect(json['ok'], isFalse);
+      final entry =
+          (json['results']! as List<Object?>).single! as Map<String, Object?>;
+      expect(entry['status'], 'mirror_stale');
+    });
+
     test('passes a fresh pair', () async {
       final Map<String, Object?> json = _content(
         await client.call('deck_check', {
