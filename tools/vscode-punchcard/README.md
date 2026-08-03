@@ -10,6 +10,12 @@ container, §4 defines the character code. This extension is a port of the Dart
 reference in `lib/src/chars/char_code.dart` and `lib/src/cards/canon_codec.dart`.
 Those files stay authoritative. Change neither side alone.
 
+`test/fixtures/char-code-*-vectors.csv` are the golden character-code vectors
+(every punch pattern, every BCD code) that a Dart-side consumer compares
+against the reference to enforce that rule; see `test/fixtures/README.md` for
+the file format and `npm run vectors` to regenerate them after a change to
+`src/charCode.ts`.
+
 ## What you see
 
 - **Card list** on the left: one line per card with its read-out, in deck
