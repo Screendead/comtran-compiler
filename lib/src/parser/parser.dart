@@ -62,6 +62,7 @@ final class ParseResult {
     required this.compileCard,
     required this.groups,
     required this.parserDiagnostics,
+    required this.stopped,
   });
 
   /// The M1 result the parse consumed.
@@ -75,6 +76,10 @@ final class ParseResult {
 
   /// The parser's own diagnostics, in detection order.
   final List<Diagnostic> parserDiagnostics;
+
+  /// Whether a severity-5 diagnostic stopped the parse at the point of
+  /// detection (D9.1): later sentences and groups are unparsed.
+  final bool stopped;
 
   /// Front-end and parser diagnostics as one block, ordered by card
   /// number, stable within one card (design note M2-2; the 1962
@@ -104,15 +109,20 @@ final class ParseResult {
 }
 
 /// Runs the M2 parser over [frontEnd].
-ParseResult runParser(FrontEndResult frontEnd) {
-  final diagnostics = <Diagnostic>[];
-  final CompileCard? compileCard = parseCompileCard(
-    frontEnd.program.compileCard,
-    diagnostics,
-  );
+///
+/// Diagnostics go to [sink] when one is given — the compilation's one
+/// [DiagnosticSink] (D9.1), shared with the front end by the driver;
+/// [ParseResult.parserDiagnostics] holds only the parser's rows either
+/// way.
+ParseResult runParser(FrontEndResult frontEnd, {DiagnosticSink? sink}) {
+  final DiagnosticSink diagnostics = sink ?? DiagnosticSink();
+  final int first = diagnostics.length;
+  CompileCard? compileCard;
   final procedureParser = ProcedureParser(diagnostics);
   final groups = <ParsedGroup>[];
+  var stopped = false;
   try {
+    compileCard = parseCompileCard(frontEnd.program.compileCard, diagnostics);
     for (final GroupScan scan in frontEnd.groupScans) {
       groups.add(switch (scan) {
         DataGroupScan(scan: final data) => ParsedDataGroup._(
@@ -139,11 +149,13 @@ ParseResult runParser(FrontEndResult frontEnd) {
     // detection (D9.1; design note M2-13). The groups parsed so far
     // and every diagnostic issued — the severity-5 one last — stand;
     // the end-of-text checks do not run.
+    stopped = true;
   }
   return ParseResult._(
     frontEnd: frontEnd,
     compileCard: compileCard,
     groups: List.unmodifiable(groups),
-    parserDiagnostics: List.unmodifiable(diagnostics),
+    parserDiagnostics: List.unmodifiable(diagnostics.sublist(first)),
+    stopped: stopped,
   );
 }

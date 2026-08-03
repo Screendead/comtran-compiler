@@ -71,8 +71,13 @@ final class ProcedureScan {
 }
 
 /// Scans procedure [cards] into sentences.
-ProcedureScan scanProcedure(List<SourceCard> cards) =>
-    _ProcedureScanner(cards).scan();
+///
+/// Diagnostics go to [sink] when one is given — the compilation's
+/// [DiagnosticSink], whose severity-5 throw stops the scan at the point
+/// of detection (D9.1) — and the scan's own
+/// [ProcedureScan.diagnostics] holds only this scan's rows either way.
+ProcedureScan scanProcedure(List<SourceCard> cards, [List<Diagnostic>? sink]) =>
+    _ProcedureScanner(cards, sink ?? <Diagnostic>[]).scan();
 
 /// The leftmost body column (the start of the name margin).
 const int _marginFirst = 7;
@@ -90,12 +95,14 @@ bool _isLetter(String c) => c.codeUnitAt(0) >= 0x41 && c.codeUnitAt(0) <= 0x5A;
 bool _isWordChar(String c) => _isLetter(c) || _isDigit(c);
 
 final class _ProcedureScanner {
-  _ProcedureScanner(this.cards);
+  _ProcedureScanner(this.cards, this.diagnostics)
+    : _firstDiagnostic = diagnostics.length;
 
   final List<SourceCard> cards;
 
   final List<ProcedureSentence> sentences = [];
-  final List<Diagnostic> diagnostics = [];
+  final List<Diagnostic> diagnostics;
+  final int _firstDiagnostic;
 
   // The open sentence, if any.
   bool _open = false;
@@ -127,7 +134,7 @@ final class _ProcedureScanner {
       );
       _close(terminated: false);
     }
-    return ProcedureScan._(sentences, diagnostics);
+    return ProcedureScan._(sentences, diagnostics.sublist(_firstDiagnostic));
   }
 
   void _scanCard(SourceCard card) {

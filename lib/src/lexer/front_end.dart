@@ -60,6 +60,7 @@ final class FrontEndResult {
     required this.statementNumberByCard,
     required this.numberedCards,
     required this.statementCount,
+    required this.stopped,
   });
 
   /// The deck structure.
@@ -85,6 +86,11 @@ final class FrontEndResult {
   /// How many statements were numbered.
   final int statementCount;
 
+  /// Whether a severity-5 diagnostic stopped the front end at the
+  /// point of detection (D9.1): later cards are unscanned and
+  /// unnumbered, and the driver runs no parser over the result.
+  final bool stopped;
+
   /// The highest diagnostic severity, or 0 with no diagnostics.
   int get maxSeverity => diagnostics.isEmpty
       ? 0
@@ -94,13 +100,20 @@ final class FrontEndResult {
 }
 
 /// Runs the M1 front end over [deck].
-FrontEndResult runFrontEnd(List<CardImage> deck) {
+///
+/// Diagnostics go to [sink] when one is given — the compilation's one
+/// [DiagnosticSink] (D9.1), shared with the parser by the driver. A
+/// severity-5 diagnostic stops the front end at the point of detection:
+/// the result carries everything scanned and numbered up to it, with
+/// [FrontEndResult.stopped] set.
+FrontEndResult runFrontEnd(List<CardImage> deck, {DiagnosticSink? sink}) {
   final SourceProgram program = SourceProgram.fromDeck(deck);
   final groupScans = <GroupScan>[];
-  final diagnostics = <Diagnostic>[...program.problems];
+  final DiagnosticSink diagnostics = sink ?? DiagnosticSink();
   final statementNumberByCard = <int, String>{};
   final numberedCards = <int>{};
   var statement = 0;
+  var stopped = false;
 
   void number(List<List<SourceCard>> units) {
     for (final List<SourceCard> unit in units) {
@@ -112,27 +125,35 @@ FrontEndResult runFrontEnd(List<CardImage> deck) {
     }
   }
 
-  for (final DivisionGroup group in program.groups) {
-    switch (group.division) {
-      case Division.data:
-        final DataScan scan = scanDataDescription(group.cards);
-        groupScans.add(DataGroupScan._(group, scan));
-        diagnostics.addAll(scan.diagnostics);
-        number([for (final DataEntry e in scan.entries) e.cards]);
-      case Division.environment:
-        final EnvironmentScan scan = scanEnvironment(group.cards);
-        groupScans.add(EnvironmentGroupScan._(group, scan));
-        diagnostics.addAll(scan.diagnostics);
-        // Number by card group, not by surviving specification, so a
-        // deleted card (144,00) still consumes its statement number —
-        // the numbering analogue of decision D9.8.
-        number(_cardGroups(group.cards));
-      case Division.procedure:
-        final ProcedureScan scan = scanProcedure(group.cards);
-        groupScans.add(ProcedureGroupScan._(group, scan));
-        diagnostics.addAll(scan.diagnostics);
-        number([for (final ProcedureSentence s in scan.sentences) s.cards]);
+  try {
+    diagnostics.addAll(program.problems);
+    for (final DivisionGroup group in program.groups) {
+      switch (group.division) {
+        case Division.data:
+          final DataScan scan = scanDataDescription(group.cards, diagnostics);
+          groupScans.add(DataGroupScan._(group, scan));
+          number([for (final DataEntry e in scan.entries) e.cards]);
+        case Division.environment:
+          final EnvironmentScan scan = scanEnvironment(
+            group.cards,
+            diagnostics,
+          );
+          groupScans.add(EnvironmentGroupScan._(group, scan));
+          // Number by card group, not by surviving specification, so a
+          // deleted card (144,00) still consumes its statement number —
+          // the numbering analogue of decision D9.8.
+          number(_cardGroups(group.cards));
+        case Division.procedure:
+          final ProcedureScan scan = scanProcedure(group.cards, diagnostics);
+          groupScans.add(ProcedureGroupScan._(group, scan));
+          number([for (final ProcedureSentence s in scan.sentences) s.cards]);
+      }
     }
+  } on StopCompilation {
+    // Severity 5 stops the front end at the point of detection (D9.1;
+    // D10.2). The scans completed so far and every diagnostic recorded
+    // — the severity-5 one last — stand.
+    stopped = true;
   }
 
   return FrontEndResult._(
@@ -142,6 +163,7 @@ FrontEndResult runFrontEnd(List<CardImage> deck) {
     statementNumberByCard: Map.unmodifiable(statementNumberByCard),
     numberedCards: Set.unmodifiable(numberedCards),
     statementCount: statement,
+    stopped: stopped,
   );
 }
 

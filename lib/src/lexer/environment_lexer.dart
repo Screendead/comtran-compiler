@@ -61,9 +61,19 @@ final class EnvironmentScan {
 /// Scans environment [cards] into specifications. Grouping follows the
 /// continuation column exactly as in the data division: a specification
 /// is complete when column 72 is blank (J 02.03.02, §3.b).
-EnvironmentScan scanEnvironment(List<SourceCard> cards) {
+///
+/// Diagnostics go to [sink] when one is given — the compilation's
+/// [DiagnosticSink], whose severity-5 throw stops the scan at the point
+/// of detection (D9.1) — and the scan's own
+/// [EnvironmentScan.diagnostics] holds only this scan's rows either
+/// way.
+EnvironmentScan scanEnvironment(
+  List<SourceCard> cards, [
+  List<Diagnostic>? sink,
+]) {
   final specs = <EnvironmentSpec>[];
-  final diagnostics = <Diagnostic>[];
+  final List<Diagnostic> diagnostics = sink ?? <Diagnostic>[];
+  final int first = diagnostics.length;
   var i = 0;
   while (i < cards.length) {
     final group = <SourceCard>[cards[i]];
@@ -77,7 +87,7 @@ EnvironmentScan scanEnvironment(List<SourceCard> cards) {
       specs.add(spec);
     }
   }
-  return EnvironmentScan._(specs, diagnostics);
+  return EnvironmentScan._(specs, diagnostics.sublist(first));
 }
 
 /// The options field spans columns 31–71 (J 02.06.01).

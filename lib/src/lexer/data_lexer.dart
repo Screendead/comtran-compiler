@@ -79,9 +79,15 @@ final class DataScan {
 /// plus every following card claimed by a punched continuation column
 /// (F p. 84; J 02.03.02, §3.b: "Data and Environment entries are
 /// considered complete when column 72 is blank").
-DataScan scanDataDescription(List<SourceCard> cards) {
+///
+/// Diagnostics go to [sink] when one is given — the compilation's
+/// [DiagnosticSink], whose severity-5 throw stops the scan at the point
+/// of detection (D9.1) — and the scan's own [DataScan.diagnostics]
+/// holds only this scan's rows either way.
+DataScan scanDataDescription(List<SourceCard> cards, [List<Diagnostic>? sink]) {
   final entries = <DataEntry>[];
-  final diagnostics = <Diagnostic>[];
+  final List<Diagnostic> diagnostics = sink ?? <Diagnostic>[];
+  final int first = diagnostics.length;
   var i = 0;
   while (i < cards.length) {
     final group = <SourceCard>[cards[i]];
@@ -92,7 +98,7 @@ DataScan scanDataDescription(List<SourceCard> cards) {
     i++;
     entries.add(_scanEntry(group, diagnostics));
   }
-  return DataScan._(entries, diagnostics);
+  return DataScan._(entries, diagnostics.sublist(first));
 }
 
 /// The description field spans columns 38–71 (F p. 65).

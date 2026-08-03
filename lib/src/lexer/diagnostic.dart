@@ -1,6 +1,8 @@
 /// Compiler diagnostics in the vocabulary of the J 90.04 message catalog.
 library;
 
+import 'dart:collection';
+
 import 'messages.dart';
 import 'severities.dart';
 import 'source_card.dart';
@@ -12,6 +14,62 @@ import 'source_card.dart';
 final class StopCompilation implements Exception {
   /// Creates the signal.
   const StopCompilation();
+}
+
+/// The one diagnostic sink of a compilation (D9.1; D10.2): the ordered
+/// diagnostic list plus the running maximum severity. Recording a
+/// severity-5 diagnostic sets [stopped] and throws [StopCompilation],
+/// so every phase stops at the point of detection. The driver passes
+/// one sink through the front end and the parser; a plain list stays
+/// usable where no stop path is wanted (unit tests of one scanner or
+/// parser function).
+final class DiagnosticSink extends ListBase<Diagnostic> {
+  final List<Diagnostic> _diagnostics = [];
+
+  /// The highest severity recorded, or 0 with no diagnostics.
+  int get maxSeverity => _maxSeverity;
+  int _maxSeverity = 0;
+
+  /// Whether a severity-5 diagnostic stopped the compilation (D9.1).
+  bool get stopped => _stopped;
+  bool _stopped = false;
+
+  @override
+  int get length => _diagnostics.length;
+
+  @override
+  set length(int newLength) {
+    if (newLength > _diagnostics.length) {
+      throw UnsupportedError('a DiagnosticSink cannot grow by length');
+    }
+    _diagnostics.length = newLength;
+  }
+
+  @override
+  Diagnostic operator [](int index) => _diagnostics[index];
+
+  @override
+  void operator []=(int index, Diagnostic value) {
+    _diagnostics[index] = value;
+    _record(value);
+  }
+
+  @override
+  void add(Diagnostic element) {
+    _diagnostics.add(element);
+    _record(element);
+  }
+
+  void _record(Diagnostic diagnostic) {
+    final int severity = diagnostic.severity;
+    if (severity > _maxSeverity) {
+      _maxSeverity = severity;
+    }
+    if (severity >= 5) {
+      _stopped = true;
+      throw const StopCompilation();
+    }
+  }
 }
 
 /// One diagnostic, reported against a card (and optionally a column).
