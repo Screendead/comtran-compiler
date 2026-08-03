@@ -12,7 +12,6 @@ import 'source_card.dart';
 /// keeps everything parsed and diagnosed up to that point; nothing
 /// inside the parser does (design note M2-13).
 final class StopCompilation implements Exception {
-  /// Creates the signal.
   const StopCompilation();
 }
 
@@ -79,7 +78,6 @@ final class DiagnosticSink extends ListBase<Diagnostic> {
 /// the 1962 compiler per message is unrecoverable (the catalog prints code
 /// 0 throughout, J 90.04.01), so severities here are our assignment.
 final class Diagnostic {
-  /// Creates a diagnostic for [message] against [card].
   Diagnostic(this.message, this.card, {this.column, this.operands = const []});
 
   /// Creates a diagnostic confined to no single source statement — no

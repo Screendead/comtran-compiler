@@ -24,7 +24,6 @@ import 'source_program.dart';
 sealed class GroupScan {
   GroupScan._(this.group);
 
-  /// The group the scan covers.
   final DivisionGroup group;
 }
 
@@ -64,7 +63,6 @@ final class FrontEndResult {
     required this.stopped,
   });
 
-  /// The deck structure.
   final SourceProgram program;
 
   /// One scan per division group, in deck order.

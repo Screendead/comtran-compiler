@@ -39,7 +39,6 @@ enum DataTypeCode {
 
 /// One parsed data description entry, in its level hierarchy.
 final class DataItem {
-  /// Creates a parsed item over the M1 [entry].
   DataItem({
     required this.entry,
     required this.typeCode,

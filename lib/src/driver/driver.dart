@@ -39,7 +39,6 @@ final class JobCompilation {
 final class DeckCompilation {
   DeckCompilation._(this.jobs);
 
-  /// The jobs, in deck order.
   final List<JobCompilation> jobs;
 
   /// The worst severity across every job, or 0 with none (D11.2: the

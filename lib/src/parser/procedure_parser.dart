@@ -63,7 +63,7 @@ final class _DeleteSentence implements Exception {
 /// whole-program facts (STOP RUN, PROGRAM.START, DO targets) across
 /// groups; [finishProgram] runs the end-of-text checks.
 final class ProcedureParser {
-  /// Creates the parser, appending to [diagnostics]. [pedantic] adds
+  /// Every diagnostic appends to [diagnostics]. [pedantic] adds
   /// non-historical written-language-strictness diagnostics (decision
   /// D0.8, D11.4) without changing any parsed clause.
   ProcedureParser(this.diagnostics, {this.pedantic = false});

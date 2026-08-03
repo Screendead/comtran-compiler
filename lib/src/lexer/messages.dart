@@ -15,7 +15,7 @@ library;
 
 /// One catalog entry.
 final class Message {
-  /// Creates the catalog entry [number] with verbatim [text].
+  /// A catalog entry: [number] with its verbatim [text].
   const Message(this.number, this.text) : nonHistorical = false;
 
   /// Creates a message of ours, with an id outside the 0–209 catalog

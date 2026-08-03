@@ -34,20 +34,16 @@ bool isNameStopWord(String word) {
 
 /// A cursor over one sentence's tokens.
 final class TokenCursor {
-  /// Creates the cursor over [tokens], anchored to [sentenceCard] for
-  /// diagnostics at end-of-sentence positions.
+  /// [sentenceCard] anchors diagnostics at end-of-sentence positions.
   TokenCursor(this.tokens, this.sentenceCard);
 
-  /// The sentence's tokens.
   final List<Token> tokens;
 
   /// The card diagnostics anchor to when the cursor is at the end.
   final SourceCard sentenceCard;
 
-  /// The current position.
   int position = 0;
 
-  /// Whether every token is consumed.
   bool get atEnd => position >= tokens.length;
 
   /// The token at the cursor plus [offset], or `null` past the end.

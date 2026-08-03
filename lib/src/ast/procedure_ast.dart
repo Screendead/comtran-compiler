@@ -13,10 +13,9 @@ import '../lexer/token.dart';
 /// qualifier words (§1.5; D2.5 — qualification is blank-separated,
 /// never dotted) and optional subscripts.
 final class NameReference {
-  /// Creates the reference from its [words], most significant first.
+  /// [words] runs most significant first.
   NameReference(this.words, [this.subscripts = const []]);
 
-  /// The word tokens, source order.
   final List<Token> words;
 
   /// The subscript expressions; at most three (D3.1). The restriction
@@ -41,10 +40,8 @@ sealed class ArithExpr {
 
 /// A (possibly qualified, possibly subscripted) name operand.
 final class NameOperand extends ArithExpr {
-  /// Creates the operand.
   NameOperand(this.name);
 
-  /// The referenced name.
   final NameReference name;
 
   @override
@@ -55,10 +52,8 @@ final class NameOperand extends ArithExpr {
 /// legal only in comparisons and inside TR; the parser rejects it as a
 /// bare arithmetic operand, F p. 45).
 final class LiteralOperand extends ArithExpr {
-  /// Creates the operand.
   LiteralOperand(this.literal);
 
-  /// The literal token.
   final Token literal;
 
   @override
@@ -70,10 +65,8 @@ final class LiteralOperand extends ArithExpr {
 /// comparison operand, never inside a larger arithmetic expression
 /// (design note M2-8).
 final class FigurativeOperand extends ArithExpr {
-  /// Creates the operand.
   FigurativeOperand(this.word);
 
-  /// The constant's word token.
   final Token word;
 
   @override
@@ -83,16 +76,13 @@ final class FigurativeOperand extends ArithExpr {
 /// A binary operation `+ - * / **`, left-associative within its
 /// precedence level (J 02.04.05.01).
 final class BinaryExpr extends ArithExpr {
-  /// Creates the node.
   BinaryExpr(this.left, this.operator, this.right, {this.recovered = false});
 
-  /// The left operand.
   final ArithExpr left;
 
   /// The operator token (`**` is one token).
   final Token operator;
 
-  /// The right operand.
   final ArithExpr right;
 
   /// True on a recovery-only grouping — `A**B**C` grouped left for
@@ -106,7 +96,6 @@ final class BinaryExpr extends ArithExpr {
 /// A unary operation — negation or ABS (J 02.04.05.01: they bind
 /// tightest, above `**`, with TR; D4.4).
 final class UnaryExpr extends ArithExpr {
-  /// Creates the node.
   UnaryExpr(this.operator, this.operand);
 
   /// The operator token (`-` or `ABS`).
@@ -122,13 +111,10 @@ final class UnaryExpr extends ArithExpr {
 /// A truth function `TR (conditional expression)`, contributing 1 or 0
 /// (F p. 45).
 final class TruthExpr extends ArithExpr {
-  /// Creates the node.
   TruthExpr(this.word, this.condition);
 
-  /// The `TR` token.
   final Token word;
 
-  /// The parenthesized conditional expression.
   final CondExpr condition;
 
   @override
@@ -138,13 +124,10 @@ final class TruthExpr extends ArithExpr {
 /// A function call `name ((argument, ...))` — double parentheses,
 /// bare-name arguments (F p. 28 rule 15, p. 34).
 final class FunctionCall extends ArithExpr {
-  /// Creates the node.
   FunctionCall(this.function, this.arguments);
 
-  /// The function's name.
   final NameReference function;
 
-  /// The argument names, in order.
   final List<NameReference> arguments;
 
   @override
@@ -174,19 +157,15 @@ enum RelationOp {
 /// A relation `operand relational-operator operand`; both operands
 /// always written in full — no elliptical forms (F p. 23 rule 3).
 final class Relation extends CondExpr {
-  /// Creates the node.
   Relation(this.left, this.op, this.right, {required this.negated});
 
-  /// The left operand.
   final ArithExpr left;
 
-  /// The relation.
   final RelationOp op;
 
   /// Whether the relation is negated (NOT GT, NOT =, NOT LT, IS NOT …).
   final bool negated;
 
-  /// The right operand.
   final ArithExpr right;
 
   @override
@@ -197,10 +176,8 @@ final class Relation extends CondExpr {
 /// Whether the name is in fact a condition-name is M3's; a subscript
 /// here is rejected at parse time (J 90.01.03; D5.6).
 final class ConditionReference extends CondExpr {
-  /// Creates the node.
   ConditionReference(this.name);
 
-  /// The referenced condition-name.
   final NameReference name;
 
   @override
@@ -209,13 +186,10 @@ final class ConditionReference extends CondExpr {
 
 /// `left AND right` — binds tighter than OR (F p. 105 rule 3).
 final class AndExpr extends CondExpr {
-  /// Creates the node.
   AndExpr(this.left, this.right);
 
-  /// The left term.
   final CondExpr left;
 
-  /// The right term.
   final CondExpr right;
 
   @override
@@ -224,13 +198,10 @@ final class AndExpr extends CondExpr {
 
 /// `left OR right` — inclusive (F p. 23).
 final class OrExpr extends CondExpr {
-  /// Creates the node.
   OrExpr(this.left, this.right);
 
-  /// The left term.
   final CondExpr left;
 
-  /// The right term.
   final CondExpr right;
 
   @override
@@ -240,13 +211,10 @@ final class OrExpr extends CondExpr {
 /// `NOT condition` — NOT may precede only a condition or a left
 /// parenthesis; `NOT NOT` is illegal (F p. 106 rule 4).
 final class NotExpr extends CondExpr {
-  /// Creates the node.
   NotExpr(this.word, this.operand);
 
-  /// The `NOT` token.
   final Token word;
 
-  /// The negated condition.
   final CondExpr operand;
 
   @override
@@ -271,13 +239,10 @@ sealed class Clause {
 /// The conditional clause `IF condition THEN … [OTHERWISE …]` — at most
 /// one per sentence, first when present (F p. 25).
 final class IfClause extends Clause {
-  /// Creates the clause.
   IfClause(this.word, this.condition, this.thenArm, this.otherwiseArm);
 
-  /// The `IF` token.
   final Token word;
 
-  /// The tested condition.
   final CondExpr condition;
 
   /// The THEN arm's imperative clauses, in order.
@@ -293,7 +258,6 @@ final class IfClause extends Clause {
 /// `MOVE [CORRESPONDING] source TO target, …` (F pp. 42–43). No
 /// TRUNCATED or ON OVERFLOW clause exists on MOVE (§8.5.4).
 final class MoveClause extends Clause {
-  /// Creates the clause.
   MoveClause(
     this.verb,
     this.source,
@@ -301,7 +265,6 @@ final class MoveClause extends Clause {
     required this.corresponding,
   });
 
-  /// The `MOVE` token.
   final Token verb;
 
   /// Whether CORRESPONDING is present (J 02.04.04).
@@ -312,7 +275,6 @@ final class MoveClause extends Clause {
   /// constant (design note M2-8).
   final ArithExpr source;
 
-  /// The targets, in order.
   final List<NameReference> targets;
 
   @override
@@ -322,7 +284,6 @@ final class MoveClause extends Clause {
 /// `SET target, … = expression [TRUNCATED] [, ON OVERFLOW clause]`
 /// (F pp. 44, 109).
 final class SetClause extends Clause {
-  /// Creates the clause.
   SetClause(
     this.verb,
     this.targets,
@@ -331,17 +292,14 @@ final class SetClause extends Clause {
     this.onOverflow,
   });
 
-  /// The `SET` token.
   final Token verb;
 
-  /// The result fields, in order.
   final List<NameReference> targets;
 
   /// The right-hand side: an arithmetic expression or a figurative
   /// constant (design note M2-8).
   final ArithExpr value;
 
-  /// Whether TRUNCATED is present.
   final bool truncated;
 
   /// The ON OVERFLOW imperative clause; legal only with exactly one
@@ -354,10 +312,8 @@ final class SetClause extends Clause {
 
 /// `SET condition.name` — the switch-setting form (F p. 46; D5.6).
 final class SetConditionClause extends Clause {
-  /// Creates the clause.
   SetConditionClause(this.verb, this.conditionName);
 
-  /// The `SET` token.
   final Token verb;
 
   /// The condition-name; never subscripted (J 90.01.03; D5.6).
@@ -370,7 +326,6 @@ final class SetConditionClause extends Clause {
 /// `ADD` `[CORRESPONDING]` source TO target, … `[TRUNCATED]`
 /// `[, ON OVERFLOW clause]` (F pp. 47, 108; design note M2-9).
 final class AddClause extends Clause {
-  /// Creates the clause.
   AddClause(
     this.verb,
     this.source,
@@ -380,19 +335,15 @@ final class AddClause extends Clause {
     this.onOverflow,
   });
 
-  /// The `ADD` token.
   final Token verb;
 
-  /// Whether CORRESPONDING is present.
   final bool corresponding;
 
   /// The addend: a name or a literal (F p. 47).
   final ArithExpr source;
 
-  /// The targets, in order.
   final List<NameReference> targets;
 
-  /// Whether TRUNCATED is present.
   final bool truncated;
 
   /// The ON OVERFLOW imperative clause; single-target only.
@@ -405,7 +356,6 @@ final class AddClause extends Clause {
 /// One target of a GO TO, with its WHEN condition in the conditional
 /// form (F p. 48).
 final class GoToTarget {
-  /// Creates the target.
   GoToTarget(this.name, this.when);
 
   /// The procedure name.
@@ -419,13 +369,10 @@ final class GoToTarget {
 /// `GO TO name`, `GO TO name WHEN cond, …`, or
 /// `GO TO (name, …) ON index` (F pp. 48–49).
 final class GoToClause extends Clause {
-  /// Creates the clause.
   GoToClause(this.verb, this.targets, {this.index});
 
-  /// The `GO` token.
   final Token verb;
 
-  /// The targets, in order.
   final List<GoToTarget> targets;
 
   /// The index name of the assigned form, or `null`.
@@ -437,10 +384,8 @@ final class GoToClause extends Clause {
 
 /// One `index = p(q)r` specification of an indexed DO (F pp. 50–51).
 final class DoIndex {
-  /// Creates the specification.
   DoIndex(this.index, this.from, this.by, this.to);
 
-  /// The index name.
   final NameReference index;
 
   /// p — the starting value: an integer literal or field name.
@@ -456,7 +401,6 @@ final class DoIndex {
 /// `DO procedure [EXACTLY n TIMES | FOR index = p(q)r, …]
 /// [USING …] [GIVING …]` (F p. 108; D5.2: at most three indices).
 final class DoClause extends Clause {
-  /// Creates the clause.
   DoClause(
     this.verb,
     this.procedure, {
@@ -466,7 +410,6 @@ final class DoClause extends Clause {
     this.givingResults = const [],
   });
 
-  /// The `DO` token.
   final Token verb;
 
   /// The procedure or section name.
@@ -482,7 +425,6 @@ final class DoClause extends Clause {
   /// (F p. 52).
   final List<ArithExpr> usingArguments;
 
-  /// The GIVING result names.
   final List<NameReference> givingResults;
 
   @override
@@ -492,10 +434,8 @@ final class DoClause extends Clause {
 /// `STOP n` or `STOP RUN` — the operand is required; a bare `STOP.` is
 /// a syntax error (D2.7).
 final class StopClause extends Clause {
-  /// Creates the clause.
   StopClause(this.verb, {required this.run, this.number});
 
-  /// The `STOP` token.
   final Token verb;
 
   /// The halt number, at most 6 digits (J 05.06.04), or `null` for
@@ -511,13 +451,10 @@ final class StopClause extends Clause {
 
 /// `OPEN file, …` or `OPEN ALL FILES` (F p. 39).
 final class OpenClause extends Clause {
-  /// Creates the clause.
   OpenClause(this.verb, this.files, {required this.allFiles});
 
-  /// The `OPEN` token.
   final Token verb;
 
-  /// Whether the ALL FILES form is used.
   final bool allFiles;
 
   /// The file names; empty in the ALL FILES form.
@@ -529,13 +466,10 @@ final class OpenClause extends Clause {
 
 /// `CLOSE file, …` or `CLOSE ALL FILES` (F p. 41).
 final class CloseClause extends Clause {
-  /// Creates the clause.
   CloseClause(this.verb, this.files, {required this.allFiles});
 
-  /// The `CLOSE` token.
   final Token verb;
 
-  /// Whether the ALL FILES form is used.
   final bool allFiles;
 
   /// The file names; empty in the ALL FILES form.
@@ -548,7 +482,6 @@ final class CloseClause extends Clause {
 /// The AT END clause of a GET (J 02.07.05; D6.6): one imperative
 /// statement, a bare procedure name, or nothing.
 final class AtEndClause {
-  /// Creates the clause.
   AtEndClause(this.anchor, {this.statement, this.bareName});
 
   /// The `AT` token.
@@ -565,10 +498,8 @@ final class AtEndClause {
 /// `GET record` or `GET RECORD FROM file`, with an optional AT END
 /// (J 02.07.04; F pp. 39–40).
 final class GetClause extends Clause {
-  /// Creates the clause.
   GetClause(this.verb, this.name, {required this.recordFrom, this.atEnd});
 
-  /// The `GET` token.
   final Token verb;
 
   /// Whether the `GET RECORD FROM file` form is used.
@@ -577,7 +508,6 @@ final class GetClause extends Clause {
   /// The record name, or the file name in the RECORD FROM form.
   final NameReference name;
 
-  /// The AT END clause, or `null`.
   final AtEndClause? atEnd;
 
   @override
@@ -587,13 +517,10 @@ final class GetClause extends Clause {
 /// `FILE record [IN file]` (F pp. 40–41; J 02.07.07–08). No clause of
 /// its own — error handling is Environment-card-declared (§6.6).
 final class FileClause extends Clause {
-  /// Creates the clause.
   FileClause(this.verb, this.record, {this.inFile});
 
-  /// The `FILE` token.
   final Token verb;
 
-  /// The record name.
   final NameReference record;
 
   /// The file name after IN, or `null`.
@@ -607,10 +534,8 @@ final class FileClause extends Clause {
 /// references; juxtaposed words form one qualified name (J 90.01.01;
 /// design note M2-10).
 final class DisplayClause extends Clause {
-  /// Creates the clause.
   DisplayClause(this.verb, this.items);
 
-  /// The `DISPLAY` token.
   final Token verb;
 
   /// The items, in order: [LiteralOperand]s and [NameOperand]s.
@@ -622,7 +547,6 @@ final class DisplayClause extends Clause {
 
 /// One `(old.name) new.name` pair of a CALL (F p. 59).
 final class CallPair {
-  /// Creates the pair.
   CallPair(this.oldName, this.newName);
 
   /// The existing (possibly compound) name.
@@ -634,13 +558,10 @@ final class CallPair {
 
 /// `CALL (old) new, …` (F p. 59; J 02.04.05).
 final class CallClause extends Clause {
-  /// Creates the clause.
   CallClause(this.verb, this.pairs);
 
-  /// The `CALL` token.
   final Token verb;
 
-  /// The synonym pairs, in order.
   final List<CallPair> pairs;
 
   @override
@@ -650,10 +571,8 @@ final class CallClause extends Clause {
 /// `ENTER CRYPT` or `ENTER COMMERCIAL TRANSLATOR` — the only two J
 /// forms (J 02.04.02.01).
 final class EnterClause extends Clause {
-  /// Creates the clause.
   EnterClause(this.verb, {required this.crypt});
 
-  /// The `ENTER` token.
   final Token verb;
 
   /// True for ENTER CRYPT, false for ENTER COMMERCIAL TRANSLATOR.
@@ -665,10 +584,8 @@ final class EnterClause extends Clause {
 
 /// `NOTE any text.` — listing-only commentary (F p. 59).
 final class NoteClause extends Clause {
-  /// Creates the clause.
   NoteClause(this.verb, this.text);
 
-  /// The `NOTE` token.
   final Token verb;
 
   /// The raw text tokens, one per card.
@@ -680,20 +597,16 @@ final class NoteClause extends Clause {
 
 /// `BEGIN SECTION [USING …] [GIVING …]` (F p. 57).
 final class BeginSectionClause extends Clause {
-  /// Creates the clause.
   BeginSectionClause(
     this.verb, {
     this.usingParameters = const [],
     this.givingFunctions = const [],
   });
 
-  /// The `BEGIN` token.
   final Token verb;
 
-  /// The USING parameter names.
   final List<NameReference> usingParameters;
 
-  /// The GIVING function names.
   final List<NameReference> givingFunctions;
 
   @override
@@ -702,10 +615,8 @@ final class BeginSectionClause extends Clause {
 
 /// `END section.name` — the only clause of its sentence (msg 179).
 final class EndClause extends Clause {
-  /// Creates the clause.
   EndClause(this.verb, this.sectionName);
 
-  /// The `END` token.
   final Token verb;
 
   /// The named section, or `null` when missing (diagnosed).
@@ -719,13 +630,10 @@ final class EndClause extends Clause {
 /// COPY, LIBRARY (J 90.01.02–03; D9.8; design note M2-11). Parsed as
 /// its verb plus raw operand tokens; diagnosed at parse time.
 final class DeferredVerbClause extends Clause {
-  /// Creates the clause.
   DeferredVerbClause(this.verb, this.operands);
 
-  /// The verb token.
   final Token verb;
 
-  /// The unparsed operand tokens.
   final List<Token> operands;
 
   @override
@@ -736,7 +644,6 @@ final class DeferredVerbClause extends Clause {
 
 /// One parsed sentence.
 final class Sentence {
-  /// Creates the sentence.
   Sentence(this.scan, this.clauses, {required this.deleted});
 
   /// The M1 scan sentence: label, tokens, cards.

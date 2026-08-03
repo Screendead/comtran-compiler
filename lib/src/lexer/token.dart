@@ -41,11 +41,8 @@ enum TokenKind {
 
 /// One token, tied to the card and column it starts at.
 final class Token {
-  /// Creates a token of [kind] with content [text], starting at 1-based
-  /// [column] of [card].
   Token(this.kind, this.text, this.card, this.column);
 
-  /// The kind of token.
   final TokenKind kind;
 
   /// The token content. For [TokenKind.alphamericLiteral] the enclosing

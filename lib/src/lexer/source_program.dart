@@ -35,7 +35,6 @@ enum Division {
 final class DivisionGroup {
   DivisionGroup._(this.division, this.header, this.cards);
 
-  /// Which division the group belongs to.
   final Division division;
 
   /// The header card (`*DATA`, `*ENVIRONMENT`, or `*PROCEDURE`).
