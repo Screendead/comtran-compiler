@@ -2,13 +2,15 @@ import * as vscode from 'vscode';
 
 import { COLUMN_COUNT, blankCard } from './canonCodec';
 import {
-  FIELDS,
   MARKER_NONE,
   MARKER_SPECIAL,
   MARKER_UNATTESTED,
+  classifyCards,
+  fieldsFor,
   previewOf,
   readCard,
 } from './cardView';
+import { DIVISION_FIELDS, GENERIC_FIELDS } from './columns';
 import { bcdFromGlyph, punchesFromBcd } from './charCode';
 import { DeckChange, PunchcardDocument } from './punchcardDocument';
 
@@ -238,6 +240,7 @@ export class PunchcardEditorProvider
     const index = state.index;
     const card = document.cardCount > 0 ? document.card(index) : null;
     const changed = options.changed;
+    const kinds = classifyCards(document.deck);
     void panel.webview.postMessage({
       type: 'state',
       cardCount: document.cardCount,
@@ -252,7 +255,9 @@ export class PunchcardEditorProvider
       columns: card === null ? [] : Array.from(card),
       readout: card === null ? [] : readCard(card),
       cursor: options.cursor ?? null,
-      fields: FIELDS,
+      kinds,
+      tables: { generic: GENERIC_FIELDS, ...DIVISION_FIELDS },
+      fields: fieldsFor(card === null ? 'blank' : kinds[index]),
       markers: {
         special: MARKER_SPECIAL,
         unattested: MARKER_UNATTESTED,
