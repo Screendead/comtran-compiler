@@ -1,8 +1,8 @@
 {
   "name": "comtran-punchcard",
   "displayName": "COMTRAN Punchcard Editor",
-  "description": "Punch-level editor for COMTRAN canon card decks (*.ctdeck).",
-  "version": "0.1.0",
+  "description": "Punch-level editor for COMTRAN canon card decks (*.ctdeck) and syntax highlighting for their .deck text mirrors.",
+  "version": "0.2.0",
   "publisher": "comtran-compiler",
   "private": true,
   "engines": {
@@ -25,11 +25,31 @@
         ],
         "priority": "default"
       }
+    ],
+    "languages": [
+      {
+        "id": "comtran-deck",
+        "aliases": [
+          "COMTRAN Deck Mirror"
+        ],
+        "extensions": [
+          ".deck"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "comtran-deck",
+        "scopeName": "source.comtran-deck",
+        "path": "./syntaxes/comtran-deck.tmLanguage.json"
+      }
     ]
   },
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -w -p ./",
+    "grammar": "tsc -p ./ && node out/generateGrammar.js",
     "test": "npm run compile && node --test \"test/**/*.test.js\""
   },
   "devDependencies": {

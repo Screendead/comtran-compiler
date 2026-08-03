@@ -114,6 +114,47 @@ button:focus-visible,
   text-overflow: ellipsis;
 }
 
+/* Card-list field colors. The column boundaries come from the extension
+   host's shared table; only the colors live here. */
+
+.cards .f-serial,
+.cards .f-ident {
+  color: var(--faint);
+}
+
+.cards .f-name {
+  color: var(--vscode-charts-yellow, #dcdcaa);
+}
+
+.cards .f-level,
+.cards .f-quantity {
+  color: var(--vscode-charts-purple, #b180d7);
+}
+
+.cards .f-type {
+  color: var(--vscode-charts-blue, #569cd6);
+}
+
+.cards .f-mode,
+.cards .f-justify {
+  color: var(--vscode-charts-orange, #d18616);
+}
+
+.cards .f-cont {
+  color: var(--vscode-charts-red, #f14c4c);
+  font-weight: 700;
+}
+
+.cards .d-ctl {
+  color: var(--vscode-charts-blue, #569cd6);
+  font-weight: 600;
+}
+
+.cards .d-bin {
+  color: var(--vscode-charts-green, #89d185);
+  font-style: italic;
+}
+
 /* --- main pane --- */
 
 .main {

@@ -44,6 +44,8 @@
     cardCount: 0,
     index: 0,
     previews: [],
+    kinds: [],
+    tables: null,
     columns: [],
     readout: [],
     fields: [],
@@ -128,7 +130,10 @@
       d.className = 'fld';
       d.style.gridColumn =
         String(f.start + 1) + ' / span ' + String(f.end - f.start + 1);
-      d.textContent = f.label + ' ' + f.start + '-' + f.end;
+      d.textContent =
+        f.end - f.start + 1 >= 5
+          ? f.label + ' ' + f.start + '-' + f.end
+          : f.label;
       d.title = f.name;
       fieldsEl.appendChild(d);
     }
@@ -189,6 +194,13 @@
     st.index = m.index;
     st.columns = m.columns || [];
     st.readout = m.readout || [];
+    if (m.tables) {
+      st.tables = m.tables;
+    }
+    var oldKinds = st.kinds;
+    if (m.kinds) {
+      st.kinds = m.kinds;
+    }
     if (m.fields && m.fields.length) {
       st.fields = m.fields;
       buildFields(m.fields);
@@ -200,9 +212,11 @@
     if (m.previews) {
       st.previews = m.previews;
       rebuildList();
-    } else if (m.preview) {
-      st.previews[m.preview.index] = m.preview.text;
-      patchList(m.preview.index, m.preview.text);
+    } else {
+      if (m.preview) {
+        st.previews[m.preview.index] = m.preview.text;
+      }
+      patchList(oldKinds, m.preview ? m.preview.index : -1);
     }
     if (typeof m.cursor === 'number') {
       col = clampNum(m.cursor, 1, COLS);
@@ -221,7 +235,7 @@
       num.textContent = String(i + 1);
       var txt = document.createElement('span');
       txt.className = 'txt';
-      txt.textContent = st.previews[i];
+      fillRow(txt, st.previews[i], st.kinds[i]);
       li.appendChild(num);
       li.appendChild(txt);
       frag.appendChild(li);
@@ -229,10 +243,91 @@
     cardList.appendChild(frag);
   }
 
-  function patchList(index, text) {
-    var li = cardList.children[index];
-    if (li) {
-      li.children[1].textContent = text;
+  // Refills the edited row, plus every row whose kind changed (editing a
+  // header card can move all the cards after it to another division).
+  function patchList(oldKinds, edited) {
+    for (var i = 0; i < cardList.children.length; i++) {
+      if (i === edited || st.kinds[i] !== oldKinds[i]) {
+        fillRow(cardList.children[i].children[1], st.previews[i], st.kinds[i]);
+      }
+    }
+  }
+
+  // --- card list coloring ---------------------------------------------------
+
+  var WHOLE_LINE_KINDS = {
+    control: 'd-ctl',
+    finish: 'd-ctl',
+    'header-data': 'd-ctl',
+    'header-environment': 'd-ctl',
+    'header-procedure': 'd-ctl',
+    binary: 'd-bin',
+  };
+
+  function span(cls, text) {
+    var s = document.createElement('span');
+    if (cls) {
+      s.className = cls;
+    }
+    s.textContent = text;
+    return s;
+  }
+
+  // Splits `text` (the card read-out) into colored field spans. The column
+  // boundaries come from the extension host's shared table, so this pane
+  // cannot drift from the ruler or the `.deck` grammar.
+  function fillRow(txt, text, kind) {
+    txt.textContent = '';
+    if (!text) {
+      return;
+    }
+    if (!st.tables || !kind) {
+      txt.textContent = text;
+      return;
+    }
+    if (WHOLE_LINE_KINDS[kind]) {
+      txt.appendChild(span(WHOLE_LINE_KINDS[kind], text));
+      return;
+    }
+    if (kind === 'procedure') {
+      fillProcedureRow(txt, text);
+      return;
+    }
+    var fields =
+      kind === 'data'
+        ? st.tables.data
+        : kind === 'environment'
+          ? st.tables.environment
+          : st.tables.generic;
+    if (kind === 'loose') {
+      var serial = fields[0];
+      txt.appendChild(span('f-' + serial.css, text.slice(0, serial.end)));
+      txt.appendChild(span('', text.slice(serial.end)));
+      return;
+    }
+    for (var i = 0; i < fields.length; i++) {
+      var piece = text.slice(fields[i].start - 1, fields[i].end);
+      if (piece) {
+        txt.appendChild(span('f-' + fields[i].css, piece));
+      }
+    }
+  }
+
+  // A procedure label starts in the name margin but may run past it, so the
+  // label is the leading word, not a fixed slice.
+  function fillProcedureRow(txt, text) {
+    var fields = st.tables.procedure;
+    var serialEnd = fields[0].end;
+    txt.appendChild(span('f-' + fields[0].css, text.slice(0, serialEnd)));
+    var rest = text.slice(serialEnd);
+    if (rest && rest[0] !== ' ') {
+      var space = rest.indexOf(' ');
+      var label = space === -1 ? rest : rest.slice(0, space);
+      txt.appendChild(span('f-' + fields[1].css, label));
+      rest = space === -1 ? '' : rest.slice(space);
+    }
+    if (rest) {
+      txt.appendChild(span('f-' + fields[2].css, rest));
     }
   }
 
