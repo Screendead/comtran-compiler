@@ -10,8 +10,9 @@ ProcedureScan _scan(List<String> lines) {
   ]);
 }
 
-List<String> _texts(ProcedureSentence sentence) =>
-    [for (final Token t in sentence.tokens) t.text];
+List<String> _texts(ProcedureSentence sentence) => [
+  for (final Token t in sentence.tokens) t.text,
+];
 
 void main() {
   group('sentences and labels', () {
@@ -159,12 +160,53 @@ void main() {
       expect(scan.sentences.single.terminated, isTrue);
     });
 
-    test('an illegal character outside a literal draws 134,00', () {
+    test('a dollar sign in procedure text is a symbol, not an error', () {
       final ProcedureScan scan = _scan([r'            MOVE $ TO X.']);
-      expect(scan.diagnostics.single.message, msgIllegalCharacter);
+      expect(scan.diagnostics, isEmpty);
+      final Token dollar = scan.sentences.single.tokens[1];
+      expect(dollar.kind, TokenKind.symbol);
+      expect(dollar.text, r'$');
     });
 
-    test('a machine special in the body draws 134,00 and reads blank', () {
+    test('a machine special in a word draws 134,00 and reads as zero', () {
+      final columns = List<int>.filled(80, 0);
+      const String text = 'MOVE AXB TO C.';
+      for (var i = 0; i < text.length; i++) {
+        if (text[i] != ' ') {
+          columns[12 + i] = punchesFromBcd(bcdFromGlyph(text[i])!)!;
+        }
+      }
+      columns[18] = punchesFromBcd(0x3A)!; // record mark over the X
+      final ProcedureScan scan = scanProcedure([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      final Diagnostic d = scan.diagnostics.single;
+      expect(d.message, msgIllegalCharacterReplaced);
+      expect(d.column, 19);
+      expect(d.severity, 1);
+      expect(scan.sentences.single.tokens[1].text, 'A0B');
+      expect(scan.sentences.single.terminated, isTrue);
+    });
+
+    test('a machine special inside a literal is legal (D9.10 layer c)', () {
+      final columns = List<int>.filled(80, 0);
+      const String text = "MOVE 'AXB' TO C.";
+      for (var i = 0; i < text.length; i++) {
+        if (text[i] != ' ') {
+          columns[12 + i] = punchesFromBcd(bcdFromGlyph(text[i])!)!;
+        }
+      }
+      columns[19] = punchesFromBcd(0x3A)!; // record mark over the X
+      final ProcedureScan scan = scanProcedure([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      expect(scan.diagnostics, isEmpty);
+      final Token literal = scan.sentences.single.tokens[1];
+      expect(literal.kind, TokenKind.alphamericLiteral);
+      expect(literal.text, 'A?B');
+    });
+
+    test('a special in commentary after the terminator is not gated', () {
       final columns = List<int>.filled(80, 0);
       const String text = 'GO TO A.';
       for (var i = 0; i < text.length; i++) {
@@ -172,12 +214,11 @@ void main() {
           columns[12 + i] = punchesFromBcd(bcdFromGlyph(text[i])!)!;
         }
       }
-      columns[40] = punchesFromBcd(0x3A)!; // record mark, 0-2-8
+      columns[40] = punchesFromBcd(0x3A)!; // record mark in commentary
       final ProcedureScan scan = scanProcedure([
         SourceCard(CardImage.fromColumns(columns), 1),
       ]);
-      expect(scan.diagnostics.single.message, msgUnreadableColumn);
-      expect(scan.diagnostics.single.column, 41);
+      expect(scan.diagnostics, isEmpty);
       expect(scan.sentences.single.terminated, isTrue);
     });
   });

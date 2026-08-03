@@ -31,6 +31,7 @@ export 'src/chars/char_code.dart';
 export 'src/lexer/diagnostic.dart';
 export 'src/lexer/messages.dart';
 export 'src/lexer/procedure_lexer.dart';
+export 'src/lexer/severities.dart';
 export 'src/lexer/source_card.dart';
 export 'src/lexer/source_program.dart';
 export 'src/lexer/token.dart';

@@ -2,6 +2,7 @@
 library;
 
 import 'messages.dart';
+import 'severities.dart';
 import 'source_card.dart';
 
 /// One diagnostic, reported against a card (and optionally a column).
@@ -30,8 +31,18 @@ final class Diagnostic {
   /// The message text with [operands] substituted.
   String get text => message.substitute(operands);
 
+  /// The severity value from the D9.2 severity table — the compiler
+  /// reads severities from that table only.
+  int get severity {
+    final int? value = messageSeverities[message.number];
+    if (value == null) {
+      throw StateError('no severity row for message ${message.number}');
+    }
+    return value;
+  }
+
   @override
   String toString() =>
-      '${message.number ?? '——'} ${message.severity} $text '
+      '${message.number} $severity $text '
       '(card ${card.cardNumber}${column == null ? '' : ', column $column'})';
 }
