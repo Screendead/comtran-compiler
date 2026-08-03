@@ -14,6 +14,7 @@
 ///                sequences (M1; D0.6).
 /// - `lexer/`   — column model, words, literals, continuation (M1).
 /// - `listing/` — the compilation listing, the first observable output (M1).
+/// - `mcp/`     — the deck MCP server behind `bin/deckmcp.dart` (M1 tooling).
 /// - `parser/`  — three divisions plus control cards, statement numbering,
 ///                diagnostics per the J 90.04 message catalog (M2).
 /// - `data/`    — Data Description semantics and storage mapping (M3).
@@ -26,6 +27,7 @@ library;
 
 export 'src/cards/canon_codec.dart';
 export 'src/cards/card_image.dart';
+export 'src/cards/deck_files.dart';
 export 'src/cards/text_codec.dart';
 export 'src/chars/char_code.dart';
 export 'src/lexer/data_lexer.dart';
@@ -41,4 +43,5 @@ export 'src/lexer/source_card.dart';
 export 'src/lexer/source_program.dart';
 export 'src/lexer/token.dart';
 export 'src/listing/listing.dart';
+export 'src/mcp/deck_server.dart';
 export 'src/version.dart';
