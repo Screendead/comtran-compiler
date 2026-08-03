@@ -25,6 +25,9 @@
 ///                (M4–M5; D0.3, D0.7).
 library;
 
+export 'src/ast/control_ast.dart';
+export 'src/ast/data_ast.dart';
+export 'src/ast/environment_ast.dart';
 export 'src/cards/canon_codec.dart';
 export 'src/cards/card_image.dart';
 export 'src/cards/deck_files.dart';
@@ -47,5 +50,10 @@ export 'src/lexer/source_card.dart';
 export 'src/lexer/source_program.dart';
 export 'src/lexer/token.dart';
 export 'src/listing/listing.dart';
+export 'src/parser/control_parser.dart';
+export 'src/parser/data_parser.dart';
+export 'src/parser/environment_parser.dart';
+export 'src/parser/parser.dart';
+export 'src/parser/parser_messages.dart';
 export 'src/mcp/deck_server.dart';
 export 'src/version.dart';

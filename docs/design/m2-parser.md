@@ -52,7 +52,9 @@ environment specifications (column-72 rule), and unclassified `word` tokens —
     preceding rule (F p. 68), type-code recognition (the eight J codes or
     blank, J 02.05.02–03), same-card checks (RECORD forbids Quantity,
     J 02.05.01; REDEF line carries only the target name, J 02.05.02; RCDMRK
-    carries no description), COND-entry shape (one quoted constant,
+    needs no pictorial but accepts an explicit one — the sample's own
+    RCDMRK punches `A`, statement 42,00), COND-entry shape (one quoted
+    constant,
     F pp. 71–72), and the ordered description-field shape (F p. 79):
     `[pictorial] [constant] [name] [QUANTITY IN name] [BLANK WHEN ZERO]`,
     split by the non-format-character rule (J 02.05.06). The pictorial's
