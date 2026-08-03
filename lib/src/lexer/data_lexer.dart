@@ -110,7 +110,11 @@ const int _textLast = 71;
 /// Characters that can form a field pictorial: the format characters
 /// `A X 9 8 * V . S $ , + - F` with parenthesized repetition counts
 /// (F p. 80; J 02.05.05).
-final RegExp _formatChars = RegExp(r'^[AXVSF0-9*.$,+\-()]+$');
+// The J 02.05.05 chart's legitimate format characters: the letters
+// A X V S F, the digits 9 and 8, the edit specials, and a digit run
+// only inside a parenthesized (n) count. Bare 0-7 are name characters
+// (J 02.05.06 e; review DATA-8).
+final RegExp _formatChars = RegExp(r'^([AXVSF89*.$,+\-]|\([0-9]+\))+$');
 
 DataEntry _scanEntry(List<SourceCard> group, List<Diagnostic> diagnostics) {
   final SourceCard first = group.first;
@@ -141,13 +145,15 @@ DataEntry _scanEntry(List<SourceCard> group, List<Diagnostic> diagnostics) {
   if (level != null && (level < 1 || level > 99)) {
     level = null; // "Any numbers 01-99 may be used" (J 02.05.01).
   }
-  if (level == null && name.isNotEmpty) {
+  final String typeText = first.internalText(25, 30).trim();
+  if (level == null && name.isNotEmpty && typeText != 'REDEF') {
     // A named entry without a level draws 194,00. An unnamed one does
     // not: the sample's unnamed REDEF entry (statement 168,00) has a
-    // blank level field and compiled clean (J 90.05 listing).
+    // blank level field and compiled clean (J 90.05 listing). A named
+    // REDEF line is D3.4's case: its name is discarded with the
+    // parser's own warning, so it takes no level and no 194,00.
     diagnostics.add(Diagnostic(msgDataNameLacksLevel, first));
   }
-  final String typeText = first.internalText(25, 30).trim();
   final String quantityText = first.internalText(31, 35).trim();
   final int? quantity = quantityText.isEmpty
       ? null

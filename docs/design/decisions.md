@@ -1260,3 +1260,15 @@ record built on it.*
 **Oracle.** Oracle (4): `test/procedure_parser_test.dart` covers the F p. 34 MOVE, a DO USING function argument, `ADD -1`, and a signed DO step. Oracle (2): the 90.05 sample is unaffected.
 
 *Citations:* (F p. 34); (F p. 28, rule 15); (F p. 18, rule 2); (F p. 47); (F pp. 50-51); (J 90.04.01) msgs 30, 68; docs/design/m2-parser.md M2-8
+
+### D10.8 — Data and environment name bars, the mandatory BLOCKSIZE, and the 63-file tally
+
+**Decision.** Three calls from the data/environment remediation (review findings DATA-3, DATA-6, DATA-10). (a) A J list-1 or list-2 key word declared as a Data or Environment name — a data entry name, an environment specification name, or a FILE-card record name — draws msg 178 (PROCEDURE KEY WORD USED IN DATA OR ENVIRONMENT, INTERPRETED AS A DATA NAME.), the name is kept as a data name, and parsing continues. D1.5 attests the recovery for list 2; we apply the same message to list 1: a list-1 word is a key word, the message's text covers it, and its recovery is the attested one for the misuse class — no non-historical message is needed. (b) A non-checkpoint FILE card with no BLOCKSIZE keyword draws msg 89 (-FILE- CARD FORMAT ERROR.): "This specification must be made" (J 02.06.04) is attested and card-local, and no dedicated absence message exists; the minimum-24 and maximum-9999 range checks stay with the M3 data mapper per D7.1. (c) The 63-file limit (J 90.01.04; msg 193) is a program-wide FILE-card tally: the driver threads one tally through every environment group of a job, and each FILE card past the 63rd draws 193. A group parsed alone counts its own cards only.
+
+**Rationale.** (a) The alternative — a new 9xx message for list-1 misuse — would put an invented text next to an attested one for the same misuse class and recovery. The bar's difference (list 1 is barred in every division) matters to the Procedure division, where D1.5 already prescribes msg 192. (b) The alternative deferral to M3 has no recorded basis; presence is checkable at parse time and the whole-card message class (C3) matches a card that cannot bind I/O. (c) A per-group count would miss the limit in a program with several *ENVIRONMENT groups; the tally mirrors how the CONTRL name-uniqueness set already spans a group's cards.
+
+**Implementation.** `_parseEntry` and `parseEnvironmentGroup`/`_parseFileCard` (msg 178, via the shared reserved-word classes); the post-loop BLOCKSIZE presence check in `_parseFileCard`; `FileCardTally` in `lib/src/parser/environment_parser.dart`, created per job in `runParser`.
+
+**Oracle.** Oracle (4): `test/data_parser_test.dart` and `test/environment_parser_test.dart` cover the three calls, the checkpoint exemption, and the cross-group tally. Oracle (2): the 90.05 sample (7 FILE cards, no barred names, BLOCKSIZE on every card) stays clean.
+
+*Citations:* (J 02.03.02-03); (J 90.04.01) msgs 89, 178, 193; (J 02.06.04); (J 90.01.04); decisions.md D1.5, D7.1; docs/design/m2-parser.md M2-7

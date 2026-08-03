@@ -653,4 +653,6 @@ const Map<String, int> messageSeverities = {
   '916,00': 4,
   // C2 (ours, D10.6): the argument is dropped - operand-level loss.
   '917,00': 2,
+  // C1 (ours, D3.4): the name is discarded and compilation carries on.
+  '918,00': 1,
 };

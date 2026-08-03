@@ -116,7 +116,11 @@ void main() {
     test('ON ERROR with no following name draws 92,00', () {
       final EnvironmentScan scan = scanEnvironment(
         _cards([
-          _card(name: 'F', type: 'FILE', options: 'INPUT,MASTER,ON ERROR'),
+          _card(
+            name: 'F',
+            type: 'FILE',
+            options: 'INPUT,MASTER,BLOCKSIZE 10,ON ERROR',
+          ),
         ]),
       );
       final diagnostics = <Diagnostic>[];
@@ -127,12 +131,103 @@ void main() {
     test('PRIMARY on an INPUT file draws 96,00', () {
       final EnvironmentScan scan = scanEnvironment(
         _cards([
-          _card(name: 'F', type: 'FILE', options: 'INPUT,MASTER,PRIMARY'),
+          _card(
+            name: 'F',
+            type: 'FILE',
+            options: 'INPUT,MASTER,BLOCKSIZE 10,PRIMARY',
+          ),
         ]),
       );
       final diagnostics = <Diagnostic>[];
       parseEnvironmentGroup(scan, diagnostics);
       expect(diagnostics.single.message, msgIllegalWordInFileCard);
+    });
+
+    test('a FILE card without BLOCKSIZE draws 89,00 (J 02.06.04)', () {
+      final EnvironmentScan scan = scanEnvironment(
+        _cards([_card(name: 'F', type: 'FILE', options: 'INPUT,MASTER')]),
+      );
+      final diagnostics = <Diagnostic>[];
+      parseEnvironmentGroup(scan, diagnostics);
+      expect(diagnostics.single.message, msgFileCardFormatError);
+    });
+
+    test('a CHECKPOINT file needs no BLOCKSIZE', () {
+      final EnvironmentScan scan = scanEnvironment(
+        _cards([_card(name: 'F', type: 'FILE', options: 'CHECKPOINT')]),
+      );
+      final diagnostics = <Diagnostic>[];
+      parseEnvironmentGroup(scan, diagnostics);
+      expect(diagnostics, isEmpty);
+    });
+
+    test('BLOCK CONTROL on an OUTPUT file draws 96,00 (J 02.06.03)', () {
+      final EnvironmentScan scan = scanEnvironment(
+        _cards([
+          _card(
+            name: 'F',
+            type: 'FILE',
+            options: 'OUTPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
+          ),
+        ]),
+      );
+      final diagnostics = <Diagnostic>[];
+      parseEnvironmentGroup(scan, diagnostics);
+      expect(diagnostics.single.message, msgIllegalWordInFileCard);
+    });
+
+    test('BLOCK CONTROL on an INPUT record stays clean', () {
+      final EnvironmentScan scan = scanEnvironment(
+        _cards([
+          _card(
+            name: 'F',
+            type: 'FILE',
+            options: 'INPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
+          ),
+        ]),
+      );
+      final diagnostics = <Diagnostic>[];
+      parseEnvironmentGroup(scan, diagnostics);
+      expect(diagnostics, isEmpty);
+    });
+
+    test('a key word as a FILE or record name draws 178,00 (D10.8)', () {
+      final EnvironmentScan scan = scanEnvironment(
+        _cards([
+          _card(name: 'ZERO', type: 'FILE', options: 'INPUT,BLOCKSIZE 10,MOVE'),
+        ]),
+      );
+      final diagnostics = <Diagnostic>[];
+      final List<EnvironmentCard> cards = parseEnvironmentGroup(
+        scan,
+        diagnostics,
+      );
+      expect(diagnostics.map((Diagnostic d) => d.message), [
+        msgKeyWordAsDataName,
+        msgKeyWordAsDataName,
+      ]);
+      final FileCard card = cards.single as FileCard;
+      expect(card.records.single.name.text, 'MOVE');
+    });
+
+    test('the 64th FILE card draws 193,00 across groups (D10.8)', () {
+      final tally = FileCardTally();
+      final diagnostics = <Diagnostic>[];
+      for (var group = 0; group < 2; group++) {
+        final EnvironmentScan scan = scanEnvironment(
+          _cards([
+            for (var i = 0; i < 32; i++)
+              _card(
+                name: 'F$group$i',
+                type: 'FILE',
+                options: 'INPUT,R$group$i,BLOCKSIZE 10',
+              ),
+          ]),
+        );
+        parseEnvironmentGroup(scan, diagnostics, fileTally: tally);
+      }
+      expect(tally.count, 64);
+      expect(diagnostics.single.message, msgTooManyFiles);
     });
 
     test('PATTERN draws 905,00 and nothing else (D9.12)', () {
@@ -409,6 +504,19 @@ void main() {
       );
       expect(diagnostics.single.message, msgCondKeysTooLong);
       expect((cards.single as CondCard).setting, '123456701234');
+    });
+
+    test('a KEYS setting with an imbedded blank draws 7,00 (D9.16)', () {
+      final EnvironmentScan scan = scanEnvironment(
+        _cards([_card(name: 'COND1', type: 'COND', options: "KEYS '77 001'")]),
+      );
+      final diagnostics = <Diagnostic>[];
+      final List<EnvironmentCard> cards = parseEnvironmentGroup(
+        scan,
+        diagnostics,
+      );
+      expect(diagnostics.single.message, msgCondKeysNotOctal);
+      expect((cards.single as CondCard).setting, '000000000001');
     });
 
     test('a KEYS setting with an 8 draws 7,00 and becomes key setting 1', () {

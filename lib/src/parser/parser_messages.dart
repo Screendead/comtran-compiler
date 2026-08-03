@@ -183,9 +183,18 @@ final Message msgNoStopRun = messageCatalog['175,00']!;
 /// `179,00` — an END that is not the only clause in its sentence.
 final Message msgEndNotAlone = messageCatalog['179,00']!;
 
+/// `178,00` — a key word used as a Data or Environment name; it is
+/// interpreted as a data name and parsing continues (D1.5; D10.8
+/// applies it to J's list 1 and list 2 alike).
+final Message msgKeyWordAsDataName = messageCatalog['178,00']!;
+
 /// `192,00` — a sentence-structure error, possibly a key word misused
 /// (D1.5).
 final Message msgSentenceStructureError = messageCatalog['192,00']!;
+
+/// `193,00` — a 64th FILE card: "A maximum of 63 files may be
+/// described" (J 90.01.04).
+final Message msgTooManyFiles = messageCatalog['193,00']!;
 
 /// `196,00` — an illegal sentence structure; nothing done.
 final Message msgIllegalSentenceStructure = messageCatalog['196,00']!;
@@ -300,4 +309,12 @@ final Message msgFunctionArgumentDropped = Message.ours(
   '917,00',
   'FUNCTION ARGUMENT IS NOT A DATA NAME AND IS DROPPED. '
       '(NON-HISTORICAL.)',
+);
+
+/// Ours — an F-style name on a REDEF line: accepted with this warning
+/// and discarded, never entered in the dictionary (D3.4; no J message
+/// covers the case).
+final Message msgRedefNameDiscarded = Message.ours(
+  '918,00',
+  'NAME ON -REDEF- LINE IS DISCARDED. (NON-HISTORICAL.)',
 );
