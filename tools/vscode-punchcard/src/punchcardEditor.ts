@@ -91,7 +91,11 @@ export class PunchcardEditorProvider
 
     panel.onDidDispose(() => {
       this.panels.delete(panel);
-      this.panelsByDocument.get(document)?.delete(panel);
+      const siblings = this.panelsByDocument.get(document);
+      siblings?.delete(panel);
+      if (siblings !== undefined && siblings.size === 0) {
+        this.panelsByDocument.delete(document);
+      }
     });
 
     panel.webview.onDidReceiveMessage((message) => {

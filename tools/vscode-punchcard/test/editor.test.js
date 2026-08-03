@@ -115,6 +115,23 @@ test('an untitled document starts with one blank card', async () => {
   assert.equal(document.card(0).every((c) => c === 0), true);
 });
 
+test('a document tolerates a 0-byte canon file as an empty deck', async () => {
+  const uri = vscodeStub.Uri.file('/zero-byte.ctdeck');
+  memory.set(uri.toString(), new Uint8Array(0));
+  const document = await PunchcardDocument.create(uri, undefined);
+  assert.equal(document.cardCount, 0);
+});
+
+test('saving a deck that started at 0 bytes writes a valid empty-deck header', async () => {
+  const uri = vscodeStub.Uri.file('/zero-byte-save.ctdeck');
+  memory.set(uri.toString(), new Uint8Array(0));
+  const document = await PunchcardDocument.create(uri, undefined);
+  await document.save(NO_CANCEL);
+  const written = memory.get(uri.toString());
+  assert.equal(written.length, 12);
+  assert.equal(decodeCanon(written).length, 0);
+});
+
 test('a punch fires an edit that undoes and redoes', async () => {
   const { document } = await openDeck('punch', [blankCard()]);
   const edits = [];
