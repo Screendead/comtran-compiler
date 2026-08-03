@@ -169,7 +169,7 @@ id	class	disposition	component	b2	test	note	text
 167,00	C2	enforced	card reader and lexer	B.2 lexical/card-format	test/environment_lexer_test.dart: an unclosed literal draws 167,00		SECOND QUOTE MARK MISSING.
 168,00	C2	enforced	card reader and lexer	B.2 lexical/card-format	test/procedure_lexer_test.dart: an unclosed literal draws 168,00		ALPHABETIC LITERAL EXTENDS ACROSS CARDS.
 169,00	C4	reserved	code generator	B.2 sections/control flow		M4 (program-continuity checks)	PROBABLE PROGRAM CONTINUITY ERROR. PROGRAM FLOWS INTO GENERATED CONSTANTS.
-170,00	C1	reserved	procedure parser	B.2 conditionals		M2 (PROC-3 remediation); repair attested, criterion invented (D9.11)	-WHEN- SUBSTITUTED FOR -IF- BECAUSE OF IMPROPER USE.
+170,00	C1	enforced	procedure parser	B.2 conditionals	test/procedure_parser_test.dart: GO TO A IF condition repairs to WHEN with 170 (PROC-3)	repair attested, criterion invented (D9.11)	-WHEN- SUBSTITUTED FOR -IF- BECAUSE OF IMPROPER USE.
 171,00	C3	enforced	procedure parser	B.2 numeric limits	test/procedure_parser_test.dart: the 61st operator deletes the sentence (msg 171; M2-6)		NUMBER OF OPERATORS IN THIS SENTENCE EXCEEDS MAXIMUM OF 60. SENTENCE DELETED FROM TEXT.
 172,00	C5	reserved	code generator	B.2 capacity overflow		M4 (constant pool, D9.7)	CONSTANT POOL OVERFLOW.
 173,00	C5	reserved	code generator	B.2 names		M4 (generated-symbol integrity, D9.13)	REFERENCE MADE TO NON-EXISTENT SYSTEM GENERATED NAME.
@@ -226,3 +226,4 @@ id	class	disposition	component	b2	test	note	text
 914,00	C2	enforced	procedure parser	ours (D9.7)	test/expression_parser_test.dart: subscripts parse; a fourth draws 914 (D3.1)		A REFERENCE CANNOT HAVE MORE THAN THREE SUBSCRIPTS. (NON-HISTORICAL.)
 915,00	C5	enforced	procedure parser	ours (D9.7)	test/procedure_parser_test.dart: nesting past 18 stops compilation with one 915 (D9.7)		SECTION NESTING EXCEEDS THE DEPTH OF 18. (NON-HISTORICAL.)
 916,00	C4	enforced	procedure parser	ours (D9.7)	test/procedure_parser_test.dart: INCLUDE draws 110; LOAD draws the non-historical 916 (M2-11)		VERB 'NAME.1' IS DEFERRED IN THE 7090 IMPLEMENTATION AND GENERATES NO CODE. (NON-HISTORICAL.)
+917,00	C2	enforced	procedure parser	ours (D9.7)	test/expression_parser_test.dart: a non-name function argument draws 917 and is dropped	D10.6	FUNCTION ARGUMENT IS NOT A DATA NAME AND IS DROPPED. (NON-HISTORICAL.)

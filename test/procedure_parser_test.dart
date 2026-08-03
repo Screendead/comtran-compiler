@@ -703,4 +703,120 @@ void main() {
       expect(listing, contains('   1,01    3    CONSECUTIVE'));
     });
   });
+
+  group('attested forms restored by the 2026-08-03 review', () {
+    test("SET target = 'M' parses clean (F p. 46; PROC-1)", () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        "            SET MARITAL.STATUS = 'M'.",
+      ]);
+      expect(diagnostics, isEmpty);
+      final SetClause set = sentences.single.clauses.single as SetClause;
+      expect(set.value, isA<LiteralOperand>());
+    });
+
+    test('an alphameric literal inside a SET expression keeps 912', () {
+      final (_, List<Diagnostic> diagnostics) = _parse([
+        "            SET X = 'M' * 2.",
+      ]);
+      expect(diagnostics.single.message, msgAlphamericArithOperand);
+    });
+
+    test('a MOVE source can be a function reference (F p. 34; PROC-2)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            MOVE MINIMUM ((CALCULATED.PRICE, MARKET.PRICE,',
+        '            HIGH.VALUES)) TO PRICE.LIST.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final MoveClause move = sentences.single.clauses.single as MoveClause;
+      final FunctionCall call = move.source as FunctionCall;
+      expect(call.function.text, 'MINIMUM');
+      expect(call.arguments.map((NameReference a) => a.text), [
+        'CALCULATED.PRICE',
+        'MARKET.PRICE',
+        'HIGH.VALUES',
+      ]);
+      expect(move.targets.single.text, 'PRICE.LIST');
+    });
+
+    test('a DO USING argument can be a function reference (PROC-2)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            DO CALC USING MINIMUM ((A, B)), RATE.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final DoClause doClause = sentences.single.clauses.single as DoClause;
+      expect(doClause.usingArguments.first, isA<FunctionCall>());
+      expect(doClause.usingArguments, hasLength(2));
+    });
+
+    test('GO TO A IF condition repairs to WHEN with 170 (PROC-3)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            GO TO A IF X GT Y.',
+      ]);
+      expect(diagnostics.single.message, msgWhenSubstitutedForIf);
+      expect(sentences.single.deleted, isFalse);
+      final GoToClause go = sentences.single.clauses.single as GoToClause;
+      expect(go.targets.single.when, isNotNull);
+    });
+
+    test('the continuation targets take the same 170 repair', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            GO TO A WHEN X GT Y, B IF X LT Y.',
+      ]);
+      expect(diagnostics.single.message, msgWhenSubstitutedForIf);
+      final GoToClause go = sentences.single.clauses.single as GoToClause;
+      expect(go.targets, hasLength(2));
+      expect(go.targets.last.when, isNotNull);
+    });
+
+    test('OTHERWISE ends a deferred verb\'s operands (PROC-4)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            IF A GT B THEN LOAD OVERLAY.ONE OTHERWISE GO TO Y.',
+      ]);
+      expect(diagnostics.single.message, msgDeferredVerb);
+      final IfClause ifClause = sentences.single.clauses.single as IfClause;
+      final DeferredVerbClause load =
+          ifClause.thenArm.single as DeferredVerbClause;
+      expect(load.operands.map((Token t) => t.text), ['OVERLAY.ONE']);
+      expect(ifClause.otherwiseArm.single, isA<GoToClause>());
+    });
+
+    test('a key word as a sentence label draws 192 (D1.5; PROC-5)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '      EQUALS.     MOVE A TO B.',
+      ]);
+      expect(diagnostics.single.message, msgSentenceStructureError);
+      expect(sentences.single.deleted, isFalse);
+      expect(sentences.single.scan.label, 'EQUALS');
+    });
+
+    test('ADD -1 TO COUNTER parses the signed literal (PROC-9)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            ADD -1 TO COUNTER.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final AddClause add = sentences.single.clauses.single as AddClause;
+      expect(add.source, isA<UnaryExpr>());
+    });
+
+    test('a signed DO parameter parses (D10.7)', () {
+      final (_, List<Diagnostic> diagnostics) = _parse([
+        '            DO PAY FOR X = 10(-1)1.',
+      ]);
+      expect(diagnostics, isEmpty);
+    });
+
+    test('nested ON OVERFLOW and AT END clauses number (PROC-11)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            SET X = Y, ON OVERFLOW GO TO ERR.',
+        '            GET MASTER, AT END GO TO EXIT.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final SetClause set = sentences[0].clauses.single as SetClause;
+      expect(set.clause, 1);
+      expect(set.onOverflow!.clause, 2);
+      final GetClause get = sentences[1].clauses.single as GetClause;
+      expect(get.clause, 1);
+      expect(get.atEnd!.statement!.clause, 2);
+    });
+  });
 }

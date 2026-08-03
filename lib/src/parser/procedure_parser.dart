@@ -118,6 +118,14 @@ final class ProcedureParser {
   Sentence _parseSentence(ProcedureSentence scan) {
     final SourceCard card = scan.cards.first;
     final String? label = scan.label;
+    if (label != null && isNameStopWord(label)) {
+      // A list-1/list-2 key word defined as a Procedure name
+      // (J 02.03.02): msg 192, and parsing continues with the label
+      // kept (D1.5; design note M2-7).
+      diagnostics.add(
+        Diagnostic(msgSentenceStructureError, card, column: scan.labelColumn),
+      );
+    }
     if (label == programStartName) {
       if (_programStartLabels.isNotEmpty) {
         diagnostics.add(Diagnostic(msgDuplicateProgramStart, card));
@@ -327,8 +335,10 @@ final class ProcedureParser {
       }
       if (cursor.takeSymbol(',')) {
         if (cursor.atEnd) {
-          // A trailing comma before the period, as the sample's
-          // `OPEN ALL FILES,` (statement 188) writes.
+          // A trailing comma before the period is accepted silently —
+          // a recorded leniency, not an attestation (D10.5; the
+          // sample's statement 188 comma is a mid-sentence separator
+          // before a continuation card, not one before the period).
           return clauses;
         }
         if (stopAtOtherwise && cursor.isWord('OTHERWISE')) {
@@ -478,11 +488,14 @@ final class ProcedureParser {
   }
 
   /// A verb's source operand: a name, a figurative constant (design
-  /// note M2-8), or a literal where the verb takes one — numeric for
-  /// ADD (F p. 47); MOVE also takes an alphameric literal, attested by
-  /// the sample's `MOVE 'M' TO ERRORTYPE` and `MOVE 'GT' TO PAYRECORD
-  /// DEPARTMENT` (J 90.05 listing, statements 193, 196, 199), which
-  /// F p. 42's data.name-only general form does not show.
+  /// note M2-8), a function reference (F p. 34's `MOVE MINIMUM
+  /// ((CALCULATED.PRICE, MARKET.PRICE, HIGH.VALUES)) TO PRICE.LIST.`),
+  /// or a literal where the verb takes one — numeric, optionally signed
+  /// (F p. 18, rule 2), for ADD (F p. 47); MOVE also takes an
+  /// alphameric literal, attested by the sample's `MOVE 'M' TO
+  /// ERRORTYPE` and `MOVE 'GT' TO PAYRECORD DEPARTMENT` (J 90.05
+  /// listing, statements 193, 196, 199), which F p. 42's data.name-only
+  /// general form does not show.
   ArithExpr _parseSourceOperand(
     TokenCursor cursor,
     Message onMissing, {
@@ -502,11 +515,29 @@ final class ProcedureParser {
             token.kind == TokenKind.floatingLiteral)) {
       return LiteralOperand(cursor.take());
     }
+    if (allowLiteral &&
+        token.kind == TokenKind.symbol &&
+        (token.text == '-' || token.text == '+')) {
+      // The literal's own sign (F p. 18, rule 2), scanned as its own
+      // token; mirrors the expression parser's reading.
+      final Token? next = cursor.peek(1);
+      if (next != null &&
+          (next.kind == TokenKind.numericLiteral ||
+              next.kind == TokenKind.floatingLiteral)) {
+        final Token sign = cursor.take();
+        final literal = LiteralOperand(cursor.take());
+        return sign.text == '-' ? UnaryExpr(sign, literal) : literal;
+      }
+    }
     if (allowAlphameric && token.kind == TokenKind.alphamericLiteral) {
       return LiteralOperand(cursor.take());
     }
     if (token.kind == TokenKind.word && !isNameStopWord(token.text)) {
-      return NameOperand(parseNameReference(cursor, diagnostics));
+      final NameReference name = parseNameReference(cursor, diagnostics);
+      if (cursor.isSymbol('(') && cursor.isSymbol('(', 1)) {
+        return parseFunctionCall(name, cursor, diagnostics);
+      }
+      return NameOperand(name);
     }
     throw _DeleteSentence(onMissing, token.card, token.column);
   }
@@ -569,7 +600,9 @@ final class ProcedureParser {
   }
 
   /// A SET right-hand side: a sole figurative constant (J 02.04.01;
-  /// design note M2-8) or an arithmetic expression.
+  /// design note M2-8), a sole alphameric literal (F p. 46: `SET
+  /// MARITAL.STATUS = 'M'.`; J 02.04.05: legal "since no arithmetic
+  /// expression is specified"), or an arithmetic expression.
   ArithExpr _parseValueExpression(TokenCursor cursor) {
     final Token? token = cursor.peek();
     if (token != null &&
@@ -577,32 +610,21 @@ final class ProcedureParser {
         figurativeConstants.contains(token.text)) {
       return FigurativeOperand(cursor.take());
     }
-    final ArithExpr value = parseArithExpr(cursor, diagnostics);
-    _rejectNestedFigurative(value, sole: true);
-    return value;
-  }
-
-  /// Figurative constants never sit inside a larger expression (design
-  /// note M2-8); a nested one draws msg 192 — a key word misused.
-  void _rejectNestedFigurative(ArithExpr expr, {required bool sole}) {
-    switch (expr) {
-      case FigurativeOperand(:final word) when !sole:
-        diagnostics.add(
-          Diagnostic(msgSentenceStructureError, word.card, column: word.column),
-        );
-      case FigurativeOperand():
-        break;
-      case BinaryExpr(:final left, :final right):
-        _rejectNestedFigurative(left, sole: false);
-        _rejectNestedFigurative(right, sole: false);
-      case UnaryExpr(:final operand):
-        _rejectNestedFigurative(operand, sole: false);
-      case NameOperand():
-      case LiteralOperand():
-      case TruthExpr():
-      case FunctionCall():
-        break;
+    if (token != null && token.kind == TokenKind.alphamericLiteral) {
+      final Token? after = cursor.peek(1);
+      final bool inExpression =
+          after != null &&
+          after.kind == TokenKind.symbol &&
+          const {'+', '-', '*', '/', '**'}.contains(after.text);
+      if (!inExpression) {
+        // The sole-operand form; a literal inside a larger arithmetic
+        // expression still draws msg 912 below (F p. 45).
+        return LiteralOperand(cursor.take());
+      }
     }
+    final ArithExpr value = parseArithExpr(cursor, diagnostics);
+    rejectNestedFigurative(value, diagnostics, sole: true);
+    return value;
   }
 
   /// `, ON OVERFLOW imperative-clause` — legal only with exactly one
@@ -699,15 +721,16 @@ final class ProcedureParser {
       cursor,
       msgIllegalSentenceStructure,
     );
-    if (!cursor.isWord('WHEN')) {
+    if (!cursor.isWord('WHEN') && !cursor.isWord('IF')) {
       return GoToClause(verb, [GoToTarget(first, null)]);
     }
-    cursor.take();
+    _takeWhen(cursor);
     final targets = <GoToTarget>[
       GoToTarget(first, parseCondExpr(cursor, diagnostics)),
     ];
     // `, name WHEN condition` continues the form; a comma before a
-    // verb ends it (first-match-wins list, F p. 48).
+    // verb ends it (first-match-wins list, F p. 48). IF is not counted
+    // as the verb here: in this position it takes the WHEN repair.
     while (cursor.isSymbol(',')) {
       final Token? next = cursor.peek(1);
       if (next == null ||
@@ -718,16 +741,29 @@ final class ProcedureParser {
       }
       cursor.take();
       final NameReference name = parseNameReference(cursor, diagnostics);
-      if (!cursor.takeWord('WHEN')) {
+      if (!cursor.isWord('WHEN') && !cursor.isWord('IF')) {
         throw _DeleteSentence(
           msgIllegalSentenceStructure,
           cursor.card,
           cursor.column,
         );
       }
+      _takeWhen(cursor);
       targets.add(GoToTarget(name, parseCondExpr(cursor, diagnostics)));
     }
     return GoToClause(verb, targets);
+  }
+
+  /// Consumes the conditional GO TO's WHEN, or an IF in its place: the
+  /// attested repair parses the IF as a WHEN and issues msg 170 (D9.11:
+  /// the repair is attested, this one placement is our criterion).
+  void _takeWhen(TokenCursor cursor) {
+    final Token word = cursor.take();
+    if (word.text == 'IF') {
+      diagnostics.add(
+        Diagnostic(msgWhenSubstitutedForIf, word.card, column: word.column),
+      );
+    }
   }
 
   /// `DO procedure [EXACTLY n TIMES | FOR index = p(q)r, …]
@@ -824,6 +860,17 @@ final class ProcedureParser {
     }
     if (token.kind == TokenKind.numericLiteral) {
       return LiteralOperand(cursor.take());
+    }
+    if (token.kind == TokenKind.symbol &&
+        (token.text == '-' || token.text == '+')) {
+      // A signed integer parameter: the sign is the literal's own
+      // (F p. 18, rule 2; D10.7).
+      final Token? next = cursor.peek(1);
+      if (next != null && next.kind == TokenKind.numericLiteral) {
+        final Token sign = cursor.take();
+        final literal = LiteralOperand(cursor.take());
+        return sign.text == '-' ? UnaryExpr(sign, literal) : literal;
+      }
     }
     if (token.kind == TokenKind.word && !isNameStopWord(token.text)) {
       final words = <Token>[cursor.take()];
@@ -1182,6 +1229,11 @@ final class ProcedureParser {
     );
     final operands = <Token>[];
     while (!cursor.atEnd) {
+      if (cursor.isWord('OTHERWISE')) {
+        // A clause-series boundary (F p. 25): the word belongs to the
+        // enclosing IF, never to the operand list.
+        break;
+      }
       if (cursor.isSymbol(',')) {
         final Token? next = cursor.peek(1);
         if (next != null &&
@@ -1197,19 +1249,15 @@ final class ProcedureParser {
 
   /// Assigns clause numbers (design note M2-6): the conditional clause
   /// takes 01 when present, each imperative clause the next number, in
-  /// source order through the arms; then stamps the sentence's parser
-  /// diagnostics with the clause they were raised in.
+  /// source order through the arms and the nested ON OVERFLOW and AT
+  /// END imperative clauses ([_clauseTree] walks exactly that order);
+  /// then stamps the sentence's parser diagnostics with the clause they
+  /// were raised in.
   void _numberClauses(List<Clause> clauses, int diagnosticsFrom) {
     var next = 1;
-    void walk(Clause clause) {
+    for (final Clause clause in _clauseTree(clauses)) {
       clause.clause = next++;
-      if (clause is IfClause) {
-        clause.thenArm.forEach(walk);
-        clause.otherwiseArm.forEach(walk);
-      }
     }
-
-    clauses.forEach(walk);
     // Best-effort clause attribution for the diagnostics raised while
     // this sentence parsed: a single-clause sentence confines them all
     // to that clause; a multi-clause sentence keeps `n,00` (the parse

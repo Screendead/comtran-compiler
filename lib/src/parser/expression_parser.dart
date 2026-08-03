@@ -143,7 +143,41 @@ NameReference parseNameReference(
       ),
     );
   }
+  for (final ArithExpr subscript in subscripts) {
+    // A subscript is a name, a literal, or `a * VARIABLE ± b` — never a
+    // figurative constant (F p. 31; design note M2-8).
+    rejectNestedFigurative(subscript, diagnostics, sole: false);
+  }
   return NameReference(words, subscripts);
+}
+
+/// Diagnoses a figurative constant inside a larger expression with
+/// msg 192 — a key word misused (design note M2-8; D1.5). With [sole]
+/// a whole-expression figurative is legal (a SET value, J 02.04.01, or
+/// a comparison operand); nested ones never are.
+void rejectNestedFigurative(
+  ArithExpr expr,
+  List<Diagnostic> diagnostics, {
+  required bool sole,
+}) {
+  switch (expr) {
+    case FigurativeOperand(:final word) when !sole:
+      diagnostics.add(
+        Diagnostic(msgSentenceStructureError, word.card, column: word.column),
+      );
+    case FigurativeOperand():
+      break;
+    case BinaryExpr(:final left, :final right):
+      rejectNestedFigurative(left, diagnostics, sole: false);
+      rejectNestedFigurative(right, diagnostics, sole: false);
+    case UnaryExpr(:final operand):
+      rejectNestedFigurative(operand, diagnostics, sole: false);
+    case NameOperand():
+    case LiteralOperand():
+    case TruthExpr():
+    case FunctionCall():
+      break;
+  }
 }
 
 /// Parses an arithmetic expression (lowest precedence: `+ -`).
@@ -356,7 +390,7 @@ ArithExpr _parsePrimary(TokenCursor cursor, List<Diagnostic> diagnostics) {
       }
       final NameReference name = parseNameReference(cursor, diagnostics);
       if (cursor.isSymbol('(') && cursor.isSymbol('(', 1)) {
-        return _parseFunctionCall(name, cursor, diagnostics);
+        return parseFunctionCall(name, cursor, diagnostics);
       }
       return NameOperand(name);
     case TokenKind.noteText:
@@ -376,9 +410,12 @@ ArithExpr _missingOperand(TokenCursor cursor, List<Diagnostic> diagnostics) {
   );
 }
 
-/// `name ((argument, ...))` — double parentheses, single-comma bare
-/// names (F p. 28 rule 15). The cursor stands on the first `(`.
-ArithExpr _parseFunctionCall(
+/// `name ((argument, ...))` — double parentheses, single-comma
+/// data-names, figurative constants included: two of F p. 34's three
+/// examples pass HIGH.VALUES as an argument (F p. 28 rule 15). The
+/// cursor stands on the first `(`. Shared with the verb source-operand
+/// path, which recognizes the same form (F p. 34's MOVE example).
+ArithExpr parseFunctionCall(
   NameReference function,
   TokenCursor cursor,
   List<Diagnostic> diagnostics,
@@ -394,11 +431,22 @@ ArithExpr _parseFunctionCall(
       );
       break;
     }
-    if (token.kind == TokenKind.word && !isNameStopWord(token.text)) {
+    if (token.kind == TokenKind.word &&
+        figurativeConstants.contains(token.text)) {
+      // "Note the use of the figurative constant HIGH.VALUES as a
+      // data-name" (F p. 34): a one-word reference.
+      arguments.add(NameReference([cursor.take()]));
+    } else if (token.kind == TokenKind.word && !isNameStopWord(token.text)) {
       arguments.add(parseNameReference(cursor, diagnostics));
     } else {
+      // Not a data-name (F p. 28 rule 15): the token is dropped, and
+      // the message states that recovery (D10.6).
       diagnostics.add(
-        Diagnostic(msgMissingOperand, token.card, column: token.column),
+        Diagnostic(
+          msgFunctionArgumentDropped,
+          token.card,
+          column: token.column,
+        ),
       );
       cursor.take();
     }
@@ -513,7 +561,9 @@ bool _parenGroupsCondition(TokenCursor cursor) {
 }
 
 /// A comparison operand: an alphameric literal or figurative constant
-/// directly (J 02.04.01), else an arithmetic expression.
+/// directly (J 02.04.01), else an arithmetic expression. A figurative
+/// constant is kept only as the whole operand, never as a sub-term
+/// (design note M2-8).
 ArithExpr _parseComparisonOperand(
   TokenCursor cursor,
   List<Diagnostic> diagnostics,
@@ -522,7 +572,9 @@ ArithExpr _parseComparisonOperand(
   if (token != null && token.kind == TokenKind.alphamericLiteral) {
     return LiteralOperand(cursor.take());
   }
-  return parseArithExpr(cursor, diagnostics);
+  final ArithExpr operand = parseArithExpr(cursor, diagnostics);
+  rejectNestedFigurative(operand, diagnostics, sole: true);
+  return operand;
 }
 
 CondExpr _parseRelationOrConditionName(

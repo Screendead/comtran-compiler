@@ -651,4 +651,6 @@ const Map<String, int> messageSeverities = {
   // C4 (ours, M2-11): the verb's whole effect is lost - the calibration
   // is msg 110's deferred COPY at 4.
   '916,00': 4,
+  // C2 (ours, D10.6): the argument is dropped - operand-level loss.
+  '917,00': 2,
 };
