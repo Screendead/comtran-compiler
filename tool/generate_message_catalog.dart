@@ -35,6 +35,7 @@ void main() {
 /// byte-compares every entry. One deliberate divergence: message 187's
 /// stored text ends after `EACH WITH` (decision D9.6 — the 1962
 /// printout ran on into message 196's text, a print defect).
+// ignore_for_file: lines_longer_than_80_chars, reason: message text is byte-exact from the 90.04.01 listing (D9.5) and cannot be wrapped.
 library;
 
 import 'messages.dart';
@@ -48,24 +49,42 @@ const Map<String, Message> messageCatalog = {
       final int cut = text.indexOf('EACH WITH');
       text = text.substring(0, cut + 'EACH WITH'.length);
     }
-    out.writeln("  '${message.id}': Message('${message.id}', ${_dart(text)}),");
+    out.writeln(
+      "  '${message.id}': Message('${message.id}', ${_dart(text)}),",
+    );
   }
   out.writeln('};');
-  File('lib/src/lexer/message_catalog.dart').writeAsStringSync(out.toString());
+  final File outputFile = File('lib/src/lexer/message_catalog.dart');
+  outputFile.writeAsStringSync(out.toString());
+
+  // DIAG-5: format the generated file so a re-run is a no-op on a clean
+  // tree; the committed file must stay dart-format clean.
+  final ProcessResult formatted = Process.runSync('dart', [
+    'format',
+    outputFile.path,
+  ]);
+  if (formatted.exitCode != 0) {
+    throw StateError(
+      'dart format failed:\n${formatted.stdout}${formatted.stderr}',
+    );
+  }
   stdout.writeln('wrote ${messages.length} messages');
 }
 
-/// A Dart double-quoted literal for [text]; continuation lines become
-/// adjacent string literals joined with `\n`.
+/// A Dart string literal for [text]; continuation lines become adjacent
+/// string literals joined with `\n`. Each line uses single quotes unless
+/// the line holds an apostrophe (the 1962 literal delimiter), in which
+/// case it uses double quotes, so no delimiter is ever escaped
+/// (`prefer_single_quotes`, `avoid_escaping_inner_quotes`).
 String _dart(String text) {
   final List<String> lines = text.split('\n');
   String quote(String s) {
+    final String delimiter = s.contains("'") ? '"' : "'";
     final String escaped = s
         .replaceAll(r'\', r'\\')
         .replaceAll(r'$', r'\$')
-        .replaceAll('"', r'\"')
         .replaceAll('\n', r'\n');
-    return '"$escaped"';
+    return '$delimiter$escaped$delimiter';
   }
 
   if (lines.length == 1) {
