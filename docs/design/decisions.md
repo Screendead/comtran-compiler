@@ -18,6 +18,8 @@ definition: (F p. N) / (J xx.xx.xx) / (J 90.05 listing, PDF p. NNN).*
   than M4**.
 - **D10 (correctness-review decisions): recorded 2026-08-03**, during the
   remediation of the 2026-08-03 correctness review.
+- **D11 (M2 stage 3, the job stream): recorded 2026-08-03**, before the
+  stage-3 implementation. D11.1 amends D10.4 and clarifies D9.14.
 
 ## Contents
 
@@ -129,7 +131,7 @@ Every other row points at its own record.
 | [D8.10](#d810--the-ctend-cards-date-field--transcription-artifact-resolved-by-scan-2026-08-02) | The *CTEND card's date field — transcription artifact, resolved by scan (2026-08-02) | Locked |
 | **[D9 — Severity system and conformance list (§8.4)](#d9--severity-system-and-conformance-list-84)** | | |
 | [D9.1](#d91--severity-system-b1) | Severity system (B.1) | Locked |
-| [D9.2](#d92--severity-assignment-policy-q65) | Severity assignment policy (Q65) | Locked |
+| [D9.2](#d92--severity-assignment-policy-q65) | Severity assignment policy (Q65) | Amended |
 | [D9.3](#d93--conformance-list-binding) | Conformance list binding | Locked |
 | [D9.4](#d94--b2-msg-62-vs-the-attested-missing-period-leniency) | B.2 msg 62 vs the attested missing-period leniency | Locked |
 | [D9.5](#d95--diagnostic-message-realization-substitution-slots-and-listing-format) | Diagnostic message realization: substitution slots and listing format | Locked |
@@ -148,11 +150,16 @@ Every other row points at its own record.
 | [D10.1](#d101--specif-operand-diagnostics-routing-of-msgs-153-160) | SPECIF operand diagnostics: routing of msgs 153-160 | Locked |
 | [D10.2](#d102--the-diagnostic-sink-and-the-severity-5-stop-in-every-phase) | The diagnostic sink and the severity-5 stop in every phase | Locked |
 | [D10.3](#d103--numeric-literal-length-what-the-50-character-limit-counts) | Numeric-literal length: what the 50-character limit counts | Locked |
-| [D10.4](#d104--compile-control-cards-after-the-first-are-ignored-at-any-deck-position) | Compile control cards after the first are ignored at any deck position | Locked |
+| [D10.4](#d104--compile-control-cards-after-the-first-are-ignored-at-any-deck-position) | Compile control cards after the first are ignored at any deck position | Amended |
 | [D10.5](#d105--clause-separator-leniencies-the-parser-accepts-silently) | Clause-separator leniencies the parser accepts silently | Locked |
 | [D10.6](#d106--message-917-a-function-argument-that-is-not-a-data-name) | Message 917: a function argument that is not a data-name | Locked |
 | [D10.7](#d107--verb-source-operands-the-function-reference-and-the-signed-literal-m2-8-cross-reference) | Verb source operands: the function reference and the signed literal (M2-8 cross-reference) | Locked |
 | [D10.8](#d108--data-and-environment-name-bars-the-mandatory-blocksize-and-the-63-file-tally) | Data and environment name bars, the mandatory BLOCKSIZE, and the 63-file tally | Locked |
+| **[D11 — M2 stage 3: the job stream (2026-08-03)](#d11--m2-stage-3-the-job-stream-2026-08-03)** | | |
+| [D11.1](#d111--the-job-splitter-card-level-job-boundaries) | The job splitter: card-level job boundaries | Locked |
+| [D11.2](#d112--per-job-compilation-state-numbering-listings-and-the-exit-code) | Per-job compilation state, numbering, listings, and the exit code | Locked |
+| [D11.3](#d113--message-132-at-end-of-input-and-the-9005-job-deck) | Message 132 at end of input, and the 90.05 job deck | Locked |
+| [D11.4](#d114--the---pedantic-flag-mechanism-and-the-m2-site-set) | The --pedantic flag: mechanism and the M2 site set | Locked |
 
 ## D0 — Top-level slate (Jack's calls, locked 2026-08-02)
 
@@ -1194,7 +1201,16 @@ record built on it.*
 
 ### D9.2 — Severity assignment policy (Q65)
 
-**Status.** Locked.
+**Status.** Amended.
+> **Amended 2026-08-03 (D11.4):** the Implementation rule "do not let
+> --pedantic change any severity value" binds each message id: no id's
+> severity differs between modes, and no attested id is re-graded. Two
+> locked escalation records (D3.4; D6.6) grade one non-historical
+> condition more severely under --pedantic. D11.4 reconciles them with
+> this rule by a distinct pedantic-only id (921, 922) at its own fixed
+> severity, issued in place of the default-mode id (918, 911). Those two
+> are the only recorded cases.
+
 **Decision.** Per-message severity values are historically unrecoverable, so we assign them by a stated consequence rule and mark every value non-historical. Precedence rule for building the table: the consequence stated in a message's own text wins over its class heading. Five classes. C1 advisory or auto-repair, where the compiler completes the intended object code and only warns or substitutes a documented default, severity 1 (for example 62 PERIOD ASSUMED, 60 ZERO COUNT IN PICTORIAL REPLACED BY ONE, 44 UNSPECIFIED MAXIMUM QUANTITY ASSUMED TO BE 1, 116 MISSING OPERAND ASSUMED TO BE ZERO, 189 EXTERNAL MODE SUBSTITUTED, 206 INEFFICIENT FORMAT). C2 operand-level loss, severity 2 (for example 120 name ELIMINATED FROM ADD, 68 EVALUATION IGNORED, 25 OPERATION IGNORED, 113 REDUNDANT RIGHT PARENTHESIS ELIMINATED). C3 statement-level or sentence-level loss, severity 3 (for example 122, 125, 126, 171 SENTENCE DELETED FROM TEXT, 84 ILLEGAL MOVE ... NOTHING DONE, 196 ILLEGAL SENTENCE STRUCTURE NOTHING DONE, and 177 THIS SENTENCE EXCEEDS INTERNAL TABLE CAPACITY. SENTENCE DELETED FROM TEXT.). C4 program-level loss or a program that cannot run correctly, severity 4 (for example 108 UNDEFINED SYMBOL, 66 ONE OR MORE SECTIONS NOT CLOSED, 87/99/169 program-continuity errors, 175 NO -STOP RUN-, 90/110/151/180/181 recognized-but-deferred constructs). C5 unrecoverable, internal, or capacity conditions, severity 5: the compiler self-diagnostics, the permanent read and dictionary errors, and the internal-table overflow messages that state no recovery, namely 148, 149, 172, 183, 184 and 200-205. Message 177 is the worked example of the precedence rule: it is an internal-table overflow message, but its own text states its recovery (sentence deleted, compilation continues), so it takes C3 and not C5. Rule for picking a value inside the 2-4 range: take the largest source unit whose intended object code is lost. Operand or clause gives 2; statement or sentence gives 3; a procedure, section, record, file, or whole-program property gives 4. J's own words "the value may vary" permit one message to carry different severities at different sites, so the table maps (message id, context key) to a severity, with a default value per message id. All 210 values are OUR design decisions. They live in one reviewable machine-readable table produced at M2, each row marked non-historical and carrying its class and its justification.
 
 **Rationale.** The 90.04 listing prints CODE 0 for every message because "the value may vary", and no table assigns the 210 messages their real severities, although severity controls deck production, compile-and-go, and abort. The §8.5.7 entry states exactly this and proposes assignment by the consequence stated in each message text: auto-repair warnings plausibly 1, deletions and NOTHING DONE 2-4, unrecoverable conditions 5. The precedence rule is added because §8.5.7's own grouping and the message texts collide in two places: message 177 is a table-overflow message that nonetheless states its recovery, and messages 85, 135, 136, 137 and 140 read COMPILATION SUSPECT / DUBIOUS COMPILATION, which implies the compilation continued. For 177 the text wins and it takes severity 3. For 85/135/136/137/140 we follow §8.5.7 and keep severity 5, and record the tension in the row's justification; those conditions are unreachable in our implementation (see the self-diagnostics record), so the value is never exercised. Open Question 65 stays open; nothing in the manuals narrows it. D0.4 therefore applies: the behavior is a recorded design decision, never presented as historical fact.
@@ -1391,6 +1407,12 @@ INCLUDE has no message of its own: INCLUDE and LIBRARY are both reserved in J (J
 ### D9.14 — Job stream and message 132 (*FINISH)
 
 **Status.** Locked.
+> **Clarified 2026-08-03 (D11.3):** the discarded deck is the object deck —
+> the severity-5 suppression of J 02.01.01. The incomplete job is still
+> scanned, parsed, and listed, and message 132 is recorded at end of input
+> at statement 9999,99. The separate generated job-deck file this record
+> provides for now exists: `test/fixtures/90.05-payroll-job.ctdeck` (D11.3).
+
 **Decision.** Model a job stream, because severity 5 is defined as "stop compiling, proceed to the next job". The compiler reads a job deck: a compilation-initiating card ($CMPLE, with *COMPILE accepted as the historical synonym per §8.5.7), the source deck, and the terminating *FINISH card; several jobs may follow one another. If the input ends before a *FINISH card, issue message 132 (END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.). Answering Open Question 8 as a design decision: message 132 takes severity 5, the current job's deck is discarded, and the run ends, since no next job can exist after end of file. For the 90.05 oracle, the *FINISH card is supplied by the test harness, which wraps test/fixtures/90.05-payroll.deck as one job; we do not edit the deck file. test/fixtures/90.05-payroll.deck is a provenanced 293-card artifact: card 1 is the *COMPILE control card, and cards 2-293 hold the *DATA, *ENVIRONMENT and *PROCEDURE material. Its notes restrict it to attested card content, so appending a card would change that artifact. If a canonical complete job-deck file is later wanted, it is a separate generated file whose notes mark the *FINISH card a reconstruction.
 
 **Rationale.** The severity-5 rule at J 90.04.02 and the *FINISH rule at J 02.01.02 together require a job concept; without it, severity 5 cannot be implemented as attested and message 132 has no trigger. Open Question 8 asks the severity of message 132 and whether the partial compilation is completed; nothing settles it, so D0.4 makes it a decision. Discarding the deck is the conservative choice: the job never reached its terminator, so the source is known to be incomplete. On the missing *FINISH echo. The 90.05 listing echoes the compilation-initiating card (*COMPILE LIST, J 90.05 listing, PDF p. 192) and then the source cards, and stops at the last source card. The absence of a *FINISH echo is therefore not evidence that the 1962 job lacked one. The argument is weaker than "source cards only" would suggest, because the listing does echo one control card. Supplying the card from the harness keeps the compiler free of a special case and keeps the deck artifact unaltered.
@@ -1470,7 +1492,13 @@ INCLUDE has no message of its own: INCLUDE and LIBRARY are both reserved in J (J
 
 ### D10.4 — Compile control cards after the first are ignored at any deck position
 
-**Status.** Locked.
+**Status.** Amended.
+> **Amended 2026-08-03 (D11.1):** the M2-15 job loop is in force, as this
+> record anticipated. A compile card after a division header now starts the
+> next job. Only the duplicate before any division header keeps message 904.
+> The position-independent recognition rule — a compile card is never read
+> as source text — stands unchanged.
+
 **Decision.** The deck splitter recognizes a compile control card ($CMPLE in columns 1-6, *COMPILE from column 7) at any deck position. The first one, before any division header, is the job's compile card. Every other one — a duplicate before the headers (M1-2), or any compile card after a division header — is ignored with message 904,00. The M2-15 job loop supersedes this rule when it lands: a mid-deck $CMPLE then starts the next job (D9.14).
 
 **Rationale.** M1-2 records "A second compile control card is ignored with our message 904", but the check ran only before the first division header, so a mid-deck $CMPLE or *COMPILE card was scanned as division source text with cascade diagnostics and 904 never fired (review finding LEX-8). One rule for every position keeps the card from ever being read as source text. A compile card that appears mid-deck with no earlier one also draws 904: its text says "duplicate", which is inexact for that degenerate deck, but the card is equally out of place and equally ignored, and a second non-historical message would add nothing.
@@ -1532,3 +1560,90 @@ INCLUDE has no message of its own: INCLUDE and LIBRARY are both reserved in J (J
 **Oracle.** Oracle (4): `test/data_parser_test.dart` and `test/environment_parser_test.dart` cover the three calls, the checkpoint exemption, and the cross-group tally. Oracle (2): the 90.05 sample (7 FILE cards, no barred names, BLOCKSIZE on every card) stays clean.
 
 *Citations:* (J 02.03.02-03); (J 90.04.01) msgs 89, 178, 193; (J 02.06.04); (J 90.01.04); decisions.md D1.5, D7.1; docs/design/m2-parser.md M2-7
+
+## D11 — M2 stage 3: the job stream (2026-08-03)
+
+*Recorded 2026-08-03, before the stage-3 implementation (M2-15). The
+evidence pass behind these records read J 02.01, 04.01–04.02, 05.03,
+90.01, 90.04, and the 90.05 listing, and confirmed every card-format
+claim against the page scans (images/page-010.png, page-011.png,
+page-099.png). D11.1 amends D10.4; D11.3 clarifies D9.14.*
+
+### D11.1 — The job splitter: card-level job boundaries
+
+**Status.** Locked.
+**Decision.** The driver splits the deck into jobs above the compiler (D9.14). The splitter models the CT monitor's compile-only job stream: the sequence J 04.02.01 diagrams between $EXECUTE CT and $IBSYS. Its rules, applied in card order:
+
+(a) A job starts at the deck's first card. A compile card — $CMPLE in columns 1–6, or *COMPILE from column 7 (D7.12) — starts the next job when the current job has seen a division header or a *FINISH card. After a terminated job, the next job opens at the first compile card or division header; a header opens a compile-card-less job, silently. A compile card before any division header of the current job stays the D10.4 duplicate: message 904, card ignored.
+(b) A *FINISH card (J 02.01.02) closes the current job. The splitter consumes the card; it never reaches the front end, so the listing never echoes it. The 1962 listing echoes the compile card and no *FINISH (J 90.05 listing, PDF pp. 192, 197), so consumption keeps the golden listing byte-identical.
+(c) Between jobs, the splitter stands in for the monitor. It silently skips two attested cards. First, the end-of-file card: columns 1 and 2 punched in rows 8 and 7, columns 3 and 4 punched in rows 7, 4, 1, and 12 (J 05.03.01, scan-checked against images/page-099.png, 2026-08-03). J calls it "an integral part of every job deck". Second, the optional $ID accounting card (J 05.03.02; J 04.02.02). The monitor zone is: before the first job's first card, and after any *FINISH up to the next job's first card, per rule (a). Wholly blank cards in the zone are skipped, per the M1 blank-card rule.
+(d) Any other card between a *FINISH and a following job joins that job's leading cards, where it draws message 902 (card precedes the first division header). A card after the last *FINISH, with no job following, draws message 903. Message 903 therefore covers the single-job tail case only (M2-15). The tail diagnostics carry card numbers above the last job's cards, so the merged diagnostic block keeps card order (M2-2).
+(e) A job closed by a following compile card — no *FINISH of its own — is accepted silently. This leniency is non-historical: J separates jobs with a tape end-of-file mark, never with a card scan (J 05.03.01), so no manual describes this boundary. --pedantic warns on it with message 929 (D11.4).
+(f) The other CTM and Basic Monitor control cards — $LOAD, $SUBUP, $MAIN, $PAUSE, $ENDREEL, $IBSYS, $DATE, $EXECUTE, and the rest of J 04.02.02–03 and 04.01 — are outside the compile-only stream this record models. They draw message 902 or 903 by position, per rule (d). A later milestone may extend the splitter to more job types; this record binds the compile-job case only.
+
+**Rationale.** D9.14 requires the loop above the compiler: the compiler proper compiles one job and knows nothing about the stream. J's own job separator is the tape end-of-file mark, not a card scan (J 05.03.01), so every card-level rule here beyond $CMPLE and *FINISH recognition is our design, and each is marked. The splitter skips the end-of-file card and $ID silently because J prints both inside the attested stacked-job example (J 05.03.02); a diagnostic against the attested form would punish a correct 1962 deck, against D0.8. Junk between jobs joins the next job rather than the closed one, so a stray card cannot raise a finished job's severity after its *FINISH accepted the job.
+
+**Implementation.** `splitJobs` beside the driver. `SourceProgram.fromDeck` loses its *FINISH and message-903 path — the splitter owns both — and keeps messages 902 and 904. The `finishCard` field leaves `SourceProgram`; the 903 tests move to the splitter's test file.
+
+**Oracle.** Oracle (4): two- and three-job decks; boundary junk in every zone; end-of-file and $ID cards at the deck head, between jobs, and at the tail; a *FINISH consumed with no echo; a duplicate compile card before headers still draws 904; a division header after a *FINISH opens a compile-card-less job. Oracle (2): the 90.05 job deck (D11.3) compiles clean and diffs clean.
+
+*Citations:* (J 02.01.01); (J 02.01.02); (J 04.01.01); (J 04.02.01-03); (J 05.03.01); (J 05.03.02); (J 90.05 listing, PDF pp. 192, 197); D9.14; D10.4; D7.12; D0.8; docs/design/m2-parser.md M2-15
+
+### D11.2 — Per-job compilation state, numbering, listings, and the exit code
+
+**Status.** Locked.
+**Decision.** Each job compiles as an independent program. The driver creates one fresh `DiagnosticSink` per job (D10.2), runs the front end and the parser once per job, and prints one listing per job, in deck order, each starting at page 1. Statement numbers restart at 1,00 for each job. DESIGN DECISION (non-historical): the restart. The only numbered listing in either manual is the single-job 90.05 sample (1,00–229,00), and nothing states what a second job's numbers do. The process exit code keeps its current meaning across the whole deck: 0 when no job reaches severity 5, 1 when any job does (J 90.04.02), 2 for a usage error. Lower severities never change the exit code; they suppress the future object program per J 90.04.02, not the process result.
+
+**Rationale.** Restart is the one numbering choice that needs no cross-job state, which D9.14's locked implementation model denies the compiler proper. A fresh sink per job is D10.2's rule; a shared sink would let one job's severity-5 stop starve the next job, against "It then proceeds to the next job" (J 90.04.02).
+
+**Implementation.** The job loop in `bin/comtranc.dart`; the worst severity is tracked across jobs for the exit code only.
+
+**Oracle.** Oracle (4): a two-job deck whose first job stops at severity 5 — the second job compiles clean, numbered from 1,00, and the process exits 1; a clean two-job deck exits 0, with two listings in deck order. Oracle (2): the 90.05 job deck compiles unchanged.
+
+*Citations:* (J 90.04.02); (J 02.02.01); (J 90.05 listing, PDF pp. 192-197); D9.14; D10.2
+
+### D11.3 — Message 132 at end of input, and the 90.05 job deck
+
+**Status.** Locked.
+**Decision.** When the deck ends while a job is open — no *FINISH closed it — the driver compiles the job as read, then records message 132 (END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.) at severity 5 (D9.14; Open Question 8). The diagnostic references statement 9999,99, the attested number for "errors which are not confined to a single source statement" (J 02.02.01); it carries no source card. The job's listing prints, with 132 in its diagnostic block, and the run ends. D9.14's "the current job's deck is discarded" means the object deck: severity 5 suppresses it (J 02.01.01). The source is still scanned and parsed for diagnosis, because a streaming reader has processed every card by the time end of input is detectable. A dated note on D9.14 records this clarification.
+
+Under this rule the raw 90.05 artifact (`test/fixtures/90.05-payroll.ctdeck`, 293 cards, no *FINISH) is an incomplete job and draws 132 by design. Its keying notes restrict it to attested card content, and D9.14 presumes the 1962 job's own *FINISH existed off-listing. The acceptance compile therefore moves to a complete job deck, `test/fixtures/90.05-payroll-job.ctdeck`: the same 293 cards plus one *FINISH card, generated through `deckconv`, with the *FINISH marked a reconstruction in the fixture notes. This is the separate generated file D9.14 itself provides for. The 293-card artifact stays untouched; a test asserts its count. `CLAUDE.md` and `docs/HANDOVER.md` point the acceptance command at the job deck.
+
+**Rationale.** In J's model the tape always ends with a physical end-of-file mark, so "end of file without *FINISH" is detectable and attested as message 132's trigger (J 90.04.01). Our deck end is our end of file (D9.14). A 1962 run of the 293 program cards alone — no *FINISH, then the tape mark — would have drawn 132; the 1962 compile succeeded because the real job deck was complete. Compiling the job as read, rather than suppressing the listing, follows the detection point: nothing remains to stop at end of input, and the listing's diagnosis is the only value left in the job.
+
+**Implementation.** The splitter marks the open job; the driver records 132 into that job's sink after the parse, inside its `StopCompilation` net. `Diagnostic` accepts a card-less form that renders as statement 9999,99 in the diagnostic block. The message-checklist row for 132,00 flips from `reserved` to `enforced` with its test reference.
+
+**Oracle.** Oracle (4): a deck ending mid-job draws 132 at severity 5, statement 9999,99, exit 1, with the partial listing printed; the raw 90.05 artifact draws exactly one diagnostic, 132, and stays 293 cards. Oracle (1) and (2): the 90.05 job deck compiles with zero diagnostics and a byte-identical golden listing.
+
+*Citations:* (J 90.04.01) msg 132; (J 90.04.02); (J 02.01.01); (J 02.01.02); (J 02.02.01); (J 05.03.01); Open Question 8; D9.14; D0.4
+
+### D11.4 — The --pedantic flag: mechanism and the M2 site set
+
+**Status.** Locked.
+**Decision.** `bin/comtranc.dart` gains `--pedantic` (D0.8), off by default. A boolean threads as an optional parameter through `runFrontEnd`, `runParser`, and the scanners and parsers that own a site. The mode holds one invariant: **--pedantic adds diagnostics and changes nothing else.** Every parse result, repaired value, and generated value is identical in both modes, and no existing message id changes severity (D9.2; D9.16). Each pedantic diagnostic takes its own non-historical id (D9.7 pattern). The two escalation records are satisfied by grade alone: D3.4's REDEF-line name is already discarded in both modes, and D6.6's non-transfer AT END clause is kept as parsed in both modes; under --pedantic each site issues its own error-class id in place of the default-mode warning (918, 911), leaving both recoveries untouched.
+
+The M2 site set, implemented this stage:
+
+| Id | Class | Site | Owning record |
+|---|---|---|---|
+| 919,00 | C1 | A Data Description constant continued across cards against F p. 83 | D1.1 |
+| 920,00 | C1 | A procedure-name terminating period+blank omitted | D1.3; D9.4(a) |
+| 921,00 | C2 | A name on the REDEF line, escalated in place of 918 | D3.4 |
+| 922,00 | C3 | A non-transfer AT END clause, escalated in place of 911 | D6.6 |
+| 923,00 | C1 | A deck.name with imbedded blanks (J 02.01.01 forbids them) | D7.11 |
+| 924,00 | C1 | An input FILE clause record.name.2 with no leading comma | D8.5 |
+| 925,00 | C1 | A COND key setting of fewer than 12 octal digits | D9.16 |
+| 926,00 | C1 | A comma before OTHERWISE | D10.5(a) |
+| 927,00 | C1 | AT END without the preceding comma | D10.5(b) |
+| 928,00 | C1 | A trailing comma directly before the terminating period | D10.5(c) |
+| 929,00 | C1 | A job closed by a compile card instead of *FINISH | D11.1(e) |
+
+The deferred sites stay with their owning milestones, so the flag's coverage is auditable from this table: D4.11 and D4.12 (M3/M4 move semantics), D4.13 (M3 name resolution), D5.1 (constant DO parameters), D5.7 (the DO call graph), D6.2–D6.5 and D6.3's object-time reopen message (M5 I/O), D6.1 (M5 PATTERN syntax), and D3.5's candidate (M3 justification). Each lands with its milestone and cites this record.
+
+**Rationale.** D0.8 defines the mode: written-language strictness beyond attested compiler behavior, clearly marked non-historical. D9.2 forbids re-grading an id between modes; a pedantic-only id at its own fixed severity keeps every id's severity single-valued while following D3.4's and D6.6's explicit escalation texts. The diagnostics-only invariant generalizes D9.16's oracle — "the padded value must be identical in both modes" — to every site, and makes one global test possible.
+
+**Implementation.** The sites and their code locations: 919 in `lib/src/lexer/data_lexer.dart` (the D1.1 continuation join); 920 in `lib/src/lexer/procedure_lexer.dart` (the `labelHadPeriod` record); 921 in `lib/src/parser/data_parser.dart` (the 918 site); 922 in `lib/src/parser/procedure_parser.dart` (the 911 site); 923 in `lib/src/parser/control_parser.dart`; 924 in `lib/src/parser/environment_parser.dart` (the D8.5 branch); 925 in `_normalizeCondKeys`; 926–928 in `_parseClauseSeries` and `_parseGet`; 929 in the job splitter. Severity rows and checklist rows land with the code.
+
+**Oracle.** Oracle (4): one test per site — silent in default mode, the pedantic diagnostic under `--pedantic`, and the parse result identical in both modes; the two escalations additionally assert that 918 and 911 are replaced, not doubled. Oracle (2): the 90.05 job deck compiles clean in both modes.
+
+*Citations:* D0.8; D9.2; D9.7; D9.16; D1.1; D1.3; D9.4; D3.4; D6.6; D7.11; D8.5; D10.5; (J 02.01.01); (F p. 83)
