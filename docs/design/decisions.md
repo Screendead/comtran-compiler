@@ -16,6 +16,8 @@ definition: (F p. N) / (J xx.xx.xx) / (J 90.05 listing, PDF p. NNN).*
   (D9.7/D9.6 — hard-enforce the printed numbers) are **resolved**; D4.1
   (MOVPAK round-step emission) is **deliberately deferred — decide no later
   than M4**.
+- **D10 (correctness-review decisions): recorded 2026-08-03**, during the
+  remediation of the 2026-08-03 correctness review.
 
 ## D0 — Top-level slate (Jack's calls, locked 2026-08-02)
 
@@ -1170,3 +1172,17 @@ record built on it.*
 **Oracle.** Oracle (4) only; the 90.05 sample has no COND card. Tests: a 13-digit setting gives msg 6 and keeps the rightmost 12; a setting containing 8 or 9 gives msg 7 and the value '1'; a 5-digit setting compiles silently in the default mode, warns under --pedantic, and generates the same key mask as the same setting written with five leading zeros; a 12-digit setting gives no diagnostic.
 
 *Citations:* (J 90.04.01) msgs 4, 6, 7; (J 02.06.17); definition §8.4 B.2 numeric-limits row (msgs 6, 7); Open Question 68; D0.4; D0.8
+
+## D10 — Correctness-review decisions (2026-08-03)
+
+### D10.1 — SPECIF operand diagnostics: routing of msgs 153-160
+
+**Decision.** Issue each dedicated SPECIF message at the site that detects its condition: 154 when the first description item is not a file name (J 02.06.08); 155 when no alphameric literal follows UNIT1 or UNIT2; 156 and 157 when no alphameric literal follows SERIAL or REEL; 158 when no numeric integer follows RETAIN; 159 when no numeric integer follows ACTIVITY. Issue 160 (ALPHABETIC LITERAL FOLLOWING KEY WORD CANNOT EXCEED 6 CHARACTERS.) for an over-length literal after a SPECIF key word, and enforce each option's own bound: 6 characters for UNIT1 and UNIT2 (the message's own figure; no per-option bound is documented), 5 for SERIAL and 4 for REEL (J 02.06.12). The over-length operand is dropped, the same operand-level recovery as the missing-operand messages. Keep 153 as the fallback for SPECIF faults that no dedicated message covers: an unknown option word, an ACTIVITY integer outside 1-99, a non-numeric REEL literal of legal length, and a RETAIN number of more than 3 digits.
+
+**Rationale.** The 90.04 catalog attests one message per condition (154-160), and the review found all seven conflated into the generic 153, which also inflated the severity of operand-level faults from 2 to 3 (severity-notes.md puts 155-160 in the C2 operand family and 153-154 in the C3 whole-card family). The open point was whether an over-length SERIAL or REEL literal takes 160 or stays 153, because 160's printed text states a 6-character bound and J 02.06.12 states 5 for SERIAL and 4 for REEL. We route them to 160: it sits in the SPECIF block (153-160 are all SPECIF messages); it is the only attested over-length message for SPECIF literals; and its class (C2, one operand lost) matches the fault, where 153 misnames the fault as a whole-card error. The printed 6-character figure matches no punch field — the generated *FILE card holds unit1 in 4 columns (18-21), unit2 in 4 (22-25), reel in 4 (38-41), serial in 5 (44-48) and retention days in 3 (51-53) (J 90.08.01) — so we read 6 as the compiler's one-word (6-character BCD) literal store, checked once for every key-word literal. We enforce the tighter documented bounds for SERIAL and REEL and accept that the printed text states the loosest bound. RETAIN keeps 153 for its over-length case because 160 names alphabetic literals and RETAIN's operand is numeric (J 02.06.12). The excluded alternative — 153 for a literal over its option bound but within 6 characters — is recorded here for reversal if evidence appears.
+
+**Implementation.** `lib/src/parser/parser_messages.dart` holds the catalog references for 154,00-160,00; `_parseSpecifCard` in `lib/src/parser/environment_parser.dart` issues them. Each fallback-153 site carries a comment naming this decision.
+
+**Oracle.** Oracle (4): one test per id in `test/environment_parser_test.dart`, plus fallback tests for the three 153 cases. Oracle (2) constrains from above: the 90.05 sample's seven SPECIF cards must keep drawing zero diagnostics.
+
+*Citations:* (J 90.04.01) msgs 153-160; (J 02.06.08); (J 02.06.10-12); (J 90.08.01); docs/design/severity-notes.md (C2 card-option-operand family); D7.8

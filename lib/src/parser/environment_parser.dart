@@ -359,13 +359,16 @@ SpecifCard _parseSpecifCard(
     fileName = tokens[0];
     i = 1;
   } else {
-    diagnostics.add(Diagnostic(msgSpecifCardFormatError, spec.cards.first));
+    diagnostics.add(Diagnostic(msgSpecifFileNameNotFirst, spec.cards.first));
     if (tokens.isNotEmpty) {
       i = 1;
     }
   }
   final card = SpecifCard(spec)..fileName = fileName;
 
+  // HIGH/LOW is positional: file density before LABELS/LABELN, label
+  // density after (J 02.06.12).
+  var labelsSeen = false;
   while (i < tokens.length) {
     final Token token = tokens[i];
     if (token.kind == TokenKind.symbol && token.text == ',') {
@@ -387,8 +390,12 @@ SpecifCard _parseSpecifCard(
         if (literal == null) {
           // `*` is legal for UNIT2 only (J 02.06.10).
           diagnostics.add(
+            Diagnostic(msgUnitNeedsLiteral, token.card, column: token.column),
+          );
+        } else if (literal.text.length > 6) {
+          diagnostics.add(
             Diagnostic(
-              msgSpecifCardFormatError,
+              msgKeyWordLiteralTooLong,
               token.card,
               column: token.column,
             ),
@@ -411,8 +418,12 @@ SpecifCard _parseSpecifCard(
           i = next;
           if (literal == null) {
             diagnostics.add(
+              Diagnostic(msgUnitNeedsLiteral, token.card, column: token.column),
+            );
+          } else if (literal.text.length > 6) {
+            diagnostics.add(
               Diagnostic(
-                msgSpecifCardFormatError,
+                msgKeyWordLiteralTooLong,
                 token.card,
                 column: token.column,
               ),
@@ -422,10 +433,18 @@ SpecifCard _parseSpecifCard(
           }
         }
       case 'HIGH':
-        card.density = 'HIGH';
+        if (labelsSeen) {
+          card.labelDensity = 'HIGH';
+        } else {
+          card.density = 'HIGH';
+        }
         i++;
       case 'LOW':
-        card.density = 'LOW';
+        if (labelsSeen) {
+          card.labelDensity = 'LOW';
+        } else {
+          card.density = 'LOW';
+        }
         i++;
       case 'DEFER':
         card.defer = true;
@@ -445,7 +464,17 @@ SpecifCard _parseSpecifCard(
       case 'ACTIVITY':
         final (int next, int? value) = _takeInt(tokens, i + 1);
         i = next;
-        if (value == null || value < 1 || value > 99) {
+        if (value == null) {
+          diagnostics.add(
+            Diagnostic(
+              msgActivityNeedsInteger,
+              token.card,
+              column: token.column,
+            ),
+          );
+        } else if (value < 1 || value > 99) {
+          // An integer followed, but outside 1-99 (J 02.06.11); no
+          // dedicated message covers the range fault (D10.1).
           diagnostics.add(
             Diagnostic(
               msgSpecifCardFormatError,
@@ -477,9 +506,11 @@ SpecifCard _parseSpecifCard(
         i++;
       case 'LABELS':
         card.labels = 'LABELS';
+        labelsSeen = true;
         i++;
       case 'LABELN':
         card.labels = 'LABELN';
+        labelsSeen = true;
         i++;
       case 'SERIAL':
         final (int next, Token? literal) = _take(
@@ -488,10 +519,14 @@ SpecifCard _parseSpecifCard(
           TokenKind.alphamericLiteral,
         );
         i = next;
-        if (literal == null || literal.text.length > 5) {
+        if (literal == null) {
+          diagnostics.add(
+            Diagnostic(msgSerialNeedsLiteral, token.card, column: token.column),
+          );
+        } else if (literal.text.length > 5) {
           diagnostics.add(
             Diagnostic(
-              msgSpecifCardFormatError,
+              msgKeyWordLiteralTooLong,
               token.card,
               column: token.column,
             ),
@@ -506,9 +541,21 @@ SpecifCard _parseSpecifCard(
           TokenKind.alphamericLiteral,
         );
         i = next;
-        if (literal == null ||
-            literal.text.length > 4 ||
-            !_allDigits(literal.text)) {
+        if (literal == null) {
+          diagnostics.add(
+            Diagnostic(msgReelNeedsLiteral, token.card, column: token.column),
+          );
+        } else if (literal.text.length > 4) {
+          diagnostics.add(
+            Diagnostic(
+              msgKeyWordLiteralTooLong,
+              token.card,
+              column: token.column,
+            ),
+          );
+        } else if (!_allDigits(literal.text)) {
+          // A literal followed, but not "4 or less numeric characters"
+          // (J 02.06.12); no dedicated message covers the fault (D10.1).
           diagnostics.add(
             Diagnostic(
               msgSpecifCardFormatError,
@@ -526,7 +573,14 @@ SpecifCard _parseSpecifCard(
           TokenKind.numericLiteral,
         );
         i = next;
-        if (number == null || number.text.length > 3) {
+        if (number == null) {
+          diagnostics.add(
+            Diagnostic(msgRetainNeedsInteger, token.card, column: token.column),
+          );
+        } else if (number.text.length > 3) {
+          // A number followed, but not "3 or less numeric characters"
+          // (J 02.06.12); 160,00 names alphabetic literals only, so no
+          // dedicated message covers the fault (D10.1).
           diagnostics.add(
             Diagnostic(
               msgSpecifCardFormatError,
