@@ -2,5 +2,8 @@
 .dart_tool/
 build/
 
+# Node
+node_modules/
+
 # macOS
 .DS_Store
