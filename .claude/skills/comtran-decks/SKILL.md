@@ -59,12 +59,8 @@ dart run comtran:deckconv check    <path>...                # verify freshness
 A path may name a file or a directory. A directory is searched. `check` exits
 non-zero on any failure; CI runs it.
 
-Two optional local settings:
-
-- Pre-commit hook that regenerates mirrors for staged canon files:
-  `git config core.hooksPath .githooks`
-- Readable binary diffs:
-  `git config diff.ctdeck.textconv 'dart run comtran:deckconv to-text'`
+Two optional local git settings exist: the hook path and the textconv diff
+driver. `docs/design/deck-format.md` §6 is their one home.
 
 ## The MCP server
 
