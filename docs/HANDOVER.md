@@ -54,7 +54,8 @@ Terms that appear without expansion:
 One M0 deferral is open: **D4.1**, the MOVPAK round-step emission rule. Decide
 it no later than M4.
 
-Test baseline at this state: 401 Dart tests pass, and 73 extension tests pass.
+Test baseline, measured 2026-08-03: 401 Dart tests pass, and 73 extension tests
+pass. Both suites must stay green; re-measure the counts, do not trust them.
 `dart run comtran:comtranc tests/90.05-payroll.ctdeck` compiles the manual's
 own payroll sample through the front end and the parser. It prints the
 listing, numbered 1,00 to 229,00 exactly as the 1962 compile numbered it, with

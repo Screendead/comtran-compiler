@@ -21,7 +21,7 @@ Read `docs/HANDOVER.md` for the live state and the next task.
 | Path | What it holds |
 |---|---|
 | `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `listing`, `emulator`, and `mcp` |
-| `bin/` | Three executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), `deckmcp.dart` (the MCP server) |
+| `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), `deckmcp.dart` (the MCP server) |
 | `test/` | The Dart tests, plus `test/goldens/` and `test/emulator/` |
 | `tests/` | Reference deck data: the 90.05 canon deck, its mirror, and the keying notes |
 | `tool/` | Dart generators for this package |
@@ -49,10 +49,11 @@ dart run comtran:deckconv check .
 dart run comtran:comtranc tests/90.05-payroll.ctdeck   # compile the sample
 ```
 
-CI runs the same gate on every pull request. Two notes:
+CI runs the same gate on every pull request. `.github/workflows/` is the
+authority on what CI runs. Two notes:
 
 - `--fatal-infos` is strict. One info-level lint or one unformatted file fails
-  the build. Keep `tool/` formatted too, although CI does not check it yet.
+  the build. The gate covers `lib`, `bin`, `test`, and `tool`.
 - The golden listing test (`test/listing_test.dart` against
   `test/goldens/90.05-payroll.listing`) is the acceptance oracle for the front
   end. It compares byte for byte.
@@ -75,7 +76,7 @@ A COMTRAN program is a deck of punched cards. Each deck is a pair of files:
 - `X.deck` — **mirror**, generated text, one line per card, for review and
   diffs.
 
-Four rules:
+The rules:
 
 1. The compiler and every tool read canon only. Address a deck by its `.ctdeck`
    path.
@@ -95,8 +96,8 @@ clone does not have them.
 | Document | What it governs |
 |---|---|
 | `docs/HANDOVER.md` | Project state, the roadmap, and the next task |
-| `docs/design/decisions.md` | The locked D-number decision slate (84 records) |
-| `docs/design/m1-front-end.md`, `m2-parser.md`, `emulator.md`, `severity-notes.md`, `deck-format.md` | The per-milestone and per-component design records |
+| `docs/design/decisions.md` | The D-number decision slate. Every record binds the code. |
+| the other files in `docs/design/` | The per-milestone and per-component design records |
 | `docs/comtran-language-definition.md` | The source language |
 
 Two rules keep these apart:
