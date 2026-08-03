@@ -110,7 +110,11 @@ EnvironmentSpec? _scanSpec(
     }
   }
 
-  gate(first, 7, 30);
+  // The form assigns columns 23-24 to no field (Name 7-22, Type 25-30;
+  // J 02.06.01.01 and the Figure 1 facsimile), so only the two fields
+  // are scanned and gated (M1-6: only scanned text is gated).
+  gate(first, 7, 22);
+  gate(first, 25, 30);
   final String typeText = first.internalText(25, 30).trim();
   if (!environmentTypeCodes.contains(typeText)) {
     // The card is deleted with an error message (J 02.06.01.01; J 90.04,
@@ -133,6 +137,11 @@ EnvironmentSpec? _scanSpec(
     nameBuffer.write(card.internalText(7, 22).replaceAll(' ', ''));
   }
   final String name = nameBuffer.toString();
+  if (name.length > 30) {
+    // Names may contain 1 to 30 characters (F p. 15, rule 3; J
+    // 02.08.02); the compressed name can exceed one card's 16 columns.
+    diagnostics.add(Diagnostic(msgNameTooLong, first, operands: [name]));
+  }
   if (name.isEmpty && typeText == 'FILE') {
     diagnostics.add(Diagnostic(msgFileCardLacksName, first));
   }
@@ -142,9 +151,10 @@ EnvironmentSpec? _scanSpec(
 
   // The type field belongs to the first card only; a type code on a
   // continuation card is ignored (J 02.06.01.01) and diagnosed
-  // (J 90.04, message 186,00).
+  // (J 90.04, message 186,00). Columns 23-24 belong to no field and
+  // are not checked.
   for (final SourceCard card in group.skip(1)) {
-    if ([for (var c = 23; c <= 30; c++) card.isPunched(c)].contains(true)) {
+    if ([for (var c = 25; c <= 30; c++) card.isPunched(c)].contains(true)) {
       diagnostics.add(Diagnostic(msgFixedFieldOnContinuation, card));
     }
   }
