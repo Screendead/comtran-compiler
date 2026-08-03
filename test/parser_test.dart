@@ -74,12 +74,18 @@ void main() {
     );
     expect(result.diagnostics.single.message.number, '189,00');
     final ParseResult parse = runParser(result);
-    expect(parse.parserDiagnostics.single.message.number, '907,00');
+    // The parser adds 907 on card 2 and — the deck has no STOP RUN —
+    // 175 on the last card (D2.7).
     expect(parse.diagnostics.map((Diagnostic d) => d.message.number), [
       '907,00',
       '189,00',
+      '175,00',
     ]);
-    expect(parse.diagnostics.map((Diagnostic d) => d.card.cardNumber), [2, 3]);
-    expect(parse.maxSeverity, 3);
+    expect(parse.diagnostics.map((Diagnostic d) => d.card.cardNumber), [
+      2,
+      3,
+      3,
+    ]);
+    expect(parse.maxSeverity, 4);
   });
 }

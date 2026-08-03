@@ -109,7 +109,11 @@ environment specifications (column-72 rule), and unclassified `word` tokens —
   when the error is confined to one clause, else `n,00`; `9999,99` keeps
   its M1 role for diagnostics on unnumbered cards. The 60-operator sentence
   cap (msg 171) bounds real sentences far below 99 clauses, so the
-  two-digit field cannot overflow.
+  two-digit field cannot overflow. The count behind the cap — the exact
+  1962 counting is unattested — covers the arithmetic symbols, `=`
+  (relational or assignment, indistinguishable before parsing), and the
+  relational and logical operator words; parentheses and commas are not
+  operators and do not count.
 
 ## Word classification
 
@@ -141,7 +145,11 @@ The entries below close the surface-syntax gaps the sources leave open:
   `arithmetic-expression | figurative-constant`, and MOVE's source likewise;
   a figurative constant inside a larger expression is a syntax error.
   Comparison operands keep them (J 02.04.01 defines their comparison
-  behavior).
+  behavior). *Corrected against the sample (2026-08-03):* MOVE's source
+  also accepts a literal — F p. 42's general form shows `data.name.1`
+  only, but the compiled sample writes `MOVE 'M' TO ERRORTYPE` and
+  `MOVE 'GT' TO PAYRECORD DEPARTMENT` (statements 193, 196, 199) and
+  compiled clean, so the literal alternative is attested language.
 - **M2-9. ADD CORRESPONDING accepts TRUNCATED and ON OVERFLOW.** F's body
   text grants both clauses to ADD without qualification (F p. 47); the
   Appendix-2 concise form omits them while folding `[CORRESPONDING]` into
@@ -158,14 +166,43 @@ The entries below close the surface-syntax gaps the sources leave open:
   cannot arbitrate — this entry is the recorded resolution of the §8.3
   divergence.
 - **M2-11. Deferred verbs parse and diagnose.** COPY/LIBRARY/INCLUDE are
-  recognized and refused with the attested msg 110 (D7.4). LOAD and OVERLAP
-  parse per F's forms (F pp. 54–56) and draw a non-historical
-  recognized-but-deferred diagnostic (J 90.01.03 defers them; no J message
-  id exists), following the PATTERN pattern (D9.12). ENTER accepts exactly
-  its two J forms (J 02.04.02.01).
+  recognized and refused with the attested msg 110 (D9.8 — the locked
+  call, which supersedes D7.4's earlier plan of a separate non-historical
+  INCLUDE message). LOAD and OVERLAP parse per F's forms (F pp. 54–56)
+  and draw a non-historical recognized-but-deferred diagnostic
+  (J 90.01.03 defers them; no J message id exists), following the
+  PATTERN pattern (D9.12). ENTER accepts exactly its two J forms
+  (J 02.04.02.01).
 - **M2-12. Program and processor verbs do not mix in one sentence.**
-  F p. 60 states it; the parser enforces it as a sentence-level check
-  (BEGIN SECTION and END additionally stand alone, msg 179 for END).
+  F p. 60 states it; the parser deletes a mixed sentence with msg 196 —
+  no 1962 message is attested for the rule, and 196's "ILLEGAL SENTENCE
+  STRUCTURE NOTHING DONE." matches F's "meaningless" verdict. The check
+  walks nested clauses (IF arms, ON OVERFLOW, AT END), so a processor
+  verb inside an arm — F p. 60's own illegal example — is caught. Verb
+  classes follow F p. 35 (definition §2.7): LOAD is a program verb;
+  OVERLAP, INCLUDE, COPY, LIBRARY, CALL, ENTER, NOTE, BEGIN SECTION,
+  and END are processor verbs. END is exempt from the mixing deletion:
+  its own attested rule, msg 179, governs an END that is not the
+  sentence's only clause — nested in an IF arm or not — and that END
+  still pops its section. *Corrected (2026-08-03, review):* the entry's
+  earlier claim that BEGIN SECTION also "stands alone" has no source —
+  F p. 60's exception for BEGIN SECTION and END concerns naming, not
+  clause count — so BEGIN SECTION may share a sentence with other
+  processor commands; mixing with program verbs is what deletes it.
+- **M2-16. DO parameters parse without subscripts.** F p. 51: p, q, and
+  r are each an integer literal or the name of an integer field. When p
+  is a name, `p(q)r` is lexically identical to a subscripted name, and
+  no manual resolves the ambiguity. Recorded decision: in a DO control
+  position the parenthesis is always the `(q)` group — the parameter
+  name parses without subscripts, so every name-valued p works and a
+  subscripted parameter cannot be written. EXACTLY's n follows the same
+  rule.
+- **M2-17. Relation spellings are the closed F p. 21 set.** Six
+  relations, each with one full form (`IS [NOT] GREATER THAN / LESS
+  THAN / EQUAL TO`) and one abbreviation (`[NOT] GT / LT / =`). A
+  hybrid — an abbreviation after IS, a full-form word without IS, or a
+  missing THAN/TO — draws msg 107, and the relation is kept as a
+  repair. The sample program uses only attested spellings (J 90.05).
 
 ## Error recovery
 
@@ -178,7 +215,17 @@ The entries below close the surface-syntax gaps the sources leave open:
   operand 116). Fixed-form divisions recover per entry/specification the
   same way. A severity-5 condition propagates out of the parser to the
   driver — the job stops at the point of detection (D9.1); nothing inside
-  the parser catches it.
+  the parser catches it. *Amended (2026-08-03, review):* deletion also
+  rolls back everything the sentence would have contributed — STOP RUN,
+  DO targets, and the CRYPT-mode switch commit only after the sentence
+  parses, so a deleted sentence contributes nothing: a deleted STOP RUN
+  leaves msg 175 to fire, and a deleted ENTER CRYPT leaves the parser in
+  normal mode. A subscripted condition-name (D5.6) likewise deletes the
+  sentence — msg 910 at severity 3, its text announcing the deletion,
+  replacing the earlier ignore-and-compile reading that invented the
+  semantics D5.6 forbids. The severity-5 conditions (msgs 149, 915)
+  throw `StopCompilation`, which `runParser` catches: parsing stops at
+  the point of detection and each such message prints at most once.
 
 ## Diagnostics
 

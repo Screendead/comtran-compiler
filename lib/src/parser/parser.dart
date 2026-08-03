@@ -9,11 +9,13 @@ library;
 import '../ast/control_ast.dart';
 import '../ast/data_ast.dart';
 import '../ast/environment_ast.dart';
+import '../ast/procedure_ast.dart';
 import '../lexer/diagnostic.dart';
 import '../lexer/front_end.dart';
 import 'control_parser.dart';
 import 'data_parser.dart';
 import 'environment_parser.dart';
+import 'procedure_parser.dart';
 
 /// One division group after parsing.
 sealed class ParsedGroup {
@@ -44,9 +46,13 @@ final class ParsedEnvironmentGroup extends ParsedGroup {
   final List<EnvironmentCard> cards;
 }
 
-/// A `*PROCEDURE` group; sentence parsing is the next staging entry.
+/// A parsed `*PROCEDURE` group.
 final class ParsedProcedureGroup extends ParsedGroup {
-  ParsedProcedureGroup._(super.scan) : super._();
+  ParsedProcedureGroup._(super.scan, this.sentences) : super._();
+
+  /// The sentences, source order; a sentence recovery deleted is
+  /// present with [Sentence.deleted] set.
+  final List<Sentence> sentences;
 }
 
 /// The parser's result over one job.
@@ -104,9 +110,11 @@ ParseResult runParser(FrontEndResult frontEnd) {
     frontEnd.program.compileCard,
     diagnostics,
   );
-  final groups = <ParsedGroup>[
-    for (final GroupScan scan in frontEnd.groupScans)
-      switch (scan) {
+  final procedureParser = ProcedureParser(diagnostics);
+  final groups = <ParsedGroup>[];
+  try {
+    for (final GroupScan scan in frontEnd.groupScans) {
+      groups.add(switch (scan) {
         DataGroupScan(scan: final data) => ParsedDataGroup._(
           scan,
           parseDataGroup(data, diagnostics),
@@ -116,9 +124,22 @@ ParseResult runParser(FrontEndResult frontEnd) {
             scan,
             parseEnvironmentGroup(environment, diagnostics),
           ),
-        ProcedureGroupScan() => ParsedProcedureGroup._(scan),
-      },
-  ];
+        ProcedureGroupScan(scan: final procedure) => ParsedProcedureGroup._(
+          scan,
+          procedureParser.parseGroup(procedure),
+        ),
+      });
+    }
+    if (frontEnd.program.groups.isNotEmpty) {
+      // The end-of-text checks anchor to the program's last source card.
+      procedureParser.finishProgram(frontEnd.program.cards.last);
+    }
+  } on StopCompilation {
+    // A severity-5 condition stops compilation at the point of
+    // detection (D9.1; design note M2-13). The groups parsed so far
+    // and every diagnostic issued — the severity-5 one last — stand;
+    // the end-of-text checks do not run.
+  }
   return ParseResult._(
     frontEnd: frontEnd,
     compileCard: compileCard,

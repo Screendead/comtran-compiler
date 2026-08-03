@@ -5,6 +5,15 @@ import 'messages.dart';
 import 'severities.dart';
 import 'source_card.dart';
 
+/// Thrown after a severity-5 diagnostic is issued: compilation stops
+/// at the point of detection (D9.1). The phase driver catches it and
+/// keeps everything parsed and diagnosed up to that point; nothing
+/// inside the parser does (design note M2-13).
+final class StopCompilation implements Exception {
+  /// Creates the signal.
+  const StopCompilation();
+}
+
 /// One diagnostic, reported against a card (and optionally a column).
 ///
 /// Where the 1962 compiler documents a message for the condition, [message]
@@ -27,6 +36,13 @@ final class Diagnostic {
   /// Values substituted for the message's `'NAME.1'`-style parameters, in
   /// order of appearance.
   final List<String> operands;
+
+  /// The clause the condition is confined to, for the `n,cc` statement
+  /// number form (J 02.02.01; design note M2-6): 1-based within the
+  /// sentence, or `null` for the whole unit (`n,00`). Assigned by the
+  /// procedure parser after clause numbering, which is why the field is
+  /// not final.
+  int? clause;
 
   /// The message text with [operands] substituted.
   String get text => message.substitute(operands);

@@ -49,7 +49,9 @@ final Message msgFindLengthNeedsName = messageCatalog['95,00']!;
 /// `96,00` — an unrecognized word among a FILE card's options.
 final Message msgIllegalWordInFileCard = messageCatalog['96,00']!;
 
-/// `110,00` — COPY or LIBRARY used; deferred in J (J 90.01.03; D7.4).
+/// `110,00` — COPY, LIBRARY, or INCLUDE used; deferred in J
+/// (J 90.01.02–03; D9.8 — which supersedes D7.4's plan of a separate
+/// INCLUDE message).
 final Message msgCopyNotHandled = messageCatalog['110,00']!;
 
 /// `153,00` — a malformed SPECIF card.
@@ -75,6 +77,89 @@ final Message msgContrlCardFormatError = messageCatalog['176,00']!;
 
 /// `207,00` — a CONTRL load name over 6 characters or not unique.
 final Message msgContrlNameInvalid = messageCatalog['207,00']!;
+
+/// `2,00` — RUN outside STOP RUN; the word is deleted (D2.7).
+final Message msgRunDeleted = messageCatalog['2,00']!;
+
+/// `63,00` — CORRESPONDING not directly after ADD or MOVE.
+final Message msgCorrespondingMisplaced = messageCatalog['63,00']!;
+
+/// `64,00` — END with no section open.
+final Message msgEndWithoutSection = messageCatalog['64,00']!;
+
+/// `65,00` — END naming a section that is not the innermost open one.
+final Message msgEndWrongSection = messageCatalog['65,00']!;
+
+/// `66,00` — sections still open at the end of the text.
+final Message msgSectionsNotClosed = messageCatalog['66,00']!;
+
+/// `83,00` — a malformed DO statement (also a fourth index, D5.2).
+final Message msgInvalidDoForm = messageCatalog['83,00']!;
+
+/// `106,00` — an AT END slot that is empty or not headed by a
+/// statement or section name (D6.6).
+final Message msgAtEndNeedsName = messageCatalog['106,00']!;
+
+/// `107,00` — a malformed comparison.
+final Message msgIllegalComparison = messageCatalog['107,00']!;
+
+/// `113,00` — a right parenthesis with nothing open; eliminated.
+final Message msgRedundantRightParen = messageCatalog['113,00']!;
+
+/// `114,00` — a left parenthesis never closed.
+final Message msgRedundantLeftParen = messageCatalog['114,00']!;
+
+/// `116,00` — a missing operand; zero assumed.
+final Message msgMissingOperand = messageCatalog['116,00']!;
+
+/// `119,00` — a malformed MOVE operand list.
+final Message msgIncompleteMove = messageCatalog['119,00']!;
+
+/// `122,00` — an incomplete statement; the sentence is deleted.
+final Message msgIncompleteStatement = messageCatalog['122,00']!;
+
+/// `125,00` — a statement with no verb; deleted.
+final Message msgStatementWithoutVerb = messageCatalog['125,00']!;
+
+/// `126,00` — more than one verb where one was expected; deleted.
+final Message msgStatementTwoVerbs = messageCatalog['126,00']!;
+
+/// `131,00` — a malformed DISPLAY statement (design note M2-10).
+final Message msgInvalidDisplay = messageCatalog['131,00']!;
+
+/// `138,00` — CLOSE not followed by a file name.
+final Message msgCloseNeedsFileName = messageCatalog['138,00']!;
+
+/// `139,00` — OPEN not followed by a file name.
+final Message msgOpenNeedsFileName = messageCatalog['139,00']!;
+
+/// `141,00` — more than one PROGRAM.START; the first is used (D2.1).
+final Message msgDuplicateProgramStart = messageCatalog['141,00']!;
+
+/// `143,00` — PROGRAM.START addressed by a DO (D2.1).
+final Message msgProgramStartDoAddressed = messageCatalog['143,00']!;
+
+/// `149,00` — more than 35 sections (D9.7 hard cap).
+final Message msgTooManySections = messageCatalog['149,00']!;
+
+/// `171,00` — more than 60 operators in one sentence; deleted.
+final Message msgTooManyOperators = messageCatalog['171,00']!;
+
+/// `175,00` — no STOP RUN in the program (D2.7).
+final Message msgNoStopRun = messageCatalog['175,00']!;
+
+/// `179,00` — an END that is not the only clause in its sentence.
+final Message msgEndNotAlone = messageCatalog['179,00']!;
+
+/// `192,00` — a sentence-structure error, possibly a key word misused
+/// (D1.5).
+final Message msgSentenceStructureError = messageCatalog['192,00']!;
+
+/// `196,00` — an illegal sentence structure; nothing done.
+final Message msgIllegalSentenceStructure = messageCatalog['196,00']!;
+
+/// `208,00` — a sentence starting with OTHERWISE.
+final Message msgSentenceStartsOtherwise = messageCatalog['208,00']!;
 
 /// Ours — the PATTERN option on a FILE card: the key word is reserved
 /// and its rules are bound, but the card syntax is adopted only at M5
@@ -118,4 +203,60 @@ final Message msgUnknownCompileOption = Message.ours(
   '909,00',
   "COMPILE CARD OPTION 'NAME.1' IS NOT RECOGNIZED AND IS IGNORED. "
       '(NON-HISTORICAL.)',
+);
+
+/// Ours — a subscript on a condition-name (J 90.01.03 prohibits the
+/// construct; D5.6: reject it, leaving the element semantics
+/// unimplemented rather than invented). The sentence is deleted.
+final Message msgSubscriptedConditionName = Message.ours(
+  '910,00',
+  'A CONDITION NAME CANNOT BE SUBSCRIPTED. SENTENCE DELETED FROM TEXT. '
+      '(NON-HISTORICAL.)',
+);
+
+/// Ours — an AT END clause that is a single imperative but not a
+/// transfer (`DO name`, `GO TO name`, or a bare name). Accepted at low
+/// severity per D6.6; `--pedantic` will raise it.
+final Message msgAtEndNotTransfer = Message.ours(
+  '911,00',
+  '-AT END- CLAUSE IS NOT A TRANSFER. ACCEPTED. (NON-HISTORICAL.)',
+);
+
+/// Ours — an alphameric literal as a bare arithmetic operand outside
+/// TR (F p. 45 permits it only inside a TR conditional expression).
+final Message msgAlphamericArithOperand = Message.ours(
+  '912,00',
+  'ALPHABETIC LITERAL CANNOT BE AN ARITHMETIC OPERAND OUTSIDE -TR-. '
+      '(NON-HISTORICAL.)',
+);
+
+/// Ours — `A**B**C` without parentheses (F p. 107; D4.10: reject,
+/// group left for recovery only, no code generated).
+final Message msgUnparenthesizedPower = Message.ours(
+  '913,00',
+  'CONSECUTIVE EXPONENTIATIONS MUST BE PARENTHESIZED. '
+      '(NON-HISTORICAL.)',
+);
+
+/// Ours — more than three subscripts in one reference (F p. 30; D3.1:
+/// no J message number is attested for the check).
+final Message msgTooManySubscripts = Message.ours(
+  '914,00',
+  'A REFERENCE CANNOT HAVE MORE THAN THREE SUBSCRIPTS. '
+      '(NON-HISTORICAL.)',
+);
+
+/// Ours — section nesting deeper than 18 (J 90.01.05; D9.7: the limit
+/// has no 1962 message and takes a non-historical id at severity 5).
+final Message msgSectionsTooDeep = Message.ours(
+  '915,00',
+  'SECTION NESTING EXCEEDS THE DEPTH OF 18. (NON-HISTORICAL.)',
+);
+
+/// Ours — LOAD or OVERLAP, deferred in the field-test implementation
+/// (J 90.01.03; design note M2-11): parsed, no code generated.
+final Message msgDeferredVerb = Message.ours(
+  '916,00',
+  "VERB 'NAME.1' IS DEFERRED IN THE 7090 IMPLEMENTATION AND GENERATES "
+      'NO CODE. (NON-HISTORICAL.)',
 );
