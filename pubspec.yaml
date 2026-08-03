@@ -12,6 +12,8 @@ environment:
 dependencies:
   # The official Dart MCP SDK, for bin/deckmcp.dart.
   dart_mcp: ^0.5.2
+  # @immutable on CardImage (LNT-03).
+  meta: ^1.19.0
 
 dev_dependencies:
   lints: ^6.0.0

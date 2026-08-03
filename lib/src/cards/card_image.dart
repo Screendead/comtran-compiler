@@ -1,10 +1,13 @@
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
+
 /// One punched card at punch level: 80 columns × 12 punch rows.
 ///
 /// Implements §1 of `docs/design/deck-format.md` (decision D0.5). Each column
 /// is a 12-bit value; bit 11 is row 12 (top), bit 10 row 11, bit 9 row 0,
 /// bits 8–0 rows 1–9. Instances are immutable.
+@immutable
 final class CardImage {
   /// A card with no punches.
   CardImage.blank() : _columns = Uint16List(columnCount);
