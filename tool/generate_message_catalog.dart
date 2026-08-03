@@ -49,9 +49,7 @@ const Map<String, Message> messageCatalog = {
       final int cut = text.indexOf('EACH WITH');
       text = text.substring(0, cut + 'EACH WITH'.length);
     }
-    out.writeln(
-      "  '${message.id}': Message('${message.id}', ${_dart(text)}),",
-    );
+    out.writeln("  '${message.id}': Message('${message.id}', ${_dart(text)}),");
   }
   out.writeln('};');
   final File outputFile = File('lib/src/lexer/message_catalog.dart');
