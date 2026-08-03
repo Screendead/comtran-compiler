@@ -1,0 +1,40 @@
+{
+  "name": "comtran-punchcard",
+  "displayName": "COMTRAN Punchcard Editor",
+  "description": "Punch-level editor for COMTRAN canon card decks (*.ctdeck).",
+  "version": "0.1.0",
+  "publisher": "comtran-compiler",
+  "private": true,
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "comtran.punchcard",
+        "displayName": "COMTRAN Punchcard",
+        "selector": [
+          {
+            "filenamePattern": "*.ctdeck"
+          }
+        ],
+        "priority": "default"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -w -p ./",
+    "test": "npm run compile && node --test \"test/**/*.test.js\""
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.9.3"
+  }
+}
