@@ -2,7 +2,8 @@
 
 A VS Code custom editor for canon card decks (`*.ctdeck`). It shows each card as
 a 12-row by 80-column punch grid, reads every column with the COMTRAN character
-code, and writes the deck back in the frozen binary format.
+code, and writes the deck back in the frozen binary format. The extension also
+gives `.deck` text mirrors syntax highlighting by card column.
 
 The format is `docs/design/deck-format.md`. Read it first: §2 defines the binary
 container, §4 defines the character code. This extension is a port of the Dart
@@ -11,9 +12,16 @@ Those files stay authoritative. Change neither side alone.
 
 ## What you see
 
-- **Card list** on the left: one line per card with its read-out, in deck order.
-- **Field ruler**: the four card fields — serial 1-6, name margin 7-12, text
-  13-72, identification 73-80 (definition §1.9.1, F p. 37).
+- **Card list** on the left: one line per card with its read-out, in deck
+  order, colored by card field. The extension classifies each card by the
+  division headers (the compiler's deck-splitting rules) and colors the fields
+  of that division: name, level, type, quantity, mode, justification,
+  description, and the continuation column 72. Header and control cards,
+  and cards with non-glyph punches, get their own colors.
+- **Field ruler**: the card fields of the current card's division — the
+  generic form serial 1-6, name margin 7-12, text 13-72, identification 73-80
+  (definition §1.9.1, F p. 37); the data description fields (F p. 65) or the
+  environment fields (J 02.06.01) when the card sits in those divisions.
 - **Interpreted row**: the Set H glyph of each column. Three markers stand for
   columns that have no glyph:
   - `¤` a machine special (plus zero, minus zero, record mark, group mark),
@@ -38,6 +46,29 @@ Those files stay authoritative. Change neither side alone.
 - The `-` and `+` buttons change the column width.
 - Undo, redo, save, revert and hot exit all use VS Code's own machinery. A save
   writes a whole canon file: the 12-byte header and 120 bytes per card.
+
+## Syntax highlighting for `.deck` mirrors
+
+The extension contributes a `comtran-deck` language for `.deck` files with a
+TextMate grammar (`syntaxes/comtran-deck.tmLanguage.json`). The grammar colors
+by card column: serial, the division-specific fields above, literals and the
+period-blank sentence terminator (commentary after it is scoped as a comment),
+`!` punch-notation lines, and the `*`-header and control cards. Division
+context crosses lines; the grammar tracks it with begin/end regions that open
+on a header line.
+
+The grammar file is **generated**. One table in `src/columns.ts` holds the
+column boundaries for the grammar, the card list, and the field ruler, so the
+views cannot drift. After a change to `src/columns.ts` or `src/grammar.ts`,
+regenerate with:
+
+```
+npm run grammar
+```
+
+`test/grammar.test.js` fails while the committed grammar file is stale. One
+known limit: a literal that continues across cards is highlighted per line,
+so its continuation card shows plain text.
 
 ## How to run it
 
