@@ -24,11 +24,18 @@ const Set<String> _verbs = {
   'MOVE', 'SET', 'ADD', 'GO', 'DO', 'STOP', //
   'OPEN', 'GET', 'FILE', 'CLOSE', 'DISPLAY',
   'CALL', 'ENTER', 'NOTE', 'BEGIN', 'END',
-  'LOAD', 'OVERLAP', 'INCLUDE', 'COPY', 'IF',
+  'LOAD', 'OVERLAP', 'INCLUDE', 'COPY', 'LIBRARY', 'IF',
 };
 
-/// The deferred verbs (J 90.01.02–03; design note M2-11).
-const Set<String> _deferredVerbs = {'LOAD', 'OVERLAP', 'INCLUDE', 'COPY'};
+/// The deferred verbs (J 90.01.02–03; design note M2-11). LIBRARY
+/// rides with COPY and INCLUDE: all three refuse with msg 110 (D9.8).
+const Set<String> _deferredVerbs = {
+  'LOAD',
+  'OVERLAP',
+  'INCLUDE',
+  'COPY',
+  'LIBRARY',
+};
 
 /// Word tokens counted against the 60-operator sentence cap
 /// (J 90.04.01 msg 171; the exact 1962 counting is unattested — this
@@ -36,6 +43,11 @@ const Set<String> _deferredVerbs = {'LOAD', 'OVERLAP', 'INCLUDE', 'COPY'};
 const Set<String> _operatorWords = {
   'AND', 'OR', 'NOT', 'GT', 'LT', 'GREATER', 'LESS', 'EQUAL', 'ABS', 'TR', //
 };
+
+/// Symbol tokens counted against the cap: the arithmetic operators and
+/// `=` — relational or assignment, indistinguishable before parsing.
+/// Parentheses and commas are not operators and do not count.
+const Set<String> _operatorSymbols = {'+', '-', '*', '/', '**', '='};
 
 /// Thrown to delete the sentence being parsed (design note M2-13).
 final class _DeleteSentence implements Exception {
@@ -132,14 +144,99 @@ final class ProcedureParser {
     final int diagnosticsFrom = diagnostics.length;
     try {
       final List<Clause> clauses = _parseSentenceClauses(cursor, scan);
+      if (diagnostics
+          .skip(diagnosticsFrom)
+          .any((Diagnostic d) => d.message == msgSubscriptedConditionName)) {
+        // D5.6: a subscripted condition-name rejects the sentence — the
+        // element semantics stay unimplemented rather than invented.
+        // Msg 910's own text announces the deletion.
+        return Sentence(scan, const [], deleted: true);
+      }
+      _checkVerbMixing(clauses);
       _numberClauses(clauses, diagnosticsFrom);
       _sectionWalk(clauses, scan);
+      _commitSentenceFacts(clauses);
       return Sentence(scan, clauses, deleted: false);
     } on _DeleteSentence catch (deletion) {
       diagnostics.add(
         Diagnostic(deletion.message, deletion.card, column: deletion.column),
       );
       return Sentence(scan, const [], deleted: true);
+    }
+  }
+
+  /// Every clause of [clauses], including those nested in IF arms, ON
+  /// OVERFLOW slots, and AT END slots.
+  Iterable<Clause> _clauseTree(List<Clause> clauses) sync* {
+    for (final Clause clause in clauses) {
+      yield clause;
+      switch (clause) {
+        case IfClause(:final thenArm, :final otherwiseArm):
+          yield* _clauseTree(thenArm);
+          yield* _clauseTree(otherwiseArm);
+        case SetClause(:final onOverflow?):
+          yield* _clauseTree([onOverflow]);
+        case AddClause(:final onOverflow?):
+          yield* _clauseTree([onOverflow]);
+        case GetClause(atEnd: AtEndClause(:final statement?)):
+          yield* _clauseTree([statement]);
+        default:
+          break;
+      }
+    }
+  }
+
+  /// F p. 60: program and processor commands cannot be intermixed in
+  /// one sentence — such a sentence is meaningless and is deleted with
+  /// msg 196 (design note M2-12). END is exempt: its own attested rule,
+  /// msg 179 in [_sectionWalk], governs an END that is not alone.
+  void _checkVerbMixing(List<Clause> clauses) {
+    var sawProgram = false;
+    var sawProcessor = false;
+    for (final Clause clause in _clauseTree(clauses)) {
+      if (clause is EndClause) {
+        continue;
+      }
+      final bool processor = switch (clause) {
+        CallClause() || EnterClause() || NoteClause() => true,
+        BeginSectionClause() => true,
+        // OVERLAP, INCLUDE, COPY, and LIBRARY are processor verbs;
+        // LOAD is a program verb (F p. 35, §2.7).
+        DeferredVerbClause(:final verb) => verb.text != 'LOAD',
+        _ => false,
+      };
+      if (processor) {
+        sawProcessor = true;
+      } else {
+        sawProgram = true;
+      }
+      if (sawProgram && sawProcessor) {
+        throw _DeleteSentence(
+          msgIllegalSentenceStructure,
+          clause.anchor.card,
+          clause.anchor.column,
+        );
+      }
+    }
+  }
+
+  /// Commits the whole-program facts a sentence contributes — STOP RUN,
+  /// DO targets, CRYPT mode — only after the sentence has parsed. A
+  /// deleted sentence contributes nothing (design note M2-13): its
+  /// clauses generate no code (M2-5), so a STOP RUN inside one must
+  /// still leave msg 175 to fire.
+  void _commitSentenceFacts(List<Clause> clauses) {
+    for (final Clause clause in _clauseTree(clauses)) {
+      switch (clause) {
+        case StopClause(run: true):
+          _sawStopRun = true;
+        case DoClause(:final procedure):
+          _doTargets.add(procedure);
+        case EnterClause(:final crypt):
+          _cryptMode = crypt;
+        default:
+          break;
+      }
     }
   }
 
@@ -151,7 +248,8 @@ final class ProcedureParser {
   int _operatorCount(List<Token> tokens) {
     var count = 0;
     for (final Token token in tokens) {
-      if (token.kind == TokenKind.symbol && token.text != ',' ||
+      if (token.kind == TokenKind.symbol &&
+              _operatorSymbols.contains(token.text) ||
           token.kind == TokenKind.word && _operatorWords.contains(token.text)) {
         count++;
       }
@@ -637,11 +735,10 @@ final class ProcedureParser {
   Clause _parseDo(TokenCursor cursor) {
     final Token verb = cursor.take();
     final NameReference procedure = _expectName(cursor, msgInvalidDoForm);
-    _doTargets.add(procedure);
     ArithExpr? exactlyTimes;
     var indices = const <DoIndex>[];
     if (cursor.takeWord('EXACTLY')) {
-      exactlyTimes = _parseDoOperand(cursor);
+      exactlyTimes = _parseDoParameter(cursor);
       if (!cursor.takeWord('TIMES')) {
         diagnostics.add(
           Diagnostic(msgInvalidDoForm, cursor.card, column: cursor.column),
@@ -715,9 +812,12 @@ final class ProcedureParser {
     );
   }
 
-  /// A DO control operand: an integer literal or a field name
-  /// (F pp. 50–51).
-  ArithExpr _parseDoOperand(TokenCursor cursor) {
+  /// A DO control parameter — the n of EXACTLY, or p, q, r of the
+  /// indexed form: an integer literal or a field name (F pp. 50–51).
+  /// The name parses without subscripts: a parenthesis after p is
+  /// always the `(q)` group of `p(q)r`, never a subscript, so a
+  /// subscripted parameter cannot be written (design note M2-16).
+  ArithExpr _parseDoParameter(TokenCursor cursor) {
     final Token? token = cursor.peek();
     if (token == null) {
       throw _DeleteSentence(msgInvalidDoForm, cursor.card, cursor.column);
@@ -726,7 +826,18 @@ final class ProcedureParser {
       return LiteralOperand(cursor.take());
     }
     if (token.kind == TokenKind.word && !isNameStopWord(token.text)) {
-      return NameOperand(parseNameReference(cursor, diagnostics));
+      final words = <Token>[cursor.take()];
+      while (true) {
+        final Token? next = cursor.peek();
+        if (next == null ||
+            next.kind != TokenKind.word ||
+            isNameStopWord(next.text) ||
+            figurativeConstants.contains(next.text)) {
+          break;
+        }
+        words.add(cursor.take());
+      }
+      return NameOperand(NameReference(words));
     }
     throw _DeleteSentence(msgInvalidDoForm, token.card, token.column);
   }
@@ -737,15 +848,15 @@ final class ProcedureParser {
     if (!cursor.takeSymbol('=')) {
       throw _DeleteSentence(msgInvalidDoForm, cursor.card, cursor.column);
     }
-    final ArithExpr from = _parseDoOperand(cursor);
+    final ArithExpr from = _parseDoParameter(cursor);
     if (!cursor.takeSymbol('(')) {
       throw _DeleteSentence(msgInvalidDoForm, cursor.card, cursor.column);
     }
-    final ArithExpr by = _parseDoOperand(cursor);
+    final ArithExpr by = _parseDoParameter(cursor);
     if (!cursor.takeSymbol(')')) {
       throw _DeleteSentence(msgInvalidDoForm, cursor.card, cursor.column);
     }
-    final ArithExpr to = _parseDoOperand(cursor);
+    final ArithExpr to = _parseDoParameter(cursor);
     return DoIndex(index, from, by, to);
   }
 
@@ -753,7 +864,8 @@ final class ProcedureParser {
   Clause _parseStop(TokenCursor cursor) {
     final Token verb = cursor.take();
     if (cursor.takeWord('RUN')) {
-      _sawStopRun = true;
+      // _sawStopRun is set in _commitSentenceFacts, only once the
+      // whole sentence has parsed (design note M2-13).
       return StopClause(verb, run: true);
     }
     final Token? token = cursor.peek();
@@ -987,15 +1099,15 @@ final class ProcedureParser {
 
   /// `ENTER CRYPT` or `ENTER COMMERCIAL TRANSLATOR` — the only two
   /// forms (J 02.04.02.01). ENTER CRYPT switches the parser into
-  /// pass-through until the reverse command.
+  /// pass-through until the reverse command; the switch is committed
+  /// in _commitSentenceFacts, so a deleted ENTER sentence leaves the
+  /// mode unchanged (design note M2-13).
   Clause _parseEnter(TokenCursor cursor) {
     final Token verb = cursor.take();
     if (cursor.takeWord('CRYPT')) {
-      _cryptMode = true;
       return EnterClause(verb, crypt: true);
     }
     if (cursor.takeWord('COMMERCIAL') && cursor.takeWord('TRANSLATOR')) {
-      _cryptMode = false;
       return EnterClause(verb, crypt: false);
     }
     throw _DeleteSentence(
@@ -1053,7 +1165,7 @@ final class ProcedureParser {
     return EndClause(verb, sectionName);
   }
 
-  /// A deferred verb: msg 110 for COPY/INCLUDE (D7.4), the
+  /// A deferred verb: msg 110 for COPY/LIBRARY/INCLUDE (D9.8), the
   /// non-historical msg 916 for LOAD/OVERLAP (design note M2-11). The
   /// operands stay raw, up to the next clause boundary.
   Clause _parseDeferredVerb(TokenCursor cursor) {
@@ -1109,23 +1221,28 @@ final class ProcedureParser {
     }
   }
 
-  /// The section bookkeeping over one sentence's clauses: BEGIN
-  /// SECTION pushes (caps: 35 sections, msg 149; depth 18, msg 915 —
-  /// D9.7), END pops (msgs 64, 65) and must be the sentence's only
-  /// clause (msg 179).
+  /// The section bookkeeping over one sentence's clauses — nested ones
+  /// included, so an END inside an IF arm is seen: BEGIN SECTION
+  /// pushes (caps: 35 sections, msg 149; depth 18, msg 915 — D9.7,
+  /// both severity 5, which stops compilation at the point of
+  /// detection, D9.1), END pops (msgs 64, 65) and must be the
+  /// sentence's only clause (msg 179).
   void _sectionWalk(List<Clause> clauses, ProcedureSentence scan) {
-    for (final Clause clause in clauses) {
+    final bool endAlone = clauses.length == 1 && clauses.first is EndClause;
+    for (final Clause clause in _clauseTree(clauses)) {
       if (clause is BeginSectionClause) {
         _sectionCount++;
         if (_sectionCount > 35) {
           diagnostics.add(Diagnostic(msgTooManySections, scan.cards.first));
+          throw const StopCompilation();
         }
         _openSections.add(scan.label ?? '');
         if (_openSections.length > 18) {
           diagnostics.add(Diagnostic(msgSectionsTooDeep, scan.cards.first));
+          throw const StopCompilation();
         }
       } else if (clause is EndClause) {
-        if (clauses.length != 1) {
+        if (!endAlone) {
           diagnostics.add(
             Diagnostic(
               msgEndNotAlone,

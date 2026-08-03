@@ -635,8 +635,9 @@ const Map<String, int> messageSeverities = {
   '908,00': 2,
   // C1 (ours): the option is ignored and compilation carries on.
   '909,00': 1,
-  // C1 (ours, D5.6): the subscript is ignored; the SET still compiles.
-  '910,00': 1,
+  // C3 (ours, D5.6): the construct is rejected - the sentence is
+  // deleted, matching the attested deletion messages 122/125/126.
+  '910,00': 3,
   // C1 (ours, D6.6): the clause is accepted; advisory only.
   '911,00': 1,
   // C2 (ours): the operand is lost - clause-level loss.

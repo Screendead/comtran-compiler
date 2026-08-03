@@ -105,6 +105,40 @@ void main() {
       expect(four.single.message, msgTooManySubscripts);
     });
 
+    test('per-level subscripts interleave with qualifiers (F p. 30)', () {
+      final (ArithExpr expr, List<Diagnostic> diagnostics) = _arith(
+        'PAGE (150) LINE (10) WORD (4) + 1',
+      );
+      expect(diagnostics, isEmpty);
+      final BinaryExpr sum = expr as BinaryExpr;
+      final NameReference name = (sum.left as NameOperand).name;
+      expect(name.text, 'PAGE LINE WORD');
+      expect(name.subscripts, hasLength(3));
+    });
+
+    test('a signed literal follows any operator silently (F p. 18)', () {
+      final (ArithExpr minus, List<Diagnostic> onMinus) = _arith('A * -5');
+      expect(onMinus, isEmpty);
+      expect(_shape(minus), '(A*(-5))');
+      final (ArithExpr plus, List<Diagnostic> onPlus) = _arith('A * +5');
+      expect(onPlus, isEmpty);
+      expect(_shape(plus), '(A*5)');
+    });
+
+    test('ABS may follow another operator (F p. 27 rule 6)', () {
+      final (ArithExpr expr, List<Diagnostic> diagnostics) = _arith(
+        'A * ABS B',
+      );
+      expect(diagnostics, isEmpty);
+      expect(_shape(expr), '(A*(ABSB))');
+    });
+
+    test('a redundant right parenthesis is eliminated (msg 113)', () {
+      final (ArithExpr expr, List<Diagnostic> diagnostics) = _arith(') A + B');
+      expect(diagnostics.single.message, msgRedundantRightParen);
+      expect(_shape(expr), '(A+B)');
+    });
+
     test('a function call takes double parentheses (F p. 28 rule 15)', () {
       final (ArithExpr expr, List<Diagnostic> diagnostics) = _arith(
         '2 * SQUARE.ROOT ((X))',
@@ -182,6 +216,33 @@ void main() {
     test('a subscripted condition-name draws 910 (D5.6)', () {
       final (_, List<Diagnostic> diagnostics) = _cond('MARRIED (I)');
       expect(diagnostics.single.message, msgSubscriptedConditionName);
+    });
+
+    test('the verbose relation spellings parse (F p. 21)', () {
+      final (CondExpr greater, List<Diagnostic> onGreater) = _cond(
+        'X IS GREATER THAN Y',
+      );
+      expect(onGreater, isEmpty);
+      expect((greater as Relation).op, RelationOp.greater);
+      expect(greater.negated, isFalse);
+      final (CondExpr less, List<Diagnostic> onLess) = _cond(
+        'X IS NOT LESS THAN Y',
+      );
+      expect(onLess, isEmpty);
+      expect((less as Relation).op, RelationOp.less);
+      expect(less.negated, isTrue);
+    });
+
+    test('a hybrid relation spelling draws 107 (M2-17)', () {
+      for (final String text in [
+        'X GREATER THAN Y',
+        'X EQUAL Y',
+        'X IS GT Y',
+      ]) {
+        final (CondExpr expr, List<Diagnostic> diagnostics) = _cond(text);
+        expect(diagnostics.single.message, msgIllegalComparison, reason: text);
+        expect(expr, isA<Relation>(), reason: text);
+      }
     });
 
     test('a parenthesized left operand is not a grouped condition', () {

@@ -111,9 +111,10 @@ ParseResult runParser(FrontEndResult frontEnd) {
     diagnostics,
   );
   final procedureParser = ProcedureParser(diagnostics);
-  final groups = <ParsedGroup>[
-    for (final GroupScan scan in frontEnd.groupScans)
-      switch (scan) {
+  final groups = <ParsedGroup>[];
+  try {
+    for (final GroupScan scan in frontEnd.groupScans) {
+      groups.add(switch (scan) {
         DataGroupScan(scan: final data) => ParsedDataGroup._(
           scan,
           parseDataGroup(data, diagnostics),
@@ -127,11 +128,17 @@ ParseResult runParser(FrontEndResult frontEnd) {
           scan,
           procedureParser.parseGroup(procedure),
         ),
-      },
-  ];
-  if (frontEnd.program.groups.isNotEmpty) {
-    // The end-of-text checks anchor to the program's last source card.
-    procedureParser.finishProgram(frontEnd.program.cards.last);
+      });
+    }
+    if (frontEnd.program.groups.isNotEmpty) {
+      // The end-of-text checks anchor to the program's last source card.
+      procedureParser.finishProgram(frontEnd.program.cards.last);
+    }
+  } on StopCompilation {
+    // A severity-5 condition stops compilation at the point of
+    // detection (D9.1; design note M2-13). The groups parsed so far
+    // and every diagnostic issued — the severity-5 one last — stand;
+    // the end-of-text checks do not run.
   }
   return ParseResult._(
     frontEnd: frontEnd,

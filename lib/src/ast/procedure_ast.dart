@@ -716,7 +716,7 @@ final class EndClause extends Clause {
 }
 
 /// A verb the field-test compiler defers — LOAD, OVERLAP, INCLUDE,
-/// COPY, LIBRARY (J 90.01.02–03; D7.4; design note M2-11). Parsed as
+/// COPY, LIBRARY (J 90.01.02–03; D9.8; design note M2-11). Parsed as
 /// its verb plus raw operand tokens; diagnosed at parse time.
 final class DeferredVerbClause extends Clause {
   /// Creates the clause.

@@ -5,6 +5,15 @@ import 'messages.dart';
 import 'severities.dart';
 import 'source_card.dart';
 
+/// Thrown after a severity-5 diagnostic is issued: compilation stops
+/// at the point of detection (D9.1). The phase driver catches it and
+/// keeps everything parsed and diagnosed up to that point; nothing
+/// inside the parser does (design note M2-13).
+final class StopCompilation implements Exception {
+  /// Creates the signal.
+  const StopCompilation();
+}
+
 /// One diagnostic, reported against a card (and optionally a column).
 ///
 /// Where the 1962 compiler documents a message for the condition, [message]

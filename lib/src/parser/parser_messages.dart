@@ -49,7 +49,9 @@ final Message msgFindLengthNeedsName = messageCatalog['95,00']!;
 /// `96,00` — an unrecognized word among a FILE card's options.
 final Message msgIllegalWordInFileCard = messageCatalog['96,00']!;
 
-/// `110,00` — COPY or LIBRARY used; deferred in J (J 90.01.03; D7.4).
+/// `110,00` — COPY, LIBRARY, or INCLUDE used; deferred in J
+/// (J 90.01.02–03; D9.8 — which supersedes D7.4's plan of a separate
+/// INCLUDE message).
 final Message msgCopyNotHandled = messageCatalog['110,00']!;
 
 /// `153,00` — a malformed SPECIF card.
@@ -203,11 +205,12 @@ final Message msgUnknownCompileOption = Message.ours(
       '(NON-HISTORICAL.)',
 );
 
-/// Ours — a subscript on a condition-name (J 90.01.03; D5.6 requires a
-/// non-historical diagnostic for the rejection).
+/// Ours — a subscript on a condition-name (J 90.01.03 prohibits the
+/// construct; D5.6: reject it, leaving the element semantics
+/// unimplemented rather than invented). The sentence is deleted.
 final Message msgSubscriptedConditionName = Message.ours(
   '910,00',
-  'A CONDITION NAME CANNOT BE SUBSCRIPTED. SUBSCRIPT IGNORED. '
+  'A CONDITION NAME CANNOT BE SUBSCRIPTED. SENTENCE DELETED FROM TEXT. '
       '(NON-HISTORICAL.)',
 );
 

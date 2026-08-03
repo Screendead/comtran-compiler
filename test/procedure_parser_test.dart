@@ -87,6 +87,16 @@ void main() {
       expect(ifClause.otherwiseArm.single.clause, 3);
     });
 
+    test('parses the CALL synonym pairs of statement 187', () {
+      final CallClause call =
+          group.sentences.first.clauses.single as CallClause;
+      expect(call.pairs, hasLength(5));
+      expect(call.pairs.first.oldName.text, 'MASTER EMPLOYEE.NUMBER');
+      expect(call.pairs.first.newName.text, 'M.EMP.NO');
+      expect(call.pairs.last.oldName.text, 'MASTER BONDACCUMULATION');
+      expect(call.pairs.last.newName.text, 'M.BND.ACC');
+    });
+
     test('parses the GET sentences with their AT END transfers', () {
       final Iterable<GetClause> gets = group.sentences
           .expand((Sentence s) => s.clauses)
@@ -157,6 +167,98 @@ void main() {
       expect(goTo.index!.text, 'SWITCH');
     });
 
+    test('per-level subscripts parse in a verb context (F p. 30)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            MOVE PAGE (150) LINE (10) WORD (4) TO X.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final MoveClause move = sentences.single.clauses.single as MoveClause;
+      final NameReference source = (move.source as NameOperand).name;
+      expect(source.text, 'PAGE LINE WORD');
+      expect(source.subscripts, hasLength(3));
+    });
+
+    test('ADD takes TRUNCATED and ON OVERFLOW (M2-9)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            ADD CORRESPONDING G TO T TRUNCATED, ON OVERFLOW GO TO E.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final AddClause add = sentences.single.clauses.single as AddClause;
+      expect(add.corresponding, isTrue);
+      expect(add.truncated, isTrue);
+      expect(add.onOverflow, isA<GoToClause>());
+    });
+
+    test('MOVE takes neither TRUNCATED nor ON OVERFLOW (M2-9, §8.5.4)', () {
+      final (List<Sentence> truncated, List<Diagnostic> onTruncated) = _parse([
+        '            MOVE A TO B TRUNCATED.',
+      ]);
+      expect(onTruncated.single.message, msgIllegalSentenceStructure);
+      expect(truncated.single.deleted, isTrue);
+      final (List<Sentence> overflow, List<Diagnostic> onOverflow) = _parse([
+        '            MOVE A TO B, ON OVERFLOW GO TO E.',
+      ]);
+      expect(onOverflow.single.message, msgSentenceStructureError);
+      expect(overflow.single.deleted, isTrue);
+    });
+
+    test('MOVE without a source draws 119 and deletes', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            MOVE TO B.',
+      ]);
+      expect(diagnostics.single.message, msgIncompleteMove);
+      expect(sentences.single.deleted, isTrue);
+    });
+
+    test('a misplaced CORRESPONDING draws 63 and is skipped', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            CORRESPONDING MOVE A TO B.',
+      ]);
+      expect(diagnostics.single.message, msgCorrespondingMisplaced);
+      expect(sentences.single.clauses.single, isA<MoveClause>());
+    });
+
+    test('a subscripted condition-name deletes the sentence (D5.6)', () {
+      final (List<Sentence> set, List<Diagnostic> onSet) = _parse([
+        '            SET MARRIED (I).',
+      ]);
+      expect(onSet.single.message, msgSubscriptedConditionName);
+      expect(set.single.deleted, isTrue);
+      final (List<Sentence> tested, List<Diagnostic> onIf) = _parse([
+        '            IF MARRIED (I) THEN GO TO X.',
+      ]);
+      expect(onIf.single.message, msgSubscriptedConditionName);
+      expect(tested.single.deleted, isTrue);
+    });
+
+    test('STOP n parses; over six digits draws 192 (J 05.06.04)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            STOP 77.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final StopClause stop = sentences.single.clauses.single as StopClause;
+      expect(stop.run, isFalse);
+      expect(stop.number!.text, '77');
+      final (List<Sentence> seven, List<Diagnostic> overSeven) = _parse([
+        '            STOP 1234567.',
+      ]);
+      expect(overSeven.single.message, msgSentenceStructureError);
+      expect(seven.single.deleted, isFalse);
+    });
+
+    test('DO EXACTLY n TIMES parses (F p. 50)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            DO RTN EXACTLY 5 TIMES.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final DoClause doClause = sentences.single.clauses.single as DoClause;
+      expect((doClause.exactlyTimes! as LiteralOperand).literal.text, '5');
+      final (_, List<Diagnostic> noTimes) = _parse([
+        '            DO RTN EXACTLY 5.',
+      ]);
+      expect(noTimes.single.message, msgInvalidDoForm);
+    });
+
     test('DO FOR parses p(q)r; a fourth index draws 83 (D5.2)', () {
       final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
         '            DO REORDER.RTN FOR PART.NO = 1001(1)1499.',
@@ -172,6 +274,18 @@ void main() {
         '            DO R FOR I = 1(1)2, J = 1(1)2, K = 1(1)2, L = 1(1)2.',
       ]);
       expect(four.single.message, msgInvalidDoForm);
+    });
+
+    test('a name initial parameter parses in DO FOR (F p. 51; M2-16)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            DO RTN FOR I = P(1)10, J = 1(Q)R.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final DoClause doClause = sentences.single.clauses.single as DoClause;
+      expect(doClause.indices, hasLength(2));
+      expect((doClause.indices[0].from as NameOperand).name.text, 'P');
+      expect((doClause.indices[1].by as NameOperand).name.text, 'Q');
+      expect((doClause.indices[1].to as NameOperand).name.text, 'R');
     });
 
     test('DO USING GIVING parses its argument lists (F p. 52)', () {
@@ -213,6 +327,65 @@ void main() {
       expect(sentences.single.deleted, isTrue);
     });
 
+    test('CLOSE parses its file list; a bare CLOSE draws 138', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            CLOSE PAYFILE, MASTERFILE.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final CloseClause close = sentences.single.clauses.single as CloseClause;
+      expect(close.allFiles, isFalse);
+      expect(close.files.map((NameReference f) => f.text), [
+        'PAYFILE',
+        'MASTERFILE',
+      ]);
+      final (List<Sentence> bare, List<Diagnostic> missing) = _parse([
+        '            CLOSE.',
+      ]);
+      expect(missing.single.message, msgCloseNeedsFileName);
+      expect(bare.single.deleted, isTrue);
+    });
+
+    test('DISPLAY separates name references with commas (M2-10)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        "            DISPLAY 'GROSS IS' WORKING GROSS, NET.",
+      ]);
+      expect(diagnostics, isEmpty);
+      final DisplayClause display =
+          sentences.single.clauses.single as DisplayClause;
+      expect(display.items, hasLength(3));
+      expect((display.items[0] as LiteralOperand).literal.text, 'GROSS IS');
+      expect((display.items[1] as NameOperand).name.text, 'WORKING GROSS');
+      expect((display.items[2] as NameOperand).name.text, 'NET');
+    });
+
+    test('an empty or numeric DISPLAY item draws 131 (M2-10)', () {
+      final (_, List<Diagnostic> empty) = _parse(['            DISPLAY.']);
+      expect(empty.single.message, msgInvalidDisplay);
+      final (List<Sentence> sentences, List<Diagnostic> numeric) = _parse([
+        '            DISPLAY 45, NET.',
+      ]);
+      expect(numeric.single.message, msgInvalidDisplay);
+      final DisplayClause display =
+          sentences.single.clauses.single as DisplayClause;
+      expect(display.items.single, isA<NameOperand>());
+    });
+
+    test('NOTE commentary parses as its own clause (F p. 59)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            NOTE GROSS IS COMPUTED WEEKLY.',
+      ]);
+      expect(diagnostics, isEmpty);
+      expect(sentences.single.clauses.single, isA<NoteClause>());
+    });
+
+    test('LIBRARY refuses with msg 110 like COPY and INCLUDE (D9.8)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            LIBRARY UTILITY.DECK.',
+      ]);
+      expect(diagnostics.single.message, msgCopyNotHandled);
+      expect(sentences.single.clauses.single, isA<DeferredVerbClause>());
+    });
+
     test('INCLUDE draws 110; LOAD draws the non-historical 916 (M2-11)', () {
       final (_, List<Diagnostic> include) = _parse([
         '            INCLUDE STANDARD.DEDUCTIONS.',
@@ -239,6 +412,21 @@ void main() {
       expect(sentences[1].deleted, isFalse);
       expect((sentences[2].clauses.single as EnterClause).crypt, isFalse);
       expect(sentences[3].clauses.single, isA<MoveClause>());
+    });
+
+    test('a deleted ENTER CRYPT sentence leaves the mode off (M2-13)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            ENTER CRYPT, FOO BAR BAZ.',
+        '            MOVE A TO B.',
+        '            GROSS TO NET.',
+      ]);
+      expect(diagnostics.map((Diagnostic d) => d.message.number), [
+        '125,00',
+        '125,00',
+      ]);
+      expect(sentences[0].deleted, isTrue);
+      expect(sentences[1].clauses.single, isA<MoveClause>());
+      expect(sentences[2].deleted, isTrue);
     });
   });
 
@@ -283,6 +471,58 @@ void main() {
       expect(sentences, hasLength(2));
       expect(sentences[0].deleted, isTrue);
       expect(sentences[1].deleted, isFalse);
+    });
+
+    test('program and processor verbs cannot mix (M2-12, F p. 60)', () {
+      final (List<Sentence> call, List<Diagnostic> onCall) = _parse([
+        '            MOVE A TO B, CALL (X) Y.',
+      ]);
+      expect(onCall.single.message, msgIllegalSentenceStructure);
+      expect(call.single.deleted, isTrue);
+      final (List<Sentence> begin, List<Diagnostic> onBegin) = _parse([
+        '      S.          BEGIN SECTION, MOVE A TO B.',
+      ]);
+      expect(onBegin.single.message, msgIllegalSentenceStructure);
+      expect(begin.single.deleted, isTrue);
+    });
+
+    test("F p. 60's canonical mixed sentence is deleted (M2-12)", () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            IF A = B THEN GO TO C OTHERWISE OVERLAP S1, S2.',
+      ]);
+      expect(diagnostics.map((Diagnostic d) => d.message.number), [
+        '916,00',
+        '196,00',
+      ]);
+      expect(sentences.single.deleted, isTrue);
+    });
+
+    test('the 61st operator deletes the sentence (msg 171; M2-6)', () {
+      List<String> deck(int operands) {
+        final String text =
+            'SET A = ${List.filled(operands, 'B').join(' + ')}.';
+        final lines = <String>[];
+        var line = '';
+        for (final String word in text.split(' ')) {
+          if (line.isNotEmpty && line.length + word.length + 1 > 58) {
+            lines.add('${' ' * 12}$line');
+            line = word;
+          } else {
+            line = line.isEmpty ? word : '$line $word';
+          }
+        }
+        lines.add('${' ' * 12}$line');
+        return lines;
+      }
+
+      // `=` plus 59 `+` signs: 60 operators, at the cap.
+      final (List<Sentence> pass, List<Diagnostic> clean) = _parse(deck(60));
+      expect(clean, isEmpty);
+      expect(pass.single.deleted, isFalse);
+      // One more addend: 61 operators.
+      final (List<Sentence> cut, List<Diagnostic> over) = _parse(deck(61));
+      expect(over.single.message, msgTooManyOperators);
+      expect(cut.single.deleted, isTrue);
     });
   });
 
@@ -345,10 +585,79 @@ void main() {
         '143,00',
       ]);
     });
+
+    test('a deleted sentence contributes no STOP RUN (M2-13, D2.7)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            STOP RUN, FOO TO B.',
+      ], finish: true);
+      expect(sentences.single.deleted, isTrue);
+      expect(diagnostics.map((Diagnostic d) => d.message.number), [
+        '125,00',
+        '175,00',
+      ]);
+    });
+
+    test('a deleted DO draws no 143 on PROGRAM.START (M2-13)', () {
+      final (_, List<Diagnostic> diagnostics) = _parse([
+        '      PROGRAM.START.  MOVE A TO B.',
+        '            DO PROGRAM.START, FOO TO B.',
+        '            STOP RUN.',
+      ], finish: true);
+      expect(diagnostics.single.message, msgStatementWithoutVerb);
+    });
+
+    test('an END inside an IF arm is seen and draws 179', () {
+      final (_, List<Diagnostic> diagnostics) = _parse([
+        '      CALC.       BEGIN SECTION.',
+        '            IF A = B THEN END CALC.',
+        '            STOP RUN.',
+      ], finish: true);
+      expect(diagnostics.single.message, msgEndNotAlone);
+    });
+
+    test('a BEGIN SECTION inside an IF arm is deleted as mixed', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            IF A = B THEN BEGIN SECTION.',
+      ]);
+      expect(diagnostics.single.message, msgIllegalSentenceStructure);
+      expect(sentences.single.deleted, isTrue);
+    });
+
+    test('the 36th section stops compilation with one 149 (D9.1)', () {
+      final lines = <String>['      *PROCEDURE'];
+      for (var i = 1; i <= 36; i++) {
+        lines.add('      ${'S$i.'.padRight(12)}BEGIN SECTION.');
+        lines.add('            END S$i.');
+      }
+      lines.add('            STOP RUN.');
+      final ParseResult parse = runParser(
+        runFrontEnd(mirrorToDeck('${lines.join('\n')}\n')),
+      );
+      expect(parse.parserDiagnostics.map((Diagnostic d) => d.message.number), [
+        '149,00',
+      ]);
+      expect(parse.maxSeverity, 5);
+    });
+
+    test('nesting past 18 stops compilation with one 915 (D9.7)', () {
+      final lines = <String>['      *PROCEDURE'];
+      for (var i = 1; i <= 19; i++) {
+        lines.add('      ${'N$i.'.padRight(12)}BEGIN SECTION.');
+      }
+      // Junk that would draw 125 proves parsing stopped before it.
+      lines.add('            GROSS TO NET.');
+      final ParseResult parse = runParser(
+        runFrontEnd(mirrorToDeck('${lines.join('\n')}\n')),
+      );
+      expect(parse.parserDiagnostics.map((Diagnostic d) => d.message.number), [
+        '915,00',
+      ]);
+      expect(parse.maxSeverity, 5);
+    });
   });
 
   group('clause numbering (design note M2-6)', () {
-    test('a single-clause diagnostic prints n,01 in the listing', () {
+    test("a deleted sentence keeps n,00 and loses its STOP RUN", () {
       final FrontEndResult result = runFrontEnd(
         mirrorToDeck(
           '      *PROCEDURE\n'
@@ -356,9 +665,21 @@ void main() {
         ),
       );
       final ParseResult parse = runParser(result);
-      expect(parse.parserDiagnostics, isNotEmpty);
-      final Diagnostic diagnostic = parse.parserDiagnostics.first;
-      expect(diagnostic.clause, isNull); // deleted sentence: whole unit
+      // The stray TO deletes the sentence (196) before its STOP RUN is
+      // reached, so the mandatory-STOP-RUN check fires too (M2-13).
+      expect(parse.parserDiagnostics.map((Diagnostic d) => d.message.number), [
+        '196,00',
+        '175,00',
+      ]);
+      // A deleted sentence's diagnostics reference the whole unit.
+      expect(parse.parserDiagnostics.first.clause, isNull);
+      const options = ListingOptions(date: '01/01/62', time: '1.00');
+      final String listing = writeListing(
+        result,
+        options,
+        diagnostics: parse.diagnostics,
+      );
+      expect(listing, contains('   1,00    3    ILLEGAL SENTENCE STRUCTURE'));
     });
 
     test('diagnostics in a one-clause sentence carry clause 01', () {

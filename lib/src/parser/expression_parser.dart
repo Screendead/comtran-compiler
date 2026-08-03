@@ -97,14 +97,34 @@ final class TokenCursor {
 }
 
 /// Parses a possibly qualified, possibly subscripted name reference
-/// (§1.5; D2.5). The cursor must stand on a name word. At most three
-/// subscripts (F p. 30; D3.1 — msg 914 beyond).
+/// (§1.5; D2.5). The cursor must stand on a name word. Subscripts are
+/// written after the final word or per level, interleaved with the
+/// qualifier words — `PAGE (150) LINE (10) WORD (4)` and
+/// `PAGE LINE WORD (150, 10, 4)` are equivalent (F p. 30) — and the
+/// groups flatten in word order. At most three subscripts in total
+/// (F p. 30; D3.1 — msg 914 beyond).
 NameReference parseNameReference(
   TokenCursor cursor,
   List<Diagnostic> diagnostics,
 ) {
   final words = <Token>[cursor.take()];
+  final subscripts = <ArithExpr>[];
   while (true) {
+    if (cursor.isSymbol('(') && !cursor.isSymbol('(', 1)) {
+      // A subscript group (a double parenthesis is a function call).
+      cursor.take();
+      subscripts.add(parseArithExpr(cursor, diagnostics));
+      while (cursor.takeSymbol(',')) {
+        subscripts.add(parseArithExpr(cursor, diagnostics));
+      }
+      if (!cursor.takeSymbol(')')) {
+        diagnostics.add(
+          Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+        );
+        break;
+      }
+      continue;
+    }
     final Token? next = cursor.peek();
     if (next == null ||
         next.kind != TokenKind.word ||
@@ -114,29 +134,14 @@ NameReference parseNameReference(
     }
     words.add(cursor.take());
   }
-  var subscripts = const <ArithExpr>[];
-  if (cursor.isSymbol('(') && !cursor.isSymbol('(', 1)) {
-    cursor.take();
-    final list = <ArithExpr>[];
-    list.add(parseArithExpr(cursor, diagnostics));
-    while (cursor.takeSymbol(',')) {
-      list.add(parseArithExpr(cursor, diagnostics));
-    }
-    if (!cursor.takeSymbol(')')) {
-      diagnostics.add(
-        Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
-      );
-    }
-    if (list.length > 3) {
-      diagnostics.add(
-        Diagnostic(
-          msgTooManySubscripts,
-          words.first.card,
-          column: words.first.column,
-        ),
-      );
-    }
-    subscripts = list;
+  if (subscripts.length > 3) {
+    diagnostics.add(
+      Diagnostic(
+        msgTooManySubscripts,
+        words.first.card,
+        column: words.first.column,
+      ),
+    );
   }
   return NameReference(words, subscripts);
 }
@@ -529,7 +534,7 @@ CondExpr _parseRelationOrConditionName(
   RelationOp? op;
   if (cursor.takeWord('IS')) {
     negated = cursor.takeWord('NOT');
-    op = _takeRelationWord(cursor);
+    op = _takeRelationOp(cursor, diagnostics, afterIs: true);
     if (op == null) {
       diagnostics.add(
         Diagnostic(msgIllegalComparison, cursor.card, column: cursor.column),
@@ -540,7 +545,7 @@ CondExpr _parseRelationOrConditionName(
     // `operand NOT GT/LT/= …` — the abbreviated negated relation.
     cursor.take();
     negated = true;
-    op = _takeRelationWord(cursor);
+    op = _takeRelationOp(cursor, diagnostics, afterIs: false);
     if (op == null) {
       diagnostics.add(
         Diagnostic(msgIllegalComparison, cursor.card, column: cursor.column),
@@ -548,7 +553,7 @@ CondExpr _parseRelationOrConditionName(
       op = RelationOp.equal;
     }
   } else {
-    op = _takeRelationWord(cursor);
+    op = _takeRelationOp(cursor, diagnostics, afterIs: false);
   }
   if (op == null) {
     // No relational operator: a condition-name test (F p. 22). The
@@ -583,29 +588,48 @@ CondExpr _parseRelationOrConditionName(
   return Relation(left, op, right, negated: negated);
 }
 
-/// Consumes a relational operator at the cursor, or returns `null`:
-/// `GT`, `LT`, `=`, `GREATER [THAN]`, `LESS [THAN]`, `EQUAL [TO]`
-/// (F p. 21).
-RelationOp? _takeRelationWord(TokenCursor cursor) {
-  if (cursor.takeSymbol('=')) {
-    return RelationOp.equal;
+/// Consumes a relational operator at the cursor, or returns `null`.
+/// F p. 21 gives a closed set of spellings: the full forms
+/// `IS [NOT] GREATER THAN / LESS THAN / EQUAL TO` and the abbreviated
+/// forms `[NOT] GT / LT / =`. A hybrid — an abbreviation after IS, or
+/// a full-form word without IS or without its THAN/TO — draws msg 107
+/// and the relation is kept as a repair (design note M2-17).
+RelationOp? _takeRelationOp(
+  TokenCursor cursor,
+  List<Diagnostic> diagnostics, {
+  required bool afterIs,
+}) {
+  void hybrid(Token at) {
+    diagnostics.add(
+      Diagnostic(msgIllegalComparison, at.card, column: at.column),
+    );
   }
-  if (cursor.takeWord('GT')) {
-    return RelationOp.greater;
+
+  if (cursor.isSymbol('=') || cursor.isWord('GT') || cursor.isWord('LT')) {
+    final Token token = cursor.take();
+    if (afterIs) {
+      hybrid(token);
+    }
+    return switch (token.text) {
+      'GT' => RelationOp.greater,
+      'LT' => RelationOp.less,
+      _ => RelationOp.equal,
+    };
   }
-  if (cursor.takeWord('LT')) {
-    return RelationOp.less;
+  if (cursor.isWord('GREATER') || cursor.isWord('LESS')) {
+    final Token token = cursor.take();
+    final bool than = cursor.takeWord('THAN');
+    if (!afterIs || !than) {
+      hybrid(token);
+    }
+    return token.text == 'GREATER' ? RelationOp.greater : RelationOp.less;
   }
-  if (cursor.takeWord('GREATER')) {
-    cursor.takeWord('THAN');
-    return RelationOp.greater;
-  }
-  if (cursor.takeWord('LESS')) {
-    cursor.takeWord('THAN');
-    return RelationOp.less;
-  }
-  if (cursor.takeWord('EQUAL')) {
-    cursor.takeWord('TO');
+  if (cursor.isWord('EQUAL')) {
+    final Token token = cursor.take();
+    final bool to = cursor.takeWord('TO');
+    if (!afterIs || !to) {
+      hybrid(token);
+    }
     return RelationOp.equal;
   }
   return null;
