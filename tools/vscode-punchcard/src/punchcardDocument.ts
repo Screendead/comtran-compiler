@@ -68,6 +68,12 @@ export class PunchcardDocument implements vscode.CustomDocument {
       return [blankCard()];
     }
     const bytes = await vscode.workspace.fs.readFile(source);
+    if (bytes.length === 0) {
+      // A file created outside the editor (touch, the OS file explorer) has
+      // no header yet. Treat it as an empty deck instead of failing to open;
+      // the first save writes a real 12-byte header.
+      return [];
+    }
     return decodeCanon(bytes);
   }
 
