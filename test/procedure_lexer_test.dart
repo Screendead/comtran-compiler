@@ -120,6 +120,22 @@ void main() {
       expect(scan.sentences.single.tokens[3].text, '1.2.3');
     });
 
+    test('an over-long numeric literal draws 52,00', () {
+      final ProcedureScan scan = _scan(['            SET X = ${'9' * 51}.']);
+      expect(scan.diagnostics.single.message, msgNumericLengthExceeded);
+    });
+
+    test('a stray period draws 900,00 and is ignored', () {
+      final ProcedureScan scan = _scan(['            MOVE .X TO B.']);
+      expect(scan.diagnostics.single.message, msgStrayPeriod);
+      expect(_texts(scan.sentences.single), ['MOVE', 'X', 'TO', 'B']);
+    });
+
+    test('a word over 30 characters draws 901,00', () {
+      final ProcedureScan scan = _scan(['            MOVE ${'A' * 31} TO B.']);
+      expect(scan.diagnostics.single.message, msgNameTooLong);
+    });
+
     test('a trailing period after a numeral terminates the sentence', () {
       final ProcedureScan scan = _scan(['            SET X = 2.']);
       expect(scan.diagnostics, isEmpty);

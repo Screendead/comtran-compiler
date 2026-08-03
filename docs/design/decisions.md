@@ -1009,6 +1009,8 @@ record built on it.*
 
 **Oracle.** Oracle (4) for the checklist mechanics: a build test that the checklist covers ids 0-209 exactly once; a test that exactly ids 90 and 110 carry "no B.2 row" and that both carry their replacement citations; a golden test that our message-text table equals the transcribed listing byte for byte; per-id behavior tests as listed in the checklist. Oracles (1) and (2) apply only negatively here: the 90.05 sample must trigger none of the enforced rules.
 
+*Cross-reference (2026-08-03):* the checklist landed as `docs/design/message-checklist.tsv` (one row per id 0,00-209,00 plus the 900 series), gated by `test/message_checklist_test.dart`, which fails when an id lacks a disposition, when the enforced set differs from the compiler's message tables, when an enforced id names no live test, or when a text, class, or B.2 citation drifts. Two deltas from the Implementation paragraph above: the file is hand-maintained and machine-verified rather than generated (the gate makes drift impossible, and the dispositions are judgment, not derivation), and the B.2 column cites the group heading — the heading plus the row's own message number identify the B.2 row, so no rule text is copied.
+
 *Citations:* (J 90.04.01); (J 02.02.01); definition §8.4 B.2 (all rows); (J 90.01.02); (J 90.01.03 b.i); (J 90.01.04 c.i); (J 02.06.02); Open Question 71; CLAUDE.md rule that the definition is the ground truth to be cited, not copied
 
 ### D9.4 — B.2 msg 62 vs the attested missing-period leniency
