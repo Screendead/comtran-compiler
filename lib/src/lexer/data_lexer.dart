@@ -255,12 +255,20 @@ List<Token> _scanDescription(
   }
 
   for (final SourceCard card in group) {
+    // Leading unpunched columns of a continuation card never join an
+    // open constant: both card edges drop their unpunched columns, so
+    // the parts join in card order with no padding or alignment between
+    // them (D1.1; the card tail is dropped below).
+    var beforeCardContent = inConstant;
     for (var column = _descriptionFirst; column <= _textLast; column++) {
       if (inConstant) {
         if (!card.isPunched(column)) {
-          constantBlanks++;
+          if (!beforeCardContent) {
+            constantBlanks++;
+          }
           continue;
         }
+        beforeCardContent = false;
         constant.write(' ' * constantBlanks);
         constantBlanks = 0;
         final int? bcd = card.bcdAt(column);
