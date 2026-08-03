@@ -182,9 +182,15 @@ final class _ListingWriter {
     for (final Diagnostic d in diagnostics) {
       // The NUMBER column carries the statement number; 9999,99 marks a
       // diagnostic not confined to a numbered statement (J 02.02.01;
-      // decision D9.5).
-      final String number =
+      // decision D9.5). A clause-confined diagnostic prints the clause
+      // digits after the comma (design note M2-6).
+      String number =
           result.statementNumberByCard[d.card.cardNumber] ?? '9999,99';
+      if (d.clause != null && number.endsWith(',00')) {
+        number =
+            '${number.substring(0, number.length - 2)}'
+            '${d.clause.toString().padLeft(2, '0')}';
+      }
       final List<String> lines = d.text.split('\n');
       _line('${number.padLeft(7)}    ${d.severity}    ${lines.first}');
       for (final String continuation in lines.skip(1)) {

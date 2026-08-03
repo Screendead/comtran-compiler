@@ -28,6 +28,13 @@ final class Diagnostic {
   /// order of appearance.
   final List<String> operands;
 
+  /// The clause the condition is confined to, for the `n,cc` statement
+  /// number form (J 02.02.01; design note M2-6): 1-based within the
+  /// sentence, or `null` for the whole unit (`n,00`). Assigned by the
+  /// procedure parser after clause numbering, which is why the field is
+  /// not final.
+  int? clause;
+
   /// The message text with [operands] substituted.
   String get text => message.substitute(operands);
 
