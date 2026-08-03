@@ -116,10 +116,10 @@ not settle. Four rules:
 
 - It defines the source language only. Never add compiler architecture, an
   intermediate representation, grammar files, or implementation material to it.
-- **J28-6169 is authoritative over F28-8043** wherever they diverge. F is the
-  1960 design; J is the implemented 1962 field-test language. Divergences carry
-  the flag `F/J divergence`. §8.3 catalogs the divergences and §8.5 the
-  ambiguities.
+- **J28-6169 is authoritative over F28-8043** wherever they diverge. Its
+  "Sources and authority" section states this rule in full, with the fidelity
+  conventions and the citation style. That section is their one home. §8.3
+  catalogs the divergences and §8.5 the ambiguities.
 - §8.5 and the final Open Questions list are living lists. When design work
   resolves or refutes an item, update the entry. Do not delete it. Keep the
   citation trail.

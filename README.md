@@ -50,7 +50,7 @@ yet.
 | `docs/research-2026-08-01-interrupted.md` | **Archive, provenance only.** Raw, unverified output of the research passes. The definition supersedes it. Do not read it for current work. |
 | `comtran-manuals/` | Faithful Markdown conversions of both manuals, with a 150-dpi scan of every page as ground truth. **Read-only.** Citation and fidelity conventions in `comtran-manuals/README.md`. |
 | `comtran-manuals/F28-8043/` | *General Information Manual* (June 1960) — the 1960 language design. |
-| `comtran-manuals/J28-6169/` | *709/7090 Processor Preliminary Reference Manual* (Jan 1962) — the implemented field-test language. **Authoritative wherever the two manuals diverge.** |
+| `comtran-manuals/J28-6169/` | *709/7090 Processor Preliminary Reference Manual* (Jan 1962) — the implemented field-test language. |
 
 ## Development
 
@@ -105,15 +105,18 @@ manuals delegate.
 
 ## Ground rules
 
-- The manual conversions are ground truth and read-only. When a transcription is
-  doubted, the page scan decides.
 - **J28-6169 outranks F28-8043** wherever they diverge. F is the 1960 design; J
   is the implemented 1962 language.
-- Correct the definition only against the manuals or their scans. Never correct
-  it against COBOL knowledge or modern expectations. External period evidence is
-  admissible for what the manuals delegate, always labeled `(external: …)`.
+- The manual conversions are ground truth and read-only. When a transcription is
+  doubted, the page scan decides.
 - The definition stays design-free. Compiler architecture and implementation
   decisions live in `docs/design/`.
+
+The definition's
+[Sources and authority](docs/comtran-language-definition.md#sources-and-authority)
+section is the one home for the first two rules. It states the F/J rule in full,
+the fidelity conventions, and the citation style. Read it there; no other
+document repeats the detail.
 
 ## Roadmap to a compiler
 
