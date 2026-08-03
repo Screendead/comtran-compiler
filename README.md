@@ -31,14 +31,14 @@ working compiler for it.
 
 `docs/HANDOVER.md` holds the live project state, the roadmap, and the next task.
 In brief: the language definition is complete and verified; the compiler's front
-end and its parsers for all three divisions work; code generation does not exist
-yet.
+end, its parsers for all three divisions, and the job-stream driver work; code
+generation does not exist yet.
 
 ## What is here
 
 | Path | What it is |
 |---|---|
-| `lib/` | The compiler source. `lib/src/` holds `cards`, `chars`, `lexer`, `parser`, `ast`, `listing`, `emulator`, and `mcp`. |
+| `lib/` | The compiler source. `lib/src/` holds `cards`, `chars`, `lexer`, `parser`, `ast`, `driver`, `listing`, `emulator`, and `mcp`. |
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), and `deckmcp.dart` (the MCP deck server). |
 | `test/` | The Dart test suite, with `test/goldens/` (the 1962 listing oracle), `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its text mirror, and the keying notes). |
 | `tool/` | Dart generators for this package. |

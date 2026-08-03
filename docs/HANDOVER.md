@@ -43,8 +43,9 @@ Terms that appear without expansion:
 | M1 front end | Done 2026-08-03 | `lib/src/lexer/`, `lib/src/listing/` |
 | M2 stage 1 — AST and fixed-form parsers | Merged 2026-08-03 (PR #15) | `lib/src/ast/`, `lib/src/parser/` |
 | M2 stage 2 — procedure division | Merged 2026-08-03 (PR #17) | `lib/src/parser/procedure_parser.dart` |
-| M2 stage 3 — job stream | **Open. This is the next task.** | — |
-| M3 to M6 | Not started | — |
+| M2 stage 3 — job stream and --pedantic | Merged 2026-08-03 (PRs #47–#49) | `lib/src/driver/` |
+| M3 — Data Description semantics | **Open. This is the next task.** | — |
+| M4 to M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -54,8 +55,9 @@ Terms that appear without expansion:
 One M0 deferral is open: **D4.1**, the MOVPAK round-step emission rule. Decide
 it no later than M4.
 
-Test baseline, measured 2026-08-03: 401 Dart tests pass, and 73 extension tests
-pass. Both suites must stay green; re-measure the counts, do not trust them.
+Test baseline, measured 2026-08-03: 631 Dart tests pass, and 111 extension
+tests pass. Both suites must stay green; re-measure the counts, do not trust
+them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck` compiles the
 manual's own payroll sample through the front end and the parser. The job deck
 is the 293-card artifact plus one reconstructed *FINISH card (D11.3); the raw
@@ -63,17 +65,17 @@ artifact alone is an incomplete job and draws message 132. The compile prints
 the listing, numbered 1,00 to 229,00 exactly as the 1962 compile numbered it,
 with zero diagnostics. A golden test guards that listing byte for byte.
 
-## The next task — M2 stage 3, the job stream
+## The next task — M3, Data Description semantics
 
-`docs/design/m2-parser.md` M2-15 specifies it. Four parts:
+The roadmap's M3 bullet defines the scope: levels, pictorials, type codes,
+storage mapping (definition §3, corroborated by the 90.05 layout evidence),
+REDEF, and QUANTITY. No M3 design note exists yet; the first step is the
+decision walk into a new `docs/design/m3-data.md`. Two standing items to
+carry in:
 
-- Split a deck at its `*FINISH` cards, and run the front end and the parser
-  once per job.
-- Print one listing per job. Exit on the worst severity of the whole deck.
-- Scan the `$CMPLE` option list, and issue message 132.
-- Add the `--pedantic` flag (D0.8). M1 records the repairs it must warn on.
-
-Message 903 (a card after `*FINISH`) then covers the single-job tail only.
+- The D4.1 deferral (MOVPAK round step) must be decided no later than M4.
+- D11.4 lists the --pedantic sites deferred to M3 and later (D4.12, D4.13,
+  D3.5 among them); each lands with its owning milestone.
 
 ## Rules that bind future work
 
@@ -160,11 +162,13 @@ PDF p. 217. It makes every milestone below testable at once.
   The 90.05 deck scans clean: 172 + 14 + 43 statements, zero diagnostics, and
   the golden listing is committed. M1's own decisions:
   `docs/design/m1-front-end.md`.
-- **M2 — Parser and diagnostics** for all three divisions plus the control
-  cards, with statement numbers of the full `n,cc` form and the 90.04 message
-  catalog as the diagnostic vocabulary. **Stages 1 and 2 are merged. Stage 3,
-  the job stream, is open.** M2's own decisions:
-  `docs/design/m2-parser.md`.
+- **M2 — Parser and diagnostics — DONE 2026-08-03.** All three divisions plus
+  the control cards, with statement numbers of the full `n,cc` form and the
+  90.04 message catalog as the diagnostic vocabulary. Stage 3 added the job
+  stream — the `lib/src/driver/` splitter and job loop, one listing per job,
+  message 132, the D11 records — and the `--pedantic` flag with its eleven
+  M2 sites (D11.4). M2's own decisions: `docs/design/m2-parser.md` and the
+  D11 section of `docs/design/decisions.md`.
 - **M3 — Data Description semantics**: levels, pictorials, type codes, storage
   mapping (definition §3, corroborated by the 90.05 layout evidence), REDEF, and
   QUANTITY.

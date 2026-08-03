@@ -144,6 +144,41 @@ void main() {
       expect(deck.jobs[1].diagnostics.single.message, msgTextBeforeHeader);
     });
 
+    test('a three-job deck compiles in deck order; the worst severity '
+        'spans the deck', () {
+      final DeckCompilation deck = compileDeck(
+        _deck([
+          r'$CMPLE JOBA',
+          '      *PROCEDURE',
+          '            STOP RUN.',
+          '      *FINISH',
+          r'$CMPLE JOBB',
+          'STRAY CARD',
+          '      *PROCEDURE',
+          '            STOP RUN.',
+          '      *FINISH',
+          r'$CMPLE JOBC',
+          '      *PROCEDURE',
+          '            STOP RUN.',
+          '      *FINISH',
+        ]),
+      );
+      expect(deck.jobs, hasLength(3));
+      expect(
+        [
+          for (final JobCompilation job in deck.jobs)
+            job.parse?.compileCard?.deckName,
+        ],
+        ['JOBA', 'JOBB', 'JOBC'],
+      );
+      // The stray card draws 902 in job B only; the worst severity of
+      // the whole deck is 3, below the exit gate (D11.2).
+      expect(deck.jobs[0].sink.maxSeverity, 0);
+      expect(deck.jobs[1].sink.maxSeverity, 3);
+      expect(deck.jobs[2].sink.maxSeverity, 0);
+      expect(deck.maxSeverity, 3);
+    });
+
     test('the single-job tail draws 903 at 9999,99 (D11.1 rule d)', () {
       final DeckCompilation deck = compileDeck(
         _deck([
