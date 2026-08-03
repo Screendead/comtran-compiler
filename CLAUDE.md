@@ -174,11 +174,18 @@ Do not edit these by hand:
 | File | Generator |
 |---|---|
 | `lib/src/lexer/message_catalog.dart` | `dart run tool/generate_message_catalog.dart` |
+| `editors/vscode-punchcard/manual-map.json` | `dart run tool/generate_manual_map.dart` |
 | `editors/vscode-punchcard/syntaxes/comtran-deck.tmLanguage.json` | `npm run grammar` |
 | every `*.deck` mirror | `dart run comtran:deckconv regen <path>` |
+| the manual-link block at the end of a markdown file | `dart run tool/linkify_manual_refs.dart` |
 
 A golden test guards each one. A hand edit fails that test with no obvious
 cause.
+
+The link block holds one definition per manual citation. Write a citation in
+its plain form, `J 02.03.02` or `F p. 42`, and run the linkifier. It adds the
+brackets and rewrites the block. It never touches a citation inside a code
+span, a code block, a blockquote or a quotation.
 
 ## 11. Workflow
 

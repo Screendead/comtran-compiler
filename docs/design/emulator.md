@@ -6,7 +6,7 @@ decision D0.3 (real 7090 object code on our own emulator). Instruction
 semantics come from the period reference manual, IBM 7090 Data Processing
 System Reference Manual, form A22-6528-4, March 1962 (external; cited below as
 "M p. N"). The instruction subset comes from the code that the COMTRAN
-compiler generates, harvested from J 90.02 and the J 90.05 compilation
+compiler generates, harvested from [J 90.02] and the [J 90.05] compilation
 listing. Every unattested choice is labeled `ED-n` (emulator design decision)
 and is amendable by an explicit edit to this file.*
 
@@ -67,7 +67,7 @@ registers. A read under a multiple tag delivers the logical OR of the named
 registers (M p. 10). A load under a multiple tag loads all named registers
 with the same value (M p. 45). A store under tag 0 stores zeros (M p. 46).
 The generated code uses this: `AXT *+3,7` loads XR 1, 2, and 4 at
-END.OF.RUN (J 90.05 listing, PDF p. 203).
+END.OF.RUN ([J 90.05] listing, PDF p. 203).
 
 ## 4. Instruction word decode
 
@@ -94,69 +94,69 @@ complement addition; carries into the sixteenth position are lost; M p. 10).
 computes the indirect effective address normally, fetches that word, and uses
 *its* tag and address parts to compute the direct effective address — one
 level (M p. 11). The subset's generated code uses it only on TRA (`TRA*`,
-six sites, J 90.05 listing PDF pp. 202, 211–213), but the emulator honors the
+six sites, [J 90.05] listing PDF pp. 202, 211–213), but the emulator honors the
 flag on every instruction whose manual diagram carries F.
 
 ## 5. The harvested instruction subset
 
-Harvest method: every executed line of the J 90.05 compilation listing was
+Harvest method: every executed line of the [J 90.05] compilation listing was
 parsed by its octal opcode column (authoritative over the printed mnemonic),
-and every inline-code shape in J 90.02 was collected. Pseudo-operations and
+and every inline-code shape in [J 90.02] was collected. Pseudo-operations and
 data words (PZE, MZE, OCT, BSS, ORG, BCD, IOST, IOCTN) are loader/runtime
 data, not CPU instructions, and are excluded. Listing citations give the
 first PDF page and the occurrence count across PDF pp. 198–216.
 
 | Octal | Mnemonic | Semantics (one line) | Evidence |
 |---|---|---|---|
-| +0500 | CLA | AC(S,1–35) ← C(Y); P,Q ← 0 | J 90.05 PDF 203 (67×); M p. 20 |
-| −0500 | CAL | AC(P,1–35) ← C(Y) with S of Y in P; S,Q ← 0 | J 90.05 PDF 201 (37×); M p. 20 |
-| +0400 | ADD | AC ← AC + C(Y) algebraically; overflow on carry into P | J 90.05 PDF 207 (28×); M pp. 20–21 |
-| +0402 | SUB | AC ← AC − C(Y) algebraically (ADD with Y sign reversed) | J 90.05 PDF 206 (11×); M p. 21 |
-| +0361 | ACL | AC(P,1–35) ← AC(P,1–35) + C(Y) logically, end-around carry P→35; S,Q untouched | J 90.05 PDF 202 (13×); M pp. 21–22 |
-| +0200 | MPY | AC,MQ ← C(Y) × C(MQ), 70-bit product; signs algebraic | J 90.05 PDF 206 (13×); M p. 22 |
-| +0221 | DVP | if |C(Y)| > |AC|: MQ ← quotient, AC ← remainder; else divide-check on, proceed | J 90.05 PDF 203 (7×); M p. 24 |
-| +0601 | STO | C(Y) ← AC(S,1–35) | J 90.05 PDF 205 (40×); M p. 33 |
-| +0602 | SLW | C(Y) ← AC(P,1–35) | J 90.05 PDF 202 (19×); M p. 33 |
-| −0600 | STQ | C(Y) ← C(MQ) | J 90.05 PDF 206 (9×); M p. 33 |
-| +0560 | LDQ | MQ ← C(Y) | J 90.05 PDF 206 (17×); M p. 33 |
-| +0131 | XCA | AC(S,1–35) ↔ MQ(S,1–35); P,Q ← 0 | J 90.05 PDF 206 (11×); M p. 34 |
-| +0760…06 | COM | AC(Q,P,1–35) ← ones-complement; sign unchanged | J 90.05 PDF 201 (5×); M p. 49 |
-| −0320 | ANA | AC(P,1–35) ← AC AND C(Y); S,Q ← 0 | J 90.05 PDF 201 (12×); M p. 48 |
-| +0320 | ANS | C(Y) ← AC(P,1–35) AND C(Y); AC unchanged | J 90.05 PDF 201 (10×); M p. 48 |
-| −0602 | ORS | C(Y) ← AC(P,1–35) OR C(Y); AC unchanged | J 90.05 PDF 201 (10×); M p. 48 |
-| +0340 | CAS | algebraic compare AC : C(Y); >, =, < → skip 0, 1, 2; +0 > −0 | J 90.05 PDF 205 (6×); M p. 43 |
-| −0340 | LAS | unsigned compare AC(Q,P,1–35) : C(Y)(S,1–35); skip 0, 1, 2 | J 90.05 PDF 201 (5×); M p. 43 |
-| +0020 | TRA | IC ← Y (indexable; indirect attested as `TRA*`) | J 90.05 PDF 201 (64×); M p. 36 |
-| +0120 | TPL | if AC sign plus: IC ← Y | J 90.05 PDF 207 (1×); M p. 38 |
-| +0074 | TSX | XR(T) ← 2^15 − (location of TSX); IC ← Y | J 90.05 PDF 200 (67×); M p. 39 |
-| +1 (A) | TXI | XR(T) ← XR(T) + D; IC ← Y | J 90.05 PDF 200 (68×); M p. 39 |
-| +3 (A) | TXH | if XR(T) > D: IC ← Y | J 90.05 PDF 200 (4×); M p. 39 |
-| −3 (A) | TXL | if XR(T) ≤ D: IC ← Y | J 90.05 PDF 201 (28×); J 90.02.11; M p. 40 |
-| +0774 | AXT | XR(T) ← instruction address (no address modification) | J 90.05 PDF 201 (40×); M p. 45 |
-| +0634 | SXA | C(Y)(21–35) ← XR(T); rest of Y unchanged; tag 0 stores zeros | J 90.05 PDF 201 (10×); M p. 46 |
-| +0534 | LXA | XR(T) ← C(Y)(21–35) | J 90.05 PDF 210 (1×); M p. 45 |
-| +0535 | LAC | XR(T) ← 2^15 − C(Y)(21–35) | J 90.05 PDF 201 (20×); J 90.02.04; M p. 45 |
-| +0754 | PXA | AC ← 0, then AC(21–35) ← XR(T) | J 90.05 PDF 211 (1×); M p. 47 |
-| −0734 | PDX | XR(T) ← AC(3–17) | J 90.02.11 (base-locator case 3); M p. 46 |
-| +0441 | LDI | SI ← C(Y) | J 90.05 PDF 200 (26×); J 90.02.11; M p. 51 |
-| +0604 | STI | C(Y) ← SI | J 90.05 PDF 200 (26×); J 90.02.11; M p. 51 |
-| +0055 | SIR | SI(18–35) ← SI(18–35) OR R | J 90.05 PDF 211 (1×); M p. 52 |
-| +0057 | RIR | SI(18–35) ← SI(18–35) AND NOT R | J 90.05 PDF 211 (1×); M p. 52 |
-| +0054 | RFT | if all SI positions selected by R are 0: skip 1 | J 90.05 PDF 211 (1×); M p. 55 |
-| +0767 | ALS | shift AC(Q,P,1–35) left; overflow if a 1 moves from 1 into P | J 90.05 PDF 209 (1×); M p. 31 |
-| +0771 | ARS | shift AC(Q,P,1–35) right; no indicators | J 90.05 PDF 201 (7×); M p. 32 |
-| +0765 | LRS | shift AC+MQ(1–35) right; MQ sign ← AC sign | J 90.05 PDF 203 (7×); M p. 32 |
-| −0763 | LGL | shift AC(Q,P,1–35)+MQ(S,1–35) left; overflow into/through P | J 90.05 PDF 205 (12×); M p. 32 |
-| −0765 | LGR | shift AC(Q,P,1–35)+MQ(S,1–35) right; no indicators | J 90.05 PDF 208 (2×); M p. 32 |
-| −0773 | RQL | rotate MQ(S,1–35) left, circular; no bits lost | J 90.05 PDF 208 (7×); M p. 32 |
-| +0761 | NOP | no operation | J 90.02.12 (SYS)162 OP word); M p. 35 |
-| +0114 | CVR | convert by replacement from the AC, count C, table at Y | J 90.02.12 (SYS)162 OP word); M p. 56 |
+| +0500 | CLA | AC(S,1–35) ← C(Y); P,Q ← 0 | [J 90.05] PDF 203 (67×); M p. 20 |
+| −0500 | CAL | AC(P,1–35) ← C(Y) with S of Y in P; S,Q ← 0 | [J 90.05] PDF 201 (37×); M p. 20 |
+| +0400 | ADD | AC ← AC + C(Y) algebraically; overflow on carry into P | [J 90.05] PDF 207 (28×); M pp. 20–21 |
+| +0402 | SUB | AC ← AC − C(Y) algebraically (ADD with Y sign reversed) | [J 90.05] PDF 206 (11×); M p. 21 |
+| +0361 | ACL | AC(P,1–35) ← AC(P,1–35) + C(Y) logically, end-around carry P→35; S,Q untouched | [J 90.05] PDF 202 (13×); M pp. 21–22 |
+| +0200 | MPY | AC,MQ ← C(Y) × C(MQ), 70-bit product; signs algebraic | [J 90.05] PDF 206 (13×); M p. 22 |
+| +0221 | DVP | if |C(Y)| > |AC|: MQ ← quotient, AC ← remainder; else divide-check on, proceed | [J 90.05] PDF 203 (7×); M p. 24 |
+| +0601 | STO | C(Y) ← AC(S,1–35) | [J 90.05] PDF 205 (40×); M p. 33 |
+| +0602 | SLW | C(Y) ← AC(P,1–35) | [J 90.05] PDF 202 (19×); M p. 33 |
+| −0600 | STQ | C(Y) ← C(MQ) | [J 90.05] PDF 206 (9×); M p. 33 |
+| +0560 | LDQ | MQ ← C(Y) | [J 90.05] PDF 206 (17×); M p. 33 |
+| +0131 | XCA | AC(S,1–35) ↔ MQ(S,1–35); P,Q ← 0 | [J 90.05] PDF 206 (11×); M p. 34 |
+| +0760…06 | COM | AC(Q,P,1–35) ← ones-complement; sign unchanged | [J 90.05] PDF 201 (5×); M p. 49 |
+| −0320 | ANA | AC(P,1–35) ← AC AND C(Y); S,Q ← 0 | [J 90.05] PDF 201 (12×); M p. 48 |
+| +0320 | ANS | C(Y) ← AC(P,1–35) AND C(Y); AC unchanged | [J 90.05] PDF 201 (10×); M p. 48 |
+| −0602 | ORS | C(Y) ← AC(P,1–35) OR C(Y); AC unchanged | [J 90.05] PDF 201 (10×); M p. 48 |
+| +0340 | CAS | algebraic compare AC : C(Y); >, =, < → skip 0, 1, 2; +0 > −0 | [J 90.05] PDF 205 (6×); M p. 43 |
+| −0340 | LAS | unsigned compare AC(Q,P,1–35) : C(Y)(S,1–35); skip 0, 1, 2 | [J 90.05] PDF 201 (5×); M p. 43 |
+| +0020 | TRA | IC ← Y (indexable; indirect attested as `TRA*`) | [J 90.05] PDF 201 (64×); M p. 36 |
+| +0120 | TPL | if AC sign plus: IC ← Y | [J 90.05] PDF 207 (1×); M p. 38 |
+| +0074 | TSX | XR(T) ← 2^15 − (location of TSX); IC ← Y | [J 90.05] PDF 200 (67×); M p. 39 |
+| +1 (A) | TXI | XR(T) ← XR(T) + D; IC ← Y | [J 90.05] PDF 200 (68×); M p. 39 |
+| +3 (A) | TXH | if XR(T) > D: IC ← Y | [J 90.05] PDF 200 (4×); M p. 39 |
+| −3 (A) | TXL | if XR(T) ≤ D: IC ← Y | [J 90.05] PDF 201 (28×); [J 90.02.11]; M p. 40 |
+| +0774 | AXT | XR(T) ← instruction address (no address modification) | [J 90.05] PDF 201 (40×); M p. 45 |
+| +0634 | SXA | C(Y)(21–35) ← XR(T); rest of Y unchanged; tag 0 stores zeros | [J 90.05] PDF 201 (10×); M p. 46 |
+| +0534 | LXA | XR(T) ← C(Y)(21–35) | [J 90.05] PDF 210 (1×); M p. 45 |
+| +0535 | LAC | XR(T) ← 2^15 − C(Y)(21–35) | [J 90.05] PDF 201 (20×); [J 90.02.04]; M p. 45 |
+| +0754 | PXA | AC ← 0, then AC(21–35) ← XR(T) | [J 90.05] PDF 211 (1×); M p. 47 |
+| −0734 | PDX | XR(T) ← AC(3–17) | [J 90.02.11] (base-locator case 3); M p. 46 |
+| +0441 | LDI | SI ← C(Y) | [J 90.05] PDF 200 (26×); [J 90.02.11]; M p. 51 |
+| +0604 | STI | C(Y) ← SI | [J 90.05] PDF 200 (26×); [J 90.02.11]; M p. 51 |
+| +0055 | SIR | SI(18–35) ← SI(18–35) OR R | [J 90.05] PDF 211 (1×); M p. 52 |
+| +0057 | RIR | SI(18–35) ← SI(18–35) AND NOT R | [J 90.05] PDF 211 (1×); M p. 52 |
+| +0054 | RFT | if all SI positions selected by R are 0: skip 1 | [J 90.05] PDF 211 (1×); M p. 55 |
+| +0767 | ALS | shift AC(Q,P,1–35) left; overflow if a 1 moves from 1 into P | [J 90.05] PDF 209 (1×); M p. 31 |
+| +0771 | ARS | shift AC(Q,P,1–35) right; no indicators | [J 90.05] PDF 201 (7×); M p. 32 |
+| +0765 | LRS | shift AC+MQ(1–35) right; MQ sign ← AC sign | [J 90.05] PDF 203 (7×); M p. 32 |
+| −0763 | LGL | shift AC(Q,P,1–35)+MQ(S,1–35) left; overflow into/through P | [J 90.05] PDF 205 (12×); M p. 32 |
+| −0765 | LGR | shift AC(Q,P,1–35)+MQ(S,1–35) right; no indicators | [J 90.05] PDF 208 (2×); M p. 32 |
+| −0773 | RQL | rotate MQ(S,1–35) left, circular; no bits lost | [J 90.05] PDF 208 (7×); M p. 32 |
+| +0761 | NOP | no operation | [J 90.02.12] (SYS)162 OP word); M p. 35 |
+| +0114 | CVR | convert by replacement from the AC, count C, table at Y | [J 90.02.12] (SYS)162 OP word); M p. 56 |
 
 Shift counts: the shift magnitude is the effective address modulo 400 octal
 (M p. 31).
 
 NOP and CVR are attested as the OP word of the SYS)162 alphabetic-compare
-calling sequence (J 90.02.12). Under D0.3 the Dart handler for SYS)162 reads
+calling sequence ([J 90.02.12]). Under D0.3 the Dart handler for SYS)162 reads
 that word as a parameter, so the CPU itself may never execute a CVR; both are
 implemented anyway because they are attested in generated code and fully
 documented (M pp. 35, 56), which keeps the core correct if a future runtime
@@ -223,7 +223,7 @@ memory indices are always 15-bit, so no out-of-range access exists.
   none of these opcodes appears in the harvest.
 - **Floating point** (FAD/FMP/…): absent from the harvest. COMTRAN
   floating-point operations route through MOVPAK/SYS) subroutines
-  (J 90.02.11.01 ff.), which are high-level handlers under D0.3.
+  ([J 90.02.11.01] ff.), which are high-level handlers under D0.3.
 - **Trapping modes, STR, ETM/LTM/TTR, data-channel traps**: no trap
   instruction is harvested; the CT Monitor boundary is a high-level handler.
 - **Halts (HTR, HPR) and console devices** (ENK, sense switches/lights):
@@ -234,3 +234,12 @@ memory indices are always 15-bit, so no out-of-range access exists.
 
 Widening the subset later is additive: one decode-table entry, one execute
 case, one manual citation, one test group.
+
+<!-- manual links; generated by tool/linkify_manual_refs.dart -->
+
+[J 90.02]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
+[J 90.02.04]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.11]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.11.01]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.12]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.05]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#appendix-9005

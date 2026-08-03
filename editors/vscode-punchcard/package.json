@@ -17,6 +17,9 @@
     "Programming Languages",
     "Visualization"
   ],
+  "activationEvents": [
+    "onLanguage:dart"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
