@@ -219,3 +219,15 @@ Within that scope:
 
 If a concept does not fit these constraints, state the limitation in one
 sentence and give the clearest approximation.
+
+### Density
+
+STE governs the sentence. These rules govern the paragraph and the response:
+
+- Open every response with the point, in one sentence that stands alone.
+- One new idea per paragraph. Two to four sentences per paragraph.
+- Give the short answer by default. Name what you left out in one line; do
+  not include it.
+- Do not use invented shorthand that points at an earlier label. Restate the
+  thing in place.
+- Prefer one concrete example to one abstraction.
