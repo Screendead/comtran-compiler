@@ -624,4 +624,15 @@ const Map<String, int> messageSeverities = {
   '903,00': 3,
   // C1 (ours): the duplicate card is ignored and compilation carries on.
   '904,00': 1,
+  // C4 (ours, D9.12): the file property is lost - the calibration is msg
+  // 110's recognized-but-unimplemented COPY at 4.
+  '905,00': 4,
+  // C2 (ours): the conflicting coding is ignored - clause-level loss.
+  '906,00': 2,
+  // C3 (ours): the entry cannot bind to a type - entry-level loss.
+  '907,00': 3,
+  // C2 (ours): the quantity specification is lost - clause-level loss.
+  '908,00': 2,
+  // C1 (ours): the option is ignored and compilation carries on.
+  '909,00': 1,
 };
