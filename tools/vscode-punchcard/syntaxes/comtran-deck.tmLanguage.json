@@ -207,46 +207,58 @@
           "include": "#punch-line"
         },
         {
-          "match": "^(.{6})([^ ]+)",
+          "match": "^(.{6})(.{0,66})(.*)$",
           "captures": {
             "1": {
               "name": "comment.serial.comtran-deck"
             },
             "2": {
-              "name": "entity.name.function.label.comtran-deck"
+              "patterns": [
+                {
+                  "match": "^([^ ]+)",
+                  "captures": {
+                    "1": {
+                      "name": "entity.name.function.label.comtran-deck"
+                    }
+                  }
+                },
+                {
+                  "match": "'[^']*(?:'|$)",
+                  "name": "string.quoted.single.comtran-deck"
+                },
+                {
+                  "match": "(\\.)(?: (.*))?$",
+                  "captures": {
+                    "1": {
+                      "name": "keyword.operator.terminator.comtran-deck"
+                    },
+                    "2": {
+                      "name": "comment.line.commentary.comtran-deck"
+                    }
+                  }
+                },
+                {
+                  "match": "\\b[0-9]+(?:\\.[0-9]*)?FF?(?:[+-]?[0-9]+)?\\b",
+                  "name": "constant.numeric.floating.comtran-deck"
+                },
+                {
+                  "match": "\\b[0-9]+(?:\\.[0-9]+)?\\b",
+                  "name": "constant.numeric.comtran-deck"
+                }
+              ]
+            },
+            "3": {
+              "name": "comment.identification.comtran-deck"
             }
           }
         },
         {
-          "match": "^(.{1,6})",
+          "match": "^(.{1,6})$",
           "captures": {
             "1": {
               "name": "comment.serial.comtran-deck"
             }
           }
-        },
-        {
-          "match": "'[^']*(?:'|$)",
-          "name": "string.quoted.single.comtran-deck"
-        },
-        {
-          "match": "(\\.)(?: (.*))?$",
-          "captures": {
-            "1": {
-              "name": "keyword.operator.terminator.comtran-deck"
-            },
-            "2": {
-              "name": "comment.line.commentary.comtran-deck"
-            }
-          }
-        },
-        {
-          "match": "\\b[0-9]+(?:\\.[0-9]*)?FF?(?:[+-]?[0-9]+)?\\b",
-          "name": "constant.numeric.floating.comtran-deck"
-        },
-        {
-          "match": "\\b[0-9]+(?:\\.[0-9]+)?\\b",
-          "name": "constant.numeric.comtran-deck"
         }
       ]
     },
