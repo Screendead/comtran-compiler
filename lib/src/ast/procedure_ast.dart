@@ -161,13 +161,13 @@ sealed class CondExpr {
 
 /// The three relations; NOT is carried separately (F p. 21).
 enum RelationOp {
-  /// IS [NOT] GREATER THAN / [NOT] GT.
+  /// IS `[NOT]` GREATER THAN / `[NOT]` GT.
   greater,
 
-  /// IS [NOT] LESS THAN / [NOT] LT.
+  /// IS `[NOT]` LESS THAN / `[NOT]` LT.
   less,
 
-  /// IS [NOT] EQUAL TO / [NOT] =.
+  /// IS `[NOT]` EQUAL TO / `[NOT]` =.
   equal,
 }
 
@@ -367,8 +367,8 @@ final class SetConditionClause extends Clause {
   Token get anchor => verb;
 }
 
-/// `ADD [CORRESPONDING] source TO target, … [TRUNCATED]
-/// [, ON OVERFLOW clause]` (F pp. 47, 108; design note M2-9).
+/// `ADD` `[CORRESPONDING]` source TO target, … `[TRUNCATED]`
+/// `[, ON OVERFLOW clause]` (F pp. 47, 108; design note M2-9).
 final class AddClause extends Clause {
   /// Creates the clause.
   AddClause(

@@ -646,8 +646,8 @@ final class ProcedureParser {
     return _parseClause(cursor);
   }
 
-  /// `ADD [CORRESPONDING] source TO target, … [TRUNCATED]
-  /// [, ON OVERFLOW clause]` (F pp. 47, 108; design note M2-9).
+  /// `ADD` `[CORRESPONDING]` source TO target, … `[TRUNCATED]`
+  /// `[, ON OVERFLOW clause]` (F pp. 47, 108; design note M2-9).
   Clause _parseAdd(TokenCursor cursor) {
     final Token verb = cursor.take();
     final bool corresponding = cursor.takeWord('CORRESPONDING');

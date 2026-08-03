@@ -7,9 +7,9 @@ import 'package:test/test.dart';
 
 /// A minimal MCP client: line-delimited JSON-RPC 2.0 over a subprocess.
 ///
-/// When [roots] is given, the client declares the `roots` capability and
+/// When [_roots] is given, the client declares the `roots` capability and
 /// answers the server's `roots/list` request with it, so the server's path
-/// confinement (MCP-6) allows paths under any of them. With no [roots], the
+/// confinement (MCP-6) allows paths under any of them. With no [_roots], the
 /// client declares no roots capability at all, matching a client that does
 /// not support the feature.
 class _McpClient {
