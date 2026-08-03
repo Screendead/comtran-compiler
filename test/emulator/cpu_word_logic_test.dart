@@ -43,6 +43,20 @@ void main() {
       runOne(typeB(0x980, address: 0x200)); // -0600
       expect(m.read(0x200), data(7, negative: true));
     });
+
+    test("STO* indirects through the indirect word's own tag", () {
+      // TSTC-07: indirect addressing is tested only on TRA; the store
+      // side is untested, so a wrong-cell indirect write would go
+      // undetected. The indirect shape mirrors the TRA* test
+      // (test/emulator/cpu_transfer_index_test.dart).
+      m
+        ..acSign = 1
+        ..acMagnitude = 5
+        ..xrWrite(1, 3)
+        ..write(0x300, typeA(0, tag: 1, address: 0x403)); // Indirect word.
+      runOne(typeB(0x181, address: 0x300, flag: true)); // STO*
+      expect(m.read(0x400), data(5, negative: true)); // 0x403 - XR1(3).
+    });
   });
 
   group('LDQ and XCA', () {

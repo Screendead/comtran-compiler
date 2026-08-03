@@ -37,6 +37,19 @@ void main() {
       expect(m.acSign, 1);
       expect(m.acMagnitude, 0);
     });
+
+    test("CLA* indirects through the indirect word's own tag", () {
+      // TSTC-07: indirect addressing is tested only on TRA. This pins it
+      // for a load. The indirect shape mirrors the TRA* test
+      // (test/emulator/cpu_transfer_index_test.dart).
+      m
+        ..xrWrite(1, 3)
+        ..write(0x300, typeA(0, tag: 1, address: 0x403)) // Indirect word.
+        ..write(0x400, data(9)); // 0x403 - XR1(3) = 0x400.
+      runOne(typeB(0x140, address: 0x300, flag: true)); // CLA*
+      expect(m.acSign, 0);
+      expect(m.acMagnitude, 9);
+    });
   });
 
   // CAL: 22-6528-4 p. 20 (external): the sign of Y appears in position P.
@@ -275,6 +288,34 @@ void main() {
         ..write(0x200, data(Word36.magnitudeMask));
       runOne(typeB(0x091, address: 0x200));
       expect(m.divideCheck, isTrue);
+    });
+
+    test('a zero divisor forces the divide check', () {
+      // TSTC-08: |C(Y)| = 0 is never greater than |AC|, so any nonzero
+      // dividend with a zero divisor turns the check on.
+      m
+        ..acMagnitude = 5
+        ..mq = data(1)
+        ..write(0x200, data(0));
+      runOne(typeB(0x091, address: 0x200));
+      expect(m.divideCheck, isTrue);
+      expect(m.acMagnitude, 5); // Dividend unchanged.
+    });
+
+    test('a minus dividend and a minus divisor give a plus quotient', () {
+      // TSTC-08: only the minus/plus case is covered above. The quotient
+      // sign is the exclusive-or of the dividend and divisor signs; the
+      // remainder keeps the dividend sign either way (M p. 24).
+      m
+        ..acSign = 1
+        ..acMagnitude = 0
+        ..mq = data(35)
+        ..write(0x200, data(8, negative: true));
+      runOne(typeB(0x091, address: 0x200));
+      expect(m.mq, data(4)); // Plus quotient.
+      expect(m.acSign, 1); // The remainder keeps the dividend sign.
+      expect(m.acMagnitude, 3);
+      expect(m.divideCheck, isFalse);
     });
   });
 

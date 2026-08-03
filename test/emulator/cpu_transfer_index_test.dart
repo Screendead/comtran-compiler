@@ -73,6 +73,16 @@ void main() {
         ..step();
       expect(m.ic, 0x103);
     });
+
+    test('at location zero, the return index wraps to zero', () {
+      // TSTC-08: 0x8000 - 0 masks to 0, not 0x8000.
+      m
+        ..write(0x000, typeB(0x03C, address: 0x300, tag: 4))
+        ..ic = 0x000;
+      cpu.step();
+      expect(m.xrRead(4), 0);
+      expect(m.ic, 0x300);
+    });
   });
 
   // TXI/TXH/TXL: 22-6528-4 pp. 39-40 (external).
@@ -249,6 +259,18 @@ void main() {
         ..write(0x200, data(Word36.magnitudeMask));
       cas(0x200);
       expect(m.ic, 0x101);
+    });
+
+    test("CAS* indirects through the indirect word's own tag", () {
+      // TSTC-07: indirect addressing is tested only on TRA; this pins it
+      // for a compare. The indirect shape mirrors the TRA* test above.
+      m
+        ..acMagnitude = 5
+        ..xrWrite(1, 3)
+        ..write(0x300, typeA(0, tag: 1, address: 0x403)) // Indirect word.
+        ..write(0x400, data(3)); // 0x403 - XR1(3).
+      runOne(typeB(0x0E0, address: 0x300, flag: true)); // CAS*
+      expect(m.ic, 0x101); // AC(5) > Y(3): no skip.
     });
   });
 
