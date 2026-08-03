@@ -188,9 +188,12 @@ it, which is more than one statement but less than a record. C3 is picked.
 
 ## M1 rows check
 
-`lib/src/lexer/severities.dart` holds 21 map entries: 16 attested ids in the
-0-209 range and 5 non-historical ids in the 900 series. The brief says 19; the
-file says 21. All 16 in-range rows agree with this table. No change is proposed.
+`lib/src/lexer/severities.dart` now holds 227 rows: all 210 catalog ids in the
+0-209 range, plus 17 non-historical ids from 900,00 through 916,00. Every
+in-range row agrees with this table. No change is proposed.
+
+M1 was the first milestone to need severities. It set 16 of the in-range rows.
+The table below lists those 16 with their agreement check.
 
 | id | M1 severity | this table | agree |
 |---|---|---|---|
@@ -223,11 +226,49 @@ so they are worth naming:
   its place in the hierarchy is a statement-level loss. This table extends the
   anchor to 40, 41, 42, 45, 46, 47, 81, 102, 103 and 105.
 
-The 900-series rows (900, 901, 902, 903, 904) are non-historical ids outside the
-0-209 range and are not part of this table. Their classes are consistent with the
-same rule: 900 C1 (stray period ignored), 901 C2 (over-long name operand), 902
-and 903 C3 (card ignored), 904 C1 (duplicate card ignored). No change is
-proposed.
+## The 900-series rows (ours)
+
+The 900-series ids sit outside the attested 0-209 range, so they are not part of
+the 210-row count above. D9.7 assigns them. Every one is our own message for a
+condition the 1962 catalog does not cover. Their classes follow the same D9.2
+rule, and `lib/src/lexer/severities.dart` carries the same justifications
+inline. `lib/src/parser/parser_messages.dart` holds the message texts.
+
+M1 set 900 to 904. M2 added 905 to 916. No change is proposed to any row.
+
+| id | class | severity | what it reports | justification |
+|---|---|---|---|---|
+| 900,00 | C1 | 1 | a stray period | the period is ignored and scanning continues |
+| 901,00 | C2 | 2 | an over-long name operand | the name operand cannot resolve |
+| 902,00 | C3 | 3 | a card before the first division header (D2.3) | the card is ignored — statement-level loss |
+| 903,00 | C3 | 3 | a card after `*FINISH` (D9.14) | the card is ignored — statement-level loss |
+| 904,00 | C1 | 1 | a second compile control card | the duplicate card is ignored and compilation carries on |
+| 905,00 | C4 | 4 | PATTERN recognized but not implemented (D9.12) | the file property is lost; calibrated against msg 110, the recognized-but-unimplemented COPY, at 4 |
+| 906,00 | C2 | 2 | data-card coding that its type code forbids | the conflicting coding is ignored — clause-level loss |
+| 907,00 | C3 | 3 | a type code the 7090 language does not have | the entry cannot bind to a type — entry-level loss |
+| 908,00 | C2 | 2 | a Quantity field outside 1 to 32767 | the quantity specification is lost — clause-level loss |
+| 909,00 | C1 | 1 | an unknown compile-card option | the option is ignored and compilation carries on |
+| 910,00 | C3 | 3 | a subscripted condition-name (D5.6) | the construct is rejected and the sentence is deleted, matching the attested deletion messages 122, 125, and 126 |
+| 911,00 | C1 | 1 | an AT END clause that is not a transfer (D6.6) | the clause is accepted; advisory only |
+| 912,00 | C2 | 2 | an alphameric literal as an arithmetic operand outside TR | the operand is lost — clause-level loss |
+| 913,00 | C3 | 3 | `A**B**C` without parentheses (D4.10) | no code is generated for the statement |
+| 914,00 | C2 | 2 | more than three subscripts in one reference (D3.1) | the subscripted reference is lost |
+| 915,00 | C5 | 5 | section nesting deeper than 18 (D9.7) | a compiler table capacity, hard-enforced |
+| 916,00 | C4 | 4 | LOAD or OVERLAP, deferred (M2-11) | the verb's whole effect is lost; calibrated against msg 110, the deferred COPY, at 4 |
+
+Three rows carry an alternative worth naming:
+
+- **905,00 and 916,00 — C4/4, alternative C3/3.** Both report a construct that
+  parses and generates nothing. The C3 reading calls that a statement-level
+  loss. C4 is picked because msg 110, the attested message for the same
+  situation, holds C4.
+- **910,00 — C3/3, alternative C1/1.** The construct could be ignored with an
+  advisory. D5.6 forbids that reading: it would invent element semantics that no
+  source attests. The sentence is deleted, so C3.
+- **915,00 — C5/5, alternative C3/3.** A capacity limit that a sentence cannot
+  cause and a program can, so it is not recoverable by dropping one sentence.
+  D9.7 fixes it at 5. Compare 187, which stays C3 because its limit is
+  sentence-scoped.
 
 ## Build checks this table must pass (per D9.2 and D9.3)
 

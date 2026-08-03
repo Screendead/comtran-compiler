@@ -39,12 +39,12 @@ yet.
 | Path | What it is |
 |---|---|
 | `lib/` | The compiler source. `lib/src/` holds `cards`, `chars`, `lexer`, `parser`, `ast`, `listing`, `emulator`, and `mcp`. |
-| `bin/` | Three executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), and `deckmcp.dart` (the MCP deck server). |
+| `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), and `deckmcp.dart` (the MCP deck server). |
 | `test/` | The Dart test suite, with `test/goldens/` (the 1962 listing oracle) and `test/emulator/`. |
 | `tests/` | Reference deck data: the 90.05 canon deck, its text mirror, and the keying notes. |
 | `tool/` | Dart generators for this package. |
 | `tools/vscode-punchcard/` | A VS Code extension: a punch-level editor for `*.ctdeck` decks, and highlighting for `.deck` mirrors. |
-| `docs/design/` | Six design records: the D0–D9 decision log (`decisions.md`, 84 records), one document per milestone (`m1-front-end.md`, `m2-parser.md`), plus `deck-format.md`, `emulator.md`, and `severity-notes.md`. |
+| `docs/design/` | The design records: the D0–D9 decision log (`decisions.md`), one document per milestone (`m1-front-end.md`, `m2-parser.md`), plus `deck-format.md`, `emulator.md`, and `severity-notes.md`. |
 | `docs/comtran-language-definition.md` | The working language reference (~4,250 lines): a structured, fully cited definition of COMTRAN extracted from the manuals. §8.3 catalogs the F/J divergences and §8.5 every ambiguity with a plausible resolution. The end-of-file **Open Questions** list tracks what the sources cannot settle, and states its own item count. |
 | `docs/HANDOVER.md` | Project state, the roadmap, and the next task. |
 | `docs/research-2026-08-01-interrupted.md` | **Archive, provenance only.** Raw, unverified output of the research passes. The definition supersedes it. Do not read it for current work. |
