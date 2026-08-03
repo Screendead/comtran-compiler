@@ -1,0 +1,5379 @@
+{
+  "generator": "dart run tool/generate_manual_map.dart",
+  "sections": {
+    "F:1": {
+      "file": "comtran-manuals/F28-8043/01-general-description.md",
+      "line": 4,
+      "slug": "chapter-1-general-description-of-the-commercial-translator-system",
+      "heading": "Chapter 1: General Description of the Commercial Translator System",
+      "pdfPage": 7,
+      "scan": "comtran-manuals/F28-8043/images/page-007.png"
+    },
+    "F:2": {
+      "file": "comtran-manuals/F28-8043/01-general-description.md",
+      "line": 25,
+      "slug": "what-is-a-data-processing-system",
+      "heading": "What Is a Data Processing System?",
+      "pdfPage": 8,
+      "scan": "comtran-manuals/F28-8043/images/page-008.png"
+    },
+    "F:3": {
+      "file": "comtran-manuals/F28-8043/01-general-description.md",
+      "line": 45,
+      "slug": "communication-with-a-data-processing-machine",
+      "heading": "Communication with a Data Processing Machine",
+      "pdfPage": 9,
+      "scan": "comtran-manuals/F28-8043/images/page-009.png"
+    },
+    "F:4": {
+      "file": "comtran-manuals/F28-8043/01-general-description.md",
+      "line": 79,
+      "slug": "example-1",
+      "heading": "Example 1",
+      "pdfPage": 10,
+      "scan": "comtran-manuals/F28-8043/images/page-010.png"
+    },
+    "F:5": {
+      "file": "comtran-manuals/F28-8043/01-general-description.md",
+      "line": 114,
+      "slug": "example-2",
+      "heading": "Example 2",
+      "pdfPage": 11,
+      "scan": "comtran-manuals/F28-8043/images/page-011.png"
+    },
+    "F:6": {
+      "file": "comtran-manuals/F28-8043/01-general-description.md",
+      "line": 141,
+      "slug": "example-2",
+      "heading": "Example 2",
+      "pdfPage": 12,
+      "scan": "comtran-manuals/F28-8043/images/page-012.png"
+    },
+    "F:7": {
+      "file": "comtran-manuals/F28-8043/01-general-description.md",
+      "line": 187,
+      "slug": "example-3",
+      "heading": "Example 3",
+      "pdfPage": 13,
+      "scan": "comtran-manuals/F28-8043/images/page-013.png"
+    },
+    "F:8": {
+      "file": "comtran-manuals/F28-8043/01-general-description.md",
+      "line": 211,
+      "slug": "construction-of-the-commercial-translator-language",
+      "heading": "Construction of the Commercial Translator Language",
+      "pdfPage": 14,
+      "scan": "comtran-manuals/F28-8043/images/page-014.png"
+    },
+    "F:9": {
+      "file": "comtran-manuals/F28-8043/01-general-description.md",
+      "line": 256,
+      "slug": "example-4",
+      "heading": "Example 4",
+      "pdfPage": 15,
+      "scan": "comtran-manuals/F28-8043/images/page-015.png"
+    },
+    "F:10": {
+      "file": "comtran-manuals/F28-8043/01-general-description.md",
+      "line": 300,
+      "slug": "example-5",
+      "heading": "Example 5",
+      "pdfPage": 16,
+      "scan": "comtran-manuals/F28-8043/images/page-016.png"
+    },
+    "F:11": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 4,
+      "slug": "chapter-2-the-structure-of-the-language",
+      "heading": "Chapter 2: The Structure of the Language",
+      "pdfPage": 17,
+      "scan": "comtran-manuals/F28-8043/images/page-017.png"
+    },
+    "F:12": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 15,
+      "slug": "underlying-principles",
+      "heading": "Underlying Principles",
+      "pdfPage": 18,
+      "scan": "comtran-manuals/F28-8043/images/page-018.png"
+    },
+    "F:13": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 53,
+      "slug": "verbs",
+      "heading": "Verbs",
+      "pdfPage": 19,
+      "scan": "comtran-manuals/F28-8043/images/page-019.png"
+    },
+    "F:14": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 82,
+      "slug": "data-names",
+      "heading": "Data-Names",
+      "pdfPage": 20,
+      "scan": "comtran-manuals/F28-8043/images/page-020.png"
+    },
+    "F:15": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 107,
+      "slug": "condition-names",
+      "heading": "Condition-Names",
+      "pdfPage": 21,
+      "scan": "comtran-manuals/F28-8043/images/page-021.png"
+    },
+    "F:16": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 138,
+      "slug": "compound-names",
+      "heading": "Compound Names",
+      "pdfPage": 22,
+      "scan": "comtran-manuals/F28-8043/images/page-022.png"
+    },
+    "F:17": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 162,
+      "slug": "placing-names-in-the-program",
+      "heading": "Placing Names in the Program",
+      "pdfPage": 23,
+      "scan": "comtran-manuals/F28-8043/images/page-023.png"
+    },
+    "F:18": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 191,
+      "slug": "constants",
+      "heading": "Constants",
+      "pdfPage": 24,
+      "scan": "comtran-manuals/F28-8043/images/page-024.png"
+    },
+    "F:19": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 220,
+      "slug": "numeric-literals",
+      "heading": "NUMERIC LITERALS",
+      "pdfPage": 25,
+      "scan": "comtran-manuals/F28-8043/images/page-025.png"
+    },
+    "F:20": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 258,
+      "slug": "figurative-constants",
+      "heading": "Figurative Constants",
+      "pdfPage": 26,
+      "scan": "comtran-manuals/F28-8043/images/page-026.png"
+    },
+    "F:21": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 290,
+      "slug": "arithmetic-expressions",
+      "heading": "Arithmetic Expressions",
+      "pdfPage": 27,
+      "scan": "comtran-manuals/F28-8043/images/page-027.png"
+    },
+    "F:22": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 337,
+      "slug": "relations",
+      "heading": "Relations",
+      "pdfPage": 28,
+      "scan": "comtran-manuals/F28-8043/images/page-028.png"
+    },
+    "F:23": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 367,
+      "slug": "condition-names-1",
+      "heading": "Condition-Names",
+      "pdfPage": 29,
+      "scan": "comtran-manuals/F28-8043/images/page-029.png"
+    },
+    "F:24": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 401,
+      "slug": "and-or-and-not",
+      "heading": "AND, OR, and NOT",
+      "pdfPage": 30,
+      "scan": "comtran-manuals/F28-8043/images/page-030.png"
+    },
+    "F:25": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 433,
+      "slug": "clauses",
+      "heading": "Clauses",
+      "pdfPage": 31,
+      "scan": "comtran-manuals/F28-8043/images/page-031.png"
+    },
+    "F:26": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 482,
+      "slug": "sentences",
+      "heading": "Sentences",
+      "pdfPage": 32,
+      "scan": "comtran-manuals/F28-8043/images/page-032.png"
+    },
+    "F:27": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 505,
+      "slug": "divisions",
+      "heading": "Divisions",
+      "pdfPage": 33,
+      "scan": "comtran-manuals/F28-8043/images/page-033.png"
+    },
+    "F:28": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 531,
+      "slug": "punctuation-and-spacing",
+      "heading": "Punctuation and Spacing",
+      "pdfPage": 34,
+      "scan": "comtran-manuals/F28-8043/images/page-034.png"
+    },
+    "F:29": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 552,
+      "slug": "lists-tables-and-subscripts",
+      "heading": "Lists, Tables, and Subscripts",
+      "pdfPage": 35,
+      "scan": "comtran-manuals/F28-8043/images/page-035.png"
+    },
+    "F:30": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 576,
+      "slug": "lists-tables-and-subscripts",
+      "heading": "Lists, Tables, and Subscripts",
+      "pdfPage": 36,
+      "scan": "comtran-manuals/F28-8043/images/page-036.png"
+    },
+    "F:31": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 595,
+      "slug": "subscripts",
+      "heading": "Subscripts",
+      "pdfPage": 37,
+      "scan": "comtran-manuals/F28-8043/images/page-037.png"
+    },
+    "F:32": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 618,
+      "slug": "subscripts",
+      "heading": "Subscripts",
+      "pdfPage": 38,
+      "scan": "comtran-manuals/F28-8043/images/page-038.png"
+    },
+    "F:33": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 651,
+      "slug": "functions",
+      "heading": "Functions",
+      "pdfPage": 39,
+      "scan": "comtran-manuals/F28-8043/images/page-039.png"
+    },
+    "F:34": {
+      "file": "comtran-manuals/F28-8043/02-language-structure.md",
+      "line": 670,
+      "slug": "functions",
+      "heading": "Functions",
+      "pdfPage": 40,
+      "scan": "comtran-manuals/F28-8043/images/page-040.png"
+    },
+    "F:35": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 4,
+      "slug": "chapter-3-procedure-description",
+      "heading": "Chapter 3: Procedure Description",
+      "pdfPage": 41,
+      "scan": "comtran-manuals/F28-8043/images/page-041.png"
+    },
+    "F:36": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 67,
+      "slug": "commands",
+      "heading": "Commands",
+      "pdfPage": 42,
+      "scan": "comtran-manuals/F28-8043/images/page-042.png"
+    },
+    "F:37": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 87,
+      "slug": "commands",
+      "heading": "Commands",
+      "pdfPage": 43,
+      "scan": "comtran-manuals/F28-8043/images/page-043.png"
+    },
+    "F:38": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 151,
+      "slug": "identification-col-73-80",
+      "heading": "Identification (Col. 73-80)",
+      "pdfPage": 44,
+      "scan": "comtran-manuals/F28-8043/images/page-044.png"
+    },
+    "F:39": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 210,
+      "slug": "inputoutput-commands",
+      "heading": "Input/Output Commands",
+      "pdfPage": 45,
+      "scan": "comtran-manuals/F28-8043/images/page-045.png"
+    },
+    "F:40": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 279,
+      "slug": "the-get-command",
+      "heading": "The GET Command",
+      "pdfPage": 46,
+      "scan": "comtran-manuals/F28-8043/images/page-046.png"
+    },
+    "F:41": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 347,
+      "slug": "the-file-command",
+      "heading": "The FILE Command",
+      "pdfPage": 47,
+      "scan": "comtran-manuals/F28-8043/images/page-047.png"
+    },
+    "F:42": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 419,
+      "slug": "data-transmission-commands",
+      "heading": "Data Transmission Commands",
+      "pdfPage": 48,
+      "scan": "comtran-manuals/F28-8043/images/page-048.png"
+    },
+    "F:43": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 487,
+      "slug": "editing-feature",
+      "heading": "EDITING FEATURE",
+      "pdfPage": 49,
+      "scan": "comtran-manuals/F28-8043/images/page-049.png"
+    },
+    "F:44": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 546,
+      "slug": "editing-feature-1",
+      "heading": "EDITING FEATURE",
+      "pdfPage": 50,
+      "scan": "comtran-manuals/F28-8043/images/page-050.png"
+    },
+    "F:45": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 608,
+      "slug": "the-set-command",
+      "heading": "The SET Command",
+      "pdfPage": 51,
+      "scan": "comtran-manuals/F28-8043/images/page-051.png"
+    },
+    "F:46": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 669,
+      "slug": "truth-functions",
+      "heading": "TRUTH FUNCTIONS",
+      "pdfPage": 52,
+      "scan": "comtran-manuals/F28-8043/images/page-052.png"
+    },
+    "F:47": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 732,
+      "slug": "set-used-with-condition-names",
+      "heading": "SET Used with Condition Names",
+      "pdfPage": 53,
+      "scan": "comtran-manuals/F28-8043/images/page-053.png"
+    },
+    "F:48": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 825,
+      "slug": "the-add-corresponding-command",
+      "heading": "The ADD CORRESPONDING Command",
+      "pdfPage": 54,
+      "scan": "comtran-manuals/F28-8043/images/page-054.png"
+    },
+    "F:49": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 877,
+      "slug": "assigned",
+      "heading": "ASSIGNED",
+      "pdfPage": 55,
+      "scan": "comtran-manuals/F28-8043/images/page-055.png"
+    },
+    "F:50": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 921,
+      "slug": "the-do-command",
+      "heading": "The DO Command",
+      "pdfPage": 56,
+      "scan": "comtran-manuals/F28-8043/images/page-056.png"
+    },
+    "F:51": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 958,
+      "slug": "the-do-command-with-indexing",
+      "heading": "The DO Command with Indexing",
+      "pdfPage": 57,
+      "scan": "comtran-manuals/F28-8043/images/page-057.png"
+    },
+    "F:52": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 1009,
+      "slug": "the-do-command-with-indexing",
+      "heading": "The DO Command with Indexing",
+      "pdfPage": 58,
+      "scan": "comtran-manuals/F28-8043/images/page-058.png"
+    },
+    "F:53": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 1053,
+      "slug": "the-do-command-with-data-substitution",
+      "heading": "The DO Command with Data Substitution",
+      "pdfPage": 59,
+      "scan": "comtran-manuals/F28-8043/images/page-059.png"
+    },
+    "F:54": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 1098,
+      "slug": "the-do-command-with-named-end",
+      "heading": "The DO Command with Named END",
+      "pdfPage": 60,
+      "scan": "comtran-manuals/F28-8043/images/page-060.png"
+    },
+    "F:55": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 1143,
+      "slug": "the-display-command",
+      "heading": "The DISPLAY Command",
+      "pdfPage": 61,
+      "scan": "comtran-manuals/F28-8043/images/page-061.png"
+    },
+    "F:56": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 1195,
+      "slug": "the-overlap-command",
+      "heading": "The OVERLAP Command",
+      "pdfPage": 62,
+      "scan": "comtran-manuals/F28-8043/images/page-062.png"
+    },
+    "F:57": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 1240,
+      "slug": "the-begin-section-and-end-commands",
+      "heading": "The BEGIN SECTION and END Commands",
+      "pdfPage": 63,
+      "scan": "comtran-manuals/F28-8043/images/page-063.png"
+    },
+    "F:58": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 1286,
+      "slug": "the-begin-section-and-end-commands",
+      "heading": "The BEGIN SECTION and END Commands",
+      "pdfPage": 64,
+      "scan": "comtran-manuals/F28-8043/images/page-064.png"
+    },
+    "F:59": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 1321,
+      "slug": "the-include-command",
+      "heading": "The INCLUDE Command",
+      "pdfPage": 65,
+      "scan": "comtran-manuals/F28-8043/images/page-065.png"
+    },
+    "F:60": {
+      "file": "comtran-manuals/F28-8043/03-procedure-description.md",
+      "line": 1381,
+      "slug": "the-enter-command",
+      "heading": "The ENTER Command",
+      "pdfPage": 66,
+      "scan": "comtran-manuals/F28-8043/images/page-066.png"
+    },
+    "F:61": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 6,
+      "slug": "what-a-data-description-is",
+      "heading": "What a Data Description Is",
+      "pdfPage": 67,
+      "scan": "comtran-manuals/F28-8043/images/page-067.png"
+    },
+    "F:62": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 27,
+      "slug": "the-purpose-of-a-data-description",
+      "heading": "The Purpose of a Data Description",
+      "pdfPage": 68,
+      "scan": "comtran-manuals/F28-8043/images/page-068.png"
+    },
+    "F:63": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 48,
+      "slug": "files-records-and-fields",
+      "heading": "Files, Records, and Fields",
+      "pdfPage": 69,
+      "scan": "comtran-manuals/F28-8043/images/page-069.png"
+    },
+    "F:64": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 65,
+      "slug": "files",
+      "heading": "Files",
+      "pdfPage": 70,
+      "scan": "comtran-manuals/F28-8043/images/page-070.png"
+    },
+    "F:65": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 88,
+      "slug": "data-description-format",
+      "heading": "Data Description Format",
+      "pdfPage": 71,
+      "scan": "comtran-manuals/F28-8043/images/page-071.png"
+    },
+    "F:66": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 124,
+      "slug": "ctl-and-serial-col-1-6",
+      "heading": "Ctl. and Serial (Col. 1-6)",
+      "pdfPage": 72,
+      "scan": "comtran-manuals/F28-8043/images/page-072.png"
+    },
+    "F:67": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 145,
+      "slug": "ctl-and-serial-col-1-6",
+      "heading": "Ctl. and Serial (Col. 1-6)",
+      "pdfPage": 73,
+      "scan": "comtran-manuals/F28-8043/images/page-073.png"
+    },
+    "F:68": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 168,
+      "slug": "level-col-23-24",
+      "heading": "Level (Col. 23-24)",
+      "pdfPage": 74,
+      "scan": "comtran-manuals/F28-8043/images/page-074.png"
+    },
+    "F:69": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 189,
+      "slug": "level-col-23-24",
+      "heading": "Level (Col. 23-24)",
+      "pdfPage": 75,
+      "scan": "comtran-manuals/F28-8043/images/page-075.png"
+    },
+    "F:70": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 259,
+      "slug": "level-col-23-24",
+      "heading": "Level (Col. 23-24)",
+      "pdfPage": 76,
+      "scan": "comtran-manuals/F28-8043/images/page-076.png"
+    },
+    "F:71": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 305,
+      "slug": "level-col-23-24",
+      "heading": "Level (Col. 23-24)",
+      "pdfPage": 77,
+      "scan": "comtran-manuals/F28-8043/images/page-077.png"
+    },
+    "F:72": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 340,
+      "slug": "cond",
+      "heading": "COND",
+      "pdfPage": 78,
+      "scan": "comtran-manuals/F28-8043/images/page-078.png"
+    },
+    "F:73": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 372,
+      "slug": "funct",
+      "heading": "FUNCT",
+      "pdfPage": 79,
+      "scan": "comtran-manuals/F28-8043/images/page-079.png"
+    },
+    "F:74": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 405,
+      "slug": "redef",
+      "heading": "REDEF",
+      "pdfPage": 80,
+      "scan": "comtran-manuals/F28-8043/images/page-080.png"
+    },
+    "F:75": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 464,
+      "slug": "tables",
+      "heading": "TABLES",
+      "pdfPage": 81,
+      "scan": "comtran-manuals/F28-8043/images/page-081.png"
+    },
+    "F:76": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 527,
+      "slug": "tables",
+      "heading": "TABLES",
+      "pdfPage": 82,
+      "scan": "comtran-manuals/F28-8043/images/page-082.png"
+    },
+    "F:77": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 591,
+      "slug": "copy",
+      "heading": "COPY",
+      "pdfPage": 83,
+      "scan": "comtran-manuals/F28-8043/images/page-083.png"
+    },
+    "F:78": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 655,
+      "slug": "quantity-col-31-35",
+      "heading": "Quantity (Col. 31-35)",
+      "pdfPage": 84,
+      "scan": "comtran-manuals/F28-8043/images/page-084.png"
+    },
+    "F:79": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 719,
+      "slug": "justify-col-37",
+      "heading": "Justify (Col. 37)",
+      "pdfPage": 85,
+      "scan": "comtran-manuals/F28-8043/images/page-085.png"
+    },
+    "F:80": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 783,
+      "slug": "format-characters",
+      "heading": "Format Characters",
+      "pdfPage": 86,
+      "scan": "comtran-manuals/F28-8043/images/page-086.png"
+    },
+    "F:81": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 806,
+      "slug": "format-characters",
+      "heading": "Format Characters",
+      "pdfPage": 87,
+      "scan": "comtran-manuals/F28-8043/images/page-087.png"
+    },
+    "F:82": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 869,
+      "slug": "library-names",
+      "heading": "Library Names",
+      "pdfPage": 88,
+      "scan": "comtran-manuals/F28-8043/images/page-088.png"
+    },
+    "F:83": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 931,
+      "slug": "quantities-specified-in-named-fields",
+      "heading": "Quantities Specified in Named Fields",
+      "pdfPage": 89,
+      "scan": "comtran-manuals/F28-8043/images/page-089.png"
+    },
+    "F:84": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 993,
+      "slug": "quantities-specified-in-named-fields",
+      "heading": "Quantities Specified in Named Fields",
+      "pdfPage": 90,
+      "scan": "comtran-manuals/F28-8043/images/page-090.png"
+    },
+    "F:85": {
+      "file": "comtran-manuals/F28-8043/04-data-description.md",
+      "line": 1057,
+      "slug": "storage-areas",
+      "heading": "Storage Areas",
+      "pdfPage": 91,
+      "scan": "comtran-manuals/F28-8043/images/page-091.png"
+    },
+    "F:87": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 4,
+      "slug": "appendix-1-programming-example",
+      "heading": "Appendix 1: Programming Example",
+      "pdfPage": 92,
+      "scan": "comtran-manuals/F28-8043/images/page-092.png"
+    },
+    "F:88": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 25,
+      "slug": "introduction",
+      "heading": "Introduction",
+      "pdfPage": 93,
+      "scan": "comtran-manuals/F28-8043/images/page-093.png"
+    },
+    "F:89": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 39,
+      "slug": "process-chart--payroll-example",
+      "heading": "Process Chart — Payroll Example",
+      "pdfPage": 94,
+      "scan": "comtran-manuals/F28-8043/images/page-094.png"
+    },
+    "F:90": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 47,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 95,
+      "scan": "comtran-manuals/F28-8043/images/page-095.png"
+    },
+    "F:91": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 53,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 96,
+      "scan": "comtran-manuals/F28-8043/images/page-096.png"
+    },
+    "F:92": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 85,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 97,
+      "scan": "comtran-manuals/F28-8043/images/page-097.png"
+    },
+    "F:93": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 119,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 98,
+      "scan": "comtran-manuals/F28-8043/images/page-098.png"
+    },
+    "F:94": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 149,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 99,
+      "scan": "comtran-manuals/F28-8043/images/page-099.png"
+    },
+    "F:95": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 184,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 100,
+      "scan": "comtran-manuals/F28-8043/images/page-100.png"
+    },
+    "F:96": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 220,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 101,
+      "scan": "comtran-manuals/F28-8043/images/page-101.png"
+    },
+    "F:97": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 254,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 102,
+      "scan": "comtran-manuals/F28-8043/images/page-102.png"
+    },
+    "F:98": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 277,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 103,
+      "scan": "comtran-manuals/F28-8043/images/page-103.png"
+    },
+    "F:99": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 311,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 104,
+      "scan": "comtran-manuals/F28-8043/images/page-104.png"
+    },
+    "F:100": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 337,
+      "slug": "flow-chart--payroll-example",
+      "heading": "Flow Chart — Payroll Example",
+      "pdfPage": 105,
+      "scan": "comtran-manuals/F28-8043/images/page-105.png"
+    },
+    "F:101": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 369,
+      "slug": "sample-payroll-program---machine-listing",
+      "heading": "SAMPLE PAYROLL PROGRAM - MACHINE LISTING",
+      "pdfPage": 106,
+      "scan": "comtran-manuals/F28-8043/images/page-106.png"
+    },
+    "F:102": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 434,
+      "slug": "sample-payroll-program---machine-listing",
+      "heading": "SAMPLE PAYROLL PROGRAM - MACHINE LISTING",
+      "pdfPage": 107,
+      "scan": "comtran-manuals/F28-8043/images/page-107.png"
+    },
+    "F:103": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 503,
+      "slug": "sample-payroll-program---machine-listing",
+      "heading": "SAMPLE PAYROLL PROGRAM - MACHINE LISTING",
+      "pdfPage": 108,
+      "scan": "comtran-manuals/F28-8043/images/page-108.png"
+    },
+    "F:104": {
+      "file": "comtran-manuals/F28-8043/a1-programming-example.md",
+      "line": 580,
+      "slug": "sample-payroll-program---machine-listing",
+      "heading": "SAMPLE PAYROLL PROGRAM - MACHINE LISTING",
+      "pdfPage": 109,
+      "scan": "comtran-manuals/F28-8043/images/page-109.png"
+    },
+    "F:105": {
+      "file": "comtran-manuals/F28-8043/a2-supplementary-information.md",
+      "line": 4,
+      "slug": "appendix-2-supplementary-information",
+      "heading": "Appendix 2: Supplementary Information",
+      "pdfPage": 110,
+      "scan": "comtran-manuals/F28-8043/images/page-110.png"
+    },
+    "F:106": {
+      "file": "comtran-manuals/F28-8043/a2-supplementary-information.md",
+      "line": 54,
+      "slug": "rules-for-forming-conditional-expressions",
+      "heading": "Rules for Forming Conditional Expressions",
+      "pdfPage": 111,
+      "scan": "comtran-manuals/F28-8043/images/page-111.png"
+    },
+    "F:107": {
+      "file": "comtran-manuals/F28-8043/a2-supplementary-information.md",
+      "line": 115,
+      "slug": "rules-for-forming-arithmetic-expressions",
+      "heading": "Rules for Forming Arithmetic Expressions",
+      "pdfPage": 112,
+      "scan": "comtran-manuals/F28-8043/images/page-112.png"
+    },
+    "F:108": {
+      "file": "comtran-manuals/F28-8043/a2-supplementary-information.md",
+      "line": 135,
+      "slug": "rules-for-forming-arithmetic-expressions",
+      "heading": "Rules for Forming Arithmetic Expressions",
+      "pdfPage": 113,
+      "scan": "comtran-manuals/F28-8043/images/page-113.png"
+    },
+    "F:109": {
+      "file": "comtran-manuals/F28-8043/a2-supplementary-information.md",
+      "line": 176,
+      "slug": "list-of-commercial-translator-commands",
+      "heading": "List of Commercial Translator Commands",
+      "pdfPage": 114,
+      "scan": "comtran-manuals/F28-8043/images/page-114.png"
+    },
+    "F:110": {
+      "file": "comtran-manuals/F28-8043/a2-supplementary-information.md",
+      "line": 214,
+      "slug": "list-of-commercial-translator-commands",
+      "heading": "List of Commercial Translator Commands",
+      "pdfPage": 115,
+      "scan": "comtran-manuals/F28-8043/images/page-115.png"
+    },
+    "F:111": {
+      "file": "comtran-manuals/F28-8043/a3-glossary.md",
+      "line": 4,
+      "slug": "appendix-3-glossary",
+      "heading": "Appendix 3: Glossary",
+      "pdfPage": 116,
+      "scan": "comtran-manuals/F28-8043/images/page-116.png"
+    },
+    "F:112": {
+      "file": "comtran-manuals/F28-8043/a3-glossary.md",
+      "line": 57,
+      "slug": "appendix-3-glossary",
+      "heading": "Appendix 3: Glossary",
+      "pdfPage": 117,
+      "scan": "comtran-manuals/F28-8043/images/page-117.png"
+    },
+    "F:113": {
+      "file": "comtran-manuals/F28-8043/a3-glossary.md",
+      "line": 112,
+      "slug": "appendix-3-glossary",
+      "heading": "Appendix 3: Glossary",
+      "pdfPage": 118,
+      "scan": "comtran-manuals/F28-8043/images/page-118.png"
+    },
+    "F:114": {
+      "file": "comtran-manuals/F28-8043/a3-glossary.md",
+      "line": 177,
+      "slug": "appendix-3-glossary",
+      "heading": "Appendix 3: Glossary",
+      "pdfPage": 119,
+      "scan": "comtran-manuals/F28-8043/images/page-119.png"
+    },
+    "F:115": {
+      "file": "comtran-manuals/F28-8043/a3-glossary.md",
+      "line": 248,
+      "slug": "appendix-3-glossary",
+      "heading": "Appendix 3: Glossary",
+      "pdfPage": 120,
+      "scan": "comtran-manuals/F28-8043/images/page-120.png"
+    },
+    "F:116": {
+      "file": "comtran-manuals/F28-8043/a3-glossary.md",
+      "line": 311,
+      "slug": "appendix-3-glossary",
+      "heading": "Appendix 3: Glossary",
+      "pdfPage": 121,
+      "scan": "comtran-manuals/F28-8043/images/page-121.png"
+    },
+    "F:117": {
+      "file": "comtran-manuals/F28-8043/index.md",
+      "line": 4,
+      "slug": "index",
+      "heading": "Index",
+      "pdfPage": 122,
+      "scan": "comtran-manuals/F28-8043/images/page-122.png"
+    },
+    "F:118": {
+      "file": "comtran-manuals/F28-8043/index.md",
+      "line": 219,
+      "slug": "index",
+      "heading": "Index",
+      "pdfPage": 123,
+      "scan": "comtran-manuals/F28-8043/images/page-123.png"
+    },
+    "J:00.00.01": {
+      "file": "comtran-manuals/J28-6169/00-contents.md",
+      "line": 38,
+      "slug": "j28-6169-1-ibm-7097090-commercial-translator-processor--cover-and-contents",
+      "heading": "J28-6169-1: IBM 709/7090 Commercial Translator Processor — cover and contents",
+      "pdfPage": 2,
+      "scan": "comtran-manuals/J28-6169/images/page-002.png"
+    },
+    "J:00.00.02": {
+      "file": "comtran-manuals/J28-6169/00-contents.md",
+      "line": 82,
+      "slug": "table-of-contents",
+      "heading": "Table of Contents",
+      "pdfPage": 3,
+      "scan": "comtran-manuals/J28-6169/images/page-003.png"
+    },
+    "J:01.00.00": {
+      "file": "comtran-manuals/J28-6169/01-documentation.md",
+      "line": 4,
+      "slug": "section-01-documentation",
+      "heading": "Section 01: Documentation",
+      "pdfPage": 4,
+      "scan": "comtran-manuals/J28-6169/images/page-004.png"
+    },
+    "J:01.01.01": {
+      "file": "comtran-manuals/J28-6169/01-documentation.md",
+      "line": 13,
+      "slug": "introduction",
+      "heading": "Introduction",
+      "pdfPage": 5,
+      "scan": "comtran-manuals/J28-6169/images/page-005.png"
+    },
+    "J:01.02": {
+      "file": "comtran-manuals/J28-6169/01-documentation.md",
+      "line": 32,
+      "slug": "0102-current-pages",
+      "heading": "01.02 Current Pages",
+      "pdfPage": 6,
+      "scan": "comtran-manuals/J28-6169/images/page-006.png"
+    },
+    "J:01.02.01": {
+      "file": "comtran-manuals/J28-6169/01-documentation.md",
+      "line": 30,
+      "slug": "notation-conventions",
+      "heading": "Notation Conventions",
+      "pdfPage": 6,
+      "scan": "comtran-manuals/J28-6169/images/page-006.png"
+    },
+    "J:01.02.02": {
+      "file": "comtran-manuals/J28-6169/01-documentation.md",
+      "line": 124,
+      "slug": "0102-current-pages",
+      "heading": "01.02 Current Pages",
+      "pdfPage": 7,
+      "scan": "comtran-manuals/J28-6169/images/page-007.png"
+    },
+    "J:01.02.03": {
+      "file": "comtran-manuals/J28-6169/01-documentation.md",
+      "line": 217,
+      "slug": "0102-current-pages-contd",
+      "heading": "01.02 Current Pages (Cont'd)",
+      "pdfPage": 8,
+      "scan": "comtran-manuals/J28-6169/images/page-008.png"
+    },
+    "J:02.00": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 6,
+      "slug": "0200-introduction",
+      "heading": "02.00 Introduction",
+      "pdfPage": 9,
+      "scan": "comtran-manuals/J28-6169/images/page-009.png"
+    },
+    "J:02.00.00": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 4,
+      "slug": "section-02-compiler",
+      "heading": "Section 02: Compiler",
+      "pdfPage": 9,
+      "scan": "comtran-manuals/J28-6169/images/page-009.png"
+    },
+    "J:02.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 13,
+      "slug": "0201-compiler-control-cards",
+      "heading": "02.01 Compiler Control Cards",
+      "pdfPage": 10,
+      "scan": "comtran-manuals/J28-6169/images/page-010.png"
+    },
+    "J:02.01.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 11,
+      "slug": "0200-introduction",
+      "heading": "02.00 Introduction",
+      "pdfPage": 10,
+      "scan": "comtran-manuals/J28-6169/images/page-010.png"
+    },
+    "J:02.01.02": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 44,
+      "slug": "a-cmple-card",
+      "heading": "A. $CMPLE Card",
+      "pdfPage": 11,
+      "scan": "comtran-manuals/J28-6169/images/page-011.png"
+    },
+    "J:02.02": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 72,
+      "slug": "0202-compiler-output",
+      "heading": "02.02 Compiler Output",
+      "pdfPage": 12,
+      "scan": "comtran-manuals/J28-6169/images/page-012.png"
+    },
+    "J:02.02.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 70,
+      "slug": "b-finish-card",
+      "heading": "B. *FINISH card",
+      "pdfPage": 12,
+      "scan": "comtran-manuals/J28-6169/images/page-012.png"
+    },
+    "J:02.03": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 108,
+      "slug": "0203-general-programming-considerations",
+      "heading": "02.03 General Programming Considerations",
+      "pdfPage": 13,
+      "scan": "comtran-manuals/J28-6169/images/page-013.png"
+    },
+    "J:02.03.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 106,
+      "slug": "0202-compiler-output",
+      "heading": "02.02 Compiler Output",
+      "pdfPage": 13,
+      "scan": "comtran-manuals/J28-6169/images/page-013.png"
+    },
+    "J:02.03.02": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 125,
+      "slug": "a-use-of-coding-forms",
+      "heading": "A. Use of Coding Forms",
+      "pdfPage": 14,
+      "scan": "comtran-manuals/J28-6169/images/page-014.png"
+    },
+    "J:02.03.03": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 165,
+      "slug": "b-key-words",
+      "heading": "B. Key Words",
+      "pdfPage": 15,
+      "scan": "comtran-manuals/J28-6169/images/page-015.png"
+    },
+    "J:02.03.03.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 208,
+      "slug": "d-effect-of-data-storage-mode-on-arithmetic-efficiency",
+      "heading": "D. Effect of Data Storage Mode on Arithmetic Efficiency",
+      "pdfPage": 16,
+      "scan": "comtran-manuals/J28-6169/images/page-016.png"
+    },
+    "J:02.04": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 246,
+      "slug": "0204-procedure-description-clarification-and-amplification",
+      "heading": "02.04 Procedure Description Clarification and Amplification",
+      "pdfPage": 17,
+      "scan": "comtran-manuals/J28-6169/images/page-017.png"
+    },
+    "J:02.04.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 244,
+      "slug": "d-effect-of-data-storage-mode-on-arithmetic-efficiency",
+      "heading": "D. Effect of Data Storage Mode on Arithmetic Efficiency",
+      "pdfPage": 17,
+      "scan": "comtran-manuals/J28-6169/images/page-017.png"
+    },
+    "J:02.04.02": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 281,
+      "slug": "1-figurative-constants",
+      "heading": "1. Figurative Constants",
+      "pdfPage": 18,
+      "scan": "comtran-manuals/J28-6169/images/page-018.png"
+    },
+    "J:02.04.02.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 318,
+      "slug": "2-literals",
+      "heading": "2. Literals.",
+      "pdfPage": 19,
+      "scan": "comtran-manuals/J28-6169/images/page-019.png"
+    },
+    "J:02.04.03": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 333,
+      "slug": "2-display",
+      "heading": "2. DISPLAY",
+      "pdfPage": 20,
+      "scan": "comtran-manuals/J28-6169/images/page-020.png"
+    },
+    "J:02.04.04": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 355,
+      "slug": "3-move",
+      "heading": "3. MOVE",
+      "pdfPage": 21,
+      "scan": "comtran-manuals/J28-6169/images/page-021.png"
+    },
+    "J:02.04.05": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 418,
+      "slug": "4-corresponding-option-with-move-and-add",
+      "heading": "4. CORRESPONDING Option with MOVE and ADD",
+      "pdfPage": 22,
+      "scan": "comtran-manuals/J28-6169/images/page-022.png"
+    },
+    "J:02.04.05.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 454,
+      "slug": "6-set",
+      "heading": "6. SET",
+      "pdfPage": 23,
+      "scan": "comtran-manuals/J28-6169/images/page-023.png"
+    },
+    "J:02.04.06": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 510,
+      "slug": "6-set",
+      "heading": "6. SET",
+      "pdfPage": 24,
+      "scan": "comtran-manuals/J28-6169/images/page-024.png"
+    },
+    "J:02.04.07": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 537,
+      "slug": "c-conditional-statements",
+      "heading": "C. Conditional Statements",
+      "pdfPage": 25,
+      "scan": "comtran-manuals/J28-6169/images/page-025.png"
+    },
+    "J:02.04.07.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 570,
+      "slug": "d-subscripting-and-indexing",
+      "heading": "D. Subscripting and Indexing",
+      "pdfPage": 26,
+      "scan": "comtran-manuals/J28-6169/images/page-026.png"
+    },
+    "J:02.05": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 592,
+      "slug": "0205-data-description-amplification-and-clarification",
+      "heading": "02.05 Data Description Amplification and Clarification",
+      "pdfPage": 27,
+      "scan": "comtran-manuals/J28-6169/images/page-027.png"
+    },
+    "J:02.05.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 590,
+      "slug": "d-subscripting-and-indexing",
+      "heading": "D. Subscripting and Indexing",
+      "pdfPage": 27,
+      "scan": "comtran-manuals/J28-6169/images/page-027.png"
+    },
+    "J:02.05.02": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 631,
+      "slug": "1-record",
+      "heading": "1. RECORD",
+      "pdfPage": 28,
+      "scan": "comtran-manuals/J28-6169/images/page-028.png"
+    },
+    "J:02.05.03": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 664,
+      "slug": "3-redef-see-iii-under-data-description-on-page-900103-for-limitation",
+      "heading": "3. REDEF (see iii under Data Description on page 90.01.03 for limitation).",
+      "pdfPage": 29,
+      "scan": "comtran-manuals/J28-6169/images/page-029.png"
+    },
+    "J:02.05.04": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 695,
+      "slug": "6-param-and-funct",
+      "heading": "6. PARAM and FUNCT",
+      "pdfPage": 30,
+      "scan": "comtran-manuals/J28-6169/images/page-030.png"
+    },
+    "J:02.05.05": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 724,
+      "slug": "1-pictorials",
+      "heading": "1. Pictorials",
+      "pdfPage": 31,
+      "scan": "comtran-manuals/J28-6169/images/page-031.png"
+    },
+    "J:02.05.06": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 746,
+      "slug": "1-pictorials",
+      "heading": "1. Pictorials",
+      "pdfPage": 32,
+      "scan": "comtran-manuals/J28-6169/images/page-032.png"
+    },
+    "J:02.05.07": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 787,
+      "slug": "2-constants",
+      "heading": "2. Constants",
+      "pdfPage": 33,
+      "scan": "comtran-manuals/J28-6169/images/page-033.png"
+    },
+    "J:02.06": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 819,
+      "slug": "0206-environment-description",
+      "heading": "02.06 Environment Description",
+      "pdfPage": 34,
+      "scan": "comtran-manuals/J28-6169/images/page-034.png"
+    },
+    "J:02.06.01.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 817,
+      "slug": "4-blank-when-zero",
+      "heading": "4. BLANK WHEN ZERO",
+      "pdfPage": 34,
+      "scan": "comtran-manuals/J28-6169/images/page-034.png"
+    },
+    "J:02.06.01.02": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 843,
+      "slug": "b-environment-types",
+      "heading": "B. Environment Types",
+      "pdfPage": 35,
+      "scan": "comtran-manuals/J28-6169/images/page-035.png"
+    },
+    "J:02.06.02": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 864,
+      "slug": "b-environment-types",
+      "heading": "B. Environment Types",
+      "pdfPage": 36,
+      "scan": "comtran-manuals/J28-6169/images/page-036.png"
+    },
+    "J:02.06.03": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 885,
+      "slug": "c-file-environment-card",
+      "heading": "C. FILE Environment Card",
+      "pdfPage": 37,
+      "scan": "comtran-manuals/J28-6169/images/page-037.png"
+    },
+    "J:02.06.04": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 940,
+      "slug": "c-file-environment-card",
+      "heading": "C. FILE Environment Card",
+      "pdfPage": 38,
+      "scan": "comtran-manuals/J28-6169/images/page-038.png"
+    },
+    "J:02.06.05": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 990,
+      "slug": "c-file-environment-card",
+      "heading": "C. FILE Environment Card",
+      "pdfPage": 39,
+      "scan": "comtran-manuals/J28-6169/images/page-039.png"
+    },
+    "J:02.06.06": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1028,
+      "slug": "c-file-environment-card",
+      "heading": "C. FILE Environment Card",
+      "pdfPage": 40,
+      "scan": "comtran-manuals/J28-6169/images/page-040.png"
+    },
+    "J:02.06.07": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1039,
+      "slug": "c-file-environment-card",
+      "heading": "C. FILE Environment Card",
+      "pdfPage": 41,
+      "scan": "comtran-manuals/J28-6169/images/page-041.png"
+    },
+    "J:02.06.08": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1078,
+      "slug": "d-specif-environment-card",
+      "heading": "D. SPECIF Environment Card",
+      "pdfPage": 42,
+      "scan": "comtran-manuals/J28-6169/images/page-042.png"
+    },
+    "J:02.06.09": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1106,
+      "slug": "d-specif-environment-card",
+      "heading": "D. SPECIF Environment Card",
+      "pdfPage": 43,
+      "scan": "comtran-manuals/J28-6169/images/page-043.png"
+    },
+    "J:02.06.10": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1128,
+      "slug": "d-specif-environment-card",
+      "heading": "D. SPECIF Environment Card",
+      "pdfPage": 44,
+      "scan": "comtran-manuals/J28-6169/images/page-044.png"
+    },
+    "J:02.06.11": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1173,
+      "slug": "d-specif-environment-card",
+      "heading": "D. SPECIF Environment Card",
+      "pdfPage": 45,
+      "scan": "comtran-manuals/J28-6169/images/page-045.png"
+    },
+    "J:02.06.12": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1210,
+      "slug": "d-specif-environment-card",
+      "heading": "D. SPECIF Environment Card",
+      "pdfPage": 46,
+      "scan": "comtran-manuals/J28-6169/images/page-046.png"
+    },
+    "J:02.06.13": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1240,
+      "slug": "d-specif-environment-card",
+      "heading": "D. SPECIF Environment Card",
+      "pdfPage": 47,
+      "scan": "comtran-manuals/J28-6169/images/page-047.png"
+    },
+    "J:02.06.14": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1275,
+      "slug": "f-group-environment-card",
+      "heading": "F. GROUP Environment card",
+      "pdfPage": 48,
+      "scan": "comtran-manuals/J28-6169/images/page-048.png"
+    },
+    "J:02.06.15": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1313,
+      "slug": "f-group-environment-card",
+      "heading": "F. GROUP Environment card",
+      "pdfPage": 49,
+      "scan": "comtran-manuals/J28-6169/images/page-049.png"
+    },
+    "J:02.06.16": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1343,
+      "slug": "g-contrl-environment-card",
+      "heading": "G. CONTRL Environment Card",
+      "pdfPage": 50,
+      "scan": "comtran-manuals/J28-6169/images/page-050.png"
+    },
+    "J:02.06.17": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1395,
+      "slug": "h-option-environment-cards",
+      "heading": "H. OPTION Environment Cards",
+      "pdfPage": 51,
+      "scan": "comtran-manuals/J28-6169/images/page-051.png"
+    },
+    "J:02.07": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1423,
+      "slug": "0207-inputoutput-facilities-of-the-7097090-commercial-translator",
+      "heading": "02.07 Input/Output Facilities of the 709/7090 Commercial Translator",
+      "pdfPage": 52,
+      "scan": "comtran-manuals/J28-6169/images/page-052.png"
+    },
+    "J:02.07.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1421,
+      "slug": "i-cond-environment-card",
+      "heading": "I. COND Environment Card",
+      "pdfPage": 52,
+      "scan": "comtran-manuals/J28-6169/images/page-052.png"
+    },
+    "J:02.07.02": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1448,
+      "slug": "3-the-block",
+      "heading": "3. The Block",
+      "pdfPage": 53,
+      "scan": "comtran-manuals/J28-6169/images/page-053.png"
+    },
+    "J:02.07.03": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1477,
+      "slug": "5-locate-and-transmit",
+      "heading": "5. Locate and Transmit",
+      "pdfPage": 54,
+      "scan": "comtran-manuals/J28-6169/images/page-054.png"
+    },
+    "J:02.07.04": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1506,
+      "slug": "6-record-types",
+      "heading": "6. Record Types",
+      "pdfPage": 55,
+      "scan": "comtran-manuals/J28-6169/images/page-055.png"
+    },
+    "J:02.07.05": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1542,
+      "slug": "1-factors-affecting-choice-and-use-of-locate-or-transmit-mode",
+      "heading": "1. Factors Affecting Choice and Use of Locate or Transmit Mode",
+      "pdfPage": 56,
+      "scan": "comtran-manuals/J28-6169/images/page-056.png"
+    },
+    "J:02.07.06": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1565,
+      "slug": "2-end-of-file-processing",
+      "heading": "2. End of File Processing",
+      "pdfPage": 57,
+      "scan": "comtran-manuals/J28-6169/images/page-057.png"
+    },
+    "J:02.07.07": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1594,
+      "slug": "3-input-error-processing",
+      "heading": "3. Input Error Processing",
+      "pdfPage": 58,
+      "scan": "comtran-manuals/J28-6169/images/page-058.png"
+    },
+    "J:02.07.08": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1619,
+      "slug": "1-forms-of-the-command",
+      "heading": "1. Forms of the Command",
+      "pdfPage": 59,
+      "scan": "comtran-manuals/J28-6169/images/page-059.png"
+    },
+    "J:02.07.09": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1650,
+      "slug": "1-non-standard-variable-length-input-records",
+      "heading": "1. Non-standard Variable Length Input Records",
+      "pdfPage": 60,
+      "scan": "comtran-manuals/J28-6169/images/page-060.png"
+    },
+    "J:02.07.10": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1691,
+      "slug": "1-example-1",
+      "heading": "1. Example 1",
+      "pdfPage": 61,
+      "scan": "comtran-manuals/J28-6169/images/page-061.png"
+    },
+    "J:02.07.11": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1719,
+      "slug": "c-problem-explanation",
+      "heading": "c) Problem Explanation",
+      "pdfPage": 62,
+      "scan": "comtran-manuals/J28-6169/images/page-062.png"
+    },
+    "J:02.07.12": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1761,
+      "slug": "c-problem-explanation-1",
+      "heading": "c) Problem Explanation",
+      "pdfPage": 63,
+      "scan": "comtran-manuals/J28-6169/images/page-063.png"
+    },
+    "J:02.07.13": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1794,
+      "slug": "c-explanation-of-problem",
+      "heading": "c) Explanation of Problem",
+      "pdfPage": 64,
+      "scan": "comtran-manuals/J28-6169/images/page-064.png"
+    },
+    "J:02.07.14": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1830,
+      "slug": "b-illustration-of-tape-3",
+      "heading": "b) Illustration of Tape",
+      "pdfPage": 65,
+      "scan": "comtran-manuals/J28-6169/images/page-065.png"
+    },
+    "J:02.08": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1843,
+      "slug": "0208-the-7097090-machine-symbolic-language---crypt",
+      "heading": "02.08 The 709/7090 Machine Symbolic Language - CRYPT",
+      "pdfPage": 66,
+      "scan": "comtran-manuals/J28-6169/images/page-066.png"
+    },
+    "J:02.08.01": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1841,
+      "slug": "c-explanation-of-problem-1",
+      "heading": "c) Explanation of Problem",
+      "pdfPage": 66,
+      "scan": "comtran-manuals/J28-6169/images/page-066.png"
+    },
+    "J:02.08.02": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1876,
+      "slug": "b-crypt-rules",
+      "heading": "B. CRYPT Rules",
+      "pdfPage": 67,
+      "scan": "comtran-manuals/J28-6169/images/page-067.png"
+    },
+    "J:02.08.03": {
+      "file": "comtran-manuals/J28-6169/02-compiler.md",
+      "line": 1905,
+      "slug": "c-flexibility-above-that-of-scat",
+      "heading": "C. Flexibility Above that of SCAT",
+      "pdfPage": 68,
+      "scan": "comtran-manuals/J28-6169/images/page-068.png"
+    },
+    "J:03.00": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 6,
+      "slug": "section-0300-loader",
+      "heading": "SECTION 03.00 LOADER",
+      "pdfPage": 69,
+      "scan": "comtran-manuals/J28-6169/images/page-069.png"
+    },
+    "J:03.00.00": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 4,
+      "slug": "section-03-loader",
+      "heading": "Section 03: Loader",
+      "pdfPage": 69,
+      "scan": "comtran-manuals/J28-6169/images/page-069.png"
+    },
+    "J:03.01": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 19,
+      "slug": "0301-composition-of-the-commercial-translator-deck-to-be-loaded",
+      "heading": "03.01 Composition of the Commercial Translator Deck to be Loaded",
+      "pdfPage": 70,
+      "scan": "comtran-manuals/J28-6169/images/page-070.png"
+    },
+    "J:03.01.01": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 17,
+      "slug": "introduction",
+      "heading": "INTRODUCTION",
+      "pdfPage": 70,
+      "scan": "comtran-manuals/J28-6169/images/page-070.png"
+    },
+    "J:03.01.02": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 57,
+      "slug": "b-combination-of-separately-compiled-decks-not-currently-available",
+      "heading": "B. Combination of Separately Compiled Decks (Not currently available).",
+      "pdfPage": 71,
+      "scan": "comtran-manuals/J28-6169/images/page-071.png"
+    },
+    "J:03.02": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 79,
+      "slug": "0302-loader-control-cards",
+      "heading": "03.02 Loader Control Cards",
+      "pdfPage": 72,
+      "scan": "comtran-manuals/J28-6169/images/page-072.png"
+    },
+    "J:03.02.01": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 77,
+      "slug": "c-requirements-for-loading-a-single-deck",
+      "heading": "C. Requirements for Loading a Single Deck",
+      "pdfPage": 72,
+      "scan": "comtran-manuals/J28-6169/images/page-072.png"
+    },
+    "J:03.02.02": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 112,
+      "slug": "b-load-card",
+      "heading": "B. $LOAD Card",
+      "pdfPage": 73,
+      "scan": "comtran-manuals/J28-6169/images/page-073.png"
+    },
+    "J:03.02.03": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 164,
+      "slug": "c-file-card",
+      "heading": "C. *FILE Card",
+      "pdfPage": 74,
+      "scan": "comtran-manuals/J28-6169/images/page-074.png"
+    },
+    "J:03.02.04": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 196,
+      "slug": "c-file-card",
+      "heading": "C. *FILE Card",
+      "pdfPage": 75,
+      "scan": "comtran-manuals/J28-6169/images/page-075.png"
+    },
+    "J:03.02.05": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 223,
+      "slug": "d-spec-card",
+      "heading": "D. *SPEC Card",
+      "pdfPage": 76,
+      "scan": "comtran-manuals/J28-6169/images/page-076.png"
+    },
+    "J:03.02.06": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 264,
+      "slug": "e-pool-card",
+      "heading": "E. *POOL Card",
+      "pdfPage": 77,
+      "scan": "comtran-manuals/J28-6169/images/page-077.png"
+    },
+    "J:03.02.07": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 303,
+      "slug": "f-group-card",
+      "heading": "F. *GROUP Card",
+      "pdfPage": 78,
+      "scan": "comtran-manuals/J28-6169/images/page-078.png"
+    },
+    "J:03.02.08": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 335,
+      "slug": "h-retains-card",
+      "heading": "H. *RETAINS Card",
+      "pdfPage": 79,
+      "scan": "comtran-manuals/J28-6169/images/page-079.png"
+    },
+    "J:03.02.09": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 371,
+      "slug": "j-start-card",
+      "heading": "J. *START Card",
+      "pdfPage": 80,
+      "scan": "comtran-manuals/J28-6169/images/page-080.png"
+    },
+    "J:03.03": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 390,
+      "slug": "0303-loader-output",
+      "heading": "03.03 Loader Output",
+      "pdfPage": 81,
+      "scan": "comtran-manuals/J28-6169/images/page-081.png"
+    },
+    "J:03.03.01": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 388,
+      "slug": "k-ctext-and-ctend-cards",
+      "heading": "K. *CTEXT and *CTEND Cards",
+      "pdfPage": 81,
+      "scan": "comtran-manuals/J28-6169/images/page-081.png"
+    },
+    "J:03.03.02": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 420,
+      "slug": "a-program-for-execution",
+      "heading": "A. Program for Execution",
+      "pdfPage": 82,
+      "scan": "comtran-manuals/J28-6169/images/page-082.png"
+    },
+    "J:03.03.03": {
+      "file": "comtran-manuals/J28-6169/03-loader.md",
+      "line": 441,
+      "slug": "a-program-for-execution",
+      "heading": "A. Program for Execution",
+      "pdfPage": 83,
+      "scan": "comtran-manuals/J28-6169/images/page-083.png"
+    },
+    "J:04.00.00": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 4,
+      "slug": "section-04-supervisory-system",
+      "heading": "Section 04: Supervisory System",
+      "pdfPage": 84,
+      "scan": "comtran-manuals/J28-6169/images/page-084.png"
+    },
+    "J:04.01": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 22,
+      "slug": "0401-function-of-the-basic-monitor",
+      "heading": "04.01 Function of the Basic Monitor",
+      "pdfPage": 85,
+      "scan": "comtran-manuals/J28-6169/images/page-085.png"
+    },
+    "J:04.01.01": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 20,
+      "slug": "introduction",
+      "heading": "INTRODUCTION",
+      "pdfPage": 85,
+      "scan": "comtran-manuals/J28-6169/images/page-085.png"
+    },
+    "J:04.01.02": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 37,
+      "slug": "a-processing-a-job",
+      "heading": "A. Processing a Job",
+      "pdfPage": 86,
+      "scan": "comtran-manuals/J28-6169/images/page-086.png"
+    },
+    "J:04.01.03": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 71,
+      "slug": "the-unit-function-and-availability-tables",
+      "heading": "The Unit Function and Availability Tables",
+      "pdfPage": 87,
+      "scan": "comtran-manuals/J28-6169/images/page-087.png"
+    },
+    "J:04.01.04": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 104,
+      "slug": "the-unit-function-and-availability-tables",
+      "heading": "The Unit Function and Availability Tables",
+      "pdfPage": 88,
+      "scan": "comtran-manuals/J28-6169/images/page-088.png"
+    },
+    "J:04.01.05": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 150,
+      "slug": "attach-and-as-cards",
+      "heading": "$ATTACH and $AS Cards",
+      "pdfPage": 89,
+      "scan": "comtran-manuals/J28-6169/images/page-089.png"
+    },
+    "J:04.01.06": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 197,
+      "slug": "restore-card",
+      "heading": "$RESTORE Card",
+      "pdfPage": 90,
+      "scan": "comtran-manuals/J28-6169/images/page-090.png"
+    },
+    "J:04.01.07": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 251,
+      "slug": "switch-card",
+      "heading": "$SWITCH Card",
+      "pdfPage": 91,
+      "scan": "comtran-manuals/J28-6169/images/page-091.png"
+    },
+    "J:04.01.08": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 300,
+      "slug": "detach-card",
+      "heading": "$DETACH Card",
+      "pdfPage": 92,
+      "scan": "comtran-manuals/J28-6169/images/page-092.png"
+    },
+    "J:04.02": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 327,
+      "slug": "0402-function-of-the-commercial-translator-supervisor---ctm",
+      "heading": "04.02 Function of the Commercial Translator Supervisor - CTM",
+      "pdfPage": 93,
+      "scan": "comtran-manuals/J28-6169/images/page-093.png"
+    },
+    "J:04.02.01": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 325,
+      "slug": "-card",
+      "heading": "$* Card",
+      "pdfPage": 93,
+      "scan": "comtran-manuals/J28-6169/images/page-093.png"
+    },
+    "J:04.02.02": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 373,
+      "slug": "0402-function-of-the-commercial-translator-supervisor---ctm",
+      "heading": "04.02 Function of the Commercial Translator Supervisor - CTM",
+      "pdfPage": 94,
+      "scan": "comtran-manuals/J28-6169/images/page-094.png"
+    },
+    "J:04.02.03": {
+      "file": "comtran-manuals/J28-6169/04-monitor-and-supervisor.md",
+      "line": 423,
+      "slug": "0402-function-of-the-commercial-translator-supervisor---ctm",
+      "heading": "04.02 Function of the Commercial Translator Supervisor - CTM",
+      "pdfPage": 95,
+      "scan": "comtran-manuals/J28-6169/images/page-095.png"
+    },
+    "J:05.00.00": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 4,
+      "slug": "section-05-systems-operation",
+      "heading": "Section 05: Systems Operation",
+      "pdfPage": 96,
+      "scan": "comtran-manuals/J28-6169/images/page-096.png"
+    },
+    "J:05.01": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 25,
+      "slug": "0501-peripheral-equipment-used",
+      "heading": "05.01 PERIPHERAL EQUIPMENT USED",
+      "pdfPage": 97,
+      "scan": "comtran-manuals/J28-6169/images/page-097.png"
+    },
+    "J:05.01.01": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 23,
+      "slug": "introduction",
+      "heading": "INTRODUCTION",
+      "pdfPage": 97,
+      "scan": "comtran-manuals/J28-6169/images/page-097.png"
+    },
+    "J:05.02": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 58,
+      "slug": "0502-peripheral-equipment-assignment",
+      "heading": "05.02 PERIPHERAL EQUIPMENT ASSIGNMENT",
+      "pdfPage": 98,
+      "scan": "comtran-manuals/J28-6169/images/page-098.png"
+    },
+    "J:05.02.01": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 56,
+      "slug": "0501-peripheral-equipment-used",
+      "heading": "05.01 PERIPHERAL EQUIPMENT USED",
+      "pdfPage": 98,
+      "scan": "comtran-manuals/J28-6169/images/page-098.png"
+    },
+    "J:05.03": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 90,
+      "slug": "0503-system-set-up-procedure",
+      "heading": "05.03 SYSTEM SET-UP PROCEDURE",
+      "pdfPage": 99,
+      "scan": "comtran-manuals/J28-6169/images/page-099.png"
+    },
+    "J:05.03.01": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 88,
+      "slug": "0502-peripheral-equipment-assignment",
+      "heading": "05.02 PERIPHERAL EQUIPMENT ASSIGNMENT",
+      "pdfPage": 99,
+      "scan": "comtran-manuals/J28-6169/images/page-099.png"
+    },
+    "J:05.03.02": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 112,
+      "slug": "a-preparing-the-system-input----sysin1-and-sysin2",
+      "heading": "A. Preparing the system input -- SYSIN1 and SYSIN2.",
+      "pdfPage": 100,
+      "scan": "comtran-manuals/J28-6169/images/page-100.png"
+    },
+    "J:05.03.03": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 155,
+      "slug": "a-preparing-the-system-input----sysin1-and-sysin2",
+      "heading": "A. Preparing the system input -- SYSIN1 and SYSIN2.",
+      "pdfPage": 101,
+      "scan": "comtran-manuals/J28-6169/images/page-101.png"
+    },
+    "J:05.04": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 170,
+      "slug": "0504-system-restart-procedure",
+      "heading": "05.04 SYSTEM RESTART PROCEDURE",
+      "pdfPage": 102,
+      "scan": "comtran-manuals/J28-6169/images/page-102.png"
+    },
+    "J:05.04.01": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 168,
+      "slug": "b-starting-procedure",
+      "heading": "B. Starting Procedure",
+      "pdfPage": 102,
+      "scan": "comtran-manuals/J28-6169/images/page-102.png"
+    },
+    "J:05.05": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 197,
+      "slug": "0505-output-from-system",
+      "heading": "05.05 OUTPUT FROM SYSTEM",
+      "pdfPage": 103,
+      "scan": "comtran-manuals/J28-6169/images/page-103.png"
+    },
+    "J:05.05.01": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 195,
+      "slug": "0504-system-restart-procedure",
+      "heading": "05.04 SYSTEM RESTART PROCEDURE",
+      "pdfPage": 103,
+      "scan": "comtran-manuals/J28-6169/images/page-103.png"
+    },
+    "J:05.06": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 224,
+      "slug": "0506-program-flow-and-operator-messages",
+      "heading": "05.06 PROGRAM FLOW AND OPERATOR MESSAGES",
+      "pdfPage": 104,
+      "scan": "comtran-manuals/J28-6169/images/page-104.png"
+    },
+    "J:05.06.01": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 222,
+      "slug": "d-file-maintenance",
+      "heading": "D. File Maintenance",
+      "pdfPage": 104,
+      "scan": "comtran-manuals/J28-6169/images/page-104.png"
+    },
+    "J:05.06.02": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 249,
+      "slug": "a-compiler-1",
+      "heading": "A. Compiler",
+      "pdfPage": 105,
+      "scan": "comtran-manuals/J28-6169/images/page-105.png"
+    },
+    "J:05.06.03": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 283,
+      "slug": "a-compiler-1",
+      "heading": "A. Compiler",
+      "pdfPage": 106,
+      "scan": "comtran-manuals/J28-6169/images/page-106.png"
+    },
+    "J:05.06.04": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 315,
+      "slug": "b-loader-1",
+      "heading": "B. Loader",
+      "pdfPage": 107,
+      "scan": "comtran-manuals/J28-6169/images/page-107.png"
+    },
+    "J:05.06.05": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 347,
+      "slug": "d-subroutine-files-updater",
+      "heading": "D. Subroutine Files Updater",
+      "pdfPage": 108,
+      "scan": "comtran-manuals/J28-6169/images/page-108.png"
+    },
+    "J:05.07": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 370,
+      "slug": "0507-object-time-tape-assignment",
+      "heading": "05.07 OBJECT-TIME TAPE ASSIGNMENT",
+      "pdfPage": 109,
+      "scan": "comtran-manuals/J28-6169/images/page-109.png"
+    },
+    "J:05.07.01": {
+      "file": "comtran-manuals/J28-6169/05-systems-operation.md",
+      "line": 368,
+      "slug": "e-file-maintenance",
+      "heading": "E. File Maintenance",
+      "pdfPage": 109,
+      "scan": "comtran-manuals/J28-6169/images/page-109.png"
+    },
+    "J:06.00.00": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 4,
+      "slug": "section-06-systems-maintenance",
+      "heading": "Section 06: Systems Maintenance",
+      "pdfPage": 110,
+      "scan": "comtran-manuals/J28-6169/images/page-110.png"
+    },
+    "J:06.01": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 20,
+      "slug": "0601-minimum-machine-requirements",
+      "heading": "06.01 Minimum Machine Requirements",
+      "pdfPage": 111,
+      "scan": "comtran-manuals/J28-6169/images/page-111.png"
+    },
+    "J:06.01.01": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 18,
+      "slug": "introduction",
+      "heading": "Introduction",
+      "pdfPage": 111,
+      "scan": "comtran-manuals/J28-6169/images/page-111.png"
+    },
+    "J:06.02": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 44,
+      "slug": "0602-system-units-and-object-time-tape-assignment",
+      "heading": "06.02 System Units and Object-Time Tape Assignment",
+      "pdfPage": 112,
+      "scan": "comtran-manuals/J28-6169/images/page-112.png"
+    },
+    "J:06.02.01": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 42,
+      "slug": "0601-minimum-machine-requirements",
+      "heading": "06.01 Minimum Machine Requirements",
+      "pdfPage": 112,
+      "scan": "comtran-manuals/J28-6169/images/page-112.png"
+    },
+    "J:06.02.02": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 75,
+      "slug": "a-system-units",
+      "heading": "A. System Units",
+      "pdfPage": 113,
+      "scan": "comtran-manuals/J28-6169/images/page-113.png"
+    },
+    "J:06.02.03": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 91,
+      "slug": "a-system-units",
+      "heading": "A. System Units",
+      "pdfPage": 114,
+      "scan": "comtran-manuals/J28-6169/images/page-114.png"
+    },
+    "J:06.02.04": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 120,
+      "slug": "a-system-units",
+      "heading": "A. System Units",
+      "pdfPage": 115,
+      "scan": "comtran-manuals/J28-6169/images/page-115.png"
+    },
+    "J:06.02.05": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 161,
+      "slug": "b-object-time-tape-assignment",
+      "heading": "B. Object-Time Tape Assignment",
+      "pdfPage": 116,
+      "scan": "comtran-manuals/J28-6169/images/page-116.png"
+    },
+    "J:06.02.06": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 183,
+      "slug": "b-object-time-tape-assignment",
+      "heading": "B. Object-Time Tape Assignment",
+      "pdfPage": 117,
+      "scan": "comtran-manuals/J28-6169/images/page-117.png"
+    },
+    "J:06.03": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 204,
+      "slug": "0603-updating-subroutine-files-of-system-tape",
+      "heading": "06.03 Updating Subroutine Files of System Tape",
+      "pdfPage": 118,
+      "scan": "comtran-manuals/J28-6169/images/page-118.png"
+    },
+    "J:06.03.01": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 202,
+      "slug": "b-object-time-tape-assignment",
+      "heading": "B. Object-Time Tape Assignment",
+      "pdfPage": 118,
+      "scan": "comtran-manuals/J28-6169/images/page-118.png"
+    },
+    "J:06.03.02": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 230,
+      "slug": "0603-updating-subroutine-files-of-system-tape",
+      "heading": "06.03 Updating Subroutine Files of System Tape",
+      "pdfPage": 119,
+      "scan": "comtran-manuals/J28-6169/images/page-119.png"
+    },
+    "J:06.03.03": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 280,
+      "slug": "remove-card",
+      "heading": "*REMOVE Card",
+      "pdfPage": 120,
+      "scan": "comtran-manuals/J28-6169/images/page-120.png"
+    },
+    "J:06.03.04": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 307,
+      "slug": "remark-card",
+      "heading": "*REMARK Card",
+      "pdfPage": 121,
+      "scan": "comtran-manuals/J28-6169/images/page-121.png"
+    },
+    "J:06.03.05": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 355,
+      "slug": "updating-procedure",
+      "heading": "Updating Procedure",
+      "pdfPage": 122,
+      "scan": "comtran-manuals/J28-6169/images/page-122.png"
+    },
+    "J:06.04": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 380,
+      "slug": "0604-symbolic-tape-maintenance",
+      "heading": "06.04 SYMBOLIC TAPE MAINTENANCE",
+      "pdfPage": 123,
+      "scan": "comtran-manuals/J28-6169/images/page-123.png"
+    },
+    "J:06.04.01": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 378,
+      "slug": "updating-procedure",
+      "heading": "Updating Procedure",
+      "pdfPage": 123,
+      "scan": "comtran-manuals/J28-6169/images/page-123.png"
+    },
+    "J:06.04.02": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 421,
+      "slug": "tape-formats",
+      "heading": "Tape Formats",
+      "pdfPage": 124,
+      "scan": "comtran-manuals/J28-6169/images/page-124.png"
+    },
+    "J:06.04.03": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 452,
+      "slug": "tape-formats",
+      "heading": "Tape Formats",
+      "pdfPage": 125,
+      "scan": "comtran-manuals/J28-6169/images/page-125.png"
+    },
+    "J:06.04.04": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 494,
+      "slug": "control-cards-1",
+      "heading": "Control Cards",
+      "pdfPage": 126,
+      "scan": "comtran-manuals/J28-6169/images/page-126.png"
+    },
+    "J:06.04.05": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 532,
+      "slug": "rename-card",
+      "heading": "*RENAME CARD",
+      "pdfPage": 127,
+      "scan": "comtran-manuals/J28-6169/images/page-127.png"
+    },
+    "J:06.04.06": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 574,
+      "slug": "alter-card",
+      "heading": "*ALTER CARD",
+      "pdfPage": 128,
+      "scan": "comtran-manuals/J28-6169/images/page-128.png"
+    },
+    "J:06.04.07": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 609,
+      "slug": "notes-card",
+      "heading": "*NOTES CARD",
+      "pdfPage": 129,
+      "scan": "comtran-manuals/J28-6169/images/page-129.png"
+    },
+    "J:06.04.08": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 645,
+      "slug": "change-status-indicators",
+      "heading": "CHANGE STATUS INDICATORS",
+      "pdfPage": 130,
+      "scan": "comtran-manuals/J28-6169/images/page-130.png"
+    },
+    "J:06.04.09": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 682,
+      "slug": "messages",
+      "heading": "MESSAGES",
+      "pdfPage": 131,
+      "scan": "comtran-manuals/J28-6169/images/page-131.png"
+    },
+    "J:90.01": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 703,
+      "slug": "appendix-9001",
+      "heading": "APPENDIX 90.01",
+      "pdfPage": 132,
+      "scan": "comtran-manuals/J28-6169/images/page-132.png"
+    },
+    "J:90.01.00": {
+      "file": "comtran-manuals/J28-6169/06-systems-maintenance.md",
+      "line": 701,
+      "slug": "messages",
+      "heading": "MESSAGES",
+      "pdfPage": 132,
+      "scan": "comtran-manuals/J28-6169/images/page-132.png"
+    },
+    "J:90.01.01": {
+      "file": "comtran-manuals/J28-6169/90.01-deferred-features.md",
+      "line": 4,
+      "slug": "appendix-9001-deferred-features-restrictions-and-limitations",
+      "heading": "Appendix 90.01: Deferred Features, Restrictions, and Limitations",
+      "pdfPage": 133,
+      "scan": "comtran-manuals/J28-6169/images/page-133.png"
+    },
+    "J:90.01.02": {
+      "file": "comtran-manuals/J28-6169/90.01-deferred-features.md",
+      "line": 46,
+      "slug": "1-language",
+      "heading": "1. Language",
+      "pdfPage": 134,
+      "scan": "comtran-manuals/J28-6169/images/page-134.png"
+    },
+    "J:90.01.03": {
+      "file": "comtran-manuals/J28-6169/90.01-deferred-features.md",
+      "line": 78,
+      "slug": "1-language",
+      "heading": "1. Language",
+      "pdfPage": 135,
+      "scan": "comtran-manuals/J28-6169/images/page-135.png"
+    },
+    "J:90.01.04": {
+      "file": "comtran-manuals/J28-6169/90.01-deferred-features.md",
+      "line": 115,
+      "slug": "1-language",
+      "heading": "1. Language",
+      "pdfPage": 136,
+      "scan": "comtran-manuals/J28-6169/images/page-136.png"
+    },
+    "J:90.01.05": {
+      "file": "comtran-manuals/J28-6169/90.01-deferred-features.md",
+      "line": 144,
+      "slug": "1-language",
+      "heading": "1. Language",
+      "pdfPage": 137,
+      "scan": "comtran-manuals/J28-6169/images/page-137.png"
+    },
+    "J:90.02": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 6,
+      "slug": "appendix-9002",
+      "heading": "APPENDIX 90.02",
+      "pdfPage": 138,
+      "scan": "comtran-manuals/J28-6169/images/page-138.png"
+    },
+    "J:90.02.00": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 4,
+      "slug": "appendix-9002-generated-code",
+      "heading": "Appendix 90.02: Generated Code",
+      "pdfPage": 138,
+      "scan": "comtran-manuals/J28-6169/images/page-138.png"
+    },
+    "J:90.02.01": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 17,
+      "slug": "introduction",
+      "heading": "INTRODUCTION",
+      "pdfPage": 139,
+      "scan": "comtran-manuals/J28-6169/images/page-139.png"
+    },
+    "J:90.02.02": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 57,
+      "slug": "symbolic-listing",
+      "heading": "SYMBOLIC LISTING",
+      "pdfPage": 140,
+      "scan": "comtran-manuals/J28-6169/images/page-140.png"
+    },
+    "J:90.02.03": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 96,
+      "slug": "symbolic-listing",
+      "heading": "SYMBOLIC LISTING",
+      "pdfPage": 141,
+      "scan": "comtran-manuals/J28-6169/images/page-141.png"
+    },
+    "J:90.02.04": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 140,
+      "slug": "symbolic-listing",
+      "heading": "SYMBOLIC LISTING",
+      "pdfPage": 142,
+      "scan": "comtran-manuals/J28-6169/images/page-142.png"
+    },
+    "J:90.02.05": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 186,
+      "slug": "symbolic-listing",
+      "heading": "SYMBOLIC LISTING",
+      "pdfPage": 143,
+      "scan": "comtran-manuals/J28-6169/images/page-143.png"
+    },
+    "J:90.02.06": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 236,
+      "slug": "symbolic-listing",
+      "heading": "SYMBOLIC LISTING",
+      "pdfPage": 144,
+      "scan": "comtran-manuals/J28-6169/images/page-144.png"
+    },
+    "J:90.02.07": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 281,
+      "slug": "symbolic-listing",
+      "heading": "SYMBOLIC LISTING",
+      "pdfPage": 145,
+      "scan": "comtran-manuals/J28-6169/images/page-145.png"
+    },
+    "J:90.02.08": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 310,
+      "slug": "ct-system-subroutines-and-communication-cells",
+      "heading": "CT SYSTEM SUBROUTINES AND COMMUNICATION CELLS",
+      "pdfPage": 146,
+      "scan": "comtran-manuals/J28-6169/images/page-146.png"
+    },
+    "J:90.02.09": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 363,
+      "slug": "ioc-reference-numbers",
+      "heading": "IOC REFERENCE NUMBERS",
+      "pdfPage": 147,
+      "scan": "comtran-manuals/J28-6169/images/page-147.png"
+    },
+    "J:90.02.10": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 382,
+      "slug": "ioc-reference-numbers",
+      "heading": "IOC REFERENCE NUMBERS",
+      "pdfPage": 148,
+      "scan": "comtran-manuals/J28-6169/images/page-148.png"
+    },
+    "J:90.02.11": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 425,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 149,
+      "scan": "comtran-manuals/J28-6169/images/page-149.png"
+    },
+    "J:90.02.11.01": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 476,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 150,
+      "scan": "comtran-manuals/J28-6169/images/page-150.png"
+    },
+    "J:90.02.12": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 491,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 151,
+      "scan": "comtran-manuals/J28-6169/images/page-151.png"
+    },
+    "J:90.02.13": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 550,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 152,
+      "scan": "comtran-manuals/J28-6169/images/page-152.png"
+    },
+    "J:90.02.14": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 622,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 153,
+      "scan": "comtran-manuals/J28-6169/images/page-153.png"
+    },
+    "J:90.02.15": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 691,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 154,
+      "scan": "comtran-manuals/J28-6169/images/page-154.png"
+    },
+    "J:90.02.16": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 745,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 155,
+      "scan": "comtran-manuals/J28-6169/images/page-155.png"
+    },
+    "J:90.02.17": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 803,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 156,
+      "scan": "comtran-manuals/J28-6169/images/page-156.png"
+    },
+    "J:90.02.18": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 854,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 157,
+      "scan": "comtran-manuals/J28-6169/images/page-157.png"
+    },
+    "J:90.02.19": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 918,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 158,
+      "scan": "comtran-manuals/J28-6169/images/page-158.png"
+    },
+    "J:90.02.20": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 969,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 159,
+      "scan": "comtran-manuals/J28-6169/images/page-159.png"
+    },
+    "J:90.02.21": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1044,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 160,
+      "scan": "comtran-manuals/J28-6169/images/page-160.png"
+    },
+    "J:90.02.22": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1119,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 161,
+      "scan": "comtran-manuals/J28-6169/images/page-161.png"
+    },
+    "J:90.02.23": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1196,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 162,
+      "scan": "comtran-manuals/J28-6169/images/page-162.png"
+    },
+    "J:90.02.24": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1271,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 163,
+      "scan": "comtran-manuals/J28-6169/images/page-163.png"
+    },
+    "J:90.02.25": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1346,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 164,
+      "scan": "comtran-manuals/J28-6169/images/page-164.png"
+    },
+    "J:90.02.26": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1417,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 165,
+      "scan": "comtran-manuals/J28-6169/images/page-165.png"
+    },
+    "J:90.02.27": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1473,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 166,
+      "scan": "comtran-manuals/J28-6169/images/page-166.png"
+    },
+    "J:90.02.28": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1529,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 167,
+      "scan": "comtran-manuals/J28-6169/images/page-167.png"
+    },
+    "J:90.02.29": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1591,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 168,
+      "scan": "comtran-manuals/J28-6169/images/page-168.png"
+    },
+    "J:90.02.30": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1655,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 169,
+      "scan": "comtran-manuals/J28-6169/images/page-169.png"
+    },
+    "J:90.02.31": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1715,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 170,
+      "scan": "comtran-manuals/J28-6169/images/page-170.png"
+    },
+    "J:90.02.32": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1790,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 171,
+      "scan": "comtran-manuals/J28-6169/images/page-171.png"
+    },
+    "J:90.02.33": {
+      "file": "comtran-manuals/J28-6169/90.02-generated-code.md",
+      "line": 1855,
+      "slug": "sys-reference-numbers",
+      "heading": "SYS REFERENCE NUMBERS",
+      "pdfPage": 172,
+      "scan": "comtran-manuals/J28-6169/images/page-172.png"
+    },
+    "J:90.03": {
+      "file": "comtran-manuals/J28-6169/90.03-object-deck-format.md",
+      "line": 6,
+      "slug": "appendix-9003",
+      "heading": "APPENDIX 90.03",
+      "pdfPage": 173,
+      "scan": "comtran-manuals/J28-6169/images/page-173.png"
+    },
+    "J:90.03.00": {
+      "file": "comtran-manuals/J28-6169/90.03-object-deck-format.md",
+      "line": 4,
+      "slug": "appendix-9003-object-deck-format",
+      "heading": "Appendix 90.03: Object Deck Format",
+      "pdfPage": 173,
+      "scan": "comtran-manuals/J28-6169/images/page-173.png"
+    },
+    "J:90.03.01": {
+      "file": "comtran-manuals/J28-6169/90.03-object-deck-format.md",
+      "line": 15,
+      "slug": "introduction",
+      "heading": "INTRODUCTION",
+      "pdfPage": 174,
+      "scan": "comtran-manuals/J28-6169/images/page-174.png"
+    },
+    "J:90.03.02": {
+      "file": "comtran-manuals/J28-6169/90.03-object-deck-format.md",
+      "line": 65,
+      "slug": "1-introduction",
+      "heading": "1. Introduction",
+      "pdfPage": 175,
+      "scan": "comtran-manuals/J28-6169/images/page-175.png"
+    },
+    "J:90.03.03": {
+      "file": "comtran-manuals/J28-6169/90.03-object-deck-format.md",
+      "line": 113,
+      "slug": "3-file-check-entry-specifications",
+      "heading": "3. File Check Entry Specifications",
+      "pdfPage": 176,
+      "scan": "comtran-manuals/J28-6169/images/page-176.png"
+    },
+    "J:90.03.04": {
+      "file": "comtran-manuals/J28-6169/90.03-object-deck-format.md",
+      "line": 154,
+      "slug": "1-format",
+      "heading": "1. Format",
+      "pdfPage": 177,
+      "scan": "comtran-manuals/J28-6169/images/page-177.png"
+    },
+    "J:90.03.05": {
+      "file": "comtran-manuals/J28-6169/90.03-object-deck-format.md",
+      "line": 200,
+      "slug": "3-standard-word",
+      "heading": "3. Standard Word",
+      "pdfPage": 178,
+      "scan": "comtran-manuals/J28-6169/images/page-178.png"
+    },
+    "J:90.03.06": {
+      "file": "comtran-manuals/J28-6169/90.03-object-deck-format.md",
+      "line": 249,
+      "slug": "5",
+      "heading": "5.",
+      "pdfPage": 179,
+      "scan": "comtran-manuals/J28-6169/images/page-179.png"
+    },
+    "J:90.04": {
+      "file": "comtran-manuals/J28-6169/90.04-error-messages.md",
+      "line": 6,
+      "slug": "appendix-9004",
+      "heading": "APPENDIX 90.04",
+      "pdfPage": 180,
+      "scan": "comtran-manuals/J28-6169/images/page-180.png"
+    },
+    "J:90.04.00": {
+      "file": "comtran-manuals/J28-6169/90.04-error-messages.md",
+      "line": 4,
+      "slug": "appendix-9004-error-messages-and-severity-codes",
+      "heading": "Appendix 90.04: Error Messages and Severity Codes",
+      "pdfPage": 180,
+      "scan": "comtran-manuals/J28-6169/images/page-180.png"
+    },
+    "J:90.04.01": {
+      "file": "comtran-manuals/J28-6169/90.04-error-messages.md",
+      "line": 11,
+      "slug": "error-messages-and-severity-codes",
+      "heading": "ERROR MESSAGES AND SEVERITY CODES",
+      "pdfPage": 181,
+      "scan": "comtran-manuals/J28-6169/images/page-181.png"
+    },
+    "J:90.04.02": {
+      "file": "comtran-manuals/J28-6169/90.04-error-messages.md",
+      "line": 312,
+      "slug": "a-error-messages",
+      "heading": "A. Error Messages",
+      "pdfPage": 186,
+      "scan": "comtran-manuals/J28-6169/images/page-186.png"
+    },
+    "J:90.05": {
+      "file": "comtran-manuals/J28-6169/90.05-sample-program.md",
+      "line": 6,
+      "slug": "appendix-9005",
+      "heading": "APPENDIX 90.05",
+      "pdfPage": 187,
+      "scan": "comtran-manuals/J28-6169/images/page-187.png"
+    },
+    "J:90.05.00": {
+      "file": "comtran-manuals/J28-6169/90.05-sample-program.md",
+      "line": 4,
+      "slug": "appendix-9005-sample-program",
+      "heading": "Appendix 90.05: Sample Program",
+      "pdfPage": 187,
+      "scan": "comtran-manuals/J28-6169/images/page-187.png"
+    },
+    "J:90.05.01": {
+      "file": "comtran-manuals/J28-6169/90.05-sample-program.md",
+      "line": 16,
+      "slug": "introduction",
+      "heading": "INTRODUCTION",
+      "pdfPage": 188,
+      "scan": "comtran-manuals/J28-6169/images/page-188.png"
+    },
+    "J:90.05.02": {
+      "file": "comtran-manuals/J28-6169/90.05-sample-program.md",
+      "line": 63,
+      "slug": "1-data-description",
+      "heading": "1. Data Description",
+      "pdfPage": 189,
+      "scan": "comtran-manuals/J28-6169/images/page-189.png"
+    },
+    "J:90.05.03": {
+      "file": "comtran-manuals/J28-6169/90.05-sample-program.md",
+      "line": 113,
+      "slug": "1-data-description-1",
+      "heading": "1. Data Description",
+      "pdfPage": 190,
+      "scan": "comtran-manuals/J28-6169/images/page-190.png"
+    },
+    "J:90.05.04": {
+      "file": "comtran-manuals/J28-6169/90.05-sample-program.md",
+      "line": 156,
+      "slug": "a-data-description",
+      "heading": "a) Data Description",
+      "pdfPage": 191,
+      "scan": "comtran-manuals/J28-6169/images/page-191.png"
+    },
+    "J:90.08": {
+      "file": "comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md",
+      "line": 6,
+      "slug": "appendix-9008",
+      "heading": "Appendix 90.08",
+      "pdfPage": 218,
+      "scan": "comtran-manuals/J28-6169/images/page-218.png"
+    },
+    "J:90.08.00": {
+      "file": "comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md",
+      "line": 4,
+      "slug": "appendix-9008-compiler-use-of-environment-descriptions-in-generation-of-loader-symbolic-control-cards",
+      "heading": "Appendix 90.08: Compiler Use of Environment Descriptions in Generation of Loader Symbolic Control Cards",
+      "pdfPage": 218,
+      "scan": "comtran-manuals/J28-6169/images/page-218.png"
+    },
+    "J:90.08.01": {
+      "file": "comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md",
+      "line": 11,
+      "slug": "appendix-9008",
+      "heading": "Appendix 90.08",
+      "pdfPage": 219,
+      "scan": "comtran-manuals/J28-6169/images/page-219.png"
+    },
+    "J:90.08.02": {
+      "file": "comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md",
+      "line": 61,
+      "slug": "a-the-file-card",
+      "heading": "A. The *FILE Card",
+      "pdfPage": 220,
+      "scan": "comtran-manuals/J28-6169/images/page-220.png"
+    }
+  },
+  "headings": {
+    "comtran-manuals/F28-8043/00-front-matter.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "F28-8043: General Information Manual — IBM Commercial Translator (front matter)",
+        "slug": "f28-8043-general-information-manual--ibm-commercial-translator-front-matter"
+      },
+      {
+        "line": 30,
+        "level": 2,
+        "text": "Contents",
+        "slug": "contents"
+      },
+      {
+        "line": 154,
+        "level": 2,
+        "text": "Preface",
+        "slug": "preface"
+      },
+      {
+        "line": 156,
+        "level": 4,
+        "text": "Background",
+        "slug": "background"
+      },
+      {
+        "line": 160,
+        "level": 4,
+        "text": "Concerning this Manual",
+        "slug": "concerning-this-manual"
+      }
+    ],
+    "comtran-manuals/F28-8043/01-general-description.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Chapter 1: General Description of the Commercial Translator System",
+        "slug": "chapter-1-general-description-of-the-commercial-translator-system"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "Introduction and Plan of the Manual",
+        "slug": "introduction-and-plan-of-the-manual"
+      },
+      {
+        "line": 12,
+        "level": 2,
+        "text": "Designing Data Processing Programs",
+        "slug": "designing-data-processing-programs"
+      },
+      {
+        "line": 18,
+        "level": 2,
+        "text": "What Is a Data Processing System?",
+        "slug": "what-is-a-data-processing-system"
+      },
+      {
+        "line": 34,
+        "level": 3,
+        "text": "Communication with a Data Processing Machine",
+        "slug": "communication-with-a-data-processing-machine"
+      },
+      {
+        "line": 47,
+        "level": 2,
+        "text": "The Commercial Translator System",
+        "slug": "the-commercial-translator-system"
+      },
+      {
+        "line": 61,
+        "level": 3,
+        "text": "Examples",
+        "slug": "examples"
+      },
+      {
+        "line": 65,
+        "level": 3,
+        "text": "Example 1",
+        "slug": "example-1"
+      },
+      {
+        "line": 97,
+        "level": 3,
+        "text": "Example 2",
+        "slug": "example-2"
+      },
+      {
+        "line": 143,
+        "level": 3,
+        "text": "Example 3",
+        "slug": "example-3"
+      },
+      {
+        "line": 196,
+        "level": 3,
+        "text": "Construction of the Commercial Translator Language",
+        "slug": "construction-of-the-commercial-translator-language"
+      },
+      {
+        "line": 219,
+        "level": 3,
+        "text": "Example 4",
+        "slug": "example-4"
+      },
+      {
+        "line": 281,
+        "level": 3,
+        "text": "Example 5",
+        "slug": "example-5"
+      },
+      {
+        "line": 302,
+        "level": 2,
+        "text": "Outline of Manual",
+        "slug": "outline-of-manual"
+      }
+    ],
+    "comtran-manuals/F28-8043/02-language-structure.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Chapter 2: The Structure of the Language",
+        "slug": "chapter-2-the-structure-of-the-language"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "Underlying Principles",
+        "slug": "underlying-principles"
+      },
+      {
+        "line": 17,
+        "level": 2,
+        "text": "Character Set",
+        "slug": "character-set"
+      },
+      {
+        "line": 44,
+        "level": 2,
+        "text": "Verbs",
+        "slug": "verbs"
+      },
+      {
+        "line": 57,
+        "level": 3,
+        "text": "Operators",
+        "slug": "operators"
+      },
+      {
+        "line": 65,
+        "level": 2,
+        "text": "Names",
+        "slug": "names"
+      },
+      {
+        "line": 71,
+        "level": 3,
+        "text": "Kinds of Names",
+        "slug": "kinds-of-names"
+      },
+      {
+        "line": 75,
+        "level": 4,
+        "text": "Data-Names",
+        "slug": "data-names"
+      },
+      {
+        "line": 88,
+        "level": 4,
+        "text": "Procedure-Names",
+        "slug": "procedure-names"
+      },
+      {
+        "line": 96,
+        "level": 4,
+        "text": "Condition-Names",
+        "slug": "condition-names"
+      },
+      {
+        "line": 113,
+        "level": 3,
+        "text": "Formation of Names",
+        "slug": "formation-of-names"
+      },
+      {
+        "line": 123,
+        "level": 3,
+        "text": "Compound Names",
+        "slug": "compound-names"
+      },
+      {
+        "line": 147,
+        "level": 3,
+        "text": "Placing Names in the Program",
+        "slug": "placing-names-in-the-program"
+      },
+      {
+        "line": 164,
+        "level": 2,
+        "text": "Constants",
+        "slug": "constants"
+      },
+      {
+        "line": 203,
+        "level": 3,
+        "text": "Literals",
+        "slug": "literals"
+      },
+      {
+        "line": 207,
+        "level": 4,
+        "text": "Rules for Forming Literals",
+        "slug": "rules-for-forming-literals"
+      },
+      {
+        "line": 211,
+        "level": 5,
+        "text": "NUMERIC LITERALS",
+        "slug": "numeric-literals"
+      },
+      {
+        "line": 222,
+        "level": 5,
+        "text": "ALPHABETIC AND ALPHAMERIC LITERALS",
+        "slug": "alphabetic-and-alphameric-literals"
+      },
+      {
+        "line": 228,
+        "level": 3,
+        "text": "Named Constants",
+        "slug": "named-constants"
+      },
+      {
+        "line": 234,
+        "level": 4,
+        "text": "Rules for Forming Named Constants",
+        "slug": "rules-for-forming-named-constants"
+      },
+      {
+        "line": 242,
+        "level": 3,
+        "text": "Figurative Constants",
+        "slug": "figurative-constants"
+      },
+      {
+        "line": 264,
+        "level": 2,
+        "text": "Expressions",
+        "slug": "expressions"
+      },
+      {
+        "line": 268,
+        "level": 3,
+        "text": "Arithmetic Expressions",
+        "slug": "arithmetic-expressions"
+      },
+      {
+        "line": 304,
+        "level": 3,
+        "text": "Conditional Expressions",
+        "slug": "conditional-expressions"
+      },
+      {
+        "line": 312,
+        "level": 4,
+        "text": "Relations",
+        "slug": "relations"
+      },
+      {
+        "line": 339,
+        "level": 4,
+        "text": "Condition-Names",
+        "slug": "condition-names-1"
+      },
+      {
+        "line": 369,
+        "level": 4,
+        "text": "AND, OR, and NOT",
+        "slug": "and-or-and-not"
+      },
+      {
+        "line": 409,
+        "level": 3,
+        "text": "Truth Functions",
+        "slug": "truth-functions"
+      },
+      {
+        "line": 426,
+        "level": 2,
+        "text": "Clauses",
+        "slug": "clauses"
+      },
+      {
+        "line": 435,
+        "level": 3,
+        "text": "Imperative Clauses",
+        "slug": "imperative-clauses"
+      },
+      {
+        "line": 449,
+        "level": 3,
+        "text": "Conditional Clauses",
+        "slug": "conditional-clauses"
+      },
+      {
+        "line": 462,
+        "level": 2,
+        "text": "Sentences",
+        "slug": "sentences"
+      },
+      {
+        "line": 486,
+        "level": 2,
+        "text": "Sections",
+        "slug": "sections"
+      },
+      {
+        "line": 500,
+        "level": 2,
+        "text": "Divisions",
+        "slug": "divisions"
+      },
+      {
+        "line": 519,
+        "level": 2,
+        "text": "Punctuation and Spacing",
+        "slug": "punctuation-and-spacing"
+      },
+      {
+        "line": 543,
+        "level": 2,
+        "text": "Lists, Tables, and Subscripts",
+        "slug": "lists-tables-and-subscripts"
+      },
+      {
+        "line": 578,
+        "level": 3,
+        "text": "Subscripts",
+        "slug": "subscripts"
+      },
+      {
+        "line": 620,
+        "level": 2,
+        "text": "Functions",
+        "slug": "functions"
+      },
+      {
+        "line": 685,
+        "level": 3,
+        "text": "Use of Functions in Procedure Statements",
+        "slug": "use-of-functions-in-procedure-statements"
+      }
+    ],
+    "comtran-manuals/F28-8043/03-procedure-description.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Chapter 3: Procedure Description",
+        "slug": "chapter-3-procedure-description"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "Introduction",
+        "slug": "introduction"
+      },
+      {
+        "line": 15,
+        "level": 2,
+        "text": "Verbs",
+        "slug": "verbs"
+      },
+      {
+        "line": 20,
+        "level": 3,
+        "text": "Program Verbs",
+        "slug": "program-verbs"
+      },
+      {
+        "line": 41,
+        "level": 3,
+        "text": "Processor Verbs",
+        "slug": "processor-verbs"
+      },
+      {
+        "line": 58,
+        "level": 2,
+        "text": "Commands",
+        "slug": "commands"
+      },
+      {
+        "line": 89,
+        "level": 2,
+        "text": "Format of Procedure Statements",
+        "slug": "format-of-procedure-statements"
+      },
+      {
+        "line": 96,
+        "level": 3,
+        "text": "Ctl. and Serial (Col. 1-6)",
+        "slug": "ctl-and-serial-col-1-6"
+      },
+      {
+        "line": 109,
+        "level": 3,
+        "text": "Procedure Name (Col. 7-12)",
+        "slug": "procedure-name-col-7-12"
+      },
+      {
+        "line": 126,
+        "level": 3,
+        "text": "Text (Col. 13-72)",
+        "slug": "text-col-13-72"
+      },
+      {
+        "line": 145,
+        "level": 3,
+        "text": "Identification (Col. 73-80)",
+        "slug": "identification-col-73-80"
+      },
+      {
+        "line": 153,
+        "level": 2,
+        "text": "Presentation of Commands and Examples",
+        "slug": "presentation-of-commands-and-examples"
+      },
+      {
+        "line": 172,
+        "level": 2,
+        "text": "Program Commands",
+        "slug": "program-commands"
+      },
+      {
+        "line": 179,
+        "level": 3,
+        "text": "Input/Output Commands",
+        "slug": "inputoutput-commands"
+      },
+      {
+        "line": 212,
+        "level": 4,
+        "text": "The OPEN Command",
+        "slug": "the-open-command"
+      },
+      {
+        "line": 250,
+        "level": 4,
+        "text": "The GET Command",
+        "slug": "the-get-command"
+      },
+      {
+        "line": 314,
+        "level": 4,
+        "text": "The FILE Command",
+        "slug": "the-file-command"
+      },
+      {
+        "line": 367,
+        "level": 4,
+        "text": "The CLOSE Command",
+        "slug": "the-close-command"
+      },
+      {
+        "line": 407,
+        "level": 3,
+        "text": "Data Transmission Commands",
+        "slug": "data-transmission-commands"
+      },
+      {
+        "line": 421,
+        "level": 4,
+        "text": "The MOVE Command",
+        "slug": "the-move-command"
+      },
+      {
+        "line": 451,
+        "level": 5,
+        "text": "EDITING FEATURE",
+        "slug": "editing-feature"
+      },
+      {
+        "line": 506,
+        "level": 4,
+        "text": "The MOVE CORRESPONDING Command",
+        "slug": "the-move-corresponding-command"
+      },
+      {
+        "line": 537,
+        "level": 5,
+        "text": "EDITING FEATURE",
+        "slug": "editing-feature-1"
+      },
+      {
+        "line": 548,
+        "level": 3,
+        "text": "Arithmetic Commands",
+        "slug": "arithmetic-commands"
+      },
+      {
+        "line": 554,
+        "level": 4,
+        "text": "The SET Command",
+        "slug": "the-set-command"
+      },
+      {
+        "line": 618,
+        "level": 5,
+        "text": "ARITHMETIC OPERATORS",
+        "slug": "arithmetic-operators"
+      },
+      {
+        "line": 651,
+        "level": 5,
+        "text": "VARIABLES AND CONSTANTS",
+        "slug": "variables-and-constants"
+      },
+      {
+        "line": 657,
+        "level": 5,
+        "text": "LITERALS",
+        "slug": "literals"
+      },
+      {
+        "line": 662,
+        "level": 5,
+        "text": "TRUTH FUNCTIONS",
+        "slug": "truth-functions"
+      },
+      {
+        "line": 682,
+        "level": 5,
+        "text": "FUNCTION-NAMES",
+        "slug": "function-names"
+      },
+      {
+        "line": 695,
+        "level": 4,
+        "text": "SET Used with Condition Names",
+        "slug": "set-used-with-condition-names"
+      },
+      {
+        "line": 734,
+        "level": 4,
+        "text": "The ADD Command",
+        "slug": "the-add-command"
+      },
+      {
+        "line": 760,
+        "level": 4,
+        "text": "The ADD CORRESPONDING Command",
+        "slug": "the-add-corresponding-command"
+      },
+      {
+        "line": 827,
+        "level": 3,
+        "text": "Control Commands",
+        "slug": "control-commands"
+      },
+      {
+        "line": 831,
+        "level": 4,
+        "text": "The GO TO Command",
+        "slug": "the-go-to-command"
+      },
+      {
+        "line": 835,
+        "level": 5,
+        "text": "UNCONDITIONAL",
+        "slug": "unconditional"
+      },
+      {
+        "line": 852,
+        "level": 5,
+        "text": "CONDITIONAL",
+        "slug": "conditional"
+      },
+      {
+        "line": 872,
+        "level": 5,
+        "text": "ASSIGNED",
+        "slug": "assigned"
+      },
+      {
+        "line": 905,
+        "level": 4,
+        "text": "The DO Command",
+        "slug": "the-do-command"
+      },
+      {
+        "line": 947,
+        "level": 4,
+        "text": "The DO Command with Indexing",
+        "slug": "the-do-command-with-indexing"
+      },
+      {
+        "line": 1011,
+        "level": 4,
+        "text": "The DO Command with Data Substitution",
+        "slug": "the-do-command-with-data-substitution"
+      },
+      {
+        "line": 1078,
+        "level": 4,
+        "text": "The DO Command with Named END",
+        "slug": "the-do-command-with-named-end"
+      },
+      {
+        "line": 1100,
+        "level": 4,
+        "text": "The STOP Command",
+        "slug": "the-stop-command"
+      },
+      {
+        "line": 1114,
+        "level": 3,
+        "text": "Other Program Commands",
+        "slug": "other-program-commands"
+      },
+      {
+        "line": 1118,
+        "level": 4,
+        "text": "The LOAD Command",
+        "slug": "the-load-command"
+      },
+      {
+        "line": 1132,
+        "level": 4,
+        "text": "The DISPLAY Command",
+        "slug": "the-display-command"
+      },
+      {
+        "line": 1177,
+        "level": 2,
+        "text": "Processor Commands",
+        "slug": "processor-commands"
+      },
+      {
+        "line": 1181,
+        "level": 3,
+        "text": "The OVERLAP Command",
+        "slug": "the-overlap-command"
+      },
+      {
+        "line": 1235,
+        "level": 3,
+        "text": "The BEGIN SECTION and END Commands",
+        "slug": "the-begin-section-and-end-commands"
+      },
+      {
+        "line": 1292,
+        "level": 3,
+        "text": "The INCLUDE Command",
+        "slug": "the-include-command"
+      },
+      {
+        "line": 1323,
+        "level": 3,
+        "text": "The CALL Command",
+        "slug": "the-call-command"
+      },
+      {
+        "line": 1345,
+        "level": 3,
+        "text": "The NOTE Command",
+        "slug": "the-note-command"
+      },
+      {
+        "line": 1364,
+        "level": 3,
+        "text": "The ENTER Command",
+        "slug": "the-enter-command"
+      },
+      {
+        "line": 1383,
+        "level": 2,
+        "text": "Relationship Between Program Commands and Processor Commands",
+        "slug": "relationship-between-program-commands-and-processor-commands"
+      }
+    ],
+    "comtran-manuals/F28-8043/04-data-description.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Chapter 4: Data Description",
+        "slug": "chapter-4-data-description"
+      },
+      {
+        "line": 3,
+        "level": 2,
+        "text": "What a Data Description Is",
+        "slug": "what-a-data-description-is"
+      },
+      {
+        "line": 18,
+        "level": 3,
+        "text": "The Purpose of a Data Description",
+        "slug": "the-purpose-of-a-data-description"
+      },
+      {
+        "line": 45,
+        "level": 2,
+        "text": "Files, Records, and Fields",
+        "slug": "files-records-and-fields"
+      },
+      {
+        "line": 52,
+        "level": 3,
+        "text": "Files",
+        "slug": "files"
+      },
+      {
+        "line": 69,
+        "level": 3,
+        "text": "Records",
+        "slug": "records"
+      },
+      {
+        "line": 77,
+        "level": 3,
+        "text": "Fields",
+        "slug": "fields"
+      },
+      {
+        "line": 85,
+        "level": 2,
+        "text": "Data Description Format",
+        "slug": "data-description-format"
+      },
+      {
+        "line": 96,
+        "level": 3,
+        "text": "General",
+        "slug": "general"
+      },
+      {
+        "line": 117,
+        "level": 3,
+        "text": "Ctl. and Serial (Col. 1-6)",
+        "slug": "ctl-and-serial-col-1-6"
+      },
+      {
+        "line": 151,
+        "level": 3,
+        "text": "Data Name (Col. 7-22)",
+        "slug": "data-name-col-7-22"
+      },
+      {
+        "line": 165,
+        "level": 3,
+        "text": "Level (Col. 23-24)",
+        "slug": "level-col-23-24"
+      },
+      {
+        "line": 313,
+        "level": 3,
+        "text": "Type (Col. 25-30)",
+        "slug": "type-col-25-30"
+      },
+      {
+        "line": 329,
+        "level": 4,
+        "text": "RECORD",
+        "slug": "record"
+      },
+      {
+        "line": 333,
+        "level": 4,
+        "text": "COND",
+        "slug": "cond"
+      },
+      {
+        "line": 369,
+        "level": 4,
+        "text": "FUNCT",
+        "slug": "funct"
+      },
+      {
+        "line": 376,
+        "level": 4,
+        "text": "PARAM",
+        "slug": "param"
+      },
+      {
+        "line": 382,
+        "level": 4,
+        "text": "REDEF",
+        "slug": "redef"
+      },
+      {
+        "line": 407,
+        "level": 4,
+        "text": "TABLES",
+        "slug": "tables"
+      },
+      {
+        "line": 539,
+        "level": 3,
+        "text": "COPY",
+        "slug": "copy"
+      },
+      {
+        "line": 614,
+        "level": 3,
+        "text": "LABEL",
+        "slug": "label"
+      },
+      {
+        "line": 621,
+        "level": 3,
+        "text": "Quantity (Col. 31-35)",
+        "slug": "quantity-col-31-35"
+      },
+      {
+        "line": 664,
+        "level": 3,
+        "text": "Mode (Col. 36)",
+        "slug": "mode-col-36"
+      },
+      {
+        "line": 686,
+        "level": 3,
+        "text": "Justify (Col. 37)",
+        "slug": "justify-col-37"
+      },
+      {
+        "line": 743,
+        "level": 3,
+        "text": "Description (Col. 38-71)",
+        "slug": "description-col-38-71"
+      },
+      {
+        "line": 764,
+        "level": 4,
+        "text": "Format Characters",
+        "slug": "format-characters"
+      },
+      {
+        "line": 808,
+        "level": 5,
+        "text": "EXAMPLES",
+        "slug": "examples"
+      },
+      {
+        "line": 820,
+        "level": 4,
+        "text": "Constants",
+        "slug": "constants"
+      },
+      {
+        "line": 853,
+        "level": 4,
+        "text": "Data Names Associated with REDEF and COPY",
+        "slug": "data-names-associated-with-redef-and-copy"
+      },
+      {
+        "line": 860,
+        "level": 4,
+        "text": "Library Names",
+        "slug": "library-names"
+      },
+      {
+        "line": 871,
+        "level": 4,
+        "text": "Quantities Specified in Named Fields",
+        "slug": "quantities-specified-in-named-fields"
+      },
+      {
+        "line": 995,
+        "level": 3,
+        "text": "Cont. (Col. 72)",
+        "slug": "cont-col-72"
+      },
+      {
+        "line": 1009,
+        "level": 3,
+        "text": "Identification (Col. 73-80)",
+        "slug": "identification-col-73-80"
+      },
+      {
+        "line": 1016,
+        "level": 2,
+        "text": "Storage Areas",
+        "slug": "storage-areas"
+      }
+    ],
+    "comtran-manuals/F28-8043/F28-8043.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "F28-8043: General Information Manual — IBM Commercial Translator",
+        "slug": "f28-8043-general-information-manual--ibm-commercial-translator"
+      },
+      {
+        "line": 9,
+        "level": 2,
+        "text": "Contents",
+        "slug": "contents"
+      },
+      {
+        "line": 26,
+        "level": 2,
+        "text": "Conventions used in the conversion",
+        "slug": "conventions-used-in-the-conversion"
+      }
+    ],
+    "comtran-manuals/F28-8043/a1-programming-example.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Appendix 1: Programming Example",
+        "slug": "appendix-1-programming-example"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "Introduction",
+        "slug": "introduction"
+      },
+      {
+        "line": 33,
+        "level": 3,
+        "text": "Process Chart — Payroll Example",
+        "slug": "process-chart--payroll-example"
+      },
+      {
+        "line": 41,
+        "level": 3,
+        "text": "Flow Chart — Payroll Example",
+        "slug": "flow-chart--payroll-example"
+      },
+      {
+        "line": 366,
+        "level": 2,
+        "text": "SAMPLE PAYROLL PROGRAM - MACHINE LISTING",
+        "slug": "sample-payroll-program---machine-listing"
+      }
+    ],
+    "comtran-manuals/F28-8043/a2-supplementary-information.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Appendix 2: Supplementary Information",
+        "slug": "appendix-2-supplementary-information"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "Rules for Forming Conditional Expressions",
+        "slug": "rules-for-forming-conditional-expressions"
+      },
+      {
+        "line": 71,
+        "level": 2,
+        "text": "Rules for Forming Arithmetic Expressions",
+        "slug": "rules-for-forming-arithmetic-expressions"
+      },
+      {
+        "line": 137,
+        "level": 2,
+        "text": "List of Commercial Translator Commands",
+        "slug": "list-of-commercial-translator-commands"
+      },
+      {
+        "line": 216,
+        "level": 2,
+        "text": "List of Commercial Translator Words",
+        "slug": "list-of-commercial-translator-words"
+      }
+    ],
+    "comtran-manuals/F28-8043/a3-glossary.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Appendix 3: Glossary",
+        "slug": "appendix-3-glossary"
+      }
+    ],
+    "comtran-manuals/F28-8043/index.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Index",
+        "slug": "index"
+      }
+    ],
+    "comtran-manuals/J28-6169/00-contents.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "J28-6169-1: IBM 709/7090 Commercial Translator Processor — cover and contents",
+        "slug": "j28-6169-1-ibm-7097090-commercial-translator-processor--cover-and-contents"
+      },
+      {
+        "line": 40,
+        "level": 2,
+        "text": "Table of Contents",
+        "slug": "table-of-contents"
+      }
+    ],
+    "comtran-manuals/J28-6169/01-documentation.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Section 01: Documentation",
+        "slug": "section-01-documentation"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "Introduction",
+        "slug": "introduction"
+      },
+      {
+        "line": 15,
+        "level": 2,
+        "text": "Notation Conventions",
+        "slug": "notation-conventions"
+      },
+      {
+        "line": 32,
+        "level": 2,
+        "text": "01.02 Current Pages",
+        "slug": "0102-current-pages"
+      },
+      {
+        "line": 126,
+        "level": 3,
+        "text": "01.02 Current Pages (Cont'd)",
+        "slug": "0102-current-pages-contd"
+      },
+      {
+        "line": 219,
+        "level": 3,
+        "text": "01.02 Current Pages (Cont'd)",
+        "slug": "0102-current-pages-contd-1"
+      }
+    ],
+    "comtran-manuals/J28-6169/02-compiler.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Section 02: Compiler",
+        "slug": "section-02-compiler"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "02.00 Introduction",
+        "slug": "0200-introduction"
+      },
+      {
+        "line": 13,
+        "level": 2,
+        "text": "02.01 Compiler Control Cards",
+        "slug": "0201-compiler-control-cards"
+      },
+      {
+        "line": 15,
+        "level": 4,
+        "text": "A. $CMPLE Card",
+        "slug": "a-cmple-card"
+      },
+      {
+        "line": 58,
+        "level": 4,
+        "text": "B. *FINISH card",
+        "slug": "b-finish-card"
+      },
+      {
+        "line": 72,
+        "level": 2,
+        "text": "02.02 Compiler Output",
+        "slug": "0202-compiler-output"
+      },
+      {
+        "line": 108,
+        "level": 2,
+        "text": "02.03 General Programming Considerations",
+        "slug": "0203-general-programming-considerations"
+      },
+      {
+        "line": 110,
+        "level": 4,
+        "text": "A. Use of Coding Forms",
+        "slug": "a-use-of-coding-forms"
+      },
+      {
+        "line": 129,
+        "level": 4,
+        "text": "B. Key Words",
+        "slug": "b-key-words"
+      },
+      {
+        "line": 186,
+        "level": 4,
+        "text": "C. Name Qualification",
+        "slug": "c-name-qualification"
+      },
+      {
+        "line": 190,
+        "level": 4,
+        "text": "D. Effect of Data Storage Mode on Arithmetic Efficiency",
+        "slug": "d-effect-of-data-storage-mode-on-arithmetic-efficiency"
+      },
+      {
+        "line": 246,
+        "level": 2,
+        "text": "02.04 Procedure Description Clarification and Amplification",
+        "slug": "0204-procedure-description-clarification-and-amplification"
+      },
+      {
+        "line": 248,
+        "level": 3,
+        "text": "A. Constants and Literals",
+        "slug": "a-constants-and-literals"
+      },
+      {
+        "line": 250,
+        "level": 4,
+        "text": "1. Figurative Constants",
+        "slug": "1-figurative-constants"
+      },
+      {
+        "line": 299,
+        "level": 4,
+        "text": "2. Literals.",
+        "slug": "2-literals"
+      },
+      {
+        "line": 320,
+        "level": 3,
+        "text": "B. Verbs",
+        "slug": "b-verbs"
+      },
+      {
+        "line": 322,
+        "level": 4,
+        "text": "1. ENTER",
+        "slug": "1-enter"
+      },
+      {
+        "line": 326,
+        "level": 4,
+        "text": "2. DISPLAY",
+        "slug": "2-display"
+      },
+      {
+        "line": 335,
+        "level": 4,
+        "text": "3. MOVE",
+        "slug": "3-move"
+      },
+      {
+        "line": 370,
+        "level": 4,
+        "text": "4. CORRESPONDING Option with MOVE and ADD",
+        "slug": "4-corresponding-option-with-move-and-add"
+      },
+      {
+        "line": 441,
+        "level": 4,
+        "text": "5. CALL",
+        "slug": "5-call"
+      },
+      {
+        "line": 445,
+        "level": 4,
+        "text": "6. SET",
+        "slug": "6-set"
+      },
+      {
+        "line": 512,
+        "level": 4,
+        "text": "7. GET and FILE",
+        "slug": "7-get-and-file"
+      },
+      {
+        "line": 516,
+        "level": 4,
+        "text": "8. CLOSE ALL FILES",
+        "slug": "8-close-all-files"
+      },
+      {
+        "line": 522,
+        "level": 4,
+        "text": "9. STOP RUN",
+        "slug": "9-stop-run"
+      },
+      {
+        "line": 526,
+        "level": 3,
+        "text": "C. Conditional Statements",
+        "slug": "c-conditional-statements"
+      },
+      {
+        "line": 539,
+        "level": 4,
+        "text": "2. Comparisons of fields of unequal length",
+        "slug": "2-comparisons-of-fields-of-unequal-length"
+      },
+      {
+        "line": 563,
+        "level": 3,
+        "text": "D. Subscripting and Indexing",
+        "slug": "d-subscripting-and-indexing"
+      },
+      {
+        "line": 592,
+        "level": 2,
+        "text": "02.05 Data Description Amplification and Clarification",
+        "slug": "0205-data-description-amplification-and-clarification"
+      },
+      {
+        "line": 596,
+        "level": 3,
+        "text": "A. Level",
+        "slug": "a-level"
+      },
+      {
+        "line": 613,
+        "level": 3,
+        "text": "B. Type Codes.",
+        "slug": "b-type-codes"
+      },
+      {
+        "line": 615,
+        "level": 4,
+        "text": "1. RECORD",
+        "slug": "1-record"
+      },
+      {
+        "line": 635,
+        "level": 4,
+        "text": "2. COND",
+        "slug": "2-cond"
+      },
+      {
+        "line": 639,
+        "level": 4,
+        "text": "3. REDEF (see iii under Data Description on page 90.01.03 for limitation).",
+        "slug": "3-redef-see-iii-under-data-description-on-page-900103-for-limitation"
+      },
+      {
+        "line": 682,
+        "level": 4,
+        "text": "4. RCDMRK",
+        "slug": "4-rcdmrk"
+      },
+      {
+        "line": 686,
+        "level": 4,
+        "text": "5. LABEL",
+        "slug": "5-label"
+      },
+      {
+        "line": 690,
+        "level": 4,
+        "text": "6. PARAM and FUNCT",
+        "slug": "6-param-and-funct"
+      },
+      {
+        "line": 697,
+        "level": 3,
+        "text": "C. Quantity Field",
+        "slug": "c-quantity-field"
+      },
+      {
+        "line": 701,
+        "level": 3,
+        "text": "D. Mode and Justify Fields",
+        "slug": "d-mode-and-justify-fields"
+      },
+      {
+        "line": 713,
+        "level": 3,
+        "text": "E. Description Field",
+        "slug": "e-description-field"
+      },
+      {
+        "line": 715,
+        "level": 4,
+        "text": "1. Pictorials",
+        "slug": "1-pictorials"
+      },
+      {
+        "line": 768,
+        "level": 4,
+        "text": "2. Constants",
+        "slug": "2-constants"
+      },
+      {
+        "line": 804,
+        "level": 4,
+        "text": "3. QUANTITY IN data.name",
+        "slug": "3-quantity-in-dataname"
+      },
+      {
+        "line": 810,
+        "level": 4,
+        "text": "4. BLANK WHEN ZERO",
+        "slug": "4-blank-when-zero"
+      },
+      {
+        "line": 819,
+        "level": 2,
+        "text": "02.06 Environment Description",
+        "slug": "0206-environment-description"
+      },
+      {
+        "line": 821,
+        "level": 4,
+        "text": "A. Introduction",
+        "slug": "a-introduction"
+      },
+      {
+        "line": 826,
+        "level": 4,
+        "text": "B. Environment Types",
+        "slug": "b-environment-types"
+      },
+      {
+        "line": 880,
+        "level": 4,
+        "text": "C. FILE Environment Card",
+        "slug": "c-file-environment-card"
+      },
+      {
+        "line": 1053,
+        "level": 4,
+        "text": "D. SPECIF Environment Card",
+        "slug": "d-specif-environment-card"
+      },
+      {
+        "line": 1242,
+        "level": 4,
+        "text": "E. POOL Environment Card",
+        "slug": "e-pool-environment-card"
+      },
+      {
+        "line": 1270,
+        "level": 4,
+        "text": "F. GROUP Environment card",
+        "slug": "f-group-environment-card"
+      },
+      {
+        "line": 1315,
+        "level": 4,
+        "text": "G. CONTRL Environment Card",
+        "slug": "g-contrl-environment-card"
+      },
+      {
+        "line": 1349,
+        "level": 4,
+        "text": "H. OPTION Environment Cards",
+        "slug": "h-option-environment-cards"
+      },
+      {
+        "line": 1404,
+        "level": 4,
+        "text": "I. COND Environment Card",
+        "slug": "i-cond-environment-card"
+      },
+      {
+        "line": 1423,
+        "level": 2,
+        "text": "02.07 Input/Output Facilities of the 709/7090 Commercial Translator",
+        "slug": "0207-inputoutput-facilities-of-the-7097090-commercial-translator"
+      },
+      {
+        "line": 1425,
+        "level": 3,
+        "text": "A. Introduction",
+        "slug": "a-introduction-1"
+      },
+      {
+        "line": 1431,
+        "level": 3,
+        "text": "B. Definitions",
+        "slug": "b-definitions"
+      },
+      {
+        "line": 1433,
+        "level": 4,
+        "text": "1. The Record",
+        "slug": "1-the-record"
+      },
+      {
+        "line": 1437,
+        "level": 4,
+        "text": "2. The File",
+        "slug": "2-the-file"
+      },
+      {
+        "line": 1443,
+        "level": 4,
+        "text": "3. The Block",
+        "slug": "3-the-block"
+      },
+      {
+        "line": 1452,
+        "level": 4,
+        "text": "4. Buffers",
+        "slug": "4-buffers"
+      },
+      {
+        "line": 1456,
+        "level": 4,
+        "text": "5. Locate and Transmit",
+        "slug": "5-locate-and-transmit"
+      },
+      {
+        "line": 1481,
+        "level": 4,
+        "text": "6. Record Types",
+        "slug": "6-record-types"
+      },
+      {
+        "line": 1508,
+        "level": 4,
+        "text": "7. The GET Command",
+        "slug": "7-the-get-command"
+      },
+      {
+        "line": 1533,
+        "level": 3,
+        "text": "C. Usage of the GET Command",
+        "slug": "c-usage-of-the-get-command"
+      },
+      {
+        "line": 1535,
+        "level": 4,
+        "text": "1. Factors Affecting Choice and Use of Locate or Transmit Mode",
+        "slug": "1-factors-affecting-choice-and-use-of-locate-or-transmit-mode"
+      },
+      {
+        "line": 1560,
+        "level": 4,
+        "text": "2. End of File Processing",
+        "slug": "2-end-of-file-processing"
+      },
+      {
+        "line": 1569,
+        "level": 4,
+        "text": "3. Input Error Processing",
+        "slug": "3-input-error-processing"
+      },
+      {
+        "line": 1608,
+        "level": 3,
+        "text": "D. Usage of the FILE Command",
+        "slug": "d-usage-of-the-file-command"
+      },
+      {
+        "line": 1612,
+        "level": 4,
+        "text": "1. Forms of the Command",
+        "slug": "1-forms-of-the-command"
+      },
+      {
+        "line": 1625,
+        "level": 4,
+        "text": "2. Miscellaneous Considerations",
+        "slug": "2-miscellaneous-considerations"
+      },
+      {
+        "line": 1631,
+        "level": 3,
+        "text": "E. Variable Length Record Options",
+        "slug": "e-variable-length-record-options"
+      },
+      {
+        "line": 1635,
+        "level": 4,
+        "text": "1. Non-standard Variable Length Input Records",
+        "slug": "1-non-standard-variable-length-input-records"
+      },
+      {
+        "line": 1652,
+        "level": 4,
+        "text": "2. Variable Length Output Records",
+        "slug": "2-variable-length-output-records"
+      },
+      {
+        "line": 1666,
+        "level": 4,
+        "text": "3. Use of the Options with Fixed Length Records",
+        "slug": "3-use-of-the-options-with-fixed-length-records"
+      },
+      {
+        "line": 1670,
+        "level": 3,
+        "text": "F. Examples of Usage",
+        "slug": "f-examples-of-usage"
+      },
+      {
+        "line": 1672,
+        "level": 4,
+        "text": "1. Example 1",
+        "slug": "1-example-1"
+      },
+      {
+        "line": 1697,
+        "level": 5,
+        "text": "b) Illustration of Tape",
+        "slug": "b-illustration-of-tape"
+      },
+      {
+        "line": 1710,
+        "level": 5,
+        "text": "c) Problem Explanation",
+        "slug": "c-problem-explanation"
+      },
+      {
+        "line": 1721,
+        "level": 4,
+        "text": "2. Example 2",
+        "slug": "2-example-2"
+      },
+      {
+        "line": 1723,
+        "level": 5,
+        "text": "a) Statement of problem",
+        "slug": "a-statement-of-problem"
+      },
+      {
+        "line": 1739,
+        "level": 5,
+        "text": "b) Illustration of Tape",
+        "slug": "b-illustration-of-tape-1"
+      },
+      {
+        "line": 1754,
+        "level": 5,
+        "text": "c) Problem Explanation",
+        "slug": "c-problem-explanation-1"
+      },
+      {
+        "line": 1763,
+        "level": 4,
+        "text": "3. Example 3",
+        "slug": "3-example-3"
+      },
+      {
+        "line": 1765,
+        "level": 5,
+        "text": "a) Statement of problem",
+        "slug": "a-statement-of-problem-1"
+      },
+      {
+        "line": 1780,
+        "level": 5,
+        "text": "b) Illustration of Tape",
+        "slug": "b-illustration-of-tape-2"
+      },
+      {
+        "line": 1787,
+        "level": 5,
+        "text": "c) Explanation of Problem",
+        "slug": "c-explanation-of-problem"
+      },
+      {
+        "line": 1800,
+        "level": 4,
+        "text": "4. Example 4",
+        "slug": "4-example-4"
+      },
+      {
+        "line": 1802,
+        "level": 5,
+        "text": "a) Statement of Problem",
+        "slug": "a-statement-of-problem-2"
+      },
+      {
+        "line": 1817,
+        "level": 5,
+        "text": "b) Illustration of Tape",
+        "slug": "b-illustration-of-tape-3"
+      },
+      {
+        "line": 1832,
+        "level": 5,
+        "text": "c) Explanation of Problem",
+        "slug": "c-explanation-of-problem-1"
+      },
+      {
+        "line": 1843,
+        "level": 2,
+        "text": "02.08 The 709/7090 Machine Symbolic Language - CRYPT",
+        "slug": "0208-the-7097090-machine-symbolic-language---crypt"
+      },
+      {
+        "line": 1845,
+        "level": 3,
+        "text": "A. Introduction",
+        "slug": "a-introduction-2"
+      },
+      {
+        "line": 1851,
+        "level": 3,
+        "text": "B. CRYPT Rules",
+        "slug": "b-crypt-rules"
+      },
+      {
+        "line": 1892,
+        "level": 3,
+        "text": "C. Flexibility Above that of SCAT",
+        "slug": "c-flexibility-above-that-of-scat"
+      },
+      {
+        "line": 1907,
+        "level": 3,
+        "text": "D. Machine Language Instructions Generated from CRYPT Language",
+        "slug": "d-machine-language-instructions-generated-from-crypt-language"
+      },
+      {
+        "line": 1925,
+        "level": 3,
+        "text": "E. Return to Commercial Translator Language",
+        "slug": "e-return-to-commercial-translator-language"
+      }
+    ],
+    "comtran-manuals/J28-6169/03-loader.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Section 03: Loader",
+        "slug": "section-03-loader"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "SECTION 03.00 LOADER",
+        "slug": "section-0300-loader"
+      },
+      {
+        "line": 8,
+        "level": 3,
+        "text": "INTRODUCTION",
+        "slug": "introduction"
+      },
+      {
+        "line": 19,
+        "level": 2,
+        "text": "03.01 Composition of the Commercial Translator Deck to be Loaded",
+        "slug": "0301-composition-of-the-commercial-translator-deck-to-be-loaded"
+      },
+      {
+        "line": 21,
+        "level": 4,
+        "text": "A. Deck Composition",
+        "slug": "a-deck-composition"
+      },
+      {
+        "line": 52,
+        "level": 4,
+        "text": "B. Combination of Separately Compiled Decks (Not currently available).",
+        "slug": "b-combination-of-separately-compiled-decks-not-currently-available"
+      },
+      {
+        "line": 61,
+        "level": 4,
+        "text": "C. Requirements for Loading a Single Deck",
+        "slug": "c-requirements-for-loading-a-single-deck"
+      },
+      {
+        "line": 79,
+        "level": 2,
+        "text": "03.02 Loader Control Cards",
+        "slug": "0302-loader-control-cards"
+      },
+      {
+        "line": 81,
+        "level": 4,
+        "text": "A. Introduction",
+        "slug": "a-introduction"
+      },
+      {
+        "line": 85,
+        "level": 4,
+        "text": "B. $LOAD Card",
+        "slug": "b-load-card"
+      },
+      {
+        "line": 130,
+        "level": 4,
+        "text": "C. *FILE Card",
+        "slug": "c-file-card"
+      },
+      {
+        "line": 218,
+        "level": 4,
+        "text": "D. *SPEC Card",
+        "slug": "d-spec-card"
+      },
+      {
+        "line": 250,
+        "level": 4,
+        "text": "E. *POOL Card",
+        "slug": "e-pool-card"
+      },
+      {
+        "line": 282,
+        "level": 4,
+        "text": "F. *GROUP Card",
+        "slug": "f-group-card"
+      },
+      {
+        "line": 307,
+        "level": 4,
+        "text": "G. *FILEQU Card",
+        "slug": "g-filequ-card"
+      },
+      {
+        "line": 330,
+        "level": 4,
+        "text": "H. *RETAINS Card",
+        "slug": "h-retains-card"
+      },
+      {
+        "line": 350,
+        "level": 4,
+        "text": "I. *DELETES Card",
+        "slug": "i-deletes-card"
+      },
+      {
+        "line": 361,
+        "level": 4,
+        "text": "J. *START Card",
+        "slug": "j-start-card"
+      },
+      {
+        "line": 375,
+        "level": 4,
+        "text": "K. *CTEXT and *CTEND Cards",
+        "slug": "k-ctext-and-ctend-cards"
+      },
+      {
+        "line": 390,
+        "level": 2,
+        "text": "03.03 Loader Output",
+        "slug": "0303-loader-output"
+      },
+      {
+        "line": 392,
+        "level": 4,
+        "text": "A. Program for Execution",
+        "slug": "a-program-for-execution"
+      },
+      {
+        "line": 449,
+        "level": 4,
+        "text": "B. Printed Messages",
+        "slug": "b-printed-messages"
+      }
+    ],
+    "comtran-manuals/J28-6169/04-monitor-and-supervisor.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Section 04: Supervisory System",
+        "slug": "section-04-supervisory-system"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "INTRODUCTION",
+        "slug": "introduction"
+      },
+      {
+        "line": 22,
+        "level": 2,
+        "text": "04.01 Function of the Basic Monitor",
+        "slug": "0401-function-of-the-basic-monitor"
+      },
+      {
+        "line": 29,
+        "level": 4,
+        "text": "A. Processing a Job",
+        "slug": "a-processing-a-job"
+      },
+      {
+        "line": 66,
+        "level": 4,
+        "text": "The Unit Function and Availability Tables",
+        "slug": "the-unit-function-and-availability-tables"
+      },
+      {
+        "line": 106,
+        "level": 4,
+        "text": "B. Basic Monitor Control Cards",
+        "slug": "b-basic-monitor-control-cards"
+      },
+      {
+        "line": 116,
+        "level": 4,
+        "text": "$DATE Card",
+        "slug": "date-card"
+      },
+      {
+        "line": 127,
+        "level": 4,
+        "text": "$ATTACH and $AS Cards",
+        "slug": "attach-and-as-cards"
+      },
+      {
+        "line": 152,
+        "level": 4,
+        "text": "$RELEASE Card",
+        "slug": "release-card"
+      },
+      {
+        "line": 163,
+        "level": 4,
+        "text": "$EXECUTE Card",
+        "slug": "execute-card"
+      },
+      {
+        "line": 174,
+        "level": 4,
+        "text": "$IBSYS Card",
+        "slug": "ibsys-card"
+      },
+      {
+        "line": 185,
+        "level": 4,
+        "text": "$RESTORE Card",
+        "slug": "restore-card"
+      },
+      {
+        "line": 199,
+        "level": 4,
+        "text": "$CARDS and $TAPE Cards",
+        "slug": "cards-and-tape-cards"
+      },
+      {
+        "line": 217,
+        "level": 4,
+        "text": "$UNITS Card",
+        "slug": "units-card"
+      },
+      {
+        "line": 228,
+        "level": 4,
+        "text": "$PAUSE Card",
+        "slug": "pause-card"
+      },
+      {
+        "line": 239,
+        "level": 4,
+        "text": "$SWITCH Card",
+        "slug": "switch-card"
+      },
+      {
+        "line": 269,
+        "level": 4,
+        "text": "Tape Operation Cards",
+        "slug": "tape-operation-cards"
+      },
+      {
+        "line": 288,
+        "level": 4,
+        "text": "$DETACH Card",
+        "slug": "detach-card"
+      },
+      {
+        "line": 302,
+        "level": 4,
+        "text": "$STOP Card",
+        "slug": "stop-card"
+      },
+      {
+        "line": 313,
+        "level": 4,
+        "text": "$* Card",
+        "slug": "-card"
+      },
+      {
+        "line": 327,
+        "level": 2,
+        "text": "04.02 Function of the Commercial Translator Supervisor - CTM",
+        "slug": "0402-function-of-the-commercial-translator-supervisor---ctm"
+      },
+      {
+        "line": 437,
+        "level": 4,
+        "text": "Accounting",
+        "slug": "accounting"
+      }
+    ],
+    "comtran-manuals/J28-6169/05-systems-operation.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Section 05: Systems Operation",
+        "slug": "section-05-systems-operation"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "SECTION 05. SYSTEMS OPERATIONS",
+        "slug": "section-05-systems-operations"
+      },
+      {
+        "line": 8,
+        "level": 3,
+        "text": "INTRODUCTION",
+        "slug": "introduction"
+      },
+      {
+        "line": 25,
+        "level": 2,
+        "text": "05.01 PERIPHERAL EQUIPMENT USED",
+        "slug": "0501-peripheral-equipment-used"
+      },
+      {
+        "line": 58,
+        "level": 2,
+        "text": "05.02 PERIPHERAL EQUIPMENT ASSIGNMENT",
+        "slug": "0502-peripheral-equipment-assignment"
+      },
+      {
+        "line": 90,
+        "level": 2,
+        "text": "05.03 SYSTEM SET-UP PROCEDURE",
+        "slug": "0503-system-set-up-procedure"
+      },
+      {
+        "line": 92,
+        "level": 4,
+        "text": "A. Preparing the system input -- SYSIN1 and SYSIN2.",
+        "slug": "a-preparing-the-system-input----sysin1-and-sysin2"
+      },
+      {
+        "line": 157,
+        "level": 4,
+        "text": "B. Starting Procedure",
+        "slug": "b-starting-procedure"
+      },
+      {
+        "line": 170,
+        "level": 2,
+        "text": "05.04 SYSTEM RESTART PROCEDURE",
+        "slug": "0504-system-restart-procedure"
+      },
+      {
+        "line": 197,
+        "level": 2,
+        "text": "05.05 OUTPUT FROM SYSTEM",
+        "slug": "0505-output-from-system"
+      },
+      {
+        "line": 199,
+        "level": 4,
+        "text": "A. Compiler",
+        "slug": "a-compiler"
+      },
+      {
+        "line": 207,
+        "level": 4,
+        "text": "B. Loader",
+        "slug": "b-loader"
+      },
+      {
+        "line": 211,
+        "level": 4,
+        "text": "C. Subroutine Files Updater",
+        "slug": "c-subroutine-files-updater"
+      },
+      {
+        "line": 215,
+        "level": 4,
+        "text": "D. File Maintenance",
+        "slug": "d-file-maintenance"
+      },
+      {
+        "line": 224,
+        "level": 2,
+        "text": "05.06 PROGRAM FLOW AND OPERATOR MESSAGES",
+        "slug": "0506-program-flow-and-operator-messages"
+      },
+      {
+        "line": 228,
+        "level": 4,
+        "text": "A. Compiler",
+        "slug": "a-compiler-1"
+      },
+      {
+        "line": 285,
+        "level": 4,
+        "text": "B. Loader",
+        "slug": "b-loader-1"
+      },
+      {
+        "line": 319,
+        "level": 4,
+        "text": "C. Object-program execution",
+        "slug": "c-object-program-execution"
+      },
+      {
+        "line": 339,
+        "level": 4,
+        "text": "D. Subroutine Files Updater",
+        "slug": "d-subroutine-files-updater"
+      },
+      {
+        "line": 351,
+        "level": 4,
+        "text": "E. File Maintenance",
+        "slug": "e-file-maintenance"
+      },
+      {
+        "line": 370,
+        "level": 2,
+        "text": "05.07 OBJECT-TIME TAPE ASSIGNMENT",
+        "slug": "0507-object-time-tape-assignment"
+      }
+    ],
+    "comtran-manuals/J28-6169/06-systems-maintenance.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Section 06: Systems Maintenance",
+        "slug": "section-06-systems-maintenance"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "Introduction",
+        "slug": "introduction"
+      },
+      {
+        "line": 20,
+        "level": 2,
+        "text": "06.01 Minimum Machine Requirements",
+        "slug": "0601-minimum-machine-requirements"
+      },
+      {
+        "line": 44,
+        "level": 2,
+        "text": "06.02 System Units and Object-Time Tape Assignment",
+        "slug": "0602-system-units-and-object-time-tape-assignment"
+      },
+      {
+        "line": 46,
+        "level": 4,
+        "text": "A. System Units",
+        "slug": "a-system-units"
+      },
+      {
+        "line": 122,
+        "level": 4,
+        "text": "B. Object-Time Tape Assignment",
+        "slug": "b-object-time-tape-assignment"
+      },
+      {
+        "line": 204,
+        "level": 2,
+        "text": "06.03 Updating Subroutine Files of System Tape",
+        "slug": "0603-updating-subroutine-files-of-system-tape"
+      },
+      {
+        "line": 232,
+        "level": 3,
+        "text": "Control Cards",
+        "slug": "control-cards"
+      },
+      {
+        "line": 236,
+        "level": 4,
+        "text": "*INSERT Card",
+        "slug": "insert-card"
+      },
+      {
+        "line": 247,
+        "level": 4,
+        "text": "*REPLACE Card",
+        "slug": "replace-card"
+      },
+      {
+        "line": 268,
+        "level": 4,
+        "text": "*REMOVE Card",
+        "slug": "remove-card"
+      },
+      {
+        "line": 282,
+        "level": 4,
+        "text": "*AFTER Card",
+        "slug": "after-card"
+      },
+      {
+        "line": 293,
+        "level": 4,
+        "text": "*REMARK Card",
+        "slug": "remark-card"
+      },
+      {
+        "line": 315,
+        "level": 3,
+        "text": "Updating Procedure",
+        "slug": "updating-procedure"
+      },
+      {
+        "line": 380,
+        "level": 2,
+        "text": "06.04 SYMBOLIC TAPE MAINTENANCE",
+        "slug": "0604-symbolic-tape-maintenance"
+      },
+      {
+        "line": 399,
+        "level": 3,
+        "text": "Tape Formats",
+        "slug": "tape-formats"
+      },
+      {
+        "line": 471,
+        "level": 3,
+        "text": "Control Cards",
+        "slug": "control-cards-1"
+      },
+      {
+        "line": 500,
+        "level": 4,
+        "text": "*FILE CARD",
+        "slug": "file-card"
+      },
+      {
+        "line": 519,
+        "level": 4,
+        "text": "*RENAME CARD",
+        "slug": "rename-card"
+      },
+      {
+        "line": 534,
+        "level": 4,
+        "text": "*NEW CARD",
+        "slug": "new-card"
+      },
+      {
+        "line": 548,
+        "level": 4,
+        "text": "*DELETE CARD",
+        "slug": "delete-card"
+      },
+      {
+        "line": 559,
+        "level": 4,
+        "text": "*ALTER CARD",
+        "slug": "alter-card"
+      },
+      {
+        "line": 580,
+        "level": 4,
+        "text": "*INSAS CARD",
+        "slug": "insas-card"
+      },
+      {
+        "line": 595,
+        "level": 4,
+        "text": "*NOTES CARD",
+        "slug": "notes-card"
+      },
+      {
+        "line": 623,
+        "level": 4,
+        "text": "*END CARD",
+        "slug": "end-card"
+      },
+      {
+        "line": 634,
+        "level": 3,
+        "text": "CHANGE STATUS INDICATORS",
+        "slug": "change-status-indicators"
+      },
+      {
+        "line": 647,
+        "level": 3,
+        "text": "MESSAGES",
+        "slug": "messages"
+      },
+      {
+        "line": 703,
+        "level": 2,
+        "text": "APPENDIX 90.01",
+        "slug": "appendix-9001"
+      },
+      {
+        "line": 705,
+        "level": 3,
+        "text": "DEFERRED FEATURES, RESTRICTIONS, AND LIMITATIONS",
+        "slug": "deferred-features-restrictions-and-limitations"
+      }
+    ],
+    "comtran-manuals/J28-6169/90.01-deferred-features.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Appendix 90.01: Deferred Features, Restrictions, and Limitations",
+        "slug": "appendix-9001-deferred-features-restrictions-and-limitations"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "90.01 Deferred Features, Restrictions and Limitations",
+        "slug": "9001-deferred-features-restrictions-and-limitations"
+      },
+      {
+        "line": 8,
+        "level": 3,
+        "text": "A. Compiler",
+        "slug": "a-compiler"
+      },
+      {
+        "line": 10,
+        "level": 4,
+        "text": "1. Language",
+        "slug": "1-language"
+      },
+      {
+        "line": 146,
+        "level": 4,
+        "text": "2. Internal Table Size Limitations",
+        "slug": "2-internal-table-size-limitations"
+      },
+      {
+        "line": 162,
+        "level": 3,
+        "text": "B. Loader",
+        "slug": "b-loader"
+      }
+    ],
+    "comtran-manuals/J28-6169/90.02-generated-code.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Appendix 90.02: Generated Code",
+        "slug": "appendix-9002-generated-code"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "APPENDIX 90.02",
+        "slug": "appendix-9002"
+      },
+      {
+        "line": 8,
+        "level": 3,
+        "text": "GENERATED CODE OF THE COMMERCIAL TRANSLATOR",
+        "slug": "generated-code-of-the-commercial-translator"
+      },
+      {
+        "line": 10,
+        "level": 4,
+        "text": "INTRODUCTION",
+        "slug": "introduction"
+      },
+      {
+        "line": 19,
+        "level": 4,
+        "text": "SYMBOLIC LISTING",
+        "slug": "symbolic-listing"
+      },
+      {
+        "line": 283,
+        "level": 3,
+        "text": "CT SYSTEM SUBROUTINES AND COMMUNICATION CELLS",
+        "slug": "ct-system-subroutines-and-communication-cells"
+      },
+      {
+        "line": 312,
+        "level": 4,
+        "text": "IOC REFERENCE NUMBERS",
+        "slug": "ioc-reference-numbers"
+      },
+      {
+        "line": 384,
+        "level": 4,
+        "text": "SYS REFERENCE NUMBERS",
+        "slug": "sys-reference-numbers"
+      }
+    ],
+    "comtran-manuals/J28-6169/90.03-object-deck-format.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Appendix 90.03: Object Deck Format",
+        "slug": "appendix-9003-object-deck-format"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "APPENDIX 90.03",
+        "slug": "appendix-9003"
+      },
+      {
+        "line": 8,
+        "level": 3,
+        "text": "RELATIVE BINARY PROGRAM DECK",
+        "slug": "relative-binary-program-deck"
+      },
+      {
+        "line": 10,
+        "level": 4,
+        "text": "INTRODUCTION",
+        "slug": "introduction"
+      },
+      {
+        "line": 17,
+        "level": 4,
+        "text": "A. General Description of Binary Load Decks",
+        "slug": "a-general-description-of-binary-load-decks"
+      },
+      {
+        "line": 19,
+        "level": 5,
+        "text": "1. Binary Card Format",
+        "slug": "1-binary-card-format"
+      },
+      {
+        "line": 41,
+        "level": 5,
+        "text": "2. Binary Decks",
+        "slug": "2-binary-decks"
+      },
+      {
+        "line": 58,
+        "level": 4,
+        "text": "B. FILE CHECK Table",
+        "slug": "b-file-check-table"
+      },
+      {
+        "line": 60,
+        "level": 5,
+        "text": "1. Introduction",
+        "slug": "1-introduction"
+      },
+      {
+        "line": 69,
+        "level": 5,
+        "text": "2. Card Format",
+        "slug": "2-card-format"
+      },
+      {
+        "line": 81,
+        "level": 5,
+        "text": "3. File Check Entry Specifications",
+        "slug": "3-file-check-entry-specifications"
+      },
+      {
+        "line": 115,
+        "level": 4,
+        "text": "C. Control Break Table",
+        "slug": "c-control-break-table"
+      },
+      {
+        "line": 117,
+        "level": 5,
+        "text": "1. Introduction",
+        "slug": "1-introduction-1"
+      },
+      {
+        "line": 121,
+        "level": 5,
+        "text": "2. Format",
+        "slug": "2-format"
+      },
+      {
+        "line": 138,
+        "level": 4,
+        "text": "D. Text",
+        "slug": "d-text"
+      },
+      {
+        "line": 140,
+        "level": 5,
+        "text": "1. Format",
+        "slug": "1-format"
+      },
+      {
+        "line": 156,
+        "level": 5,
+        "text": "2. Special Entries",
+        "slug": "2-special-entries"
+      },
+      {
+        "line": 186,
+        "level": 5,
+        "text": "3. Standard Word",
+        "slug": "3-standard-word"
+      },
+      {
+        "line": 202,
+        "level": 5,
+        "text": "4. System References:",
+        "slug": "4-system-references"
+      },
+      {
+        "line": 219,
+        "level": 5,
+        "text": "5.",
+        "slug": "5"
+      },
+      {
+        "line": 251,
+        "level": 5,
+        "text": "6. Immediate Operator",
+        "slug": "6-immediate-operator"
+      }
+    ],
+    "comtran-manuals/J28-6169/90.04-error-messages.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Appendix 90.04: Error Messages and Severity Codes",
+        "slug": "appendix-9004-error-messages-and-severity-codes"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "APPENDIX 90.04",
+        "slug": "appendix-9004"
+      },
+      {
+        "line": 8,
+        "level": 2,
+        "text": "ERROR MESSAGES AND SEVERITY CODES",
+        "slug": "error-messages-and-severity-codes"
+      },
+      {
+        "line": 13,
+        "level": 3,
+        "text": "A. Error Messages",
+        "slug": "a-error-messages"
+      },
+      {
+        "line": 314,
+        "level": 3,
+        "text": "B. Severity Codes",
+        "slug": "b-severity-codes"
+      }
+    ],
+    "comtran-manuals/J28-6169/90.05-sample-program.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Appendix 90.05: Sample Program",
+        "slug": "appendix-9005-sample-program"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "APPENDIX 90.05",
+        "slug": "appendix-9005"
+      },
+      {
+        "line": 8,
+        "level": 3,
+        "text": "SAMPLE PROBLEM",
+        "slug": "sample-problem"
+      },
+      {
+        "line": 10,
+        "level": 4,
+        "text": "INTRODUCTION",
+        "slug": "introduction"
+      },
+      {
+        "line": 18,
+        "level": 2,
+        "text": "90.05 Sample Problem",
+        "slug": "9005-sample-problem"
+      },
+      {
+        "line": 20,
+        "level": 3,
+        "text": "A. Introduction",
+        "slug": "a-introduction"
+      },
+      {
+        "line": 29,
+        "level": 3,
+        "text": "B. General Problem Statement",
+        "slug": "b-general-problem-statement"
+      },
+      {
+        "line": 38,
+        "level": 3,
+        "text": "C. The MASTER File",
+        "slug": "c-the-master-file"
+      },
+      {
+        "line": 44,
+        "level": 4,
+        "text": "1. Data Description",
+        "slug": "1-data-description"
+      },
+      {
+        "line": 83,
+        "level": 4,
+        "text": "2. Environment for MASTER Records",
+        "slug": "2-environment-for-master-records"
+      },
+      {
+        "line": 92,
+        "level": 3,
+        "text": "D. The DETAIL File",
+        "slug": "d-the-detail-file"
+      },
+      {
+        "line": 98,
+        "level": 4,
+        "text": "1. Data Description",
+        "slug": "1-data-description-1"
+      },
+      {
+        "line": 115,
+        "level": 4,
+        "text": "2. Environment Description",
+        "slug": "2-environment-description"
+      },
+      {
+        "line": 127,
+        "level": 3,
+        "text": "E. Output Report Files",
+        "slug": "e-output-report-files"
+      },
+      {
+        "line": 132,
+        "level": 4,
+        "text": "1. The CHECKFILE",
+        "slug": "1-the-checkfile"
+      },
+      {
+        "line": 134,
+        "level": 5,
+        "text": "a) Data Description",
+        "slug": "a-data-description"
+      },
+      {
+        "line": 167,
+        "level": 5,
+        "text": "b) Environment",
+        "slug": "b-environment"
+      },
+      {
+        "line": 173,
+        "level": 4,
+        "text": "2. The PAYFILE",
+        "slug": "2-the-payfile"
+      },
+      {
+        "line": 175,
+        "level": 5,
+        "text": "a) Data Description",
+        "slug": "a-data-description-1"
+      },
+      {
+        "line": 190,
+        "level": 5,
+        "text": "b) Environment Description",
+        "slug": "b-environment-description"
+      },
+      {
+        "line": 1856,
+        "level": 4,
+        "text": "REPORT OUTPUT FOR SAMPLE PROBLEM",
+        "slug": "report-output-for-sample-problem"
+      }
+    ],
+    "comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Appendix 90.08: Compiler Use of Environment Descriptions in Generation of Loader Symbolic Control Cards",
+        "slug": "appendix-9008-compiler-use-of-environment-descriptions-in-generation-of-loader-symbolic-control-cards"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "Appendix 90.08",
+        "slug": "appendix-9008"
+      },
+      {
+        "line": 13,
+        "level": 4,
+        "text": "A. The *FILE Card",
+        "slug": "a-the-file-card"
+      },
+      {
+        "line": 63,
+        "level": 4,
+        "text": "B. The *SPEC Card",
+        "slug": "b-the-spec-card"
+      }
+    ],
+    "comtran-manuals/J28-6169/99-publications.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "Publications",
+        "slug": "publications"
+      },
+      {
+        "line": 6,
+        "level": 2,
+        "text": "Publications",
+        "slug": "publications-1"
+      },
+      {
+        "line": 10,
+        "level": 3,
+        "text": "Reference Manuals",
+        "slug": "reference-manuals"
+      },
+      {
+        "line": 20,
+        "level": 3,
+        "text": "General Information Manuals",
+        "slug": "general-information-manuals"
+      },
+      {
+        "line": 29,
+        "level": 3,
+        "text": "Bulletins",
+        "slug": "bulletins"
+      }
+    ],
+    "comtran-manuals/J28-6169/J28-6169.md": [
+      {
+        "line": 1,
+        "level": 1,
+        "text": "J28-6169-1: IBM 709/7090 Commercial Translator Processor — Preliminary Reference Manual",
+        "slug": "j28-6169-1-ibm-7097090-commercial-translator-processor--preliminary-reference-manual"
+      },
+      {
+        "line": 13,
+        "level": 2,
+        "text": "Contents",
+        "slug": "contents"
+      },
+      {
+        "line": 37,
+        "level": 2,
+        "text": "Conventions used in the conversion",
+        "slug": "conventions-used-in-the-conversion"
+      }
+    ]
+  },
+  "repeatedCodes": {
+    "J:01.02": [
+      "comtran-manuals/J28-6169/01-documentation.md:126",
+      "comtran-manuals/J28-6169/01-documentation.md:219"
+    ],
+    "J:90.01": [
+      "comtran-manuals/J28-6169/90.01-deferred-features.md:6"
+    ],
+    "J:90.05": [
+      "comtran-manuals/J28-6169/90.05-sample-program.md:18"
+    ]
+  }
+}
