@@ -128,24 +128,34 @@ only surviving COMTRAN program with known-correct output — the printed report,
 PDF p. 217. It makes every milestone below testable at once.
 
 - **M0 — Commitments** (`docs/design/decisions.md`) — **DONE 2026-08-02.** The
-  D0 slate is locked: target language J; implementation in Dart; backend = real
-  7090 object code on our own emulator, with a high-level-emulated SYS)/IOC)
-  runtime; evidence-bounded bit-faithfulness; punch-level canonical decks with
-  generated text mirrors; the 1962 listing diff as the codegen oracle. D1–D9
-  record the §8.5 walk and the §8.4 conformance and severity decisions, each one
-  drafted, adversarially verified, and repaired. Jack's own calls are recorded in
-  place: PATTERN (bind the rules now, adopt the syntax at M5), `deck.name` blanks
-  (accept silently; `--pedantic` warns), and table capacities (hard-enforce the
-  printed numbers).
-- **M1 — Card reader, lexer, listing — DONE 2026-08-03.** The deck splitter
-  (control cards, division headers), the free-form procedure scanner (sentences,
-  labels, literals, the D9.10 character gate), the fixed-form data and
-  environment scanners (entry and specification assembly by column 72, name
-  compression, field checks), the tagged reserved-word tables (D1.5), statement
-  numbering (one number per sentence, entry, or specification, continuous), and
-  the listing (measured 1962 geometry; diagnostics as a statement-number-
-  referenced block). The 90.05 deck scans clean: 172 + 14 + 43 statements, zero
-  diagnostics, golden listing committed. M1's own decisions:
+  D0 slate is locked:
+  - The target language is J.
+  - The implementation language is Dart.
+  - The backend emits real 7090 object code, and our own emulator runs it. The
+    SYS) and IOC) runtime is emulated at a high level.
+  - Bit-faithfulness is bounded by the evidence.
+  - Decks are canonical at punch level, with generated text mirrors.
+  - The codegen oracle is the diff against the 1962 listing.
+
+  D1–D9 record the §8.5 walk and the §8.4 conformance and severity decisions.
+  Each record was drafted, adversarially verified, and repaired. Jack's own
+  calls are recorded in place: PATTERN (bind the rules now, adopt the syntax at
+  M5), `deck.name` blanks (accept silently; `--pedantic` warns), and table
+  capacities (hard-enforce the printed numbers).
+- **M1 — Card reader, lexer, listing — DONE 2026-08-03.** It delivers:
+  - the deck splitter — control cards and division headers;
+  - the free-form procedure scanner — sentences, labels, literals, and the
+    D9.10 character gate;
+  - the fixed-form data and environment scanners — entry and specification
+    assembly by column 72, name compression, and field checks;
+  - the tagged reserved-word tables (D1.5);
+  - statement numbering — one number per sentence, entry, or specification,
+    continuous across the divisions;
+  - the listing — measured 1962 geometry, with the diagnostics as a
+    statement-number-referenced block.
+
+  The 90.05 deck scans clean: 172 + 14 + 43 statements, zero diagnostics, and
+  the golden listing is committed. M1's own decisions:
   `docs/design/m1-front-end.md`.
 - **M2 — Parser and diagnostics** for all three divisions plus the control
   cards, with statement numbers of the full `n,cc` form and the 90.04 message
