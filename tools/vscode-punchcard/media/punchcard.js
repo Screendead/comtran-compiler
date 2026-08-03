@@ -5,6 +5,84 @@
 // every column with the ported §4 rules and sends the result. The webview draws
 // punches, tracks the cursor, and sends edit requests back.
 
+/**
+ * @typedef {Object} Readout
+ * @property {string} ch
+ * @property {string} kind
+ * @property {string} code
+ * @property {string} octal
+ * @property {string} name
+ */
+
+/**
+ * @typedef {Object} DeckField
+ * @property {number} start
+ * @property {number} end
+ * @property {string} label
+ * @property {string} name
+ * @property {string} css
+ * @property {string|null} scope
+ * @property {boolean} [tokens]
+ */
+
+/**
+ * @typedef {Object} Tables
+ * @property {DeckField[]} generic
+ * @property {DeckField[]} data
+ * @property {DeckField[]} environment
+ * @property {DeckField[]} procedure
+ */
+
+/**
+ * @typedef {Object} Markers
+ * @property {string} [special]
+ * @property {string} [unattested]
+ * @property {string} [none]
+ */
+
+/**
+ * @typedef {Object} StateMessage
+ * @property {string} type
+ * @property {number} cardCount
+ * @property {number} index
+ * @property {(string[])|null} [previews]
+ * @property {{index: number, text: string}|null} [preview]
+ * @property {number[]} [columns]
+ * @property {Readout[]} [readout]
+ * @property {number|null} [cursor]
+ * @property {string[]} [kinds]
+ * @property {Tables} [tables]
+ * @property {DeckField[]} [fields]
+ * @property {Markers} [markers]
+ */
+
+/**
+ * @typedef {Object} StatusMessage
+ * @property {string} type
+ * @property {string} text
+ */
+
+/**
+ * @typedef {Object} ViewState
+ * @property {number} cardCount
+ * @property {number} index
+ * @property {string[]} previews
+ * @property {string[]} kinds
+ * @property {Tables|null} tables
+ * @property {number[]} columns
+ * @property {Readout[]} readout
+ * @property {DeckField[]} fields
+ * @property {Markers} markers
+ */
+
+/**
+ * @typedef {Object} SavedViewState
+ * @property {number} [cw]
+ * @property {boolean} [typeMode]
+ * @property {number} [col]
+ * @property {number} [row]
+ */
+
 (function () {
   'use strict';
 
@@ -17,8 +95,19 @@
   var MIN_CW = 9;
   var MAX_CW = 26;
 
+  /**
+   * Looks up an element the generated HTML is known to contain. Throws
+   * rather than returning `null`, so every caller can treat the result as
+   * always present instead of narrowing it on every use.
+   * @param {string} id
+   * @returns {HTMLElement}
+   */
   function el(id) {
-    return document.getElementById(id);
+    var found = document.getElementById(id);
+    if (found === null) {
+      throw new Error('no element with id "' + id + '"');
+    }
+    return found;
   }
 
   var fieldsEl = el('fields');
@@ -34,12 +123,16 @@
   var legendEl = el('legend');
   var posEl = el('cardPos');
   var headEl = el('deckHead');
-  var typeModeBox = el('typeMode');
+  var typeModeBox = /** @type {HTMLInputElement} */ (el('typeMode'));
 
-  var cells = []; // cells[row][column - 1]
+  /** @type {HTMLElement[][]} cells[row][column - 1] */
+  var cells = [];
+  /** @type {HTMLElement[]} */
   var interpCells = [];
-  var numCells = []; // [tens row, units row][column - 1]
+  /** @type {HTMLElement[][]} [tens row, units row][column - 1] */
+  var numCells = [];
 
+  /** @type {ViewState} */
   var st = {
     cardCount: 0,
     index: 0,
@@ -56,6 +149,7 @@
   var prevCol = 0;
   var typeMode = false;
   var cw = 15;
+  /** @type {ReturnType<typeof setTimeout>|0} */
   var flashTimer = 0;
 
   build();
@@ -65,6 +159,10 @@
 
   // --- construction -------------------------------------------------------
 
+  /**
+   * @param {string} text
+   * @returns {HTMLElement}
+   */
   function gut(text) {
     var d = document.createElement('div');
     d.className = 'gut';
@@ -121,6 +219,7 @@
     }
   }
 
+  /** @param {DeckField[]} fields */
   function buildFields(fields) {
     fieldsEl.textContent = '';
     fieldsEl.appendChild(gut('FIELDS'));
@@ -156,7 +255,7 @@
   // --- state --------------------------------------------------------------
 
   function restore() {
-    var saved = vscode.getState();
+    var saved = /** @type {SavedViewState} */ (vscode.getState());
     if (saved) {
       cw = clampNum(saved.cw || cw, MIN_CW, MAX_CW);
       typeMode = saved.typeMode === true;
@@ -171,6 +270,12 @@
     vscode.setState({ cw: cw, typeMode: typeMode, col: col, row: row });
   }
 
+  /**
+   * @param {number} v
+   * @param {number} lo
+   * @param {number} hi
+   * @returns {number}
+   */
   function clampNum(v, lo, hi) {
     return Math.max(lo, Math.min(hi, v));
   }
@@ -189,6 +294,7 @@
     }
   });
 
+  /** @param {StateMessage} m */
   function onState(m) {
     st.cardCount = m.cardCount;
     st.index = m.index;
@@ -243,18 +349,26 @@
     cardList.appendChild(frag);
   }
 
-  // Refills the edited row, plus every row whose kind changed (editing a
-  // header card can move all the cards after it to another division).
+  /**
+   * Refills the edited row, plus every row whose kind changed (editing a
+   * header card can move all the cards after it to another division).
+   * @param {string[]} oldKinds
+   * @param {number} edited
+   */
   function patchList(oldKinds, edited) {
     for (var i = 0; i < cardList.children.length; i++) {
       if (i === edited || st.kinds[i] !== oldKinds[i]) {
-        fillRow(cardList.children[i].children[1], st.previews[i], st.kinds[i]);
+        var rowText = /** @type {HTMLElement} */ (
+          cardList.children[i].children[1]
+        );
+        fillRow(rowText, st.previews[i], st.kinds[i]);
       }
     }
   }
 
   // --- card list coloring ---------------------------------------------------
 
+  /** @type {Record<string, string>} */
   var WHOLE_LINE_KINDS = {
     control: 'd-ctl',
     finish: 'd-ctl',
@@ -264,6 +378,11 @@
     binary: 'd-bin',
   };
 
+  /**
+   * @param {string} cls
+   * @param {string} text
+   * @returns {HTMLElement}
+   */
   function span(cls, text) {
     var s = document.createElement('span');
     if (cls) {
@@ -273,9 +392,14 @@
     return s;
   }
 
-  // Splits `text` (the card read-out) into colored field spans. The column
-  // boundaries come from the extension host's shared table, so this pane
-  // cannot drift from the ruler or the `.deck` grammar.
+  /**
+   * Splits `text` (the card read-out) into colored field spans. The column
+   * boundaries come from the extension host's shared table, so this pane
+   * cannot drift from the ruler or the `.deck` grammar.
+   * @param {HTMLElement} txt
+   * @param {string} text
+   * @param {string} kind
+   */
   function fillRow(txt, text, kind) {
     txt.textContent = '';
     if (!text) {
@@ -290,7 +414,7 @@
       return;
     }
     if (kind === 'procedure') {
-      fillProcedureRow(txt, text);
+      fillProcedureRow(txt, text, st.tables);
       return;
     }
     var fields =
@@ -313,10 +437,15 @@
     }
   }
 
-  // A procedure label starts in the name margin but may run past it, so the
-  // label is the leading word, not a fixed slice.
-  function fillProcedureRow(txt, text) {
-    var fields = st.tables.procedure;
+  /**
+   * A procedure label starts in the name margin but may run past it, so the
+   * label is the leading word, not a fixed slice.
+   * @param {HTMLElement} txt
+   * @param {string} text
+   * @param {Tables} tables
+   */
+  function fillProcedureRow(txt, text, tables) {
+    var fields = tables.procedure;
     var serialEnd = fields[0].end;
     txt.appendChild(span('f-' + fields[0].css, text.slice(0, serialEnd)));
     var rest = text.slice(serialEnd);
@@ -371,6 +500,11 @@
     persist();
   }
 
+  /**
+   * @param {number} column
+   * @param {Readout} ro
+   * @returns {string}
+   */
   function tip(column, ro) {
     var parts = ['col ' + column];
     parts.push(ro.code === '' ? 'no punches' : ro.code);
@@ -397,6 +531,10 @@
     }
   }
 
+  /**
+   * @param {number} column
+   * @param {boolean} on
+   */
   function setColClass(column, on) {
     var c = column - 1;
     if (c < 0 || c >= COLS) {
@@ -410,6 +548,10 @@
     }
   }
 
+  /**
+   * @param {number} column
+   * @returns {DeckField|{name: string}}
+   */
   function fieldOf(column) {
     for (var i = 0; i < st.fields.length; i++) {
       if (column >= st.fields[i].start && column <= st.fields[i].end) {
@@ -440,11 +582,16 @@
     return parts.join('  .  ');
   }
 
+  /**
+   * @param {string} text
+   * @param {boolean} warn
+   */
   function showStatus(text, warn) {
     statusEl.textContent = text;
     statusEl.classList.toggle('warn', warn === true);
   }
 
+  /** @param {string} text */
   function flash(text) {
     showStatus(text, true);
     if (flashTimer) {
@@ -457,6 +604,10 @@
 
   // --- editing ------------------------------------------------------------
 
+  /**
+   * @param {number} column
+   * @param {number} [rowIndex]
+   */
   function moveTo(column, rowIndex) {
     col = clampNum(column, 1, COLS);
     if (typeof rowIndex === 'number') {
@@ -475,6 +626,10 @@
     }
   }
 
+  /**
+   * @param {number} column
+   * @param {number} rowIndex
+   */
   function toggleAt(column, rowIndex) {
     if (st.cardCount === 0) {
       return;
@@ -487,6 +642,7 @@
     });
   }
 
+  /** @param {number} column */
   function clearColumn(column) {
     if (st.cardCount === 0) {
       return;
@@ -499,13 +655,17 @@
     });
   }
 
+  /** @param {number} index */
   function selectCard(index) {
     vscode.postMessage({ type: 'select', index: index });
   }
 
   function wire() {
     cardList.addEventListener('click', function (e) {
-      var li = e.target.closest ? e.target.closest('li') : null;
+      var target = /** @type {HTMLElement|null} */ (e.target);
+      var li = /** @type {HTMLElement|null} */ (
+        target && target.closest ? target.closest('li') : null
+      );
       if (li && li.dataset.i !== undefined) {
         selectCard(Number(li.dataset.i));
         focusCard();
@@ -513,7 +673,7 @@
     });
 
     gridEl.addEventListener('click', function (e) {
-      var t = e.target;
+      var t = /** @type {HTMLElement} */ (e.target);
       if (!t.classList || !t.classList.contains('cell')) {
         return;
       }
@@ -524,8 +684,9 @@
       focusCard();
     });
 
+    /** @param {MouseEvent} e */
     function pick(e) {
-      var t = e.target;
+      var t = /** @type {HTMLElement} */ (e.target);
       if (t.dataset && t.dataset.c !== undefined) {
         moveTo(Number(t.dataset.c));
         focusCard();
@@ -582,6 +743,7 @@
     cardWrap.focus({ preventScroll: true });
   }
 
+  /** @param {KeyboardEvent} e */
   function onKey(e) {
     if (e.ctrlKey || e.metaKey || e.altKey) {
       return; // Leave undo, save and the rest to VS Code.

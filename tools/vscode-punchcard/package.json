@@ -71,7 +71,7 @@
     }
   },
   "scripts": {
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && tsc -p ./tsconfig.media.json",
     "watch": "tsc -w -p ./",
     "grammar": "tsc -p ./ && node out/generateGrammar.js",
     "test": "npm run compile && node --test \"test/**/*.test.js\"",
