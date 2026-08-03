@@ -1,0 +1,128 @@
+/// The M2 parser: `runParser` over the M1 front end's result.
+///
+/// Design: `docs/design/m2-parser.md`. At this stage the fixed-form
+/// divisions and the control cards parse; procedure groups carry their
+/// scan through unparsed until the procedure parser lands (staging
+/// entry, design note).
+library;
+
+import '../ast/control_ast.dart';
+import '../ast/data_ast.dart';
+import '../ast/environment_ast.dart';
+import '../lexer/diagnostic.dart';
+import '../lexer/front_end.dart';
+import 'control_parser.dart';
+import 'data_parser.dart';
+import 'environment_parser.dart';
+
+/// One division group after parsing.
+sealed class ParsedGroup {
+  ParsedGroup._(this.scan);
+
+  /// The M1 scan the parse consumed.
+  final GroupScan scan;
+}
+
+/// A parsed `*DATA` group.
+final class ParsedDataGroup extends ParsedGroup {
+  ParsedDataGroup._(super.scan, this.items) : super._();
+
+  /// The items, flat, in source order, hierarchy wired.
+  final List<DataItem> items;
+
+  /// The hierarchy roots.
+  Iterable<DataItem> get roots =>
+      items.where((DataItem item) => item.parent == null);
+}
+
+/// A parsed `*ENVIRONMENT` group.
+final class ParsedEnvironmentGroup extends ParsedGroup {
+  ParsedEnvironmentGroup._(super.scan, this.cards) : super._();
+
+  /// The parsed cards, source order. A specification the M1 scan
+  /// deleted (bad type code) appears here as no card.
+  final List<EnvironmentCard> cards;
+}
+
+/// A `*PROCEDURE` group; sentence parsing is the next staging entry.
+final class ParsedProcedureGroup extends ParsedGroup {
+  ParsedProcedureGroup._(super.scan) : super._();
+}
+
+/// The parser's result over one job.
+final class ParseResult {
+  ParseResult._({
+    required this.frontEnd,
+    required this.compileCard,
+    required this.groups,
+    required this.parserDiagnostics,
+  });
+
+  /// The M1 result the parse consumed.
+  final FrontEndResult frontEnd;
+
+  /// The parsed compile control card, when the deck has one.
+  final CompileCard? compileCard;
+
+  /// One parsed group per division group, deck order.
+  final List<ParsedGroup> groups;
+
+  /// The parser's own diagnostics, in detection order.
+  final List<Diagnostic> parserDiagnostics;
+
+  /// Front-end and parser diagnostics as one block, ordered by card
+  /// number, stable within one card (design note M2-2; the 1962
+  /// ordering is unattested).
+  late final List<Diagnostic> diagnostics = _merged();
+
+  List<Diagnostic> _merged() {
+    final all = <(int, int, Diagnostic)>[
+      for (final (int i, Diagnostic d) in frontEnd.diagnostics.indexed)
+        (d.card.cardNumber, i, d),
+      for (final (int i, Diagnostic d) in parserDiagnostics.indexed)
+        (d.card.cardNumber, frontEnd.diagnostics.length + i, d),
+    ];
+    all.sort(
+      ((int, int, Diagnostic) a, (int, int, Diagnostic) b) =>
+          a.$1 != b.$1 ? a.$1 - b.$1 : a.$2 - b.$2,
+    );
+    return List.unmodifiable([for (final (_, _, Diagnostic d) in all) d]);
+  }
+
+  /// The highest severity across both phases, or 0 with no diagnostics.
+  int get maxSeverity => diagnostics.isEmpty
+      ? 0
+      : diagnostics
+            .map((Diagnostic d) => d.severity)
+            .reduce((int a, int b) => a > b ? a : b);
+}
+
+/// Runs the M2 parser over [frontEnd].
+ParseResult runParser(FrontEndResult frontEnd) {
+  final diagnostics = <Diagnostic>[];
+  final CompileCard? compileCard = parseCompileCard(
+    frontEnd.program.compileCard,
+    diagnostics,
+  );
+  final groups = <ParsedGroup>[
+    for (final GroupScan scan in frontEnd.groupScans)
+      switch (scan) {
+        DataGroupScan(scan: final data) => ParsedDataGroup._(
+          scan,
+          parseDataGroup(data, diagnostics),
+        ),
+        EnvironmentGroupScan(scan: final environment) =>
+          ParsedEnvironmentGroup._(
+            scan,
+            parseEnvironmentGroup(environment, diagnostics),
+          ),
+        ProcedureGroupScan() => ParsedProcedureGroup._(scan),
+      },
+  ];
+  return ParseResult._(
+    frontEnd: frontEnd,
+    compileCard: compileCard,
+    groups: List.unmodifiable(groups),
+    parserDiagnostics: List.unmodifiable(diagnostics),
+  );
+}

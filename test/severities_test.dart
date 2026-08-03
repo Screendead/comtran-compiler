@@ -10,7 +10,10 @@ void main() {
     final Iterable<String> strays = messageSeverities.keys.where(
       (String id) => !messageCatalog.containsKey(id),
     );
-    expect(strays, ['900,00', '901,00', '902,00', '903,00', '904,00']);
+    expect(strays, [
+      '900,00', '901,00', '902,00', '903,00', '904,00', //
+      '905,00', '906,00', '907,00', '908,00', '909,00',
+    ]);
   });
 
   test('every severity value is in 1-5', () {

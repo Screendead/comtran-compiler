@@ -52,13 +52,20 @@ final class ListingOptions {
   final int linesPerPage;
 }
 
-/// Renders the listing for [result].
-String writeListing(FrontEndResult result, ListingOptions options) =>
-    _ListingWriter(result, options).write();
+/// Renders the listing for [result]. When [diagnostics] is given it
+/// replaces `result.diagnostics` as the printed block — the M2 driver
+/// passes the merged front-end-plus-parser list (`ParseResult`,
+/// design note M2-2); with `null` the front end's own list prints.
+String writeListing(
+  FrontEndResult result,
+  ListingOptions options, {
+  List<Diagnostic>? diagnostics,
+}) => _ListingWriter(result, options, diagnostics).write();
 
 final class _ListingWriter {
-  _ListingWriter(this.result, this.options) {
-    for (final Diagnostic d in result.diagnostics) {
+  _ListingWriter(this.result, this.options, List<Diagnostic>? diagnostics)
+    : diagnostics = diagnostics ?? result.diagnostics {
+    for (final Diagnostic d in this.diagnostics) {
       if (d.message.number == '134,00' && d.column != null) {
         _repaired.putIfAbsent(d.card.cardNumber, () => <int>{}).add(d.column!);
       }
@@ -67,6 +74,16 @@ final class _ListingWriter {
 
   final FrontEndResult result;
   final ListingOptions options;
+
+  /// The diagnostics the listing prints.
+  final List<Diagnostic> diagnostics;
+
+  /// The highest severity in [diagnostics], or 0 with none.
+  int get _maxSeverity => diagnostics.isEmpty
+      ? 0
+      : diagnostics
+            .map((Diagnostic d) => d.severity)
+            .reduce((int a, int b) => a > b ? a : b);
 
   /// Columns replaced by the character gate, per card — printed as `$`
   /// in the external text (decision D9.10).
@@ -152,7 +169,7 @@ final class _ListingWriter {
   }
 
   void _diagnosticBlock() {
-    if (result.diagnostics.isEmpty) {
+    if (diagnostics.isEmpty) {
       // The line starts at the phase-letter margin (scan: it aligns
       // with CTD/CTE on page 197).
       _line('  NO ERRORS WERE DETECTED DURING COMPILATION');
@@ -162,7 +179,7 @@ final class _ListingWriter {
     _line('');
     _line('NUMBER   CODE   MESSAGE');
     _line('');
-    for (final Diagnostic d in result.diagnostics) {
+    for (final Diagnostic d in diagnostics) {
       // The NUMBER column carries the statement number; 9999,99 marks a
       // diagnostic not confined to a numbered statement (J 02.02.01;
       // decision D9.5).
@@ -174,7 +191,7 @@ final class _ListingWriter {
         _line(continuation);
       }
     }
-    if (result.maxSeverity < 5) {
+    if (_maxSeverity < 5) {
       _line('');
       _line('SEVERITY LIMIT WAS NOT REACHED');
     }
