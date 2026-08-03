@@ -36,12 +36,19 @@ final RegExp _formatShaped = RegExp(r'^([AXVSF89*.$,+\-]|\([0-9]+\))+$');
 
 /// Parses one data group's [scan] into items with the hierarchy wired,
 /// appending to [diagnostics]. The returned list is flat, in source
-/// order; roots are the items with no parent.
-List<DataItem> parseDataGroup(DataScan scan, List<Diagnostic> diagnostics) {
+/// order; roots are the items with no parent. [pedantic] escalates the
+/// D3.4 named-REDEF-line warning (918) to its own error (921), issuing
+/// one or the other, never both (decision D11.4); the discarded name
+/// is unchanged in both modes.
+List<DataItem> parseDataGroup(
+  DataScan scan,
+  List<Diagnostic> diagnostics, {
+  bool pedantic = false,
+}) {
   final items = <DataItem>[];
   final stack = <DataItem>[];
   for (final DataEntry entry in scan.entries) {
-    final DataItem item = _parseEntry(entry, diagnostics);
+    final DataItem item = _parseEntry(entry, diagnostics, pedantic: pedantic);
     if (item.typeCode == DataTypeCode.record) {
       // "When the type code RECORD is recognized the previous data
       // organization is always terminated" (J 02.05.01): the record
@@ -70,7 +77,11 @@ List<DataItem> parseDataGroup(DataScan scan, List<Diagnostic> diagnostics) {
   return items;
 }
 
-DataItem _parseEntry(DataEntry entry, List<Diagnostic> diagnostics) {
+DataItem _parseEntry(
+  DataEntry entry,
+  List<Diagnostic> diagnostics, {
+  bool pedantic = false,
+}) {
   void conflict() {
     diagnostics.add(Diagnostic(msgDataCardCodingConflict, entry.cards.first));
   }
@@ -130,9 +141,15 @@ DataItem _parseEntry(DataEntry entry, List<Diagnostic> diagnostics) {
       final bool named = entry.name.isNotEmpty;
       if (named) {
         // The F-style named REDEF line: warned and discarded, never
-        // entered in the dictionary (D3.4).
+        // entered in the dictionary (D3.4). --pedantic issues 921 in
+        // place of 918 (D11.4); the name is discarded identically
+        // either way.
         diagnostics.add(
-          Diagnostic(msgRedefNameDiscarded, entry.cards.first, column: 7),
+          Diagnostic(
+            pedantic ? msgRedefNameRejected : msgRedefNameDiscarded,
+            entry.cards.first,
+            column: 7,
+          ),
         );
       }
       return DataItem(

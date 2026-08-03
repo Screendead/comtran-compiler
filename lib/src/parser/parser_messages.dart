@@ -318,3 +318,77 @@ const Message msgRedefNameDiscarded = Message.ours(
   '918,00',
   'NAME ON -REDEF- LINE IS DISCARDED. (NON-HISTORICAL.)',
 );
+
+/// Ours — `--pedantic` only: a name on the REDEF line, issued in place
+/// of 918 (never both). The name is discarded identically in both
+/// modes (D3.4; D11.4): `--pedantic` requires the bare J form.
+const Message msgRedefNameRejected = Message.ours(
+  '921,00',
+  'NAME ON -REDEF- LINE IS DISCARDED. THE BARE -REDEF- FORM IS '
+      'REQUIRED. (NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: a non-transfer AT END clause, issued in
+/// place of 911 (never both). The clause is kept as parsed in both
+/// modes (D6.6; D11.4).
+const Message msgAtEndNotTransferRejected = Message.ours(
+  '922,00',
+  '-AT END- CLAUSE IS NOT A TRANSFER. (NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: the $CMPLE deck.name contains imbedded
+/// blanks, which J 02.01.01 forbids (decision D7.11). Default mode
+/// accepts the name silently, reproducing the attested field-test
+/// leniency (J 90.01.05); the stored name is unchanged in both modes.
+const Message msgDeckNameImbeddedBlanks = Message.ours(
+  '923,00',
+  "COMPILE CARD DECK NAME 'NAME.1' CONTAINS IMBEDDED BLANKS. "
+      '(NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: an input FILE clause's second (or later)
+/// record name with no leading comma (decision D8.5). Default mode
+/// accepts either form silently — the printed Input form shows no
+/// comma, and the field-test compiler's actual treatment is unattested.
+const Message msgInputFileCommaOmitted = Message.ours(
+  '924,00',
+  'COMMA OMITTED BEFORE SECOND RECORD NAME IN INPUT -FILE- CLAUSE. '
+      '(NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: a COND key setting of fewer than 12 octal
+/// digits (decision D9.16). Default mode pads the setting on the left
+/// with zeros and issues no diagnostic; the padded value is identical
+/// in both modes.
+const Message msgCondKeyUnderLength = Message.ours(
+  '925,00',
+  '-COND- CARD KEY SETTING UNDER 12 DIGITS IS PADDED WITH LEADING '
+      'ZEROS. (NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: a comma written before OTHERWISE, which
+/// neither manual shows (decision D10.5a; F p. 25). Default mode
+/// accepts the comma silently as a recorded leniency.
+const Message msgCommaBeforeOtherwise = Message.ours(
+  '926,00',
+  'COMMA BEFORE -OTHERWISE- ACCEPTED. THE MANUALS SHOW NONE. '
+      '(NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: AT END written without its preceding comma
+/// (decision D10.5b; F p. 40 and all four sample GETs write `, AT
+/// END`). Default mode accepts the omission silently as a recorded
+/// leniency.
+const Message msgAtEndWithoutComma = Message.ours(
+  '927,00',
+  '-AT END- WITHOUT PRECEDING COMMA ACCEPTED. THE MANUALS SHOW THE '
+      'COMMA. (NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: a trailing comma directly before the
+/// sentence-terminating period (decision D10.5c). Default mode accepts
+/// the comma silently as a recorded leniency.
+const Message msgTrailingCommaBeforePeriod = Message.ours(
+  '928,00',
+  'COMMA BEFORE TERMINATING PERIOD ACCEPTED. (NON-HISTORICAL.)',
+);

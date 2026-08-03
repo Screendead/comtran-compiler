@@ -8,11 +8,12 @@ import 'support/deck_fixtures.dart';
 (List<Sentence>, List<Diagnostic>) _parse(
   List<String> lines, {
   bool finish = false,
+  bool pedantic = false,
 }) {
   final ProcedureScan scan = scanProcedure(sourceCards(lines));
   expect(scan.diagnostics, isEmpty, reason: 'scan must be clean');
   final diagnostics = <Diagnostic>[];
-  final parser = ProcedureParser(diagnostics);
+  final parser = ProcedureParser(diagnostics, pedantic: pedantic);
   final List<Sentence> sentences = parser.parseGroup(scan);
   if (finish) {
     parser.finishProgram(sourceCards(['      X']).single);
@@ -307,6 +308,29 @@ void main() {
       ]);
       expect(diagnostics.single.message, msgAtEndNotTransfer);
       expect(diagnostics.single.severity, 1);
+    });
+
+    test('a non-transfer AT END clause draws 922 in place of 911 under '
+        '--pedantic (D6.6)', () {
+      final lines = ['            GET MASTER, AT END MOVE A TO B.'];
+      final (List<Sentence> plainSentences, List<Diagnostic> plainDiagnostics) =
+          _parse(lines);
+      expect(plainDiagnostics.single.message, msgAtEndNotTransfer);
+      final (
+        List<Sentence> pedanticSentences,
+        List<Diagnostic> pedanticDiagnostics,
+      ) = _parse(
+        lines,
+        pedantic: true,
+      );
+      expect(pedanticDiagnostics.single.message, msgAtEndNotTransferRejected);
+      // The clause is kept as parsed in both modes (D11.4).
+      final plainGet = plainSentences.single.clauses.single as GetClause;
+      final pedanticGet = pedanticSentences.single.clauses.single as GetClause;
+      expect(
+        pedanticGet.atEnd!.statement.runtimeType,
+        plainGet.atEnd!.statement.runtimeType,
+      );
     });
 
     test('OPEN without a file name draws 139', () {
@@ -804,6 +828,81 @@ void main() {
       final get = sentences[1].clauses.single as GetClause;
       expect(get.clause, 1);
       expect(get.atEnd!.statement!.clause, 2);
+    });
+  });
+
+  group('D10.5 clause-separator leniencies under --pedantic', () {
+    test('a comma before OTHERWISE draws 926 under --pedantic (D10.5a)', () {
+      final lines = ['            IF A = B THEN GO TO C, OTHERWISE GO TO D.'];
+      final (List<Sentence> plainSentences, List<Diagnostic> plainDiagnostics) =
+          _parse(lines);
+      expect(plainDiagnostics, isEmpty);
+      final (
+        List<Sentence> pedanticSentences,
+        List<Diagnostic> pedanticDiagnostics,
+      ) = _parse(
+        lines,
+        pedantic: true,
+      );
+      expect(pedanticDiagnostics.single.message, msgCommaBeforeOtherwise);
+      // The clause series parses the same either way (D11.4).
+      final plainIf = plainSentences.single.clauses.single as IfClause;
+      final pedanticIf = pedanticSentences.single.clauses.single as IfClause;
+      expect(pedanticIf.otherwiseArm.single, isA<GoToClause>());
+      expect(
+        pedanticIf.thenArm.single.runtimeType,
+        plainIf.thenArm.single.runtimeType,
+      );
+      expect(
+        pedanticIf.otherwiseArm.single.runtimeType,
+        plainIf.otherwiseArm.single.runtimeType,
+      );
+    });
+
+    test('AT END without a preceding comma draws 927 under --pedantic '
+        '(D10.5b)', () {
+      final lines = ['            GET MASTER AT END GO TO EXIT.'];
+      final (List<Sentence> plainSentences, List<Diagnostic> plainDiagnostics) =
+          _parse(lines);
+      expect(plainDiagnostics, isEmpty);
+      final (
+        List<Sentence> pedanticSentences,
+        List<Diagnostic> pedanticDiagnostics,
+      ) = _parse(
+        lines,
+        pedantic: true,
+      );
+      expect(pedanticDiagnostics.single.message, msgAtEndWithoutComma);
+      // The clause parses the same either way (D11.4).
+      final plainGet = plainSentences.single.clauses.single as GetClause;
+      final pedanticGet = pedanticSentences.single.clauses.single as GetClause;
+      expect(pedanticGet.atEnd!.statement, isA<GoToClause>());
+      expect(
+        pedanticGet.atEnd!.statement.runtimeType,
+        plainGet.atEnd!.statement.runtimeType,
+      );
+    });
+
+    test('a trailing comma before the terminating period draws 928 under '
+        '--pedantic (D10.5c)', () {
+      final lines = ['            MOVE A TO B,.'];
+      final (List<Sentence> plainSentences, List<Diagnostic> plainDiagnostics) =
+          _parse(lines);
+      expect(plainDiagnostics, isEmpty);
+      final (
+        List<Sentence> pedanticSentences,
+        List<Diagnostic> pedanticDiagnostics,
+      ) = _parse(
+        lines,
+        pedantic: true,
+      );
+      expect(pedanticDiagnostics.single.message, msgTrailingCommaBeforePeriod);
+      // The clause series parses the same either way (D11.4).
+      expect(
+        pedanticSentences.single.clauses.length,
+        plainSentences.single.clauses.length,
+      );
+      expect(plainSentences.single.clauses.single, isA<MoveClause>());
     });
   });
 }

@@ -55,8 +55,10 @@ final class DeckCompilation {
   }
 }
 
-/// Compiles every job on [deck] (D11.1–D11.3).
-DeckCompilation compileDeck(List<CardImage> deck) {
+/// Compiles every job on [deck] (D11.1–D11.3). [pedantic] adds
+/// non-historical written-language-strictness diagnostics (decision
+/// D0.8, D11.4) without changing any parse result or generated value.
+DeckCompilation compileDeck(List<CardImage> deck, {bool pedantic = false}) {
   final List<JobSlice> slices = splitJobs(deck);
   final jobs = <JobCompilation>[];
   for (var i = 0; i < slices.length; i++) {
@@ -64,12 +66,16 @@ DeckCompilation compileDeck(List<CardImage> deck) {
     // One fresh sink per job (D10.2; D11.2): a stopped job never
     // starves the next one (J 90.04.02).
     final sink = DiagnosticSink();
-    final FrontEndResult frontEnd = runFrontEnd(slice.cards, sink: sink);
+    final FrontEndResult frontEnd = runFrontEnd(
+      slice.cards,
+      sink: sink,
+      pedantic: pedantic,
+    );
     // A front-end stop skips the parser: the compilation stopped at
     // the point of detection (D9.1; D10.2).
     final ParseResult? parse = frontEnd.stopped
         ? null
-        : runParser(frontEnd, sink: sink);
+        : runParser(frontEnd, sink: sink, pedantic: pedantic);
     final diagnostics = <Diagnostic>[
       ...parse?.diagnostics ?? frontEnd.diagnostics,
     ];
@@ -83,6 +89,16 @@ DeckCompilation compileDeck(List<CardImage> deck) {
       );
       sink.add(tail);
       diagnostics.add(tail);
+    }
+    if (pedantic && i != slices.length - 1 && !slice.terminated) {
+      // A job closed by a following compile card, not its own
+      // *FINISH (D11.1 rule e). --pedantic warns (msg 929; D11.4); the
+      // job is accepted exactly as in default mode.
+      final closedByCompile = Diagnostic.wholeProgram(
+        msgJobClosedByCompileCard,
+      );
+      sink.add(closedByCompile);
+      diagnostics.add(closedByCompile);
     }
     if (i == slices.length - 1 && !slice.terminated) {
       // End of input inside an open job: message 132 at severity 5,

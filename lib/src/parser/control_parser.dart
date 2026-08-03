@@ -18,8 +18,14 @@ const Set<String> compileOptions = {
 };
 
 /// Parses the compile control [card], appending to [diagnostics];
-/// `null` in, `null` out.
-CompileCard? parseCompileCard(SourceCard? card, List<Diagnostic> diagnostics) {
+/// `null` in, `null` out. [pedantic] adds message 923 when deck.name
+/// contains imbedded blanks (decision D7.11; D11.4); the stored
+/// [CompileCard.deckName] is unchanged in both modes.
+CompileCard? parseCompileCard(
+  SourceCard? card,
+  List<Diagnostic> diagnostics, {
+  bool pedantic = false,
+}) {
   if (card == null) {
     return null;
   }
@@ -27,6 +33,14 @@ CompileCard? parseCompileCard(SourceCard? card, List<Diagnostic> diagnostics) {
   // Deck.name may start anywhere in its field, leading blanks ignored;
   // imbedded blanks are accepted silently (D7.11).
   final String deckName = historical ? '' : card.textRange(8, 13).trim();
+  if (pedantic && deckName.contains(' ')) {
+    // Leading blanks are ignored (J 02.01.01); a blank surviving the
+    // trim of both ends is necessarily imbedded (D7.11). The detected
+    // name is the same trimmed value stored above.
+    diagnostics.add(
+      Diagnostic(msgDeckNameImbeddedBlanks, card, operands: [deckName]),
+    );
+  }
   final optionsFrom = historical ? 15 : 14;
   final options = <String>[];
   // "The options used must not be separated by blanks as the first

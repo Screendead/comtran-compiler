@@ -201,3 +201,34 @@ const Message msgDuplicateCompileCard = Message.ours(
   '904,00',
   'DUPLICATE COMPILE CONTROL CARD IS IGNORED. (NON-HISTORICAL.)',
 );
+
+/// Ours — `--pedantic` only: a Data Description quoted constant
+/// continues onto the next card. Default mode accepts the continuation
+/// silently, reproducing the attested field-test leniency (decision
+/// D1.1; J 02.03.01, A.2.c). `--pedantic` enforces F p. 83's rule that
+/// each card's portion be a complete quoted constant.
+const Message msgConstantContinuesAcrossCards = Message.ours(
+  '919,00',
+  'DATA DESCRIPTION CONSTANT CONTINUES ACROSS CARDS. ACCEPTED. '
+      '(NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: a procedure-name terminating period plus
+/// blank was omitted. Default mode accepts the omission silently,
+/// reproducing the attested field-test leniency (decisions D1.3, D9.4a;
+/// J 90.01.03, A.1.a.ix). `--pedantic` enforces F p. 37's written form.
+const Message msgProcedureNamePeriodOmitted = Message.ours(
+  '920,00',
+  'PROCEDURE NAME PERIOD OMITTED. ACCEPTED. (NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: a job was closed by a following compile
+/// card rather than its own *FINISH card (decision D11.1 rule e). This
+/// leniency is non-historical: J separates jobs with a tape end-of-file
+/// mark, never a card scan (J 05.03.01). Default mode accepts it
+/// silently; `--pedantic` warns.
+const Message msgJobClosedByCompileCard = Message.ours(
+  '929,00',
+  'JOB CLOSED BY A COMPILE CARD WITHOUT *FINISH. ACCEPTED. '
+      '(NON-HISTORICAL.)',
+);

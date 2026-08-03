@@ -93,6 +93,39 @@ void main() {
       expect(deck.maxSeverity, 0);
     });
 
+    test('a job closed by a compile card draws 929 under --pedantic '
+        '(D11.1 rule e)', () {
+      final lines = [
+        r'$CMPLE JOBA',
+        '      *PROCEDURE',
+        '            STOP RUN.',
+        r'$CMPLE JOBB',
+        '      *PROCEDURE',
+        '            STOP RUN.',
+        '      *FINISH',
+      ];
+      final DeckCompilation plain = compileDeck(_deck(lines));
+      expect(plain.jobs[0].diagnostics, isEmpty);
+      final DeckCompilation pedantic = compileDeck(
+        _deck(lines),
+        pedantic: true,
+      );
+      expect(
+        pedantic.jobs[0].diagnostics.single.message,
+        msgJobClosedByCompileCard,
+      );
+      expect(pedantic.jobs[0].diagnostics.single.card, isNull);
+      // The second job is unaffected either way (D11.4).
+      expect(pedantic.jobs[1].diagnostics, isEmpty);
+      expect(pedantic.jobs[0].sink.maxSeverity, 1);
+      // Job splitting itself is unchanged (D11.4).
+      expect(
+        pedantic.jobs[0].frontEnd.statementCount,
+        plain.jobs[0].frontEnd.statementCount,
+      );
+      expect(pedantic.jobs, hasLength(plain.jobs.length));
+    });
+
     test('junk between jobs draws 902 in the next job', () {
       final DeckCompilation deck = compileDeck(
         _deck([
@@ -169,6 +202,15 @@ void main() {
 
     test('the 90.05 job deck compiles with zero diagnostics', () {
       final DeckCompilation deck = compileDeck(loadJobDeck());
+      final JobCompilation job = deck.jobs.single;
+      expect(job.diagnostics, isEmpty);
+      expect(deck.maxSeverity, 0);
+      expect(job.frontEnd.statementCount, 229);
+    });
+
+    test('the 90.05 job deck compiles with zero diagnostics under --pedantic '
+        '(D11.4)', () {
+      final DeckCompilation deck = compileDeck(loadJobDeck(), pedantic: true);
       final JobCompilation job = deck.jobs.single;
       expect(job.diagnostics, isEmpty);
       expect(deck.maxSeverity, 0);

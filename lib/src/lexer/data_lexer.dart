@@ -83,8 +83,14 @@ final class DataScan {
 /// Diagnostics go to [sink] when one is given — the compilation's
 /// [DiagnosticSink], whose severity-5 throw stops the scan at the point
 /// of detection (D9.1) — and the scan's own [DataScan.diagnostics]
-/// holds only this scan's rows either way.
-DataScan scanDataDescription(List<SourceCard> cards, [List<Diagnostic>? sink]) {
+/// holds only this scan's rows either way. [pedantic] adds message 919
+/// when a quoted constant continues across cards (decision D1.1;
+/// D11.4); it changes no scanned value.
+DataScan scanDataDescription(
+  List<SourceCard> cards, {
+  List<Diagnostic>? sink,
+  bool pedantic = false,
+}) {
   final entries = <DataEntry>[];
   final List<Diagnostic> diagnostics = sink ?? <Diagnostic>[];
   final int first = diagnostics.length;
@@ -96,7 +102,7 @@ DataScan scanDataDescription(List<SourceCard> cards, [List<Diagnostic>? sink]) {
       group.add(cards[i]);
     }
     i++;
-    entries.add(_scanEntry(group, diagnostics));
+    entries.add(_scanEntry(group, diagnostics, pedantic: pedantic));
   }
   return DataScan._(entries, diagnostics.sublist(first));
 }
@@ -116,7 +122,11 @@ const int _textLast = 71;
 // (J 02.05.06 e; review DATA-8).
 final RegExp _formatChars = RegExp(r'^([AXVSF89*.$,+\-]|\([0-9]+\))+$');
 
-DataEntry _scanEntry(List<SourceCard> group, List<Diagnostic> diagnostics) {
+DataEntry _scanEntry(
+  List<SourceCard> group,
+  List<Diagnostic> diagnostics, {
+  bool pedantic = false,
+}) {
   final SourceCard first = group.first;
 
   void gate(SourceCard card, int from, int to) {
@@ -185,7 +195,7 @@ DataEntry _scanEntry(List<SourceCard> group, List<Diagnostic> diagnostics) {
     quantity: quantity,
     modeText: modeText,
     justifyText: justifyText,
-    descriptionTokens: _scanDescription(group, diagnostics),
+    descriptionTokens: _scanDescription(group, diagnostics, pedantic: pedantic),
   );
 }
 
@@ -197,8 +207,9 @@ DataEntry _scanEntry(List<SourceCard> group, List<Diagnostic> diagnostics) {
 /// D1.1 and Open Question 6).
 List<Token> _scanDescription(
   List<SourceCard> group,
-  List<Diagnostic> diagnostics,
-) {
+  List<Diagnostic> diagnostics, {
+  bool pedantic = false,
+}) {
   final tokens = <Token>[];
 
   var inConstant = false;
@@ -330,9 +341,18 @@ List<Token> _scanDescription(
           Diagnostic(msgSecondQuoteMissing, card, column: constantColumn),
         );
         endConstant();
+      } else if (pedantic) {
+        // The constant continues onto the next card, joined with no
+        // assumed blank (D1.1; Open Question 6). --pedantic warns
+        // (msg 919; D11.4); the join itself is unchanged.
+        diagnostics.add(
+          Diagnostic(
+            msgConstantContinuesAcrossCards,
+            card,
+            column: constantColumn,
+          ),
+        );
       }
-      // Otherwise the constant continues onto the next card, joined
-      // with no assumed blank (D1.1; Open Question 6).
     }
   }
   return tokens;

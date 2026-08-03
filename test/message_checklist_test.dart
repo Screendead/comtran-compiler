@@ -44,6 +44,17 @@ final Map<String, Message> _ours = {
     msgDeferredVerb,
     msgFunctionArgumentDropped,
     msgRedefNameDiscarded,
+    msgConstantContinuesAcrossCards,
+    msgProcedureNamePeriodOmitted,
+    msgRedefNameRejected,
+    msgAtEndNotTransferRejected,
+    msgDeckNameImbeddedBlanks,
+    msgInputFileCommaOmitted,
+    msgCondKeyUnderLength,
+    msgCommaBeforeOtherwise,
+    msgAtEndWithoutComma,
+    msgTrailingCommaBeforePeriod,
+    msgJobClosedByCompileCard,
   ])
     m.number: m,
 };

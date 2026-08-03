@@ -113,6 +113,30 @@ void main() {
       expect(scan.entries.single.descriptionTokens.single.text, 'OPEN');
     });
 
+    test('a continued constant draws 919 under --pedantic (D1.1)', () {
+      final List<SourceCard> cards = sourceCards([
+        dataCard(
+          name: 'C',
+          level: '2',
+          description: "'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFG",
+          continued: true,
+        ),
+        dataCard(description: "HIJ'"),
+      ]);
+      final DataScan plain = scanDataDescription(cards);
+      expect(plain.diagnostics, isEmpty);
+      final DataScan pedantic = scanDataDescription(cards, pedantic: true);
+      expect(
+        pedantic.diagnostics.single.message,
+        msgConstantContinuesAcrossCards,
+      );
+      // The join itself is unchanged (D11.4).
+      expect(
+        pedantic.entries.single.descriptionTokens.single.text,
+        plain.entries.single.descriptionTokens.single.text,
+      );
+    });
+
     test('a short constant joins across cards with no card-tail blanks', () {
       final DataScan scan = scanDataDescription(
         sourceCards([

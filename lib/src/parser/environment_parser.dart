@@ -36,10 +36,14 @@ final class FileCardTally {
 /// Parses one environment group's [scan] into cards, appending to
 /// [diagnostics]. [fileTally] carries the program-wide FILE-card count
 /// across groups; without one the count covers this group only.
+/// [pedantic] adds message 924 (a FILE clause's second record name
+/// with no leading comma, D8.5) and message 925 (an under-length COND
+/// key setting, D9.16), changing no parsed value (D11.4).
 List<EnvironmentCard> parseEnvironmentGroup(
   EnvironmentScan scan,
   List<Diagnostic> diagnostics, {
   FileCardTally? fileTally,
+  bool pedantic = false,
 }) {
   final FileCardTally tally = fileTally ?? FileCardTally();
   final cards = <EnvironmentCard>[];
@@ -57,7 +61,7 @@ List<EnvironmentCard> parseEnvironmentGroup(
           // "A maximum of 63 files may be described" (J 90.01.04).
           diagnostics.add(Diagnostic(msgTooManyFiles, spec.cards.first));
         }
-        cards.add(_parseFileCard(spec, diagnostics));
+        cards.add(_parseFileCard(spec, diagnostics, pedantic: pedantic));
       case 'SPECIF':
         cards.add(_parseSpecifCard(spec, diagnostics));
       case 'POOL':
@@ -76,7 +80,7 @@ List<EnvironmentCard> parseEnvironmentGroup(
       case 'OPTION':
         cards.add(_parseOptionCard(spec, diagnostics));
       case 'COND':
-        cards.add(_parseCondCard(spec, diagnostics));
+        cards.add(_parseCondCard(spec, diagnostics, pedantic: pedantic));
       default:
         // M1 guarantees typeText is one of the seven codes above
         // (`environmentTypeCodes`, `environment_lexer.dart`).
@@ -144,7 +148,11 @@ const Map<String, FileDirection> _fileDirections = {
 };
 
 /// Parses a `FILE` card (J 02.06.02–07).
-FileCard _parseFileCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
+FileCard _parseFileCard(
+  EnvironmentSpec spec,
+  List<Diagnostic> diagnostics, {
+  bool pedantic = false,
+}) {
   final List<Token> tokens = spec.optionTokens;
   var i = 0;
   FileDirection direction = FileDirection.input;
@@ -364,6 +372,22 @@ FileCard _parseFileCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
         // directly after a previous record's options needs no leading
         // comma, D8.5 — accepted silently either way). A record name
         // is a declared use, so a key word here draws 178 (D10.8).
+        if (pedantic &&
+            current != null &&
+            direction == FileDirection.input &&
+            !(i > 0 &&
+                tokens[i - 1].kind == TokenKind.symbol &&
+                tokens[i - 1].text == ',')) {
+          // record.name.2 (or later) with no leading comma (D8.5).
+          // --pedantic warns (msg 924; D11.4); the clause is unchanged.
+          diagnostics.add(
+            Diagnostic(
+              msgInputFileCommaOmitted,
+              token.card,
+              column: token.column,
+            ),
+          );
+        }
         if (_isBarredName(token.text)) {
           diagnostics.add(
             Diagnostic(msgKeyWordAsDataName, token.card, column: token.column),
@@ -928,7 +952,11 @@ int _consumeIn(List<Token> tokens, int i, void Function(Token) setName) {
 // --- COND ------------------------------------------------------------------
 
 /// Parses a `COND` card (J 02.06.17): a console-key condition name.
-CondCard _parseCondCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
+CondCard _parseCondCard(
+  EnvironmentSpec spec,
+  List<Diagnostic> diagnostics, {
+  bool pedantic = false,
+}) {
   final List<Token> tokens = spec.optionTokens;
   final int i = _skipCommas(tokens, 0);
   final String setting;
@@ -937,7 +965,12 @@ CondCard _parseCondCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
       tokens[i].text == 'KEYS' &&
       i + 1 < tokens.length &&
       tokens[i + 1].kind == TokenKind.alphamericLiteral) {
-    setting = _normalizeCondKeys(tokens[i + 1].text, spec, diagnostics);
+    setting = _normalizeCondKeys(
+      tokens[i + 1].text,
+      spec,
+      diagnostics,
+      pedantic: pedantic,
+    );
   } else {
     diagnostics.add(Diagnostic(msgCondCardFormatError, spec.cards.first));
     setting = '000000000000';
@@ -955,8 +988,9 @@ CondCard _parseCondCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
 String _normalizeCondKeys(
   String raw,
   EnvironmentSpec spec,
-  List<Diagnostic> diagnostics,
-) {
+  List<Diagnostic> diagnostics, {
+  bool pedantic = false,
+}) {
   final bool allOctal = raw
       .split('')
       .every((String c) => '01234567'.contains(c));
@@ -967,6 +1001,11 @@ String _normalizeCondKeys(
   if (raw.length > 12) {
     diagnostics.add(Diagnostic(msgCondKeysTooLong, spec.cards.first));
     return raw.substring(raw.length - 12);
+  }
+  if (pedantic && raw.length < 12) {
+    // The under-length case: padded silently in both modes (D9.16).
+    // --pedantic warns (msg 925; D11.4); the padded value is unchanged.
+    diagnostics.add(Diagnostic(msgCondKeyUnderLength, spec.cards.first));
   }
   return raw.padLeft(12, '0');
 }
