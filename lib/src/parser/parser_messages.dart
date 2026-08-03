@@ -54,8 +54,36 @@ final Message msgIllegalWordInFileCard = messageCatalog['96,00']!;
 /// INCLUDE message).
 final Message msgCopyNotHandled = messageCatalog['110,00']!;
 
-/// `153,00` — a malformed SPECIF card.
+/// `153,00` — a malformed SPECIF card; the fallback for SPECIF faults
+/// that no dedicated message 154,00–160,00 covers (D10.1).
 final Message msgSpecifCardFormatError = messageCatalog['153,00']!;
+
+/// `154,00` — a SPECIF card whose first description item is not a file
+/// name (J 02.06.08).
+final Message msgSpecifFileNameNotFirst = messageCatalog['154,00']!;
+
+/// `155,00` — UNIT1 or UNIT2 on a SPECIF card without a following
+/// alphameric literal (J 02.06.08: "the Quote Marks are mandatory").
+final Message msgUnitNeedsLiteral = messageCatalog['155,00']!;
+
+/// `156,00` — SERIAL without a following alphameric literal
+/// (J 02.06.12).
+final Message msgSerialNeedsLiteral = messageCatalog['156,00']!;
+
+/// `157,00` — REEL without a following alphameric literal (J 02.06.12).
+final Message msgReelNeedsLiteral = messageCatalog['157,00']!;
+
+/// `158,00` — RETAIN without a following numeric integer (J 02.06.12).
+final Message msgRetainNeedsInteger = messageCatalog['158,00']!;
+
+/// `159,00` — ACTIVITY without a following numeric integer
+/// (J 02.06.11).
+final Message msgActivityNeedsInteger = messageCatalog['159,00']!;
+
+/// `160,00` — an over-length literal after a SPECIF key word; the
+/// operand is dropped (D10.1: the enforced bound is the option's own —
+/// 6 for UNIT1/UNIT2, 5 for SERIAL, 4 for REEL).
+final Message msgKeyWordLiteralTooLong = messageCatalog['160,00']!;
 
 /// `161,00` — a malformed POOL card.
 final Message msgPoolCardFormatError = messageCatalog['161,00']!;

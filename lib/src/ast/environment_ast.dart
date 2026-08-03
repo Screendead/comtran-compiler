@@ -97,7 +97,7 @@ final class SpecifCard extends EnvironmentCard {
   SpecifCard(super.spec);
 
   /// The file name the card modifies (J 02.06.08), or `null` when
-  /// missing (msg 153,00).
+  /// missing (msg 154,00).
   Token? fileName;
 
   /// The unit literal after `UNIT1`, verbatim without quotes.
@@ -107,8 +107,8 @@ final class SpecifCard extends EnvironmentCard {
   /// legal for UNIT2 only (J 02.06.10).
   String? unit2;
 
-  /// `HIGH` or `LOW` density; `null` means the HIGH default
-  /// (J 02.06.11).
+  /// `HIGH` or `LOW` tape density, before any LABELS/LABELN; `null`
+  /// means the HIGH default (J 02.06.10).
   String? density;
 
   /// `DEFER` (J 02.06.11).
@@ -140,6 +140,10 @@ final class SpecifCard extends EnvironmentCard {
 
   /// `LABELS` or `LABELN`; `null` means unlabeled (J 02.06.12).
   String? labels;
+
+  /// `HIGH` or `LOW` after LABELS or LABELN: the label's density;
+  /// `null` means the density of the file (J 02.06.12).
+  String? labelDensity;
 
   /// The literal after `SERIAL`, at most 5 characters (J 02.06.12).
   String? serial;
