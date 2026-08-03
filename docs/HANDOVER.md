@@ -41,7 +41,7 @@ Parallel tooling track (shares the compiler's card-image core; blocks nothing in
 
 ## Pointers
 
-- Definition: `docs/comtran-language-definition.md` — §8.5 catalog; §8.5.8 transcription cautions; Open Questions (74 items; 12, 23, 40, 45, 46, 47, 50, 73 resolved; 26–28, 31, 41, 42, 53, 58, 70, 72 narrowed, 2026-08-01/02).
+- Definition: `docs/comtran-language-definition.md` — §8.5 catalog; §8.5.8 transcription cautions; Open Questions (75 items; 12, 23, 40, 45, 46, 47, 50, 73 resolved; 26–28, 31, 41, 42, 53, 58, 70, 72 narrowed, 2026-08-01/02; 75 — the construct-less key word THROUGH — added 2026-08-03).
 - Manuals: `comtran-manuals/{F28-8043,J28-6169}/`; conventions in `comtran-manuals/README.md`. Sample program: `comtran-manuals/J28-6169/90.05-sample-program.md`.
 - Research archive (raw drafts, adversarial verdicts, scout maps of external manuals): `docs/research-2026-08-01-interrupted.md`.
 - External period scans used (all bitsavers, re-downloadable): C28-6100-2 (709/7090 IOCS), 22-6528-4 (7090 reference), A22-6506-0 (705 reference), 22-6642-0 (705 pocket code card), A24-1403-5 (1401 reference), J28-6166 (9PAC Part 1).

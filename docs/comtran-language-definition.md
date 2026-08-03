@@ -181,7 +181,7 @@ J refinements and restrictions:
 | EQUAL | †LIBRARY | | |
 | EXACTLY | LOAD | | |
 
-(F p. 110; the source prints this as three independently alphabetized columns.)
+(F p. 110; the source prints one alphabetical list flowing down three columns — the blank grid cells are the source's own vertical spacing between letter groups. Scan-checked against images/page-115.png, 2026-08-03.)
 
 #### 1.6.2 J28-6169 key-word classification (1962, authoritative)
 
@@ -239,6 +239,7 @@ J refinements and restrictions:
 
 - New in J: **CRYPT**, **RUN** (STOP RUN is mandatory in every J program, J 02.04.06 §9), **EQUALS** (all group 2), and the entire group-3 Environment vocabulary.
 - In F but absent from all J lists: **AS** (INCLUDE, which uses AS, is deferred in J — J 90.01.02, A.1.a.v), and the type codes **COND, COPY, FUNCT, PARAM, REDEF** (in J these are recognized positionally in the Type columns of the Data/Environment forms rather than listed as key words; FUNCT/PARAM are gone from the language entirely, J 02.05.03 §6).
+- Reclassified between F and J: **LABEL** (daggered in F — restricted usage in data description — becomes a J group-3 word, usable as a Data or Procedure name unless the item must be referenced in the Environment Division); **LIBRARY** and **QUANTITY** (daggered in F, i.e. free in procedure description, become J group-2 words, barred as Data or Procedure names) (F p. 110; J 02.03.02–02.03.03; scan-checked 2026-08-03).
 - Misuse diagnostics: "'NAME.1' SHOULD NOT BE USED AS DATA NAME." (152,00); "PROCEDURE KEY WORD USED IN DATA OR ENVIRONMENT, INTERPRETED AS A DATA NAME." (178,00); "SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD." (192,00); "OPERATION DEFINED AS NAME OR FOUND IN NAME FIELD." (61,00) (all J 90.04).
 
 #### 1.6.3 Notation of general forms (how the manuals mark fixed vs. programmer words)
@@ -3544,8 +3545,9 @@ Each item gives both readings. J is authoritative for the implemented language.
    HIGH.VALUES, IN, LOW.VALUE, LOW.VALUES, ON, RECORD, WHEN, ZERO, ZEROS); (2) words
    not usable as Data or Procedure names (56 words incl. RUN and CRYPT, neither in
    F's list); (3) words usable as Procedure/Data names if not referenced in the
-   Environment Division (ACTIVITY, BCD, BINARY, BLOCKSIZE, … 40+ Environment words
-   absent from F) (J 02.03.02–02.03.03). Compiler writers need both lists; J governs.
+   Environment Division (ACTIVITY, BCD, BINARY, BLOCKSIZE, … 49 words, 48 of them
+   absent from F — LABEL is the one F carries) (J 02.03.02–02.03.03). Compiler
+   writers need both lists; J governs.
 
 10. **LOAD / OVERLAP presented as available in F, deferred in J.** F describes the
     LOAD command (F p. 54) and OVERLAP processor command with object-program overlay
@@ -4248,3 +4250,4 @@ Questions that remain after studying both manuals end to end — things neither 
 72. What was the MASTER field TRIGGERS (pictorial AAA) for? Declared, pads NAME to a word boundary, never referenced — presumably reserved switch positions. (J 90.05 listing PDF p. 192) **Narrowed (90.05 listing evidence, 2026-08-01; adversarially re-verified against page renders, 2026-08-02):** `TRIGGERS` occurs exactly once in the surviving corpus — its declaration `7,00 71204 TRIGGERS 2 AAA`, level 2, a sibling of DAT and RATE rather than a member of DAT (J 90.05 listing, PDF p. 192; verified on the page render) — and appears nowhere in the object listing (PDF pp. 198-216) nor anywhere in the source Procedure Division. Its allocation is not *printed* — MASTER is a locate-mode record, so its fields surface only as displacements from BL)2 — but it is fixed by arithmetic and independently confirmed by those displacements: DAT = EMPLOYEE.NUMBER (AA + AAAA = 6 characters) + NAME A(15) = 21 characters, TRIGGERS' AAA carries that to 24 = exactly 4 words, and the object code's MASTER displacements (`1)DATE,1` word 5, `EXEMPTIONS,1` 6, `1)FICA,1` 10, `1)WHT,1` 11, `1)BONDEDUCTION,1` 12, `BONDACCUMULATION,1` 13, `1)BONDENOMINATION,1` 14) reproduce exactly the layout that follows, totalling the 15 words the program reads and writes (`IOCTN* BL)2,,15`; `IOST MASTER,,15`). TRIGGERS therefore occupies characters 22-24 = bytes 3-5 of word 3, and is precisely the padding that word-aligns RATE. Two qualifications on "never referenced": (i) name-absence is strong but not formally conclusive — the constant pool does name its data pointers symbolically (`CP)+37`-`+61` are all `PZE name,,byte`, PDF p. 216), so a move or arithmetic touching TRIGGERS would have surfaced the name there, yet the same pool also names storage by offset from a *different* symbol (`PZE RETPREM-2`, `PZE INSPREM-2`, `PZE 2)RATE+0`), so a reference need not carry a field's own name; what settles it is that TRIGGERS is absent from the source Procedure Division too, so no source construct can generate one — the nearest group move, statement 193,00 `MOVE MASTER DAT TO ERROROUT INFO`, is emitted as a 21-character move (`TXI SYS)240,1,21`, PDF p. 202), stopping exactly at the TRIGGERS boundary; (ii) the field's *bytes* are nevertheless transferred wholesale, since statement 208,00's `FILE MASTER` writes the entire 15-word record image from the input buffer (`LXA BL)2,4` / `SXA GN)089,4` / `GN)089 IOST MASTER,,15`, PDF p. 210) — on this locate-mode update-in-place file TRIGGERS is copied from input reel to output reel unchanged, never read and never set. The reserved-switch-positions reading stands, as inference. (J 90.05 listing, PDF pp. 192, 195-196, 198-216; images/page-192.png, page-202.png, page-210.png, page-216.png)
 73. Does the native 709 collating sequence place `(` (HIGH.VALUE) above the digits, as the sample's sentinel less-than routing requires? **Resolved (scan check, 2026-08-01): yes** — `(` is the final, highest character of the native sequence, above all letters and digits (independently verified on the page-050 scan); the sentinel idiom is sound. (J 02.04.01; J 02.06.16; images/page-050.png)
 74. Was F's serial-number sequence-checking claim ever true of any processor, given J disclaims it and the sample deck carries no serials? (F p. 37; J 02.03.01; J 90.05)
+75. What construct used the group-3 key word THROUGH? It appears in J's Environment-conditional key-word list (J 02.03.03) but in no command form, option, or example in either manual; F does not list it. Possibly reserved for a planned range form that never shipped. (J 02.03.03; noted during the M1 reserved-word extraction, 2026-08-03)
