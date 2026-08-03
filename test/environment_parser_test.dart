@@ -1,31 +1,12 @@
-import 'dart:io';
-
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
-List<SourceCard> _cards(List<String> lines) {
-  final List<CardImage> deck = mirrorToDeck('${lines.join('\n')}\n');
-  return [for (var i = 0; i < deck.length; i++) SourceCard(deck[i], i + 1)];
-}
-
-String _card({
-  String name = '',
-  String type = '',
-  String options = '',
-  bool continued = false,
-}) {
-  final line =
-      '${' ' * 6}${name.padRight(16)}${' ' * 2}${type.padRight(6)}'
-      '${options.padRight(41)}${continued ? 'X' : ' '}';
-  return line.trimRight();
-}
+import 'support/deck_fixtures.dart';
 
 void main() {
   group('the 90.05 environment division', () {
     test('parses with zero added diagnostics and matches the deck', () {
-      final FrontEndResult result = runFrontEnd(
-        decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
-      );
+      final FrontEndResult result = runFrontEnd(loadPayrollDeck());
       final EnvironmentGroupScan envGroup = result.groupScans
           .whereType<EnvironmentGroupScan>()
           .single;
@@ -88,8 +69,12 @@ void main() {
   group('FILE card errors', () {
     test('no direction word draws 89,00', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(name: 'F', type: 'FILE', options: 'MASTER,BLOCKSIZE 10'),
+        sourceCards([
+          environmentCard(
+            name: 'F',
+            type: 'FILE',
+            options: 'MASTER,BLOCKSIZE 10',
+          ),
         ]),
       );
       expect(scan.diagnostics, isEmpty);
@@ -104,8 +89,12 @@ void main() {
 
     test('BLOCKSIZE with no following integer draws 91,00', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(name: 'F', type: 'FILE', options: 'INPUT,MASTER,BLOCKSIZE'),
+        sourceCards([
+          environmentCard(
+            name: 'F',
+            type: 'FILE',
+            options: 'INPUT,MASTER,BLOCKSIZE',
+          ),
         ]),
       );
       final diagnostics = <Diagnostic>[];
@@ -115,8 +104,8 @@ void main() {
 
     test('ON ERROR with no following name draws 92,00', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(
+        sourceCards([
+          environmentCard(
             name: 'F',
             type: 'FILE',
             options: 'INPUT,MASTER,BLOCKSIZE 10,ON ERROR',
@@ -130,8 +119,8 @@ void main() {
 
     test('PRIMARY on an INPUT file draws 96,00', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(
+        sourceCards([
+          environmentCard(
             name: 'F',
             type: 'FILE',
             options: 'INPUT,MASTER,BLOCKSIZE 10,PRIMARY',
@@ -145,7 +134,9 @@ void main() {
 
     test('a FILE card without BLOCKSIZE draws 89,00 (J 02.06.04)', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(name: 'F', type: 'FILE', options: 'INPUT,MASTER')]),
+        sourceCards([
+          environmentCard(name: 'F', type: 'FILE', options: 'INPUT,MASTER'),
+        ]),
       );
       final diagnostics = <Diagnostic>[];
       parseEnvironmentGroup(scan, diagnostics);
@@ -154,7 +145,9 @@ void main() {
 
     test('a CHECKPOINT file needs no BLOCKSIZE', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(name: 'F', type: 'FILE', options: 'CHECKPOINT')]),
+        sourceCards([
+          environmentCard(name: 'F', type: 'FILE', options: 'CHECKPOINT'),
+        ]),
       );
       final diagnostics = <Diagnostic>[];
       parseEnvironmentGroup(scan, diagnostics);
@@ -163,8 +156,8 @@ void main() {
 
     test('BLOCK CONTROL on an OUTPUT file draws 96,00 (J 02.06.03)', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(
+        sourceCards([
+          environmentCard(
             name: 'F',
             type: 'FILE',
             options: 'OUTPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
@@ -178,8 +171,8 @@ void main() {
 
     test('BLOCK CONTROL on an INPUT record stays clean', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(
+        sourceCards([
+          environmentCard(
             name: 'F',
             type: 'FILE',
             options: 'INPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
@@ -193,8 +186,12 @@ void main() {
 
     test('a key word as a FILE or record name draws 178,00 (D10.8)', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(name: 'ZERO', type: 'FILE', options: 'INPUT,BLOCKSIZE 10,MOVE'),
+        sourceCards([
+          environmentCard(
+            name: 'ZERO',
+            type: 'FILE',
+            options: 'INPUT,BLOCKSIZE 10,MOVE',
+          ),
         ]),
       );
       final diagnostics = <Diagnostic>[];
@@ -215,9 +212,9 @@ void main() {
       final diagnostics = <Diagnostic>[];
       for (var group = 0; group < 2; group++) {
         final EnvironmentScan scan = scanEnvironment(
-          _cards([
+          sourceCards([
             for (var i = 0; i < 32; i++)
-              _card(
+              environmentCard(
                 name: 'F$group$i',
                 type: 'FILE',
                 options: 'INPUT,R$group$i,BLOCKSIZE 10',
@@ -232,8 +229,8 @@ void main() {
 
     test('PATTERN draws 905,00 and nothing else (D9.12)', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(
+        sourceCards([
+          environmentCard(
             name: 'F',
             type: 'FILE',
             options: 'INPUT,MASTER,PATTERN,BLOCKSIZE 10',
@@ -252,7 +249,7 @@ void main() {
   group('SPECIF operand errors (D10.1)', () {
     List<Diagnostic> diagnose(String options) {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(type: 'SPECIF', options: options)]),
+        sourceCards([environmentCard(type: 'SPECIF', options: options)]),
       );
       final diagnostics = <Diagnostic>[];
       parseEnvironmentGroup(scan, diagnostics);
@@ -261,7 +258,7 @@ void main() {
 
     test('a literal first item draws 154,00', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(type: 'SPECIF', options: "'D1',DEFER")]),
+        sourceCards([environmentCard(type: 'SPECIF', options: "'D1',DEFER")]),
       );
       final diagnostics = <Diagnostic>[];
       final List<EnvironmentCard> cards = parseEnvironmentGroup(
@@ -307,7 +304,9 @@ void main() {
 
     test('an over-length SERIAL literal draws 160,00 and is dropped', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(type: 'SPECIF', options: "MASTER,SERIAL 'ABC123'")]),
+        sourceCards([
+          environmentCard(type: 'SPECIF', options: "MASTER,SERIAL 'ABC123'"),
+        ]),
       );
       final diagnostics = <Diagnostic>[];
       final List<EnvironmentCard> cards = parseEnvironmentGroup(
@@ -357,7 +356,7 @@ void main() {
   group('SPECIF label density (J 02.06.12)', () {
     SpecifCard parse(String options) {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(type: 'SPECIF', options: options)]),
+        sourceCards([environmentCard(type: 'SPECIF', options: options)]),
       );
       final diagnostics = <Diagnostic>[];
       final List<EnvironmentCard> cards = parseEnvironmentGroup(
@@ -392,7 +391,9 @@ void main() {
   group('other card errors', () {
     test('SPECIF with an unknown word draws 153,00', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(type: 'SPECIF', options: 'MASTER,FROBOZZ')]),
+        sourceCards([
+          environmentCard(type: 'SPECIF', options: 'MASTER,FROBOZZ'),
+        ]),
       );
       final diagnostics = <Diagnostic>[];
       parseEnvironmentGroup(scan, diagnostics);
@@ -401,8 +402,12 @@ void main() {
 
     test('POOL BLOCKSIZE with no following integer draws 162,00', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(name: 'POOLA', type: 'POOL', options: 'FILEA,BLOCKSIZE'),
+        sourceCards([
+          environmentCard(
+            name: 'POOLA',
+            type: 'POOL',
+            options: 'FILEA,BLOCKSIZE',
+          ),
         ]),
       );
       final diagnostics = <Diagnostic>[];
@@ -416,7 +421,9 @@ void main() {
 
     test('GROUP OPENCOUNT with no following integer draws 165,00', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(type: 'GROUP', options: 'FILEA,OPENCOUNT')]),
+        sourceCards([
+          environmentCard(type: 'GROUP', options: 'FILEA,OPENCOUNT'),
+        ]),
       );
       final diagnostics = <Diagnostic>[];
       final List<EnvironmentCard> cards = parseEnvironmentGroup(
@@ -432,8 +439,12 @@ void main() {
       'a CONTRL name over 6 characters draws 207,00; well-formed card also gets 90,00',
       () {
         final EnvironmentScan scan = scanEnvironment(
-          _cards([
-            _card(name: 'TOOLONGNAME', type: 'CONTRL', options: 'SECTIONA'),
+          sourceCards([
+            environmentCard(
+              name: 'TOOLONGNAME',
+              type: 'CONTRL',
+              options: 'SECTIONA',
+            ),
           ]),
         );
         final diagnostics = <Diagnostic>[];
@@ -447,9 +458,9 @@ void main() {
 
     test('a duplicate CONTRL name draws 207,00 on the repeat only', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(name: 'AREA1', type: 'CONTRL', options: 'SECTA'),
-          _card(name: 'AREA1', type: 'CONTRL', options: 'SECTB'),
+        sourceCards([
+          environmentCard(name: 'AREA1', type: 'CONTRL', options: 'SECTA'),
+          environmentCard(name: 'AREA1', type: 'CONTRL', options: 'SECTB'),
         ]),
       );
       final diagnostics = <Diagnostic>[];
@@ -470,7 +481,7 @@ void main() {
 
     test('OPTION with unrecognized content draws 3,00', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(type: 'OPTION', options: 'FROBOZZ')]),
+        sourceCards([environmentCard(type: 'OPTION', options: 'FROBOZZ')]),
       );
       final diagnostics = <Diagnostic>[];
       parseEnvironmentGroup(scan, diagnostics);
@@ -481,7 +492,9 @@ void main() {
   group('COND key setting normalization (D9.16)', () {
     test("KEYS '77' pads silently to 12 octal digits", () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(name: 'COND1', type: 'COND', options: "KEYS '77'")]),
+        sourceCards([
+          environmentCard(name: 'COND1', type: 'COND', options: "KEYS '77'"),
+        ]),
       );
       final diagnostics = <Diagnostic>[];
       final List<EnvironmentCard> cards = parseEnvironmentGroup(
@@ -494,8 +507,12 @@ void main() {
 
     test('a 13-digit KEYS setting draws 6,00 and keeps the rightmost 12', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(name: 'COND1', type: 'COND', options: "KEYS '0123456701234'"),
+        sourceCards([
+          environmentCard(
+            name: 'COND1',
+            type: 'COND',
+            options: "KEYS '0123456701234'",
+          ),
         ]),
       );
       final diagnostics = <Diagnostic>[];
@@ -509,7 +526,13 @@ void main() {
 
     test('a KEYS setting with an imbedded blank draws 7,00 (D9.16)', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([_card(name: 'COND1', type: 'COND', options: "KEYS '77 001'")]),
+        sourceCards([
+          environmentCard(
+            name: 'COND1',
+            type: 'COND',
+            options: "KEYS '77 001'",
+          ),
+        ]),
       );
       final diagnostics = <Diagnostic>[];
       final List<EnvironmentCard> cards = parseEnvironmentGroup(
@@ -522,8 +545,12 @@ void main() {
 
     test('a KEYS setting with an 8 draws 7,00 and becomes key setting 1', () {
       final EnvironmentScan scan = scanEnvironment(
-        _cards([
-          _card(name: 'COND1', type: 'COND', options: "KEYS '780000000000'"),
+        sourceCards([
+          environmentCard(
+            name: 'COND1',
+            type: 'COND',
+            options: "KEYS '780000000000'",
+          ),
         ]),
       );
       final diagnostics = <Diagnostic>[];
@@ -541,54 +568,74 @@ void main() {
       'every issued message id has a severity row (Diagnostic.severity)',
       () {
         final EnvironmentScan scan = scanEnvironment(
-          _cards([
+          sourceCards([
             // 89 (bad direction).
-            _card(name: 'F1', type: 'FILE', options: 'MASTER'),
+            environmentCard(name: 'F1', type: 'FILE', options: 'MASTER'),
             // 91, 92, 93, 905, 96 (PRIMARY on an input file) — split across a
             // continuation card; the options field is 41 columns wide.
-            _card(
+            environmentCard(
               name: 'F2',
               type: 'FILE',
               options: 'INPUT,MASTER,BLOCKSIZE,ON ERROR,',
               continued: true,
             ),
-            _card(options: 'FOR LABEL,PATTERN,PRIMARY'),
+            environmentCard(options: 'FOR LABEL,PATTERN,PRIMARY'),
             // 94, 95 — likewise split.
-            _card(
+            environmentCard(
               name: 'F3',
               type: 'FILE',
               options: 'OUTPUT,REC1,FIND LENGTH IN,',
               continued: true,
             ),
-            _card(options: 'PLACE LENGTH IN'),
+            environmentCard(options: 'PLACE LENGTH IN'),
             // 153.
-            _card(type: 'SPECIF', options: 'MASTER,FROBOZZ'),
+            environmentCard(type: 'SPECIF', options: 'MASTER,FROBOZZ'),
             // 154, 155, 156 — split across a continuation card.
-            _card(
+            environmentCard(
               type: 'SPECIF',
               options: "'X',UNIT1,SERIAL,",
               continued: true,
             ),
             // 157, 158, 159, 160.
-            _card(options: "REEL,RETAIN,ACTIVITY,UNIT2 'ABC1234'"),
+            environmentCard(options: "REEL,RETAIN,ACTIVITY,UNIT2 'ABC1234'"),
             // 161 (no file names at all).
-            _card(name: 'POOLA', type: 'POOL', options: 'BUFFERCOUNT 5'),
+            environmentCard(
+              name: 'POOLA',
+              type: 'POOL',
+              options: 'BUFFERCOUNT 5',
+            ),
             // 163.
-            _card(name: 'POOLB', type: 'POOL', options: 'FILEA,BUFFERCOUNT'),
+            environmentCard(
+              name: 'POOLB',
+              type: 'POOL',
+              options: 'FILEA,BUFFERCOUNT',
+            ),
             // 164 (no names at all).
-            _card(type: 'GROUP', options: 'OPENCOUNT 5'),
+            environmentCard(type: 'GROUP', options: 'OPENCOUNT 5'),
             // 176 (malformed shape) plus 90.
-            _card(name: 'BAD1', type: 'CONTRL'),
+            environmentCard(name: 'BAD1', type: 'CONTRL'),
             // 207 (over-length) plus 90.
-            _card(name: 'TOOLONGNAME', type: 'CONTRL', options: 'SECTIONA'),
+            environmentCard(
+              name: 'TOOLONGNAME',
+              type: 'CONTRL',
+              options: 'SECTIONA',
+            ),
             // 3.
-            _card(type: 'OPTION', options: 'FROBOZZ'),
+            environmentCard(type: 'OPTION', options: 'FROBOZZ'),
             // 4 (missing KEYS).
-            _card(name: 'COND1', type: 'COND', options: 'FOO'),
+            environmentCard(name: 'COND1', type: 'COND', options: 'FOO'),
             // 6.
-            _card(name: 'COND2', type: 'COND', options: "KEYS '0123456701234'"),
+            environmentCard(
+              name: 'COND2',
+              type: 'COND',
+              options: "KEYS '0123456701234'",
+            ),
             // 7.
-            _card(name: 'COND3', type: 'COND', options: "KEYS '780000000000'"),
+            environmentCard(
+              name: 'COND3',
+              type: 'COND',
+              options: "KEYS '780000000000'",
+            ),
           ]),
         );
         final diagnostics = <Diagnostic>[];

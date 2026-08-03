@@ -1,25 +1,9 @@
-import 'dart:io';
-
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
-FrontEndResult _frontEnd(String mirror) => runFrontEnd(mirrorToDeck(mirror));
+import 'support/deck_fixtures.dart';
 
-// Builds a data card from its fields at the documented columns.
-String _dataCard({
-  String name = '',
-  String level = '',
-  String type = '',
-  String mode = '',
-  String description = '',
-  bool continued = false,
-}) {
-  final line =
-      '${' ' * 6}${name.padRight(16)}${level.padLeft(2)}${type.padRight(6)}'
-      '${' ' * 5}${mode.padRight(1)} ${description.padRight(34)}'
-      '${continued ? 'X' : ' '}';
-  return line.trimRight();
-}
+FrontEndResult _frontEnd(String mirror) => runFrontEnd(mirrorToDeck(mirror));
 
 void main() {
   group('the 90.05 deck', () {
@@ -27,9 +11,7 @@ void main() {
     late final ParseResult parse;
 
     setUpAll(() {
-      result = runFrontEnd(
-        decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
-      );
+      result = runFrontEnd(loadPayrollDeck());
       parse = runParser(result);
     });
 
@@ -71,8 +53,8 @@ void main() {
     // block orders them by card, not by phase (design note M2-2).
     final FrontEndResult result = _frontEnd(
       '      *DATA\n'
-      '${_dataCard(name: 'A', level: '2', type: 'FUNCT', description: '99')}\n'
-      '${_dataCard(name: 'B', level: '2', mode: 'Z', description: '99')}\n',
+      '${dataCard(name: 'A', level: '2', type: 'FUNCT', description: '99')}\n'
+      '${dataCard(name: 'B', level: '2', mode: 'Z', description: '99')}\n',
     );
     expect(result.diagnostics.single.message.number, '189,00');
     final ParseResult parse = runParser(result);
@@ -95,10 +77,10 @@ void main() {
     // A Data Description constant over 120 characters draws 148,00 at
     // severity 5 (D7.9).
     final List<String> overLongConstant = [
-      _dataCard(level: '2', description: "'${'A' * 33}", continued: true),
-      _dataCard(description: 'B' * 34, continued: true),
-      _dataCard(description: 'C' * 34, continued: true),
-      _dataCard(description: "${'D' * 25}'"),
+      dataCard(level: '2', description: "'${'A' * 33}", continued: true),
+      dataCard(description: 'B' * 34, continued: true),
+      dataCard(description: 'C' * 34, continued: true),
+      dataCard(description: "${'D' * 25}'"),
     ];
 
     test('a front-end severity 5 stops the scan at its point', () {
@@ -109,7 +91,7 @@ void main() {
             '      *DATA',
             ...overLongConstant,
             // Unscanned after the stop: this pictorial would draw 100,00.
-            _dataCard(name: 'P', level: '2', description: '9' * 31),
+            dataCard(name: 'P', level: '2', description: '9' * 31),
             '      *PROCEDURE',
             '            STOP RUN.',
           ].map((String l) => '$l\n').join(),

@@ -1,26 +1,21 @@
-import 'dart:io';
-
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
+import 'support/deck_fixtures.dart';
+
 // Builds procedure cards: a label starts in the name margin (column
 // 7); unlabeled text starts at column 13.
-List<SourceCard> _cards(List<String> lines) {
-  final List<CardImage> deck = mirrorToDeck('${lines.join('\n')}\n');
-  return [for (var i = 0; i < deck.length; i++) SourceCard(deck[i], i + 1)];
-}
-
 (List<Sentence>, List<Diagnostic>) _parse(
   List<String> lines, {
   bool finish = false,
 }) {
-  final ProcedureScan scan = scanProcedure(_cards(lines));
+  final ProcedureScan scan = scanProcedure(sourceCards(lines));
   expect(scan.diagnostics, isEmpty, reason: 'scan must be clean');
   final diagnostics = <Diagnostic>[];
   final parser = ProcedureParser(diagnostics);
   final List<Sentence> sentences = parser.parseGroup(scan);
   if (finish) {
-    parser.finishProgram(_cards(['      X']).single);
+    parser.finishProgram(sourceCards(['      X']).single);
   }
   return (sentences, diagnostics);
 }
@@ -31,11 +26,7 @@ void main() {
     late final ParsedProcedureGroup group;
 
     setUpAll(() {
-      parse = runParser(
-        runFrontEnd(
-          decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
-        ),
-      );
+      parse = runParser(runFrontEnd(loadPayrollDeck()));
       group = parse.groups.whereType<ParsedProcedureGroup>().single;
     });
 
