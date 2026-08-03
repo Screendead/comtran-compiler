@@ -72,7 +72,17 @@ void main() {
     if (cells.length != 8) {
       throw StateError('malformed checklist row: $line');
     }
-    final row = (
+    final ({
+      String b2,
+      String component,
+      String disposition,
+      String id,
+      String note,
+      String severityClass,
+      String testRef,
+      String text,
+    })
+    row = (
       id: cells[0],
       severityClass: cells[1],
       disposition: cells[2],
@@ -163,7 +173,7 @@ void main() {
   });
 
   test('every message-table constant is issued in lib or bin', () {
-    final constantPattern = RegExp(r'Message (msg[A-Za-z0-9]+) =');
+    final constantPattern = RegExp('Message (msg[A-Za-z0-9]+) =');
     final Iterable<File> sources = [Directory('lib/src'), Directory('bin')]
         .expand(
           (Directory d) => d
@@ -191,12 +201,14 @@ void main() {
 
   test('every enforced id names a live test', () {
     for (final Row row in rows.values) {
-      if (row.disposition != 'enforced') continue;
+      if (row.disposition != 'enforced') {
+        continue;
+      }
       expect(row.testRef, contains(': '), reason: '${row.id} lacks a test');
       final int split = row.testRef.indexOf(': ');
       final String path = row.testRef.substring(0, split);
       final String name = row.testRef.substring(split + 2);
-      final File file = File(path);
+      final file = File(path);
       expect(file.existsSync(), isTrue, reason: '${row.id}: $path missing');
       expect(
         file.readAsStringSync(),
@@ -229,7 +241,7 @@ void main() {
         if (row.disposition == 'unreachable') row.id,
     };
     expect(unreachable, _unreachable);
-    for (final String id in unreachable) {
+    for (final id in unreachable) {
       expect(rows[id]!.note, contains('D9.15'));
     }
   });

@@ -30,7 +30,7 @@ void main(List<String> arguments) {
 
 int _run(List<String> arguments) {
   if (arguments.contains('--version')) {
-    print('comtranc $comtranVersion');
+    stdout.writeln('comtranc $comtranVersion');
     return 0;
   }
   String? deckPath;
@@ -39,7 +39,7 @@ int _run(List<String> arguments) {
   var account = '';
   var title = '';
   var linesPerPage = 55;
-  for (final String argument in arguments) {
+  for (final argument in arguments) {
     if (argument.startsWith('--date=')) {
       date = argument.substring(7);
     } else if (argument.startsWith('--time=')) {
@@ -69,7 +69,7 @@ int _run(List<String> arguments) {
     stderr.write(_usage);
     return 2;
   }
-  final DateTime now = DateTime.now();
+  final now = DateTime.now();
   date ??=
       '${now.month.toString().padLeft(2, '0')}/'
       '${now.day.toString().padLeft(2, '0')}/'

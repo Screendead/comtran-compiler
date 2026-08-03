@@ -11,7 +11,7 @@ import 'card_image.dart';
 /// Renders [deck] as mirror text.
 String deckToMirror(List<CardImage> deck) {
   final buffer = StringBuffer();
-  for (final CardImage card in deck) {
+  for (final card in deck) {
     buffer
       ..write(_cardToLine(card))
       ..write('\n');

@@ -26,7 +26,7 @@ void main() {
 
   test('the D9.2 anchor rows hold', () {
     // D9.7's capacity messages are C5.
-    for (final String id in [
+    for (final id in [
       '148,00', '149,00', '172,00', '183,00', //
       '184,00', '200,00', '201,00', '202,00', '203,00', '204,00', '205,00',
     ]) {

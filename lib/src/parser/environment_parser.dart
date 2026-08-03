@@ -282,7 +282,7 @@ FileCard _parseFileCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
           current.blockControl = true;
         }
       case 'FIND':
-        var j = _consumeWord(tokens, i + 1, 'LENGTH');
+        int j = _consumeWord(tokens, i + 1, 'LENGTH');
         j = _consumeWord(tokens, j, 'IN');
         final (int next, Token? name) = _takeWord(tokens, j);
         i = next;
@@ -306,7 +306,7 @@ FileCard _parseFileCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
           current.findLengthIn = name;
         }
       case 'PLACE':
-        var j = _consumeWord(tokens, i + 1, 'LENGTH');
+        int j = _consumeWord(tokens, i + 1, 'LENGTH');
         j = _consumeWord(tokens, j, 'IN');
         final (int next, Token? name) = _takeWord(tokens, j);
         i = next;
@@ -344,7 +344,7 @@ FileCard _parseFileCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
         }
         i++;
       case 'NO':
-        var j = _consumeWord(tokens, i + 1, 'CONTROL');
+        int j = _consumeWord(tokens, i + 1, 'CONTROL');
         j = _consumeWord(tokens, j, 'WORD');
         i = j;
         if (current == null || direction == FileDirection.input) {

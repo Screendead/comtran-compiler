@@ -34,7 +34,7 @@ final class DeckToolException implements Exception {
   String toString() => '$kind: $message';
 }
 
-/// The per-card structured form is large, so a caller that omits [maxCards]
+/// The per-card structured form is large, so a caller that omits `maxCards`
 /// gets this many cards, not the whole deck (spec of MCP-1 in the tooling
 /// review).
 const int defaultMaxCards = 25;
@@ -44,7 +44,7 @@ const int defaultMaxCards = 25;
 /// Reports the card count and the mirror text of the deck. Set [includeCards]
 /// to add the per-card structured form for up to [maxCards] cards
 /// (default [defaultMaxCards]) from [startCard] (1-based); the response then
-/// omits the full [mirror] text (it would duplicate the per-card form) and
+/// omits the full `mirror` text (it would duplicate the per-card form) and
 /// adds `cards_returned` and `next_start_card` so the caller can page through
 /// a long deck.
 Map<String, Object?> readDeck(
@@ -260,7 +260,7 @@ Map<String, Object?> describeCardCode({
   String? cardCode,
   String? bcdOctal,
 }) {
-  final List<String> given = [
+  final given = <String>[
     if (glyph != null) 'glyph',
     if (cardCode != null) 'card_code',
     if (bcdOctal != null) 'bcd_octal',
@@ -423,7 +423,7 @@ void _checkNotConflicting(String mirrorPath, String? expectedMirror) {
   if (expectedMirror == null) {
     return;
   }
-  final File mirror = File(mirrorPath);
+  final mirror = File(mirrorPath);
   final String? current = mirror.existsSync()
       ? mirror.readAsStringSync()
       : null;

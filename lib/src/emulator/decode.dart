@@ -7,59 +7,154 @@ import 'word.dart';
 /// (external); page numbers appear at each execute case in `cpu.dart`.
 enum Op {
   // Fixed point (22-6528-4 pp. 20-24).
+  /// CLA. AC(S,1–35) ← C(Y); P,Q ← 0. Octal +0500 (M p. 20).
   cla,
+
+  /// CAL. AC(P,1–35) ← C(Y) with S of Y in P; S,Q ← 0. Octal −0500 (M p. 20).
   cal,
+
+  /// ADD. AC ← AC + C(Y) algebraically; overflow on carry into P. Octal
+  /// +0400 (M pp. 20–21).
   add,
+
+  /// SUB. AC ← AC − C(Y) algebraically (ADD with Y sign reversed). Octal
+  /// +0402 (M p. 21).
   sub,
+
+  /// ACL. AC(P,1–35) ← AC(P,1–35) + C(Y) logically, end-around carry
+  /// P→35; S,Q untouched. Octal +0361 (M pp. 21–22).
   acl,
+
+  /// MPY. AC,MQ ← C(Y) × C(MQ), 70-bit product; signs algebraic. Octal
+  /// +0200 (M p. 22).
   mpy,
+
+  /// DVP. If |C(Y)| > |AC|: MQ ← quotient, AC ← remainder; else
+  /// divide-check on, proceed. Octal +0221 (M p. 24).
   dvp,
   // Word transmission (pp. 33-34).
+  /// STO. C(Y) ← AC(S,1–35). Octal +0601 (M p. 33).
   sto,
+
+  /// SLW. C(Y) ← AC(P,1–35). Octal +0602 (M p. 33).
   slw,
+
+  /// STQ. C(Y) ← C(MQ). Octal −0600 (M p. 33).
   stq,
+
+  /// LDQ. MQ ← C(Y). Octal +0560 (M p. 33).
   ldq,
+
+  /// XCA. AC(S,1–35) ↔ MQ(S,1–35); P,Q ← 0. Octal +0131 (M p. 34).
   xca,
   // Logical (pp. 48-49).
+  /// ANA. AC(P,1–35) ← AC AND C(Y); S,Q ← 0. Octal −0320 (M p. 48).
   ana,
+
+  /// ANS. C(Y) ← AC(P,1–35) AND C(Y); AC unchanged. Octal +0320 (M p. 48).
   ans,
+
+  /// ORS. C(Y) ← AC(P,1–35) OR C(Y); AC unchanged. Octal −0602 (M p. 48).
   ors,
+
+  /// COM. AC(Q,P,1–35) ← ones-complement; sign unchanged. Octal +0760…06
+  /// (M p. 49).
   com,
   // Compares (p. 43).
+  /// CAS. Algebraic compare AC : C(Y); >, =, < → skip 0, 1, 2; +0 > −0.
+  /// Octal +0340 (M p. 43).
   cas,
+
+  /// LAS. Unsigned compare AC(Q,P,1–35) : C(Y)(S,1–35); skip 0, 1, 2.
+  /// Octal −0340 (M p. 43).
   las,
   // Control (pp. 35-39).
+  /// TRA. IC ← Y (indexable; indirect attested as `TRA*`). Octal +0020
+  /// (M p. 36).
   tra,
+
+  /// TPL. If AC sign plus: IC ← Y. Octal +0120 (M p. 38).
   tpl,
+
+  /// TSX. XR(T) ← 2^15 − (location of TSX); IC ← Y. Octal +0074 (M p. 39).
   tsx,
+
+  /// NOP. No operation. Octal +0761 (M p. 35).
   nop,
   // Type A (pp. 39-40).
+  /// TXI. XR(T) ← XR(T) + D; IC ← Y. Octal +1, type A (M p. 39).
   txi,
+
+  /// TXH. If XR(T) > D: IC ← Y. Octal +3, type A (M p. 39).
   txh,
+
+  /// TXL. If XR(T) ≤ D: IC ← Y. Octal −3, type A (M p. 40).
   txl,
   // Index transmission (pp. 45-47).
+  /// AXT. XR(T) ← instruction address (no address modification). Octal
+  /// +0774 (M p. 45).
   axt,
+
+  /// SXA. C(Y)(21–35) ← XR(T); rest of Y unchanged; tag 0 stores zeros.
+  /// Octal +0634 (M p. 46).
   sxa,
+
+  /// LXA. XR(T) ← C(Y)(21–35). Octal +0534 (M p. 45).
   lxa,
+
+  /// LAC. XR(T) ← 2^15 − C(Y)(21–35). Octal +0535 (M p. 45).
   lac,
+
+  /// PXA. AC ← 0, then AC(21–35) ← XR(T). Octal +0754 (M p. 47).
   pxa,
+
+  /// PDX. XR(T) ← AC(3–17). Octal −0734 (M p. 46).
   pdx,
   // Sense indicators (pp. 51-55).
+  /// LDI. SI ← C(Y). Octal +0441 (M p. 51).
   ldi,
+
+  /// STI. C(Y) ← SI. Octal +0604 (M p. 51).
   sti,
+
+  /// SIR. SI(18–35) ← SI(18–35) OR R. Octal +0055 (M p. 52).
   sir,
+
+  /// RIR. SI(18–35) ← SI(18–35) AND NOT R. Octal +0057 (M p. 52).
   rir,
+
+  /// RFT. If all SI positions selected by R are 0: skip 1. Octal +0054
+  /// (M p. 55).
   rft,
   // Shifts (pp. 31-32).
+  /// ALS. Shift AC(Q,P,1–35) left; overflow if a 1 moves from 1 into P.
+  /// Octal +0767 (M p. 31).
   als,
+
+  /// ARS. Shift AC(Q,P,1–35) right; no indicators. Octal +0771 (M p. 32).
   ars,
+
+  /// LRS. Shift AC+MQ(1–35) right; MQ sign ← AC sign. Octal +0765
+  /// (M p. 32).
   lrs,
+
+  /// LGL. Shift AC(Q,P,1–35)+MQ(S,1–35) left; overflow into/through P.
+  /// Octal −0763 (M p. 32).
   lgl,
+
+  /// LGR. Shift AC(Q,P,1–35)+MQ(S,1–35) right; no indicators. Octal
+  /// −0765 (M p. 32).
   lgr,
+
+  /// RQL. Rotate MQ(S,1–35) left, circular; no bits lost. Octal −0773
+  /// (M p. 32).
   rql,
   // Convert (p. 56).
+  /// CVR. Convert by replacement from the AC, count C, table at Y. Octal
+  /// +0114 (M p. 56).
   cvr,
-  // Anything outside the subset; executing it throws.
+
+  /// Anything outside the subset; executing it throws.
   unknown,
 }
 
@@ -101,7 +196,7 @@ final class Instruction {
   String get operationOctal {
     final int prefix = Word36.prefix(word);
     if (prefix & 3 != 0) {
-      final String sign = prefix & 4 != 0 ? '-' : '+';
+      final sign = prefix & 4 != 0 ? '-' : '+';
       return '$sign${prefix & 3}';
     }
     return Word36.operationOctal(Word36.operationField(word));

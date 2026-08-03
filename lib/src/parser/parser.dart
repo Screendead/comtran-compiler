@@ -87,16 +87,16 @@ final class ParseResult {
   late final List<Diagnostic> diagnostics = _merged();
 
   List<Diagnostic> _merged() {
-    final all = <(int, int, Diagnostic)>[
-      for (final (int i, Diagnostic d) in frontEnd.diagnostics.indexed)
-        (d.card.cardNumber, i, d),
-      for (final (int i, Diagnostic d) in parserDiagnostics.indexed)
-        (d.card.cardNumber, frontEnd.diagnostics.length + i, d),
-    ];
-    all.sort(
-      ((int, int, Diagnostic) a, (int, int, Diagnostic) b) =>
-          a.$1 != b.$1 ? a.$1 - b.$1 : a.$2 - b.$2,
-    );
+    final all =
+        <(int, int, Diagnostic)>[
+          for (final (int i, Diagnostic d) in frontEnd.diagnostics.indexed)
+            (d.card.cardNumber, i, d),
+          for (final (int i, Diagnostic d) in parserDiagnostics.indexed)
+            (d.card.cardNumber, frontEnd.diagnostics.length + i, d),
+        ]..sort(
+          ((int, int, Diagnostic) a, (int, int, Diagnostic) b) =>
+              a.$1 != b.$1 ? a.$1 - b.$1 : a.$2 - b.$2,
+        );
     return List.unmodifiable([for (final (_, _, Diagnostic d) in all) d]);
   }
 

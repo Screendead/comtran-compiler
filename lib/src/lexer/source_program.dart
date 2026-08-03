@@ -68,7 +68,7 @@ final class SourceProgram {
     final problems = <Diagnostic>[];
     List<SourceCard>? currentGroup;
 
-    for (final SourceCard card in cards) {
+    for (final card in cards) {
       if (finishCard != null) {
         problems.add(Diagnostic(msgCardAfterFinish, card));
         continue;

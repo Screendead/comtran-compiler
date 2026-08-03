@@ -70,7 +70,7 @@ void main() {
   });
 
   test('check fails an empty directory', () {
-    final Directory empty = Directory('${dir.path}/empty')..createSync();
+    final empty = Directory('${dir.path}/empty')..createSync();
     expect(_deckconv(['check', empty.path]).exitCode, 1);
   });
 
@@ -90,12 +90,12 @@ void main() {
 
   test('check aggregates several files: ok, stale, and orphan mirror '
       '(TSTT-1)', () {
-    final String bCanon = '${dir.path}/b.ctdeck';
-    final String bMirror = '${dir.path}/b.deck';
+    final bCanon = '${dir.path}/b.ctdeck';
+    final bMirror = '${dir.path}/b.deck';
     final List<CardImage> bDeck = deckOf('STALE\n');
     File(bCanon).writeAsBytesSync(encodeCanon(bDeck));
     File(bMirror).writeAsStringSync('TAMPERED\n');
-    final String orphanMirror = '${dir.path}/c.deck';
+    final orphanMirror = '${dir.path}/c.deck';
     File(orphanMirror).writeAsStringSync('ORPHAN\n');
 
     final ProcessResult r = _deckconv(['check', dir.path]);
@@ -106,10 +106,10 @@ void main() {
   });
 
   test('check finds a deck named directly under a dot-prefixed directory', () {
-    final Directory hidden = Directory('${dir.path}/.hidden/decks')
+    final hidden = Directory('${dir.path}/.hidden/decks')
       ..createSync(recursive: true);
-    final String hiddenCanon = '${hidden.path}/h.ctdeck';
-    final String hiddenMirror = '${hidden.path}/h.deck';
+    final hiddenCanon = '${hidden.path}/h.ctdeck';
+    final hiddenMirror = '${hidden.path}/h.deck';
     final List<CardImage> deck = deckOf('HIDDEN\n');
     File(hiddenCanon).writeAsBytesSync(encodeCanon(deck));
     File(hiddenMirror).writeAsStringSync(deckToMirror(deck));
@@ -119,7 +119,7 @@ void main() {
   });
 
   test('check skips a hidden directory discovered below a normal root', () {
-    final Directory nested = Directory('${dir.path}/.git/objects')
+    final nested = Directory('${dir.path}/.git/objects')
       ..createSync(recursive: true);
     File('${nested.path}/x.ctdeck').writeAsBytesSync([1, 2, 3]);
     final ProcessResult r = _deckconv(['check', dir.path]);
@@ -128,7 +128,7 @@ void main() {
   });
 
   test('writeAtomic leaves the original file untouched when write throws', () {
-    final String path = '${dir.path}/atomic.txt';
+    final path = '${dir.path}/atomic.txt';
     File(path).writeAsStringSync('original');
     expect(
       () => writeAtomic(path, (File f) {
@@ -145,7 +145,7 @@ void main() {
   });
 
   test('writeAtomic replaces the file only after a successful write', () {
-    final String path = '${dir.path}/atomic2.txt';
+    final path = '${dir.path}/atomic2.txt';
     writeAtomic(path, (File f) => f.writeAsStringSync('new content'));
     expect(File(path).readAsStringSync(), 'new content');
   });
@@ -157,8 +157,8 @@ void main() {
   });
 
   test('to-canon and to-text round-trip through files', () {
-    final String canon2 = '${dir.path}/b.ctdeck';
-    final String mirror2 = '${dir.path}/b.deck';
+    final canon2 = '${dir.path}/b.ctdeck';
+    final mirror2 = '${dir.path}/b.deck';
     expect(_deckconv(['to-canon', mirrorPath, canon2]).exitCode, 0);
     expect(File(canon2).readAsBytesSync(), File(canonPath).readAsBytesSync());
     // to-canon also writes the sibling mirror, so the pair stays complete
@@ -177,7 +177,7 @@ void main() {
   });
 
   test('to-canon reads the mirror from standard input', () async {
-    final String canon2 = '${dir.path}/b.ctdeck';
+    final canon2 = '${dir.path}/b.ctdeck';
     final Process process = await Process.start(Platform.resolvedExecutable, [
       'run',
       'comtran:deckconv',
@@ -206,7 +206,7 @@ void main() {
   });
 
   test('to-canon reports the CLI error path for malformed mirror text', () {
-    final String badMirror = '${dir.path}/bad.deck';
+    final badMirror = '${dir.path}/bad.deck';
     File(badMirror).writeAsStringSync('TRAILING SPACE \n');
     final ProcessResult r = _deckconv([
       'to-canon',
@@ -220,7 +220,7 @@ void main() {
   });
 
   test('to-canon rejects mirror text with no final newline', () {
-    final String badMirror = '${dir.path}/bad.deck';
+    final badMirror = '${dir.path}/bad.deck';
     File(badMirror).writeAsStringSync('HELLO');
     final ProcessResult r = _deckconv([
       'to-canon',
@@ -232,7 +232,7 @@ void main() {
   });
 
   test('to-canon rejects a glyph outside the source set', () {
-    final String badMirror = '${dir.path}/bad.deck';
+    final badMirror = '${dir.path}/bad.deck';
     File(badMirror).writeAsStringSync('A%B\n');
     final ProcessResult r = _deckconv([
       'to-canon',
@@ -272,7 +272,7 @@ void main() {
   });
 
   test('regen fails when nothing matches', () {
-    final Directory empty = Directory('${dir.path}/empty')..createSync();
+    final empty = Directory('${dir.path}/empty')..createSync();
     expect(_deckconv(['regen', empty.path]).exitCode, 1);
   });
 

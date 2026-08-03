@@ -23,11 +23,11 @@ CompileCard? parseCompileCard(SourceCard? card, List<Diagnostic> diagnostics) {
   if (card == null) {
     return null;
   }
-  final bool historical = card.textRange(1, 6) != r'$CMPLE';
+  final historical = card.textRange(1, 6) != r'$CMPLE';
   // Deck.name may start anywhere in its field, leading blanks ignored;
   // imbedded blanks are accepted silently (D7.11).
   final String deckName = historical ? '' : card.textRange(8, 13).trim();
-  final int optionsFrom = historical ? 15 : 14;
+  final optionsFrom = historical ? 15 : 14;
   final options = <String>[];
   // "The options used must not be separated by blanks as the first
   // blank terminates the list of options. The options must be

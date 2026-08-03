@@ -206,7 +206,7 @@ void main() {
         msgKeyWordAsDataName,
         msgKeyWordAsDataName,
       ]);
-      final FileCard card = cards.single as FileCard;
+      final card = cards.single as FileCard;
       expect(card.records.single.name.text, 'MOVE');
     });
 
@@ -428,6 +428,7 @@ void main() {
     });
 
     test(
+      // ignore: lines_longer_than_80_chars, reason: docs/design/message-checklist.tsv matches this test by literal name (msgs 90, 207); a split string would still concatenate but the checklist test greps raw source text, so the literal must stay on one line.
       'a CONTRL name over 6 characters draws 207,00; well-formed card also gets 90,00',
       () {
         final EnvironmentScan scan = scanEnvironment(
@@ -577,7 +578,7 @@ void main() {
             // 164 (no names at all).
             _card(type: 'GROUP', options: 'OPENCOUNT 5'),
             // 176 (malformed shape) plus 90.
-            _card(name: 'BAD1', type: 'CONTRL', options: ''),
+            _card(name: 'BAD1', type: 'CONTRL'),
             // 207 (over-length) plus 90.
             _card(name: 'TOOLONGNAME', type: 'CONTRL', options: 'SECTIONA'),
             // 3.
@@ -610,7 +611,7 @@ void main() {
           ]),
         );
 
-        for (final Diagnostic d in diagnostics) {
+        for (final d in diagnostics) {
           expect(() => d.severity, returnsNormally);
           expect(d.severity, messageSeverities[d.message.number]);
         }

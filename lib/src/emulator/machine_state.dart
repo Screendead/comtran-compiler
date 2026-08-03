@@ -68,9 +68,15 @@ final class MachineState {
   int xrRead(int tag) {
     RangeError.checkValueInInterval(tag, 0, 7, 'tag');
     var value = 0;
-    if (tag & 1 != 0) value |= _xr[0];
-    if (tag & 2 != 0) value |= _xr[1];
-    if (tag & 4 != 0) value |= _xr[2];
+    if (tag & 1 != 0) {
+      value |= _xr[0];
+    }
+    if (tag & 2 != 0) {
+      value |= _xr[1];
+    }
+    if (tag & 4 != 0) {
+      value |= _xr[2];
+    }
     return value;
   }
 
@@ -79,9 +85,15 @@ final class MachineState {
   void xrWrite(int tag, int value) {
     RangeError.checkValueInInterval(tag, 0, 7, 'tag');
     final int masked = value & Word36.fieldMask15;
-    if (tag & 1 != 0) _xr[0] = masked;
-    if (tag & 2 != 0) _xr[1] = masked;
-    if (tag & 4 != 0) _xr[2] = masked;
+    if (tag & 1 != 0) {
+      _xr[0] = masked;
+    }
+    if (tag & 2 != 0) {
+      _xr[1] = masked;
+    }
+    if (tag & 4 != 0) {
+      _xr[2] = masked;
+    }
   }
 
   /// Reads the word at [location] (15-bit, checked).

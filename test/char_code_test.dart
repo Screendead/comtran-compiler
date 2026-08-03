@@ -17,7 +17,7 @@ void main() {
         // The native display's 51 characters, lowest code to highest, from the
         // scan-resolved reading in definition §1.1. Machine specials appear as
         // their names; they have no Set H glyph.
-        final expected = [
+        final List<String> expected = [
           ...'0123456789'.split(''),
           '=', "'", '+',
           ...'ABCDEFGHI'.split(''),
@@ -82,6 +82,7 @@ void main() {
         '3-8': '=',
         '4-8': "'",
       };
+      // ignore: cascade_invocations, reason: specials is const; cascading forEach onto it would force dropping const.
       specials.forEach((code, glyph) {
         final int? bcd = bcdFromPunches(_punches(code));
         expect(bcd, isNotNull, reason: code);

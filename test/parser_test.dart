@@ -45,7 +45,7 @@ void main() {
       expect(parse.groups[1], isA<ParsedEnvironmentGroup>());
       expect(parse.groups[2], isA<ParsedProcedureGroup>());
       expect((parse.groups[0] as ParsedDataGroup).items, hasLength(172));
-      final ParsedDataGroup data = parse.groups[0] as ParsedDataGroup;
+      final data = parse.groups[0] as ParsedDataGroup;
       // The division's twelve level-1 entries: seven records, the four
       // working/total/table groups, and TABLE.ITEM.
       expect(data.roots, hasLength(12));
@@ -131,8 +131,9 @@ void main() {
     test('a parser severity 5 stops the parse and shares the sink', () {
       final lines = <String>['      *PROCEDURE'];
       for (var i = 1; i <= 36; i++) {
-        lines.add('      ${'S$i.'.padRight(12)}BEGIN SECTION.');
-        lines.add('            END S$i.');
+        lines
+          ..add('      ${'S$i.'.padRight(12)}BEGIN SECTION.')
+          ..add('            END S$i.');
       }
       lines.add('            STOP RUN.');
       final sink = DiagnosticSink();

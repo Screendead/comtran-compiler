@@ -147,7 +147,7 @@ void main() {
       expect(scan.entries.single.descriptionTokens.single.text, 'ABCD');
     });
 
-    test('blanks after a continuation card\'s first content are kept', () {
+    test("blanks after a continuation card's first content are kept", () {
       final DataScan scan = scanDataDescription(
         _cards([
           _card(name: 'C', level: '2', description: "'AB", continued: true),
@@ -183,7 +183,7 @@ void main() {
     late DataScan scan;
 
     setUpAll(() {
-      final SourceProgram program = SourceProgram.fromDeck(
+      final program = SourceProgram.fromDeck(
         decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
       );
       scan = scanDataDescription(program.cardsOf(Division.data));

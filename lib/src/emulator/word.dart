@@ -3,6 +3,7 @@
 /// Implements §2 of `docs/design/emulator.md` (decision ED-1). A word is one
 /// Dart `int` in `0 .. 2^36 - 1`. Position S (the sign) is bit 35; position
 /// *n* (1–35) is bit `35 - n` (22-6528-4 p. 7, external).
+// ignore: avoid_classes_with_only_static_members, reason: Word36 is a namespace of bit-field helpers over a plain int word (LNT-10); converting it to an extension type or top-level functions touches 102 call sites across lib/ and test/ for a low-severity, judgment-call finding, and top-level names this generic (sign, tag, count, address) risk colliding with local identifiers in the emulator. Deferred to a dedicated refactor.
 abstract final class Word36 {
   /// Bits per storage word.
   static const int bits = 36;

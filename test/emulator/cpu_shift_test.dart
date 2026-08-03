@@ -13,16 +13,18 @@ void main() {
   });
 
   void runOne(int word) {
-    m.write(0x100, word);
-    m.ic = 0x100;
+    m
+      ..write(0x100, word)
+      ..ic = 0x100;
     cpu.step();
   }
 
   // ALS: 22-6528-4 p. 31 (external).
   group('ALS', () {
     test('shifts Q,P,1-35 left; the sign stands', () {
-      m.acSign = 1;
-      m.acMagnitude = 5;
+      m
+        ..acSign = 1
+        ..acMagnitude = 5;
       runOne(typeB(0x1F7, address: 2)); // +0767
       expect(m.acMagnitude, 20);
       expect(m.acSign, 1);
@@ -59,8 +61,9 @@ void main() {
     });
 
     test('indexing modifies the count', () {
-      m.acMagnitude = 1;
-      m.xrWrite(1, 2);
+      m
+        ..acMagnitude = 1
+        ..xrWrite(1, 2);
       runOne(typeB(0x1F7, address: 5, tag: 1)); // 5 - 2 = 3.
       expect(m.acMagnitude, 8);
     });
@@ -85,9 +88,10 @@ void main() {
   // LRS: 22-6528-4 p. 32 (external).
   group('LRS', () {
     test('AC(35) enters MQ(1); the MQ sign takes the AC sign', () {
-      m.acSign = 1;
-      m.acMagnitude = 1;
-      m.mq = data(0);
+      m
+        ..acSign = 1
+        ..acMagnitude = 1
+        ..mq = data(0);
       runOne(typeB(0x1F5, address: 1)); // +0765
       expect(m.acMagnitude, 0);
       expect(m.mq, data(1 << 34, negative: true));
@@ -119,8 +123,9 @@ void main() {
     });
 
     test('a long shift drains the MQ through the AC', () {
-      m.acMagnitude = 0;
-      m.mq = data(1); // Position 35 of the MQ.
+      m
+        ..acMagnitude = 0
+        ..mq = data(1); // Position 35 of the MQ.
       runOne(typeB(0x9F3, address: 36)); // Through S and into AC(35).
       expect(m.acMagnitude, 1);
       expect(m.mq, 0);

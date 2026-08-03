@@ -19,7 +19,7 @@ void main() {
 
   test('the catalog equals the transcription byte for byte (D9.5)', () {
     expect(messageCatalog, hasLength(210));
-    for (final SourceMessage message in source) {
+    for (final message in source) {
       final Message? stored = messageCatalog[message.id];
       expect(stored, isNotNull, reason: message.id);
       if (message.id == '187,00') {
@@ -64,7 +64,7 @@ void main() {
       msgIllegalJustification,
       msgDataNameLacksLevel,
     ];
-    for (final Message message in m1) {
+    for (final message in m1) {
       expect(
         messageCatalog[message.number]?.text,
         message.text,
@@ -77,7 +77,7 @@ void main() {
     // Messages 85, 135, 136, 137, 140 are unreachable by construction;
     // their ids and texts stay reserved (decision D9.15). Message 0 is
     // the fallback for an id with no text.
-    for (final String id in [
+    for (final id in [
       '85,00', '135,00', '136,00', '137,00', //
       '140,00',
     ]) {

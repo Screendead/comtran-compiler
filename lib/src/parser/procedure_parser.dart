@@ -176,7 +176,7 @@ final class ProcedureParser {
   /// Every clause of [clauses], including those nested in IF arms, ON
   /// OVERFLOW slots, and AT END slots.
   Iterable<Clause> _clauseTree(List<Clause> clauses) sync* {
-    for (final Clause clause in clauses) {
+    for (final clause in clauses) {
       yield clause;
       switch (clause) {
         case IfClause(:final thenArm, :final otherwiseArm):
@@ -255,7 +255,7 @@ final class ProcedureParser {
 
   int _operatorCount(List<Token> tokens) {
     var count = 0;
-    for (final Token token in tokens) {
+    for (final token in tokens) {
       if (token.kind == TokenKind.symbol &&
               _operatorSymbols.contains(token.text) ||
           token.kind == TokenKind.word && _operatorWords.contains(token.text)) {
@@ -646,8 +646,8 @@ final class ProcedureParser {
     return _parseClause(cursor);
   }
 
-  /// `ADD [CORRESPONDING] source TO target, … [TRUNCATED]
-  /// [, ON OVERFLOW clause]` (F pp. 47, 108; design note M2-9).
+  /// `ADD` `[CORRESPONDING]` source TO target, … `[TRUNCATED]`
+  /// `[, ON OVERFLOW clause]` (F pp. 47, 108; design note M2-9).
   Clause _parseAdd(TokenCursor cursor) {
     final Token verb = cursor.take();
     final bool corresponding = cursor.takeWord('CORRESPONDING');
@@ -937,8 +937,9 @@ final class ProcedureParser {
   Clause _parseOpenClose(TokenCursor cursor, {required bool open}) {
     final Token verb = cursor.take();
     if (cursor.isWord('ALL') && cursor.isWord('FILES', 1)) {
-      cursor.take();
-      cursor.take();
+      cursor
+        ..take()
+        ..take();
       return open
           ? OpenClause(verb, const [], allFiles: true)
           : CloseClause(verb, const [], allFiles: true);
@@ -969,8 +970,9 @@ final class ProcedureParser {
     final Token verb = cursor.take();
     var recordFrom = false;
     if (cursor.isWord('RECORD') && cursor.isWord('FROM', 1)) {
-      cursor.take();
-      cursor.take();
+      cursor
+        ..take()
+        ..take();
       recordFrom = true;
     }
     final NameReference name = _expectName(cursor, msgIncompleteStatement);

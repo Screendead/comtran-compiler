@@ -7,9 +7,9 @@ import 'package:test/test.dart';
 
 /// A minimal MCP client: line-delimited JSON-RPC 2.0 over a subprocess.
 ///
-/// When [roots] is given, the client declares the `roots` capability and
+/// When [_roots] is given, the client declares the `roots` capability and
 /// answers the server's `roots/list` request with it, so the server's path
-/// confinement (MCP-6) allows paths under any of them. With no [roots], the
+/// confinement (MCP-6) allows paths under any of them. With no [_roots], the
 /// client declares no roots capability at all, matching a client that does
 /// not support the feature.
 class _McpClient {
@@ -131,7 +131,7 @@ void main() {
 
   // Card 1 is a glyph card, card 2 punches a group mark and an illegal
   // two-zone column, card 3 is blank.
-  const String sample = 'HELLO\n! 1:12-5-8 80:12-11\n\n';
+  const sample = 'HELLO\n! 1:12-5-8 80:12-11\n\n';
 
   setUpAll(() async {
     // Cover every temp directory setUp creates, plus the repository root, so
@@ -185,7 +185,7 @@ void main() {
         'card_code_info',
         'deck_check',
       ]);
-      for (final Object? tool in tools) {
+      for (final tool in tools) {
         final entry = tool! as Map<String, Object?>;
         expect(entry['description'], isNotEmpty);
         expect(
@@ -217,7 +217,7 @@ void main() {
           (tool! as Map<String, Object?>)['name']! as String:
               tool as Map<String, Object?>,
       };
-      for (final String name in [
+      for (final name in [
         'deck_read',
         'deck_card',
         'card_code_info',
@@ -313,7 +313,7 @@ void main() {
         // Matches defaultMaxCards in deck_tools.dart. Not imported directly:
         // deck_tools.dart is an implementation detail behind the tools, not
         // part of the public package API.
-        const int defaultPage = 25;
+        const defaultPage = 25;
         final Map<String, Object?> json = _content(
           await client.call('deck_read', {
             'path': '${Directory.current.path}/tests/90.05-payroll.ctdeck',
@@ -363,7 +363,7 @@ void main() {
     test(
       'include_cards on an empty deck returns no cards, not an error',
       () async {
-        final String emptyPath = '${dir.path}/empty.ctdeck';
+        final emptyPath = '${dir.path}/empty.ctdeck';
         await client.call('deck_write', {'path': emptyPath, 'mirror': ''});
         final Map<String, Object?> json = _content(
           await client.call('deck_read', {
@@ -420,7 +420,7 @@ void main() {
     });
 
     test('rejects a file that is not canon', () async {
-      final String bad = '${dir.path}/bad.ctdeck';
+      final bad = '${dir.path}/bad.ctdeck';
       File(bad).writeAsBytesSync([1, 2, 3]);
       final Map<String, Object?> error = _errorOf(
         await client.call('deck_read', {'path': bad}),
@@ -437,8 +437,8 @@ void main() {
 
   group('deck_write', () {
     test('writes the canon file and regenerates the mirror', () async {
-      final String path = '${dir.path}/b.ctdeck';
-      const String text = 'MOVE A TO B.\n! 5:0-2-8\n';
+      final path = '${dir.path}/b.ctdeck';
+      const text = 'MOVE A TO B.\n! 5:0-2-8\n';
       final Map<String, Object?> json = _content(
         await client.call('deck_write', {'path': path, 'mirror': text}),
       );
@@ -465,7 +465,7 @@ void main() {
     test(
       'rejects text that is not in normal form and writes nothing',
       () async {
-        final String path = '${dir.path}/c.ctdeck';
+        final path = '${dir.path}/c.ctdeck';
         final Map<String, Object?> error = _errorOf(
           await client.call('deck_write', {
             'path': path,
@@ -807,11 +807,10 @@ void main() {
         'name': 'card_code_info',
       });
       expect(response['error'], isNull, reason: '$response');
-      final Map<String, Object?> result =
-          response['result']! as Map<String, Object?>;
+      final result = response['result']! as Map<String, Object?>;
       final Map<String, Object?> error = _errorOf(result);
       expect(error['kind'], 'invalid_argument');
-      final String text =
+      final text =
           ((result['content']! as List<Object?>).first!
                   as Map<String, Object?>)['text']!
               as String;
@@ -823,7 +822,7 @@ void main() {
       () async {
         // int.tryParse(radix: 8) would accept "021" and "+21"; the spec gives
         // BCD codes as exactly two octal digits, 00 to 77 (MCP-14).
-        for (final String bad in ['021', '+21', '8', '99', '1']) {
+        for (final bad in ['021', '+21', '8', '99', '1']) {
           final Map<String, Object?> error = _errorOf(
             await client.call('card_code_info', {'bcd_octal': bad}),
           );
@@ -870,12 +869,12 @@ void main() {
 
     test('aggregates several files: ok, stale, and orphan mirror, canon '
         'files first (TSTT-1)', () async {
-      final String bCanon = '${dir.path}/b.ctdeck';
-      final String bMirror = '${dir.path}/b.deck';
+      final bCanon = '${dir.path}/b.ctdeck';
+      final bMirror = '${dir.path}/b.deck';
       final List<CardImage> bDeck = mirrorToDeck('STALE\n');
       File(bCanon).writeAsBytesSync(encodeCanon(bDeck));
       File(bMirror).writeAsStringSync('TAMPERED\n');
-      final String orphanMirror = '${dir.path}/c.deck';
+      final orphanMirror = '${dir.path}/c.deck';
       File(orphanMirror).writeAsStringSync('ORPHAN\n');
 
       final Map<String, Object?> json = _content(
@@ -966,7 +965,7 @@ void main() {
     });
 
     test('rejects a directory with no deck files', () async {
-      final Directory empty = Directory('${dir.path}/empty')..createSync();
+      final empty = Directory('${dir.path}/empty')..createSync();
       final Map<String, Object?> error = _errorOf(
         await client.call('deck_check', {
           'paths': <Object?>[empty.path],

@@ -119,9 +119,7 @@ final class _ProcedureScanner {
   late Set<int> _illegal;
 
   ProcedureScan scan() {
-    for (final SourceCard card in cards) {
-      _scanCard(card);
-    }
+    cards.forEach(_scanCard);
     if (_open) {
       // The division ended with the sentence still open (D9.4: the next
       // card is a header, control card, or end of deck). Report against
@@ -308,7 +306,7 @@ final class _ProcedureScanner {
   int _scanLiteral(int startIndex) {
     final int openColumn = startIndex + _marginFirst;
     final buffer = StringBuffer();
-    var column = openColumn + 1;
+    int column = openColumn + 1;
     var closed = false;
     while (column <= _textLast) {
       if (!_card.isPunched(column)) {
@@ -372,20 +370,20 @@ final class _ProcedureScanner {
         break;
       }
     }
-    final int fractionEnd = i;
-    var kind = TokenKind.numericLiteral;
+    final fractionEnd = i;
+    TokenKind kind = TokenKind.numericLiteral;
     if (points > 0 && i < _body.length && _body[i] == 'F') {
       // A floating point literal needs the decimal point in its fraction:
       // 20.F+01 is floating, 20F+01 is an arithmetic expression
       // (J 02.04.02, rules a-d). FF signals double precision.
-      var j = i + 1;
+      int j = i + 1;
       if (j < _body.length && _body[j] == 'F') {
         j++;
       }
       if (j < _body.length && (_body[j] == '+' || _body[j] == '-')) {
         j++;
       }
-      final int exponentStart = j;
+      final exponentStart = j;
       while (j < _body.length && _isDigit(_body[j])) {
         j++;
       }

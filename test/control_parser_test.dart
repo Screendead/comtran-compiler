@@ -25,7 +25,7 @@ void main() {
   test(r'a $CMPLE card parses deck.name and its option list', () {
     final diagnostics = <Diagnostic>[];
     final CompileCard card = parseCompileCard(
-      _card('\$CMPLE PAYROL  LIST,DICT,NOGO'),
+      _card(r'$CMPLE PAYROL  LIST,DICT,NOGO'),
       diagnostics,
     )!;
     expect(diagnostics, isEmpty);
@@ -37,7 +37,7 @@ void main() {
   test('the first blank terminates the option list (J 02.01.01)', () {
     final diagnostics = <Diagnostic>[];
     final CompileCard card = parseCompileCard(
-      _card('\$CMPLE DECK   LIST DICT'),
+      _card(r'$CMPLE DECK   LIST DICT'),
       diagnostics,
     )!;
     expect(card.options, ['LIST']);
@@ -47,7 +47,7 @@ void main() {
   test('an unknown option draws 909 and stays listed', () {
     final diagnostics = <Diagnostic>[];
     final CompileCard card = parseCompileCard(
-      _card('\$CMPLE DECK   LIST,FOO'),
+      _card(r'$CMPLE DECK   LIST,FOO'),
       diagnostics,
     )!;
     expect(card.options, ['LIST', 'FOO']);
@@ -59,7 +59,7 @@ void main() {
   test('a deck.name with imbedded blanks is accepted silently (D7.11)', () {
     final diagnostics = <Diagnostic>[];
     final CompileCard card = parseCompileCard(
-      _card('\$CMPLE PA ROL LIST'),
+      _card(r'$CMPLE PA ROL LIST'),
       diagnostics,
     )!;
     expect(card.deckName, 'PA ROL');

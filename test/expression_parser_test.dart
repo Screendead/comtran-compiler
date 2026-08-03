@@ -40,7 +40,8 @@ String _shape(ArithExpr expr) => switch (expr) {
     '(${operator.text}${_shape(operand)})',
   TruthExpr() => 'TR(...)',
   FunctionCall(:final function, :final arguments) =>
-    '${function.text}((${arguments.map((NameReference a) => a.text).join(',')}))',
+    '${function.text}('
+        '(${arguments.map((NameReference a) => a.text).join(',')}))',
 };
 
 void main() {
@@ -110,7 +111,7 @@ void main() {
         'PAGE (150) LINE (10) WORD (4) + 1',
       );
       expect(diagnostics, isEmpty);
-      final BinaryExpr sum = expr as BinaryExpr;
+      final sum = expr as BinaryExpr;
       final NameReference name = (sum.left as NameOperand).name;
       expect(name.text, 'PAGE LINE WORD');
       expect(name.subscripts, hasLength(3));
@@ -152,9 +153,9 @@ void main() {
         'ORDER.AMT * TR (STOCK.LEVEL LT ORDER.POINT)',
       );
       expect(diagnostics, isEmpty);
-      final BinaryExpr product = expr as BinaryExpr;
-      final TruthExpr tr = product.right as TruthExpr;
-      final Relation relation = tr.condition as Relation;
+      final product = expr as BinaryExpr;
+      final tr = product.right as TruthExpr;
+      final relation = tr.condition as Relation;
       expect(relation.op, RelationOp.less);
     });
 
@@ -174,8 +175,8 @@ void main() {
         'MINIMUM ((FLAT.RATE, QUANTITY.RATE, HIGH.VALUES)) * 1.15',
       );
       expect(diagnostics, isEmpty);
-      final BinaryExpr product = expr as BinaryExpr;
-      final FunctionCall call = product.left as FunctionCall;
+      final product = expr as BinaryExpr;
+      final call = product.left as FunctionCall;
       expect(call.arguments.map((NameReference a) => a.text), [
         'FLAT.RATE',
         'QUANTITY.RATE',
@@ -188,7 +189,7 @@ void main() {
         'MINIMUM ((A, 5))',
       );
       expect(diagnostics.single.message, msgFunctionArgumentDropped);
-      final FunctionCall call = expr as FunctionCall;
+      final call = expr as FunctionCall;
       expect(call.arguments.map((NameReference a) => a.text), ['A']);
     });
 
@@ -220,16 +221,16 @@ void main() {
         'A GT B AND C LT D OR E = F',
       );
       expect(diagnostics, isEmpty);
-      final OrExpr or = expr as OrExpr;
+      final or = expr as OrExpr;
       expect(or.left, isA<AndExpr>());
       expect(or.right, isA<Relation>());
     });
 
     test('the full and abbreviated relation spellings agree (F p. 21)', () {
-      for (final String text in ['X IS NOT EQUAL TO Y', 'X NOT = Y']) {
+      for (final text in ['X IS NOT EQUAL TO Y', 'X NOT = Y']) {
         final (CondExpr expr, List<Diagnostic> diagnostics) = _cond(text);
         expect(diagnostics, isEmpty, reason: text);
-        final Relation relation = expr as Relation;
+        final relation = expr as Relation;
         expect(relation.op, RelationOp.equal, reason: text);
         expect(relation.negated, isTrue, reason: text);
       }
@@ -248,7 +249,7 @@ void main() {
         'NOT MARRIED',
       );
       expect(diagnostics, isEmpty);
-      final NotExpr not = expr as NotExpr;
+      final not = expr as NotExpr;
       expect((not.operand as ConditionReference).name.text, 'MARRIED');
     });
 
@@ -273,11 +274,7 @@ void main() {
     });
 
     test('a hybrid relation spelling draws 107 (M2-17)', () {
-      for (final String text in [
-        'X GREATER THAN Y',
-        'X EQUAL Y',
-        'X IS GT Y',
-      ]) {
+      for (final text in ['X GREATER THAN Y', 'X EQUAL Y', 'X IS GT Y']) {
         final (CondExpr expr, List<Diagnostic> diagnostics) = _cond(text);
         expect(diagnostics.single.message, msgIllegalComparison, reason: text);
         expect(expr, isA<Relation>(), reason: text);

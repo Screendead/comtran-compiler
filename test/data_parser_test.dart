@@ -115,7 +115,7 @@ void main() {
 
   group('type codes', () {
     test('a withdrawn or unknown code draws 907 and a null typeCode', () {
-      for (final String code in ['FUNCT', 'PARAM', 'JUNK']) {
+      for (final code in ['FUNCT', 'PARAM', 'JUNK']) {
         final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
           _card(name: 'F', level: '2', type: code, description: '99'),
         ]);
@@ -189,7 +189,7 @@ void main() {
     });
 
     test('rejects zero, overflow, and non-numbers with 908', () {
-      for (final String quantity in ['0', '32768', '1A']) {
+      for (final quantity in ['0', '32768', '1A']) {
         final (_, List<Diagnostic> diagnostics) = _parse([
           _card(name: 'T', level: '2', quantity: quantity, description: '99'),
         ]);

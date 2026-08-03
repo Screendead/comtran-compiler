@@ -72,7 +72,7 @@ void main() {
     });
 
     test('type-A fields', () {
-      final Instruction inst = Instruction.decode(
+      final inst = Instruction.decode(
         typeA(7, decrement: 5, tag: 4, address: 0x123),
       );
       expect(inst.op, Op.txl);
@@ -87,12 +87,10 @@ void main() {
     test('CVR is +0114 with the count in positions 10-17', () {
       // 22-6528-4 p. 56 (external): the operation is S,1-9; positions
       // 10-11 belong to the count and overlap the 12-bit field.
-      final Instruction plain = Instruction.decode(typeB(0x04C, address: 9));
+      final plain = Instruction.decode(typeB(0x04C, address: 9));
       expect(plain.op, Op.cvr);
       expect(plain.count, 0);
-      final Instruction counted = Instruction.decode(
-        typeB(0x04C, address: 9) | (6 << 18),
-      );
+      final counted = Instruction.decode(typeB(0x04C, address: 9) | (6 << 18));
       expect(counted.op, Op.cvr);
       expect(counted.count, 6);
     });
@@ -109,14 +107,14 @@ void main() {
     });
 
     test('an MZE word (-0) is unknown', () {
-      final Instruction inst = Instruction.decode(1 << 35);
+      final inst = Instruction.decode(1 << 35);
       expect(inst.op, Op.unknown);
       expect(inst.operationOctal, '-0000');
     });
 
     test('a non-subset opcode reports its signed octal', () {
       // XEC is +0522 (22-6528-4 p. 36, external): 0o0522 = 0x152.
-      final Instruction inst = Instruction.decode(typeB(0x152));
+      final inst = Instruction.decode(typeB(0x152));
       expect(inst.op, Op.unknown);
       expect(inst.operationOctal, '+0522');
     });

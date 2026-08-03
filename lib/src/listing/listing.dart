@@ -134,7 +134,7 @@ final class _ListingWriter {
     // processor "replaces the contents of column 72 with a blank"
     // (J 02.03.01, §2.c), which is why the sample listing never shows a
     // continuation character. Procedure text reads through column 72.
-    final int lastColumn =
+    final lastColumn =
         division == Division.data || division == Division.environment ? 71 : 72;
     final String body = _externalBody(card, 7, lastColumn).trimRight();
     // Scan-anchored geometry (see m1-front-end.md M1-15): with D = the
@@ -194,9 +194,7 @@ final class _ListingWriter {
       }
       final List<String> lines = d.text.split('\n');
       _line('${number.padLeft(7)}    ${d.severity}    ${lines.first}');
-      for (final String continuation in lines.skip(1)) {
-        _line(continuation);
-      }
+      lines.skip(1).forEach(_line);
     }
     if (_maxSeverity < 5) {
       _line('');
@@ -215,11 +213,13 @@ final class _ListingWriter {
   void _newPage() {
     _page++;
     if (_page == 1 && options.title.isNotEmpty) {
-      _out.writeln('${' ' * 36}${options.title}');
-      _out.writeln();
+      _out
+        ..writeln('${' ' * 36}${options.title}')
+        ..writeln();
     }
-    _out.writeln(_pageHead());
-    _out.writeln();
+    _out
+      ..writeln(_pageHead())
+      ..writeln();
     _linesOnPage = 0;
   }
 

@@ -45,8 +45,8 @@ int? bcdFromPunches(int punches) {
   if (punches == _gmPunches) {
     return bcdGroupMark; // The 705 group-mark translation, spec §4.1.
   }
-  final bool has12 = punches & rowBit12 != 0;
-  final bool has11 = punches & rowBit11 != 0;
+  final has12 = punches & rowBit12 != 0;
+  final has11 = punches & rowBit11 != 0;
   if (has12 && has11) {
     return null;
   }
@@ -140,7 +140,7 @@ int? punchesFromBcd(int bcd) {
 }
 
 const String _glyphs =
-    '0123456789?=\'???+ABCDEFGHI?.)???-JKLMNOPQR?\$*??? /STUVWXYZ?,(???';
+    r"0123456789?='???+ABCDEFGHI?.)???-JKLMNOPQR?$*??? /STUVWXYZ?,(???";
 
 /// The Set H glyph of BCD code [bcd] (a single character; a space for
 /// blank), or `null` when the code has no Set H glyph.

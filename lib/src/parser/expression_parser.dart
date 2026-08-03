@@ -143,7 +143,7 @@ NameReference parseNameReference(
       ),
     );
   }
-  for (final ArithExpr subscript in subscripts) {
+  for (final subscript in subscripts) {
     // A subscript is a name, a literal, or `a * VARIABLE ± b` — never a
     // figurative constant (F p. 31; design note M2-8).
     rejectNestedFigurative(subscript, diagnostics, sole: false);
@@ -420,8 +420,9 @@ ArithExpr parseFunctionCall(
   TokenCursor cursor,
   List<Diagnostic> diagnostics,
 ) {
-  cursor.take();
-  cursor.take();
+  cursor
+    ..take()
+    ..take();
   final arguments = <NameReference>[];
   while (true) {
     final Token? token = cursor.peek();
@@ -528,7 +529,7 @@ CondExpr _parseCondPrimary(TokenCursor cursor, List<Diagnostic> diagnostics) {
 /// condition.
 bool _parenGroupsCondition(TokenCursor cursor) {
   var depth = 0;
-  var i = cursor.position;
+  int i = cursor.position;
   while (i < cursor.tokens.length) {
     final Token token = cursor.tokens[i];
     if (token.kind == TokenKind.symbol && token.text == '(') {

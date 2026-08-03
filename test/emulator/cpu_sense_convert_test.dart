@@ -13,8 +13,9 @@ void main() {
   });
 
   void runOne(int word) {
-    m.write(0x100, word);
-    m.ic = 0x100;
+    m
+      ..write(0x100, word)
+      ..ic = 0x100;
     cpu.step();
   }
 
@@ -54,7 +55,7 @@ void main() {
       expect(m.ic, 0x101); // No skip.
     });
 
-    test('the listing\'s switch sequence behaves as a resettable flag', () {
+    test("the listing's switch sequence behaves as a resettable flag", () {
       m.si = 0;
       runOne(typeB(0x02D) | 1); // SIR 000001: set the flag.
       runOne(typeB(0x02C) | 1); // RFT 000001: flag on, no skip.
@@ -79,9 +80,10 @@ void main() {
       // AC holds one argument byte 0x3A at positions 30-35; the table
       // word at Y + 0x3A carries the function in S,1-5 and the next table
       // origin in 21-35.
-      m.acSign = 1;
-      m.acMagnitude = 0x3A;
-      m.write(0x200 + 0x3A, (0x25 << 30) | 0x400);
+      m
+        ..acSign = 1
+        ..acMagnitude = 0x3A
+        ..write(0x200 + 0x3A, (0x25 << 30) | 0x400);
       runOne(typeB(0x04C, address: 0x200) | (1 << 18)); // CVR 0x200, count 1
       expect(m.acSign, 1); // S unchanged.
       expect(m.acMagnitude, 0x25 << 30);
@@ -89,9 +91,11 @@ void main() {
     });
 
     test('two replacements chain through table origins', () {
-      m.acMagnitude = 0x02; // First argument byte.
-      m.write(0x202, (0x25 << 30) | 0x400); // Function 0x25, next 0x400.
-      m.write(0x400, (0x11 << 30) | 0x500); // Second byte is 0 after shift.
+      m
+        ..acMagnitude =
+            0x02 // First argument byte.
+        ..write(0x202, (0x25 << 30) | 0x400) // Function 0x25, next 0x400.
+        ..write(0x400, (0x11 << 30) | 0x500); // Second byte is 0 after shift.
       runOne(typeB(0x04C, address: 0x200) | (2 << 18));
       expect(m.acMagnitude, (0x11 << 30) | (0x25 << 24));
     });
@@ -99,15 +103,18 @@ void main() {
     test('an initial 1 in Q survives in position 5', () {
       // p. 56 step 6: the Q bit shifted to position 5 remains regardless
       // of the table word.
-      m.acMagnitude = MachineState.acQBit; // Argument byte 0.
-      m.write(0x200, 0x24 << 30); // Function bit for position 5 is 0.
+      m
+        ..acMagnitude = MachineState
+            .acQBit // Argument byte 0.
+        ..write(0x200, 0x24 << 30); // Function bit for position 5 is 0.
       runOne(typeB(0x04C, address: 0x200) | (1 << 18));
       expect(m.acMagnitude, 0x25 << 30); // 0x24 with position 5 forced on.
     });
 
     test('a 1 in position 20 places the last table origin in XR 1', () {
-      m.acMagnitude = 0;
-      m.write(0x200, (0x01 << 30) | 0x654);
+      m
+        ..acMagnitude = 0
+        ..write(0x200, (0x01 << 30) | 0x654);
       runOne(typeB(0x04C, address: 0x200, tag: 1) | (1 << 18));
       expect(m.xrRead(1), 0x654);
     });
@@ -122,8 +129,9 @@ void main() {
   // Fail-loud behavior: design decision ED-4.
   group('unimplemented operations', () {
     test('an executed PZE parameter word throws with +0000 and the IC', () {
-      m.write(0x150, typeA(0, address: 0x321)); // A PZE calling-sequence word.
-      m.ic = 0x150;
+      m
+        ..write(0x150, typeA(0, address: 0x321)) // A PZE calling-sequence word.
+        ..ic = 0x150;
       expect(
         () => cpu.step(),
         throwsA(
@@ -144,8 +152,9 @@ void main() {
     });
 
     test('a non-subset type-A prefix names itself', () {
-      m.write(0x150, typeA(2, decrement: 1, tag: 1)); // TIX.
-      m.ic = 0x150;
+      m
+        ..write(0x150, typeA(2, decrement: 1, tag: 1)) // TIX.
+        ..ic = 0x150;
       expect(
         () => cpu.step(),
         throwsA(
@@ -159,7 +168,7 @@ void main() {
     });
 
     test('the message carries the octal word and location', () {
-      final UnimplementedOpcode7090 e = UnimplementedOpcode7090(
+      final e = UnimplementedOpcode7090(
         '+0522',
         0x150,
         typeB(0x152, address: 5),

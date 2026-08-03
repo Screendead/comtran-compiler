@@ -17,13 +17,13 @@ const int _recordLength = 120;
 
 /// Encodes [deck] as canon bytes.
 Uint8List encodeCanon(List<CardImage> deck) {
-  final bytes = Uint8List(_headerLength + _recordLength * deck.length);
-  bytes.setRange(0, _magic.length, _magic);
-  bytes[6] = canonFormatVersion;
-  bytes[7] = 0; // Flags, reserved.
+  final bytes = Uint8List(_headerLength + _recordLength * deck.length)
+    ..setRange(0, _magic.length, _magic)
+    ..[6] = canonFormatVersion
+    ..[7] = 0; // Flags, reserved.
   ByteData.sublistView(bytes).setUint32(8, deck.length);
-  var offset = _headerLength;
-  for (final CardImage card in deck) {
+  int offset = _headerLength;
+  for (final card in deck) {
     final Uint16List columns = card.toColumnList();
     for (var i = 0; i < CardImage.columnCount; i += 2) {
       final int a = columns[i];
@@ -66,7 +66,7 @@ List<CardImage> decodeCanon(Uint8List bytes) {
     );
   }
   final deck = <CardImage>[];
-  var offset = _headerLength;
+  int offset = _headerLength;
   final columns = Uint16List(CardImage.columnCount);
   for (var card = 0; card < count; card++) {
     for (var i = 0; i < CardImage.columnCount; i += 2) {
