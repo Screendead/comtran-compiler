@@ -1,0 +1,612 @@
+/// The expression parsers (M2): arithmetic (definition §4.1;
+/// J 02.04.05) and conditional (§5.3; F pp. 21–24, 105–106), over a
+/// shared token cursor the clause parsers also use.
+///
+/// Precedence (J 02.04.05.01): unary negation, ABS, and TR bind
+/// tightest — above `**` (D4.4) — then `**`, then `* /`, then `+ -`,
+/// left-associative within a level. `A**B**C` is rejected and grouped
+/// left for recovery only (D4.10). Two successive operators are illegal
+/// unless the second is TR or ABS (F p. 27 rule 6).
+library;
+
+import '../ast/procedure_ast.dart';
+import '../lexer/diagnostic.dart';
+import '../lexer/reserved_words.dart';
+import '../lexer/source_card.dart';
+import '../lexer/token.dart';
+import 'parser_messages.dart';
+
+/// The figurative constants (F pp. 19–20).
+const Set<String> figurativeConstants = {
+  'ZERO', 'ZEROS', 'BLANK', 'BLANKS', //
+  'HIGH.VALUE', 'HIGH.VALUES', 'LOW.VALUE', 'LOW.VALUES',
+};
+
+/// Whether [word] can never form part of a data or procedure name:
+/// J's list 1 (barred everywhere) and list 2 (barred as Data or
+/// Procedure names). List-3 words are legal names and never end a name
+/// run (J 02.03.02–03).
+bool isNameStopWord(String word) {
+  final KeyWordClass? keyWordClass = keyWordClassOf(word);
+  return keyWordClass == KeyWordClass.alwaysKey ||
+      keyWordClass == KeyWordClass.notDataOrProcedureName;
+}
+
+/// A cursor over one sentence's tokens.
+final class TokenCursor {
+  /// Creates the cursor over [tokens], anchored to [sentenceCard] for
+  /// diagnostics at end-of-sentence positions.
+  TokenCursor(this.tokens, this.sentenceCard);
+
+  /// The sentence's tokens.
+  final List<Token> tokens;
+
+  /// The card diagnostics anchor to when the cursor is at the end.
+  final SourceCard sentenceCard;
+
+  /// The current position.
+  int position = 0;
+
+  /// Whether every token is consumed.
+  bool get atEnd => position >= tokens.length;
+
+  /// The token at the cursor plus [offset], or `null` past the end.
+  Token? peek([int offset = 0]) =>
+      position + offset < tokens.length ? tokens[position + offset] : null;
+
+  /// Consumes and returns the current token.
+  Token take() => tokens[position++];
+
+  /// Whether the current token is the symbol [text].
+  bool isSymbol(String text, [int offset = 0]) {
+    final Token? token = peek(offset);
+    return token != null &&
+        token.kind == TokenKind.symbol &&
+        token.text == text;
+  }
+
+  /// Whether the current token is the word [text].
+  bool isWord(String text, [int offset = 0]) {
+    final Token? token = peek(offset);
+    return token != null && token.kind == TokenKind.word && token.text == text;
+  }
+
+  /// Consumes the symbol [text] when it is next; reports success.
+  bool takeSymbol(String text) {
+    if (isSymbol(text)) {
+      position++;
+      return true;
+    }
+    return false;
+  }
+
+  /// Consumes the word [text] when it is next; reports success.
+  bool takeWord(String text) {
+    if (isWord(text)) {
+      position++;
+      return true;
+    }
+    return false;
+  }
+
+  /// The card a diagnostic at the cursor anchors to.
+  SourceCard get card => peek()?.card ?? sentenceCard;
+
+  /// The column a diagnostic at the cursor anchors to.
+  int? get column => peek()?.column;
+}
+
+/// Parses a possibly qualified, possibly subscripted name reference
+/// (§1.5; D2.5). The cursor must stand on a name word. At most three
+/// subscripts (F p. 30; D3.1 — msg 914 beyond).
+NameReference parseNameReference(
+  TokenCursor cursor,
+  List<Diagnostic> diagnostics,
+) {
+  final words = <Token>[cursor.take()];
+  while (true) {
+    final Token? next = cursor.peek();
+    if (next == null ||
+        next.kind != TokenKind.word ||
+        isNameStopWord(next.text) ||
+        figurativeConstants.contains(next.text)) {
+      break;
+    }
+    words.add(cursor.take());
+  }
+  var subscripts = const <ArithExpr>[];
+  if (cursor.isSymbol('(') && !cursor.isSymbol('(', 1)) {
+    cursor.take();
+    final list = <ArithExpr>[];
+    list.add(parseArithExpr(cursor, diagnostics));
+    while (cursor.takeSymbol(',')) {
+      list.add(parseArithExpr(cursor, diagnostics));
+    }
+    if (!cursor.takeSymbol(')')) {
+      diagnostics.add(
+        Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+      );
+    }
+    if (list.length > 3) {
+      diagnostics.add(
+        Diagnostic(
+          msgTooManySubscripts,
+          words.first.card,
+          column: words.first.column,
+        ),
+      );
+    }
+    subscripts = list;
+  }
+  return NameReference(words, subscripts);
+}
+
+/// Parses an arithmetic expression (lowest precedence: `+ -`).
+ArithExpr parseArithExpr(TokenCursor cursor, List<Diagnostic> diagnostics) {
+  ArithExpr left = _parseTerm(cursor, diagnostics);
+  while (cursor.isSymbol('+') || cursor.isSymbol('-')) {
+    final Token operator = cursor.take();
+    final ArithExpr right = _parseTerm(
+      cursor,
+      diagnostics,
+      afterOperator: true,
+    );
+    left = BinaryExpr(left, operator, right);
+  }
+  return left;
+}
+
+/// `* /` level.
+ArithExpr _parseTerm(
+  TokenCursor cursor,
+  List<Diagnostic> diagnostics, {
+  bool afterOperator = false,
+}) {
+  ArithExpr left = _parsePower(
+    cursor,
+    diagnostics,
+    afterOperator: afterOperator,
+  );
+  while (cursor.isSymbol('*') || cursor.isSymbol('/')) {
+    final Token operator = cursor.take();
+    final ArithExpr right = _parsePower(
+      cursor,
+      diagnostics,
+      afterOperator: true,
+    );
+    left = BinaryExpr(left, operator, right);
+  }
+  return left;
+}
+
+/// `**` level: one application only; a second unparenthesized `**` is
+/// rejected and grouped left for recovery (F p. 107; D4.10).
+ArithExpr _parsePower(
+  TokenCursor cursor,
+  List<Diagnostic> diagnostics, {
+  bool afterOperator = false,
+}) {
+  ArithExpr left = _parseUnary(
+    cursor,
+    diagnostics,
+    afterOperator: afterOperator,
+  );
+  var applications = 0;
+  while (cursor.isSymbol('**')) {
+    final Token operator = cursor.take();
+    final ArithExpr right = _parseUnary(
+      cursor,
+      diagnostics,
+      afterOperator: true,
+    );
+    applications++;
+    if (applications > 1) {
+      diagnostics.add(
+        Diagnostic(
+          msgUnparenthesizedPower,
+          operator.card,
+          column: operator.column,
+        ),
+      );
+    }
+    left = BinaryExpr(left, operator, right, recovered: applications > 1);
+  }
+  return left;
+}
+
+/// The unary level: negation, ABS, TR (J 02.04.05.01; D4.4). A unary
+/// minus directly after a binary operator violates F p. 27 rule 6
+/// (`A * -B` must be written `A * (-B)`); TR and ABS are the stated
+/// exceptions.
+ArithExpr _parseUnary(
+  TokenCursor cursor,
+  List<Diagnostic> diagnostics, {
+  bool afterOperator = false,
+}) {
+  if (cursor.isSymbol('-')) {
+    final Token operator = cursor.take();
+    if (afterOperator && !_isLiteral(cursor.peek())) {
+      diagnostics.add(
+        Diagnostic(
+          msgSentenceStructureError,
+          operator.card,
+          column: operator.column,
+        ),
+      );
+    }
+    if (_isLiteral(cursor.peek()) && afterOperator) {
+      // A signed literal after an operator is the literal's own sign
+      // (F p. 18), not a second operator.
+      return UnaryExpr(operator, LiteralOperand(cursor.take()));
+    }
+    return UnaryExpr(operator, _parseUnaryOperand(cursor, diagnostics));
+  }
+  if (cursor.isSymbol('+') && _isLiteral(cursor.peek(1))) {
+    // A leading plus sign on a literal (F p. 18).
+    cursor.take();
+    return LiteralOperand(cursor.take());
+  }
+  if (cursor.isWord('ABS')) {
+    final Token operator = cursor.take();
+    return UnaryExpr(operator, _parseUnaryOperand(cursor, diagnostics));
+  }
+  if (cursor.isWord('TR')) {
+    return _parseTruthFunction(cursor, diagnostics);
+  }
+  return _parsePrimary(cursor, diagnostics);
+}
+
+bool _isLiteral(Token? token) =>
+    token != null &&
+    (token.kind == TokenKind.numericLiteral ||
+        token.kind == TokenKind.floatingLiteral);
+
+/// A unary operator's operand: a primary, or a parenthesized
+/// expression (F p. 45).
+ArithExpr _parseUnaryOperand(TokenCursor cursor, List<Diagnostic> diagnostics) {
+  if (cursor.isSymbol('(')) {
+    cursor.take();
+    final ArithExpr inner = parseArithExpr(cursor, diagnostics);
+    if (!cursor.takeSymbol(')')) {
+      diagnostics.add(
+        Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+      );
+    }
+    return inner;
+  }
+  return _parsePrimary(cursor, diagnostics);
+}
+
+/// `TR (conditional expression)` (F p. 45).
+ArithExpr _parseTruthFunction(
+  TokenCursor cursor,
+  List<Diagnostic> diagnostics,
+) {
+  final Token word = cursor.take();
+  if (!cursor.takeSymbol('(')) {
+    diagnostics.add(
+      Diagnostic(msgIllegalComparison, word.card, column: word.column),
+    );
+    return TruthExpr(word, ConditionReference(NameReference([word])));
+  }
+  final CondExpr condition = parseCondExpr(cursor, diagnostics);
+  if (!cursor.takeSymbol(')')) {
+    diagnostics.add(
+      Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+    );
+  }
+  return TruthExpr(word, condition);
+}
+
+/// A primary: literal, name (with subscripts or a double-parenthesis
+/// function call), figurative constant, or parenthesized expression.
+ArithExpr _parsePrimary(TokenCursor cursor, List<Diagnostic> diagnostics) {
+  final Token? token = cursor.peek();
+  if (token == null) {
+    return _missingOperand(cursor, diagnostics);
+  }
+  switch (token.kind) {
+    case TokenKind.numericLiteral:
+    case TokenKind.floatingLiteral:
+      return LiteralOperand(cursor.take());
+    case TokenKind.alphamericLiteral:
+      // Legal only inside TR or as a comparison operand (F p. 45);
+      // comparison call sites consume it before reaching here.
+      diagnostics.add(
+        Diagnostic(msgAlphamericArithOperand, token.card, column: token.column),
+      );
+      return LiteralOperand(cursor.take());
+    case TokenKind.symbol:
+      if (token.text == '(') {
+        cursor.take();
+        final ArithExpr inner = parseArithExpr(cursor, diagnostics);
+        if (!cursor.takeSymbol(')')) {
+          diagnostics.add(
+            Diagnostic(
+              msgRedundantLeftParen,
+              cursor.card,
+              column: cursor.column,
+            ),
+          );
+        }
+        return inner;
+      }
+      if (token.text == ')') {
+        // A right parenthesis with nothing open (msg 113): eliminated.
+        diagnostics.add(
+          Diagnostic(msgRedundantRightParen, token.card, column: token.column),
+        );
+        cursor.take();
+        return _parsePrimary(cursor, diagnostics);
+      }
+      return _missingOperand(cursor, diagnostics);
+    case TokenKind.word:
+      if (figurativeConstants.contains(token.text)) {
+        // Whether a figurative constant is legal here is the caller's
+        // judgment (design note M2-8).
+        return FigurativeOperand(cursor.take());
+      }
+      if (isNameStopWord(token.text)) {
+        return _missingOperand(cursor, diagnostics);
+      }
+      final NameReference name = parseNameReference(cursor, diagnostics);
+      if (cursor.isSymbol('(') && cursor.isSymbol('(', 1)) {
+        return _parseFunctionCall(name, cursor, diagnostics);
+      }
+      return NameOperand(name);
+    case TokenKind.noteText:
+    case TokenKind.descriptionItem:
+      return _missingOperand(cursor, diagnostics);
+  }
+}
+
+/// A missing operand: msg 116, zero assumed (its stated repair); the
+/// cursor does not move.
+ArithExpr _missingOperand(TokenCursor cursor, List<Diagnostic> diagnostics) {
+  diagnostics.add(
+    Diagnostic(msgMissingOperand, cursor.card, column: cursor.column),
+  );
+  return LiteralOperand(
+    Token(TokenKind.numericLiteral, '0', cursor.card, cursor.column ?? 72),
+  );
+}
+
+/// `name ((argument, ...))` — double parentheses, single-comma bare
+/// names (F p. 28 rule 15). The cursor stands on the first `(`.
+ArithExpr _parseFunctionCall(
+  NameReference function,
+  TokenCursor cursor,
+  List<Diagnostic> diagnostics,
+) {
+  cursor.take();
+  cursor.take();
+  final arguments = <NameReference>[];
+  while (true) {
+    final Token? token = cursor.peek();
+    if (token == null) {
+      diagnostics.add(
+        Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+      );
+      break;
+    }
+    if (token.kind == TokenKind.word && !isNameStopWord(token.text)) {
+      arguments.add(parseNameReference(cursor, diagnostics));
+    } else {
+      diagnostics.add(
+        Diagnostic(msgMissingOperand, token.card, column: token.column),
+      );
+      cursor.take();
+    }
+    if (cursor.takeSymbol(',')) {
+      continue;
+    }
+    if (cursor.takeSymbol(')')) {
+      if (!cursor.takeSymbol(')')) {
+        diagnostics.add(
+          Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+        );
+      }
+      break;
+    }
+    diagnostics.add(
+      Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+    );
+    break;
+  }
+  return FunctionCall(function, arguments);
+}
+
+// --- Conditional expressions ---------------------------------------------
+
+/// Parses a conditional expression (lowest precedence: OR; AND binds
+/// tighter, F p. 105 rule 3).
+CondExpr parseCondExpr(TokenCursor cursor, List<Diagnostic> diagnostics) {
+  CondExpr left = _parseCondAnd(cursor, diagnostics);
+  while (cursor.isWord('OR')) {
+    cursor.take();
+    left = OrExpr(left, _parseCondAnd(cursor, diagnostics));
+  }
+  return left;
+}
+
+CondExpr _parseCondAnd(TokenCursor cursor, List<Diagnostic> diagnostics) {
+  CondExpr left = _parseCondNot(cursor, diagnostics);
+  while (cursor.isWord('AND')) {
+    cursor.take();
+    left = AndExpr(left, _parseCondNot(cursor, diagnostics));
+  }
+  return left;
+}
+
+CondExpr _parseCondNot(TokenCursor cursor, List<Diagnostic> diagnostics) {
+  if (cursor.isWord('NOT')) {
+    final Token word = cursor.take();
+    if (cursor.isWord('NOT')) {
+      // `NOT NOT` is illegal token adjacency (F p. 106 rule 4).
+      diagnostics.add(
+        Diagnostic(msgIllegalComparison, word.card, column: word.column),
+      );
+    }
+    return NotExpr(word, _parseCondPrimary(cursor, diagnostics));
+  }
+  return _parseCondPrimary(cursor, diagnostics);
+}
+
+/// A condition primary: a parenthesized condition, a relation, or a
+/// condition-name.
+CondExpr _parseCondPrimary(TokenCursor cursor, List<Diagnostic> diagnostics) {
+  if (cursor.isSymbol('(') && _parenGroupsCondition(cursor)) {
+    cursor.take();
+    final CondExpr inner = parseCondExpr(cursor, diagnostics);
+    if (!cursor.takeSymbol(')')) {
+      diagnostics.add(
+        Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+      );
+    }
+    return inner;
+  }
+  return _parseRelationOrConditionName(cursor, diagnostics);
+}
+
+/// Whether the parenthesis at the cursor groups a whole condition
+/// rather than an arithmetic left operand: after its matching close,
+/// a relational-operator starter or AND/OR means the parenthesis was
+/// an operand; a condition connective or the end means it grouped a
+/// condition.
+bool _parenGroupsCondition(TokenCursor cursor) {
+  var depth = 0;
+  var i = cursor.position;
+  while (i < cursor.tokens.length) {
+    final Token token = cursor.tokens[i];
+    if (token.kind == TokenKind.symbol && token.text == '(') {
+      depth++;
+    } else if (token.kind == TokenKind.symbol && token.text == ')') {
+      depth--;
+      if (depth == 0) {
+        final Token? after = i + 1 < cursor.tokens.length
+            ? cursor.tokens[i + 1]
+            : null;
+        if (after == null) {
+          return true;
+        }
+        if (after.kind == TokenKind.symbol &&
+            const {'=', '+', '-', '*', '/', '**'}.contains(after.text)) {
+          return false;
+        }
+        if (after.kind == TokenKind.word &&
+            const {
+              'IS', 'NOT', 'GT', 'LT', 'GREATER', 'LESS', 'EQUAL', //
+            }.contains(after.text)) {
+          return false;
+        }
+        return true;
+      }
+    }
+    i++;
+  }
+  return true;
+}
+
+/// A comparison operand: an alphameric literal or figurative constant
+/// directly (J 02.04.01), else an arithmetic expression.
+ArithExpr _parseComparisonOperand(
+  TokenCursor cursor,
+  List<Diagnostic> diagnostics,
+) {
+  final Token? token = cursor.peek();
+  if (token != null && token.kind == TokenKind.alphamericLiteral) {
+    return LiteralOperand(cursor.take());
+  }
+  return parseArithExpr(cursor, diagnostics);
+}
+
+CondExpr _parseRelationOrConditionName(
+  TokenCursor cursor,
+  List<Diagnostic> diagnostics,
+) {
+  final ArithExpr left = _parseComparisonOperand(cursor, diagnostics);
+  var negated = false;
+  RelationOp? op;
+  if (cursor.takeWord('IS')) {
+    negated = cursor.takeWord('NOT');
+    op = _takeRelationWord(cursor);
+    if (op == null) {
+      diagnostics.add(
+        Diagnostic(msgIllegalComparison, cursor.card, column: cursor.column),
+      );
+      op = RelationOp.equal;
+    }
+  } else if (cursor.isWord('NOT')) {
+    // `operand NOT GT/LT/= …` — the abbreviated negated relation.
+    cursor.take();
+    negated = true;
+    op = _takeRelationWord(cursor);
+    if (op == null) {
+      diagnostics.add(
+        Diagnostic(msgIllegalComparison, cursor.card, column: cursor.column),
+      );
+      op = RelationOp.equal;
+    }
+  } else {
+    op = _takeRelationWord(cursor);
+  }
+  if (op == null) {
+    // No relational operator: a condition-name test (F p. 22). The
+    // name may not be subscripted (J 90.01.03; D5.6, msg 910).
+    if (left is NameOperand) {
+      if (left.name.subscripts.isNotEmpty) {
+        diagnostics.add(
+          Diagnostic(
+            msgSubscriptedConditionName,
+            left.anchor.card,
+            column: left.anchor.column,
+          ),
+        );
+      }
+      return ConditionReference(left.name);
+    }
+    diagnostics.add(
+      Diagnostic(
+        msgIllegalComparison,
+        left.anchor.card,
+        column: left.anchor.column,
+      ),
+    );
+    return Relation(
+      left,
+      RelationOp.equal,
+      _missingOperand(cursor, diagnostics),
+      negated: false,
+    );
+  }
+  final ArithExpr right = _parseComparisonOperand(cursor, diagnostics);
+  return Relation(left, op, right, negated: negated);
+}
+
+/// Consumes a relational operator at the cursor, or returns `null`:
+/// `GT`, `LT`, `=`, `GREATER [THAN]`, `LESS [THAN]`, `EQUAL [TO]`
+/// (F p. 21).
+RelationOp? _takeRelationWord(TokenCursor cursor) {
+  if (cursor.takeSymbol('=')) {
+    return RelationOp.equal;
+  }
+  if (cursor.takeWord('GT')) {
+    return RelationOp.greater;
+  }
+  if (cursor.takeWord('LT')) {
+    return RelationOp.less;
+  }
+  if (cursor.takeWord('GREATER')) {
+    cursor.takeWord('THAN');
+    return RelationOp.greater;
+  }
+  if (cursor.takeWord('LESS')) {
+    cursor.takeWord('THAN');
+    return RelationOp.less;
+  }
+  if (cursor.takeWord('EQUAL')) {
+    cursor.takeWord('TO');
+    return RelationOp.equal;
+  }
+  return null;
+}

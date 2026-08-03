@@ -141,7 +141,11 @@ The entries below close the surface-syntax gaps the sources leave open:
   `arithmetic-expression | figurative-constant`, and MOVE's source likewise;
   a figurative constant inside a larger expression is a syntax error.
   Comparison operands keep them (J 02.04.01 defines their comparison
-  behavior).
+  behavior). *Corrected against the sample (2026-08-03):* MOVE's source
+  also accepts a literal — F p. 42's general form shows `data.name.1`
+  only, but the compiled sample writes `MOVE 'M' TO ERRORTYPE` and
+  `MOVE 'GT' TO PAYRECORD DEPARTMENT` (statements 193, 196, 199) and
+  compiled clean, so the literal alternative is attested language.
 - **M2-9. ADD CORRESPONDING accepts TRUNCATED and ON OVERFLOW.** F's body
   text grants both clauses to ADD without qualification (F p. 47); the
   Appendix-2 concise form omits them while folding `[CORRESPONDING]` into
