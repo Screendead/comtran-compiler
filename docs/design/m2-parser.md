@@ -8,6 +8,22 @@ way `m1-front-end.md` records M1's. The language facts come from
 language claims; where the sources leave a surface-syntax gap, the entry below
 closes it and says so.*
 
+*Entry IDs are append-only. A new entry takes the next free number and goes in
+the section it belongs to, so the entries do not read in numeric order. The code
+cites these IDs, so no entry is ever renumbered. Use the index below to find one.*
+
+| Entry | Section |
+|---|---|
+| M2-1, M2-2 | Pipeline position |
+| M2-3 | Scope: what M2 checks, what it hands on |
+| M2-4, M2-5 | The AST |
+| M2-6 | Statement and clause numbering |
+| M2-7 | Word classification |
+| M2-8 to M2-12, M2-16, M2-17 | Procedure grammar decisions |
+| M2-13 | Error recovery |
+| M2-14 | Diagnostics |
+| M2-15 | The job stream |
+
 ## Charter
 
 M2 parses the scanned output of the M1 front end into an abstract syntax tree
@@ -48,18 +64,22 @@ environment specifications (column-72 rule), and unclassified `word` tokens —
     §4/§5/§6 marked parser-enforceable (token shape, adjacency, arity,
     clause order) is M2. Format-legality tables, CORRESPONDING matching,
     name resolution, and argument-count checks are M3 (J 02.04.03–06).
-  - **Data:** entry structure — level hierarchy by the nearest-lower-
-    preceding rule (F p. 68), type-code recognition (the eight J codes or
-    blank, J 02.05.02–03), same-card checks (RECORD forbids Quantity,
-    J 02.05.01; REDEF line carries only the target name, J 02.05.02; RCDMRK
-    needs no pictorial but accepts an explicit one — the sample's own
-    RCDMRK punches `A`, statement 42,00), COND-entry shape (one quoted
-    constant,
-    F pp. 71–72), and the ordered description-field shape (F p. 79):
-    `[pictorial] [constant] [name] [QUANTITY IN name] [BLANK WHEN ZERO]`,
-    split by the non-format-character rule (J 02.05.06). The pictorial's
-    *content* — character classes, the six-way field-type chart, sizing —
-    is M3 (HANDOVER M3; `data_lexer.dart`'s own deferral comment).
+  - **Data:** entry structure. One check per line:
+    - Level hierarchy, by the nearest-lower-preceding rule (F p. 68).
+    - Type-code recognition: one of the eight J codes, or blank
+      (J 02.05.02–03).
+    - RECORD forbids a Quantity field (J 02.05.01).
+    - A REDEF line carries only the target name (J 02.05.02).
+    - RCDMRK needs no pictorial, but accepts an explicit one. The sample's
+      own RCDMRK punches `A` (statement 42,00; J 02.05.03).
+    - A COND entry carries exactly one quoted constant (F pp. 71–72).
+    - The description field keeps its ordered shape (F p. 79):
+      `[pictorial] [constant] [name] [QUANTITY IN name] [BLANK WHEN ZERO]`,
+      split by the non-format-character rule (J 02.05.06).
+
+    The pictorial's *content* — character classes, the six-way field-type
+    chart, sizing — is M3 (HANDOVER M3; `data_lexer.dart`'s own deferral
+    comment).
   - **Environment:** the per-type option grammars for all seven card types
     (J 02.06.02–17), including the FILE card's record-scope rule
     (options attach to the preceding record.name, J 02.06.04) and the
@@ -98,22 +118,25 @@ environment specifications (column-72 rule), and unclassified `word` tokens —
 
 ## Statement and clause numbering
 
-- **M2-6. What `cc` counts.** J attests only the form: digits after the
-  comma "tell which clause is being referenced" (J 02.02.01); no non-zero
+- **M2-6. What `cc` counts.** J attests only the form: the digits after the
+  comma "tell which clause is being referenced" (J 02.02.01). No non-zero
   value survives in any listing (D7.13). Recorded decision, non-historical:
-  within a procedure sentence, clauses are numbered in source order from
-  01 — the conditional clause (IF…THEN) takes 01 when present, and each
-  imperative clause takes the next number; `n,00` refers to the unit as a
-  whole. Data entries and environment specifications have no clause
-  structure and always reference `,00`. A parser diagnostic cites `n,cc`
-  when the error is confined to one clause, else `n,00`; `9999,99` keeps
-  its M1 role for diagnostics on unnumbered cards. The 60-operator sentence
-  cap (msg 171) bounds real sentences far below 99 clauses, so the
-  two-digit field cannot overflow. The count behind the cap — the exact
-  1962 counting is unattested — covers the arithmetic symbols, `=`
-  (relational or assignment, indistinguishable before parsing), and the
-  relational and logical operator words; parentheses and commas are not
-  operators and do not count.
+  - Number the clauses of a procedure sentence in source order from 01. The
+    conditional clause (IF…THEN) takes 01 when present. Each imperative
+    clause takes the next number.
+  - `n,00` refers to the unit as a whole.
+  - Data entries and environment specifications have no clause structure.
+    They always reference `,00`.
+  - A parser diagnostic cites `n,cc` when the error stays inside one
+    clause, and `n,00` otherwise. `9999,99` keeps its M1 role: a diagnostic
+    on an unnumbered card.
+  - The two-digit field cannot overflow. The 60-operator sentence cap
+    (msg 171) bounds a real sentence far below 99 clauses.
+  - The count behind that cap covers the arithmetic symbols, `=` (either
+    relational or assignment — the two are indistinguishable before
+    parsing), and the relational and logical operator words. Parentheses
+    and commas are not operators and do not count. The exact 1962 counting
+    is unattested.
 
 ## Word classification
 
@@ -206,33 +229,36 @@ The entries below close the surface-syntax gaps the sources leave open:
 
 ## Error recovery
 
-- **M2-13. The recovery unit is the sentence.** The attested deletion
-  messages all discard a whole sentence and resume at the next (msgs 122,
-  125, 126, 171, 177) — that is the recovery model: on an unrepairable
-  parse error the sentence becomes a `DeletedSentence` with the fitting
-  message, and parsing resumes at the next sentence. The C1 auto-repairs
-  keep the construct and continue (redundant parentheses 113/114, missing
-  operand 116). Fixed-form divisions recover per entry/specification the
-  same way. A severity-5 condition propagates out of the parser to the
-  driver — the job stops at the point of detection (D9.1); nothing inside
-  the parser catches it. *Amended (2026-08-03, review):* deletion also
-  rolls back everything the sentence would have contributed — STOP RUN,
-  DO targets, and the CRYPT-mode switch commit only after the sentence
-  parses, so a deleted sentence contributes nothing: a deleted STOP RUN
-  leaves msg 175 to fire, and a deleted ENTER CRYPT leaves the parser in
-  normal mode. A subscripted condition-name (D5.6) likewise deletes the
-  sentence — msg 910 at severity 3, its text announcing the deletion,
-  replacing the earlier ignore-and-compile reading that invented the
-  semantics D5.6 forbids. The severity-5 conditions (msgs 149, 915)
-  throw `StopCompilation`, which `runParser` catches: parsing stops at
-  the point of detection and each such message prints at most once.
+- **M2-13. The recovery unit is the sentence.** Every attested deletion
+  message discards a whole sentence and resumes at the next one (msgs 122,
+  125, 126, 171, 177). That is the recovery model:
+  - On an unrepairable parse error, the sentence becomes a
+    `DeletedSentence` carrying the fitting message. Parsing resumes at the
+    next sentence.
+  - The C1 auto-repairs keep the construct and continue: redundant
+    parentheses 113 and 114, missing operand 116.
+  - The fixed-form divisions recover the same way, per entry or per
+    specification.
+  - A deletion also rolls back everything the sentence would have
+    contributed. STOP RUN, the DO targets, and the CRYPT-mode switch commit
+    only after the sentence parses. So a deleted STOP RUN leaves msg 175 to
+    fire, and a deleted ENTER CRYPT leaves the parser in normal mode.
+    *(Amended 2026-08-03, review.)*
+  - A subscripted condition-name (D5.6) deletes the sentence too. Msg 910
+    at severity 3 announces the deletion in its own text. This replaces the
+    earlier ignore-and-compile reading, which invented the semantics D5.6
+    forbids. *(Amended 2026-08-03, review.)*
+  - The severity-5 conditions (msgs 149, 915) throw `StopCompilation`, and
+    `runParser` catches it. Parsing stops at the point of detection (D9.1),
+    and each such message prints at most once.
 
 ## Diagnostics
 
 - **M2-14. Growing the message set.** Parser messages are added to
   `messages.dart` as named constants drawing their text from
   `message_catalog.dart`, each with its `severities.dart` row already in
-  place (all 215 rows exist; the parser never inlines a severity, D9.2).
+  place (all 227 rows exist — 210 catalog ids plus 900,00 through 916,00;
+  the parser never inlines a severity, D9.2).
   The parse-phase inventory starts from the survey of decisions.md:
   sentence structure 122/125/126/192/196/208, sections 64/65/66/179/149,
   expressions 113/114/171/187, CORRESPONDING 63, DO 83, AT END 106,
