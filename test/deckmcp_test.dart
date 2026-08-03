@@ -337,6 +337,73 @@ void main() {
       expect(result.containsKey('structuredContent'), isFalse);
     });
 
+    test('rejects a start_card below one', () async {
+      // The schema's minimum: 1 rejects this before readDeck's own
+      // start_card < 1 check ever runs, so the failure is a plain-text
+      // schema-validation error, not a structured DeckToolException.
+      final Map<String, Object?> result = await client.call('deck_read', {
+        'path': canonPath,
+        'include_cards': true,
+        'start_card': 0,
+      });
+      expect(result['isError'], isTrue);
+      expect(result.containsKey('structuredContent'), isFalse);
+    });
+
+    test('rejects a max_cards below one', () async {
+      final Map<String, Object?> result = await client.call('deck_read', {
+        'path': canonPath,
+        'include_cards': true,
+        'max_cards': 0,
+      });
+      expect(result['isError'], isTrue);
+      expect(result.containsKey('structuredContent'), isFalse);
+    });
+
+    test(
+      'include_cards on an empty deck returns no cards, not an error',
+      () async {
+        final String emptyPath = '${dir.path}/empty.ctdeck';
+        await client.call('deck_write', {'path': emptyPath, 'mirror': ''});
+        final Map<String, Object?> json = _content(
+          await client.call('deck_read', {
+            'path': emptyPath,
+            'include_cards': true,
+          }),
+        );
+        expect(json['card_count'], 0);
+        expect(json['cards'], isEmpty);
+        expect(json['cards_returned'], 0);
+        expect(json['next_start_card'], isNull);
+      },
+    );
+
+    test('rejects a start_card past the end of a non-empty deck', () async {
+      final Map<String, Object?> error = _errorOf(
+        await client.call('deck_read', {
+          'path': canonPath,
+          'include_cards': true,
+          'start_card': 4,
+        }),
+      );
+      expect(error['kind'], 'out_of_range');
+      expect(error['message'], contains('past the last card'));
+    });
+
+    test('clamps max_cards larger than the cards remaining', () async {
+      final Map<String, Object?> json = _content(
+        await client.call('deck_read', {
+          'path': canonPath,
+          'include_cards': true,
+          'start_card': 2,
+          'max_cards': 100,
+        }),
+      );
+      expect(json['cards_returned'], 2);
+      expect(json['next_start_card'], isNull);
+      expect((json['cards']! as List<Object?>).length, 2);
+    });
+
     test('rejects a missing file', () async {
       final Map<String, Object?> error = _errorOf(
         await client.call('deck_read', {'path': '${dir.path}/none.ctdeck'}),
@@ -799,6 +866,38 @@ void main() {
       final entry =
           (json['results']! as List<Object?>).single! as Map<String, Object?>;
       expect(entry['status'], 'mirror_stale');
+    });
+
+    test('aggregates several files: ok, stale, and orphan mirror, canon '
+        'files first (TSTT-1)', () async {
+      final String bCanon = '${dir.path}/b.ctdeck';
+      final String bMirror = '${dir.path}/b.deck';
+      final List<CardImage> bDeck = mirrorToDeck('STALE\n');
+      File(bCanon).writeAsBytesSync(encodeCanon(bDeck));
+      File(bMirror).writeAsStringSync('TAMPERED\n');
+      final String orphanMirror = '${dir.path}/c.deck';
+      File(orphanMirror).writeAsStringSync('ORPHAN\n');
+
+      final Map<String, Object?> json = _content(
+        await client.call('deck_check', {
+          'paths': <Object?>[dir.path],
+        }),
+      );
+      expect(json['ok'], isFalse);
+      expect(json['checked'], 3);
+      expect(json['failure_count'], 2);
+      final results = json['results']! as List<Object?>;
+      final statuses = <String?>[
+        for (final Object? r in results)
+          (r! as Map<String, Object?>)['status'] as String?,
+      ];
+      // Canon files sort before the orphan mirror (deck_files.dart's
+      // documented ordering), and within the canon files, a.ctdeck sorts
+      // before b.ctdeck.
+      expect(statuses, ['ok', 'mirror_stale', 'orphan_mirror']);
+      expect((results[0]! as Map<String, Object?>)['path'], canonPath);
+      expect((results[1]! as Map<String, Object?>)['path'], bCanon);
+      expect((results[2]! as Map<String, Object?>)['path'], orphanMirror);
     });
 
     test('passes a fresh pair', () async {

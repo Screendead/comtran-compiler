@@ -5,6 +5,7 @@
 /// are fresh. Formats: `docs/design/deck-format.md`; authority rules: D0.5.
 library;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:comtran/comtran.dart';
@@ -12,9 +13,11 @@ import 'package:comtran/comtran.dart';
 const String _usage = '''
 Usage: dart run comtran:deckconv <command> ...
 
-  to-canon <in.deck> <out.ctdeck>   convert a mirror to a canon file
+  to-canon <in.deck> <out.ctdeck>   convert a mirror to a canon file, and
+                                    write its sibling .deck mirror too
+                                    (- reads the mirror from standard input)
   to-text <in.ctdeck> [<out.deck>]  convert a canon file to mirror text
-                                    (standard output when no path is given)
+                                    (- or no path given: standard output)
   regen <path>...                   regenerate the .deck mirror next to each
                                     .ctdeck file (directories are searched)
   check <path>...                   verify that each canon file round-trips
@@ -59,8 +62,18 @@ int _toCanon(List<String> args) {
     stderr.write(_usage);
     return 2;
   }
-  final List<CardImage> deck = mirrorToDeck(File(args[0]).readAsStringSync());
-  writeAtomic(args[1], (File f) => f.writeAsBytesSync(encodeCanon(deck)));
+  final String mirrorText = args[0] == '-'
+      ? _readStdin()
+      : File(args[0]).readAsStringSync();
+  final List<CardImage> deck = mirrorToDeck(mirrorText);
+  final String outCanonPath = args[1];
+  final String outMirrorPath = mirrorPathFor(outCanonPath);
+  final String mirror = deckToMirror(deck);
+  writeAtomic(outCanonPath, (File f) => f.writeAsBytesSync(encodeCanon(deck)));
+  // Write the sibling mirror too, so to-canon never leaves a canon file with
+  // no mirror (MCP-11). mirrorToDeck accepts normal form only, so mirror
+  // already equals the input text; this is not a second, different write.
+  writeAtomic(outMirrorPath, (File f) => f.writeAsStringSync(mirror));
   return 0;
 }
 
@@ -123,3 +136,15 @@ int _check(List<String> args) {
 
 List<CardImage> _readCanon(String path) =>
     decodeCanon(File(path).readAsBytesSync());
+
+// Stdin has no bulk synchronous read; read byte by byte to end of input,
+// so to-canon can take a generated mirror piped in without going async.
+String _readStdin() {
+  final bytes = <int>[];
+  int byte = stdin.readByteSync();
+  while (byte != -1) {
+    bytes.add(byte);
+    byte = stdin.readByteSync();
+  }
+  return utf8.decode(bytes);
+}
