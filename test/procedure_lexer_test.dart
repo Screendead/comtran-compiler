@@ -54,6 +54,19 @@ void main() {
       expect(scan.diagnostics.single.message, msgPeriodAssumed);
     });
 
+    test('non-name margin content continues an open sentence (D9.4)', () {
+      // Only a name in the margin closes an open sentence; a digit
+      // there is sentence text, not a new statement.
+      final ProcedureScan scan = _scan([
+        '            SET X = 100',
+        '      25 + Y.',
+      ]);
+      expect(scan.diagnostics, isEmpty);
+      final ProcedureSentence s = scan.sentences.single;
+      expect(s.terminated, isTrue);
+      expect(_texts(s), ['SET', 'X', '=', '100', '25', '+', 'Y']);
+    });
+
     test('a compound name keeps its imbedded periods', () {
       final ProcedureScan scan = _scan([
         '      BOND.END. GO TO END.OF.MASTERS.',
@@ -123,6 +136,20 @@ void main() {
     test('an over-long numeric literal draws 52,00', () {
       final ProcedureScan scan = _scan(['            SET X = ${'9' * 51}.']);
       expect(scan.diagnostics.single.message, msgNumericLengthExceeded);
+    });
+
+    test('the decimal point is not counted in the length (F p. 18)', () {
+      // 50 digits plus a decimal point: 51 characters, legal.
+      final ProcedureScan scan = _scan([
+        "            SET X = ${'9' * 25}.${'9' * 25}.",
+      ]);
+      expect(scan.diagnostics, isEmpty);
+    });
+
+    test('a floating literal with two points draws 53,00', () {
+      final ProcedureScan scan = _scan(['            SET X = 1.2.F3.']);
+      expect(scan.diagnostics.single.message, msgIncorrectNumericForm);
+      expect(scan.sentences.single.tokens[3].kind, TokenKind.floatingLiteral);
     });
 
     test('a stray period draws 900,00 and is ignored', () {

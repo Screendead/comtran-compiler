@@ -134,6 +134,30 @@ void main() {
       expect(scan.entries.single.descriptionTokens.single.text, 'ABCD');
     });
 
+    test('continuation-card leading blanks never pad a constant (D1.1)', () {
+      // The continuation's content starts twelve columns in; the parts
+      // still join with no padding or alignment between them.
+      final DataScan scan = scanDataDescription(
+        _cards([
+          _card(name: 'C', level: '2', description: "'AB", continued: true),
+          _card(description: "${' ' * 12}CD'"),
+        ]),
+      );
+      expect(scan.diagnostics, isEmpty);
+      expect(scan.entries.single.descriptionTokens.single.text, 'ABCD');
+    });
+
+    test('blanks after a continuation card\'s first content are kept', () {
+      final DataScan scan = scanDataDescription(
+        _cards([
+          _card(name: 'C', level: '2', description: "'AB", continued: true),
+          _card(description: "C D'"),
+        ]),
+      );
+      expect(scan.diagnostics, isEmpty);
+      expect(scan.entries.single.descriptionTokens.single.text, 'ABC D');
+    });
+
     test('an over-long pictorial draws 100,00', () {
       final DataScan scan = scanDataDescription(
         _cards([_card(name: 'P', level: '2', description: '9' * 31)]),

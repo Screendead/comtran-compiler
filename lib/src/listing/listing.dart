@@ -4,9 +4,10 @@
 /// pp. 192–197) as measured from the page scans: the page head with
 /// DATE/TIME/ACCOUNT/ID./PAGE; the control-card echo printed from card
 /// column 1 at the far-left margin with the phase letters under it
-/// (J 05.06.01); source cards echoed verbatim, card columns 7–72, at
-/// print position column + 18, with the serial field at positions 1–6
-/// and the statement number right-justified before the body. The
+/// (J 05.06.01); source cards echoed verbatim with scan-anchored
+/// geometry (M1-15): with D = the page head's DATE column, the serial
+/// field sits at D+0..D+5, the statement number ends at D+14, and card
+/// column 7 prints at D+24. The
 /// five-octal-digit name-address column of the 1962 listing is
 /// undocumented and stays blank — a recorded M1 decision. Diagnostics
 /// form a separate block after the source listing (J 02.02.01; J 90.04),

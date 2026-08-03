@@ -86,15 +86,19 @@ final class SourceProgram {
         finishCard = card;
         continue;
       }
-      if (currentGroup == null) {
-        if (_isCompileCard(card)) {
-          if (compileCard == null) {
-            compileCard = card;
-          } else {
-            problems.add(Diagnostic(msgDuplicateCompileCard, card));
-          }
-          continue;
+      if (_isCompileCard(card)) {
+        // Recognized at any deck position, so a mid-deck compile card
+        // is never lexed as source text; every one after the first is
+        // ignored with message 904 (M1-2), until the M2-15 job loop
+        // gives a later card a meaning (D9.14).
+        if (compileCard == null && currentGroup == null) {
+          compileCard = card;
+        } else {
+          problems.add(Diagnostic(msgDuplicateCompileCard, card));
         }
+        continue;
+      }
+      if (currentGroup == null) {
         // Omission of a division header is a catastrophic compile error
         // (J 05.06.01); the message is ours (decision D2.3).
         problems.add(Diagnostic(msgTextBeforeHeader, card));
@@ -136,10 +140,13 @@ final class SourceProgram {
 
   /// A division header has its asterisk in column 7 — "the asterisk always
   /// appears in the left-most name column" (F p. 27; F p. 65) — and nothing
-  /// else in the body. All three headers of the compiled sample sit in
+  /// else in the body (M1-1). `body` renders an unreadable punched column
+  /// as a blank, so the extra check keeps a card with a machine special or
+  /// no-readout punch in the body from passing as a header.
+  /// All three headers of the compiled sample sit in
   /// column 7 (scan-checked against pages 192 and 195, 2026-08-03).
   static Division? _headerDivision(SourceCard card) {
-    if (card.glyphAt(7) != '*') {
+    if (card.glyphAt(7) != '*' || card.unreadableColumns(7, 72).isNotEmpty) {
       return null;
     }
     return switch (card.body.trimRight()) {
@@ -151,11 +158,19 @@ final class SourceProgram {
   }
 
   /// `$CMPLE` occupies columns 1–6 (J 02.01.01); `*COMPILE` is punched from
-  /// column 7 on the compiled sample deck's control card.
+  /// column 7 on the compiled sample deck's control card. The word and the
+  /// column after it must read genuinely — an unreadable punched column
+  /// renders as a blank and must not pass as one.
   static bool _isCompileCard(SourceCard card) =>
-      card.serial == r'$CMPLE' || card.body.startsWith('*COMPILE');
+      card.serial == r'$CMPLE' ||
+      (card.body.startsWith('*COMPILE') &&
+          card.unreadableColumns(7, 15).isEmpty);
 
-  /// `*FINISH` is punched from column 7 (J 02.01.02).
+  /// `*FINISH` is punched from column 7 with nothing else in the body
+  /// (J 02.01.02); as with headers, an unreadable punched column must not
+  /// pass as the required blank.
   static bool _isFinishCard(SourceCard card) =>
-      card.body.startsWith('*FINISH') && card.body.substring(7).trim().isEmpty;
+      card.body.startsWith('*FINISH') &&
+      card.body.substring(7).trim().isEmpty &&
+      card.unreadableColumns(7, 72).isEmpty;
 }

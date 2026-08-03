@@ -148,8 +148,12 @@ final class _ProcedureScanner {
     if (i == _body.length) {
       return; // Nothing punched in the body.
     }
-    final bool inMargin = i + _marginFirst <= _marginLast;
-    if (_open && inMargin) {
+    // The margin trigger needs a name — a letter-initial word in the
+    // name margin (D9.4: the next card "carries a name in the name
+    // margin"). Other margin content continues an open sentence.
+    final bool marginName =
+        i + _marginFirst <= _marginLast && _isLetter(_body[i]);
+    if (_open && marginName) {
       // A new statement begins while the previous sentence is open
       // (D9.4 trigger; J 90.04, message 62,00).
       diagnostics.add(Diagnostic(msgPeriodAssumed, card));
@@ -159,7 +163,7 @@ final class _ProcedureScanner {
       _open = true;
       _sentenceCards = [card];
       _tokens = [];
-      if (inMargin && _isLetter(_body[i])) {
+      if (marginName) {
         i = _scanLabel(i);
       }
     } else {
@@ -398,7 +402,9 @@ final class _ProcedureScanner {
     }
     _gate(start, i);
     final String text = _body.substring(start, i);
-    if (kind == TokenKind.numericLiteral && points > 1) {
+    if (points > 1) {
+      // Not more than one decimal point, for floating literals too
+      // (F p. 18, rules 2 and 8; J 02.04.02 has a single fraction).
       diagnostics.add(
         Diagnostic(
           msgIncorrectNumericForm,
@@ -407,10 +413,12 @@ final class _ProcedureScanner {
         ),
       );
     }
-    if (text.length > 50) {
+    if (text.split('').where(_isDigit).length > 50) {
       // All literals are limited to 50 characters (F p. 18, rule 1); the
-      // choice of message 52 for the over-50 numeric case is a recorded
-      // design decision (D1.2).
+      // decimal point and the F occupy no storage and are not counted
+      // (F p. 18, rules 2 and 4), and the exponent sign is excluded by
+      // decision (D10.3). The choice of message 52 for the over-50
+      // numeric case is a recorded design decision (D1.2).
       diagnostics.add(
         Diagnostic(
           msgNumericLengthExceeded,

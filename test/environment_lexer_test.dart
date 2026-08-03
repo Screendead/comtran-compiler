@@ -121,6 +121,54 @@ void main() {
       expect(blanks.specs.single.name, 'PAYROLL');
     });
 
+    test('an over-30 compressed name draws 901,00', () {
+      final EnvironmentScan scan = scanEnvironment(
+        _cards([
+          _card(
+            name: 'A' * 16,
+            type: 'FILE',
+            options: 'INPUT,',
+            continued: true,
+          ),
+          _card(name: 'B' * 16, options: 'BLOCKSIZE 3'),
+        ]),
+      );
+      expect(scan.diagnostics.single.message, msgNameTooLong);
+      expect(scan.specs.single.name.length, 32);
+    });
+
+    test('columns 23-24 belong to no field (J 02.06.01.01)', () {
+      // A machine special in the never-scanned columns 23-24 draws no
+      // 134,00 on the first card and no 186,00 on a continuation card.
+      List<int> columns(String name, String type, String options) {
+        final list = List<int>.filled(80, 0);
+        void punch(int column, String text) {
+          for (var i = 0; i < text.length; i++) {
+            if (text[i] != ' ') {
+              list[column - 1 + i] = punchesFromBcd(bcdFromGlyph(text[i])!)!;
+            }
+          }
+        }
+
+        punch(7, name);
+        punch(25, type);
+        punch(31, options);
+        return list;
+      }
+
+      final List<int> first = columns('F', 'FILE', 'INPUT,');
+      first[71] = punchesFromBcd(bcdFromGlyph('X')!)!; // continuation
+      first[22] = punchesFromBcd(0x3A)!; // record mark, column 23
+      final List<int> second = columns('', '', 'BLOCKSIZE 3');
+      second[23] = punchesFromBcd(0x3A)!; // record mark, column 24
+      final EnvironmentScan scan = scanEnvironment([
+        SourceCard(CardImage.fromColumns(first), 1),
+        SourceCard(CardImage.fromColumns(second), 2),
+      ]);
+      expect(scan.diagnostics, isEmpty);
+      expect(scan.specs.single.typeText, 'FILE');
+    });
+
     test('type content on a continuation card draws 186,00', () {
       final EnvironmentScan scan = scanEnvironment(
         _cards([

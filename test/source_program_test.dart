@@ -78,6 +78,51 @@ void main() {
       expect(program.problems.single.card.cardNumber, 2);
     });
 
+    test('a compile card after a header draws 904,00, never source text', () {
+      final SourceProgram program = _program([
+        r'$CMPLE MYDECK  LIST',
+        '      *DATA',
+        '      A',
+        '      *COMPILE LIST',
+        '      B',
+      ]);
+      expect(program.compileCard?.cardNumber, 1);
+      expect(program.problems.single.message, msgDuplicateCompileCard);
+      expect(program.problems.single.card.cardNumber, 4);
+      // The card joins no division group.
+      expect(program.cardsOf(Division.data), hasLength(2));
+    });
+
+    test('an unreadable punch in the body disqualifies a header', () {
+      // M1-1: the header word "and nothing else in the body". A record
+      // mark at column 40 is punched content, although it renders blank.
+      final columns = List<int>.filled(80, 0);
+      const String word = '*DATA';
+      for (var i = 0; i < word.length; i++) {
+        columns[6 + i] = punchesFromBcd(bcdFromGlyph(word[i])!)!;
+      }
+      columns[39] = punchesFromBcd(0x3A)!; // record mark, column 40
+      final SourceProgram program = SourceProgram.fromDeck([
+        CardImage.fromColumns(columns),
+      ]);
+      expect(program.groups, isEmpty);
+      expect(program.problems.single.message, msgTextBeforeHeader);
+    });
+
+    test('an unreadable punch in the body disqualifies *FINISH', () {
+      final columns = List<int>.filled(80, 0);
+      const String word = '*FINISH';
+      for (var i = 0; i < word.length; i++) {
+        columns[6 + i] = punchesFromBcd(bcdFromGlyph(word[i])!)!;
+      }
+      columns[39] = punchesFromBcd(0x3A)!; // record mark, column 40
+      final SourceProgram program = SourceProgram.fromDeck([
+        CardImage.fromColumns(columns),
+      ]);
+      expect(program.finishCard, isNull);
+      expect(program.problems.single.message, msgTextBeforeHeader);
+    });
+
     test('an asterisk outside column 7 is not a header', () {
       final SourceProgram program = _program(['       *DATA', '      *DATA']);
       expect(program.groups, hasLength(1));
