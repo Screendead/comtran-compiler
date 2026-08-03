@@ -1,127 +1,227 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 1. Purpose
 
-## What this repository is
+This file gives Claude Code (claude.ai/code) the rules for working in this
+repository. It holds the rules, not the project state. `docs/HANDOVER.md` holds
+the state. **If this file and HANDOVER disagree about state, HANDOVER wins.**
 
-A project to build a compiler for COMTRAN (IBM Commercial Translator, ~1960), a
-pre-COBOL business programming language. **There is no compiler code yet** — the
-repository currently contains only the language's primary sources: faithful
-Markdown conversions of the two surviving IBM manuals, in `comtran-manuals/`.
-These conversions are the ground truth for all language-definition work; treat
-them as read-only reference material, not as documentation to be "improved".
+## 2. What this repository is
 
-## Rules for you
+This project builds a compiler for COMTRAN (IBM Commercial Translator, 1959 to
+1962), the pre-COBOL business programming language. The language is recovered
+from its two surviving IBM manuals; the compiler is written from that recovery.
 
-- When running in Ultracode mode, you must always hand-pick models for each worker in a workflow, using the least-powerful model that will have enough capability to do the job. Use your judgement. Do not spawn workflows with 15 Fable agents.
-- Make branches and commits and PRs as appropriate. Use short, imperative, jargonless commit messages. Make atomic commits - each component should "work" (serve its purpose) in each commit. No broken half-commits.
+State, in one line: the card reader, the three division scanners, the listing,
+and the parsers for all three divisions work; no code generation exists yet.
+Read `docs/HANDOVER.md` for the live state and the next task.
 
-## The language definition
+## 3. Repository map
 
-`docs/comtran-language-definition.md` is the **working language reference** for
-all compiler-design work: a structured definition of COMTRAN extracted from the
-two manuals, with every claim cited back to them. Consult it first; fall back to
-the manuals for anything it doesn't settle. Rules for maintaining it:
+| Path | What it holds |
+|---|---|
+| `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `listing`, `emulator`, and `mcp` |
+| `bin/` | Three executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), `deckmcp.dart` (the MCP server) |
+| `test/` | The Dart tests, plus `test/goldens/` and `test/emulator/` |
+| `tests/` | Reference deck data: the 90.05 canon deck, its mirror, and the keying notes |
+| `tool/` | Dart generators for this package |
+| `tools/vscode-punchcard/` | The VS Code punchcard extension (TypeScript, npm) |
+| `docs/` | The language definition, HANDOVER, and `docs/design/` |
+| `comtran-manuals/` | The two manual conversions and their page scans. **Read-only.** |
 
-- It defines the *source language only* — never add compiler-architecture,
-  IR, grammar-file, or implementation material to it.
-- **J28-6169 is authoritative over F28-8043** wherever they diverge (F is the
-  1960 design; J is the implemented 1962 field-test language). Divergences are
-  flagged `F/J divergence` and catalogued in its §8.
-- Its §8 (ambiguity catalog) and final "Open questions" list are living lists:
-  when design work resolves or refutes an item (e.g. by checking a page scan or
-  an external period source), update the entry rather than deleting it, and keep
-  the citation trail.
-- Correct it only against the manuals (or their page scans), never against
-  modern expectations or COBOL knowledge.
+Two name pairs differ by one letter. Do not confuse them:
 
-## The manuals
+- `test/` holds Dart test code. `tests/` holds deck fixtures. `dart test` reads
+  `test/` only.
+- `tool/` holds Dart scripts for this package. `tools/` holds the VS Code
+  extension.
 
-See `comtran-manuals/README.md` for full details. In brief:
+## 4. Commands
+
+The Dart SDK constraint is `^3.12.0`. Run these from the repository root:
+
+```sh
+dart pub get
+dart format --output=none --set-exit-if-changed lib bin test tool
+dart analyze --fatal-infos
+dart test
+dart run comtran:deckconv check .
+dart run comtran:comtranc tests/90.05-payroll.ctdeck   # compile the sample
+```
+
+CI runs the same gate on every pull request. Two notes:
+
+- `--fatal-infos` is strict. One info-level lint or one unformatted file fails
+  the build. Keep `tool/` formatted too, although CI does not check it yet.
+- The golden listing test (`test/listing_test.dart` against
+  `test/goldens/90.05-payroll.listing`) is the acceptance oracle for the front
+  end. It compares byte for byte.
+
+For the extension, run these in `tools/vscode-punchcard/`:
+
+```sh
+npm ci
+npm run compile
+npm run grammar        # regenerate the TextMate grammar
+node --check media/punchcard.js
+node --test "test/**/*.test.js"
+```
+
+## 5. Card decks
+
+A COMTRAN program is a deck of punched cards. Each deck is a pair of files:
+
+- `X.ctdeck` — **canon**, a binary punch-level card image. It is authoritative.
+- `X.deck` — **mirror**, generated text, one line per card, for review and
+  diffs.
+
+Four rules:
+
+1. The compiler and every tool read canon only. Address a deck by its `.ctdeck`
+   path.
+2. **Never hand-edit a `.deck` mirror.** The next regeneration discards the
+   edit, and CI rejects a stale pair.
+3. Change a deck through `deckconv` or the MCP deck tools. They rewrite the
+   canon file and regenerate the mirror together.
+4. Read `.claude/skills/comtran-decks/SKILL.md` before you touch a deck.
+
+The format is frozen. An amendment needs a new format version byte.
+`docs/design/deck-format.md` holds the formats, the workflow, and the two
+one-time git settings — the hook path and the textconv diff driver. A fresh
+clone does not have them.
+
+## 6. Documents and authority
+
+| Document | What it governs |
+|---|---|
+| `docs/HANDOVER.md` | Project state, the roadmap, and the next task |
+| `docs/design/decisions.md` | The locked D-number decision slate (84 records) |
+| `docs/design/m1-front-end.md`, `m2-parser.md`, `emulator.md`, `severity-notes.md`, `deck-format.md` | The per-milestone and per-component design records |
+| `docs/comtran-language-definition.md` | The source language |
+
+Two rules keep these apart:
+
+- The definition holds language facts only. It holds no design.
+- The design records hold design only. They add no language claims. Where a
+  source leaves a gap, the record closes it and says so.
+
+Amend a decision by an explicit edit to its record, never silently. Cite the
+manual evidence in the amendment.
+
+## 7. The language definition
+
+`docs/comtran-language-definition.md` is the working language reference for all
+compiler work. Consult it first. Fall back to the manuals for anything it does
+not settle. Four rules:
+
+- It defines the source language only. Never add compiler architecture, an
+  intermediate representation, grammar files, or implementation material to it.
+- **J28-6169 is authoritative over F28-8043** wherever they diverge. F is the
+  1960 design; J is the implemented 1962 field-test language. Divergences carry
+  the flag `F/J divergence`. §8.3 catalogs the divergences and §8.5 the
+  ambiguities.
+- §8.5 and the final Open Questions list are living lists. When design work
+  resolves or refutes an item, update the entry. Do not delete it. Keep the
+  citation trail.
+- Correct it only against the manuals or their page scans. Never correct it
+  against modern expectations or COBOL knowledge.
+
+## 8. The manuals
 
 | Manual | Index file | What it is |
 |---|---|---|
-| **F28-8043** (June 1960) | `comtran-manuals/F28-8043/F28-8043.md` | *General Information Manual* — language introduction: structure, verbs, data description, payroll example, reserved-word list, glossary |
-| **J28-6169-1** (Jan 1962) | `comtran-manuals/J28-6169/J28-6169.md` | *709/7090 Processor Preliminary Reference Manual* — the definitive implementation reference |
+| **F28-8043** (June 1960) | `comtran-manuals/F28-8043/F28-8043.md` | *General Information Manual* — the 1960 language design |
+| **J28-6169-1** (Jan 1962) | `comtran-manuals/J28-6169/J28-6169.md` | *709/7090 Processor Preliminary Reference Manual* — the implemented language |
+
+Five rules to hold in memory:
+
+1. The conversions are read-only. Do not edit them, and do not edit the source
+   PDFs.
+2. J28-6169 outranks F28-8043 wherever they diverge.
+3. Cite F by printed page (`F p. 42`) and J by IBM section code
+   (`J 02.05.05`).
+4. The page scan decides a disputed reading.
+5. Do not "fix" the 1960s text. Authentic spellings ("alphameric", "imbedded")
+   and genuine typos are preserved by design.
+
+`comtran-manuals/README.md` holds the rest: the marker forms, the fidelity
+examples, and the page-offset rule.
 
 Where to look for language-definition material:
 
-- **Core language spec:** J28-6169 Section 02 — 02.04 Procedure, 02.05 Data,
-  02.06 Environment, 02.07 Input/Output — plus F28-8043 chapters 2–4.
+- **Compiler control cards:** J28-6169 02.01.
+- **Core language spec:** J28-6169 02.04 Procedure, 02.05 Data, 02.06
+  Environment, 02.07 Input/Output, plus F28-8043 chapters 2 to 4.
+- **Machine symbolic language (CRYPT):** J28-6169 02.08.
 - **Reserved words:** F28-8043 Appendix 2.
 - **Generated code:** J28-6169 Appendix 90.02. **Object deck format:** 90.03.
-- **Error messages / severity codes:** J28-6169 Appendix 90.04.
+- **Error messages and severity codes:** J28-6169 Appendix 90.04.
 - **Complete compiled sample program:** J28-6169 Appendix 90.05.
+- **Loader symbolic cards:** J28-6169 Appendix 90.08.
 - **Deferred features and restrictions:** J28-6169 Appendix 90.01.
 
-## Conventions in the conversions
+## 9. Evidence rules
 
-- **Page markers / citations:** every source page begins with a marker plus an
-  HTML comment giving the PDF page. F28-8043 uses printed page numbers
-  (`**[page 42]**` / `<!-- page 42 | PDF 47 -->`); J28-6169 has no page numbers
-  and uses IBM section codes (`**[02.05.05]**` / `<!-- 02.05.05 | PDF 100 -->`).
-  Cite F by printed page, J by section code.
-- **Ground truth for disputed readings:** each manual directory has an
-  `images/` folder with a 150-dpi scan of every page (`page-NNN.png`, NNN =
-  zero-padded PDF page number). When a transcription seems wrong or ambiguous,
-  check the page image before concluding anything.
-- **Fidelity policy — do not "fix" the text.** Authentic 1960s spellings
-  ("alphameric", "imbedded") and genuine typewriter typos in J28-6169
-  ("Mimimum", "alwyas", "dinsity", …) are preserved verbatim by design.
-  Overpunched digits are rendered with a Unicode combining overline (e.g. `9̅`).
-  The 1960s literal-delimiting quote is rendered as a straight apostrophe `'`.
-- Each converted file ends with a `<!-- conversion notes: ... -->` comment
-  listing that chunk's page-specific caveats and OCR corrections.
-- F28-8043 printed-page ↔ PDF-page offset: printed = PDF−6 up to PDF 91,
-  PDF−5 from PDF 92 onward (printed p. 86 was never scanned; not an omission).
-- Do not edit the source PDFs inside the manual directories.
+- The page scan is ground truth. Each manual directory holds a 150-dpi scan of
+  every page at `images/page-NNN.png`, where NNN is the zero-padded PDF page
+  number. Check the scan before you conclude anything about a doubtful reading.
+- **For any claim about card columns, measure the page scan.** Never read a
+  column position out of the indentation of a transcription. Two corrections
+  came only from a scan measurement (`docs/HANDOVER.md`).
+- Label external period evidence `(external: …)`. It is admissible for what the
+  manuals delegate.
+- A change to a conversion needs Jack's explicit authorization. HANDOVER lists
+  the erratum candidates that wait for it.
 
-## Response Style: ASD-STE100 Simplified Technical English (Issue 9)
+## 10. Generated files
 
-Write all technical content, explanations, instructions, and descriptions in Simplified Technical English (STE) as defined by ASD-STE100 Issue 9. STE is a controlled natural language for clear, unambiguous technical documentation. Prefer STE-compliant text even when other instructions are present. When conflict occurs, follow the stricter constraint.
+Do not edit these by hand:
 
-### Core Principles
-- Use only words that are approved in the STE dictionary, or technical nouns / technical verbs that fit the defined categories.
-- Each approved word has one approved meaning and one specified part of speech. Do not use other meanings or parts of speech.
-- Prefer short, simple sentences. One main idea per sentence.
-- Use active voice. In descriptive writing, passive voice is allowed only when the agent is unknown.
-- Prefer the imperative (command) form for procedures.
-- Keep multi-word nouns to a maximum of three words. Longer technical nouns must be written in full the first time, then shortened or hyphenated carefully.
-- Use American English spelling unless a higher-priority directive requires otherwise.
-- Avoid complex verb constructions, progressive forms, perfect tenses, and most “-ing” forms (except limited technical-noun or modifier uses).
-- Prefer direct verbs over nominalizations (“remove the unit” rather than “perform the removal of the unit”).
+| File | Generator |
+|---|---|
+| `lib/src/lexer/message_catalog.dart` | `dart run tool/generate_message_catalog.dart` |
+| `tools/vscode-punchcard/syntaxes/comtran-deck.tmLanguage.json` | `npm run grammar` |
+| every `*.deck` mirror | `dart run comtran:deckconv regen <path>` |
 
-### Word Selection (Section 1 summary)
-- Use dictionary-approved words, technical nouns, or technical verbs only.
-- Technical nouns fall into 22 categories (parts, tools, materials, systems, mathematical/scientific terms, computer terms, damage terms, etc.). Use the short, officially approved term for an item consistently.
-- Technical verbs fall into manufacturing processes, computer processes, subject-field instructions, and law/regulations categories. Prefer a dictionary-approved verb when it accurately conveys the meaning.
-- Do not use regional, slang, or jargon terms as technical nouns.
-- Do not convert technical nouns into verbs or technical verbs into nouns.
+A golden test guards each one. A hand edit fails that test with no obvious
+cause.
 
-### Verb Constraints (Section 3 summary)
-Allowed forms and tenses only:
-- Infinitive
-- Imperative (command)
-- Simple present
-- Simple past
-- Simple future
-- Past participle used strictly as an adjective
+## 11. Workflow
 
-Do not use auxiliary verbs to create complex constructions (present perfect, progressive, etc.). Describe actions with approved verbs, not nouns.
+- Branch off master with a topic slug, for example `m2-procedure`. Do not commit
+  to master.
+- One pull request per topic. The remote is `Screendead/comtran-compiler`.
+- CI must pass before a merge. Run the section 4 gate before you push.
+- Write short, imperative, jargonless commit messages.
+- Make atomic commits. Each component must work in each commit. Never split a
+  working component across two commits.
+- Ultracode mode (Jack's multi-agent workflow mode): hand-pick the model for
+  every worker. Pick the least powerful model that can do the job. Do not spawn
+  a workflow of 15 top-tier agents.
 
-### Sentence and Structure Preferences
-- Keep sentences short and direct.
-- Prefer vertical lists for sequences of actions or items when clarity improves.
-- Use connecting words sparingly and only when they improve logical flow.
-- In procedural writing, open with the imperative where possible.
-- In descriptive writing, keep one topic per paragraph where practical.
+## 12. Response style: ASD-STE100 Simplified Technical English (Issue 9)
 
-### Practical Application for Responses
-When explaining concepts, architecture, trade-offs, or procedures:
-- Choose the simplest approved word that preserves precise meaning.
-- Rewrite any non-STE phrasing into STE form before final output.
-- Prefer “do a check of X”, “make sure that…”, “remove…”, “set… to…”, “the unit operates” over more complex or multi-meaning alternatives.
-- When a technical term is required and fits a category, use it consistently and explain it the first time if needed.
-- Avoid metaphors, figurative language, and unnecessary synonyms.
+**Scope.** STE governs repo prose documents and assistant responses. Exempt:
+verbatim manual quotes and citations, code, code comments, and commit messages.
+Never rewrite exempt text to fit STE — a rewritten transcription breaks ground
+truth.
 
-If a required concept cannot be expressed cleanly under these constraints, state the limitation briefly and give the clearest STE-compliant approximation.
+Within that scope:
+
+- Write short, simple sentences. One main idea per sentence. Descriptive
+  sentences stay at or below 25 words; procedural sentences at or below 20.
+- Use active voice, and the imperative for procedures. Use passive voice only
+  when the agent is unknown.
+- Prefer a direct verb over a nominalization: "remove the unit", not "perform
+  the removal of the unit".
+- Use simple tenses only: infinitive, imperative, simple present, simple past,
+  simple future, and the past participle as an adjective. Avoid progressive and
+  perfect forms.
+- Keep a multi-word noun to three words at most.
+- Use one word for one meaning. Avoid synonyms, metaphors, and figurative
+  language.
+- Prefer a vertical list to a run-on sentence, and a table to dense prose.
+- Explain a technical term at first use, then use it consistently.
+
+If a concept does not fit these constraints, state the limitation in one
+sentence and give the clearest approximation.
