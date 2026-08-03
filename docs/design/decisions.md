@@ -1200,3 +1200,27 @@ record built on it.*
 **Oracle.** Oracle (4): `test/parser_test.dart` "the severity-5 stop path (D9.1; D10.2)" — a front-end 148,00 stops the scan at its point (later faults undiagnosed, later groups unscanned), a parser 149,00 stops the parse on the shared sink, and a clean two-phase run keeps one sink with the running maximum. Oracle (2): the 90.05 compilation is unaffected (zero diagnostics).
 
 *Citations:* (J 90.04.02); decisions.md D9.1 (c) and Implementation; docs/design/m2-parser.md M2-13, M2-15; docs/design/severity-notes.md (148 = C5)
+
+### D10.3 — Numeric-literal length: what the 50-character limit counts
+
+**Decision.** The over-50 check for numeric and floating literals counts digit characters only. ATTESTED exclusions: the decimal point "will not occupy an actual place in storage, and it is not counted in determining the length of the literal" (F p. 18, rule 2), and the F "will not occupy a space in storage, and it is not counted in determining the length of the literal" (F p. 18, rule 4) — the FF double-precision marker likewise. DESIGN DECISION (non-historical): the exponent sign inside a floating literal is excluded too, and the exponent digits count. F settles neither; a sign is stored as an overpunch, not a character position, and the exponent digits are characters of the number itself. The leading sign of a literal is a separate token in this scanner, so it never enters the count.
+
+**Rationale.** The prior check measured the raw token text, so a legal 50-digit literal written with its decimal point (51 characters) drew a false 52,00 at severity 2, which blocks compile and go (review finding LEX-3). D1.2 fixes only the limit value (50) and the message choice (52,00); the counting rule was unrecorded. Digits-only is the smallest rule that satisfies both attested exclusions and keeps the check monotone.
+
+**Implementation.** `_scanNumber` in `lib/src/lexer/procedure_lexer.dart`: the check counts the token text's digit characters. No --pedantic delta.
+
+**Oracle.** Oracle (4): 50 digits plus a decimal point scan clean; 51 digits draw 52,00 (`test/procedure_lexer_test.dart`). Oracle (2): the 90.05 sample is unaffected.
+
+*Citations:* (F p. 18, rules 1, 2, 4); definition §1.7.1 and §1.10; docs/design/decisions.md D1.2; (J 90.04.01) msg 52
+
+### D10.4 — Compile control cards after the first are ignored at any deck position
+
+**Decision.** The deck splitter recognizes a compile control card ($CMPLE in columns 1-6, *COMPILE from column 7) at any deck position. The first one, before any division header, is the job's compile card. Every other one — a duplicate before the headers (M1-2), or any compile card after a division header — is ignored with message 904,00. The M2-15 job loop supersedes this rule when it lands: a mid-deck $CMPLE then starts the next job (D9.14).
+
+**Rationale.** M1-2 records "A second compile control card is ignored with our message 904", but the check ran only before the first division header, so a mid-deck $CMPLE or *COMPILE card was scanned as division source text with cascade diagnostics and 904 never fired (review finding LEX-8). One rule for every position keeps the card from ever being read as source text. A compile card that appears mid-deck with no earlier one also draws 904: its text says "duplicate", which is inexact for that degenerate deck, but the card is equally out of place and equally ignored, and a second non-historical message would add nothing.
+
+**Implementation.** `SourceProgram.fromDeck` in `lib/src/lexer/source_program.dart`: the compile-card check runs before the group dispatch and accepts the card only when no compile card was seen and no group is open.
+
+**Oracle.** Oracle (4): a compile card after a header draws 904,00 and joins no division group (`test/source_program_test.dart`). Oracle (2): the 90.05 deck's single *COMPILE card is unaffected.
+
+*Citations:* docs/design/m1-front-end.md M1-2; docs/design/m2-parser.md M2-15; decisions.md D9.14; (J 02.01.01)
