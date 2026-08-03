@@ -36,8 +36,9 @@ The language-recovery phase is **done**: `docs/comtran-language-definition.md` i
 Parallel tooling track (shares the compiler's card-image core; blocks nothing in M2–M6):
 
 - **T1 — Deck CLI** (`deckconv`) — **DONE 2026-08-03**: converts canon ↔ text mirror, regenerates mirrors, checks freshness; wired as the pre-commit hook (`.githooks/`), the CI freshness step, and the git textconv driver (setup in `README.md`).
-- **T2 — VS Code punchcard editor**: webview custom editor over canon files — punch holes per card code, interpreted row, field rulers per division form. Startable any time after the M1 format freeze.
-- **T3 — MCP server + skill**: structured read/write of canon decks for agents, wrapping the same core as T1/T2.
+- **T2 — VS Code punchcard editor** — **DONE 2026-08-03** (merged PR #9): custom binary editor for `*.ctdeck` in `tools/vscode-punchcard/` — punch grid, interpreted Set H row, field rulers, click- and type-to-punch editing. Install: package the `.vsix` and `code --profile <name> --install-extension` it (the profile matters).
+- **T3 — MCP server + skill** — **DONE 2026-08-03** (merged PR #8): `bin/deckmcp.dart` with five deck tools on the official Dart MCP SDK, plus the `.claude/skills/comtran-decks` skill.
+- **T4 — Deck syntax highlighting** (requested by Jack, 2026-08-03; **next tooling task**): color the card fields in both deck views. (a) A language contribution in the punchcard extension for `.deck` mirror files: a TextMate grammar that colors by card column — serial 1–6, name margin 7–12, procedure text 13–72 with literals and the terminating period-blank, the fixed Data/Environment fields (level 23–24, type 25–30, quantity 31–35, mode 36, justify 37, description 38–71), continuation column 72 — plus the `!` punch-notation lines and the `*`-header/control cards. Column-position scopes work in TextMate via anchored `^.{n}`-style regexes; division context (Data vs Environment vs Procedure column meanings) may need a small semantic-token provider fed by the header lines instead, since TextMate rules are line-local. (b) The same field colorization in the punchcard editor's card-list pane (`media/punchcard.js`), which currently renders the read-out unstyled. Keep the column boundaries sourced from one table shared with `cardView.ts` so the two views cannot drift.
 
 ## Pointers
 
