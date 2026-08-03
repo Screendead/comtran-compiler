@@ -177,7 +177,7 @@ id	class	disposition	component	b2	test	note	text
 175,00	C4	enforced	procedure parser	B.2 sections/control flow	test/procedure_parser_test.dart: a missing STOP RUN draws 175 (D2.7)		NO -STOP RUN- IN PROGRAM.
 176,00	C3	enforced	environment description	B.2 environment description	test/environment_parser_test.dart: every issued message id has a severity row (Diagnostic.severity)		-CONTRL- CARD FORMAT ERROR.
 177,00	C3	reserved	procedure parser	B.2 capacity overflow		M3 (sentence table capacity, D9.7); C3 by the D9.2 precedence rule	THIS SENTENCE EXCEEDS INTERNAL TABLE CAPACITY. SENTENCE DELETED FROM TEXT.
-178,00	C1	reserved	data description, environment description	B.2 names		M2 (DATA-3 remediation, D1.5)	PROCEDURE KEY WORD USED IN DATA OR ENVIRONMENT, INTERPRETED AS A DATA NAME.
+178,00	C1	enforced	data description, environment description	B.2 names	test/data_parser_test.dart: a key word as a data name draws 178 and is kept (D1.5)	applied to list 1 and list 2 alike (D10.8)	PROCEDURE KEY WORD USED IN DATA OR ENVIRONMENT, INTERPRETED AS A DATA NAME.
 179,00	C3	enforced	procedure parser	B.2 sections/control flow	test/procedure_parser_test.dart: END must be the only clause in its sentence (msg 179)		-END- SECTION MUST BE THE ONLY CLAUSE IN THE SENTENCE.
 180,00	C4	reserved	code generator	B.2 MOVE/ADD/SET/arithmetic		M4 (deferred construct, D9.8)	MOVE OF FIGURATIVE CONSTANT TO VARIABLE LENGTH FIELD NOT YET HANDLED BY SYSTEM.
 181,00	C4	reserved	code generator	B.2 numeric limits		M4 (deferred construct, D9.8)	MOVE OF FIGURATIVE CONSTANT TO FIELD LONGER THAN 32766 CHARACTERS NOT YET HANDLED BY SYSTEM.
@@ -192,7 +192,7 @@ id	class	disposition	component	b2	test	note	text
 190,00	C1	enforced	card reader and lexer	B.2 data description	test/data_lexer_test.dart: illegal mode and justification characters draw 189,00/190,00		FIELD IS NOT JUSTIFIED BECAUSE OF ILLEGAL JUSTIFICATION CHARACTER.
 191,00	C4	reserved	name resolution	B.2 names		M3 (definition checks)	'NAME.1' IS NOT PROPERLY DEFINED.
 192,00	C3	enforced	procedure parser	B.2 lexical/card-format	test/procedure_parser_test.dart: ON OVERFLOW with more than one result draws 192 (F p. 44)	also used for key-word misuse with no attested message (D1.5)	SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD.
-193,00	C4	reserved	environment description	B.2 numeric limits		M2/M3 (63-file limit; DATA-10 remediation decides)	LIMIT OF 63 FILES EXCEEDED.
+193,00	C4	enforced	environment description	B.2 numeric limits	test/environment_parser_test.dart: the 64th FILE card draws 193,00 across groups (D10.8)	program-wide tally across environment groups (J 90.01.04; D10.8)	LIMIT OF 63 FILES EXCEEDED.
 194,00	C3	enforced	card reader and lexer	B.2 data description	test/data_lexer_test.dart: a named entry without a level draws 194,00; unnamed does not		DATA NAME LACKS LEVEL.
 195,00	C3	reserved	input/output binder	B.2 environment description		M3 (record/file consistency); NAME.2 prints before NAME.1 (msgs 5, 195)	CANNOT FILE RECORD 'NAME.2' IN THIS FILE,\n                    'NAME.1', BECAUSE ENVIRONMENT FILE CARD LACKS THIS RECORD NAME.
 196,00	C3	enforced	procedure parser	B.2 lexical/card-format	test/procedure_parser_test.dart: IF without THEN draws 196 and deletes		ILLEGAL SENTENCE STRUCTURE NOTHING DONE.
@@ -227,3 +227,4 @@ id	class	disposition	component	b2	test	note	text
 915,00	C5	enforced	procedure parser	ours (D9.7)	test/procedure_parser_test.dart: nesting past 18 stops compilation with one 915 (D9.7)		SECTION NESTING EXCEEDS THE DEPTH OF 18. (NON-HISTORICAL.)
 916,00	C4	enforced	procedure parser	ours (D9.7)	test/procedure_parser_test.dart: INCLUDE draws 110; LOAD draws the non-historical 916 (M2-11)		VERB 'NAME.1' IS DEFERRED IN THE 7090 IMPLEMENTATION AND GENERATES NO CODE. (NON-HISTORICAL.)
 917,00	C2	enforced	procedure parser	ours (D9.7)	test/expression_parser_test.dart: a non-name function argument draws 917 and is dropped	D10.6	FUNCTION ARGUMENT IS NOT A DATA NAME AND IS DROPPED. (NON-HISTORICAL.)
+918,00	C1	enforced	data description	ours (D9.7)	test/data_parser_test.dart: a named REDEF line draws 918 and discards the name (D3.4)	D3.4	NAME ON -REDEF- LINE IS DISCARDED. (NON-HISTORICAL.)

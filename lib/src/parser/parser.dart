@@ -119,6 +119,9 @@ ParseResult runParser(FrontEndResult frontEnd, {DiagnosticSink? sink}) {
   final int first = diagnostics.length;
   CompileCard? compileCard;
   final procedureParser = ProcedureParser(diagnostics);
+  // The 63-file limit spans every environment group of the job
+  // (J 90.01.04; D10.8).
+  final fileTally = FileCardTally();
   final groups = <ParsedGroup>[];
   var stopped = false;
   try {
@@ -132,7 +135,11 @@ ParseResult runParser(FrontEndResult frontEnd, {DiagnosticSink? sink}) {
         EnvironmentGroupScan(scan: final environment) =>
           ParsedEnvironmentGroup._(
             scan,
-            parseEnvironmentGroup(environment, diagnostics),
+            parseEnvironmentGroup(
+              environment,
+              diagnostics,
+              fileTally: fileTally,
+            ),
           ),
         ProcedureGroupScan(scan: final procedure) => ParsedProcedureGroup._(
           scan,

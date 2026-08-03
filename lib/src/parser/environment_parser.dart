@@ -20,20 +20,43 @@ library;
 import '../ast/environment_ast.dart';
 import '../lexer/diagnostic.dart';
 import '../lexer/environment_lexer.dart';
+import '../lexer/reserved_words.dart';
 import '../lexer/token.dart';
 import 'parser_messages.dart';
 
+/// The program-wide FILE-card tally: "A maximum of 63 files may be
+/// described" (J 90.01.04). The driver passes one tally through every
+/// environment group of a job; each FILE card past the 63rd draws
+/// msg 193 (D10.8).
+final class FileCardTally {
+  /// FILE cards seen so far.
+  int count = 0;
+}
+
 /// Parses one environment group's [scan] into cards, appending to
-/// [diagnostics].
+/// [diagnostics]. [fileTally] carries the program-wide FILE-card count
+/// across groups; without one the count covers this group only.
 List<EnvironmentCard> parseEnvironmentGroup(
   EnvironmentScan scan,
-  List<Diagnostic> diagnostics,
-) {
+  List<Diagnostic> diagnostics, {
+  FileCardTally? fileTally,
+}) {
+  final FileCardTally tally = fileTally ?? FileCardTally();
   final cards = <EnvironmentCard>[];
   final contrlNames = <String>{};
   for (final EnvironmentSpec spec in scan.specs) {
+    if (spec.name.isNotEmpty && _isBarredName(spec.name)) {
+      // A list-1/list-2 key word declared as an Environment name:
+      // msg 178, the name is kept, parsing continues (D1.5; D10.8).
+      diagnostics.add(Diagnostic(msgKeyWordAsDataName, spec.cards.first));
+    }
     switch (spec.typeText) {
       case 'FILE':
+        tally.count++;
+        if (tally.count > 63) {
+          // "A maximum of 63 files may be described" (J 90.01.04).
+          diagnostics.add(Diagnostic(msgTooManyFiles, spec.cards.first));
+        }
         cards.add(_parseFileCard(spec, diagnostics));
       case 'SPECIF':
         cards.add(_parseSpecifCard(spec, diagnostics));
@@ -150,6 +173,7 @@ FileCard _parseFileCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
   }
 
   FileRecordClause? current;
+  var sawBlocksize = false;
   while (i < tokens.length) {
     final Token token = tokens[i];
     if (token.kind == TokenKind.symbol && token.text == ',') {
@@ -177,6 +201,7 @@ FileCard _parseFileCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
         card.card = false;
         i++;
       case 'BLOCKSIZE':
+        sawBlocksize = true;
         final (int next, int? value) = _takeInt(tokens, i + 1);
         i = next;
         if (value == null) {
@@ -243,7 +268,9 @@ FileCard _parseFileCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
       case 'BLOCK':
         final int next = _consumeWord(tokens, i + 1, 'CONTROL');
         i = next;
-        if (current == null) {
+        if (current == null || direction == FileDirection.output) {
+          // Input-only: the Output Files form has no BLOCK CONTROL and
+          // its meaning is input-specific (J 02.06.03; J 02.06.05).
           diagnostics.add(
             Diagnostic(
               msgIllegalWordInFileCard,
@@ -335,13 +362,34 @@ FileCard _parseFileCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
       default:
         // Not a recognized keyword: a record name (a record name
         // directly after a previous record's options needs no leading
-        // comma, D8.5 — accepted silently either way).
+        // comma, D8.5 — accepted silently either way). A record name
+        // is a declared use, so a key word here draws 178 (D10.8).
+        if (_isBarredName(token.text)) {
+          diagnostics.add(
+            Diagnostic(msgKeyWordAsDataName, token.card, column: token.column),
+          );
+        }
         current = FileRecordClause(token);
         card.records.add(current);
         i++;
     }
   }
+  if (card.blocksize == null && !sawBlocksize) {
+    // BLOCKSIZE is mandatory: "This specification must be made"
+    // (J 02.06.04). The keyword-without-integer case drew msg 91 above;
+    // total absence draws the card-format message (D10.8; the minimum-24
+    // and maximum-9999 range checks are the M3 data mapper's, D7.1).
+    diagnostics.add(Diagnostic(msgFileCardFormatError, spec.cards.first));
+  }
   return card;
+}
+
+/// Whether [name] is a J list-1 or list-2 key word, barred as a Data
+/// name (J 02.03.02-03).
+bool _isBarredName(String name) {
+  final KeyWordClass? keyWordClass = keyWordClassOf(name);
+  return keyWordClass == KeyWordClass.alwaysKey ||
+      keyWordClass == KeyWordClass.notDataOrProcedureName;
 }
 
 // --- SPECIF ------------------------------------------------------------
@@ -898,26 +946,27 @@ CondCard _parseCondCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
 }
 
 /// Normalizes a COND `KEYS` literal to 12 octal digits (D9.16): a
-/// non-octal setting becomes `1` wholesale (msg 7); an over-length
-/// setting keeps its rightmost 12 digits (msg 6); an under-length
-/// setting is left-padded with zeros, silently — the D9.16 design
-/// decision covering the case neither manual's messages address.
+/// non-octal setting becomes `1` wholesale (msg 7) — a blank is not an
+/// octal digit, so an imbedded blank fails this check (D9.16 has no
+/// blank-stripping step); an over-length setting keeps its rightmost
+/// 12 digits (msg 6); an under-length setting is left-padded with
+/// zeros, silently — the D9.16 design decision covering the case
+/// neither manual's messages address.
 String _normalizeCondKeys(
   String raw,
   EnvironmentSpec spec,
   List<Diagnostic> diagnostics,
 ) {
-  final String stripped = raw.replaceAll(' ', '');
-  final bool allOctal = stripped
+  final bool allOctal = raw
       .split('')
       .every((String c) => '01234567'.contains(c));
   if (!allOctal) {
     diagnostics.add(Diagnostic(msgCondKeysNotOctal, spec.cards.first));
     return '000000000001';
   }
-  if (stripped.length > 12) {
+  if (raw.length > 12) {
     diagnostics.add(Diagnostic(msgCondKeysTooLong, spec.cards.first));
-    return stripped.substring(stripped.length - 12);
+    return raw.substring(raw.length - 12);
   }
-  return stripped.padLeft(12, '0');
+  return raw.padLeft(12, '0');
 }

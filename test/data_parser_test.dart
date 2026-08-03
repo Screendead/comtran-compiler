@@ -268,5 +268,81 @@ void main() {
       expect(items[2].parent, same(items[1]));
       expect(items[2].children, isEmpty);
     });
+
+    test('RECORD always roots a new organization (J 02.05.01)', () {
+      // W opens at level 1; the level-5 RECORD terminates it and roots
+      // its own hierarchy — it never nests under W.
+      final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
+        _card(name: 'W', level: '1', description: '99'),
+        _card(name: 'R', level: '5', type: 'RECORD'),
+        _card(name: 'A', level: '7', description: '99'),
+      ]);
+      expect(diagnostics, isEmpty);
+      expect(items[1].parent, isNull);
+      expect(items[0].children, isEmpty);
+      expect(items[2].parent, same(items[1]));
+    });
+  });
+
+  group('name bars and the REDEF line (2026-08-03 review)', () {
+    test('a key word as a data name draws 178 and is kept (D1.5)', () {
+      final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
+        _card(name: 'RECORD', level: '2', description: '99'),
+        _card(name: 'MOVE', level: '2', description: '99'),
+      ]);
+      expect(diagnostics.map((Diagnostic d) => d.message), [
+        msgKeyWordAsDataName,
+        msgKeyWordAsDataName,
+      ]);
+      expect(items[0].entry.name, 'RECORD');
+    });
+
+    test('a named REDEF line draws 918 and discards the name (D3.4)', () {
+      final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
+        _card(name: 'A', level: '2', description: '99'),
+        _card(name: 'NEW.NAME', type: 'REDEF', description: 'A'),
+      ]);
+      expect(diagnostics.single.message, msgRedefNameDiscarded);
+      expect(items[1].nameDiscarded, isTrue);
+      expect(items[1].targetName!.text, 'A');
+    });
+
+    test('a level or mode on a REDEF line draws 906 (J 02.05.02)', () {
+      final (_, List<Diagnostic> diagnostics) = _parse([
+        _card(name: 'A', level: '2', description: '99'),
+        _card(level: '2', type: 'REDEF', description: 'A'),
+      ]);
+      expect(diagnostics.single.message, msgDataCardCodingConflict);
+    });
+
+    test('a bare REDEF line stays clean', () {
+      final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
+        _card(name: 'A', level: '2', description: '99'),
+        _card(type: 'REDEF', description: 'A'),
+      ]);
+      expect(diagnostics, isEmpty);
+      expect(items[1].nameDiscarded, isFalse);
+    });
+  });
+
+  group('the format-shaped discriminator (J 02.05.05-06)', () {
+    test('a name of format letters and a bare digit is a name', () {
+      final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
+        _card(name: 'X', level: '2', description: 'SAV1'),
+      ]);
+      expect(diagnostics, isEmpty);
+      expect(items.single.pictorial, isNull);
+      expect(items.single.targetName!.text, 'SAV1');
+    });
+
+    test('digits 8 and 9 and a (n) count stay format characters', () {
+      final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
+        _card(name: 'X', level: '2', description: 'A(15)'),
+        _card(name: 'Y', level: '2', description: '9(5)V98'),
+      ]);
+      expect(diagnostics, isEmpty);
+      expect(items[0].pictorial!.text, 'A(15)');
+      expect(items[1].pictorial!.text, '9(5)V98');
+    });
   });
 }

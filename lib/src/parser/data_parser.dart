@@ -11,6 +11,7 @@ library;
 import '../ast/data_ast.dart';
 import '../lexer/data_lexer.dart';
 import '../lexer/diagnostic.dart';
+import '../lexer/reserved_words.dart';
 import '../lexer/token.dart';
 import 'parser_messages.dart';
 
@@ -26,9 +27,12 @@ const Map<String, DataTypeCode> _typeCodes = {
 };
 
 /// A run of format characters only reads as a pictorial; a run with any
-/// other character reads as a name (J 02.05.06). The class matches the
+/// other character reads as a name (J 02.05.06). The J 02.05.05 chart's
+/// format characters: the letters A X V S F, the digits 9 and 8, the
+/// edit specials, and digits inside a parenthesized (n) count — bare
+/// 0-7 are name characters (review DATA-8). The class matches the
 /// scanner's (`data_lexer.dart`).
-final RegExp _formatShaped = RegExp(r'^[AXVSF0-9*.$,+\-()]+$');
+final RegExp _formatShaped = RegExp(r'^([AXVSF89*.$,+\-]|\([0-9]+\))+$');
 
 /// Parses one data group's [scan] into items with the hierarchy wired,
 /// appending to [diagnostics]. The returned list is flat, in source
@@ -38,6 +42,12 @@ List<DataItem> parseDataGroup(DataScan scan, List<Diagnostic> diagnostics) {
   final stack = <DataItem>[];
   for (final DataEntry entry in scan.entries) {
     final DataItem item = _parseEntry(entry, diagnostics);
+    if (item.typeCode == DataTypeCode.record) {
+      // "When the type code RECORD is recognized the previous data
+      // organization is always terminated" (J 02.05.01): the record
+      // roots a new hierarchy whatever its level number.
+      stack.clear();
+    }
     final int? level = entry.level;
     if (level == null) {
       // No level: a REDEF marker or a diagnosed entry. It attaches at
@@ -66,6 +76,14 @@ DataItem _parseEntry(DataEntry entry, List<Diagnostic> diagnostics) {
   }
 
   final DataTypeCode? typeCode = _typeCodes[entry.typeText];
+  if (typeCode != DataTypeCode.redef && _isBarredName(entry.name)) {
+    // A list-1/list-2 key word declared as a data name: msg 178, the
+    // name is kept as a data name, parsing continues (D1.5; D10.8).
+    // A REDEF-line name is discarded below and takes msg 918 instead.
+    diagnostics.add(
+      Diagnostic(msgKeyWordAsDataName, entry.cards.first, column: 7),
+    );
+  }
   if (typeCode == null) {
     // FUNCT and PARAM are "no longer in the language" (J 02.05.03);
     // anything else was never in it.
@@ -101,6 +119,22 @@ DataItem _parseEntry(DataEntry entry, List<Diagnostic> diagnostics) {
           tokens.first.kind != TokenKind.descriptionItem) {
         conflict();
       }
+      if (entry.levelText.trim().isNotEmpty ||
+          entry.quantityText.isNotEmpty ||
+          entry.modeText.trim().isNotEmpty ||
+          entry.justifyText.trim().isNotEmpty) {
+        // A level, quantity, mode, or justify punch is additional
+        // coding the REDEF line forbids (J 02.05.02).
+        conflict();
+      }
+      final bool named = entry.name.isNotEmpty;
+      if (named) {
+        // The F-style named REDEF line: warned and discarded, never
+        // entered in the dictionary (D3.4).
+        diagnostics.add(
+          Diagnostic(msgRedefNameDiscarded, entry.cards.first, column: 7),
+        );
+      }
       return DataItem(
         entry: entry,
         typeCode: typeCode,
@@ -108,6 +142,7 @@ DataItem _parseEntry(DataEntry entry, List<Diagnostic> diagnostics) {
             tokens.isNotEmpty && tokens.first.kind == TokenKind.descriptionItem
             ? tokens.first
             : null,
+        nameDiscarded: named,
         extras: tokens.length > 1 ? tokens.sublist(1) : const [],
       );
     case DataTypeCode.copy:
@@ -258,4 +293,13 @@ DataItem _parseOrderedDescription(
     blankWhenZero: blankWhenZero,
     extras: extras,
   );
+}
+
+/// Whether [name] is a J list-1 or list-2 key word, barred as a Data
+/// name (J 02.03.02-03). Compound names never match: the key-word
+/// lists hold single words only.
+bool _isBarredName(String name) {
+  final KeyWordClass? keyWordClass = keyWordClassOf(name);
+  return keyWordClass == KeyWordClass.alwaysKey ||
+      keyWordClass == KeyWordClass.notDataOrProcedureName;
 }

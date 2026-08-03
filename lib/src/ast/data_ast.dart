@@ -48,6 +48,7 @@ final class DataItem {
     this.targetName,
     this.quantityInName,
     this.blankWhenZero = false,
+    this.nameDiscarded = false,
     this.extras = const [],
   });
 
@@ -78,6 +79,11 @@ final class DataItem {
 
   /// Whether the description carries `BLANK WHEN ZERO` (J 02.05.07).
   final bool blankWhenZero;
+
+  /// Whether [DataEntry.name] is discarded — an F-style name on a
+  /// REDEF line (D3.4): warned, never entered in the dictionary, so
+  /// M3's dictionary pass must skip it.
+  final bool nameDiscarded;
 
   /// Description tokens no clause claimed. M2 keeps them for M3 to
   /// judge; it does not diagnose them (design note M2-3).
