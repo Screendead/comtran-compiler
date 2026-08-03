@@ -109,9 +109,7 @@ int _run(List<String> arguments) {
         writeListing(job.frontEnd, options, diagnostics: job.diagnostics),
       );
       if (explain) {
-        for (final Diagnostic diagnostic in job.diagnostics) {
-          stderr.writeln(diagnostic.toString());
-        }
+        job.diagnostics.forEach(stderr.writeln);
       }
     }
     // Severity 5 stops a job (J 90.04.02); lower severities still

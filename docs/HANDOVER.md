@@ -224,7 +224,9 @@ M2 to M6.
 - Manuals: `comtran-manuals/{F28-8043,J28-6169}/`. `comtran-manuals/README.md`
   holds the conventions. The sample program is
   `comtran-manuals/J28-6169/90.05-sample-program.md`.
-- Archive provenance: commit 8f619e5 preserves the raw research output (docs/research-2026-08-01-interrupted.md). The language definition supersedes it.
+- Archive provenance: commit 8f619e5 preserves the raw research output
+  (`docs/research-2026-08-01-interrupted.md`). The language definition
+  supersedes it.
 - External period scans used, all from bitsavers and all re-downloadable:
   C28-6100-2 (709/7090 IOCS), 22-6528-4 (7090 reference), A22-6506-0 (705
   reference), 22-6642-0 (705 pocket code card), A24-1403-5 (1401 reference), and
