@@ -109,6 +109,7 @@ enum DeckCheckStatus {
 
 /// One line of a check report.
 final class DeckCheckResult {
+  /// Creates the result.
   const DeckCheckResult({
     required this.path,
     required this.status,
