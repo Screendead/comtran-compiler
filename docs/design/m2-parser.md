@@ -28,8 +28,8 @@ cites these IDs, so no entry is ever renumbered. Use the index below to find one
 
 M2 parses the scanned output of the M1 front end into an abstract syntax tree
 for all three divisions plus the control cards, with diagnostics drawn from
-the J 90.04 message catalog and statement numbers of the full `n,cc` form
-(HANDOVER roadmap; J 02.02.01). M1 guarantees its side of the boundary: the
+the [J 90.04] message catalog and statement numbers of the full `n,cc` form
+(HANDOVER roadmap; [J 02.02.01]). M1 guarantees its side of the boundary: the
 parser always receives terminated sentences (D9.4), assembled data entries and
 environment specifications (column-72 rule), and unclassified `word` tokens —
 "classification is the parser's job" (`lib/src/lexer/token.dart`).
@@ -63,34 +63,34 @@ environment specifications (column-72 rule), and unclassified `word` tokens —
     conditional expressions, sections, labels. Everything in the definition
     §4/§5/§6 marked parser-enforceable (token shape, adjacency, arity,
     clause order) is M2. Format-legality tables, CORRESPONDING matching,
-    name resolution, and argument-count checks are M3 (J 02.04.03–06).
+    name resolution, and argument-count checks are M3 ([J 02.04.03]–06).
   - **Data:** entry structure. One check per line:
-    - Level hierarchy, by the nearest-lower-preceding rule (F p. 68).
+    - Level hierarchy, by the nearest-lower-preceding rule ([F p. 68]).
     - Type-code recognition: one of the eight J codes, or blank
-      (J 02.05.02–03).
-    - RECORD forbids a Quantity field (J 02.05.01).
-    - A REDEF line carries only the target name (J 02.05.02).
+      ([J 02.05.02]–03).
+    - RECORD forbids a Quantity field ([J 02.05.01]).
+    - A REDEF line carries only the target name ([J 02.05.02]).
     - RCDMRK needs no pictorial, but accepts an explicit one. The sample's
-      own RCDMRK punches `A` (statement 42,00; J 02.05.03).
-    - A COND entry carries exactly one quoted constant (F pp. 71–72).
-    - The description field keeps its ordered shape (F p. 79):
+      own RCDMRK punches `A` (statement 42,00; [J 02.05.03]).
+    - A COND entry carries exactly one quoted constant ([F pp. 71–72]).
+    - The description field keeps its ordered shape ([F p. 79]):
       `[pictorial] [constant] [name] [QUANTITY IN name] [BLANK WHEN ZERO]`,
-      split by the non-format-character rule (J 02.05.06).
+      split by the non-format-character rule ([J 02.05.06]).
 
     The pictorial's *content* — character classes, the six-way field-type
     chart, sizing — is M3 (HANDOVER M3; `data_lexer.dart`'s own deferral
     comment).
   - **Environment:** the per-type option grammars for all seven card types
-    (J 02.06.02–17), including the FILE card's record-scope rule
-    (options attach to the preceding record.name, J 02.06.04) and the
-    SPECIF unit-literal forms (J 02.06.09–11). Cross-card checks (SPECIF
+    ([J 02.06.02]–17), including the FILE card's record-scope rule
+    (options attach to the preceding record.name, [J 02.06.04]) and the
+    SPECIF unit-literal forms ([J 02.06.09]–11). Cross-card checks (SPECIF
     names its FILE card, POOL buffer counts) are M3 name resolution.
     CONTRL is the precedent that pure syntax checking with no downstream
     effect is historically right (msg 176 with no object-deck effect,
-    J 90.01.04).
+    [J 90.01.04]).
   - **Control cards:** the $CMPLE field grammar with the blank-terminated
-    option list (J 02.01.01), *COMPILE as a synonym (D7.12), deck.name
-    blanks accepted silently (D7.11), and *FINISH placement (J 02.01.02).
+    option list ([J 02.01.01]), *COMPILE as a synonym (D7.12), deck.name
+    blanks accepted silently (D7.11), and *FINISH placement ([J 02.01.02]).
 
 ## The AST
 
@@ -119,7 +119,7 @@ environment specifications (column-72 rule), and unclassified `word` tokens —
 ## Statement and clause numbering
 
 - **M2-6. What `cc` counts.** J attests only the form: the digits after the
-  comma "tell which clause is being referenced" (J 02.02.01). No non-zero
+  comma "tell which clause is being referenced" ([J 02.02.01]). No non-zero
   value survives in any listing (D7.13). Recorded decision, non-historical:
   - Number the clauses of a procedure sentence in source order from 01. The
     conditional clause (IF…THEN) takes 01 when present. Each imperative
@@ -143,7 +143,7 @@ environment specifications (column-72 rule), and unclassified `word` tokens —
 - **M2-7. Contextual keyword recognition.** A `word` token is a key word
   only where the grammar expects one; recognition uses
   `keyWordClassOf` (`reserved_words.dart`) plus parse position. The
-  reservation bars follow J's three tiers (J 02.03.02–03): list 1 rejected
+  reservation bars follow J's three tiers ([J 02.03.02]–03): list 1 rejected
   as a name in every division; list 2 rejected as a Data or Procedure name
   (EQUALS misuse per D1.5: msg 178 in Data/Environment, msg 192 in
   Procedure); list 3 deferred to M3, because its bar depends on whether the
@@ -155,34 +155,34 @@ environment specifications (column-72 rule), and unclassified `word` tokens —
 ## Procedure grammar decisions
 
 The grammar itself is the definition's: sentence structure §2.3/§5.1–5.2,
-expressions §4.1 with J 02.04.05.01 precedence (negation above `**`, D4.4;
-`A**B**C` rejected, D4.10), conditions §5.3 (AND above OR, F p. 105; the
-F p. 106 adjacency tables), verbs §4/§5/§6 with the D-slate calls (D2.7 STOP,
+expressions §4.1 with [J 02.04.05.01] precedence (negation above `**`, D4.4;
+`A**B**C` rejected, D4.10), conditions §5.3 (AND above OR, [F p. 105]; the
+[F p. 106] adjacency tables), verbs §4/§5/§6 with the D-slate calls (D2.7 STOP,
 D5.2 DO indices, D5.6 SET condition-name, D6.6 AT END, D8.5 FILE-card comma).
 The entries below close the surface-syntax gaps the sources leave open:
 
 - **M2-8. Figurative constants are verb-level alternatives, not expression
   operands.** F's operand inventories for arithmetic expressions never list
   figurative constants (F pp. 45, 105–106); J grants them as the source of
-  SET or MOVE (J 02.04.01). Recorded decision: the SET right-hand side is
+  SET or MOVE ([J 02.04.01]). Recorded decision: the SET right-hand side is
   `arithmetic-expression | figurative-constant`, and MOVE's source likewise;
   a figurative constant inside a larger expression is a syntax error.
-  Comparison operands keep them (J 02.04.01 defines their comparison
+  Comparison operands keep them ([J 02.04.01] defines their comparison
   behavior). *Corrected against the sample (2026-08-03):* MOVE's source
-  also accepts a literal — F p. 42's general form shows `data.name.1`
+  also accepts a literal — [F p. 42]'s general form shows `data.name.1`
   only, but the compiled sample writes `MOVE 'M' TO ERRORTYPE` and
   `MOVE 'GT' TO PAYRECORD DEPARTMENT` (statements 193, 196, 199) and
   compiled clean, so the literal alternative is attested language.
 - **M2-9. ADD CORRESPONDING accepts TRUNCATED and ON OVERFLOW.** F's body
-  text grants both clauses to ADD without qualification (F p. 47); the
+  text grants both clauses to ADD without qualification ([F p. 47]); the
   Appendix-2 concise form omits them while folding `[CORRESPONDING]` into
-  one production (F p. 108). The omission is read as abridgment, not
+  one production ([F p. 108]). The omission is read as abridgment, not
   prohibition: the clauses parse on both ADD forms. MOVE has neither clause
-  — their presence on MOVE is a syntax error (F pp. 42–43; §8.5.4).
+  — their presence on MOVE is a syntax error ([F pp. 42–43]; §8.5.4).
 - **M2-10. DISPLAY commas follow J.** F reads an unquoted comma as the
-  operand-list terminator (F p. 54); J's field-test restriction reads it as
+  operand-list terminator ([F p. 54]); J's field-test restriction reads it as
   the required separator between data-names, juxtaposed words forming one
-  qualified reference (J 90.01.01). J governs: the operand list is
+  qualified reference ([J 90.01.01]). J governs: the operand list is
   literals and name references in any order, comma-separated between name
   references; `DISPLAY A B` parses as one qualified name. Msg 131 covers
   the malformed remainder. No sample uses DISPLAY, so the listing oracle
@@ -191,28 +191,28 @@ The entries below close the surface-syntax gaps the sources leave open:
 - **M2-11. Deferred verbs parse and diagnose.** COPY/LIBRARY/INCLUDE are
   recognized and refused with the attested msg 110 (D9.8 — the locked
   call, which supersedes D7.4's earlier plan of a separate non-historical
-  INCLUDE message). LOAD and OVERLAP parse per F's forms (F pp. 54–56)
+  INCLUDE message). LOAD and OVERLAP parse per F's forms ([F pp. 54–56])
   and draw a non-historical recognized-but-deferred diagnostic
-  (J 90.01.03 defers them; no J message id exists), following the
+  ([J 90.01.03] defers them; no J message id exists), following the
   PATTERN pattern (D9.12). ENTER accepts exactly its two J forms
-  (J 02.04.02.01).
+  ([J 02.04.02.01]).
 - **M2-12. Program and processor verbs do not mix in one sentence.**
-  F p. 60 states it; the parser deletes a mixed sentence with msg 196 —
+  [F p. 60] states it; the parser deletes a mixed sentence with msg 196 —
   no 1962 message is attested for the rule, and 196's "ILLEGAL SENTENCE
   STRUCTURE NOTHING DONE." matches F's "meaningless" verdict. The check
   walks nested clauses (IF arms, ON OVERFLOW, AT END), so a processor
-  verb inside an arm — F p. 60's own illegal example — is caught. Verb
-  classes follow F p. 35 (definition §2.7): LOAD is a program verb;
+  verb inside an arm — [F p. 60]'s own illegal example — is caught. Verb
+  classes follow [F p. 35] (definition §2.7): LOAD is a program verb;
   OVERLAP, INCLUDE, COPY, LIBRARY, CALL, ENTER, NOTE, BEGIN SECTION,
   and END are processor verbs. END is exempt from the mixing deletion:
   its own attested rule, msg 179, governs an END that is not the
   sentence's only clause — nested in an IF arm or not — and that END
   still pops its section. *Corrected (2026-08-03, review):* the entry's
   earlier claim that BEGIN SECTION also "stands alone" has no source —
-  F p. 60's exception for BEGIN SECTION and END concerns naming, not
+  [F p. 60]'s exception for BEGIN SECTION and END concerns naming, not
   clause count — so BEGIN SECTION may share a sentence with other
   processor commands; mixing with program verbs is what deletes it.
-- **M2-16. DO parameters parse without subscripts.** F p. 51: p, q, and
+- **M2-16. DO parameters parse without subscripts.** [F p. 51]: p, q, and
   r are each an integer literal or the name of an integer field. When p
   is a name, `p(q)r` is lexically identical to a subscripted name, and
   no manual resolves the ambiguity. Recorded decision: in a DO control
@@ -220,12 +220,12 @@ The entries below close the surface-syntax gaps the sources leave open:
   name parses without subscripts, so every name-valued p works and a
   subscripted parameter cannot be written. EXACTLY's n follows the same
   rule.
-- **M2-17. Relation spellings are the closed F p. 21 set.** Six
+- **M2-17. Relation spellings are the closed [F p. 21] set.** Six
   relations, each with one full form (`IS [NOT] GREATER THAN / LESS
   THAN / EQUAL TO`) and one abbreviation (`[NOT] GT / LT / =`). A
   hybrid — an abbreviation after IS, a full-form word without IS, or a
   missing THAN/TO — draws msg 107, and the relation is kept as a
-  repair. The sample program uses only attested spellings (J 90.05).
+  repair. The sample program uses only attested spellings ([J 90.05]).
 
 ## Error recovery
 
@@ -297,3 +297,41 @@ Three pull requests, each green on its own:
   behavior (deleted vs repaired).
 - Decision conformance: each M2-N and each D-slate call named above gets a
   test that cites it.
+
+<!-- manual links; generated by tool/linkify_manual_refs.dart -->
+
+[F p. 21]: ../../comtran-manuals/F28-8043/02-language-structure.md#arithmetic-expressions
+[F p. 35]: ../../comtran-manuals/F28-8043/03-procedure-description.md#chapter-3-procedure-description
+[F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
+[F pp. 42–43]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
+[F p. 47]: ../../comtran-manuals/F28-8043/03-procedure-description.md#set-used-with-condition-names
+[F p. 51]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-indexing
+[F p. 54]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
+[F pp. 54–56]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
+[F p. 60]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-enter-command
+[F p. 68]: ../../comtran-manuals/F28-8043/04-data-description.md#level-col-23-24
+[F pp. 71–72]: ../../comtran-manuals/F28-8043/04-data-description.md#level-col-23-24
+[F p. 79]: ../../comtran-manuals/F28-8043/04-data-description.md#justify-col-37
+[F p. 105]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#appendix-2-supplementary-information
+[F p. 106]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-conditional-expressions
+[F p. 108]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
+[J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
+[J 02.01.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-cmple-card
+[J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
+[J 02.03.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-use-of-coding-forms
+[J 02.04.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-effect-of-data-storage-mode-on-arithmetic-efficiency
+[J 02.04.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#2-literals
+[J 02.04.03]: ../../comtran-manuals/J28-6169/02-compiler.md#2-display
+[J 02.04.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
+[J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
+[J 02.05.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-record
+[J 02.05.03]: ../../comtran-manuals/J28-6169/02-compiler.md#3-redef-see-iii-under-data-description-on-page-900103-for-limitation
+[J 02.05.06]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
+[J 02.06.02]: ../../comtran-manuals/J28-6169/02-compiler.md#b-environment-types
+[J 02.06.04]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
+[J 02.06.09]: ../../comtran-manuals/J28-6169/02-compiler.md#d-specif-environment-card
+[J 90.01.01]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#appendix-9001-deferred-features-restrictions-and-limitations
+[J 90.01.03]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
+[J 90.01.04]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
+[J 90.04]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#appendix-9004
+[J 90.05]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#appendix-9005
