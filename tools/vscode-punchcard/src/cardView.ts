@@ -165,6 +165,9 @@ export function classifyCards(deck: readonly Card[]): CardKind[] {
   let finished = false;
 
   const classify = (card: Card): CardKind => {
+    if (finished) {
+      return 'loose';
+    }
     let blank = true;
     for (let i = 0; i < COLUMN_COUNT; i++) {
       if (card[i] !== 0) {
@@ -174,9 +177,6 @@ export function classifyCards(deck: readonly Card[]): CardKind[] {
     }
     if (blank) {
       return 'blank';
-    }
-    if (finished) {
-      return 'loose';
     }
     if (!isGlyphCard(card)) {
       return 'binary';

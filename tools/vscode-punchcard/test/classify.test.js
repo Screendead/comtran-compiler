@@ -73,6 +73,18 @@ test('control, finish and loose cards classify as the splitter would', () => {
   ]);
 });
 
+test('a blank card after *FINISH classifies as loose, not blank', () => {
+  // lib/src/lexer/source_program.dart tests finishCard before isBlank, so a
+  // blank card after *FINISH is a problem (msgCardAfterFinish), not silently
+  // dropped. The classifier must test the same guard in the same order.
+  const kinds = classifyCards([
+    cardFromText('      *FINISH'),
+    cardFromText(''),
+    cardFromText('      AFTER THE FINISH CARD'),
+  ]);
+  assert.deepEqual(kinds, ['finish', 'loose', 'loose']);
+});
+
 test('a header needs the asterisk in column 7 and a bare body', () => {
   const kinds = classifyCards([
     cardFromText('       *DATA'), // column 8: not a header
