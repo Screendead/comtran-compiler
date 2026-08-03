@@ -1,6 +1,16 @@
-# Salvaged research findings — 2026-08-01 (session interrupted by usage limit)
+# ARCHIVE — salvaged research output, 2026-08-01 (session interrupted by a usage limit)
 
-Raw structured outputs of the agents that completed before the three research workflows were stopped. UNVERIFIED: the adversarial verify stages never ran. Workflow run IDs for cached resume: mine-9002 wf_bfe1f3e0-425; external-sources wf_d5bf6277-c59; consolidate-9005 wf_2c0cf4b2-91d (no results).
+**This file is an archive. Do not read it for current work, and do not cite it.**
+`docs/comtran-language-definition.md` supersedes every claim in it.
+
+What it is: the raw structured output of the research agents that finished before
+the three research workflows stopped. The content is escaped JSON on very long
+lines, not prose. One line alone holds 94,233 characters, and the file is 362 KB,
+so an agent file-read tool refuses it. It is kept for provenance only.
+
+**UNVERIFIED: the adversarial verify stages never ran.** Workflow run IDs, for a
+cached resume: mine-9002 `wf_bfe1f3e0-425`; external-sources `wf_d5bf6277-c59`;
+consolidate-9005 `wf_2c0cf4b2-91d` (no results).
 
 ## mine-9002 (90.02 mining) — completed drafts
 ```json
