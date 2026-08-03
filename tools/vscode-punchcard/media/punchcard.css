@@ -1,0 +1,330 @@
+/* Styles for the punchcard webview. Inlined into the page under a nonce, so
+   this file must stay dependency free. */
+
+:root {
+  --cw: 15px;
+  --ch: 15px;
+  --gut: 46px;
+  --card-bg: var(--vscode-editorWidget-background, #2b2b2b);
+  --card-line: var(--vscode-editorWidget-border, #555);
+  --punch: var(--vscode-editor-foreground, #ddd);
+  --faint: var(--vscode-descriptionForeground, #999);
+  --cur: var(--vscode-editor-selectionBackground, #264f78);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: var(--vscode-font-family, sans-serif);
+  font-size: var(--vscode-font-size, 13px);
+  color: var(--vscode-foreground, #ccc);
+  background: var(--vscode-editor-background, #1e1e1e);
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--vscode-button-secondaryForeground, #fff);
+  background: var(--vscode-button-secondaryBackground, #3a3d41);
+  border: none;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--vscode-button-secondaryHoverBackground, #45494e);
+}
+
+button:focus-visible,
+.cardwrap:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder, #007fd4);
+  outline-offset: -1px;
+}
+
+.app {
+  display: flex;
+  height: 100%;
+  align-items: stretch;
+}
+
+/* --- card list --- */
+
+.side {
+  width: 22ch;
+  min-width: 16ch;
+  max-width: 40ch;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--card-line);
+  overflow: hidden;
+}
+
+.side-head {
+  padding: 6px 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85em;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  border-bottom: 1px solid var(--card-line);
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.cards li {
+  display: flex;
+  gap: 6px;
+  padding: 1px 6px;
+  cursor: pointer;
+  white-space: pre;
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 0.9em;
+}
+
+.cards li:hover {
+  background: var(--vscode-list-hoverBackground, #2a2d2e);
+}
+
+.cards li.sel {
+  background: var(--vscode-list-activeSelectionBackground, #04395e);
+  color: var(--vscode-list-activeSelectionForeground, #fff);
+}
+
+.cards .num {
+  color: var(--faint);
+  text-align: right;
+  width: 4ch;
+  flex: none;
+}
+
+.cards li.sel .num {
+  color: inherit;
+}
+
+.cards .txt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- main pane --- */
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--card-line);
+  flex-wrap: wrap;
+}
+
+.toolbar .gap {
+  width: 10px;
+}
+
+.toolbar .pos {
+  min-width: 10ch;
+  text-align: center;
+  color: var(--faint);
+}
+
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.cardwrap {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+
+.card {
+  display: inline-block;
+  padding: 10px 12px 12px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-line);
+  border-radius: 2px;
+}
+
+.band,
+.row {
+  display: grid;
+  grid-template-columns: var(--gut) repeat(80, var(--cw));
+  align-items: stretch;
+}
+
+.gut {
+  color: var(--faint);
+  font-size: 0.8em;
+  text-align: right;
+  padding-right: 6px;
+  align-self: center;
+  white-space: nowrap;
+}
+
+/* field ruler */
+
+.ruler {
+  height: 18px;
+  margin-bottom: 2px;
+}
+
+.ruler .fld {
+  border: 1px solid var(--card-line);
+  border-bottom: none;
+  font-size: 0.75em;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 16px;
+}
+
+/* interpreted row */
+
+.interp {
+  height: calc(var(--ch) + 4px);
+  margin-bottom: 3px;
+}
+
+.interp .ic {
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: calc(var(--cw) * 0.8);
+  line-height: calc(var(--ch) + 4px);
+  text-align: center;
+  overflow: hidden;
+  background: var(--vscode-editor-background, #1e1e1e);
+  border-right: 1px solid transparent;
+}
+
+.interp .k-blank {
+  color: var(--faint);
+}
+
+.interp .k-special,
+.interp .k-unattested {
+  color: var(--vscode-editorWarning-foreground, #cca700);
+  font-weight: 700;
+}
+
+.interp .k-none {
+  color: var(--vscode-editorError-foreground, #f48771);
+  font-weight: 700;
+}
+
+/* column numbers */
+
+.nums {
+  height: 11px;
+}
+
+.nums .nc {
+  font-size: 8px;
+  line-height: 11px;
+  text-align: center;
+  color: var(--faint);
+  cursor: pointer;
+}
+
+.nums .nc.tick {
+  color: var(--vscode-foreground, #ccc);
+}
+
+/* punch grid */
+
+.grid {
+  border: 1px solid var(--card-line);
+  border-radius: 2px 12px 2px 2px;
+  overflow: hidden;
+}
+
+.row {
+  height: var(--ch);
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: var(--faint);
+  opacity: 0.55;
+  cursor: pointer;
+  border-right: 1px solid rgba(128, 128, 128, 0.12);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.12);
+}
+
+.cell:hover {
+  background: var(--vscode-list-hoverBackground, #2a2d2e);
+}
+
+.cell.on {
+  opacity: 1;
+  color: transparent;
+  background-image: linear-gradient(var(--punch), var(--punch));
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: calc(var(--cw) * 0.5) calc(var(--ch) * 0.66);
+}
+
+.row.z .cell {
+  background-color: rgba(128, 128, 128, 0.06);
+}
+
+.col-cur {
+  background-color: var(--cur);
+}
+
+.cell.cur-cell {
+  outline: 1px solid var(--vscode-focusBorder, #007fd4);
+  outline-offset: -1px;
+}
+
+/* status and legend */
+
+.status {
+  padding: 5px 10px;
+  border-top: 1px solid var(--card-line);
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 0.9em;
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status.warn {
+  color: var(--vscode-editorWarning-foreground, #cca700);
+}
+
+.legend {
+  padding: 4px 10px 8px 10px;
+  color: var(--faint);
+  font-size: 0.85em;
+}
+
+.empty {
+  color: var(--faint);
+  font-style: italic;
+}
+
+.hidden {
+  display: none;
+}

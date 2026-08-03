@@ -1,0 +1,30 @@
+name: VS Code extension
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'tools/vscode-punchcard/**'
+      - '.github/workflows/vscode-ext.yml'
+  pull_request:
+    paths:
+      - 'tools/vscode-punchcard/**'
+      - '.github/workflows/vscode-ext.yml'
+
+jobs:
+  punchcard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/vscode-punchcard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tools/vscode-punchcard/package-lock.json
+      - run: npm ci
+      - run: npm run compile
+      - run: node --check media/punchcard.js
+      - run: node --test "test/**/*.test.js"
