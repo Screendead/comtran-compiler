@@ -41,3 +41,8 @@ jobs:
       - run: npm run compile
       - run: node --check media/punchcard.js
       - run: node --test "test/**/*.test.js"
+      - run: npx @vscode/vsce package --no-dependencies
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: tools/vscode-punchcard/*.vsix
