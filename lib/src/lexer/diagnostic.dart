@@ -91,8 +91,11 @@ final class Diagnostic {
   /// The 1-based column, when the condition is tied to one.
   final int? column;
 
-  /// Values substituted for the message's `'NAME.1'`-style parameters, in
-  /// order of appearance.
+  /// Values substituted for the message's `'NAME.1'`-style parameters,
+  /// in `NAME.n` index order: `operands[0]` fills `'NAME.1'`,
+  /// `operands[1]` fills `'NAME.2'` — not in order of appearance, which
+  /// differs for msgs 5,00 and 195,00, whose texts print `'NAME.2'`
+  /// first (J 90.04.01).
   final List<String> operands;
 
   /// The clause the condition is confined to, for the `n,cc` statement
