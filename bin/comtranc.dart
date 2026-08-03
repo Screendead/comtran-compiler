@@ -1,17 +1,19 @@
-/// The compiler driver. It runs the front end — card reader, scanners,
-/// statement numbering — and the M2 parser, and prints the compilation
-/// listing with the merged diagnostic block (roadmap M1–M2,
-/// `docs/HANDOVER.md`; design note M2-1).
+/// The compiler driver. It splits the deck into jobs (D11.1), runs the
+/// front end — card reader, scanners, statement numbering — and the M2
+/// parser once per job, and prints one compilation listing per job with
+/// the merged diagnostic block (roadmap M1–M2, `docs/HANDOVER.md`;
+/// design notes M2-1 and M2-15).
 library;
 
 import 'dart:io';
 
 import 'package:comtran/comtran.dart';
 
-const String _usage = '''
+const String _usage = r'''
 Usage: dart run comtran:comtranc <deck.ctdeck> [options]
 
-  Compiles one job's source deck and prints the compilation listing.
+  Compiles every job on the deck ($CMPLE ... *FINISH) and prints one
+  compilation listing per job.
   (M1+M2: front end and parser — no code generation yet.)
 
   --date=mm/dd/yy    page-head date (default: today)
@@ -75,40 +77,32 @@ int _run(List<String> arguments) {
       '${now.day.toString().padLeft(2, '0')}/'
       '${(now.year % 100).toString().padLeft(2, '0')}';
   time ??= (now.hour + now.minute / 60).toStringAsFixed(2);
-  // The compilation's one diagnostic sink (D9.1): both phases record
-  // into it, and its severity-5 throw stops each phase at the point of
-  // detection.
-  final sink = DiagnosticSink();
   try {
-    final FrontEndResult result = runFrontEnd(
+    // The job loop (D11.1–D11.3): one sink, one parse, and one listing
+    // per job; the exit code reflects the worst severity of the whole
+    // deck (D11.2).
+    final DeckCompilation deck = compileDeck(
       decodeCanon(File(deckPath).readAsBytesSync()),
-      sink: sink,
     );
-    // A front-end stop skips the parser: the compilation stopped at
-    // the point of detection (D9.1; D10.2).
-    final ParseResult? parse = result.stopped
-        ? null
-        : runParser(result, sink: sink);
-    stdout.write(
-      writeListing(
-        result,
-        ListingOptions(
-          date: date,
-          time: time,
-          account: account,
-          title: title,
-          linesPerPage: linesPerPage,
-        ),
-        diagnostics: parse?.diagnostics ?? result.diagnostics,
-      ),
+    final options = ListingOptions(
+      date: date,
+      time: time,
+      account: account,
+      title: title,
+      linesPerPage: linesPerPage,
     );
-    // Severity 5 stops compilation (J 90.04.02); lower severities still
+    for (final JobCompilation job in deck.jobs) {
+      stdout.write(
+        writeListing(job.frontEnd, options, diagnostics: job.diagnostics),
+      );
+    }
+    // Severity 5 stops a job (J 90.04.02); lower severities still
     // produce output.
-    return sink.maxSeverity >= 5 ? 1 : 0;
+    return deck.maxSeverity >= 5 ? 1 : 0;
   } on StopCompilation {
-    // Both phases catch their own stop and return partial results; this
-    // net keeps a stop from any future phase on the same sink from
-    // crashing the driver (D9.1's job rule: stop, go to the next job).
+    // Every phase catches its own stop and returns partial results;
+    // this net keeps a stop from any future phase from crashing the
+    // driver (D9.1's job rule: stop, go to the next job).
     return 1;
   } on FormatException catch (e) {
     stderr.writeln('error: ${e.message}');

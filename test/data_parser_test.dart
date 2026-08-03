@@ -133,7 +133,7 @@ void main() {
       ]);
       expect(items.first.constant!.text, 'M');
       expect(diagnostics.single.message, msgDataCardCodingConflict);
-      expect(diagnostics.single.card.cardNumber, 2);
+      expect(diagnostics.single.card!.cardNumber, 2);
     });
 
     test('a REDEF card with more than the target name draws 906', () {

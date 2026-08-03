@@ -67,8 +67,9 @@ final class _ListingWriter {
   _ListingWriter(this.result, this.options, List<Diagnostic>? diagnostics)
     : diagnostics = diagnostics ?? result.diagnostics {
     for (final Diagnostic d in this.diagnostics) {
-      if (d.message.number == '134,00' && d.column != null) {
-        _repaired.putIfAbsent(d.card.cardNumber, () => <int>{}).add(d.column!);
+      final SourceCard? card = d.card;
+      if (d.message.number == '134,00' && d.column != null && card != null) {
+        _repaired.putIfAbsent(card.cardNumber, () => <int>{}).add(d.column!);
       }
     }
   }
@@ -109,10 +110,11 @@ final class _ListingWriter {
           card.cardNumber: group.division,
     };
     for (final SourceCard card in result.program.cards) {
-      if (identical(card, compileCard) ||
-          identical(card, result.program.finishCard)) {
-        // The compile card is echoed above; the sample listing stops at
-        // the last source card, with no *FINISH echo.
+      if (identical(card, compileCard)) {
+        // The compile card is echoed above. The *FINISH card never
+        // reaches the front end — the job splitter consumes it — so
+        // the listing stops at the last source card, as the sample
+        // listing does (D11.1).
         continue;
       }
       _line(_sourceLine(card, divisionOf[card.cardNumber]));
@@ -182,11 +184,14 @@ final class _ListingWriter {
     _line('');
     for (final Diagnostic d in diagnostics) {
       // The NUMBER column carries the statement number; 9999,99 marks a
-      // diagnostic not confined to a numbered statement (J 02.02.01;
-      // decision D9.5). A clause-confined diagnostic prints the clause
-      // digits after the comma (design note M2-6).
-      String number =
-          result.statementNumberByCard[d.card.cardNumber] ?? '9999,99';
+      // diagnostic not confined to a numbered statement — an unnumbered
+      // card, or no card at all (J 02.02.01; decisions D9.5 and D11.3).
+      // A clause-confined diagnostic prints the clause digits after the
+      // comma (design note M2-6).
+      final SourceCard? card = d.card;
+      String number = card == null
+          ? '9999,99'
+          : result.statementNumberByCard[card.cardNumber] ?? '9999,99';
       if (d.clause != null && number.endsWith(',00')) {
         number =
             '${number.substring(0, number.length - 2)}'

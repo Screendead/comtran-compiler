@@ -38,7 +38,6 @@ void main() {
       final program = SourceProgram.fromDeck(loadPayrollDeck());
       expect(program.compileCard?.cardNumber, 1);
       expect(program.compileCard?.body, startsWith('*COMPILE'));
-      expect(program.finishCard, isNull);
       expect(program.problems, isEmpty);
       expect(program.groups.map((DivisionGroup g) => g.division), [
         Division.data,
@@ -73,7 +72,7 @@ void main() {
       ]);
       expect(program.compileCard?.cardNumber, 1);
       expect(program.problems.single.message, msgDuplicateCompileCard);
-      expect(program.problems.single.card.cardNumber, 2);
+      expect(program.problems.single.card!.cardNumber, 2);
     });
 
     test('a compile card after a header draws 904,00, never source text', () {
@@ -86,7 +85,7 @@ void main() {
       ]);
       expect(program.compileCard?.cardNumber, 1);
       expect(program.problems.single.message, msgDuplicateCompileCard);
-      expect(program.problems.single.card.cardNumber, 4);
+      expect(program.problems.single.card!.cardNumber, 4);
       // The card joins no division group.
       expect(program.cardsOf(Division.data), hasLength(2));
     });
@@ -105,15 +104,11 @@ void main() {
       expect(program.problems.single.message, msgTextBeforeHeader);
     });
 
-    test('an unreadable punch in the body disqualifies *FINISH', () {
-      final columns = List<int>.filled(80, 0);
-      const word = '*FINISH';
-      for (var i = 0; i < word.length; i++) {
-        columns[6 + i] = punchesFromBcd(bcdFromGlyph(word[i])!)!;
-      }
-      columns[39] = punchesFromBcd(0x3A)!; // record mark, column 40
-      final program = SourceProgram.fromDeck([CardImage.fromColumns(columns)]);
-      expect(program.finishCard, isNull);
+    test('a *FINISH card is not structure here — the splitter owns it', () {
+      // The job splitter consumes every *FINISH above the front end
+      // (D11.1); one reaching fromDeck directly is ordinary stray text.
+      final SourceProgram program = _program(['      *FINISH']);
+      expect(program.groups, isEmpty);
       expect(program.problems.single.message, msgTextBeforeHeader);
     });
 
@@ -121,23 +116,17 @@ void main() {
       final SourceProgram program = _program(['       *DATA', '      *DATA']);
       expect(program.groups, hasLength(1));
       expect(program.problems.single.message, msgTextBeforeHeader);
-      expect(program.problems.single.card.cardNumber, 1);
+      expect(program.problems.single.card!.cardNumber, 1);
     });
 
-    test('flags cards before the first header and after *FINISH', () {
+    test('flags cards before the first header', () {
       final SourceProgram program = _program([
         'STRAY CARD',
         '      *DATA',
         '      A',
-        '      *FINISH',
-        'LATE CARD',
       ]);
-      expect(program.problems, hasLength(2));
-      expect(program.problems[0].card.cardNumber, 1);
-      expect(program.problems[0].message, msgTextBeforeHeader);
-      expect(program.finishCard?.cardNumber, 4);
-      expect(program.problems[1].card.cardNumber, 5);
-      expect(program.problems[1].message, msgCardAfterFinish);
+      expect(program.problems.single.card!.cardNumber, 1);
+      expect(program.problems.single.message, msgTextBeforeHeader);
     });
 
     test('accepts repeated division groups and skips blank cards', () {

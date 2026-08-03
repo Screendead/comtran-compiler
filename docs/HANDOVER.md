@@ -56,10 +56,12 @@ it no later than M4.
 
 Test baseline, measured 2026-08-03: 401 Dart tests pass, and 73 extension tests
 pass. Both suites must stay green; re-measure the counts, do not trust them.
-`dart run comtran:comtranc test/fixtures/90.05-payroll.ctdeck` compiles the manual's
-own payroll sample through the front end and the parser. It prints the
-listing, numbered 1,00 to 229,00 exactly as the 1962 compile numbered it, with
-zero diagnostics. A golden test guards that listing byte for byte.
+`dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck` compiles the
+manual's own payroll sample through the front end and the parser. The job deck
+is the 293-card artifact plus one reconstructed *FINISH card (D11.3); the raw
+artifact alone is an incomplete job and draws message 132. The compile prints
+the listing, numbered 1,00 to 229,00 exactly as the 1962 compile numbered it,
+with zero diagnostics. A golden test guards that listing byte for byte.
 
 ## The next task — M2 stage 3, the job stream
 

@@ -1,14 +1,14 @@
-/// The structure of a source deck: control cards, division headers, and the
-/// cards of each division group.
+/// The structure of one job's source deck: the control card, division
+/// headers, and the cards of each division group.
 ///
 /// Implements the deck-level rules of definition §1.9 and §2.2: division
 /// headers `*DATA`, `*ENVIRONMENT`, `*PROCEDURE` with the asterisk in the
 /// name margin (F p. 27; F p. 37, rule 1; F p. 65); every entry following a
-/// header belongs to that division until the next header; the `$CMPLE`
-/// control card (J 02.01.01) and its 1961 field-test counterpart `*COMPILE`
-/// (attested by the compiled sample deck, J 90.05 listing); the `*FINISH`
-/// card, punched from column 7, which delimits the source statements
-/// (J 02.01.02).
+/// header belongs to that division until the next header; and the `$CMPLE`
+/// control card (J 02.01.01) with its 1961 field-test counterpart
+/// `*COMPILE` (attested by the compiled sample deck, J 90.05 listing). The
+/// `*FINISH` card never reaches this class: the job splitter above the
+/// compiler consumes it (D9.14; D11.1).
 library;
 
 import '../cards/card_image.dart';
@@ -52,7 +52,6 @@ final class SourceProgram {
   SourceProgram._({
     required this.cards,
     required this.compileCard,
-    required this.finishCard,
     required this.groups,
     required this.problems,
   });
@@ -63,34 +62,26 @@ final class SourceProgram {
       for (var i = 0; i < deck.length; i++) SourceCard(deck[i], i + 1),
     ];
     SourceCard? compileCard;
-    SourceCard? finishCard;
     final groups = <DivisionGroup>[];
     final problems = <Diagnostic>[];
     List<SourceCard>? currentGroup;
 
     for (final card in cards) {
-      if (finishCard != null) {
-        problems.add(Diagnostic(msgCardAfterFinish, card));
-        continue;
-      }
       if (card.isBlank) {
         continue;
       }
-      final Division? headerOf = _headerDivision(card);
+      final Division? headerOf = headerDivision(card);
       if (headerOf != null) {
         currentGroup = <SourceCard>[];
         groups.add(DivisionGroup._(headerOf, card, currentGroup));
         continue;
       }
-      if (_isFinishCard(card)) {
-        finishCard = card;
-        continue;
-      }
-      if (_isCompileCard(card)) {
+      if (isCompileCard(card)) {
         // Recognized at any deck position, so a mid-deck compile card
-        // is never lexed as source text; every one after the first is
-        // ignored with message 904 (M1-2), until the M2-15 job loop
-        // gives a later card a meaning (D9.14).
+        // is never lexed as source text (D10.4). The job splitter cuts
+        // a new job at a compile card after a division header (D11.1),
+        // so the duplicate seen here sits before any header of its own
+        // job and is ignored with message 904 (M1-2).
         if (compileCard == null && currentGroup == null) {
           compileCard = card;
         } else {
@@ -110,7 +101,6 @@ final class SourceProgram {
     return SourceProgram._(
       cards: cards,
       compileCard: compileCard,
-      finishCard: finishCard,
       groups: List.unmodifiable(groups),
       problems: List.unmodifiable(problems),
     );
@@ -122,9 +112,6 @@ final class SourceProgram {
   /// The `$CMPLE` (J 02.01.01) or `*COMPILE` (J 90.05 deck) control card,
   /// when present.
   final SourceCard? compileCard;
-
-  /// The `*FINISH` card, when present (J 02.01.02).
-  final SourceCard? finishCard;
 
   /// The division groups in deck order.
   final List<DivisionGroup> groups;
@@ -145,7 +132,8 @@ final class SourceProgram {
   /// no-readout punch in the body from passing as a header.
   /// All three headers of the compiled sample sit in
   /// column 7 (scan-checked against pages 192 and 195, 2026-08-03).
-  static Division? _headerDivision(SourceCard card) {
+  /// Public because the job splitter shares the classification (D11.1).
+  static Division? headerDivision(SourceCard card) {
     if (card.glyphAt(7) != '*' || card.unreadableColumns(7, 72).isNotEmpty) {
       return null;
     }
@@ -161,16 +149,9 @@ final class SourceProgram {
   /// column 7 on the compiled sample deck's control card. The word and the
   /// column after it must read genuinely — an unreadable punched column
   /// renders as a blank and must not pass as one.
-  static bool _isCompileCard(SourceCard card) =>
+  /// Public because the job splitter shares the classification (D11.1).
+  static bool isCompileCard(SourceCard card) =>
       card.serial == r'$CMPLE' ||
       (card.body.startsWith('*COMPILE') &&
           card.unreadableColumns(7, 15).isEmpty);
-
-  /// `*FINISH` is punched from column 7 with nothing else in the body
-  /// (J 02.01.02); as with headers, an unreadable punched column must not
-  /// pass as the required blank.
-  static bool _isFinishCard(SourceCard card) =>
-      card.body.startsWith('*FINISH') &&
-      card.body.substring(7).trim().isEmpty &&
-      card.unreadableColumns(7, 72).isEmpty;
 }

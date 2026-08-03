@@ -70,10 +70,11 @@ To compile the manual's own payroll sample through the front end and the parser,
 and print its listing:
 
 ```sh
-dart run comtran:comtranc test/fixtures/90.05-payroll.ctdeck
+dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck
 ```
 
-The listing is numbered exactly as the 1962 compile numbered it. A golden test
+The job deck is the 293-card artifact plus one reconstructed *FINISH card. The
+listing is numbered exactly as the 1962 compile numbered it. A golden test
 compares it byte for byte.
 
 The VS Code extension has its own npm project. Run `npm ci`, `npm run compile`,

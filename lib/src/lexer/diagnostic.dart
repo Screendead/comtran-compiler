@@ -82,11 +82,20 @@ final class Diagnostic {
   /// Creates a diagnostic for [message] against [card].
   Diagnostic(this.message, this.card, {this.column, this.operands = const []});
 
+  /// Creates a diagnostic confined to no single source statement — no
+  /// card, printed at statement 9999,99, "used to reference errors
+  /// which are not confined to a single source statement"
+  /// (J 02.02.01; D11.3).
+  Diagnostic.wholeProgram(this.message, {this.operands = const []})
+    : card = null,
+      column = null;
+
   /// The 90.04 catalog entry.
   final Message message;
 
-  /// The card the condition was detected on.
-  final SourceCard card;
+  /// The card the condition was detected on, or `null` for a
+  /// whole-program diagnostic (msg 132; D11.3).
+  final SourceCard? card;
 
   /// The 1-based column, when the condition is tied to one.
   final int? column;
@@ -121,5 +130,6 @@ final class Diagnostic {
   @override
   String toString() =>
       '${message.number} $severity $text '
-      '(card ${card.cardNumber}${column == null ? '' : ', column $column'})';
+      '${card == null ? '(whole program)' : '(card ${card!.cardNumber}'
+                '${column == null ? '' : ', column $column'})'}';
 }

@@ -36,7 +36,7 @@ void main() {
       expect(_texts(first), ['MOVE', 'A', 'TO', 'B']);
       expect(first.cards.map((SourceCard c) => c.cardNumber), [1, 2]);
       expect(scan.diagnostics.single.message, msgPeriodAssumed);
-      expect(scan.diagnostics.single.card.cardNumber, 3);
+      expect(scan.diagnostics.single.card!.cardNumber, 3);
       final ProcedureSentence second = scan.sentences[1];
       expect(second.label, 'NEXT');
       expect(second.terminated, isTrue);

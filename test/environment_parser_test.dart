@@ -785,7 +785,7 @@ void main() {
         // BLOCKSIZE at all.
         expect(
           diagnostics.map(
-            (Diagnostic d) => (d.message.number, d.card.cardNumber),
+            (Diagnostic d) => (d.message.number, d.card!.cardNumber),
           ),
           [
             ('89,00', 1),

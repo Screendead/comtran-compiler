@@ -18,6 +18,15 @@ const String payrollDeckPath = 'test/fixtures/90.05-payroll.ctdeck';
 List<CardImage> loadPayrollDeck() =>
     decodeCanon(File(payrollDeckPath).readAsBytesSync());
 
+/// The generated complete job deck: the 293 artifact cards plus one
+/// reconstructed *FINISH card (D11.3; the separate generated file
+/// D9.14 provides for).
+const String jobDeckPath = 'test/fixtures/90.05-payroll-job.ctdeck';
+
+/// Loads the canon 90.05 job deck (294 cards).
+List<CardImage> loadJobDeck() =>
+    decodeCanon(File(jobDeckPath).readAsBytesSync());
+
 /// Numbers [lines] as a one-based [SourceCard] list: joins them with a
 /// trailing newline, reads them through [mirrorToDeck], then wraps each
 /// resulting [CardImage] with its 1-based deck position. This is the shape
