@@ -5,6 +5,11 @@
   "version": "0.2.0",
   "publisher": "comtran-compiler",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Screendead/comtran-compiler",
+    "directory": "tools/vscode-punchcard"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -14,6 +19,13 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "comtran.newDeck",
+        "title": "COMTRAN: New Punch Card Deck",
+        "category": "COMTRAN"
+      }
+    ],
     "customEditors": [
       {
         "viewType": "comtran.punchcard",
@@ -44,17 +56,31 @@
         "scopeName": "source.comtran-deck",
         "path": "./syntaxes/comtran-deck.tmLanguage.json"
       }
-    ]
+    ],
+    "configurationDefaults": {
+      "[comtran-deck]": {
+        "editor.rulers": [
+          6,
+          12,
+          72,
+          80
+        ],
+        "editor.wordWrap": "off",
+        "editor.fontFamily": "monospace"
+      }
+    }
   },
   "scripts": {
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && tsc -p ./tsconfig.media.json",
     "watch": "tsc -w -p ./",
     "grammar": "tsc -p ./ && node out/generateGrammar.js",
-    "test": "npm run compile && node --test \"test/**/*.test.js\""
+    "test": "npm run compile && node --test \"test/**/*.test.js\"",
+    "package": "npm run compile && vsce package"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "3.9.2",
     "typescript": "^5.9.3"
   }
 }

@@ -45,7 +45,12 @@ Those files stay authoritative. Change neither side alone.
 - **Add card**, **Duplicate** and **Delete** work on the current card.
 - The `-` and `+` buttons change the column width.
 - Undo, redo, save, revert and hot exit all use VS Code's own machinery. A save
-  writes a whole canon file: the 12-byte header and 120 bytes per card.
+  writes a whole canon file: the 12-byte header and 120 bytes per card. Typed
+  characters in one run coalesce into a single undo step.
+- Run **COMTRAN: New Punch Card Deck** from the Command Palette to start a
+  fresh `.ctdeck` file. Opening an existing but empty (0-byte) `.ctdeck` also
+  works: it opens as a deck with no cards, and the first save writes the
+  header.
 
 ## Syntax highlighting for `.deck` mirrors
 
@@ -59,16 +64,26 @@ on a header line.
 
 The grammar file is **generated**. One table in `src/columns.ts` holds the
 column boundaries for the grammar, the card list, and the field ruler, so the
-views cannot drift. After a change to `src/columns.ts` or `src/grammar.ts`,
-regenerate with:
+views cannot drift. The same table drives the `[comtran-deck]` editor
+defaults in `package.json` (`editor.rulers` at the field boundaries,
+`editor.wordWrap` off, a monospace font), so a `.deck` file opens with its
+columns already lined up and never soft-wraps mid-card. After a change to
+`src/columns.ts` or `src/grammar.ts`, regenerate both with:
 
 ```
 npm run grammar
 ```
 
-`test/grammar.test.js` fails while the committed grammar file is stale. One
-known limit: a literal that continues across cards is highlighted per line,
-so its continuation card shows plain text.
+`test/grammar.test.js` fails while either the committed grammar file or the
+committed `configurationDefaults` is stale. One known limit: a literal that
+continues across cards is highlighted per line, so its continuation card
+shows plain text.
+
+A `.deck` file is a read-only mirror: `deckconv` generates it from the
+matching `.ctdeck` file, and this extension never writes it. Editing a
+`.deck` file in VS Code looks like a normal edit, but the next regeneration
+discards it. The extension shows a one-time notice the first time a `.deck`
+file is opened in a session.
 
 ## How to run it
 
@@ -87,7 +102,26 @@ Development Host on the repository root. Open `tests/90.05-payroll.ctdeck` there
 tests cover the header, the two-columns-per-three-bytes packing, the read rules,
 the 48-character source set, and two checks against the committed 90.05 deck: a
 byte-for-byte round trip, and a read-out that matches the committed mirror line
-for line.
+for line. `npm run compile` also type-checks `media/punchcard.js` under
+`tsconfig.media.json` (`allowJs`/`checkJs`), so the webview script gets the
+same catch as the rest of the extension.
+
+## How to package it
+
+```
+cd tools/vscode-punchcard
+npm run package
+```
+
+This runs `vsce package` after compiling, and writes a `.vsix` file to this
+directory (gitignored, not committed). `.vscodeignore` keeps `src/`, `test/`,
+build maps and declaration files out of the package; only `out/`, `media/`,
+`syntaxes/` and the manifest files ship. The extension stays private
+(`"private": true` in `package.json`): it is not published to a marketplace.
+`vsce package` still warns about the missing `license` field; the repository
+has not settled on a license, and adding one is a project-wide decision
+outside this extension's scope. Install a packaged build with
+`code --install-extension comtran-punchcard-<version>.vsix`.
 
 ## Limits
 

@@ -91,7 +91,11 @@ export class PunchcardEditorProvider
 
     panel.onDidDispose(() => {
       this.panels.delete(panel);
-      this.panelsByDocument.get(document)?.delete(panel);
+      const siblings = this.panelsByDocument.get(document);
+      siblings?.delete(panel);
+      if (siblings !== undefined && siblings.size === 0) {
+        this.panelsByDocument.delete(document);
+      }
     });
 
     panel.webview.onDidReceiveMessage((message) => {
@@ -205,7 +209,7 @@ export class PunchcardEditorProvider
       this.status(panel, `'${glyph}' is not a Set H source character`);
       return;
     }
-    document.setColumn(index, column, punches);
+    document.typeColumn(index, column, punches);
     this.send(document, panel, {
       cursor: Math.min(column + 1, COLUMN_COUNT),
     });

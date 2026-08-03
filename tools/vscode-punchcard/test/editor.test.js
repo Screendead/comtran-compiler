@@ -115,6 +115,23 @@ test('an untitled document starts with one blank card', async () => {
   assert.equal(document.card(0).every((c) => c === 0), true);
 });
 
+test('a document tolerates a 0-byte canon file as an empty deck', async () => {
+  const uri = vscodeStub.Uri.file('/zero-byte.ctdeck');
+  memory.set(uri.toString(), new Uint8Array(0));
+  const document = await PunchcardDocument.create(uri, undefined);
+  assert.equal(document.cardCount, 0);
+});
+
+test('saving a deck that started at 0 bytes writes a valid empty-deck header', async () => {
+  const uri = vscodeStub.Uri.file('/zero-byte-save.ctdeck');
+  memory.set(uri.toString(), new Uint8Array(0));
+  const document = await PunchcardDocument.create(uri, undefined);
+  await document.save(NO_CANCEL);
+  const written = memory.get(uri.toString());
+  assert.equal(written.length, 12);
+  assert.equal(decodeCanon(written).length, 0);
+});
+
 test('a punch fires an edit that undoes and redoes', async () => {
   const { document } = await openDeck('punch', [blankCard()]);
   const edits = [];
@@ -240,9 +257,11 @@ test('the document rejects an out-of-range column, row or card', async () => {
 function fakePanel() {
   const posted = [];
   let receiver = () => {};
+  let disposeListener = () => {};
   return {
     posted,
     send: (message) => receiver(message),
+    dispose: () => disposeListener(),
     webview: {
       options: {},
       html: '',
@@ -255,7 +274,10 @@ function fakePanel() {
         return { dispose: () => {} };
       },
     },
-    onDidDispose: () => ({ dispose: () => {} }),
+    onDidDispose: (callback) => {
+      disposeListener = callback;
+      return { dispose: () => {} };
+    },
   };
 }
 
@@ -369,6 +391,85 @@ test('typing a space punches a blank column', async () => {
   assert.equal(document.card(0)[12], 0);
 });
 
+test('typing consecutive glyphs coalesces into one undo step', async () => {
+  const { document, panel } = await openEditor('typerun', [blankCard()]);
+  const edits = [];
+  document.onDidChange((e) => edits.push(e));
+
+  panel.send({ type: 'typeGlyph', index: 0, column: 1, glyph: 'a' });
+  panel.send({ type: 'typeGlyph', index: 0, column: 2, glyph: 'b' });
+  panel.send({ type: 'typeGlyph', index: 0, column: 3, glyph: 'c' });
+
+  assert.equal(edits.length, 1);
+  assert.equal(edits[0].label, 'type text');
+  assert.equal(document.card(0)[0], punchesFromCardCode('12-1'));
+  assert.equal(document.card(0)[1], punchesFromCardCode('12-2'));
+  assert.equal(document.card(0)[2], punchesFromCardCode('12-3'));
+
+  edits[0].undo();
+  assert.equal(document.card(0)[0], 0);
+  assert.equal(document.card(0)[1], 0);
+  assert.equal(document.card(0)[2], 0);
+
+  edits[0].redo();
+  assert.equal(document.card(0)[0], punchesFromCardCode('12-1'));
+  assert.equal(document.card(0)[1], punchesFromCardCode('12-2'));
+  assert.equal(document.card(0)[2], punchesFromCardCode('12-3'));
+});
+
+test('a gap in the column sequence starts a new typing run', async () => {
+  const { document, panel } = await openEditor('typegap', [blankCard()]);
+  const edits = [];
+  document.onDidChange((e) => edits.push(e));
+
+  panel.send({ type: 'typeGlyph', index: 0, column: 1, glyph: 'a' });
+  panel.send({ type: 'typeGlyph', index: 0, column: 5, glyph: 'b' });
+  assert.equal(edits.length, 2);
+  assert.equal(document.card(0)[0], punchesFromCardCode('12-1'));
+  assert.equal(document.card(0)[4], punchesFromCardCode('12-2'));
+});
+
+test('a toggle between typed characters starts a new typing run', async () => {
+  const { document, panel } = await openEditor('typebreak', [blankCard()]);
+  const edits = [];
+  document.onDidChange((e) => edits.push(e));
+
+  panel.send({ type: 'typeGlyph', index: 0, column: 1, glyph: 'a' });
+  panel.send({ type: 'toggle', index: 0, column: 10, row: 0 });
+  panel.send({ type: 'typeGlyph', index: 0, column: 2, glyph: 'b' });
+
+  assert.equal(edits.length, 3);
+  assert.equal(edits[0].label, 'type text');
+  assert.equal(edits[1].label, 'punch column');
+  assert.equal(edits[2].label, 'type text');
+  assert.equal(document.card(0)[0], punchesFromCardCode('12-1'));
+  assert.equal(document.card(0)[1], punchesFromCardCode('12-2'));
+});
+
+test('a no-op keystroke inside a run advances it without an extra undo entry', async () => {
+  const { document, panel } = await openEditor('typesame', [blankCard()]);
+  const edits = [];
+  document.onDidChange((e) => edits.push(e));
+
+  panel.send({ type: 'typeGlyph', index: 0, column: 1, glyph: 'a' });
+  panel.send({ type: 'typeGlyph', index: 0, column: 2, glyph: 'b' });
+  // Column 3 is already blank; typing a space there changes nothing.
+  panel.send({ type: 'typeGlyph', index: 0, column: 3, glyph: ' ' });
+  // The run must still be open: column 4 continues it, not a new run.
+  panel.send({ type: 'typeGlyph', index: 0, column: 4, glyph: 'c' });
+
+  assert.equal(edits.length, 1);
+  assert.equal(document.card(0)[0], punchesFromCardCode('12-1'));
+  assert.equal(document.card(0)[1], punchesFromCardCode('12-2'));
+  assert.equal(document.card(0)[2], 0);
+  assert.equal(document.card(0)[3], punchesFromCardCode('12-3'));
+
+  edits[0].undo();
+  assert.equal(document.card(0)[0], 0);
+  assert.equal(document.card(0)[1], 0);
+  assert.equal(document.card(0)[3], 0);
+});
+
 test('insert, duplicate and delete move the selection with the card', async () => {
   const card = blankCard();
   card[0] = punchesFromCardCode('12-1');
@@ -437,4 +538,19 @@ test('a bad message reaches the status line instead of throwing', async () => {
   const status = panel.posted[panel.posted.length - 1];
   assert.equal(status.type, 'status');
   assert.match(status.text, /column 999/);
+});
+
+test('closing every panel of a document releases its entry from the panel map', async () => {
+  const { provider, document, panel } = await openEditor('leak', [
+    blankCard(),
+  ]);
+  const panel2 = fakePanel();
+  await provider.resolveCustomEditor(document, panel2, {});
+  assert.equal(provider.panelsByDocument.get(document).size, 2);
+
+  panel.dispose();
+  assert.equal(provider.panelsByDocument.get(document).size, 1);
+
+  panel2.dispose();
+  assert.equal(provider.panelsByDocument.has(document), false);
 });
