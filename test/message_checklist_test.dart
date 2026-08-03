@@ -42,6 +42,7 @@ final Map<String, Message> _ours = {
     msgTooManySubscripts,
     msgSectionsTooDeep,
     msgDeferredVerb,
+    msgFunctionArgumentDropped,
   ])
     m.number: m,
 };

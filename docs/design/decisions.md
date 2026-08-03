@@ -1224,3 +1224,39 @@ record built on it.*
 **Oracle.** Oracle (4): a compile card after a header draws 904,00 and joins no division group (`test/source_program_test.dart`). Oracle (2): the 90.05 deck's single *COMPILE card is unaffected.
 
 *Citations:* docs/design/m1-front-end.md M1-2; docs/design/m2-parser.md M2-15; decisions.md D9.14; (J 02.01.01)
+
+### D10.5 — Clause-separator leniencies the parser accepts silently
+
+**Decision.** The procedure parser accepts three punctuation forms the manuals do not show, silently, as recorded non-historical leniencies: (a) a comma before OTHERWISE, where F p. 25 writes OTHERWISE next "without intervening punctuation"; (b) AT END without the preceding comma, where F p. 40's general form and all four sample GETs write `..., AT END`; (c) a trailing comma directly before the terminating period. Each is a leniency of ours, not an attestation. The excluded alternative — a repair-and-continue C1 warning per form — is recorded here for reversal; --pedantic may raise all three later (D0.8).
+
+**Rationale.** The review (finding PROC-10) showed all three as unrecorded, and (c) as resting on a misread citation: the 90.05 listing's statement 188 comma (`START. OPEN ALL FILES,`) is a mid-sentence separator before a continuation card, not a comma before the period — the code comment now says so. What the 1962 compiler did with these forms is unattested. Deleting a sentence for a harmless separator would be an invented severity; an invented warning would add a non-historical message for punctuation the repaired text makes unambiguous. Recording the leniency is the smallest claim.
+
+**Implementation.** `_parseClauseSeries` and `_parseGet` in `lib/src/parser/procedure_parser.dart`, unchanged in behavior; the statement-188 comment is corrected. This entry is the record M2-11's file cannot take (m2-parser.md is owned by a parallel stream).
+
+**Oracle.** Oracle (2): the 90.05 sample uses the attested punctuation throughout and compiles clean. No oracle covers the lenient forms; decision-conformance only.
+
+*Citations:* (F p. 25); (F p. 27, rule 5); (F p. 40); (J 90.05 listing, statement 188,00); D0.8
+
+### D10.6 — Message 917: a function argument that is not a data-name
+
+**Decision.** A function-reference argument that is not a data-name (and not a figurative constant, which F p. 34 shows used "as a data-name") draws the non-historical message 917,00 — FUNCTION ARGUMENT IS NOT A DATA NAME AND IS DROPPED. — at class C2, and the token is dropped. Message 116,00 (MISSING OPERAND ASSUMED TO BE ZERO.) no longer fires there: its text states a zero repair the argument list cannot take (F p. 28 rule 15 types the entries as data-names), so the message misdescribed the real recovery (review finding DIAG-4).
+
+**Rationale.** The rule is attested (F p. 28, rule 15); no 90.04 message states the dropped-argument recovery, so the D9.7 pattern applies: a new id outside 0-209, text closing with (NON-HISTORICAL.). C2 fits D9.2's largest-lost-unit rule — one operand is lost, and the shortened list surfaces later through msg 30's argument-count check (M3).
+
+**Implementation.** `parseFunctionCall` in `lib/src/parser/expression_parser.dart`; the severity row and checklist row carry this entry's id.
+
+**Oracle.** Oracle (4): `test/expression_parser_test.dart` asserts the message and the dropped argument. Oracle (2): the 90.05 sample declares no functions and stays silent.
+
+*Citations:* (F p. 28, rule 15); (F p. 34); (J 90.04.01) msgs 30, 116; decisions.md D9.2, D9.7
+
+### D10.7 — Verb source operands: the function reference and the signed literal (M2-8 cross-reference)
+
+**Decision.** The source-operand alternative set of MOVE, ADD, and DO USING (design note M2-8's enumeration: name | literal | figurative) gains two attested alternatives. (a) The double-parenthesis function reference: F p. 34 prints `MOVE MINIMUM ((CALCULATED.PRICE, MARKET.PRICE, HIGH.VALUES)) TO PRICE.LIST.` as a statement the programmer could write, and J retains the function machinery (msgs 30, 68). (b) The signed numeric literal: F p. 18 rule 2 defines numeric literals as optionally signed, and F p. 47 grants ADD a literal source; the scanner tokenizes the sign separately, so the operand parser consumes it as the literal's own sign, exactly as the expression parser already reads F p. 18. DESIGN DECISION (non-historical): a DO control parameter (EXACTLY n; the p, q, r of the indexed form) also accepts a signed integer, on the same F p. 18 reading — F pp. 50-51 say "integer" and never show a sign there.
+
+**Rationale.** Review findings PROC-2 and PROC-9: the parser deleted both attested forms with msgs 119/122. M2-8's own correction history tracks attestations, and this entry is the cross-reference its file cannot take (m2-parser.md is owned by a parallel stream, precedent: the D7.4-to-D9.8 cross-reference).
+
+**Implementation.** `_parseSourceOperand` and `_parseDoParameter` in `lib/src/parser/procedure_parser.dart`; the function-call form is shared with the expression parser (`parseFunctionCall`).
+
+**Oracle.** Oracle (4): `test/procedure_parser_test.dart` covers the F p. 34 MOVE, a DO USING function argument, `ADD -1`, and a signed DO step. Oracle (2): the 90.05 sample is unaffected.
+
+*Citations:* (F p. 34); (F p. 28, rule 15); (F p. 18, rule 2); (F p. 47); (F pp. 50-51); (J 90.04.01) msgs 30, 68; docs/design/m2-parser.md M2-8

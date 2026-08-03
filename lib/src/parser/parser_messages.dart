@@ -170,6 +170,10 @@ final Message msgProgramStartDoAddressed = messageCatalog['143,00']!;
 /// `149,00` — more than 35 sections (D9.7 hard cap).
 final Message msgTooManySections = messageCatalog['149,00']!;
 
+/// `170,00` — an IF where the conditional GO TO's WHEN belongs; parsed
+/// as WHEN (the repair is attested, the criterion is ours — D9.11).
+final Message msgWhenSubstitutedForIf = messageCatalog['170,00']!;
+
 /// `171,00` — more than 60 operators in one sentence; deleted.
 final Message msgTooManyOperators = messageCatalog['171,00']!;
 
@@ -287,4 +291,13 @@ final Message msgDeferredVerb = Message.ours(
   '916,00',
   "VERB 'NAME.1' IS DEFERRED IN THE 7090 IMPLEMENTATION AND GENERATES "
       'NO CODE. (NON-HISTORICAL.)',
+);
+
+/// Ours — a function-reference argument that is not a data-name
+/// (F p. 28, rule 15). The token is dropped; no 90.04 entry states
+/// that recovery (D10.6).
+final Message msgFunctionArgumentDropped = Message.ours(
+  '917,00',
+  'FUNCTION ARGUMENT IS NOT A DATA NAME AND IS DROPPED. '
+      '(NON-HISTORICAL.)',
 );

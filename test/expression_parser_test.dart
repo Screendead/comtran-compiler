@@ -169,6 +169,34 @@ void main() {
       expect(_shape(expr), '(A+0)');
     });
 
+    test('a figurative constant is a function argument (F p. 34)', () {
+      final (ArithExpr expr, List<Diagnostic> diagnostics) = _arith(
+        'MINIMUM ((FLAT.RATE, QUANTITY.RATE, HIGH.VALUES)) * 1.15',
+      );
+      expect(diagnostics, isEmpty);
+      final BinaryExpr product = expr as BinaryExpr;
+      final FunctionCall call = product.left as FunctionCall;
+      expect(call.arguments.map((NameReference a) => a.text), [
+        'FLAT.RATE',
+        'QUANTITY.RATE',
+        'HIGH.VALUES',
+      ]);
+    });
+
+    test('a non-name function argument draws 917 and is dropped', () {
+      final (ArithExpr expr, List<Diagnostic> diagnostics) = _arith(
+        'MINIMUM ((A, 5))',
+      );
+      expect(diagnostics.single.message, msgFunctionArgumentDropped);
+      final FunctionCall call = expr as FunctionCall;
+      expect(call.arguments.map((NameReference a) => a.text), ['A']);
+    });
+
+    test('a figurative constant in a subscript draws 192 (M2-8)', () {
+      final (_, List<Diagnostic> diagnostics) = _arith('A (ZERO)');
+      expect(diagnostics.single.message, msgSentenceStructureError);
+    });
+
     test('an unclosed parenthesis draws 114', () {
       final (_, List<Diagnostic> diagnostics) = _arith('(A + B');
       expect(diagnostics.single.message, msgRedundantLeftParen);
@@ -176,6 +204,17 @@ void main() {
   });
 
   group('conditional expressions (§5.3)', () {
+    test('a sole figurative comparison operand is legal (J 02.04.01)', () {
+      final (CondExpr expr, List<Diagnostic> diagnostics) = _cond('A = ZERO');
+      expect(diagnostics, isEmpty);
+      expect((expr as Relation).right, isA<FigurativeOperand>());
+    });
+
+    test('a figurative inside a comparison expression draws 192 (M2-8)', () {
+      final (_, List<Diagnostic> diagnostics) = _cond('A = ZERO + 1');
+      expect(diagnostics.single.message, msgSentenceStructureError);
+    });
+
     test('AND binds above OR (F p. 105 rule 3)', () {
       final (CondExpr expr, List<Diagnostic> diagnostics) = _cond(
         'A GT B AND C LT D OR E = F',
