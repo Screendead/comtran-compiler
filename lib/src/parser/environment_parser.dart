@@ -20,6 +20,7 @@ library;
 import '../ast/environment_ast.dart';
 import '../lexer/diagnostic.dart';
 import '../lexer/environment_lexer.dart';
+import '../lexer/messages.dart';
 import '../lexer/reserved_words.dart';
 import '../lexer/token.dart';
 import 'parser_messages.dart';
@@ -113,6 +114,58 @@ List<EnvironmentCard> parseEnvironmentGroup(
 (int, int?) _takeInt(List<Token> tokens, int i) {
   final (int next, Token? token) = _take(tokens, i, TokenKind.numericLiteral);
   return (next, token == null ? null : int.parse(token.text));
+}
+
+/// Reads an integer-valued keyword argument at [i], the shared shape of
+/// FILE's BLOCKSIZE, POOL's BUFFERCOUNT and BLOCKSIZE, and GROUP's
+/// OPENCOUNT and BUFFERCOUNT: an integer follows, or [missing] is
+/// reported against [keyword]. The slot is consumed once attempted,
+/// valid or not (same rule as [_take]). Returns the advanced index and
+/// the parsed value, or `null` when the slot was missing.
+(int, int?) _takeIntOption(
+  List<Token> tokens,
+  int i,
+  Token keyword,
+  List<Diagnostic> diagnostics, {
+  required Message missing,
+}) {
+  final (int next, int? value) = _takeInt(tokens, i);
+  if (value == null) {
+    diagnostics.report(missing, keyword);
+  }
+  return (next, value);
+}
+
+/// Reads an alphameric-literal-valued keyword argument at [i], the
+/// shared shape of SPECIF's UNIT1, UNIT2 (its non-`*` fallback), SERIAL,
+/// and REEL: a quoted literal follows, or [missing] is reported against
+/// [keyword]; a literal longer than [maxLength] characters draws
+/// msgKeyWordLiteralTooLong instead (the shared over-length message text
+/// names no keyword, J 02.06.12). The slot is consumed once attempted,
+/// valid or not (same rule as [_take]). Returns the advanced index and
+/// the literal text, or `null` when the slot was missing or too long.
+(int, String?) _takeLiteralOption(
+  List<Token> tokens,
+  int i,
+  Token keyword,
+  List<Diagnostic> diagnostics, {
+  required Message missing,
+  required int maxLength,
+}) {
+  final (int next, Token? literal) = _take(
+    tokens,
+    i,
+    TokenKind.alphamericLiteral,
+  );
+  if (literal == null) {
+    diagnostics.report(missing, keyword);
+    return (next, null);
+  }
+  if (literal.text.length > maxLength) {
+    diagnostics.report(msgKeyWordLiteralTooLong, keyword);
+    return (next, null);
+  }
+  return (next, literal.text);
 }
 
 /// Advances past [text] at [i] when it is there; otherwise leaves [i]
@@ -210,11 +263,15 @@ FileCard _parseFileCard(
         i++;
       case 'BLOCKSIZE':
         sawBlocksize = true;
-        final (int next, int? value) = _takeInt(tokens, i + 1);
+        final (int next, int? value) = _takeIntOption(
+          tokens,
+          i + 1,
+          token,
+          diagnostics,
+          missing: msgBlocksizeNeedsInteger,
+        );
         i = next;
-        if (value == null) {
-          diagnostics.report(msgBlocksizeNeedsInteger, token);
-        } else {
+        if (value != null) {
           card.blocksize = value;
         }
       case 'ON':
@@ -381,19 +438,18 @@ SpecifCard _parseSpecifCard(
     }
     switch (token.text) {
       case 'UNIT1':
-        final (int next, Token? literal) = _take(
+        // `*` is legal for UNIT2 only (J 02.06.10).
+        final (int next, String? literal) = _takeLiteralOption(
           tokens,
           i + 1,
-          TokenKind.alphamericLiteral,
+          token,
+          diagnostics,
+          missing: msgUnitNeedsLiteral,
+          maxLength: 6,
         );
         i = next;
-        if (literal == null) {
-          // `*` is legal for UNIT2 only (J 02.06.10).
-          diagnostics.report(msgUnitNeedsLiteral, token);
-        } else if (literal.text.length > 6) {
-          diagnostics.report(msgKeyWordLiteralTooLong, token);
-        } else {
-          card.unit1 = literal.text;
+        if (literal != null) {
+          card.unit1 = literal;
         }
       case 'UNIT2':
         if (i + 1 < tokens.length &&
@@ -402,18 +458,17 @@ SpecifCard _parseSpecifCard(
           card.unit2 = '*';
           i += 2;
         } else {
-          final (int next, Token? literal) = _take(
+          final (int next, String? literal) = _takeLiteralOption(
             tokens,
             i + 1,
-            TokenKind.alphamericLiteral,
+            token,
+            diagnostics,
+            missing: msgUnitNeedsLiteral,
+            maxLength: 6,
           );
           i = next;
-          if (literal == null) {
-            diagnostics.report(msgUnitNeedsLiteral, token);
-          } else if (literal.text.length > 6) {
-            diagnostics.report(msgKeyWordLiteralTooLong, token);
-          } else {
-            card.unit2 = literal.text;
+          if (literal != null) {
+            card.unit2 = literal;
           }
         }
       case 'HIGH':
@@ -485,36 +540,34 @@ SpecifCard _parseSpecifCard(
         labelsSeen = true;
         i++;
       case 'SERIAL':
-        final (int next, Token? literal) = _take(
+        final (int next, String? literal) = _takeLiteralOption(
           tokens,
           i + 1,
-          TokenKind.alphamericLiteral,
+          token,
+          diagnostics,
+          missing: msgSerialNeedsLiteral,
+          maxLength: 5,
         );
         i = next;
-        if (literal == null) {
-          diagnostics.report(msgSerialNeedsLiteral, token);
-        } else if (literal.text.length > 5) {
-          diagnostics.report(msgKeyWordLiteralTooLong, token);
-        } else {
-          card.serial = literal.text;
+        if (literal != null) {
+          card.serial = literal;
         }
       case 'REEL':
-        final (int next, Token? literal) = _take(
+        final (int next, String? literal) = _takeLiteralOption(
           tokens,
           i + 1,
-          TokenKind.alphamericLiteral,
+          token,
+          diagnostics,
+          missing: msgReelNeedsLiteral,
+          maxLength: 4,
         );
         i = next;
-        if (literal == null) {
-          diagnostics.report(msgReelNeedsLiteral, token);
-        } else if (literal.text.length > 4) {
-          diagnostics.report(msgKeyWordLiteralTooLong, token);
-        } else if (!_allDigits(literal.text)) {
+        if (literal != null && !_allDigits(literal)) {
           // A literal followed, but not "4 or less numeric characters"
           // (J 02.06.12); no dedicated message covers the fault (D10.1).
           diagnostics.report(msgSpecifCardFormatError, token);
-        } else {
-          card.reel = literal.text;
+        } else if (literal != null) {
+          card.reel = literal;
         }
       case 'RETAIN':
         final (int next, Token? number) = _take(
@@ -567,19 +620,27 @@ PoolCard _parsePoolCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
     }
     switch (token.text) {
       case 'BUFFERCOUNT':
-        final (int next, int? value) = _takeInt(tokens, i + 1);
+        final (int next, int? value) = _takeIntOption(
+          tokens,
+          i + 1,
+          token,
+          diagnostics,
+          missing: msgBuffercountNeedsInteger,
+        );
         i = next;
-        if (value == null) {
-          diagnostics.report(msgBuffercountNeedsInteger, token);
-        } else {
+        if (value != null) {
           card.bufferCount = value;
         }
       case 'BLOCKSIZE':
-        final (int next, int? value) = _takeInt(tokens, i + 1);
+        final (int next, int? value) = _takeIntOption(
+          tokens,
+          i + 1,
+          token,
+          diagnostics,
+          missing: msgPoolBlocksizeNeedsInteger,
+        );
         i = next;
-        if (value == null) {
-          diagnostics.report(msgPoolBlocksizeNeedsInteger, token);
-        } else {
+        if (value != null) {
           card.blocksize = value;
         }
       default:
@@ -613,19 +674,27 @@ GroupCard _parseGroupCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
     }
     switch (token.text) {
       case 'OPENCOUNT':
-        final (int next, int? value) = _takeInt(tokens, i + 1);
+        final (int next, int? value) = _takeIntOption(
+          tokens,
+          i + 1,
+          token,
+          diagnostics,
+          missing: msgOpencountNeedsInteger,
+        );
         i = next;
-        if (value == null) {
-          diagnostics.report(msgOpencountNeedsInteger, token);
-        } else {
+        if (value != null) {
           card.openCount = value;
         }
       case 'BUFFERCOUNT':
-        final (int next, int? value) = _takeInt(tokens, i + 1);
+        final (int next, int? value) = _takeIntOption(
+          tokens,
+          i + 1,
+          token,
+          diagnostics,
+          missing: msgBuffercountNeedsInteger,
+        );
         i = next;
-        if (value == null) {
-          diagnostics.report(msgBuffercountNeedsInteger, token);
-        } else {
+        if (value != null) {
           card.bufferCount = value;
         }
       default:
