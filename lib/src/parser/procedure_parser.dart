@@ -443,15 +443,33 @@ final class ProcedureParser {
     return parseNameReference(cursor, diagnostics);
   }
 
+  /// Whether a comma at the cursor continues a list, rather than
+  /// closing it before the next clause's verb: a comma before a verb
+  /// ends the list (first-match-wins list, F p. 48). [allowFigurative]
+  /// exempts a figurative constant from the stop-word check, for a
+  /// list whose items are source operands rather than names (DO
+  /// USING).
+  bool _commaContinuesList(Token? next, {required bool allowFigurative}) {
+    if (next == null) {
+      return false;
+    }
+    if (next.kind != TokenKind.word) {
+      return allowFigurative;
+    }
+    if (_verbs.contains(next.text)) {
+      return false;
+    }
+    if (isNameStopWord(next.text)) {
+      return allowFigurative && figurativeConstants.contains(next.text);
+    }
+    return true;
+  }
+
   /// A comma-separated series of names, stopping before a verb.
   List<NameReference> _parseNameSeries(TokenCursor cursor, Message onMissing) {
     final names = <NameReference>[_expectName(cursor, onMissing)];
     while (cursor.isSymbol(',')) {
-      final Token? next = cursor.peek(1);
-      if (next == null ||
-          next.kind != TokenKind.word ||
-          _verbs.contains(next.text) ||
-          isNameStopWord(next.text)) {
+      if (!_commaContinuesList(cursor.peek(1), allowFigurative: false)) {
         break;
       }
       cursor.take();
@@ -539,26 +557,18 @@ final class ProcedureParser {
   /// (F pp. 44, 109) or `SET condition.name` (F p. 46; D5.6).
   Clause _parseSet(TokenCursor cursor) {
     final Token verb = cursor.take();
-    final NameReference first = _expectName(cursor, msgIncompleteStatement);
-    final targets = <NameReference>[first];
-    while (cursor.isSymbol(',')) {
-      // A comma continues the target list only when a further target
-      // name follows; a verb after it belongs to the next clause
-      // (`SET MARRIED, GO TO X.`).
-      final Token? next = cursor.peek(1);
-      if (next == null ||
-          next.kind != TokenKind.word ||
-          _verbs.contains(next.text) ||
-          isNameStopWord(next.text)) {
-        break;
-      }
-      cursor.take();
-      targets.add(parseNameReference(cursor, diagnostics));
-    }
+    // A comma continues the target list only when a further target
+    // name follows; a verb after it belongs to the next clause
+    // (`SET MARRIED, GO TO X.`).
+    final List<NameReference> targets = _parseNameSeries(
+      cursor,
+      msgIncompleteStatement,
+    );
     if (!cursor.takeSymbol('=')) {
       if (targets.length == 1) {
         // The condition-name form (F p. 46; D5.6). A subscript on it
         // is rejected (J 90.01.03; msg 910).
+        final NameReference first = targets.first;
         if (first.subscripts.isNotEmpty) {
           diagnostics.report(msgSubscriptedConditionName, first.anchor);
         }
@@ -693,15 +703,10 @@ final class ProcedureParser {
     final targets = <GoToTarget>[
       GoToTarget(first, parseCondExpr(cursor, diagnostics)),
     ];
-    // `, name WHEN condition` continues the form; a comma before a
-    // verb ends it (first-match-wins list, F p. 48). IF is not counted
-    // as the verb here: in this position it takes the WHEN repair.
+    // `, name WHEN condition` continues the form. IF is not counted as
+    // the verb here: in this position it takes the WHEN repair.
     while (cursor.isSymbol(',')) {
-      final Token? next = cursor.peek(1);
-      if (next == null ||
-          next.kind != TokenKind.word ||
-          _verbs.contains(next.text) ||
-          isNameStopWord(next.text)) {
+      if (!_commaContinuesList(cursor.peek(1), allowFigurative: false)) {
         break;
       }
       cursor.take();
@@ -773,12 +778,7 @@ final class ProcedureParser {
         ),
       ];
       while (cursor.isSymbol(',')) {
-        final Token? next = cursor.peek(1);
-        if (next == null ||
-            next.kind == TokenKind.word &&
-                (_verbs.contains(next.text) ||
-                    isNameStopWord(next.text) &&
-                        !figurativeConstants.contains(next.text))) {
+        if (!_commaContinuesList(cursor.peek(1), allowFigurative: true)) {
           break;
         }
         cursor.take();
