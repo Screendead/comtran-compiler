@@ -257,9 +257,11 @@ test('the document rejects an out-of-range column, row or card', async () => {
 function fakePanel() {
   const posted = [];
   let receiver = () => {};
+  let disposeListener = () => {};
   return {
     posted,
     send: (message) => receiver(message),
+    dispose: () => disposeListener(),
     webview: {
       options: {},
       html: '',
@@ -272,7 +274,10 @@ function fakePanel() {
         return { dispose: () => {} };
       },
     },
-    onDidDispose: () => ({ dispose: () => {} }),
+    onDidDispose: (callback) => {
+      disposeListener = callback;
+      return { dispose: () => {} };
+    },
   };
 }
 
@@ -454,4 +459,19 @@ test('a bad message reaches the status line instead of throwing', async () => {
   const status = panel.posted[panel.posted.length - 1];
   assert.equal(status.type, 'status');
   assert.match(status.text, /column 999/);
+});
+
+test('closing every panel of a document releases its entry from the panel map', async () => {
+  const { provider, document, panel } = await openEditor('leak', [
+    blankCard(),
+  ]);
+  const panel2 = fakePanel();
+  await provider.resolveCustomEditor(document, panel2, {});
+  assert.equal(provider.panelsByDocument.get(document).size, 2);
+
+  panel.dispose();
+  assert.equal(provider.panelsByDocument.get(document).size, 1);
+
+  panel2.dispose();
+  assert.equal(provider.panelsByDocument.has(document), false);
 });
