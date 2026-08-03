@@ -6,6 +6,7 @@
 
 const assert = require('node:assert/strict');
 const Module = require('node:module');
+const path = require('node:path');
 const test = require('node:test');
 
 class EventEmitter {
@@ -26,12 +27,15 @@ class EventEmitter {
   }
 }
 
-function makeUri(scheme, fsPath) {
+function makeUri(scheme, fsPath, fragment = '') {
   return {
     scheme,
     fsPath,
     path: fsPath,
-    toString: () => `${scheme}://${fsPath}`,
+    fragment,
+    with: (change) => makeUri(scheme, fsPath, change.fragment ?? fragment),
+    toString: () =>
+      `${scheme}://${fsPath}${fragment === '' ? '' : `#${fragment}`}`,
   };
 }
 
@@ -72,6 +76,11 @@ const vscodeStub = {
       documentOpenListeners.push(listener);
       return { dispose: () => {} };
     },
+    workspaceFolders: undefined,
+  },
+  languages: {
+    registerDocumentLinkProvider: () => ({ dispose: () => {} }),
+    registerHoverProvider: () => ({ dispose: () => {} }),
   },
 };
 
@@ -87,7 +96,10 @@ const { activate } = require('../out/extension.js');
 const { decodeCanon } = require('../out/canonCodec.js');
 
 function fakeContext() {
-  return { subscriptions: [] };
+  return {
+    subscriptions: [],
+    extensionUri: vscodeStub.Uri.file(path.join(__dirname, '..')),
+  };
 }
 
 function fireOpen(languageId) {

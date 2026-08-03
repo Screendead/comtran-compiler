@@ -91,6 +91,34 @@ matching `.ctdeck` file, and this extension never writes it. Editing a
 discards it. The extension shows a one-time notice the first time a `.deck`
 file is opened in a session.
 
+## Manual citations in Dart files
+
+The extension turns a manual citation in a `.dart` file into a link. It
+recognizes a J28-6169 section code (`J 02.03.02`) and an F28-8043 page
+(`F p. 42`, or a range like `F pp. 50-51`).
+
+- **Click a citation** to open the manual conversion at that citation, on
+  its marker line.
+- **Point at a citation** to see its heading in a hover. The hover carries
+  two links. "open text" opens the marker line. "open scan" opens the
+  scanned manual page, when the map has one.
+
+Two things must hold for a citation to link. `manual-map.json` at the
+extension root must load; `tool/generate_manual_map.dart` in the main
+repository generates it from the two manual conversions. The open file must
+also sit in a workspace with a `comtran-manuals` directory at its root,
+because the citation targets live there.
+
+A citation the map has no entry for gets no link and no hover. `J 90.06`
+and an unlisted F page are two examples. This is not an error. The map
+covers only the citations the conversions attest, so a gap is expected.
+
+The feature has two parts in `src/`. `manualCitations.ts` holds the
+citation regex and the map lookup, with no `vscode` import, so
+`test/manualCitations.test.js` tests it directly. `manualLinks.ts` wraps
+that logic in a `DocumentLinkProvider` and a `HoverProvider`. Both register
+for the `dart` language in `extension.ts`.
+
 ## How to run it
 
 ```

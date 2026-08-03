@@ -1,15 +1,18 @@
 import * as vscode from 'vscode';
 
 import { blankCard, encodeCanon } from './canonCodec';
+import { registerManualCitationProviders } from './manualLinks';
 import { PunchcardEditorProvider } from './punchcardEditor';
 
-/** Registers the punchcard editor when VS Code opens a `.ctdeck` file. */
+/** Registers the punchcard editor when VS Code opens a `.ctdeck` file, and
+ * the manual-citation link and hover providers for `dart` files. */
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(PunchcardEditorProvider.register(context));
   context.subscriptions.push(
     vscode.commands.registerCommand('comtran.newDeck', newDeck),
   );
   warnOnDeckMirror(context);
+  registerManualCitationProviders(context);
 }
 
 export function deactivate(): void {
