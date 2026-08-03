@@ -731,6 +731,8 @@ record built on it.*
 
 **Implementation.** Lands in the parser (key-word recognition, J 02.03.02): INCLUDE is reserved and triggers the stated unimplemented-feature diagnostic. No data mapper or codegen work. Keep the F-faithful placement rule as a comment or design note against the day the verb is implemented. Whether the statement is skipped and whether it consumes a statement number remains open (Open Question 64) — pick and record a behavior, do not present it as attested. No --pedantic delta, since this is a feature-scope decision, not a strictness one.
 
+*Cross-reference (2026-08-03):* superseded on the diagnostic choice by D9.8, which prescribes the attested msg 110 for an INCLUDE sentence rather than the separate non-historical message planned here (and answers Open Question 64: skipped, statement number consumed). The placement rule and the do-not-implement call stand.
+
 **Oracle.** decision-conformance only
 
 *Citations:* (F p. 58; J 90.01.02; J 02.03.02; J 90.04.01 msg 110)
