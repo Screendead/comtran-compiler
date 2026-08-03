@@ -298,9 +298,14 @@ final class Cpu {
           accumulator = (accumulator << 1) & MachineState.acMagnitudeMask;
         }
         state.acMagnitude = accumulator;
-      case Op.ars: // M p. 32: AC(Q,P,1-35) right; bits past 35 are lost.
+      case Op.ars: // M p. 32: AC(Q,P,1-35) right; bits past 35 are lost;
+        // no indicators (stepwise, like the other shifts; decision ED-5).
         final int n = _shiftCount(inst);
-        state.acMagnitude = n > 36 ? 0 : state.acMagnitude >> n;
+        int accumulator = state.acMagnitude;
+        for (var i = 0; i < n; i++) {
+          accumulator >>= 1;
+        }
+        state.acMagnitude = accumulator;
       case Op.lrs: // M p. 32: AC and MQ(1-35) as one register, right; the
         // MQ sign is made to agree with the AC sign.
         final int n = _shiftCount(inst);

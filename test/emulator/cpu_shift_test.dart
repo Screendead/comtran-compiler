@@ -83,6 +83,23 @@ void main() {
       runOne(typeB(0x1F9, address: 40));
       expect(m.acMagnitude, 0);
     });
+
+    test('matches the closed form over the documented count range', () {
+      // EMU-1: ARS now runs the same stepwise loop the other five shifts
+      // use, with the dead `n > 36` guard removed. This proves the
+      // rewrite changed no observable result: the stepwise loop still
+      // agrees with the old guarded closed form at every documented
+      // count, including the boundary (36, 37) and the maximum (255,
+      // after the modulo-400-octal mask; M p. 31).
+      const int initial = MachineState.acMagnitudeMask; // All 37 bits set.
+      for (final n in [0, 1, 35, 36, 37, 63, 255]) {
+        m.acMagnitude = initial;
+        runOne(typeB(0x1F9, address: n));
+        final int closedForm = n > 36 ? 0 : initial >> n;
+        expect(m.acMagnitude, closedForm, reason: 'n=$n');
+        expect(m.overflow, isFalse, reason: 'n=$n');
+      }
+    });
   });
 
   // LRS: 22-6528-4 p. 32 (external).
