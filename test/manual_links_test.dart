@@ -114,6 +114,22 @@ A table of contents entry: [7.2 The card of J 02.03.02](#7-2).
     expect(sweep(verbatim), verbatim);
   });
 
+  test('a citation after the closer of an earlier quotation is linked', () {
+    expect(
+      sweep('the message says go." (J 02.03.02)\n'),
+      contains('go." ([J 02.03.02])'),
+    );
+    expect(
+      sweep('or display medium” (F p. 42).\n'),
+      contains('medium” ([F p. 42]).'),
+    );
+  });
+
+  test('a citation before the closer of an earlier quotation stays plain', () {
+    const inside = 'continues J 02.03.02 here" and ends.\n';
+    expect(sweep(inside), startsWith('continues J 02.03.02 here"'));
+  });
+
   test('a citation inside a fenced code block stays plain', () {
     const fenced = '''
 ```text

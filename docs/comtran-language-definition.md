@@ -1232,7 +1232,7 @@ Chart notes ([J 02.05.05]):
   i in a field whose pictorial characterizes it as an edited field.
   ii as a part of a located input area. (see section 02.07).
   iii following a variable length field.
-  iv as part or all of the redefinition of an area." (J 02.05.06)
+  iv as part or all of the redefinition of an area." ([J 02.05.06])
 - J sizing rules:
   - Alphameric constants: "No format specification is required in the definition of alphameric constants. The length of the literal is assumed as the length of the field." If a pictorial is furnished and its length is greater than the constant, the constant is left-justified and blank-filled; if less, characters are placed from the left until the field is full, the remainder discarded, and an error message produced ([J 02.05.06]).
   - External decimal constants: "the length specified by the pictorial must be exactly equal to the length of the constant. Also, the constant must utilize the sign convention given in the pictorial e.g., If the pictorial is 999̅, the number 123̅ would be correct whereas 123 would not be correct" ([J 02.05.07]).
@@ -1625,7 +1625,7 @@ These examples collectively use every element that may appear in an arithmetic e
 ... TRUNCATED
 ```
 
-" (F p. 44). So rounding-on-store is the *default*; TRUNCATED suppresses it. TRUNCATED is a reserved word in J (J 02.03.02). The rounding rule is stated in F's glossary (ROUND): the least significant remaining digit "is increased by 1 when the part removed is greater than or equal to one-half", with worked examples rounding 126.5027 to 127, to 126.503 (six positions), and to 13 "understood to be 130" (two positions) (F p. 115); the companion TRUNCATED entry contrasts 2063.78 → 2063.7 truncated vs 2063.8 rounded (F p. 116). Negative-value handling and rounding-induced overflow remain unstated (see §8.5). The generated-code appendix shows explicit "Round current character" subroutine steps (SYS)219–222) inside the numeric move/convert packages (J 90.02.16, 90.02.17), confirming rounding is applied character-wise at store/convert time.
+" (F p. 44). So rounding-on-store is the *default*; TRUNCATED suppresses it. TRUNCATED is a reserved word in J (J 02.03.02). The rounding rule is stated in F's glossary (ROUND): the least significant remaining digit "is increased by 1 when the part removed is greater than or equal to one-half", with worked examples rounding 126.5027 to 127, to 126.503 (six positions), and to 13 "understood to be 130" (two positions) ([F p. 115]); the companion TRUNCATED entry contrasts 2063.78 → 2063.7 truncated vs 2063.8 rounded ([F p. 116]). Negative-value handling and rounding-induced overflow remain unstated (see §8.5). The generated-code appendix shows explicit "Round current character" subroutine steps (SYS)219–222) inside the numeric move/convert packages ([J 90.02.16], 90.02.17), confirming rounding is applied character-wise at store/convert time.
 
 #### 4.3.3 Overflow and ON OVERFLOW
 
@@ -1635,7 +1635,7 @@ These examples collectively use every element that may appear in an arithmetic e
 ..., ON OVERFLOW any imperative clause
 ```
 
-at the end of the SET command. In the event of an overflow, the object program will execute the command thus specified instead of storing the erroneous result" (F p. 44). Key points:
+at the end of the SET command. In the event of an overflow, the object program will execute the command thus specified instead of storing the erroneous result" ([F p. 44]). Key points:
 
 - ON OVERFLOW is legal **only when there is a single result field** ([F p. 44]; same restriction for ADD, [F p. 47]).
 - With ON OVERFLOW present, the erroneous result is **not stored**; the imperative clause executes instead ([F p. 44]).
@@ -1657,7 +1657,7 @@ Executing a SET that changes a subscript variable updates the positional indicat
 SET condition.name
 ```
 
-As a result of this command, the variable with which 'condition.name' is associated (in the data description) is assigned the status, or value, of the specified condition" (F p. 46). Example: if MARITAL.STATUS is currently SINGLE, `SET MARRIED.` "is the equivalent of writing: `SET MARITAL.STATUS = 'M'.`" (F p. 46).
+As a result of this command, the variable with which 'condition.name' is associated (in the data description) is assigned the status, or value, of the specified condition" ([F p. 46]). Example: if MARITAL.STATUS is currently SINGLE, `SET MARRIED.` "is the equivalent of writing: `SET MARITAL.STATUS = 'M'.`" ([F p. 46]).
 
 "It is important to recognize the distinction between testing and setting the value of a conditional variable. Testing the value provides a basis for a decision but does not change the value; the testing is accomplished by using a conditional clause, IF . . . THEN. Setting a value ... causes the current value to be replaced by another of the possible values and is effected by means of the SET command" ([F p. 46]).
 
@@ -3603,7 +3603,7 @@ Each item gives both readings. J is authoritative for the implemented language.
    Description type codes for the GIVING/USING names of a BEGIN SECTION command
    ([F pp. 72–73]; type-code list [F p. 71] area; word list marks them † restricted,
    [F p. 110]). J: "These two type codes described in the General Information Manual are
-   no longer in the language." (J 02.05.03). Functions themselves survive — J
+   no longer in the language." ([J 02.05.03]). Functions themselves survive — J
    diagnostics 30 and 68 still police function-argument counts ([J 90.04.01]) and DO
    USING/GIVING parameter matching is checked (msgs 72–75) — only the special
    data-description marking is gone.
@@ -3635,11 +3635,11 @@ Each item gives both readings. J is authoritative for the implemented language.
    comma is an operand *separator* ([J 90.01.01]). Also, J fixes the display device as
    the on-line 716 printer and caps the quoted material at a 50-character alphameric
    literal complete on a single line ([J 02.04.02.01]), where F speaks generally of "an
-   appropriate output device or display medium" (F p. 54).
+   appropriate output device or display medium" ([F p. 54]).
 
 5. **Pictorial characters A vs X.** F distinguishes them: A = "Any non-numeric
    character, including the blank"; X = "Alphameric character (any character in the
-   machine's character set)" (F p. 80). J collapses the distinction: "The pictorial
+   machine's character set)" ([F p. 80]). J collapses the distinction: "The pictorial
    characters A and X are considered to be synonymous by the 7090 CT Compiler."
    ([J 02.05.04]).
 
@@ -3647,7 +3647,7 @@ Each item gives both readings. J is authoritative for the implemented language.
    characters 8 or 9, in either the units or high-order position of a field"
    ([F p. 80]). J restricts external decimal fields to "an overpunched + or - in the
    rightmost position of the field. A + and - may not appear in the character by
-   itself." (J 02.05.05, note 1; the field-type chart allows the overpunch only in the
+   itself." ([J 02.05.05], note 1; the field-type chart allows the overpunch only in the
    rightmost character).
 
 7. **Continuation of Data Description literals across lines.** F's rule: a constant
@@ -3657,7 +3657,7 @@ Each item gives both readings. J is authoritative for the implemented language.
    continued on multiple lines **in violation of the rules given on page 83 of the
    General Information Manual** are handled correctly. Use of this characteristic of
    the 7090 processor should not be made if compatibility with other processors is
-   desired." (J 02.03.01 A.2.c). I.e., the 7090 processor tolerates plain
+   desired." ([J 02.03.01] A.2.c). I.e., the 7090 processor tolerates plain
    continuation of literals that F declares illegal.
 
 8. **Mixed alphameric/numeric pictorials.** F's format-character table and examples
@@ -3686,7 +3686,7 @@ Each item gives both readings. J is authoritative for the implemented language.
     substitution from library procedures ([F p. 58]; cross-referenced at [F p. 52], cf. p. 12) and
     the LIBRARY description-field code for copying stored data descriptions
     ([F p. 81]). J defers INCLUDE entirely — "no library facilities are currently
-    available" (J 90.01.02) — and diagnostic 110 rejects both COPY and LIBRARY
+    available" ([J 90.01.02]) — and diagnostic 110 rejects both COPY and LIBRARY
     ([J 90.04.01]).
 
 12. **COPY type code.** Defined in F (type list [F p. 71] area; description-field usage
@@ -3706,7 +3706,7 @@ Each item gives both readings. J is authoritative for the implemented language.
     `DO rtn FOR i = p(q)r` executes the body before the test (`SET i = p. / START. DO
     rtn. / IF i = r THEN GO TO NEXT. / ADD q TO i. / GO TO START.`) (F pp. 50–51);
     J confirms "A DO section will always be performed at least once regardless of the
-    values of the loop control variables" (J 90.01.02). Note both manuals terminate on
+    values of the loop control variables" ([J 90.01.02]). Note both manuals terminate on
     *equality* with r, not on exceeding it — see the catalog in §8.5.
 
 15. **Figurative-constant MOVE limits added by J.** F places no length limits on
@@ -3726,7 +3726,7 @@ Each item gives both readings. J is authoritative for the implemented language.
     ([J 02.03.01] A.3.a; [J 90.01.03] — no diagnostic given); in Data and Environment,
     entries end when column 72 is blank and "The period (.) must not be used to signal
     completion. In these sections, a period is considered part of the previous word,
-    thus creating an undefined name." (J 02.03.02 A.3.b; restated for Environment at
+    thus creating an undefined name." ([J 02.03.02] A.3.b; restated for Environment at
     [J 02.06.02]).
 
 ---
@@ -3742,9 +3742,9 @@ Each item gives both readings. J is authoritative for the implemented language.
 - "An error severity code of 1 does not prevent the running of the object program
   immediately after compilation. Any code above 1 does prevent running of the object
   program immediately after compilation. That is, the compiler will not compile and
-  go." (J 90.04.02)
+  go." ([J 90.04.02])
 - "An error severity code of 5 causes the compiler to stop compiling. It then proceeds
-  to the next job." (J 90.04.02)
+  to the next job." ([J 90.04.02])
 - Object-deck production: an output deck is produced "except when a severe error has
   been encountered during compilation. The severity value (code) is used to determine
   whether a deck will be produced when NODECK is not specified. If the severity code is
@@ -3755,7 +3755,7 @@ Each item gives both readings. J is authoritative for the implemented language.
   greater than 1 **or an undefined symbol in the code which it has generated**."
   ([J 02.01.02])
 - The assembly listing is produced only "if LIST was selected and no severe error was
-  encountered during compilation." (J 02.02.01)
+  encountered during compilation." ([J 02.02.01])
 - Message-listing mechanics: in the Appendix 90.04 listing the CODE column shows 0
   because "the value may vary. One of the severity values 1 through 5 will actually be
   printed with the error message." **The per-message severity assignment is nowhere
@@ -3764,7 +3764,7 @@ Each item gives both readings. J is authoritative for the implemented language.
   numbers of the form xxxxx,yy — three to six digits; the last two digits (after the
   comma) reference the clause, the digits before the comma reference the line.
   Statement number **9999,99** references errors "not confined to a single source
-  statement." (J 02.02.01)
+  statement." ([J 02.02.01])
 - The sample listing ends with the trailer line `SEVERITY LIMIT WAS NOT REACHED` —
   evidence of a settable severity limit whose control is not documented in 02.01 (see
   open questions). ([J 90.04.01])
@@ -4444,7 +4444,7 @@ Questions that remain after studying both manuals end to end — things neither 
     *What a mismatch does — and where.* Not a message: a program exit. The condition is a "sequence error", one of the three ERR conditions of the READ routine — "ERR is the location to which transfer is made when any of three types of error conditions occur:   
     (a) a redundancy which cannot be corrected;   
     (b) check sum error (binary file); and   
-    (c) sequence error. The condition is recognized at the first reference to a buffer in which it occurs. The error encountered may be ignored by continuing to 'read' the file" (external: C28-6100-2, PDF p. 24 / printed p. 16). The abnormal-conditions table gives "READ | Block sequence error | ERROR exit MQ(S-2) = 1" (external: C28-6100-2, PDF p. 79 / printed p. 71, MQ subscripted S-2 as printed), matching the history-record convention "1—if a sequence error occurred" (external: C28-6100-2, PDF p. 25 / printed p. 17) and the glossary's ERR, "An address, specified in the calling sequence of the READ routine, which is used as an exit upon recognition of an uncorrectable redundancy, or a block sequence or check sum error" (external: C28-6100-2, PDF p. 84 / printed p. 76). **No block-count or sequence-error text appears anywhere in the IOCS System Messages and Halts list** (external: C28-6100-2, PDF pp. 66–70 / printed pp. 58–62) or in the restart messages (PDF pp. 71–72 / printed pp. 63–64). In COMTRAN this is the file's ON ERROR exit, and J says so in its own words: "IOCS cannot continue processing after discovering an unrecoverable redundancy error, a block checksum error or a block sequence error without direction from the programmer. The ON ERROR option of the Environment FILE card provides for communication between IOCS and the programmer in these three error situations" (J 02.07.07) — the identical triple, reached through the identical calling-sequence slot, IOCS's READ being "`TSX READ,4` / `PZE FILE,,EOB` / `PZE EOF,,ERR` / `IOXY A,,m`" where "FILE is the file designation, EOB is the end of buffer switch, EOF is the end of file exit, and ERR is the error exit" (external: C28-6100-2, PDF p. 23 / printed p. 15) against J's `TSX IOC)8,4` / `PZE FILENAME,,SYS)260` / `PZE END-OF-FILE-PROCEDURE,,ERROR-PROCEDURE` / `IOCDN* BL)2,,14` (J 90.02.04). The correspondence is word for word, so SYS)260 is the EOB switch and the COMTRAN ON ERROR procedure is IOCS's ERR exit, defaulting to SYS)283 when no ON ERROR is coded (J 90.02.32) — *inference* from the two templates, corroborated by J's own remark that record length errors are "referred to as EOB errors in the IOCS manual" (J 02.07.06). The error is resumable: "The error encountered may be ignored by continuing to 'read' the file." 
+    (c) sequence error. The condition is recognized at the first reference to a buffer in which it occurs. The error encountered may be ignored by continuing to 'read' the file" (external: C28-6100-2, PDF p. 24 / printed p. 16). The abnormal-conditions table gives "READ | Block sequence error | ERROR exit MQ(S-2) = 1" (external: C28-6100-2, PDF p. 79 / printed p. 71, MQ subscripted S-2 as printed), matching the history-record convention "1—if a sequence error occurred" (external: C28-6100-2, PDF p. 25 / printed p. 17) and the glossary's ERR, "An address, specified in the calling sequence of the READ routine, which is used as an exit upon recognition of an uncorrectable redundancy, or a block sequence or check sum error" (external: C28-6100-2, PDF p. 84 / printed p. 76). **No block-count or sequence-error text appears anywhere in the IOCS System Messages and Halts list** (external: C28-6100-2, PDF pp. 66–70 / printed pp. 58–62) or in the restart messages (PDF pp. 71–72 / printed pp. 63–64). In COMTRAN this is the file's ON ERROR exit, and J says so in its own words: "IOCS cannot continue processing after discovering an unrecoverable redundancy error, a block checksum error or a block sequence error without direction from the programmer. The ON ERROR option of the Environment FILE card provides for communication between IOCS and the programmer in these three error situations" ([J 02.07.07]) — the identical triple, reached through the identical calling-sequence slot, IOCS's READ being "`TSX READ,4` / `PZE FILE,,EOB` / `PZE EOF,,ERR` / `IOXY A,,m`" where "FILE is the file designation, EOB is the end of buffer switch, EOF is the end of file exit, and ERR is the error exit" (external: C28-6100-2, PDF p. 23 / printed p. 15) against J's `TSX IOC)8,4` / `PZE FILENAME,,SYS)260` / `PZE END-OF-FILE-PROCEDURE,,ERROR-PROCEDURE` / `IOCDN* BL)2,,14` ([J 90.02.04]). The correspondence is word for word, so SYS)260 is the EOB switch and the COMTRAN ON ERROR procedure is IOCS's ERR exit, defaulting to SYS)283 when no ON ERROR is coded ([J 90.02.32]) — *inference* from the two templates, corroborated by J's own remark that record length errors are "referred to as EOB errors in the IOCS manual" ([J 02.07.06]). The error is resumable: "The error encountered may be ignored by continuing to 'read' the file." 
 
     *And it does not fire at CLOSE.* The check is described inside READ, at the moment the trailer is read; CLOSE's label work is output-side only — "For a regular output file, a close other than the MON type, causes writing of   
     (1) an EOF mark, a trailer label, and another EOF mark, if the file is labeled, or   

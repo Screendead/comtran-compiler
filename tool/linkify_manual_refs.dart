@@ -28,7 +28,9 @@
 ///    curly), or inside brackets. The first five hold verbatim 1962
 ///    text; the sixth holds a link that already exists — which is also
 ///    what makes the tool idempotent, because its own output is
-///    bracketed.
+///    bracketed. A quotation that opened on an earlier line ends at its
+///    closing mark; a citation after that mark is plain prose and is
+///    linked.
 /// 3. It lists pages instead of naming one range (`F pp. 44, 115`). Such
 ///    a list has no single target. A list of section codes is different:
 ///    only the first code carries the `J`, so only the first code is a
@@ -167,8 +169,9 @@ String relativePath(String fromDirectory, String target) {
 
 /// Every position of [line] a citation must not touch: an inline code
 /// span, a double-quoted run, and a bracketed run. An unclosed span
-/// guards the rest of the line, which drops a doubtful citation instead
-/// of breaking it.
+/// guards the rest of the line, and a quotation mark that closes a
+/// quotation from an earlier line guards the line up to itself. Both
+/// drop a doubtful citation instead of breaking it.
 List<bool> guardedPositions(String line) {
   final guarded = List<bool>.filled(line.length, false);
   void guard(int start, int end) {
@@ -215,9 +218,19 @@ List<bool> guardedPositions(String line) {
     (0x201C, 0x201D), // “ ... ”
     (0x5B, 0x5D), // [ ... ]
   ]) {
+    final quotation = opener != 0x5B;
     var open = -1;
     for (var i = 0; i < units.length; i++) {
-      if (open < 0 && units[i] == opener) {
+      final bool closesEarlierLine =
+          open < 0 &&
+          quotation &&
+          units[i] == closer &&
+          (opener != closer || _closesEarlierQuotation(units, i));
+      if (closesEarlierLine) {
+        // The closer of a quotation opened on an earlier line: the text
+        // before it is quoted; the rest of the line is plain prose.
+        guard(0, i + 1);
+      } else if (open < 0 && units[i] == opener) {
         open = i;
       } else if (open >= 0 && units[i] == closer && i != open) {
         guard(open, i + 1);
@@ -230,6 +243,14 @@ List<bool> guardedPositions(String line) {
   }
   return guarded;
 }
+
+/// Whether the straight quotation mark at [i] reads as the closer of a
+/// quotation opened on an earlier line: flush against quoted text on
+/// its left, with a space or the line end on its right.
+bool _closesEarlierQuotation(List<int> units, int i) =>
+    i > 0 &&
+    units[i - 1] != 0x20 &&
+    (i + 1 == units.length || units[i + 1] == 0x20);
 
 /// The map key of the citation [match]: `J:02.03.02` or `F:42`.
 String citationKey(RegExpMatch match) =>
