@@ -117,8 +117,8 @@ Map<String, Object?> writeDeck(String path, String text) {
     throw DeckToolException('not_found', 'no such directory: ${parent.path}');
   }
   try {
-    _writeAtomic(path, (File f) => f.writeAsBytesSync(bytes));
-    _writeAtomic(mirrorPath, (File f) => f.writeAsStringSync(mirror));
+    writeAtomic(path, (File f) => f.writeAsBytesSync(bytes));
+    writeAtomic(mirrorPath, (File f) => f.writeAsStringSync(mirror));
   } on FileSystemException catch (e) {
     throw DeckToolException('io', '${e.message}: ${e.path}');
   }
@@ -304,21 +304,6 @@ String _mirrorStatus(String mirrorPath, String text) {
     return 'missing';
   }
   return mirror.readAsStringSync() == text ? 'fresh' : 'stale';
-}
-
-// Writes through a sibling temporary file, so a failed write cannot leave a
-// truncated deck file behind.
-void _writeAtomic(String path, void Function(File) write) {
-  final temp = File('$path.$pid.tmp');
-  try {
-    write(temp);
-    temp.renameSync(path);
-  } on Object {
-    if (temp.existsSync()) {
-      temp.deleteSync();
-    }
-    rethrow;
-  }
 }
 
 Map<String, Object?> _cardJson(CardImage card, int index) {
