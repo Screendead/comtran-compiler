@@ -32,6 +32,7 @@ export 'src/lexer/data_lexer.dart';
 export 'src/lexer/diagnostic.dart';
 export 'src/lexer/environment_lexer.dart';
 export 'src/lexer/front_end.dart';
+export 'src/lexer/message_catalog.dart';
 export 'src/lexer/messages.dart';
 export 'src/lexer/procedure_lexer.dart';
 export 'src/lexer/reserved_words.dart';
