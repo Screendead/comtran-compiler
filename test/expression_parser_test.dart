@@ -40,7 +40,8 @@ String _shape(ArithExpr expr) => switch (expr) {
     '(${operator.text}${_shape(operand)})',
   TruthExpr() => 'TR(...)',
   FunctionCall(:final function, :final arguments) =>
-    '${function.text}((${arguments.map((NameReference a) => a.text).join(',')}))',
+    '${function.text}('
+        '(${arguments.map((NameReference a) => a.text).join(',')}))',
 };
 
 void main() {

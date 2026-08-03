@@ -119,9 +119,7 @@ final class _ProcedureScanner {
   late Set<int> _illegal;
 
   ProcedureScan scan() {
-    for (final SourceCard card in cards) {
-      _scanCard(card);
-    }
+    cards.forEach(_scanCard);
     if (_open) {
       // The division ended with the sentence still open (D9.4: the next
       // card is a header, control card, or end of deck). Report against

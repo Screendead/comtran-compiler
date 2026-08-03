@@ -194,9 +194,7 @@ final class _ListingWriter {
       }
       final List<String> lines = d.text.split('\n');
       _line('${number.padLeft(7)}    ${d.severity}    ${lines.first}');
-      for (final String continuation in lines.skip(1)) {
-        _line(continuation);
-      }
+      lines.skip(1).forEach(_line);
     }
     if (_maxSeverity < 5) {
       _line('');

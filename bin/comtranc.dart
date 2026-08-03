@@ -30,7 +30,7 @@ void main(List<String> arguments) {
 
 int _run(List<String> arguments) {
   if (arguments.contains('--version')) {
-    print('comtranc $comtranVersion');
+    stdout.writeln('comtranc $comtranVersion');
     return 0;
   }
   String? deckPath;

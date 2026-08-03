@@ -201,7 +201,9 @@ void main() {
 
   test('every enforced id names a live test', () {
     for (final Row row in rows.values) {
-      if (row.disposition != 'enforced') continue;
+      if (row.disposition != 'enforced') {
+        continue;
+      }
       expect(row.testRef, contains(': '), reason: '${row.id} lacks a test');
       final int split = row.testRef.indexOf(': ');
       final String path = row.testRef.substring(0, split);
