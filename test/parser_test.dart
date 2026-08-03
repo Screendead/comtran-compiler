@@ -131,8 +131,9 @@ void main() {
     test('a parser severity 5 stops the parse and shares the sink', () {
       final lines = <String>['      *PROCEDURE'];
       for (var i = 1; i <= 36; i++) {
-        lines.add('      ${'S$i.'.padRight(12)}BEGIN SECTION.');
-        lines.add('            END S$i.');
+        lines
+          ..add('      ${'S$i.'.padRight(12)}BEGIN SECTION.')
+          ..add('            END S$i.');
       }
       lines.add('            STOP RUN.');
       final sink = DiagnosticSink();

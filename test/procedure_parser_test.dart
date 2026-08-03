@@ -622,8 +622,9 @@ void main() {
     test('the 36th section stops compilation with one 149 (D9.1)', () {
       final lines = <String>['      *PROCEDURE'];
       for (var i = 1; i <= 36; i++) {
-        lines.add('      ${'S$i.'.padRight(12)}BEGIN SECTION.');
-        lines.add('            END S$i.');
+        lines
+          ..add('      ${'S$i.'.padRight(12)}BEGIN SECTION.')
+          ..add('            END S$i.');
       }
       lines.add('            STOP RUN.');
       final ParseResult parse = runParser(

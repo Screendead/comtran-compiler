@@ -52,8 +52,8 @@ const Map<String, Message> messageCatalog = {
     out.writeln("  '${message.id}': Message('${message.id}', ${_dart(text)}),");
   }
   out.writeln('};');
-  final outputFile = File('lib/src/lexer/message_catalog.dart');
-  outputFile.writeAsStringSync(out.toString());
+  final outputFile = File('lib/src/lexer/message_catalog.dart')
+    ..writeAsStringSync(out.toString());
 
   // DIAG-5: format the generated file so a re-run is a no-op on a clean
   // tree; the committed file must stay dart-format clean.

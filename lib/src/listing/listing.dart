@@ -213,11 +213,13 @@ final class _ListingWriter {
   void _newPage() {
     _page++;
     if (_page == 1 && options.title.isNotEmpty) {
-      _out.writeln('${' ' * 36}${options.title}');
-      _out.writeln();
+      _out
+        ..writeln('${' ' * 36}${options.title}')
+        ..writeln();
     }
-    _out.writeln(_pageHead());
-    _out.writeln();
+    _out
+      ..writeln(_pageHead())
+      ..writeln();
     _linesOnPage = 0;
   }
 

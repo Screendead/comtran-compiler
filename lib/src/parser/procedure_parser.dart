@@ -937,8 +937,9 @@ final class ProcedureParser {
   Clause _parseOpenClose(TokenCursor cursor, {required bool open}) {
     final Token verb = cursor.take();
     if (cursor.isWord('ALL') && cursor.isWord('FILES', 1)) {
-      cursor.take();
-      cursor.take();
+      cursor
+        ..take()
+        ..take();
       return open
           ? OpenClause(verb, const [], allFiles: true)
           : CloseClause(verb, const [], allFiles: true);
@@ -969,8 +970,9 @@ final class ProcedureParser {
     final Token verb = cursor.take();
     var recordFrom = false;
     if (cursor.isWord('RECORD') && cursor.isWord('FROM', 1)) {
-      cursor.take();
-      cursor.take();
+      cursor
+        ..take()
+        ..take();
       recordFrom = true;
     }
     final NameReference name = _expectName(cursor, msgIncompleteStatement);

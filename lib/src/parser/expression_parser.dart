@@ -420,8 +420,9 @@ ArithExpr parseFunctionCall(
   TokenCursor cursor,
   List<Diagnostic> diagnostics,
 ) {
-  cursor.take();
-  cursor.take();
+  cursor
+    ..take()
+    ..take();
   final arguments = <NameReference>[];
   while (true) {
     final Token? token = cursor.peek();

@@ -14,16 +14,18 @@ void main() {
 
   /// Places [word] at 0x100, points the IC at it, and executes it.
   void runOne(int word) {
-    m.write(0x100, word);
-    m.ic = 0x100;
+    m
+      ..write(0x100, word)
+      ..ic = 0x100;
     cpu.step();
   }
 
   // CLA: 22-6528-4 p. 20 (external).
   group('CLA', () {
     test('loads sign and magnitude; clears P and Q', () {
-      m.acMagnitude = MachineState.acQBit | MachineState.acPBit | 7;
-      m.write(0x200, data(5, negative: true));
+      m
+        ..acMagnitude = MachineState.acQBit | MachineState.acPBit | 7
+        ..write(0x200, data(5, negative: true));
       runOne(typeB(0x140, address: 0x200)); // +0500
       expect(m.acSign, 1);
       expect(m.acMagnitude, 5);
@@ -40,9 +42,10 @@ void main() {
   // CAL: 22-6528-4 p. 20 (external): the sign of Y appears in position P.
   group('CAL', () {
     test('routes the S bit of Y into P and forces a plus sign', () {
-      m.acSign = 1;
-      m.acMagnitude = MachineState.acQBit;
-      m.write(0x200, data(5, negative: true));
+      m
+        ..acSign = 1
+        ..acMagnitude = MachineState.acQBit
+        ..write(0x200, data(5, negative: true));
       runOne(typeB(0x940, address: 0x200)); // -0500
       expect(m.acSign, 0);
       expect(m.acMagnitude, MachineState.acPBit | 5);
@@ -52,9 +55,10 @@ void main() {
   // ADD/SUB: 22-6528-4 pp. 20-21 (external), Figure 21.
   group('ADD', () {
     test('like signs add magnitudes', () {
-      m.acSign = 1;
-      m.acMagnitude = 5;
-      m.write(0x200, data(3, negative: true));
+      m
+        ..acSign = 1
+        ..acMagnitude = 5
+        ..write(0x200, data(3, negative: true));
       runOne(typeB(0x100, address: 0x200)); // +0400
       expect(m.acSign, 1);
       expect(m.acMagnitude, 8);
@@ -62,16 +66,18 @@ void main() {
     });
 
     test('unlike signs, larger AC: magnitude difference, AC sign', () {
-      m.acMagnitude = 5;
-      m.write(0x200, data(3, negative: true));
+      m
+        ..acMagnitude = 5
+        ..write(0x200, data(3, negative: true));
       runOne(typeB(0x100, address: 0x200));
       expect(m.acSign, 0);
       expect(m.acMagnitude, 2);
     });
 
     test('unlike signs, larger Y: Q carry reverses the AC sign', () {
-      m.acMagnitude = 3;
-      m.write(0x200, data(5, negative: true));
+      m
+        ..acMagnitude = 3
+        ..write(0x200, data(5, negative: true));
       runOne(typeB(0x100, address: 0x200));
       expect(m.acSign, 1);
       expect(m.acMagnitude, 2);
@@ -80,31 +86,36 @@ void main() {
     test('equal magnitudes, unlike signs: zero with the original AC sign', () {
       // "Numbers of the same magnitude but different signs give a
       // resultant sign the same as the sign of the original AC" (p. 20).
-      m.acMagnitude = 5;
-      m.write(0x200, data(5, negative: true));
+      m
+        ..acMagnitude = 5
+        ..write(0x200, data(5, negative: true));
       runOne(typeB(0x100, address: 0x200));
       expect(m.acSign, 0); // +0
       expect(m.acMagnitude, 0);
 
-      m.acSign = 1;
-      m.acMagnitude = 5;
-      m.write(0x200, data(5));
+      m
+        ..acSign = 1
+        ..acMagnitude = 5
+        ..write(0x200, data(5));
       runOne(typeB(0x100, address: 0x200));
       expect(m.acSign, 1); // -0
       expect(m.acMagnitude, 0);
     });
 
     test('carry out of position 1 enters P and turns overflow on', () {
-      m.acMagnitude = Word36.magnitudeMask;
-      m.write(0x200, data(1));
+      m
+        ..acMagnitude = Word36.magnitudeMask
+        ..write(0x200, data(1));
       runOne(typeB(0x100, address: 0x200));
       expect(m.acMagnitude, MachineState.acPBit);
       expect(m.overflow, isTrue);
     });
 
     test('carry propagates from P into Q', () {
-      m.acMagnitude = (1 << 36) - 1; // P and 1-35 all ones.
-      m.write(0x200, data(1));
+      m
+        // P and 1-35 all ones.
+        ..acMagnitude = (1 << 36) - 1
+        ..write(0x200, data(1));
       runOne(typeB(0x100, address: 0x200));
       expect(m.acMagnitude, MachineState.acQBit);
       expect(m.overflow, isTrue);
@@ -112,8 +123,9 @@ void main() {
 
     test('carries out of Q are lost', () {
       // 22-6528-4 p. 9 (external): "Carries from Q are lost."
-      m.acMagnitude = MachineState.acMagnitudeMask;
-      m.write(0x200, data(1));
+      m
+        ..acMagnitude = MachineState.acMagnitudeMask
+        ..write(0x200, data(1));
       runOne(typeB(0x100, address: 0x200));
       expect(m.acMagnitude, 0);
       expect(m.acSign, 0);
@@ -122,8 +134,9 @@ void main() {
 
   group('SUB', () {
     test('reverses the sign of Y, then adds', () {
-      m.acMagnitude = 3;
-      m.write(0x200, data(5));
+      m
+        ..acMagnitude = 3
+        ..write(0x200, data(5));
       runOne(typeB(0x102, address: 0x200)); // +0402
       expect(m.acSign, 1);
       expect(m.acMagnitude, 2);
@@ -131,17 +144,19 @@ void main() {
     });
 
     test('equal magnitudes give zero with the original AC sign', () {
-      m.acSign = 1;
-      m.acMagnitude = 5;
-      m.write(0x200, data(5, negative: true));
+      m
+        ..acSign = 1
+        ..acMagnitude = 5
+        ..write(0x200, data(5, negative: true));
       runOne(typeB(0x102, address: 0x200));
       expect(m.acSign, 1); // -0
       expect(m.acMagnitude, 0);
     });
 
     test('subtracting a negative can overflow', () {
-      m.acMagnitude = Word36.magnitudeMask;
-      m.write(0x200, data(1, negative: true));
+      m
+        ..acMagnitude = Word36.magnitudeMask
+        ..write(0x200, data(1, negative: true));
       runOne(typeB(0x102, address: 0x200));
       expect(m.acMagnitude, MachineState.acPBit);
       expect(m.overflow, isTrue);
@@ -159,9 +174,10 @@ void main() {
     });
 
     test('carry out of P wraps to position 35; S and Q untouched', () {
-      m.acSign = 1;
-      m.acMagnitude = MachineState.acQBit | Word36.wordMask;
-      m.write(0x200, data(1));
+      m
+        ..acSign = 1
+        ..acMagnitude = MachineState.acQBit | Word36.wordMask
+        ..write(0x200, data(1));
       runOne(typeB(0x0F1, address: 0x200));
       expect(m.acMagnitude, MachineState.acQBit | 1);
       expect(m.acSign, 1);
@@ -172,8 +188,9 @@ void main() {
   // MPY: 22-6528-4 p. 22 (external).
   group('MPY', () {
     test('35 high product bits to AC, 35 low bits to MQ', () {
-      m.mq = data(3);
-      m.write(0x200, data(5));
+      m
+        ..mq = data(3)
+        ..write(0x200, data(5));
       runOne(typeB(0x080, address: 0x200)); // +0200
       expect(m.acSign, 0);
       expect(m.acMagnitude, 0);
@@ -182,16 +199,18 @@ void main() {
 
     test('a full 70-bit product splits across AC and MQ', () {
       // (2^35 - 1)^2 = (2^35 - 2) * 2^35 + 1.
-      m.mq = data(Word36.magnitudeMask);
-      m.write(0x200, data(Word36.magnitudeMask));
+      m
+        ..mq = data(Word36.magnitudeMask)
+        ..write(0x200, data(Word36.magnitudeMask));
       runOne(typeB(0x080, address: 0x200));
       expect(m.acMagnitude, Word36.magnitudeMask - 1);
       expect(m.mq, data(1));
     });
 
     test('unlike factor signs make both results negative', () {
-      m.mq = data(3, negative: true);
-      m.write(0x200, data(5));
+      m
+        ..mq = data(3, negative: true)
+        ..write(0x200, data(5));
       runOne(typeB(0x080, address: 0x200));
       expect(m.acSign, 1);
       expect(m.mq, data(15, negative: true));
@@ -199,8 +218,9 @@ void main() {
 
     test('a zero factor of unlike sign yields minus zero in AC and MQ', () {
       // p. 22: a zero C(Y) clears AC and MQ, then the sign rule applies.
-      m.mq = data(7);
-      m.write(0x200, data(0, negative: true));
+      m
+        ..mq = data(7)
+        ..write(0x200, data(0, negative: true));
       runOne(typeB(0x080, address: 0x200));
       expect(m.acSign, 1);
       expect(m.acMagnitude, 0);
@@ -211,10 +231,12 @@ void main() {
   // DVP: 22-6528-4 p. 24 (external).
   group('DVP', () {
     test('quotient to MQ, remainder to AC, signs per the rule', () {
-      m.acSign = 1; // Dividend sign.
-      m.acMagnitude = 0;
-      m.mq = data(35);
-      m.write(0x200, data(8));
+      m
+        // Dividend sign.
+        ..acSign = 1
+        ..acMagnitude = 0
+        ..mq = data(35)
+        ..write(0x200, data(8));
       runOne(typeB(0x091, address: 0x200)); // +0221
       expect(m.mq, data(4, negative: true)); // - / + gives a minus quotient.
       expect(m.acSign, 1); // The remainder keeps the dividend sign.
@@ -223,9 +245,10 @@ void main() {
     });
 
     test('uses the 70-bit dividend across AC and MQ', () {
-      m.acMagnitude = 1;
-      m.mq = data(5);
-      m.write(0x200, data(3));
+      m
+        ..acMagnitude = 1
+        ..mq = data(5)
+        ..write(0x200, data(3));
       runOne(typeB(0x091, address: 0x200));
       const int dividend = (1 << 35) + 5;
       expect(m.mq, data(dividend ~/ 3));
@@ -233,9 +256,10 @@ void main() {
     });
 
     test('|Y| equal to |AC| turns the divide check on and proceeds', () {
-      m.acMagnitude = 8;
-      m.mq = data(1);
-      m.write(0x200, data(8));
+      m
+        ..acMagnitude = 8
+        ..mq = data(1)
+        ..write(0x200, data(8));
       runOne(typeB(0x091, address: 0x200));
       expect(m.divideCheck, isTrue);
       expect(m.acMagnitude, 8); // Dividend unchanged.
@@ -246,8 +270,9 @@ void main() {
     test('a 1 in P forces the divide check', () {
       // p. 24: "if Q or P of the AC contains a 1, the magnitude of the
       // C(Y) is less than the C(AC)".
-      m.acMagnitude = MachineState.acPBit;
-      m.write(0x200, data(Word36.magnitudeMask));
+      m
+        ..acMagnitude = MachineState.acPBit
+        ..write(0x200, data(Word36.magnitudeMask));
       runOne(typeB(0x091, address: 0x200));
       expect(m.divideCheck, isTrue);
     });
@@ -256,8 +281,9 @@ void main() {
   // COM: 22-6528-4 p. 49 (external).
   group('COM', () {
     test('complements Q, P, 1-35 and keeps the sign', () {
-      m.acSign = 1;
-      m.acMagnitude = 5;
+      m
+        ..acSign = 1
+        ..acMagnitude = 5;
       runOne(typeB(0x1F0, address: 6)); // +0760...00006
       expect(m.acSign, 1);
       expect(m.acMagnitude, MachineState.acMagnitudeMask ^ 5);
@@ -265,15 +291,17 @@ void main() {
 
     test('address modification can select the sub-operation', () {
       // p. 49: "Address modification may change the instruction itself."
-      m.xrWrite(1, 1);
-      m.acMagnitude = 0;
+      m
+        ..xrWrite(1, 1)
+        ..acMagnitude = 0;
       runOne(typeB(0x1F0, address: 7, tag: 1)); // 7 - XR1 = 6: COM.
       expect(m.acMagnitude, MachineState.acMagnitudeMask);
     });
 
     test('another sub-operation throws before any state change', () {
-      m.write(0x100, typeB(0x1F0, address: 7)); // +0760...00007 (ETM).
-      m.ic = 0x100;
+      m
+        ..write(0x100, typeB(0x1F0, address: 7)) // +0760...00007 (ETM).
+        ..ic = 0x100;
       expect(
         () => cpu.step(),
         throwsA(
