@@ -5,6 +5,33 @@ state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
 
+## Glossary of the codenames
+
+Every document in this repository uses these prefixes. This table is their one
+home.
+
+| Prefix | What it names | Where the series lives |
+|---|---|---|
+| `M0` to `M6` | A compiler milestone | The roadmap below |
+| `T1` to `T4` | A parallel tooling task | The tooling track below |
+| `Dn` and `Dn.n` | A binding design decision record | `docs/design/decisions.md` |
+| `M1-n`, `M2-n` | A design entry inside one milestone's note | `docs/design/m1-front-end.md`, `docs/design/m2-parser.md` |
+| `ED-n` | An emulator design decision | `docs/design/emulator.md` |
+| `C1` to `C5` | A diagnostic severity class from D9.2 | `docs/design/severity-notes.md` |
+| `Qn` | An Open Question number | The Open Questions list in `docs/comtran-language-definition.md` |
+| `§n` and `§8.5.n` | A section of the language definition | `docs/comtran-language-definition.md` |
+
+Terms that appear without expansion:
+
+| Term | What it means |
+|---|---|
+| `Set H` | The IBM character set whose card codes COMTRAN uses (F p. 12) |
+| `n,cc` | A statement number: the statement `n`, then the clause digits `cc` (J 02.02.01) |
+| `IOCS` | The 709/7090 Input/Output Control System (J 02.07.01) |
+| `SYS)`, `IOC)` | Name prefixes of the runtime library entry points that generated code calls (J 90.02) |
+| `MOVPAK` | The runtime move-and-convert subroutine package (J 90.02.10) |
+| `90.05` | J28-6169 Appendix 90.05, the compiled sample program |
+
 ## Where things stand
 
 | Item | State | Where |
@@ -47,10 +74,13 @@ Message 903 (a card after `*FINISH`) then covers the single-job tail only.
 
 ## Rules that bind future work
 
-- **J28-6169 outranks F28-8043** wherever they diverge. Correct the definition
-  only against the manuals or their page scans. Never correct it against COBOL
-  knowledge or modern expectation. External period evidence is admissible for
-  what the manuals delegate, and always carries the label `(external: …)`.
+The definition's
+[Sources and authority](comtran-language-definition.md#sources-and-authority)
+section is the one home for three facts: the F/J authority rule, the fidelity
+conventions, and the citation style. Read them there. This list holds only what
+binds work outside the definition.
+
+- **J28-6169 outranks F28-8043** wherever they diverge.
 - §8.5 and Open Questions are living lists. Annotate an entry in place with the
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
@@ -68,9 +98,8 @@ Message 903 (a card after `*FINISH`) then covers the single-job tail only.
      and 228,00 sit one line low. A printer half-line stagger causes this.
      `docs/design/m1-front-end.md` M1-14 records the scan-correct grouping,
      and the M1 tests assert it.
-- Cite as `(F p. N)`, `(J xx.xx.xx)`, or `(J 90.05 listing, PDF p. NNN)`. The
-  page scans (`comtran-manuals/*/images/page-NNN.png`) are ground truth for any
-  disputed reading.
+- The page scans (`comtran-manuals/*/images/page-NNN.png`) are ground truth for
+  any disputed reading.
 - For any claim about card columns, measure the page scan. Never trust the
   indentation of a transcription.
 
