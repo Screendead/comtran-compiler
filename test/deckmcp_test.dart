@@ -6,8 +6,14 @@ import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
 /// A minimal MCP client: line-delimited JSON-RPC 2.0 over a subprocess.
+///
+/// When [roots] is given, the client declares the `roots` capability and
+/// answers the server's `roots/list` request with it, so the server's path
+/// confinement (MCP-6) allows paths under any of them. With no [roots], the
+/// client declares no roots capability at all, matching a client that does
+/// not support the feature.
 class _McpClient {
-  _McpClient(this._process) {
+  _McpClient(this._process, this._roots) {
     _process.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
@@ -15,14 +21,16 @@ class _McpClient {
     _process.stderr.transform(utf8.decoder).listen(stderrText.write);
   }
 
-  static Future<_McpClient> start() async => _McpClient(
+  static Future<_McpClient> start({List<String>? roots}) async => _McpClient(
     await Process.start(Platform.resolvedExecutable, [
       'run',
       'comtran:deckmcp',
     ]),
+    roots,
   );
 
   final Process _process;
+  final List<String>? _roots;
   final StringBuffer stderrText = StringBuffer();
   final Map<int, Completer<Map<String, Object?>>> _pending = {};
   int _nextId = 1;
@@ -33,6 +41,19 @@ class _McpClient {
     }
     final Object? message = jsonDecode(line);
     if (message is! Map<String, Object?>) {
+      return;
+    }
+    if (message['method'] == 'roots/list') {
+      _send({
+        'jsonrpc': '2.0',
+        'id': message['id'],
+        'result': {
+          'roots': [
+            for (final String root in _roots ?? const <String>[])
+              {'uri': Uri.file(root).toString()},
+          ],
+        },
+      });
       return;
     }
     final Object? id = message['id'];
@@ -58,6 +79,20 @@ class _McpClient {
 
   /// Sends a notification, which has no response.
   void notify(String method) => _send({'jsonrpc': '2.0', 'method': method});
+
+  /// Completes the handshake: `initialize` then `notifications/initialized`.
+  Future<Map<String, Object?>> initialize() async {
+    final Map<String, Object?> response = await request('initialize', {
+      'protocolVersion': '2025-06-18',
+      'capabilities': <String, Object?>{
+        if (_roots != null) 'roots': <String, Object?>{},
+      },
+      'clientInfo': {'name': 'deckmcp_test', 'version': '1.0.0'},
+    });
+    expect(response['error'], isNull, reason: '$stderrText');
+    notify('notifications/initialized');
+    return response['result']! as Map<String, Object?>;
+  }
 
   /// Calls tool [name] and returns its `CallToolResult`.
   Future<Map<String, Object?>> call(
@@ -99,15 +134,12 @@ void main() {
   const String sample = 'HELLO\n! 1:12-5-8 80:12-11\n\n';
 
   setUpAll(() async {
-    client = await _McpClient.start();
-    final Map<String, Object?> response = await client.request('initialize', {
-      'protocolVersion': '2025-06-18',
-      'capabilities': <String, Object?>{},
-      'clientInfo': {'name': 'deckmcp_test', 'version': '1.0.0'},
-    });
-    expect(response['error'], isNull, reason: '${client.stderrText}');
-    initializeResult = response['result']! as Map<String, Object?>;
-    client.notify('notifications/initialized');
+    // Cover every temp directory setUp creates, plus the repository root, so
+    // the shared client can read the committed payroll fixture too.
+    client = await _McpClient.start(
+      roots: [Directory.systemTemp.path, Directory.current.path],
+    );
+    initializeResult = await client.initialize();
   });
 
   tearDownAll(() => client.close());
@@ -148,6 +180,7 @@ void main() {
       expect(names, [
         'deck_read',
         'deck_write',
+        'deck_edit_cards',
         'deck_card',
         'card_code_info',
         'deck_check',
@@ -159,7 +192,48 @@ void main() {
           (entry['inputSchema']! as Map<String, Object?>)['type'],
           'object',
         );
+        expect(
+          (entry['inputSchema']!
+              as Map<String, Object?>)['additionalProperties'],
+          isFalse,
+          reason: '${entry['name']}',
+        );
+        expect(
+          (entry['outputSchema']! as Map<String, Object?>)['type'],
+          'object',
+          reason: '${entry['name']}',
+        );
       }
+    });
+
+    test('read-only tools are annotated read-only, deck_write and '
+        'deck_edit_cards are not', () async {
+      final Map<String, Object?> response = await client.request('tools/list');
+      final tools =
+          (response['result']! as Map<String, Object?>)['tools']!
+              as List<Object?>;
+      final byName = <String, Map<String, Object?>>{
+        for (final Object? tool in tools)
+          (tool! as Map<String, Object?>)['name']! as String:
+              tool as Map<String, Object?>,
+      };
+      for (final String name in [
+        'deck_read',
+        'deck_card',
+        'card_code_info',
+        'deck_check',
+      ]) {
+        final annotations =
+            byName[name]!['annotations']! as Map<String, Object?>;
+        expect(annotations['readOnlyHint'], isTrue, reason: name);
+      }
+      final writeAnnotations =
+          byName['deck_write']!['annotations']! as Map<String, Object?>;
+      expect(writeAnnotations['destructiveHint'], isTrue);
+      expect(writeAnnotations['idempotentHint'], isTrue);
+      final editAnnotations =
+          byName['deck_edit_cards']!['annotations']! as Map<String, Object?>;
+      expect(editAnnotations['destructiveHint'], isTrue);
     });
   });
 
@@ -199,6 +273,11 @@ void main() {
           'max_cards': 1,
         }),
       );
+      // The full mirror text would duplicate the structured form, so it is
+      // omitted once include_cards is set (MCP-1).
+      expect(json.containsKey('mirror'), isFalse);
+      expect(json['cards_returned'], 1);
+      expect(json['next_start_card'], 3);
       final cards = json['cards']! as List<Object?>;
       expect(cards, hasLength(1));
       final card = cards.single! as Map<String, Object?>;
@@ -215,6 +294,47 @@ void main() {
       expect(second['card_code'], '12-11');
       expect(second['readable'], isFalse);
       expect(second['bcd_octal'], isNull);
+    });
+
+    test('include_cards reports a null next_start_card at the end', () async {
+      final Map<String, Object?> json = _content(
+        await client.call('deck_read', {
+          'path': canonPath,
+          'include_cards': true,
+        }),
+      );
+      expect(json['cards_returned'], 3);
+      expect(json['next_start_card'], isNull);
+    });
+
+    test(
+      'include_cards defaults to a bounded page and pages a long deck',
+      () async {
+        // Matches defaultMaxCards in deck_tools.dart. Not imported directly:
+        // deck_tools.dart is an implementation detail behind the tools, not
+        // part of the public package API.
+        const int defaultPage = 25;
+        final Map<String, Object?> json = _content(
+          await client.call('deck_read', {
+            'path': '${Directory.current.path}/tests/90.05-payroll.ctdeck',
+            'include_cards': true,
+          }),
+        );
+        expect(json['card_count'], 293);
+        expect(json['cards_returned'], defaultPage);
+        expect(json['next_start_card'], defaultPage + 1);
+        expect((json['cards']! as List<Object?>).length, defaultPage);
+      },
+    );
+
+    test('rejects max_cards above the schema maximum', () async {
+      final Map<String, Object?> result = await client.call('deck_read', {
+        'path': canonPath,
+        'include_cards': true,
+        'max_cards': 1000,
+      });
+      expect(result['isError'], isTrue);
+      expect(result.containsKey('structuredContent'), isFalse);
     });
 
     test('rejects a missing file', () async {
@@ -336,6 +456,132 @@ void main() {
       );
       expect(error['kind'], 'not_found');
     });
+
+    test('accepts expected_mirror when it matches and writes', () async {
+      await client.call('deck_write', {
+        'path': canonPath,
+        'mirror': 'CHANGED\n',
+        'expected_mirror': sample,
+      });
+      expect(File(mirrorPath).readAsStringSync(), 'CHANGED\n');
+    });
+
+    test(
+      'rejects expected_mirror that no longer matches and writes nothing',
+      () async {
+        File(mirrorPath).writeAsStringSync('SOMEONE ELSE\n');
+        final Map<String, Object?> error = _errorOf(
+          await client.call('deck_write', {
+            'path': canonPath,
+            'mirror': 'MINE\n',
+            'expected_mirror': sample,
+          }),
+        );
+        expect(error['kind'], 'conflict');
+        expect(File(mirrorPath).readAsStringSync(), 'SOMEONE ELSE\n');
+      },
+    );
+  });
+
+  group('deck_edit_cards', () {
+    test('inserts cards without touching the rest of the deck', () async {
+      final Map<String, Object?> json = _content(
+        await client.call('deck_edit_cards', {
+          'path': canonPath,
+          'start_card': 1,
+          'insert_lines': ['NEW'],
+        }),
+      );
+      expect(json['card_count'], 4);
+      expect(json['deleted_count'], 0);
+      expect(json['inserted_count'], 1);
+      final String mirror = File(mirrorPath).readAsStringSync();
+      expect(mirror, startsWith('NEW\n'));
+      expect(mirror, endsWith(sample));
+    });
+
+    test('deletes cards when insert_lines is empty', () async {
+      final Map<String, Object?> json = _content(
+        await client.call('deck_edit_cards', {
+          'path': canonPath,
+          'start_card': 3,
+          'delete_count': 1,
+        }),
+      );
+      expect(json['card_count'], 2);
+      expect(json['deleted_count'], 1);
+      expect(json['inserted_count'], 0);
+      expect(
+        File(mirrorPath).readAsStringSync(),
+        'HELLO\n! 1:12-5-8 80:12-11\n',
+      );
+    });
+
+    test('replaces a range in the middle of the deck', () async {
+      await client.call('deck_edit_cards', {
+        'path': canonPath,
+        'start_card': 2,
+        'delete_count': 1,
+        'insert_lines': ['REPLACED'],
+      });
+      expect(File(mirrorPath).readAsStringSync(), 'HELLO\nREPLACED\n\n');
+    });
+
+    test('appends when start_card is one past the last card', () async {
+      await client.call('deck_edit_cards', {
+        'path': canonPath,
+        'start_card': 4,
+        'insert_lines': ['LAST'],
+      });
+      expect(File(mirrorPath).readAsStringSync(), '${sample}LAST\n');
+    });
+
+    test('rejects a delete range past the end of the deck', () async {
+      final Map<String, Object?> error = _errorOf(
+        await client.call('deck_edit_cards', {
+          'path': canonPath,
+          'start_card': 2,
+          'delete_count': 5,
+        }),
+      );
+      expect(error['kind'], 'out_of_range');
+    });
+
+    test('rejects a start_card past card_count + 1', () async {
+      final Map<String, Object?> error = _errorOf(
+        await client.call('deck_edit_cards', {
+          'path': canonPath,
+          'start_card': 10,
+        }),
+      );
+      expect(error['kind'], 'out_of_range');
+    });
+
+    test('rejects malformed insert_lines and writes nothing', () async {
+      final String fresh = File(mirrorPath).readAsStringSync();
+      final Map<String, Object?> error = _errorOf(
+        await client.call('deck_edit_cards', {
+          'path': canonPath,
+          'start_card': 1,
+          'insert_lines': ['TRAILING SPACE '],
+        }),
+      );
+      expect(error['kind'], 'format');
+      expect(File(mirrorPath).readAsStringSync(), fresh);
+    });
+
+    test('rejects expected_mirror that no longer matches', () async {
+      File(mirrorPath).writeAsStringSync('SOMEONE ELSE\n');
+      final Map<String, Object?> error = _errorOf(
+        await client.call('deck_edit_cards', {
+          'path': canonPath,
+          'start_card': 1,
+          'insert_lines': ['NEW'],
+          'expected_mirror': sample,
+        }),
+      );
+      expect(error['kind'], 'conflict');
+    });
   });
 
   group('deck_card', () {
@@ -365,7 +611,7 @@ void main() {
       expect(json['blank'], isTrue);
       expect(json['form'], 'glyph');
       expect(json['mirror_line'], '');
-      expect(json['punch_notation'], '!');
+      expect(json['punch_notation'], isNull);
       expect(json['columns'], isEmpty);
     });
 
@@ -485,6 +731,47 @@ void main() {
         'invalid_argument',
       );
     });
+
+    test('rejects an omitted arguments field instead of crashing', () async {
+      // card_code_info has no required property, so schema validation lets
+      // an entirely absent "arguments" field through; the handler used to
+      // read request.arguments! and crash with a Dart stack trace (MCP-4).
+      final Map<String, Object?> response = await client.request('tools/call', {
+        'name': 'card_code_info',
+      });
+      expect(response['error'], isNull, reason: '$response');
+      final Map<String, Object?> result =
+          response['result']! as Map<String, Object?>;
+      final Map<String, Object?> error = _errorOf(result);
+      expect(error['kind'], 'invalid_argument');
+      final String text =
+          ((result['content']! as List<Object?>).first!
+                  as Map<String, Object?>)['text']!
+              as String;
+      expect(text, isNot(contains('Null check operator')));
+    });
+
+    test(
+      'rejects a two-octal-digit lookalike that is not valid octal',
+      () async {
+        // int.tryParse(radix: 8) would accept "021" and "+21"; the spec gives
+        // BCD codes as exactly two octal digits, 00 to 77 (MCP-14).
+        for (final String bad in ['021', '+21', '8', '99', '1']) {
+          final Map<String, Object?> error = _errorOf(
+            await client.call('card_code_info', {'bcd_octal': bad}),
+          );
+          expect(error['kind'], 'invalid_argument', reason: bad);
+        }
+      },
+    );
+
+    test('rejects an unknown property', () async {
+      final Map<String, Object?> result = await client.call('card_code_info', {
+        'glyph': 'A',
+        'bogus': 1,
+      });
+      expect(result['isError'], isTrue);
+    });
   });
 
   group('deck_check', () {
@@ -596,6 +883,55 @@ void main() {
       );
       expect(error['kind'], 'invalid_argument');
     });
+  });
+
+  group('path confinement', () {
+    test('rejects a path outside every declared root', () async {
+      final Map<String, Object?> error = _errorOf(
+        await client.call('deck_read', {
+          'path': '/mcp-confinement-test-should-not-exist.ctdeck',
+        }),
+      );
+      expect(error['kind'], 'forbidden_path');
+    });
+
+    test('deck_check rejects a forbidden path among several', () async {
+      final Map<String, Object?> error = _errorOf(
+        await client.call('deck_check', {
+          'paths': <Object?>[
+            dir.path,
+            '/mcp-confinement-test-should-not-exist',
+          ],
+        }),
+      );
+      expect(error['kind'], 'forbidden_path');
+    });
+
+    test(
+      'a client that declares no roots falls back to the working directory',
+      () async {
+        final _McpClient plain = await _McpClient.start();
+        await plain.initialize();
+        try {
+          // The committed payroll deck is inside the repository root, which
+          // is the server's working directory when no roots are declared.
+          final Map<String, Object?> ok = _content(
+            await plain.call('deck_read', {
+              'path': 'tests/90.05-payroll.ctdeck',
+            }),
+          );
+          expect(ok['card_count'], 293);
+
+          // A path outside the working directory is still rejected.
+          final Map<String, Object?> error = _errorOf(
+            await plain.call('deck_read', {'path': canonPath}),
+          );
+          expect(error['kind'], 'forbidden_path');
+        } finally {
+          await plain.close();
+        }
+      },
+    );
   });
 
   test('an unknown tool is an error, not a crash', () async {

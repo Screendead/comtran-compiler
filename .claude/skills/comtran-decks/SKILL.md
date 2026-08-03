@@ -19,7 +19,8 @@ deck. Decisions D0.5 and D0.6 govern it.
 ## The rules
 
 1. **The canon file is the authority.** The compiler and every tool read canon
-   only. Address a deck by its `.ctdeck` path.
+   only. Address a deck by its `.ctdeck` path. The MCP server rejects a path
+   outside your declared workspace root.
 2. **Never hand-edit a `.deck` mirror.** A mirror is a generated artifact. An
    edited mirror is lost at the next regeneration, and CI fails it.
 3. **Change a deck through the tools.** They rewrite the canon file and
@@ -74,15 +75,17 @@ Then use these tools:
 
 | Tool | What it does |
 |---|---|
-| `deck_read` | Reads a canon deck: card count, mirror text, mirror freshness. Set `include_cards` (with `start_card` and `max_cards`) for the per-card structured form. |
-| `deck_write` | Writes normal-form mirror text to a canon path and regenerates the sibling mirror. Rejects bad text and writes nothing. |
+| `deck_read` | Reads a canon deck: card count, mirror text, mirror freshness. Set `include_cards` (with `start_card` and `max_cards`, up to 100, 25 by default) for the per-card structured form; that form reports `cards_returned` and `next_start_card` instead of the full mirror text, so page through a long deck. |
+| `deck_write` | Writes normal-form mirror text to a canon path and regenerates the sibling mirror. Rejects bad text and writes nothing. Give `expected_mirror` to fail with a conflict instead of overwriting a change made since you last read the deck. |
+| `deck_edit_cards` | Replaces a range of cards (`start_card`, `delete_count`, `insert_lines`) without sending or returning the whole mirror. Also takes `expected_mirror`. |
 | `deck_card` | Describes one card: glyph line, punch notation, and the card code, BCD code, glyph, and name of every punched column. |
 | `card_code_info` | Looks one character up. Give exactly one of `glyph`, `card_code` (e.g. `12-5-8`), or `bcd_octal`. |
 | `deck_check` | Runs the `deckconv check` verification and reports structured results. |
 
 A failed call sets `isError` and returns `{"error": {"kind": ..., "message":
 ...}}`. The kinds are `not_found`, `not_a_file`, `bad_extension`, `format`,
-`out_of_range`, `invalid_argument`, `unknown_glyph`, `bad_card_code`, and `io`.
+`out_of_range`, `invalid_argument`, `unknown_glyph`, `bad_card_code`,
+`conflict`, `forbidden_path`, and `io`.
 
 Prefer the MCP tools when you work inside an agent session; prefer `deckconv`
 in scripts, hooks, and CI.
