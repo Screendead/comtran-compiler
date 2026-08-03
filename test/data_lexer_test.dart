@@ -58,6 +58,17 @@ void main() {
         msgIllegalJustification,
       ]);
     });
+
+    test('a name over 30 characters compressed across cards draws 901,00', () {
+      final DataScan scan = scanDataDescription(
+        sourceCards([
+          dataCard(name: 'A' * 16, level: '2', continued: true),
+          dataCard(name: 'B' * 16, description: '99'),
+        ]),
+      );
+      expect(scan.diagnostics.single.message, msgNameTooLong);
+      expect(scan.entries.single.name.length, 32);
+    });
   });
 
   group('description scanning', () {
@@ -156,6 +167,87 @@ void main() {
       expect(scan.diagnostics.single.message, msgConstantTooLong);
       expect(scan.entries.single.descriptionTokens.single.text.length, 126);
     });
+
+    test('a name-shaped run over 30 characters draws 901,00', () {
+      // Unlike the pictorial case above, this run's characters ('B') do
+      // not fit the format-character set, so it takes msgNameTooLong
+      // rather than msgPictorialTooLong (lib/src/lexer/data_lexer.dart).
+      final DataScan scan = scanDataDescription(
+        sourceCards([dataCard(name: 'W', level: '2', description: 'B' * 31)]),
+      );
+      expect(scan.diagnostics.single.message, msgNameTooLong);
+      expect(scan.entries.single.descriptionTokens.single.text, 'B' * 31);
+    });
+  });
+
+  group('the character gate (D9.10)', () {
+    test('a record mark in the name field draws 134,00 and reads as 0', () {
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 7, 'NAM');
+      columns[7] = punchesFromBcd(0x3A)!; // record mark, column 8
+      punchGlyphs(columns, 24, '2'); // level
+      punchGlyphs(columns, 38, '99'); // description
+      final DataScan scan = scanDataDescription([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      final Diagnostic d = scan.diagnostics.single;
+      expect(d.message, msgIllegalCharacterReplaced);
+      expect(d.column, 8);
+      expect(scan.entries.single.name, 'N0M');
+    });
+
+    test('a record mark in the fixed fields draws 134,00 (first card)', () {
+      final List<int> columns = blankColumns();
+      columns[22] = punchesFromBcd(0x3A)!; // record mark, column 23 (level)
+      punchGlyphs(columns, 38, '99'); // description
+      final DataScan scan = scanDataDescription([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      final Diagnostic d = scan.diagnostics.single;
+      expect(d.message, msgIllegalCharacterReplaced);
+      expect(d.column, 23);
+      expect(scan.entries.single.level, isNull);
+    });
+
+    test('a record mark in a description run draws 134,00', () {
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 38, 'ABC');
+      columns[38] = punchesFromBcd(0x3A)!; // record mark, column 39
+      final DataScan scan = scanDataDescription([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      final Diagnostic d = scan.diagnostics.single;
+      expect(d.message, msgIllegalCharacterReplaced);
+      expect(d.column, 39);
+      expect(scan.entries.single.descriptionTokens.single.text, 'A0C');
+    });
+
+    test('a punch with no read-out inside a constant draws 134,00 '
+        '(D9.10 layer a)', () {
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 38, "'A");
+      columns[39] = rowBit12 | rowBit11; // no BCD readout, column 40
+      punchGlyphs(columns, 41, "B'");
+      final DataScan scan = scanDataDescription([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      final Diagnostic d = scan.diagnostics.single;
+      expect(d.message, msgIllegalCharacterReplaced);
+      expect(d.column, 40);
+      expect(scan.entries.single.descriptionTokens.single.text, 'A0B');
+    });
+
+    test('a record mark inside a constant is legal, read as ? (layer c)', () {
+      final List<int> columns = blankColumns();
+      punchGlyphs(columns, 38, "'A");
+      columns[39] = punchesFromBcd(0x3A)!; // record mark, column 40
+      punchGlyphs(columns, 41, "B'");
+      final DataScan scan = scanDataDescription([
+        SourceCard(CardImage.fromColumns(columns), 1),
+      ]);
+      expect(scan.diagnostics, isEmpty);
+      expect(scan.entries.single.descriptionTokens.single.text, 'A?B');
+    });
   });
 
   group('the 90.05 deck', () {
@@ -222,7 +314,7 @@ void main() {
               (Token t) => t.kind == TokenKind.alphamericLiteral,
             ),
       );
-      expect(constants.length, greaterThanOrEqualTo(23));
+      expect(constants, hasLength(56));
     });
   });
 }
