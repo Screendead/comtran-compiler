@@ -354,6 +354,44 @@ test('a ready message answers with the whole deck state', async () => {
   assert.equal(state.fields.length, 4);
 });
 
+test('an edit refreshes every open panel of the same document', async () => {
+  const { provider, document, panel } = await openEditor('multi', [
+    blankCard(),
+  ]);
+  const panel2 = fakePanel();
+  await provider.resolveCustomEditor(document, panel2, {});
+  panel2.send({ type: 'ready' });
+
+  panel.send({ type: 'toggle', index: 0, column: 5, row: 0 });
+
+  assert.equal(lastState(panel).columns[4], 1 << 11);
+  assert.equal(lastState(panel2).columns[4], 1 << 11);
+});
+
+test('the provider forwards edits to VS Code as label/undo/redo events', async () => {
+  const { provider, document, panel } = await openEditor('forward', [
+    blankCard(),
+  ]);
+  const events = [];
+  provider.onDidChangeCustomDocument((e) => events.push(e));
+
+  panel.send({ type: 'toggle', index: 0, column: 1, row: 0 });
+  assert.equal(events.length, 1);
+  assert.equal(events[0].document, document);
+  assert.equal(events[0].label, 'punch column');
+  assert.equal(document.card(0)[0], 1 << 11);
+
+  // The forwarded undo/redo, not the document's own edit, are what VS
+  // Code's native undo stack and dirty indicator actually call.
+  events[0].undo();
+  assert.equal(document.card(0)[0], 0);
+  assert.equal(lastState(panel).columns[0], 0); // the webview stays in sync.
+
+  events[0].redo();
+  assert.equal(document.card(0)[0], 1 << 11);
+  assert.equal(lastState(panel).columns[0], 1 << 11);
+});
+
 test('a toggle message punches and reports the new state', async () => {
   const { document, panel } = await openEditor('toggle', [blankCard()]);
   panel.send({ type: 'toggle', index: 0, column: 13, row: 0 });

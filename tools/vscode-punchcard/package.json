@@ -82,6 +82,7 @@
     "@types/node": "^20.14.0",
     "@types/vscode": "^1.90.0",
     "@vscode/vsce": "3.9.2",
+    "jsdom": "^29.1.1",
     "typescript": "^5.9.3"
   }
 }
