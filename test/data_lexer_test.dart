@@ -114,11 +114,24 @@ void main() {
       expect(constant.text, 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJ');
     });
 
-    test('an unclosed constant at the entry end draws 167,00', () {
+    test('an unclosed constant at the entry end draws 167,00, untrimmed', () {
       final DataScan scan = scanDataDescription(
         _cards([_card(name: 'C', level: '2', description: "'OPEN")]),
       );
       expect(scan.diagnostics.single.message, msgSecondQuoteMissing);
+      // The card's unpunched tail does not pad the constant.
+      expect(scan.entries.single.descriptionTokens.single.text, 'OPEN');
+    });
+
+    test('a short constant joins across cards with no card-tail blanks', () {
+      final DataScan scan = scanDataDescription(
+        _cards([
+          _card(name: 'C', level: '2', description: "'AB", continued: true),
+          _card(description: "CD'"),
+        ]),
+      );
+      expect(scan.diagnostics, isEmpty);
+      expect(scan.entries.single.descriptionTokens.single.text, 'ABCD');
     });
 
     test('an over-long pictorial draws 100,00', () {

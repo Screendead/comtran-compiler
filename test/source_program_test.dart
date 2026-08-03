@@ -50,8 +50,9 @@ void main() {
       expect(program.cardsOf(Division.data).length, 177);
       expect(program.cardsOf(Division.environment).length, 15);
       expect(program.cardsOf(Division.procedure).length, 97);
-      // The *PROCEDURE header's asterisk sits in column 8 on the real deck.
-      expect(program.groups[2].header.glyphAt(8), '*');
+      // All three headers punch their asterisk in column 7 (F p. 65;
+      // scan-checked 2026-08-03).
+      expect(program.groups[2].header.glyphAt(7), '*');
     });
 
     test(r'recognizes the $CMPLE control card in columns 1-6', () {
@@ -63,6 +64,13 @@ void main() {
       expect(program.compileCard?.serial, r'$CMPLE');
       expect(program.groups.single.division, Division.data);
       expect(program.problems, isEmpty);
+    });
+
+    test('an asterisk outside column 7 is not a header', () {
+      final SourceProgram program = _program(['       *DATA', '      *DATA']);
+      expect(program.groups, hasLength(1));
+      expect(program.problems.single.message, msgTextBeforeHeader);
+      expect(program.problems.single.card.cardNumber, 1);
     });
 
     test('flags cards before the first header and after *FINISH', () {

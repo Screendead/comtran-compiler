@@ -17,7 +17,7 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
   --time=h.hh        page-head time, decimal hours (default: now)
   --account=TEXT     page-head ACCOUNT field (default: blank)
   --title=TEXT       title line above page 1 (default: none)
-  --lines-per-page=N content lines per page (default: 50)
+  --lines-per-page=N content lines per page (default: 55)
   --version          print the version and exit
 ''';
 
@@ -37,7 +37,7 @@ int _run(List<String> arguments) {
   String? time;
   var account = '';
   var title = '';
-  var linesPerPage = 50;
+  var linesPerPage = 55;
   for (final String argument in arguments) {
     if (argument.startsWith('--date=')) {
       date = argument.substring(7);

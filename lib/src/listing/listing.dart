@@ -30,7 +30,7 @@ final class ListingOptions {
     required this.time,
     this.account = '',
     this.title = '',
-    this.linesPerPage = 50,
+    this.linesPerPage = 55,
   });
 
   /// The DATE field of the page head.
@@ -46,8 +46,9 @@ final class ListingOptions {
   /// `COMPILATION OF SAMPLE PROBLEM`; it is not compiler-fixed).
   final String title;
 
-  /// Content lines per page. The 1962 value is not exactly recoverable;
-  /// 50 is our reading of the sample's six pages.
+  /// Content lines per page. Every page of the 1962 listing carries 55
+  /// content lines after the head (counted across all 25 printer pages
+  /// of the sample).
   final int linesPerPage;
 }
 
@@ -118,16 +119,22 @@ final class _ListingWriter {
     final int lastColumn =
         division == Division.data || division == Division.environment ? 71 : 72;
     final String body = _externalBody(card, 7, lastColumn).trimRight();
+    // Scan-anchored geometry (see m1-front-end.md M1-15): with D = the
+    // page head's DATE column, a statement number ends at D+14, the
+    // octal name-address field sits at D+18..D+22 (blank at M1), and
+    // card column 7 prints at D+24. The serial field's position is a
+    // reconstruction — every serial in the sample is blank.
     final line =
-        '${serial.padRight(6)} ${number.padLeft(7)}'
-        '${' ' * 10}$body';
+        '${' ' * 8}${serial.padRight(6)}  ${number.padLeft(7)}'
+        '${' ' * 9}$body';
     return line.trimRight();
   }
 
   /// The external text of [card] columns [from]..[to]: the Set H glyph,
-  /// `$` for a column the character gate repaired, `?` for a legal
-  /// machine character with no Set H glyph (in-literal specials and
-  /// unscanned commentary) — the M1 display-glyph choice of D0.6.
+  /// `$` for a column the character gate repaired, `?` for any other
+  /// machine character with no Set H glyph — in-literal specials,
+  /// unscanned commentary, and unscanned fixed fields — the M1
+  /// display-glyph choice of D0.6.
   String _externalBody(SourceCard card, int from, int to) {
     final Set<int> repaired = _repaired[card.cardNumber] ?? const <int>{};
     final buffer = StringBuffer();
@@ -146,7 +153,9 @@ final class _ListingWriter {
 
   void _diagnosticBlock() {
     if (result.diagnostics.isEmpty) {
-      _line('        NO ERRORS WERE DETECTED DURING COMPILATION');
+      // The line starts at the phase-letter margin (scan: it aligns
+      // with CTD/CTE on page 197).
+      _line('  NO ERRORS WERE DETECTED DURING COMPILATION');
       return;
     }
     _line('THE FOLLOWING ERRORS WERE DETECTED DURING COMPILATION-');
@@ -160,7 +169,7 @@ final class _ListingWriter {
       final String number =
           result.statementNumberByCard[d.card.cardNumber] ?? '9999,99';
       final List<String> lines = d.text.split('\n');
-      _line('${number.padLeft(6)}     ${d.severity}    ${lines.first}');
+      _line('${number.padLeft(7)}    ${d.severity}    ${lines.first}');
       for (final String continuation in lines.skip(1)) {
         _line(continuation);
       }

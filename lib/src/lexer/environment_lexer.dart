@@ -32,7 +32,9 @@ final class EnvironmentSpec {
   /// The specification's cards: the first card and its continuations.
   final List<SourceCard> cards;
 
-  /// The name from columns 7–22 of the first card, trimmed; empty when
+  /// The name, compressed from the name fields of all the
+  /// specification's cards with every blank eliminated (J 02.03.01,
+  /// §2.b; J 02.06.01.01 permits Name continuation); empty when
   /// unnamed. Environment names are one word only (J 02.03.03, §C).
   final String name;
 
@@ -106,7 +108,21 @@ EnvironmentSpec? _scanSpec(
     diagnostics.add(Diagnostic(msgIllegalEnvironmentType, first));
     return null;
   }
-  final String name = first.internalText(7, 22).trim();
+
+  // The name may continue onto subsequent cards, exactly as options may
+  // (J 02.06.01.01: "continuation of the options (columns 31-71) or Name
+  // on subsequent cards"); all imbedded and leading blanks in the name
+  // fields of an entry's cards are eliminated and the non-blank
+  // characters compressed to one name (J 02.03.01, §2.b — "Data and
+  // Environment Names").
+  final nameBuffer = StringBuffer();
+  for (final SourceCard card in group) {
+    if (!identical(card, first)) {
+      gate(card, 7, 22);
+    }
+    nameBuffer.write(card.internalText(7, 22).replaceAll(' ', ''));
+  }
+  final String name = nameBuffer.toString();
   if (name.isEmpty && typeText == 'FILE') {
     diagnostics.add(Diagnostic(msgFileCardLacksName, first));
   }
@@ -114,11 +130,11 @@ EnvironmentSpec? _scanSpec(
     diagnostics.add(Diagnostic(msgCondCardLacksName, first));
   }
 
-  // Name and type belong to the first card only; content there on a
-  // continuation card is diagnosed and ignored (J 02.06.01.01; J 90.04,
-  // message 186,00).
+  // The type field belongs to the first card only; a type code on a
+  // continuation card is ignored (J 02.06.01.01) and diagnosed
+  // (J 90.04, message 186,00).
   for (final SourceCard card in group.skip(1)) {
-    if ([for (var c = 7; c <= 30; c++) card.isPunched(c)].contains(true)) {
+    if ([for (var c = 23; c <= 30; c++) card.isPunched(c)].contains(true)) {
       diagnostics.add(Diagnostic(msgFixedFieldOnContinuation, card));
     }
   }

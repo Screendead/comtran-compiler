@@ -28,7 +28,9 @@ enum TokenKind {
   symbol,
 
   /// The free text of a NOTE command, kept raw because punctuation and
-  /// spacing rules do not apply to it (F p. 59).
+  /// spacing rules do not apply to it (F p. 59). A NOTE spanning cards
+  /// emits one token per card; a blank is assumed at each card's end
+  /// (J 02.03.01, §2.c), so consumers join fragments with one blank.
   noteText,
 
   /// An unclassified blank-separated run in a Description field —

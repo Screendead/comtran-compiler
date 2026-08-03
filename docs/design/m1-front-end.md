@@ -10,11 +10,15 @@ source citation. Amend by updating this file and `decisions.md` together.*
 ## Deck structure
 
 - **M1-1. Division-header recognition.** A header card is `*DATA`,
-  `*ENVIRONMENT`, or `*PROCEDURE` with the asterisk anywhere in the name
-  margin (columns 7–12) and nothing else in the body. F puts the
-  asterisk in column 7 (F p. 65); the compiled sample punches
-  `*PROCEDURE` from column 8 and compiled clean (J 90.05 listing, PDF
-  p. 195), so the whole margin is accepted.
+  `*ENVIRONMENT`, or `*PROCEDURE` with the asterisk in column 7 and
+  nothing else in the body — "the asterisk always appears in the
+  left-most name column" (F p. 27; F p. 65). All three headers of the
+  compiled sample sit in column 7: cell-boundary measurement aligns
+  `*PROCEDURE`'s asterisk with the `G` of `GN)000` in the name field
+  directly below it (page-195.png; adversarial verification,
+  2026-08-03). An earlier column-8 reading of that header was wrong and
+  the deck was corrected accordingly (`tests/90.05-payroll-deck-notes.md`).
+  No leniency beyond column 7 is implemented: none is attested.
 - **M1-2. Single job.** The M1 driver compiles one job per deck file and
   does not require a `*FINISH` card; the job stream, the `$CMPLE` option
   scan, and message 132 land at M2 with the job loop (D9.14). Cards
@@ -33,10 +37,13 @@ source citation. Amend by updating this file and `decisions.md` together.*
   division group or the deck with the sentence open. The recovery closes
   the sentence unterminated.
 - **M1-6. The character gate** (D9.10) runs inside the scanners, so only
-  scanned text is gated: commentary after a sentence terminator is
-  echoed but never scanned and never draws message 134. Inside a
-  literal, a column with a BCD read-out keeps its value; a column with
-  no read-out draws 134 even there.
+  scanned text is gated: commentary after a sentence terminator, and
+  fixed fields on continuation cards, are echoed but never scanned and
+  never draw message 134. Inside a literal, a column with a BCD
+  read-out keeps its value; a column with no read-out draws 134 even
+  there. This refines D9.10's "card-to-character stage" placement,
+  which its own layer (c) makes impossible context-free; recorded as a
+  dated amendment on the D9.10 record.
 - **M1-7. The dollar sign** is a source character (Set H), so it is not
   an illegal character under D9.10 layer (b). In procedure text it is
   emitted as a symbol token for the parser to judge at M2.
@@ -47,10 +54,12 @@ source citation. Amend by updating this file and `decisions.md` together.*
   167; an unclosed environment literal draws 167. The Data Description
   cross-card constant continuation is accepted silently, joined in card
   order with no assumed blanks (D1.1; Open Question 6).
-- **M1-9. Token text placeholders.** A legal in-literal machine
-  character with no Set H glyph appears as `?` in token text and in the
-  listing (the D0.6 display-glyph choice deferred to M1). `?` is not a
-  Set H character, so it cannot be mistaken for source text. The data
+- **M1-9. Token text placeholders.** A machine character with no Set H
+  glyph that was not repaired by the gate appears as `?` in token text
+  and in the listing — legal in-literal specials, unscanned commentary,
+  and unscanned fixed fields alike (the D0.6 display-glyph choice
+  deferred to M1). `?` is not a Set H character, so it cannot be
+  mistaken for source text; `$` always marks a gate repair. The data
   mapper re-reads literal values from the card images at M3.
 - **M1-10. Message 194 fires for a NAMED entry with no valid level.**
   An unnamed entry without a level is accepted: the sample's unnamed
@@ -60,21 +69,27 @@ source citation. Amend by updating this file and `decisions.md` together.*
   pure format characters draws 100,00; a name-like run over 30 draws
   our message 901. Constants over 120 characters draw 148,00 (D7.9);
   literals over 50 draw 150,00; numerics over 50 draw 52,00 (D1.2).
-- **M1-12. Environment continuation cards** may carry only options:
-  content in columns 7–30 draws 186,00 and is ignored (J 02.06.01.01
-  says a type code there is ignored; the message is our addition). A
-  first card without a legal type code is deleted with 144,00 and its
-  continuation cards fall with it.
+- **M1-12. Environment continuation cards** may continue the name and
+  the options (J 02.06.01.01: "continuation of the options (columns
+  31-71) or Name"); name fields compress across the group's cards with
+  every blank eliminated, exactly as in the data division (J 02.03.01,
+  §2.b — "Data and Environment Names"). A type code on a continuation
+  card is ignored (J 02.06.01.01) and draws 186,00. A first card
+  without a legal type code is deleted with 144,00 and its continuation
+  cards fall with it.
 
 ## Statement numbering (D7.13)
 
 - **M1-13.** One number per procedure sentence, data entry, or
   environment card group, continuous across all divisions, headers
-  unnumbered — the sample's scheme (J 90.05 listing; J 02.02.01 read
-  per the sample). A deleted environment card still consumes its number
-  (the D9.8 analogue). The number prints on the unit's first card;
-  continuation lines print blank. Diagnostics on unnumbered cards print
-  9999,99 (J 02.02.01).
+  unnumbered — the sample's scheme after the p. 197 scan correction
+  (M1-14), which dissolved D7.13's mid-sentence/shared-number reading;
+  D7.13 carries the dated amendment. A deleted environment card still
+  consumes its number (the D9.8 analogue). The number prints on the
+  unit's first card; continuation lines print blank. J reserves 9999,99
+  for "errors which are not confined to a single source statement"
+  (J 02.02.01); M1's reading — print it for any diagnostic on a card
+  with no statement number — is our inference.
 - **M1-14. Page 197 number attribution.** The listing conversion
   misattributes statements 218–221 and 228 by one line (printer
   half-line stagger); the page scan (`images/page-197.png`) is
@@ -84,21 +99,26 @@ source citation. Amend by updating this file and `decisions.md` together.*
 
 ## The listing
 
-- **M1-15. Line geometry** (measured; the manual states no print
-  columns): serial columns 1–6 at print 1–6; statement number
-  right-justified at 8–14; the five-octal-digit name-address column of
-  the 1962 listing (undocumented; a compile-time dictionary address by
-  our analysis) stays blank at 18–22 — we do not fabricate values; card
-  body columns 7–72 echoed verbatim at print column+18 (25–90). Data
-  and Environment lines echo with column 72 blanked (J 02.03.01, §2.c);
-  procedure lines echo through 72.
+- **M1-15. Line geometry**, scan-anchored (the manual states no print
+  columns; the transcription flattens the head-to-body indentation and
+  must not be used for columns). With D = the print column of the page
+  head's `DATE` (measured at character pitch 9.33 px on pages 192-196):
+  a statement number is right-justified ending at D+14; the
+  five-octal-digit name-address field (undocumented; a compile-time
+  dictionary address by our analysis) sits at D+18..D+22 and stays
+  blank — we do not fabricate values; card body columns 7–72 echo
+  verbatim from D+24. The serial field's print position is a
+  reconstruction at D+0..D+5 — every serial in the sample is blank, so
+  nothing attests it. Data and Environment lines echo with column 72
+  blanked (J 02.03.01, §2.c); procedure lines echo through 72.
 - **M1-16. Page head** template per the sample:
   `DATE mm/dd/yy   TIME  h.hh   ACCOUNT …ID. <identifier>  PAGE n`,
   the identifier from control-card columns 55–72 (J 02.01.02). The
   title line is the operator's, not compiler-fixed: an option, off by
   default. Date and time are injected options so golden tests are
-  stable. 50 content lines per page — our reading of the sample's six
-  pages; the exact 1962 value is not recoverable at M1.
+  stable. 55 content lines per page — every page of the 1962 listing
+  carries 55 content lines after its head, counted across all 25
+  printer pages of the sample.
 - **M1-17. Control-card echo** prints card columns 1–72 at the far-left
   margin (two columns in from position 1), with the phase letters CTC
   under it and CTD/CTE before the diagnostic block (J 05.06.01; the
@@ -107,7 +127,10 @@ source citation. Amend by updating this file and `decisions.md` together.*
   card).
 - **M1-18. The diagnostic block** follows the source listing
   (J 02.02.01: source, then error messages). Clean: the attested
-  `NO ERRORS WERE DETECTED DURING COMPILATION` line. Otherwise the
+  `NO ERRORS WERE DETECTED DURING COMPILATION` line, printed at the
+  phase-letter margin (the scan aligns it with CTD/CTE on page 197).
+  The error block keeps the 90.04 dump's own geometry from print
+  column 1 — no in-context error listing survives (Open Question 71). Otherwise the
   attested header and `NUMBER   CODE   MESSAGE` columns; each row
   prints the statement number, the severity, and the message text —
   never the message id (D9.5). The trailer

@@ -100,7 +100,28 @@ void main() {
       ]);
     });
 
-    test('name or type content on a continuation card draws 186,00', () {
+    test('a name continues across cards and compresses its blanks', () {
+      final EnvironmentScan scan = scanEnvironment(
+        _cards([
+          _card(
+            name: 'DEPARTMENT.TOTAL',
+            type: 'FILE',
+            options: 'OUTPUT,',
+            continued: true,
+          ),
+          _card(name: '.FILE', options: 'BLOCKSIZE 20'),
+        ]),
+      );
+      expect(scan.diagnostics, isEmpty);
+      expect(scan.specs.single.name, 'DEPARTMENT.TOTAL.FILE');
+      final EnvironmentScan blanks = scanEnvironment(
+        _cards([_card(name: 'PAY ROLL', type: 'FILE', options: 'INPUT')]),
+      );
+      // Imbedded blanks are eliminated (J 02.03.01, section 2.b).
+      expect(blanks.specs.single.name, 'PAYROLL');
+    });
+
+    test('type content on a continuation card draws 186,00', () {
       final EnvironmentScan scan = scanEnvironment(
         _cards([
           _card(name: 'F', type: 'FILE', options: 'INPUT,', continued: true),

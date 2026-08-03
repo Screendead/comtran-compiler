@@ -191,6 +191,12 @@ List<Token> _scanDescription(
 
   var inConstant = false;
   final constant = StringBuffer();
+  // Blanks inside an open constant are buffered and written only when
+  // punched content follows, so a card's unpunched tail never enters
+  // the constant: a continued constant is joined with no assumed blank
+  // (D1.1; Open Question 6), and an unclosed one is not padded out to
+  // column 71.
+  var constantBlanks = 0;
   SourceCard? constantCard;
   var constantColumn = 0;
 
@@ -238,6 +244,7 @@ List<Token> _scanDescription(
       Token(TokenKind.alphamericLiteral, text, constantCard!, constantColumn),
     );
     constant.clear();
+    constantBlanks = 0;
     inConstant = false;
   }
 
@@ -245,9 +252,11 @@ List<Token> _scanDescription(
     for (var column = _descriptionFirst; column <= _textLast; column++) {
       if (inConstant) {
         if (!card.isPunched(column)) {
-          constant.write(' ');
+          constantBlanks++;
           continue;
         }
+        constant.write(' ' * constantBlanks);
+        constantBlanks = 0;
         final int? bcd = card.bcdAt(column);
         if (bcd == null) {
           // No read-out: illegal even inside a constant (D9.10 layer a).
@@ -297,16 +306,19 @@ List<Token> _scanDescription(
     }
     if (!inConstant) {
       endRun(); // A blank is assumed at each card's end (F p. 83).
-    } else if (identical(card, group.last)) {
-      // The constant never closed and no card follows it (D1.1; J 90.04,
-      // message 167,00).
-      diagnostics.add(
-        Diagnostic(msgSecondQuoteMissing, card, column: constantColumn),
-      );
-      endConstant();
+    } else {
+      constantBlanks = 0; // The card's unpunched tail never joins.
+      if (identical(card, group.last)) {
+        // The constant never closed and no card follows it (D1.1;
+        // J 90.04, message 167,00).
+        diagnostics.add(
+          Diagnostic(msgSecondQuoteMissing, card, column: constantColumn),
+        );
+        endConstant();
+      }
+      // Otherwise the constant continues onto the next card, joined
+      // with no assumed blank (D1.1; Open Question 6).
     }
-    // Otherwise the constant continues onto the next card, joined with
-    // no assumed blank (D1.1; Open Question 6).
   }
   return tokens;
 }

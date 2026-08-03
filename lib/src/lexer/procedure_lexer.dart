@@ -117,8 +117,14 @@ final class _ProcedureScanner {
     }
     if (_open) {
       // The division ended with the sentence still open (D9.4: the next
-      // card is a header, control card, or end of deck).
-      diagnostics.add(Diagnostic(msgPeriodAssumed, cards.last));
+      // card is a header, control card, or end of deck). Report against
+      // the sentence's own last card.
+      diagnostics.add(
+        Diagnostic(
+          msgPeriodAssumed,
+          _sentenceCards.isNotEmpty ? _sentenceCards.last : cards.last,
+        ),
+      );
       _close(terminated: false);
     }
     return ProcedureScan._(sentences, diagnostics);
@@ -200,7 +206,7 @@ final class _ProcedureScanner {
       if (c == '.') {
         if (i == _body.length - 1 || _body[i + 1] == ' ') {
           // The sentence terminator: a period followed by a blank, the
-          // blank assumed after column 72 (F p. 28, rules 3 and 14). The
+          // blank assumed after column 72 (F pp. 27-28, rules 3 and 14). The
           // card remainder is commentary (J 02.03.01, §3.a) and is not
           // scanned.
           _close(terminated: true);
@@ -347,7 +353,7 @@ final class _ProcedureScanner {
           i + 1 < _body.length &&
           (_isDigit(_body[i + 1]) || _body[i + 1] == 'F')) {
         // A decimal point, absorbed when it cannot be the sentence
-        // terminator (F p. 28, rule 4; J 02.04.02 requires the point
+        // terminator (F p. 27, rule 4; J 02.04.02 requires the point
         // before the F of a floating literal).
         points++;
         i++;

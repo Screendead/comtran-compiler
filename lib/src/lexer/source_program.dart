@@ -134,19 +134,15 @@ final class SourceProgram {
       if (group.division == division) ...group.cards,
   ];
 
-  /// A division header has its asterisk in the name margin (columns 7–12)
-  /// and nothing else in the body. F puts the asterisk in column 7
-  /// (F p. 65); the compiled sample deck punches `*PROCEDURE` from column 8
-  /// (J 90.05 listing, PDF p. 195), so the whole name margin is accepted —
-  /// a recorded M1 design decision.
+  /// A division header has its asterisk in column 7 — "the asterisk always
+  /// appears in the left-most name column" (F p. 27; F p. 65) — and nothing
+  /// else in the body. All three headers of the compiled sample sit in
+  /// column 7 (scan-checked against pages 192 and 195, 2026-08-03).
   static Division? _headerDivision(SourceCard card) {
-    final String body = card.body.trimRight();
-    final String trimmed = body.trimLeft();
-    final int asteriskColumn = 7 + (body.length - trimmed.length);
-    if (asteriskColumn > 12) {
+    if (card.glyphAt(7) != '*') {
       return null;
     }
-    return switch (trimmed) {
+    return switch (card.body.trimRight()) {
       '*DATA' => Division.data,
       '*ENVIRONMENT' => Division.environment,
       '*PROCEDURE' => Division.procedure,

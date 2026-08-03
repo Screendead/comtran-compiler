@@ -110,7 +110,7 @@ void main() {
       expect(listing, contains('9999,99'));
       // The unclosed literal is in statement 1: its row carries the
       // statement number and the severity, never the message id.
-      expect(listing, contains('  1,00     2    ALPHABETIC LITERAL'));
+      expect(listing, contains('   1,00    2    ALPHABETIC LITERAL'));
       expect(listing, isNot(contains('168,00')));
       expect(listing, contains('SEVERITY LIMIT WAS NOT REACHED'));
       expect(listing, isNot(contains('NO ERRORS')));
