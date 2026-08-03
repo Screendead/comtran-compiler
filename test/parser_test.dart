@@ -65,7 +65,7 @@ void main() {
       '189,00',
       '175,00',
     ]);
-    expect(parse.diagnostics.map((Diagnostic d) => d.card.cardNumber), [
+    expect(parse.diagnostics.map((Diagnostic d) => d.card!.cardNumber), [
       2,
       3,
       3,

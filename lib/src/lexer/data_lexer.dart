@@ -221,40 +221,35 @@ List<Token> _scanDescription(
       return;
     }
     final text = run.toString();
+    final SourceCard card = runCard!;
     if (text.length > 30) {
       if (_formatChars.hasMatch(text)) {
         // A pictorial is limited to 30 characters (J 90.04, message
         // 100,00).
         diagnostics.add(
-          Diagnostic(msgPictorialTooLong, runCard!, column: runColumn),
+          Diagnostic(msgPictorialTooLong, card, column: runColumn),
         );
       } else {
         diagnostics.add(
-          Diagnostic(
-            msgNameTooLong,
-            runCard!,
-            column: runColumn,
-            operands: [text],
-          ),
+          Diagnostic(msgNameTooLong, card, column: runColumn, operands: [text]),
         );
       }
     }
-    tokens.add(Token(TokenKind.descriptionItem, text, runCard!, runColumn));
+    tokens.add(Token(TokenKind.descriptionItem, text, card, runColumn));
     run.clear();
   }
 
   void endConstant() {
     final text = constant.toString();
+    final SourceCard card = constantCard!;
     if (text.length > 120) {
       // Our Data Description constant limit is 120 characters (decision
       // D7.9; J 90.04, message 148,00 — the 1962 capacity is unstated).
       diagnostics.add(
-        Diagnostic(msgConstantTooLong, constantCard!, column: constantColumn),
+        Diagnostic(msgConstantTooLong, card, column: constantColumn),
       );
     }
-    tokens.add(
-      Token(TokenKind.alphamericLiteral, text, constantCard!, constantColumn),
-    );
+    tokens.add(Token(TokenKind.alphamericLiteral, text, card, constantColumn));
     constant.clear();
     constantBlanks = 0;
     inConstant = false;

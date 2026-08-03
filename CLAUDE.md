@@ -38,7 +38,7 @@ dart format --output=none --set-exit-if-changed lib bin test tool
 dart analyze --fatal-infos
 dart test
 dart run comtran:deckconv check .
-dart run comtran:comtranc test/fixtures/90.05-payroll.ctdeck   # compile the sample
+dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck   # compile the sample
 ```
 
 CI runs the same gate on every pull request. `.github/workflows/` is the

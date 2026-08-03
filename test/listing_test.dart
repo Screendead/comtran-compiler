@@ -74,10 +74,13 @@ void main() {
     });
 
     test('comtranc prints the golden and exits 0', () {
+      // The complete job deck (D11.3): the artifact plus the
+      // reconstructed *FINISH, which the splitter consumes — the
+      // listing bytes are identical to the raw front-end golden.
       final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
         'run',
         'comtran:comtranc',
-        payrollDeckPath,
+        jobDeckPath,
         '--date=10/18/61',
         '--time=2.45',
         '--title=COMPILATION OF SAMPLE PROBLEM',

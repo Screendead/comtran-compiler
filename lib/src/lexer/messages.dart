@@ -81,6 +81,14 @@ const Message msgPictorialTooLong = Message(
       'CHARACTERS.',
 );
 
+/// `132,00` — the deck ended while a job was open: end of input without
+/// a *FINISH card (J 02.01.02). The driver issues it at severity 5,
+/// referenced to statement 9999,99 (D9.14; D11.3).
+const Message msgEndOfFileWithoutFinish = Message(
+  '132,00',
+  'END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.',
+);
+
 /// `134,00` — a source column that does not read to a source character
 /// (decision D9.10: the character gate; one message per illegal column,
 /// digit zero in the internal text, dollar sign in the external text).
@@ -177,15 +185,18 @@ const Message msgTextBeforeHeader = Message.ours(
       '(NON-HISTORICAL.)',
 );
 
-/// Ours — a card after the *FINISH card, which delimits the source
-/// statements (J 02.01.02). The M1 driver compiles one job; the job
-/// stream lands at M2 (decision D9.14).
+/// Ours — a card after the last *FINISH card with no job following:
+/// the single-job tail (J 02.01.02; decisions D9.14 and D11.1). The
+/// job splitter routes a card between two jobs to the next job
+/// instead, where it draws 902.
 const Message msgCardAfterFinish = Message.ours(
   '903,00',
   'CARD FOLLOWS THE *FINISH CARD AND IS IGNORED. (NON-HISTORICAL.)',
 );
 
-/// Ours — a second compile control card in one job's deck.
+/// Ours — a second compile control card before any division header of
+/// its own job. After a header, a compile card starts the next job
+/// instead (D11.1; the D10.4 amendment).
 const Message msgDuplicateCompileCard = Message.ours(
   '904,00',
   'DUPLICATE COMPILE CONTROL CARD IS IGNORED. (NON-HISTORICAL.)',

@@ -131,7 +131,7 @@ id	class	disposition	component	b2	test	note	text
 129,00	C3	reserved	name resolution	B.2 sections/control flow		M3	FORMAT ERROR FOR TRANSFER INDEX. NOTHING DONE.
 130,00	C1	reserved	name resolution	B.2 sections/control flow		M3	TRANSFER INDEX NOT AN INTEGER. INTEGRAL PART TAKEN AS VALUE.
 131,00	C3	enforced	procedure parser	B.2 DISPLAY	test/procedure_parser_test.dart: an empty or numeric DISPLAY item draws 131 (M2-10)		INVALID DISPLAY STATEMENT.
-132,00	C5	reserved	driver	B.2 lexical/card-format		M2 stage 3 (job stream, M2-15/D9.14); severity 5 by decision	END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.
+132,00	C5	enforced	driver	B.2 lexical/card-format	test/driver_test.dart: a deck ending mid-job draws 132 at severity 5	M2 stage 3 (job stream, M2-15/D9.14/D11.3); severity 5 by decision	END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.
 133,00	C2	reserved	data description	B.2 data description		M3 (pictorial content classification)	NO RIGHT PARENTHESIS IN FORMAT PICTORIAL.
 134,00	C1	enforced	card reader and lexer	B.2 lexical/card-format	test/procedure_lexer_test.dart: a machine special in a word draws 134,00 and reads as zero		ILLEGAL CHARACTER REPLACED IN INTERNAL TEXT BY 0, AND IN EXTERNAL TEXT BY $.
 135,00	C5	unreachable	none	B.2 self-diagnostics		permanent read error for input; media/hardware failure, unreachable by construction in a Dart implementation (D9.15 group b)	PERMANENT READ ERROR FOR INPUT. DUBIOUS COMPILATION.
@@ -212,8 +212,8 @@ id	class	disposition	component	b2	test	note	text
 900,00	C1	enforced	card reader and lexer	ours (D9.7)	test/procedure_lexer_test.dart: a stray period draws 900,00 and is ignored		PERIOD NOT FOLLOWED BY BLANK AND NOT PART OF A WORD IS IGNORED. (NON-HISTORICAL.)
 901,00	C2	enforced	card reader and lexer	ours (D9.7)	test/procedure_lexer_test.dart: a word over 30 characters draws 901,00		'NAME.1' EXCEEDS 30 CHARACTERS. (NON-HISTORICAL.)
 902,00	C3	enforced	card reader and lexer	ours (D9.7)	test/source_program_test.dart: an asterisk outside column 7 is not a header		CARD PRECEDES THE FIRST DIVISION HEADER AND IS IGNORED. (NON-HISTORICAL.)
-903,00	C3	enforced	card reader and lexer	ours (D9.7)	test/source_program_test.dart: flags cards before the first header and after *FINISH		CARD FOLLOWS THE *FINISH CARD AND IS IGNORED. (NON-HISTORICAL.)
-904,00	C1	enforced	card reader and lexer	ours (D9.7)	test/source_program_test.dart: a second compile card draws 904,00 and is ignored		DUPLICATE COMPILE CONTROL CARD IS IGNORED. (NON-HISTORICAL.)
+903,00	C3	enforced	job splitter and driver	ours (D9.7)	test/driver_test.dart: the single-job tail draws 903 at 9999,99 (D11.1 rule d)	the splitter routes a card between jobs to the next job (902) instead (D11.1)	CARD FOLLOWS THE *FINISH CARD AND IS IGNORED. (NON-HISTORICAL.)
+904,00	C1	enforced	card reader and lexer	ours (D9.7)	test/source_program_test.dart: a second compile card draws 904,00 and is ignored	only before a division header; after one, a compile card starts the next job (D11.1)	DUPLICATE COMPILE CONTROL CARD IS IGNORED. (NON-HISTORICAL.)
 905,00	C4	enforced	environment description	ours (D9.7)	test/environment_parser_test.dart: PATTERN draws 905,00 and nothing else (D9.12)		-PATTERN- OPTION RECOGNIZED BUT NOT IMPLEMENTED. SEE DECISION D6. (NON-HISTORICAL.)
 906,00	C2	enforced	data description	ours (D9.7)	test/data_parser_test.dart: a RECORD card with a Quantity draws 906		DATA DESCRIPTION CARD CODING CONFLICTS WITH ITS TYPE CODE. (NON-HISTORICAL.)
 907,00	C3	enforced	data description	ours (D9.7)	test/data_parser_test.dart: a withdrawn or unknown code draws 907 and a null typeCode		TYPE CODE 'NAME.1' IS NOT IN THE 7090 LANGUAGE. (NON-HISTORICAL.)

@@ -42,7 +42,7 @@ void main() {
         ]),
       );
       expect(scan.diagnostics.single.message, msgDataNameLacksLevel);
-      expect(scan.diagnostics.single.card.cardNumber, 1);
+      expect(scan.diagnostics.single.card!.cardNumber, 1);
       final DataEntry redef = scan.entries[1];
       expect(redef.name, isEmpty);
       expect(redef.level, isNull);
