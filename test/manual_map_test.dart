@@ -114,6 +114,17 @@ void main() {
     expect(slugger.slug('Other'), 'other');
   });
 
+  test('a suffixed slug that collides advances, as github-slugger does', () {
+    final slugger = Slugger();
+    expect(slugger.slug('Example'), 'example');
+    expect(slugger.slug('Example'), 'example-1');
+    expect(slugger.slug('Example 1'), 'example-1-1');
+  });
+
+  test('an underscore survives, as github-slugger keeps it', () {
+    expect(slugify('snake_case name'), 'snake_case-name');
+  });
+
   test('a heading loses its markdown escapes and emphasis', () {
     expect(plainHeading(r'A. The \*FILE Card'), 'A. The *FILE Card');
     expect(slugify(plainHeading(r'\*FILE Card')), 'file-card');

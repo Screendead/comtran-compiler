@@ -77,27 +77,34 @@ final RegExp _headingCode = RegExp(
   r'^(?:appendix |section )?(\d\d\.\d\d)(?:[ :]|$)',
   caseSensitive: false,
 );
-final RegExp _slugStrip = RegExp(r'[^\p{L}\p{N} -]', unicode: true);
+final RegExp _slugStrip = RegExp(r'[^\p{L}\p{N}_ -]', unicode: true);
 final RegExp _escape = RegExp(r'\\([!-/:-@\[-`{-~])');
 
 /// The GitHub anchor of one heading [text], before deduplication:
-/// lowercase, everything except a letter, a digit, a space or a hyphen
-/// removed, then every space turned into a hyphen.
+/// lowercase, everything except a letter, a digit, an underscore, a
+/// space or a hyphen removed, then every space turned into a hyphen.
 String slugify(String text) =>
     text.toLowerCase().replaceAll(_slugStrip, '').replaceAll(' ', '-');
 
 /// Assigns the final anchor of each heading of one file. A repeated
-/// anchor takes the suffix `-1`, `-2`, … in order of appearance, as
-/// GitHub does.
+/// anchor takes the suffix `-1`, `-2`, … in order of appearance, and a
+/// suffixed candidate that collides with an existing anchor advances the
+/// counter until the anchor is free — the exact github-slugger rule, so
+/// `Example`, `Example`, `Example 1` give `example`, `example-1`,
+/// `example-1-1`.
 class Slugger {
-  final Map<String, int> _seen = <String, int>{};
+  final Map<String, int> _occurrences = <String, int>{};
 
   /// The anchor of [text], unique within this file.
   String slug(String text) {
     final String base = slugify(text);
-    final int count = _seen[base] ?? 0;
-    _seen[base] = count + 1;
-    return count == 0 ? base : '$base-$count';
+    var result = base;
+    while (_occurrences.containsKey(result)) {
+      _occurrences[base] = (_occurrences[base] ?? 0) + 1;
+      result = '$base-${_occurrences[base]}';
+    }
+    _occurrences[result] = 0;
+    return result;
   }
 }
 
