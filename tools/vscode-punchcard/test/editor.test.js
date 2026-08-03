@@ -391,6 +391,85 @@ test('typing a space punches a blank column', async () => {
   assert.equal(document.card(0)[12], 0);
 });
 
+test('typing consecutive glyphs coalesces into one undo step', async () => {
+  const { document, panel } = await openEditor('typerun', [blankCard()]);
+  const edits = [];
+  document.onDidChange((e) => edits.push(e));
+
+  panel.send({ type: 'typeGlyph', index: 0, column: 1, glyph: 'a' });
+  panel.send({ type: 'typeGlyph', index: 0, column: 2, glyph: 'b' });
+  panel.send({ type: 'typeGlyph', index: 0, column: 3, glyph: 'c' });
+
+  assert.equal(edits.length, 1);
+  assert.equal(edits[0].label, 'type text');
+  assert.equal(document.card(0)[0], punchesFromCardCode('12-1'));
+  assert.equal(document.card(0)[1], punchesFromCardCode('12-2'));
+  assert.equal(document.card(0)[2], punchesFromCardCode('12-3'));
+
+  edits[0].undo();
+  assert.equal(document.card(0)[0], 0);
+  assert.equal(document.card(0)[1], 0);
+  assert.equal(document.card(0)[2], 0);
+
+  edits[0].redo();
+  assert.equal(document.card(0)[0], punchesFromCardCode('12-1'));
+  assert.equal(document.card(0)[1], punchesFromCardCode('12-2'));
+  assert.equal(document.card(0)[2], punchesFromCardCode('12-3'));
+});
+
+test('a gap in the column sequence starts a new typing run', async () => {
+  const { document, panel } = await openEditor('typegap', [blankCard()]);
+  const edits = [];
+  document.onDidChange((e) => edits.push(e));
+
+  panel.send({ type: 'typeGlyph', index: 0, column: 1, glyph: 'a' });
+  panel.send({ type: 'typeGlyph', index: 0, column: 5, glyph: 'b' });
+  assert.equal(edits.length, 2);
+  assert.equal(document.card(0)[0], punchesFromCardCode('12-1'));
+  assert.equal(document.card(0)[4], punchesFromCardCode('12-2'));
+});
+
+test('a toggle between typed characters starts a new typing run', async () => {
+  const { document, panel } = await openEditor('typebreak', [blankCard()]);
+  const edits = [];
+  document.onDidChange((e) => edits.push(e));
+
+  panel.send({ type: 'typeGlyph', index: 0, column: 1, glyph: 'a' });
+  panel.send({ type: 'toggle', index: 0, column: 10, row: 0 });
+  panel.send({ type: 'typeGlyph', index: 0, column: 2, glyph: 'b' });
+
+  assert.equal(edits.length, 3);
+  assert.equal(edits[0].label, 'type text');
+  assert.equal(edits[1].label, 'punch column');
+  assert.equal(edits[2].label, 'type text');
+  assert.equal(document.card(0)[0], punchesFromCardCode('12-1'));
+  assert.equal(document.card(0)[1], punchesFromCardCode('12-2'));
+});
+
+test('a no-op keystroke inside a run advances it without an extra undo entry', async () => {
+  const { document, panel } = await openEditor('typesame', [blankCard()]);
+  const edits = [];
+  document.onDidChange((e) => edits.push(e));
+
+  panel.send({ type: 'typeGlyph', index: 0, column: 1, glyph: 'a' });
+  panel.send({ type: 'typeGlyph', index: 0, column: 2, glyph: 'b' });
+  // Column 3 is already blank; typing a space there changes nothing.
+  panel.send({ type: 'typeGlyph', index: 0, column: 3, glyph: ' ' });
+  // The run must still be open: column 4 continues it, not a new run.
+  panel.send({ type: 'typeGlyph', index: 0, column: 4, glyph: 'c' });
+
+  assert.equal(edits.length, 1);
+  assert.equal(document.card(0)[0], punchesFromCardCode('12-1'));
+  assert.equal(document.card(0)[1], punchesFromCardCode('12-2'));
+  assert.equal(document.card(0)[2], 0);
+  assert.equal(document.card(0)[3], punchesFromCardCode('12-3'));
+
+  edits[0].undo();
+  assert.equal(document.card(0)[0], 0);
+  assert.equal(document.card(0)[1], 0);
+  assert.equal(document.card(0)[3], 0);
+});
+
 test('insert, duplicate and delete move the selection with the card', async () => {
   const card = blankCard();
   card[0] = punchesFromCardCode('12-1');

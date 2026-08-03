@@ -209,7 +209,7 @@ export class PunchcardEditorProvider
       this.status(panel, `'${glyph}' is not a Set H source character`);
       return;
     }
-    document.setColumn(index, column, punches);
+    document.typeColumn(index, column, punches);
     this.send(document, panel, {
       cursor: Math.min(column + 1, COLUMN_COUNT),
     });
