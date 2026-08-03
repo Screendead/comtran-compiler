@@ -112,6 +112,13 @@ for line. `npm run compile` also type-checks `media/punchcard.js` under
 `tsconfig.media.json` (`allowJs`/`checkJs`), so the webview script gets the
 same catch as the rest of the extension.
 
+`test/webview.test.js` runs `media/punchcard.js` itself, not just the
+extension host's side of it: it loads the webview's own generated HTML into a
+real DOM (the `jsdom` devDependency), sends it `state`/`status` messages the
+same shape `punchcardEditor.ts` sends, and drives its keyboard and mouse
+handlers to check the grid, the card list, type-to-punch mode, zoom, and
+`vscode.getState`/`setState` persistence.
+
 ## How to package it
 
 ```
