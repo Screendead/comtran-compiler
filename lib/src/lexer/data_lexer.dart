@@ -94,14 +94,7 @@ DataScan scanDataDescription(
   final entries = <DataEntry>[];
   final List<Diagnostic> diagnostics = sink ?? <Diagnostic>[];
   final int first = diagnostics.length;
-  var i = 0;
-  while (i < cards.length) {
-    final group = <SourceCard>[cards[i]];
-    while (cards[i].isPunched(72) && i + 1 < cards.length) {
-      i++;
-      group.add(cards[i]);
-    }
-    i++;
+  for (final List<SourceCard> group in continuationGroups(cards)) {
     entries.add(_scanEntry(group, diagnostics, pedantic: pedantic));
   }
   return DataScan._(entries, diagnostics.sublist(first));

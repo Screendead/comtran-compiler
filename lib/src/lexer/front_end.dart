@@ -151,7 +151,7 @@ FrontEndResult runFrontEnd(
           // Number by card group, not by surviving specification, so a
           // deleted card (144,00) still consumes its statement number —
           // the numbering analogue of decision D9.8.
-          number(_cardGroups(group.cards));
+          number(continuationGroups(group.cards));
         case Division.procedure:
           final ProcedureScan scan = scanProcedure(group.cards, diagnostics);
           groupScans.add(ProcedureGroupScan._(group, scan));
@@ -188,21 +188,4 @@ FrontEndResult runFrontEnd(
     statementCount: statement,
     stopped: stopped,
   );
-}
-
-/// Partitions fixed-form division cards into their continuation groups:
-/// a unit is complete when column 72 is blank (J 02.03.02, §3.b).
-List<List<SourceCard>> _cardGroups(List<SourceCard> cards) {
-  final units = <List<SourceCard>>[];
-  var i = 0;
-  while (i < cards.length) {
-    final unit = <SourceCard>[cards[i]];
-    while (cards[i].isPunched(72) && i + 1 < cards.length) {
-      i++;
-      unit.add(cards[i]);
-    }
-    i++;
-    units.add(unit);
-  }
-  return units;
 }

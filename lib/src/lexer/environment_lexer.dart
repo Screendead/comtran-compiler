@@ -74,14 +74,7 @@ EnvironmentScan scanEnvironment(
   final specs = <EnvironmentSpec>[];
   final List<Diagnostic> diagnostics = sink ?? <Diagnostic>[];
   final int first = diagnostics.length;
-  var i = 0;
-  while (i < cards.length) {
-    final group = <SourceCard>[cards[i]];
-    while (cards[i].isPunched(72) && i + 1 < cards.length) {
-      i++;
-      group.add(cards[i]);
-    }
-    i++;
+  for (final List<SourceCard> group in continuationGroups(cards)) {
     final EnvironmentSpec? spec = _scanSpec(group, diagnostics);
     if (spec != null) {
       specs.add(spec);
