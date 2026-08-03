@@ -1,6 +1,7 @@
-/// The compiler driver. At M1 it runs the front end — card reader,
-/// scanners, statement numbering — and prints the compilation listing,
-/// the first observable compiler output (roadmap M1, `docs/HANDOVER.md`).
+/// The compiler driver. It runs the front end — card reader, scanners,
+/// statement numbering — and the M2 parser, and prints the compilation
+/// listing with the merged diagnostic block (roadmap M1–M2,
+/// `docs/HANDOVER.md`; design note M2-1).
 library;
 
 import 'dart:io';
@@ -11,7 +12,7 @@ const String _usage = '''
 Usage: dart run comtran:comtranc <deck.ctdeck> [options]
 
   Compiles one job's source deck and prints the compilation listing.
-  (M1: the front end only — no parse, no code generation yet.)
+  (M1+M2: front end and parser — no code generation yet.)
 
   --date=mm/dd/yy    page-head date (default: today)
   --time=h.hh        page-head time, decimal hours (default: now)
@@ -78,6 +79,7 @@ int _run(List<String> arguments) {
     final FrontEndResult result = runFrontEnd(
       decodeCanon(File(deckPath).readAsBytesSync()),
     );
+    final ParseResult parse = runParser(result);
     stdout.write(
       writeListing(
         result,
@@ -88,11 +90,12 @@ int _run(List<String> arguments) {
           title: title,
           linesPerPage: linesPerPage,
         ),
+        diagnostics: parse.diagnostics,
       ),
     );
     // Severity 5 stops compilation (J 90.04.02); lower severities still
-    // produce output at M1.
-    return result.maxSeverity >= 5 ? 1 : 0;
+    // produce output.
+    return parse.maxSeverity >= 5 ? 1 : 0;
   } on FormatException catch (e) {
     stderr.writeln('error: ${e.message}');
     return 1;
