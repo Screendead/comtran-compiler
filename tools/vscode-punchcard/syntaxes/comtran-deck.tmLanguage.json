@@ -1,0 +1,324 @@
+{
+  "name": "COMTRAN Deck Mirror",
+  "scopeName": "source.comtran-deck",
+  "fileTypes": [
+    "deck"
+  ],
+  "patterns": [
+    {
+      "include": "#punch-line"
+    },
+    {
+      "include": "#data-division"
+    },
+    {
+      "include": "#environment-division"
+    },
+    {
+      "include": "#procedure-division"
+    },
+    {
+      "include": "#finish-card"
+    },
+    {
+      "include": "#cmple-card"
+    },
+    {
+      "include": "#compile-card"
+    },
+    {
+      "include": "#loose-serial"
+    }
+  ],
+  "repository": {
+    "punch-line": {
+      "match": "^(!)((?: [0-9]+:[0-9-]+)*)$",
+      "captures": {
+        "1": {
+          "name": "keyword.operator.punch.comtran-deck"
+        },
+        "2": {
+          "patterns": [
+            {
+              "match": "([0-9]+)(:)([0-9-]+)",
+              "captures": {
+                "1": {
+                  "name": "constant.numeric.column.comtran-deck"
+                },
+                "2": {
+                  "name": "punctuation.separator.comtran-deck"
+                },
+                "3": {
+                  "name": "string.unquoted.rows.comtran-deck"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "data-division": {
+      "begin": "^(.{6})(\\*DATA)$",
+      "beginCaptures": {
+        "1": {
+          "name": "comment.serial.comtran-deck"
+        },
+        "2": {
+          "name": "keyword.control.division.comtran-deck"
+        }
+      },
+      "end": "^(?=.{6}(?:\\*DATA|\\*ENVIRONMENT|\\*PROCEDURE|\\*FINISH)$)",
+      "patterns": [
+        {
+          "include": "#punch-line"
+        },
+        {
+          "match": "^(.{6})(.{0,16})(.{0,2})(.{0,6})(.{0,5})(.{0,1})(.{0,1})(.{0,34})(.{0,1})(.*)$",
+          "captures": {
+            "1": {
+              "name": "comment.serial.comtran-deck"
+            },
+            "2": {
+              "name": "entity.name.function.data-name.comtran-deck"
+            },
+            "3": {
+              "name": "constant.numeric.level.comtran-deck"
+            },
+            "4": {
+              "name": "storage.type.comtran-deck"
+            },
+            "5": {
+              "name": "constant.numeric.quantity.comtran-deck"
+            },
+            "6": {
+              "name": "storage.modifier.mode.comtran-deck"
+            },
+            "7": {
+              "name": "storage.modifier.justification.comtran-deck"
+            },
+            "8": {
+              "patterns": [
+                {
+                  "match": "'[^']*(?:'|$)",
+                  "name": "string.quoted.single.comtran-deck"
+                },
+                {
+                  "match": "\\b[0-9]+(?:\\.[0-9]*)?FF?(?:[+-]?[0-9]+)?\\b",
+                  "name": "constant.numeric.floating.comtran-deck"
+                },
+                {
+                  "match": "\\b[0-9]+(?:\\.[0-9]+)?\\b",
+                  "name": "constant.numeric.comtran-deck"
+                }
+              ]
+            },
+            "9": {
+              "name": "constant.character.escape.continuation.comtran-deck"
+            },
+            "10": {
+              "name": "comment.identification.comtran-deck"
+            }
+          }
+        },
+        {
+          "match": "^(.{1,6})$",
+          "captures": {
+            "1": {
+              "name": "comment.serial.comtran-deck"
+            }
+          }
+        }
+      ]
+    },
+    "environment-division": {
+      "begin": "^(.{6})(\\*ENVIRONMENT)$",
+      "beginCaptures": {
+        "1": {
+          "name": "comment.serial.comtran-deck"
+        },
+        "2": {
+          "name": "keyword.control.division.comtran-deck"
+        }
+      },
+      "end": "^(?=.{6}(?:\\*DATA|\\*ENVIRONMENT|\\*PROCEDURE|\\*FINISH)$)",
+      "patterns": [
+        {
+          "include": "#punch-line"
+        },
+        {
+          "match": "^(.{6})(.{0,16})(.{0,8})(.{0,41})(.{0,1})(.*)$",
+          "captures": {
+            "1": {
+              "name": "comment.serial.comtran-deck"
+            },
+            "2": {
+              "name": "entity.name.function.environment-name.comtran-deck"
+            },
+            "3": {
+              "name": "storage.type.comtran-deck"
+            },
+            "4": {
+              "patterns": [
+                {
+                  "match": "'[^']*(?:'|$)",
+                  "name": "string.quoted.single.comtran-deck"
+                },
+                {
+                  "match": "\\b[0-9]+(?:\\.[0-9]*)?FF?(?:[+-]?[0-9]+)?\\b",
+                  "name": "constant.numeric.floating.comtran-deck"
+                },
+                {
+                  "match": "\\b[0-9]+(?:\\.[0-9]+)?\\b",
+                  "name": "constant.numeric.comtran-deck"
+                }
+              ]
+            },
+            "5": {
+              "name": "constant.character.escape.continuation.comtran-deck"
+            },
+            "6": {
+              "name": "comment.identification.comtran-deck"
+            }
+          }
+        },
+        {
+          "match": "^(.{1,6})$",
+          "captures": {
+            "1": {
+              "name": "comment.serial.comtran-deck"
+            }
+          }
+        }
+      ]
+    },
+    "procedure-division": {
+      "begin": "^(.{6})(\\*PROCEDURE)$",
+      "beginCaptures": {
+        "1": {
+          "name": "comment.serial.comtran-deck"
+        },
+        "2": {
+          "name": "keyword.control.division.comtran-deck"
+        }
+      },
+      "end": "^(?=.{6}(?:\\*DATA|\\*ENVIRONMENT|\\*PROCEDURE|\\*FINISH)$)",
+      "patterns": [
+        {
+          "include": "#punch-line"
+        },
+        {
+          "match": "^(.{6})([^ ]+)",
+          "captures": {
+            "1": {
+              "name": "comment.serial.comtran-deck"
+            },
+            "2": {
+              "name": "entity.name.function.label.comtran-deck"
+            }
+          }
+        },
+        {
+          "match": "^(.{1,6})",
+          "captures": {
+            "1": {
+              "name": "comment.serial.comtran-deck"
+            }
+          }
+        },
+        {
+          "match": "'[^']*(?:'|$)",
+          "name": "string.quoted.single.comtran-deck"
+        },
+        {
+          "match": "(\\.)(?: (.*))?$",
+          "captures": {
+            "1": {
+              "name": "keyword.operator.terminator.comtran-deck"
+            },
+            "2": {
+              "name": "comment.line.commentary.comtran-deck"
+            }
+          }
+        },
+        {
+          "match": "\\b[0-9]+(?:\\.[0-9]*)?FF?(?:[+-]?[0-9]+)?\\b",
+          "name": "constant.numeric.floating.comtran-deck"
+        },
+        {
+          "match": "\\b[0-9]+(?:\\.[0-9]+)?\\b",
+          "name": "constant.numeric.comtran-deck"
+        }
+      ]
+    },
+    "finish-card": {
+      "match": "^(.{6})(\\*FINISH)$",
+      "captures": {
+        "1": {
+          "name": "comment.serial.comtran-deck"
+        },
+        "2": {
+          "name": "keyword.control.card.comtran-deck"
+        }
+      }
+    },
+    "cmple-card": {
+      "match": "^(\\$CMPLE)(.*)$",
+      "captures": {
+        "1": {
+          "name": "keyword.control.card.comtran-deck"
+        },
+        "2": {
+          "patterns": [
+            {
+              "match": "'[^']*(?:'|$)",
+              "name": "string.quoted.single.comtran-deck"
+            },
+            {
+              "match": "\\b[0-9]+(?:\\.[0-9]*)?FF?(?:[+-]?[0-9]+)?\\b",
+              "name": "constant.numeric.floating.comtran-deck"
+            },
+            {
+              "match": "\\b[0-9]+(?:\\.[0-9]+)?\\b",
+              "name": "constant.numeric.comtran-deck"
+            }
+          ]
+        }
+      }
+    },
+    "compile-card": {
+      "match": "^(.{6})(\\*COMPILE)(.*)$",
+      "captures": {
+        "1": {
+          "name": "comment.serial.comtran-deck"
+        },
+        "2": {
+          "name": "keyword.control.card.comtran-deck"
+        },
+        "3": {
+          "patterns": [
+            {
+              "match": "'[^']*(?:'|$)",
+              "name": "string.quoted.single.comtran-deck"
+            },
+            {
+              "match": "\\b[0-9]+(?:\\.[0-9]*)?FF?(?:[+-]?[0-9]+)?\\b",
+              "name": "constant.numeric.floating.comtran-deck"
+            },
+            {
+              "match": "\\b[0-9]+(?:\\.[0-9]+)?\\b",
+              "name": "constant.numeric.comtran-deck"
+            }
+          ]
+        }
+      }
+    },
+    "loose-serial": {
+      "match": "^(.{1,6})",
+      "captures": {
+        "1": {
+          "name": "comment.serial.comtran-deck"
+        }
+      }
+    }
+  }
+}
