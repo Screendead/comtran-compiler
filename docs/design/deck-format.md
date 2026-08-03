@@ -120,7 +120,7 @@ is always the empty line.
   not normal form (trailing spaces, CR, glyphs outside §3.1, out-of-order or
   malformed punch fields).
 
-The 90.05 mirror (`tests/90.05-payroll.deck`) predates this document and is
+The 90.05 mirror (`test/fixtures/90.05-payroll.deck`) predates this document and is
 already in normal form: 293 glyph lines, columns 1–72, ASCII, no trailing
 blanks.
 
@@ -270,7 +270,7 @@ this document uses core codes.
 - Local binary diffs: `.gitattributes` marks `*.ctdeck` with `diff=ctdeck`;
   configure `git config diff.ctdeck.textconv 'dart run comtran:deckconv to-text'`
   to see mirror text in `git diff` / `git log -p`.
-- Sequencing, per D0.5: `tests/90.05-payroll.deck` was the working authority
-  until this format froze. At M1 the canon `tests/90.05-payroll.ctdeck` is
+- Sequencing, per D0.5: `test/fixtures/90.05-payroll.deck` was the working authority
+  until this format froze. At M1 the canon `test/fixtures/90.05-payroll.ctdeck` is
   generated from it once, the round trip is verified, and the text file
   becomes the generated mirror from then on.

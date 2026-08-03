@@ -22,17 +22,14 @@ Read `docs/HANDOVER.md` for the live state and the next task.
 |---|---|
 | `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `listing`, `emulator`, and `mcp` |
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), `deckmcp.dart` (the MCP server) |
-| `test/` | The Dart tests, plus `test/goldens/` and `test/emulator/` |
-| `tests/` | Reference deck data: the 90.05 canon deck, its mirror, and the keying notes |
+| `test/` | The Dart tests, plus `test/goldens/`, `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its mirror, and the keying notes) |
 | `tool/` | Dart generators for this package |
 | `tools/vscode-punchcard/` | The VS Code punchcard extension (TypeScript, npm) |
 | `docs/` | The language definition, HANDOVER, and `docs/design/` |
 | `comtran-manuals/` | The two manual conversions and their page scans. **Read-only.** |
 
-Two name pairs differ by one letter. Do not confuse them:
+One name pair differs by one letter. Do not confuse it:
 
-- `test/` holds Dart test code. `tests/` holds deck fixtures. `dart test` reads
-  `test/` only.
 - `tool/` holds Dart scripts for this package. `tools/` holds the VS Code
   extension.
 
@@ -46,7 +43,7 @@ dart format --output=none --set-exit-if-changed lib bin test tool
 dart analyze --fatal-infos
 dart test
 dart run comtran:deckconv check .
-dart run comtran:comtranc tests/90.05-payroll.ctdeck   # compile the sample
+dart run comtran:comtranc test/fixtures/90.05-payroll.ctdeck   # compile the sample
 ```
 
 CI runs the same gate on every pull request. `.github/workflows/` is the

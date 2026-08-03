@@ -39,7 +39,7 @@ Terms that appear without expansion:
 | Language definition | Complete and verified | `docs/comtran-language-definition.md` |
 | M0 design decisions (84 records) | Locked 2026-08-02 | `docs/design/decisions.md` |
 | Punch-level deck format | Frozen | `docs/design/deck-format.md` |
-| 90.05 canon deck (293 cards) | Authoritative; its mirror is CI-slaved | `tests/90.05-payroll.ctdeck` |
+| 90.05 canon deck (293 cards) | Authoritative; its mirror is CI-slaved | `test/fixtures/90.05-payroll.ctdeck` |
 | M1 front end | Done 2026-08-03 | `lib/src/lexer/`, `lib/src/listing/` |
 | M2 stage 1 — AST and fixed-form parsers | Merged 2026-08-03 (PR #15) | `lib/src/ast/`, `lib/src/parser/` |
 | M2 stage 2 — procedure division | Merged 2026-08-03 (PR #17) | `lib/src/parser/procedure_parser.dart` |
@@ -56,7 +56,7 @@ it no later than M4.
 
 Test baseline, measured 2026-08-03: 401 Dart tests pass, and 73 extension tests
 pass. Both suites must stay green; re-measure the counts, do not trust them.
-`dart run comtran:comtranc tests/90.05-payroll.ctdeck` compiles the manual's
+`dart run comtran:comtranc test/fixtures/90.05-payroll.ctdeck` compiles the manual's
 own payroll sample through the front end and the parser. It prints the
 listing, numbered 1,00 to 229,00 exactly as the 1962 compile numbered it, with
 zero diagnostics. A golden test guards that listing byte for byte.
@@ -93,7 +93,7 @@ binds work outside the definition.
      with level 02 abutting at columns 23–24 — not `CNTRLCHARSECLINE`.
      Statement 203 prints `1.5 -20)`, not `1.5 - 20)`. Both readings come from
      the page scans, measured during the deck re-keying.
-     `tests/90.05-payroll-deck-notes.md` holds the details and the minor
+     `test/fixtures/90.05-payroll-deck-notes.md` holds the details and the minor
      spacing normalizations.
   3. On the transcription of PDF p. 197, the statement numbers of 218,00–221,00
      and 228,00 sit one line low. A printer half-line stagger causes this.
@@ -121,9 +121,9 @@ binds work outside the definition.
 ## The mission: the compiler — roadmap
 
 The first concrete task is done. The 90.05 sample deck is re-keyed as
-`tests/90.05-payroll.deck` (2026-08-02): 293 cards, program lines only, with
+`test/fixtures/90.05-payroll.deck` (2026-08-02): 293 cards, program lines only, with
 every column layout measured from the page scans line by line.
-`tests/90.05-payroll-deck-notes.md` holds the provenance, the layout facts, the
+`test/fixtures/90.05-payroll-deck-notes.md` holds the provenance, the layout facts, the
 reconstruction decisions, and the residual one-space caveats. This deck is the
 only surviving COMTRAN program with known-correct output — the printed report,
 PDF p. 217. It makes every milestone below testable at once.

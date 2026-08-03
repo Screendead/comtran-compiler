@@ -40,8 +40,7 @@ yet.
 |---|---|
 | `lib/` | The compiler source. `lib/src/` holds `cards`, `chars`, `lexer`, `parser`, `ast`, `listing`, `emulator`, and `mcp`. |
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), and `deckmcp.dart` (the MCP deck server). |
-| `test/` | The Dart test suite, with `test/goldens/` (the 1962 listing oracle) and `test/emulator/`. |
-| `tests/` | Reference deck data: the 90.05 canon deck, its text mirror, and the keying notes. |
+| `test/` | The Dart test suite, with `test/goldens/` (the 1962 listing oracle), `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its text mirror, and the keying notes). |
 | `tool/` | Dart generators for this package. |
 | `tools/vscode-punchcard/` | A VS Code extension: a punch-level editor for `*.ctdeck` decks, and highlighting for `.deck` mirrors. |
 | `docs/design/` | The design records: the D0–D9 decision log (`decisions.md`), one document per milestone (`m1-front-end.md`, `m2-parser.md`), plus `deck-format.md`, `emulator.md`, and `severity-notes.md`. |
@@ -71,7 +70,7 @@ To compile the manual's own payroll sample through the front end and the parser,
 and print its listing:
 
 ```sh
-dart run comtran:comtranc tests/90.05-payroll.ctdeck
+dart run comtran:comtranc test/fixtures/90.05-payroll.ctdeck
 ```
 
 The listing is numbered exactly as the 1962 compile numbered it. A golden test

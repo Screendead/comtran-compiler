@@ -105,5 +105,5 @@ in scripts, hooks, and CI.
   64-code table.
 - `docs/design/decisions.md` — D0.5 (deck format and authority) and D0.6 (the
   character code).
-- `tests/90.05-payroll.ctdeck` — the reference deck, from J28-6169 Appendix
+- `test/fixtures/90.05-payroll.ctdeck` — the reference deck, from J28-6169 Appendix
   90.05.

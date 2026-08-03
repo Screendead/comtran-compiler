@@ -12,7 +12,7 @@ import 'package:comtran/comtran.dart';
 
 /// Path to the 90.05 canon deck fixture (J Appendix 90.05's compiled
 /// payroll sample program), relative to the repository root.
-const String payrollDeckPath = 'tests/90.05-payroll.ctdeck';
+const String payrollDeckPath = 'test/fixtures/90.05-payroll.ctdeck';
 
 /// Decodes the 90.05 canon deck fixture into its punch-level card images.
 List<CardImage> loadPayrollDeck() =>

@@ -102,7 +102,7 @@ npm test
 
 To try the editor, open **this folder** (`tools/vscode-punchcard`) in VS Code and
 press <kbd>F5</kbd>. VS Code compiles the extension and starts an Extension
-Development Host on the repository root. Open `tests/90.05-payroll.ctdeck` there.
+Development Host on the repository root. Open `test/fixtures/90.05-payroll.ctdeck` there.
 
 `npm test` compiles first, then runs the unit tests with `node --test`. The
 tests cover the header, the two-columns-per-three-bytes packing, the read rules,

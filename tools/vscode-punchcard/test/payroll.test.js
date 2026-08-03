@@ -9,8 +9,8 @@ const { decodeCanon, encodeCanon } = require('../out/canonCodec.js');
 const { isGlyphCard, previewOf, readCard } = require('../out/cardView.js');
 
 const REPO = path.join(__dirname, '..', '..', '..');
-const CANON = path.join(REPO, 'tests', '90.05-payroll.ctdeck');
-const MIRROR = path.join(REPO, 'tests', '90.05-payroll.deck');
+const CANON = path.join(REPO, 'test', 'fixtures', '90.05-payroll.ctdeck');
+const MIRROR = path.join(REPO, 'test', 'fixtures', '90.05-payroll.deck');
 
 const bytes = new Uint8Array(fs.readFileSync(CANON));
 
