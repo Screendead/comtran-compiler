@@ -56,7 +56,7 @@ export class PunchcardDocument implements vscode.CustomDocument {
     backupId: string | undefined,
   ): Promise<PunchcardDocument> {
     const source = backupId !== undefined ? vscode.Uri.parse(backupId) : uri;
-    const deck = await PunchcardDocument.readDeck(source, uri.scheme);
+    const deck = await PunchcardDocument.readDeck(source, source.scheme);
     return new PunchcardDocument(uri, deck);
   }
 
