@@ -8,18 +8,18 @@ import 'package:test/test.dart';
 /// The VS Code extension carries a TypeScript port of
 /// `lib/src/chars/char_code.dart`. Both codecs must agree on every punch
 /// pattern and every BCD code. The committed fixtures
-/// `tools/vscode-punchcard/test/fixtures/char-code-*-vectors.csv` are the
+/// `editors/vscode-punchcard/test/fixtures/char-code-*-vectors.csv` are the
 /// shared contract: the extension's `charCodeVectors.test.js` checks the
 /// TypeScript side, and this test checks the Dart side, against the same
 /// bytes. A change to either codec that is not reflected in a regenerated
-/// fixture (`npm run vectors` in `tools/vscode-punchcard/`) fails one side.
+/// fixture (`npm run vectors` in `editors/vscode-punchcard/`) fails one side.
 ///
 /// The fixture format is documented in
-/// `tools/vscode-punchcard/test/fixtures/README.md`: every field is
+/// `editors/vscode-punchcard/test/fixtures/README.md`: every field is
 /// double-quoted, `""` escapes an internal quote, an empty field means the
 /// source function returned null.
 
-const String _fixtures = 'tools/vscode-punchcard/test/fixtures';
+const String _fixtures = 'editors/vscode-punchcard/test/fixtures';
 
 List<String> _parseCsvLine(String line) {
   final fields = <String>[];

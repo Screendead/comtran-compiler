@@ -4,13 +4,13 @@ on:
   push:
     branches: [master]
     paths:
-      - 'tools/vscode-punchcard/**'
+      - 'editors/vscode-punchcard/**'
       - 'lib/src/cards/canon_codec.dart'
       - 'lib/src/chars/char_code.dart'
       - '.github/workflows/vscode-ext.yml'
   pull_request:
     paths:
-      - 'tools/vscode-punchcard/**'
+      - 'editors/vscode-punchcard/**'
       - 'lib/src/cards/canon_codec.dart'
       - 'lib/src/chars/char_code.dart'
       - '.github/workflows/vscode-ext.yml'
@@ -29,14 +29,14 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: tools/vscode-punchcard
+        working-directory: editors/vscode-punchcard
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: tools/vscode-punchcard/package-lock.json
+          cache-dependency-path: editors/vscode-punchcard/package-lock.json
       - run: npm ci
       - run: npm run compile
       - run: node --check media/punchcard.js
@@ -45,4 +45,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: vscode-extension
-          path: tools/vscode-punchcard/*.vsix
+          path: editors/vscode-punchcard/*.vsix

@@ -47,9 +47,9 @@ Terms that appear without expansion:
 | M3 to M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
-| T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `tools/vscode-punchcard/` |
+| T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
 | T3 MCP server and skill | Done 2026-08-03 (PR #8) | `bin/deckmcp.dart`, `.claude/skills/comtran-decks/` |
-| T4 deck syntax highlighting | Done 2026-08-03 (PR #14) | `tools/vscode-punchcard/` |
+| T4 deck syntax highlighting | Done 2026-08-03 (PR #14) | `editors/vscode-punchcard/` |
 
 One M0 deferral is open: **D4.1**, the MOVPAK round-step emission rule. Decide
 it no later than M4.
@@ -187,7 +187,7 @@ M2 to M6.
   as the pre-commit hook (`.githooks/`), the CI freshness step, and the git
   textconv driver. `docs/design/deck-format.md` holds the setup.
 - **T2 — VS Code punchcard editor** — **DONE 2026-08-03** (PR #9). A custom
-  binary editor for `*.ctdeck` in `tools/vscode-punchcard/`: punch grid,
+  binary editor for `*.ctdeck` in `editors/vscode-punchcard/`: punch grid,
   interpreted Set H row, field rulers, and click- or type-to-punch editing.
   To install it, package the `.vsix` and run
   `code --profile <name> --install-extension`. The profile matters.
@@ -196,7 +196,7 @@ M2 to M6.
   `.claude/skills/comtran-decks` skill documents the deck workflow.
 - **T4 — Deck syntax highlighting** — **DONE 2026-08-03** (PR #14). Both deck
   views color the card fields from one shared column table
-  (`tools/vscode-punchcard/src/columns.ts`).
+  (`editors/vscode-punchcard/src/columns.ts`).
   - A `comtran-deck` language contribution colors `.deck` mirrors from a
     **generated** TextMate grammar (`npm run grammar`; a freshness test guards
     the committed file): column fields, literals, the period-blank terminator

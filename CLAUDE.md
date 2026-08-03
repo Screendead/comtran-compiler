@@ -24,14 +24,9 @@ Read `docs/HANDOVER.md` for the live state and the next task.
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), `deckmcp.dart` (the MCP server) |
 | `test/` | The Dart tests, plus `test/goldens/`, `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its mirror, and the keying notes) |
 | `tool/` | Dart generators for this package |
-| `tools/vscode-punchcard/` | The VS Code punchcard extension (TypeScript, npm) |
+| `editors/vscode-punchcard/` | The VS Code punchcard extension (TypeScript, npm) |
 | `docs/` | The language definition, HANDOVER, and `docs/design/` |
 | `comtran-manuals/` | The two manual conversions and their page scans. **Read-only.** |
-
-One name pair differs by one letter. Do not confuse it:
-
-- `tool/` holds Dart scripts for this package. `tools/` holds the VS Code
-  extension.
 
 ## 4. Commands
 
@@ -55,7 +50,7 @@ authority on what CI runs. Two notes:
   `test/goldens/90.05-payroll.listing`) is the acceptance oracle for the front
   end. It compares byte for byte.
 
-For the extension, run these in `tools/vscode-punchcard/`:
+For the extension, run these in `editors/vscode-punchcard/`:
 
 ```sh
 npm ci
@@ -178,7 +173,7 @@ Do not edit these by hand:
 | File | Generator |
 |---|---|
 | `lib/src/lexer/message_catalog.dart` | `dart run tool/generate_message_catalog.dart` |
-| `tools/vscode-punchcard/syntaxes/comtran-deck.tmLanguage.json` | `npm run grammar` |
+| `editors/vscode-punchcard/syntaxes/comtran-deck.tmLanguage.json` | `npm run grammar` |
 | every `*.deck` mirror | `dart run comtran:deckconv regen <path>` |
 
 A golden test guards each one. A hand edit fails that test with no obvious
