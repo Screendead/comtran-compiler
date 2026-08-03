@@ -37,6 +37,19 @@ void main() {
       expect(m.acSign, 1);
       expect(m.acMagnitude, 0);
     });
+
+    test("CLA* indirects through the indirect word's own tag", () {
+      // TSTC-07: indirect addressing is tested only on TRA. This pins it
+      // for a load. The indirect shape mirrors the TRA* test
+      // (test/emulator/cpu_transfer_index_test.dart).
+      m
+        ..xrWrite(1, 3)
+        ..write(0x300, typeA(0, tag: 1, address: 0x403)) // Indirect word.
+        ..write(0x400, data(9)); // 0x403 - XR1(3) = 0x400.
+      runOne(typeB(0x140, address: 0x300, flag: true)); // CLA*
+      expect(m.acSign, 0);
+      expect(m.acMagnitude, 9);
+    });
   });
 
   // CAL: 22-6528-4 p. 20 (external): the sign of Y appears in position P.

@@ -188,4 +188,17 @@ void main() {
       expect(m.mq, data(0x3F << 6));
     });
   });
+
+  // TSTC-07: shifts and the 0760 family call
+  // `_effectiveAddress(..., indirectable: false)`, so a flagged shift word
+  // must ignore the flag, unlike CLA*, STO*, CAS*, and TRA*.
+  test('the flag bit is ignored: shift counts are never indirectable', () {
+    m
+      ..acMagnitude = 1
+      // If the flag were honored, the CPU would fetch this word as the
+      // indirect word and take its address (0xAA) as the count instead.
+      ..write(5, typeA(0, address: 0xAA));
+    runOne(typeB(0x1F7, address: 5, flag: true)); // ALS*, count 5 if ignored.
+    expect(m.acMagnitude, 1 << 5);
+  });
 }

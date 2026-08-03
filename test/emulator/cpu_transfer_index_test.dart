@@ -250,6 +250,18 @@ void main() {
       cas(0x200);
       expect(m.ic, 0x101);
     });
+
+    test("CAS* indirects through the indirect word's own tag", () {
+      // TSTC-07: indirect addressing is tested only on TRA; this pins it
+      // for a compare. The indirect shape mirrors the TRA* test above.
+      m
+        ..acMagnitude = 5
+        ..xrWrite(1, 3)
+        ..write(0x300, typeA(0, tag: 1, address: 0x403)) // Indirect word.
+        ..write(0x400, data(3)); // 0x403 - XR1(3).
+      runOne(typeB(0x0E0, address: 0x300, flag: true)); // CAS*
+      expect(m.ic, 0x101); // AC(5) > Y(3): no skip.
+    });
   });
 
   // LAS: 22-6528-4 p. 43 (external): unsigned, Q,P,1-35 against S,1-35.
