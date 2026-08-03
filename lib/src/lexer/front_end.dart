@@ -15,6 +15,7 @@ import '../cards/card_image.dart';
 import 'data_lexer.dart';
 import 'diagnostic.dart';
 import 'environment_lexer.dart';
+import 'messages.dart';
 import 'procedure_lexer.dart';
 import 'source_card.dart';
 import 'source_program.dart';
@@ -105,8 +106,14 @@ final class FrontEndResult {
 /// [DiagnosticSink] (D9.1), shared with the parser by the driver. A
 /// severity-5 diagnostic stops the front end at the point of detection:
 /// the result carries everything scanned and numbered up to it, with
-/// [FrontEndResult.stopped] set.
-FrontEndResult runFrontEnd(List<CardImage> deck, {DiagnosticSink? sink}) {
+/// [FrontEndResult.stopped] set. [pedantic] adds non-historical written-
+/// language-strictness diagnostics (decision D0.8, D11.4) without
+/// changing any scanned value.
+FrontEndResult runFrontEnd(
+  List<CardImage> deck, {
+  DiagnosticSink? sink,
+  bool pedantic = false,
+}) {
   final program = SourceProgram.fromDeck(deck);
   final groupScans = <GroupScan>[];
   final DiagnosticSink diagnostics = sink ?? DiagnosticSink();
@@ -130,7 +137,11 @@ FrontEndResult runFrontEnd(List<CardImage> deck, {DiagnosticSink? sink}) {
     for (final DivisionGroup group in program.groups) {
       switch (group.division) {
         case Division.data:
-          final DataScan scan = scanDataDescription(group.cards, diagnostics);
+          final DataScan scan = scanDataDescription(
+            group.cards,
+            sink: diagnostics,
+            pedantic: pedantic,
+          );
           groupScans.add(DataGroupScan._(group, scan));
           number([for (final DataEntry e in scan.entries) e.cards]);
         case Division.environment:
@@ -147,6 +158,22 @@ FrontEndResult runFrontEnd(List<CardImage> deck, {DiagnosticSink? sink}) {
           final ProcedureScan scan = scanProcedure(group.cards, diagnostics);
           groupScans.add(ProcedureGroupScan._(group, scan));
           number([for (final ProcedureSentence s in scan.sentences) s.cards]);
+          if (pedantic) {
+            // A shallow post-pass over the repair the scan already
+            // recorded (decisions D1.3, D9.4a, D11.4): the omission
+            // itself is unchanged in both modes.
+            for (final ProcedureSentence s in scan.sentences) {
+              if (s.label != null && !s.labelHadPeriod) {
+                diagnostics.add(
+                  Diagnostic(
+                    msgProcedureNamePeriodOmitted,
+                    s.cards.first,
+                    column: s.labelColumn,
+                  ),
+                );
+              }
+            }
+          }
       }
     }
   } on StopCompilation {

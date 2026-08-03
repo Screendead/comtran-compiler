@@ -208,6 +208,56 @@ void main() {
       expect(card.records.single.name.text, 'MOVE');
     });
 
+    test('a second input record with no leading comma draws 924 under '
+        '--pedantic (D8.5)', () {
+      final EnvironmentScan scan = scanEnvironment(
+        sourceCards([
+          environmentCard(
+            name: 'F',
+            type: 'FILE',
+            options: 'INPUT,REC1 REC2,BLOCKSIZE 10',
+          ),
+        ]),
+      );
+      expect(scan.diagnostics, isEmpty);
+      final plainDiagnostics = <Diagnostic>[];
+      final List<EnvironmentCard> plainCards = parseEnvironmentGroup(
+        scan,
+        plainDiagnostics,
+      );
+      expect(plainDiagnostics, isEmpty);
+      final pedanticDiagnostics = <Diagnostic>[];
+      final List<EnvironmentCard> pedanticCards = parseEnvironmentGroup(
+        scan,
+        pedanticDiagnostics,
+        pedantic: true,
+      );
+      expect(pedanticDiagnostics.single.message, msgInputFileCommaOmitted);
+      // The record list is identical in both modes (D11.4).
+      final plainCard = plainCards.single as FileCard;
+      final pedanticCard = pedanticCards.single as FileCard;
+      expect(
+        [for (final FileRecordClause r in pedanticCard.records) r.name.text],
+        [for (final FileRecordClause r in plainCard.records) r.name.text],
+      );
+    });
+
+    test('a second input record after a comma stays clean under --pedantic '
+        '(D8.5)', () {
+      final EnvironmentScan scan = scanEnvironment(
+        sourceCards([
+          environmentCard(
+            name: 'F',
+            type: 'FILE',
+            options: 'INPUT,REC1,REC2,BLOCKSIZE 10',
+          ),
+        ]),
+      );
+      final diagnostics = <Diagnostic>[];
+      parseEnvironmentGroup(scan, diagnostics, pedantic: true);
+      expect(diagnostics, isEmpty);
+    });
+
     test('the 64th FILE card draws 193,00 across groups (D10.8)', () {
       final tally = FileCardTally();
       final diagnostics = <Diagnostic>[];
@@ -638,6 +688,32 @@ void main() {
       );
       expect(diagnostics, isEmpty);
       expect((cards.single as CondCard).setting, '000000000077');
+    });
+
+    test('a short KEYS setting draws 925 under --pedantic (D9.16)', () {
+      final EnvironmentScan scan = scanEnvironment(
+        sourceCards([
+          environmentCard(name: 'COND1', type: 'COND', options: "KEYS '77'"),
+        ]),
+      );
+      final plainDiagnostics = <Diagnostic>[];
+      final List<EnvironmentCard> plainCards = parseEnvironmentGroup(
+        scan,
+        plainDiagnostics,
+      );
+      expect(plainDiagnostics, isEmpty);
+      final pedanticDiagnostics = <Diagnostic>[];
+      final List<EnvironmentCard> pedanticCards = parseEnvironmentGroup(
+        scan,
+        pedanticDiagnostics,
+        pedantic: true,
+      );
+      expect(pedanticDiagnostics.single.message, msgCondKeyUnderLength);
+      // The padded value is identical in both modes (D11.4).
+      expect(
+        (pedanticCards.single as CondCard).setting,
+        (plainCards.single as CondCard).setting,
+      );
     });
 
     test('a 13-digit KEYS setting draws 6,00 and keeps the rightmost 12', () {

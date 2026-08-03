@@ -4,11 +4,18 @@ import 'package:test/test.dart';
 import 'support/deck_fixtures.dart';
 
 // Scans and parses one constructed data division.
-(List<DataItem>, List<Diagnostic>) _parse(List<String> lines) {
+(List<DataItem>, List<Diagnostic>) _parse(
+  List<String> lines, {
+  bool pedantic = false,
+}) {
   final DataScan scan = scanDataDescription(sourceCards(lines));
   expect(scan.diagnostics, isEmpty, reason: 'scan must be clean');
   final diagnostics = <Diagnostic>[];
-  final List<DataItem> items = parseDataGroup(scan, diagnostics);
+  final List<DataItem> items = parseDataGroup(
+    scan,
+    diagnostics,
+    pedantic: pedantic,
+  );
   return (items, diagnostics);
 }
 
@@ -295,6 +302,28 @@ void main() {
       expect(diagnostics.single.message, msgRedefNameDiscarded);
       expect(items[1].nameDiscarded, isTrue);
       expect(items[1].targetName!.text, 'A');
+    });
+
+    test('a named REDEF line draws 921 in place of 918 under --pedantic '
+        '(D3.4)', () {
+      final List<String> lines = [
+        dataCard(name: 'A', level: '2', description: '99'),
+        dataCard(name: 'NEW.NAME', type: 'REDEF', description: 'A'),
+      ];
+      final (List<DataItem> plainItems, List<Diagnostic> plainDiagnostics) =
+          _parse(lines);
+      expect(plainDiagnostics.single.message, msgRedefNameDiscarded);
+      final (
+        List<DataItem> pedanticItems,
+        List<Diagnostic> pedanticDiagnostics,
+      ) = _parse(
+        lines,
+        pedantic: true,
+      );
+      expect(pedanticDiagnostics.single.message, msgRedefNameRejected);
+      // The name is discarded identically in both modes (D11.4).
+      expect(pedanticItems[1].nameDiscarded, plainItems[1].nameDiscarded);
+      expect(pedanticItems[1].targetName!.text, plainItems[1].targetName!.text);
     });
 
     test('a level or mode on a REDEF line draws 906 (J 02.05.02)', () {

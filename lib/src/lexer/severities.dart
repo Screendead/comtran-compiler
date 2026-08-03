@@ -655,4 +655,36 @@ const Map<String, int> messageSeverities = {
   '917,00': 2,
   // C1 (ours, D3.4): the name is discarded and compilation carries on.
   '918,00': 1,
+  // C1 (ours, --pedantic only, D1.1): the continuation is accepted; advisory.
+  '919,00': 1,
+  // C1 (ours, --pedantic only, D1.3/D9.4a): the omission is accepted;
+  // advisory.
+  '920,00': 1,
+  // C2 (ours, --pedantic only, D3.4): replaces 918 - the name is discarded,
+  // clause-level.
+  '921,00': 2,
+  // C3 (ours, --pedantic only, D6.6): replaces 911 - the clause is kept,
+  // statement-level.
+  '922,00': 3,
+  // C1 (ours, --pedantic only, D7.11): the name is accepted unchanged;
+  // advisory.
+  '923,00': 1,
+  // C1 (ours, --pedantic only, D8.5): the clause is accepted unchanged;
+  // advisory.
+  '924,00': 1,
+  // C1 (ours, --pedantic only, D9.16): the padded value is unchanged;
+  // advisory.
+  '925,00': 1,
+  // C1 (ours, --pedantic only, D10.5a): the comma is accepted unchanged;
+  // advisory.
+  '926,00': 1,
+  // C1 (ours, --pedantic only, D10.5b): the clause is accepted unchanged;
+  // advisory.
+  '927,00': 1,
+  // C1 (ours, --pedantic only, D10.5c): the comma is accepted unchanged;
+  // advisory.
+  '928,00': 1,
+  // C1 (ours, --pedantic only, D11.1e): the job is accepted unchanged;
+  // advisory.
+  '929,00': 1,
 };

@@ -93,6 +93,39 @@ void main() {
       expect(deck.maxSeverity, 0);
     });
 
+    test('a job closed by a compile card draws 929 under --pedantic '
+        '(D11.1 rule e)', () {
+      final lines = [
+        r'$CMPLE JOBA',
+        '      *PROCEDURE',
+        '            STOP RUN.',
+        r'$CMPLE JOBB',
+        '      *PROCEDURE',
+        '            STOP RUN.',
+        '      *FINISH',
+      ];
+      final DeckCompilation plain = compileDeck(_deck(lines));
+      expect(plain.jobs[0].diagnostics, isEmpty);
+      final DeckCompilation pedantic = compileDeck(
+        _deck(lines),
+        pedantic: true,
+      );
+      expect(
+        pedantic.jobs[0].diagnostics.single.message,
+        msgJobClosedByCompileCard,
+      );
+      expect(pedantic.jobs[0].diagnostics.single.card, isNull);
+      // The second job is unaffected either way (D11.4).
+      expect(pedantic.jobs[1].diagnostics, isEmpty);
+      expect(pedantic.jobs[0].sink.maxSeverity, 1);
+      // Job splitting itself is unchanged (D11.4).
+      expect(
+        pedantic.jobs[0].frontEnd.statementCount,
+        plain.jobs[0].frontEnd.statementCount,
+      );
+      expect(pedantic.jobs, hasLength(plain.jobs.length));
+    });
+
     test('junk between jobs draws 902 in the next job', () {
       final DeckCompilation deck = compileDeck(
         _deck([
@@ -109,6 +142,41 @@ void main() {
       );
       expect(deck.jobs[0].diagnostics, isEmpty);
       expect(deck.jobs[1].diagnostics.single.message, msgTextBeforeHeader);
+    });
+
+    test('a three-job deck compiles in deck order; the worst severity '
+        'spans the deck', () {
+      final DeckCompilation deck = compileDeck(
+        _deck([
+          r'$CMPLE JOBA',
+          '      *PROCEDURE',
+          '            STOP RUN.',
+          '      *FINISH',
+          r'$CMPLE JOBB',
+          'STRAY CARD',
+          '      *PROCEDURE',
+          '            STOP RUN.',
+          '      *FINISH',
+          r'$CMPLE JOBC',
+          '      *PROCEDURE',
+          '            STOP RUN.',
+          '      *FINISH',
+        ]),
+      );
+      expect(deck.jobs, hasLength(3));
+      expect(
+        [
+          for (final JobCompilation job in deck.jobs)
+            job.parse?.compileCard?.deckName,
+        ],
+        ['JOBA', 'JOBB', 'JOBC'],
+      );
+      // The stray card draws 902 in job B only; the worst severity of
+      // the whole deck is 3, below the exit gate (D11.2).
+      expect(deck.jobs[0].sink.maxSeverity, 0);
+      expect(deck.jobs[1].sink.maxSeverity, 3);
+      expect(deck.jobs[2].sink.maxSeverity, 0);
+      expect(deck.maxSeverity, 3);
     });
 
     test('the single-job tail draws 903 at 9999,99 (D11.1 rule d)', () {
@@ -169,6 +237,15 @@ void main() {
 
     test('the 90.05 job deck compiles with zero diagnostics', () {
       final DeckCompilation deck = compileDeck(loadJobDeck());
+      final JobCompilation job = deck.jobs.single;
+      expect(job.diagnostics, isEmpty);
+      expect(deck.maxSeverity, 0);
+      expect(job.frontEnd.statementCount, 229);
+    });
+
+    test('the 90.05 job deck compiles with zero diagnostics under --pedantic '
+        '(D11.4)', () {
+      final DeckCompilation deck = compileDeck(loadJobDeck(), pedantic: true);
       final JobCompilation job = deck.jobs.single;
       expect(job.diagnostics, isEmpty);
       expect(deck.maxSeverity, 0);

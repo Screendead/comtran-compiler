@@ -116,24 +116,34 @@ final class ParseResult {
 /// Diagnostics go to [sink] when one is given — the compilation's one
 /// [DiagnosticSink] (D9.1), shared with the front end by the driver;
 /// [ParseResult.parserDiagnostics] holds only the parser's rows either
-/// way.
-ParseResult runParser(FrontEndResult frontEnd, {DiagnosticSink? sink}) {
+/// way. [pedantic] adds non-historical written-language-strictness
+/// diagnostics (decision D0.8, D11.4) without changing any parse
+/// result.
+ParseResult runParser(
+  FrontEndResult frontEnd, {
+  DiagnosticSink? sink,
+  bool pedantic = false,
+}) {
   final DiagnosticSink diagnostics = sink ?? DiagnosticSink();
   final int first = diagnostics.length;
   CompileCard? compileCard;
-  final procedureParser = ProcedureParser(diagnostics);
+  final procedureParser = ProcedureParser(diagnostics, pedantic: pedantic);
   // The 63-file limit spans every environment group of the job
   // (J 90.01.04; D10.8).
   final fileTally = FileCardTally();
   final groups = <ParsedGroup>[];
   var stopped = false;
   try {
-    compileCard = parseCompileCard(frontEnd.program.compileCard, diagnostics);
+    compileCard = parseCompileCard(
+      frontEnd.program.compileCard,
+      diagnostics,
+      pedantic: pedantic,
+    );
     for (final GroupScan scan in frontEnd.groupScans) {
       groups.add(switch (scan) {
         DataGroupScan(scan: final data) => ParsedDataGroup._(
           scan,
-          parseDataGroup(data, diagnostics),
+          parseDataGroup(data, diagnostics, pedantic: pedantic),
         ),
         EnvironmentGroupScan(scan: final environment) =>
           ParsedEnvironmentGroup._(
@@ -142,6 +152,7 @@ ParseResult runParser(FrontEndResult frontEnd, {DiagnosticSink? sink}) {
               environment,
               diagnostics,
               fileTally: fileTally,
+              pedantic: pedantic,
             ),
           ),
         ProcedureGroupScan(scan: final procedure) => ParsedProcedureGroup._(

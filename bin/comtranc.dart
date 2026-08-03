@@ -21,6 +21,9 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
   --account=TEXT     page-head ACCOUNT field (default: blank)
   --title=TEXT       title line above page 1 (default: none)
   --lines-per-page=N content lines per page (default: 55)
+  --pedantic         add non-historical written-language-strictness
+                      diagnostics (D0.8); changes no parse result or
+                      generated value
   --version          print the version and exit
 ''';
 
@@ -41,6 +44,7 @@ int _run(List<String> arguments) {
   var account = '';
   var title = '';
   var linesPerPage = 55;
+  var pedantic = false;
   for (final argument in arguments) {
     if (argument.startsWith('--date=')) {
       date = argument.substring(7);
@@ -57,6 +61,8 @@ int _run(List<String> arguments) {
         return 2;
       }
       linesPerPage = value;
+    } else if (argument == '--pedantic') {
+      pedantic = true;
     } else if (argument.startsWith('--')) {
       stderr.write(_usage);
       return 2;
@@ -83,6 +89,7 @@ int _run(List<String> arguments) {
     // deck (D11.2).
     final DeckCompilation deck = compileDeck(
       decodeCanon(File(deckPath).readAsBytesSync()),
+      pedantic: pedantic,
     );
     final options = ListingOptions(
       date: date,

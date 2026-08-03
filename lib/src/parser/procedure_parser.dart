@@ -63,11 +63,16 @@ final class _DeleteSentence implements Exception {
 /// whole-program facts (STOP RUN, PROGRAM.START, DO targets) across
 /// groups; [finishProgram] runs the end-of-text checks.
 final class ProcedureParser {
-  /// Creates the parser, appending to [diagnostics].
-  ProcedureParser(this.diagnostics);
+  /// Creates the parser, appending to [diagnostics]. [pedantic] adds
+  /// non-historical written-language-strictness diagnostics (decision
+  /// D0.8, D11.4) without changing any parsed clause.
+  ProcedureParser(this.diagnostics, {this.pedantic = false});
 
   /// The sink for every diagnostic.
   final List<Diagnostic> diagnostics;
+
+  /// Whether `--pedantic` diagnostics are on (D11.4).
+  final bool pedantic;
 
   final List<String> _openSections = [];
   int _sectionCount = 0;
@@ -333,15 +338,37 @@ final class ProcedureParser {
       if (stopAtOtherwise && cursor.isWord('OTHERWISE')) {
         return clauses;
       }
+      final Token? comma = cursor.peek();
       if (cursor.takeSymbol(',')) {
         if (cursor.atEnd) {
           // A trailing comma before the period is accepted silently —
-          // a recorded leniency, not an attestation (D10.5; the
+          // a recorded leniency, not an attestation (D10.5c; the
           // sample's statement 188 comma is a mid-sentence separator
           // before a continuation card, not one before the period).
+          // --pedantic warns (msg 928; D11.4).
+          if (pedantic) {
+            diagnostics.add(
+              Diagnostic(
+                msgTrailingCommaBeforePeriod,
+                comma!.card,
+                column: comma.column,
+              ),
+            );
+          }
           return clauses;
         }
         if (stopAtOtherwise && cursor.isWord('OTHERWISE')) {
+          // A comma before OTHERWISE is accepted silently, a recorded
+          // leniency (D10.5a). --pedantic warns (msg 926; D11.4).
+          if (pedantic) {
+            diagnostics.add(
+              Diagnostic(
+                msgCommaBeforeOtherwise,
+                comma!.card,
+                column: comma.column,
+              ),
+            );
+          }
           return clauses;
         }
         continue;
@@ -981,6 +1008,14 @@ final class ProcedureParser {
     if (commaAtEnd || cursor.isWord('AT')) {
       if (commaAtEnd) {
         cursor.take();
+      } else if (pedantic) {
+        // AT END without its preceding comma is accepted silently, a
+        // recorded leniency (D10.5b). --pedantic warns (msg 927;
+        // D11.4); the clause parses the same either way.
+        final Token peeked = cursor.peek()!;
+        diagnostics.add(
+          Diagnostic(msgAtEndWithoutComma, peeked.card, column: peeked.column),
+        );
       }
       final Token at = cursor.take();
       if (!cursor.takeWord('END')) {
@@ -1030,10 +1065,15 @@ final class ProcedureParser {
     }
     final Clause statement = _parseClause(cursor);
     if (statement is! DoClause && statement is! GoToClause) {
-      // A non-transfer clause is accepted at low severity (D6.6;
-      // --pedantic raises it).
+      // A non-transfer clause is accepted at low severity (D6.6).
+      // --pedantic issues 922 in place of 911 (D11.4); the clause is
+      // kept as parsed either way.
       diagnostics.add(
-        Diagnostic(msgAtEndNotTransfer, token.card, column: token.column),
+        Diagnostic(
+          pedantic ? msgAtEndNotTransferRejected : msgAtEndNotTransfer,
+          token.card,
+          column: token.column,
+        ),
       );
     }
     return AtEndClause(at, statement: statement);

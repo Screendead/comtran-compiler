@@ -64,6 +64,37 @@ void main() {
     expect(diagnostics, isEmpty);
   });
 
+  test(
+    'a deck.name with imbedded blanks draws 923 under --pedantic (D7.11)',
+    () {
+      final SourceCard source = _card(r'$CMPLE PA ROL LIST');
+      final plainDiagnostics = <Diagnostic>[];
+      final CompileCard plainCard = parseCompileCard(source, plainDiagnostics)!;
+      expect(plainDiagnostics, isEmpty);
+      final pedanticDiagnostics = <Diagnostic>[];
+      final CompileCard pedanticCard = parseCompileCard(
+        source,
+        pedanticDiagnostics,
+        pedantic: true,
+      )!;
+      expect(pedanticDiagnostics.single.message, msgDeckNameImbeddedBlanks);
+      expect(pedanticDiagnostics.single.operands, ['PA ROL']);
+      // The stored deck.name is unchanged (D11.4).
+      expect(pedanticCard.deckName, plainCard.deckName);
+    },
+  );
+
+  test('a deck.name with no imbedded blanks stays clean under --pedantic', () {
+    final diagnostics = <Diagnostic>[];
+    final CompileCard card = parseCompileCard(
+      _card(r'$CMPLE PAYROL LIST'),
+      diagnostics,
+      pedantic: true,
+    )!;
+    expect(card.deckName, 'PAYROL');
+    expect(diagnostics, isEmpty);
+  });
+
   test('no compile card parses to null', () {
     expect(parseCompileCard(null, []), isNull);
   });

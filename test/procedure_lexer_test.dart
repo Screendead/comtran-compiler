@@ -86,6 +86,27 @@ void main() {
       final ProcedureScan scan = _scan(['      START. MOVE A TO B.']);
       expect(scan.sentences.single.labelHadPeriod, isTrue);
     });
+
+    test('a label without its period draws 920 under --pedantic (D9.4)', () {
+      // The site is a shallow post-pass over labelHadPeriod, in
+      // runFrontEnd (D11.4), so this test runs the whole front end.
+      final List<CardImage> deck = mirrorToDeck(
+        '      *PROCEDURE\n      START MOVE A TO B.\n',
+      );
+      final FrontEndResult plain = runFrontEnd(deck);
+      expect(plain.diagnostics, isEmpty);
+      final FrontEndResult pedantic = runFrontEnd(deck, pedantic: true);
+      expect(
+        pedantic.diagnostics.single.message,
+        msgProcedureNamePeriodOmitted,
+      );
+      expect(pedantic.diagnostics.single.column, 7);
+      // The scan itself is unchanged in both modes (D11.4).
+      final scan = pedantic.groupScans.single as ProcedureGroupScan;
+      final ProcedureSentence s = scan.scan.sentences.single;
+      expect(s.label, 'START');
+      expect(s.labelHadPeriod, isFalse);
+    });
   });
 
   group('literals and numbers', () {

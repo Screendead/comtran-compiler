@@ -13,14 +13,15 @@ This project builds a compiler for COMTRAN (IBM Commercial Translator, 1959 to
 from its two surviving IBM manuals; the compiler is written from that recovery.
 
 State, in one line: the card reader, the three division scanners, the listing,
-and the parsers for all three divisions work; no code generation exists yet.
-Read `docs/HANDOVER.md` for the live state and the next task.
+the parsers for all three divisions, and the job-stream driver work; no code
+generation exists yet. Read `docs/HANDOVER.md` for the live state and the next
+task.
 
 ## 3. Repository map
 
 | Path | What it holds |
 |---|---|
-| `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `listing`, `emulator`, and `mcp` |
+| `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `driver`, `listing`, `emulator`, and `mcp` |
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), `deckmcp.dart` (the MCP server) |
 | `test/` | The Dart tests, plus `test/goldens/`, `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its mirror, and the keying notes) |
 | `tool/` | Dart generators for this package |
