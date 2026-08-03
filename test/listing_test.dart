@@ -128,12 +128,39 @@ void main() {
       expect(listing, isNot(contains('SEVERITY LIMIT')));
     });
 
+    test(
+      r'a repaired column prints $, an ungated special prints ? (D9.10)',
+      () {
+        // Card text "MOVE AXB TO 'CXD'." with a record mark over each X: the
+        // first, inside the word AXB, is gated (134,00) and prints as the
+        // character-gate repair mark; the second, inside the literal 'CXD',
+        // is legal and prints as any other unreadable machine character
+        // (lib/src/listing/listing.dart:151-170).
+        final List<int> columns = blankColumns();
+        punchGlyphs(columns, 13, "MOVE AXB TO 'CXD'.");
+        columns[18] = punchesFromBcd(0x3A)!; // record mark, column 19
+        columns[26] = punchesFromBcd(0x3A)!; // record mark, column 27
+        final List<CardImage> deck = [
+          mirrorToDeck('      *PROCEDURE\n').single,
+          CardImage.fromColumns(columns),
+        ];
+        final FrontEndResult result = runFrontEnd(deck);
+        expect(result.diagnostics.single.message, msgIllegalCharacterReplaced);
+        expect(result.diagnostics.single.column, 19);
+        final String listing = writeListing(
+          result,
+          const ListingOptions(date: '08/03/26', time: '1.00'),
+        );
+        expect(listing, contains(r"MOVE A$B TO 'C?D'."));
+      },
+    );
+
     test('long output repeats the page head with advancing numbers', () {
       final String listing = writeListing(_payroll(), _sampleOptions);
       final Iterable<String> heads = listing
           .split('\n')
           .where((String line) => line.contains('DATE 10/18/61'));
-      expect(heads.length, greaterThanOrEqualTo(6));
+      expect(heads, hasLength(6));
       expect(listing, contains('PAGE   1'));
       expect(listing, contains('PAGE   6'));
     });
