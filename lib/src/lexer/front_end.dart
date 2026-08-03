@@ -162,12 +162,10 @@ FrontEndResult runFrontEnd(
             // itself is unchanged in both modes.
             for (final ProcedureSentence s in scan.sentences) {
               if (s.label != null && !s.labelHadPeriod) {
-                diagnostics.add(
-                  Diagnostic(
-                    msgProcedureNamePeriodOmitted,
-                    s.cards.first,
-                    column: s.labelColumn,
-                  ),
+                diagnostics.reportAt(
+                  msgProcedureNamePeriodOmitted,
+                  s.cards.first,
+                  column: s.labelColumn,
                 );
               }
             }

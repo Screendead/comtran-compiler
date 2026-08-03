@@ -131,9 +131,7 @@ DataEntry _scanEntry(
 
   void gate(SourceCard card, int from, int to) {
     for (final int column in card.unreadableColumns(from, to)) {
-      diagnostics.add(
-        Diagnostic(msgIllegalCharacterReplaced, card, column: column),
-      );
+      diagnostics.reportAt(msgIllegalCharacterReplaced, card, column: column);
     }
   }
 
@@ -145,7 +143,7 @@ DataEntry _scanEntry(
   }
   final name = nameBuffer.toString();
   if (name.length > 30) {
-    diagnostics.add(Diagnostic(msgNameTooLong, first, operands: [name]));
+    diagnostics.reportAt(msgNameTooLong, first, operands: [name]);
   }
 
   // Fixed fields, first card only (J 02.03.01, §2.d).
@@ -162,7 +160,7 @@ DataEntry _scanEntry(
     // blank level field and compiled clean (J 90.05 listing). A named
     // REDEF line is D3.4's case: its name is discarded with the
     // parser's own warning, so it takes no level and no 194,00.
-    diagnostics.add(Diagnostic(msgDataNameLacksLevel, first));
+    diagnostics.reportAt(msgDataNameLacksLevel, first);
   }
   final String quantityText = first.internalText(31, 35).trim();
   final int? quantity = quantityText.isEmpty
@@ -170,18 +168,18 @@ DataEntry _scanEntry(
       : int.tryParse(quantityText);
   final String modeText = first.internalText(36, 36).trim();
   if (modeText.isNotEmpty && modeText != 'I' && modeText != 'E') {
-    diagnostics.add(Diagnostic(msgIllegalMode, first, column: 36));
+    diagnostics.reportAt(msgIllegalMode, first, column: 36);
   }
   final String justifyText = first.internalText(37, 37).trim();
   if (justifyText.isNotEmpty && justifyText != 'L' && justifyText != 'R') {
-    diagnostics.add(Diagnostic(msgIllegalJustification, first, column: 37));
+    diagnostics.reportAt(msgIllegalJustification, first, column: 37);
   }
 
   // Fixed-field content on a continuation card: not scanned, but
   // diagnosed (J 90.04, message 186,00).
   for (final SourceCard card in group.skip(1)) {
     if ([for (var c = 23; c <= 37; c++) card.isPunched(c)].contains(true)) {
-      diagnostics.add(Diagnostic(msgFixedFieldOnContinuation, card));
+      diagnostics.reportAt(msgFixedFieldOnContinuation, card);
     }
   }
 
@@ -237,12 +235,13 @@ List<Token> _scanDescription(
       if (_formatChars.hasMatch(text)) {
         // A pictorial is limited to 30 characters (J 90.04, message
         // 100,00).
-        diagnostics.add(
-          Diagnostic(msgPictorialTooLong, card, column: runColumn),
-        );
+        diagnostics.reportAt(msgPictorialTooLong, card, column: runColumn);
       } else {
-        diagnostics.add(
-          Diagnostic(msgNameTooLong, card, column: runColumn, operands: [text]),
+        diagnostics.reportAt(
+          msgNameTooLong,
+          card,
+          column: runColumn,
+          operands: [text],
         );
       }
     }
@@ -256,9 +255,7 @@ List<Token> _scanDescription(
     if (text.length > 120) {
       // Our Data Description constant limit is 120 characters (decision
       // D7.9; J 90.04, message 148,00 — the 1962 capacity is unstated).
-      diagnostics.add(
-        Diagnostic(msgConstantTooLong, card, column: constantColumn),
-      );
+      diagnostics.reportAt(msgConstantTooLong, card, column: constantColumn);
     }
     tokens.add(Token(TokenKind.alphamericLiteral, text, card, constantColumn));
     constant.clear();
@@ -286,8 +283,10 @@ List<Token> _scanDescription(
         final int? bcd = card.bcdAt(column);
         if (bcd == null) {
           // No read-out: illegal even inside a constant (D9.10 layer a).
-          diagnostics.add(
-            Diagnostic(msgIllegalCharacterReplaced, card, column: column),
+          diagnostics.reportAt(
+            msgIllegalCharacterReplaced,
+            card,
+            column: column,
           );
           constant.write('0');
           continue;
@@ -307,9 +306,7 @@ List<Token> _scanDescription(
       }
       if (glyph == null) {
         // Outside a constant an unreadable column is gated (D9.10).
-        diagnostics.add(
-          Diagnostic(msgIllegalCharacterReplaced, card, column: column),
-        );
+        diagnostics.reportAt(msgIllegalCharacterReplaced, card, column: column);
         if (run.isEmpty) {
           runCard = card;
           runColumn = column;
@@ -337,20 +334,20 @@ List<Token> _scanDescription(
       if (identical(card, group.last)) {
         // The constant never closed and no card follows it (D1.1;
         // J 90.04, message 167,00).
-        diagnostics.add(
-          Diagnostic(msgSecondQuoteMissing, card, column: constantColumn),
+        diagnostics.reportAt(
+          msgSecondQuoteMissing,
+          card,
+          column: constantColumn,
         );
         endConstant();
       } else if (pedantic) {
         // The constant continues onto the next card, joined with no
         // assumed blank (D1.1; Open Question 6). --pedantic warns
         // (msg 919; D11.4); the join itself is unchanged.
-        diagnostics.add(
-          Diagnostic(
-            msgConstantContinuesAcrossCards,
-            card,
-            column: constantColumn,
-          ),
+        diagnostics.reportAt(
+          msgConstantContinuesAcrossCards,
+          card,
+          column: constantColumn,
         );
       }
     }

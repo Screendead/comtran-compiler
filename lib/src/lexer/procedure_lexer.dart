@@ -124,11 +124,9 @@ final class _ProcedureScanner {
       // The division ended with the sentence still open (D9.4: the next
       // card is a header, control card, or end of deck). Report against
       // the sentence's own last card.
-      diagnostics.add(
-        Diagnostic(
-          msgPeriodAssumed,
-          _sentenceCards.isNotEmpty ? _sentenceCards.last : cards.last,
-        ),
+      diagnostics.reportAt(
+        msgPeriodAssumed,
+        _sentenceCards.isNotEmpty ? _sentenceCards.last : cards.last,
       );
       _close(terminated: false);
     }
@@ -154,7 +152,7 @@ final class _ProcedureScanner {
     if (_open && marginName) {
       // A new statement begins while the previous sentence is open
       // (D9.4 trigger; J 90.04, message 62,00).
-      diagnostics.add(Diagnostic(msgPeriodAssumed, card));
+      diagnostics.reportAt(msgPeriodAssumed, card);
       _close(terminated: false);
     }
     if (!_open) {
@@ -176,8 +174,10 @@ final class _ProcedureScanner {
     for (var i = fromIndex; i < toIndex; i++) {
       final int column = i + _marginFirst;
       if (_illegal.remove(column)) {
-        diagnostics.add(
-          Diagnostic(msgIllegalCharacterReplaced, _card, column: column),
+        diagnostics.reportAt(
+          msgIllegalCharacterReplaced,
+          _card,
+          column: column,
         );
       }
     }
@@ -225,9 +225,7 @@ final class _ProcedureScanner {
           i = _scanNumber(i);
           continue;
         }
-        diagnostics.add(
-          Diagnostic(msgStrayPeriod, _card, column: i + _marginFirst),
-        );
+        diagnostics.reportAt(msgStrayPeriod, _card, column: i + _marginFirst);
         i++;
         continue;
       }
@@ -317,8 +315,10 @@ final class _ProcedureScanner {
       if (_card.bcdAt(column) == null) {
         // No read-out: illegal even inside a literal (D9.10 layer a).
         _illegal.remove(column);
-        diagnostics.add(
-          Diagnostic(msgIllegalCharacterReplaced, _card, column: column),
+        diagnostics.reportAt(
+          msgIllegalCharacterReplaced,
+          _card,
+          column: column,
         );
         buffer.write('0');
         column++;
@@ -336,15 +336,13 @@ final class _ProcedureScanner {
     if (!closed) {
       // Unclosed on its card: in procedure text the literal would extend
       // across cards (decision D1.1; J 90.04, message 168,00).
-      diagnostics.add(
-        Diagnostic(msgLiteralAcrossCards, _card, column: openColumn),
-      );
+      diagnostics.reportAt(msgLiteralAcrossCards, _card, column: openColumn);
     }
     final String text = closed
         ? buffer.toString()
         : buffer.toString().trimRight();
     if (text.length > 50) {
-      diagnostics.add(Diagnostic(msgLiteralTooLong, _card, column: openColumn));
+      diagnostics.reportAt(msgLiteralTooLong, _card, column: openColumn);
     }
     _tokens.add(Token(TokenKind.alphamericLiteral, text, _card, openColumn));
     return column - _marginFirst;
@@ -392,8 +390,10 @@ final class _ProcedureScanner {
         i = j;
       } else {
         // The F is not followed by a digit (J 02.04.02, rule c).
-        diagnostics.add(
-          Diagnostic(msgIncorrectNumericForm, _card, column: i + _marginFirst),
+        diagnostics.reportAt(
+          msgIncorrectNumericForm,
+          _card,
+          column: i + _marginFirst,
         );
         i = fractionEnd;
       }
@@ -403,12 +403,10 @@ final class _ProcedureScanner {
     if (points > 1) {
       // Not more than one decimal point, for floating literals too
       // (F p. 18, rules 2 and 8; J 02.04.02 has a single fraction).
-      diagnostics.add(
-        Diagnostic(
-          msgIncorrectNumericForm,
-          _card,
-          column: start + _marginFirst,
-        ),
+      diagnostics.reportAt(
+        msgIncorrectNumericForm,
+        _card,
+        column: start + _marginFirst,
       );
     }
     if (text.split('').where(_isDigit).length > 50) {
@@ -417,12 +415,10 @@ final class _ProcedureScanner {
       // (F p. 18, rules 2 and 4), and the exponent sign is excluded by
       // decision (D10.3). The choice of message 52 for the over-50
       // numeric case is a recorded design decision (D1.2).
-      diagnostics.add(
-        Diagnostic(
-          msgNumericLengthExceeded,
-          _card,
-          column: start + _marginFirst,
-        ),
+      diagnostics.reportAt(
+        msgNumericLengthExceeded,
+        _card,
+        column: start + _marginFirst,
       );
     }
     _tokens.add(Token(kind, text, _card, start + _marginFirst));
@@ -451,8 +447,11 @@ final class _ProcedureScanner {
   /// Names may contain from 1 to 30 characters (F p. 15, rule 3).
   void _checkNameLength(String word, int column) {
     if (word.length > 30) {
-      diagnostics.add(
-        Diagnostic(msgNameTooLong, _card, column: column, operands: [word]),
+      diagnostics.reportAt(
+        msgNameTooLong,
+        _card,
+        column: column,
+        operands: [word],
       );
     }
   }

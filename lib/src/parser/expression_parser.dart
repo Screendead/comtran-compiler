@@ -114,8 +114,10 @@ NameReference parseNameReference(
         subscripts.add(parseArithExpr(cursor, diagnostics));
       }
       if (!cursor.takeSymbol(')')) {
-        diagnostics.add(
-          Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+        diagnostics.reportAt(
+          msgRedundantLeftParen,
+          cursor.card,
+          column: cursor.column,
         );
         break;
       }
@@ -131,13 +133,7 @@ NameReference parseNameReference(
     words.add(cursor.take());
   }
   if (subscripts.length > 3) {
-    diagnostics.add(
-      Diagnostic(
-        msgTooManySubscripts,
-        words.first.card,
-        column: words.first.column,
-      ),
-    );
+    diagnostics.report(msgTooManySubscripts, words.first);
   }
   for (final subscript in subscripts) {
     // A subscript is a name, a literal, or `a * VARIABLE ± b` — never a
@@ -158,9 +154,7 @@ void rejectNestedFigurative(
 }) {
   switch (expr) {
     case FigurativeOperand(:final word) when !sole:
-      diagnostics.add(
-        Diagnostic(msgSentenceStructureError, word.card, column: word.column),
-      );
+      diagnostics.report(msgSentenceStructureError, word);
     case FigurativeOperand():
       break;
     case BinaryExpr(:final left, :final right):
@@ -236,13 +230,7 @@ ArithExpr _parsePower(
     );
     applications++;
     if (applications > 1) {
-      diagnostics.add(
-        Diagnostic(
-          msgUnparenthesizedPower,
-          operator.card,
-          column: operator.column,
-        ),
-      );
+      diagnostics.report(msgUnparenthesizedPower, operator);
     }
     left = BinaryExpr(left, operator, right, recovered: applications > 1);
   }
@@ -261,13 +249,7 @@ ArithExpr _parseUnary(
   if (cursor.isSymbol('-')) {
     final Token operator = cursor.take();
     if (afterOperator && !_isLiteral(cursor.peek())) {
-      diagnostics.add(
-        Diagnostic(
-          msgSentenceStructureError,
-          operator.card,
-          column: operator.column,
-        ),
-      );
+      diagnostics.report(msgSentenceStructureError, operator);
     }
     if (_isLiteral(cursor.peek()) && afterOperator) {
       // A signed literal after an operator is the literal's own sign
@@ -303,8 +285,10 @@ ArithExpr _parseUnaryOperand(TokenCursor cursor, List<Diagnostic> diagnostics) {
     cursor.take();
     final ArithExpr inner = parseArithExpr(cursor, diagnostics);
     if (!cursor.takeSymbol(')')) {
-      diagnostics.add(
-        Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+      diagnostics.reportAt(
+        msgRedundantLeftParen,
+        cursor.card,
+        column: cursor.column,
       );
     }
     return inner;
@@ -319,15 +303,15 @@ ArithExpr _parseTruthFunction(
 ) {
   final Token word = cursor.take();
   if (!cursor.takeSymbol('(')) {
-    diagnostics.add(
-      Diagnostic(msgIllegalComparison, word.card, column: word.column),
-    );
+    diagnostics.report(msgIllegalComparison, word);
     return TruthExpr(word, ConditionReference(NameReference([word])));
   }
   final CondExpr condition = parseCondExpr(cursor, diagnostics);
   if (!cursor.takeSymbol(')')) {
-    diagnostics.add(
-      Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+    diagnostics.reportAt(
+      msgRedundantLeftParen,
+      cursor.card,
+      column: cursor.column,
     );
   }
   return TruthExpr(word, condition);
@@ -347,30 +331,24 @@ ArithExpr _parsePrimary(TokenCursor cursor, List<Diagnostic> diagnostics) {
     case TokenKind.alphamericLiteral:
       // Legal only inside TR or as a comparison operand (F p. 45);
       // comparison call sites consume it before reaching here.
-      diagnostics.add(
-        Diagnostic(msgAlphamericArithOperand, token.card, column: token.column),
-      );
+      diagnostics.report(msgAlphamericArithOperand, token);
       return LiteralOperand(cursor.take());
     case TokenKind.symbol:
       if (token.text == '(') {
         cursor.take();
         final ArithExpr inner = parseArithExpr(cursor, diagnostics);
         if (!cursor.takeSymbol(')')) {
-          diagnostics.add(
-            Diagnostic(
-              msgRedundantLeftParen,
-              cursor.card,
-              column: cursor.column,
-            ),
+          diagnostics.reportAt(
+            msgRedundantLeftParen,
+            cursor.card,
+            column: cursor.column,
           );
         }
         return inner;
       }
       if (token.text == ')') {
         // A right parenthesis with nothing open (msg 113): eliminated.
-        diagnostics.add(
-          Diagnostic(msgRedundantRightParen, token.card, column: token.column),
-        );
+        diagnostics.report(msgRedundantRightParen, token);
         cursor.take();
         return _parsePrimary(cursor, diagnostics);
       }
@@ -398,9 +376,7 @@ ArithExpr _parsePrimary(TokenCursor cursor, List<Diagnostic> diagnostics) {
 /// A missing operand: msg 116, zero assumed (its stated repair); the
 /// cursor does not move.
 ArithExpr _missingOperand(TokenCursor cursor, List<Diagnostic> diagnostics) {
-  diagnostics.add(
-    Diagnostic(msgMissingOperand, cursor.card, column: cursor.column),
-  );
+  diagnostics.reportAt(msgMissingOperand, cursor.card, column: cursor.column);
   return LiteralOperand(
     Token(TokenKind.numericLiteral, '0', cursor.card, cursor.column ?? 72),
   );
@@ -423,8 +399,10 @@ ArithExpr parseFunctionCall(
   while (true) {
     final Token? token = cursor.peek();
     if (token == null) {
-      diagnostics.add(
-        Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+      diagnostics.reportAt(
+        msgRedundantLeftParen,
+        cursor.card,
+        column: cursor.column,
       );
       break;
     }
@@ -438,13 +416,7 @@ ArithExpr parseFunctionCall(
     } else {
       // Not a data-name (F p. 28 rule 15): the token is dropped, and
       // the message states that recovery (D10.6).
-      diagnostics.add(
-        Diagnostic(
-          msgFunctionArgumentDropped,
-          token.card,
-          column: token.column,
-        ),
-      );
+      diagnostics.report(msgFunctionArgumentDropped, token);
       cursor.take();
     }
     if (cursor.takeSymbol(',')) {
@@ -452,14 +424,18 @@ ArithExpr parseFunctionCall(
     }
     if (cursor.takeSymbol(')')) {
       if (!cursor.takeSymbol(')')) {
-        diagnostics.add(
-          Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+        diagnostics.reportAt(
+          msgRedundantLeftParen,
+          cursor.card,
+          column: cursor.column,
         );
       }
       break;
     }
-    diagnostics.add(
-      Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+    diagnostics.reportAt(
+      msgRedundantLeftParen,
+      cursor.card,
+      column: cursor.column,
     );
     break;
   }
@@ -493,9 +469,7 @@ CondExpr _parseCondNot(TokenCursor cursor, List<Diagnostic> diagnostics) {
     final Token word = cursor.take();
     if (cursor.isWord('NOT')) {
       // `NOT NOT` is illegal token adjacency (F p. 106 rule 4).
-      diagnostics.add(
-        Diagnostic(msgIllegalComparison, word.card, column: word.column),
-      );
+      diagnostics.report(msgIllegalComparison, word);
     }
     return NotExpr(word, _parseCondPrimary(cursor, diagnostics));
   }
@@ -509,8 +483,10 @@ CondExpr _parseCondPrimary(TokenCursor cursor, List<Diagnostic> diagnostics) {
     cursor.take();
     final CondExpr inner = parseCondExpr(cursor, diagnostics);
     if (!cursor.takeSymbol(')')) {
-      diagnostics.add(
-        Diagnostic(msgRedundantLeftParen, cursor.card, column: cursor.column),
+      diagnostics.reportAt(
+        msgRedundantLeftParen,
+        cursor.card,
+        column: cursor.column,
       );
     }
     return inner;
@@ -585,8 +561,10 @@ CondExpr _parseRelationOrConditionName(
     negated = cursor.takeWord('NOT');
     op = _takeRelationOp(cursor, diagnostics, afterIs: true);
     if (op == null) {
-      diagnostics.add(
-        Diagnostic(msgIllegalComparison, cursor.card, column: cursor.column),
+      diagnostics.reportAt(
+        msgIllegalComparison,
+        cursor.card,
+        column: cursor.column,
       );
       op = RelationOp.equal;
     }
@@ -596,8 +574,10 @@ CondExpr _parseRelationOrConditionName(
     negated = true;
     op = _takeRelationOp(cursor, diagnostics, afterIs: false);
     if (op == null) {
-      diagnostics.add(
-        Diagnostic(msgIllegalComparison, cursor.card, column: cursor.column),
+      diagnostics.reportAt(
+        msgIllegalComparison,
+        cursor.card,
+        column: cursor.column,
       );
       op = RelationOp.equal;
     }
@@ -609,23 +589,11 @@ CondExpr _parseRelationOrConditionName(
     // name may not be subscripted (J 90.01.03; D5.6, msg 910).
     if (left is NameOperand) {
       if (left.name.subscripts.isNotEmpty) {
-        diagnostics.add(
-          Diagnostic(
-            msgSubscriptedConditionName,
-            left.anchor.card,
-            column: left.anchor.column,
-          ),
-        );
+        diagnostics.report(msgSubscriptedConditionName, left.anchor);
       }
       return ConditionReference(left.name);
     }
-    diagnostics.add(
-      Diagnostic(
-        msgIllegalComparison,
-        left.anchor.card,
-        column: left.anchor.column,
-      ),
-    );
+    diagnostics.report(msgIllegalComparison, left.anchor);
     return Relation(
       left,
       RelationOp.equal,
@@ -649,9 +617,7 @@ RelationOp? _takeRelationOp(
   required bool afterIs,
 }) {
   void hybrid(Token at) {
-    diagnostics.add(
-      Diagnostic(msgIllegalComparison, at.card, column: at.column),
-    );
+    diagnostics.report(msgIllegalComparison, at);
   }
 
   if (cursor.isSymbol('=') || cursor.isWord('GT') || cursor.isWord('LT')) {

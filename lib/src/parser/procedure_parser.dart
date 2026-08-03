@@ -53,6 +53,15 @@ const Set<String> _operatorSymbols = {'+', '-', '*', '/', '**', '='};
 final class _DeleteSentence implements Exception {
   _DeleteSentence(this.message, this.card, this.column);
 
+  /// Anchors the deletion at [cursor]'s current position (or its
+  /// sentence card, at end-of-sentence).
+  _DeleteSentence.at(TokenCursor cursor, Message message)
+    : this(message, cursor.card, cursor.column);
+
+  /// Anchors the deletion at [token].
+  _DeleteSentence.atToken(Token token, Message message)
+    : this(message, token.card, token.column);
+
   final Message message;
   final SourceCard card;
   final int? column;
@@ -100,21 +109,15 @@ final class ProcedureParser {
   void finishProgram(SourceCard anchor) {
     final SourceCard at = _lastCard ?? anchor;
     if (_openSections.isNotEmpty) {
-      diagnostics.add(Diagnostic(msgSectionsNotClosed, at));
+      diagnostics.reportAt(msgSectionsNotClosed, at);
     }
     if (!_sawStopRun) {
-      diagnostics.add(Diagnostic(msgNoStopRun, at));
+      diagnostics.reportAt(msgNoStopRun, at);
     }
     if (_programStartLabels.isNotEmpty) {
       for (final NameReference target in _doTargets) {
         if (target.text == programStartName) {
-          diagnostics.add(
-            Diagnostic(
-              msgProgramStartDoAddressed,
-              target.anchor.card,
-              column: target.anchor.column,
-            ),
-          );
+          diagnostics.report(msgProgramStartDoAddressed, target.anchor);
         }
       }
     }
@@ -127,13 +130,15 @@ final class ProcedureParser {
       // A list-1/list-2 key word defined as a Procedure name
       // (J 02.03.02): msg 192, and parsing continues with the label
       // kept (D1.5; design note M2-7).
-      diagnostics.add(
-        Diagnostic(msgSentenceStructureError, card, column: scan.labelColumn),
+      diagnostics.reportAt(
+        msgSentenceStructureError,
+        card,
+        column: scan.labelColumn,
       );
     }
     if (label == programStartName) {
       if (_programStartLabels.isNotEmpty) {
-        diagnostics.add(Diagnostic(msgDuplicateProgramStart, card));
+        diagnostics.reportAt(msgDuplicateProgramStart, card);
       }
       _programStartLabels.add(
         Token(TokenKind.word, label!, card, scan.labelColumn ?? 7),
@@ -150,7 +155,7 @@ final class ProcedureParser {
     }
     if (_operatorCount(scan.tokens) > 60) {
       // "SENTENCE DELETED FROM TEXT" (msg 171; J 90.01.05).
-      diagnostics.add(Diagnostic(msgTooManyOperators, card));
+      diagnostics.reportAt(msgTooManyOperators, card);
       return Sentence(scan, const [], deleted: true);
     }
     final cursor = TokenCursor(scan.tokens, card);
@@ -171,8 +176,10 @@ final class ProcedureParser {
       _commitSentenceFacts(clauses);
       return Sentence(scan, clauses, deleted: false);
     } on _DeleteSentence catch (deletion) {
-      diagnostics.add(
-        Diagnostic(deletion.message, deletion.card, column: deletion.column),
+      diagnostics.reportAt(
+        deletion.message,
+        deletion.card,
+        column: deletion.column,
       );
       return Sentence(scan, const [], deleted: true);
     }
@@ -224,10 +231,9 @@ final class ProcedureParser {
         sawProgram = true;
       }
       if (sawProgram && sawProcessor) {
-        throw _DeleteSentence(
+        throw _DeleteSentence.atToken(
+          clause.anchor,
           msgIllegalSentenceStructure,
-          clause.anchor.card,
-          clause.anchor.column,
         );
       }
     }
@@ -278,21 +284,13 @@ final class ProcedureParser {
     ProcedureSentence scan,
   ) {
     if (cursor.isWord('OTHERWISE')) {
-      throw _DeleteSentence(
-        msgSentenceStartsOtherwise,
-        cursor.card,
-        cursor.column,
-      );
+      throw _DeleteSentence.at(cursor, msgSentenceStartsOtherwise);
     }
     if (cursor.isWord('IF')) {
       final Token word = cursor.take();
       final CondExpr condition = parseCondExpr(cursor, diagnostics);
       if (!cursor.takeWord('THEN')) {
-        throw _DeleteSentence(
-          msgIllegalSentenceStructure,
-          cursor.card,
-          cursor.column,
-        );
+        throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
       }
       final List<Clause> thenArm = _parseClauseSeries(
         cursor,
@@ -315,11 +313,7 @@ final class ProcedureParser {
 
   void _expectSentenceEnd(TokenCursor cursor) {
     if (!cursor.atEnd) {
-      throw _DeleteSentence(
-        msgIllegalSentenceStructure,
-        cursor.card,
-        cursor.column,
-      );
+      throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
     }
   }
 
@@ -347,13 +341,7 @@ final class ProcedureParser {
           // before a continuation card, not one before the period).
           // --pedantic warns (msg 928; D11.4).
           if (pedantic) {
-            diagnostics.add(
-              Diagnostic(
-                msgTrailingCommaBeforePeriod,
-                comma!.card,
-                column: comma.column,
-              ),
-            );
+            diagnostics.report(msgTrailingCommaBeforePeriod, comma!);
           }
           return clauses;
         }
@@ -361,13 +349,7 @@ final class ProcedureParser {
           // A comma before OTHERWISE is accepted silently, a recorded
           // leniency (D10.5a). --pedantic warns (msg 926; D11.4).
           if (pedantic) {
-            diagnostics.add(
-              Diagnostic(
-                msgCommaBeforeOtherwise,
-                comma!.card,
-                column: comma.column,
-              ),
-            );
+            diagnostics.report(msgCommaBeforeOtherwise, comma!);
           }
           return clauses;
         }
@@ -378,7 +360,7 @@ final class ProcedureParser {
           next.kind == TokenKind.word &&
           _verbs.contains(next.text)) {
         // A second verb with no separating comma (msg 126).
-        throw _DeleteSentence(msgStatementTwoVerbs, next.card, next.column);
+        throw _DeleteSentence.atToken(next, msgStatementTwoVerbs);
       }
       return clauses;
     }
@@ -388,29 +370,21 @@ final class ProcedureParser {
   Clause _parseClause(TokenCursor cursor) {
     final Token? token = cursor.peek();
     if (token == null) {
-      throw _DeleteSentence(msgIncompleteStatement, cursor.card, cursor.column);
+      throw _DeleteSentence.at(cursor, msgIncompleteStatement);
     }
     if (token.kind != TokenKind.word) {
-      throw _DeleteSentence(msgStatementWithoutVerb, token.card, token.column);
+      throw _DeleteSentence.atToken(token, msgStatementWithoutVerb);
     }
     switch (token.text) {
       case 'RUN':
         // RUN outside STOP RUN: the word is deleted, compilation
         // continues (msg 2; D2.7).
-        diagnostics.add(
-          Diagnostic(msgRunDeleted, token.card, column: token.column),
-        );
+        diagnostics.report(msgRunDeleted, token);
         cursor.take();
         return _parseClause(cursor);
       case 'CORRESPONDING':
         // CORRESPONDING must directly follow ADD or MOVE (msg 63).
-        diagnostics.add(
-          Diagnostic(
-            msgCorrespondingMisplaced,
-            token.card,
-            column: token.column,
-          ),
-        );
+        diagnostics.report(msgCorrespondingMisplaced, token);
         cursor.take();
         return _parseClause(cursor);
       case 'MOVE':
@@ -450,18 +424,10 @@ final class ProcedureParser {
           return _parseDeferredVerb(cursor);
         }
         if (isNameStopWord(token.text)) {
-          throw _DeleteSentence(
-            msgSentenceStructureError,
-            token.card,
-            token.column,
-          );
+          throw _DeleteSentence.atToken(token, msgSentenceStructureError);
         }
         // A name where a verb belongs (msg 125).
-        throw _DeleteSentence(
-          msgStatementWithoutVerb,
-          token.card,
-          token.column,
-        );
+        throw _DeleteSentence.atToken(token, msgStatementWithoutVerb);
     }
   }
 
@@ -472,7 +438,7 @@ final class ProcedureParser {
         token.kind != TokenKind.word ||
         isNameStopWord(token.text) ||
         figurativeConstants.contains(token.text)) {
-      throw _DeleteSentence(onMissing, cursor.card, cursor.column);
+      throw _DeleteSentence.at(cursor, onMissing);
     }
     return parseNameReference(cursor, diagnostics);
   }
@@ -505,7 +471,7 @@ final class ProcedureParser {
       allowAlphameric: true,
     );
     if (!cursor.takeWord('TO')) {
-      throw _DeleteSentence(msgIncompleteMove, cursor.card, cursor.column);
+      throw _DeleteSentence.at(cursor, msgIncompleteMove);
     }
     final List<NameReference> targets = _parseNameSeries(
       cursor,
@@ -531,7 +497,7 @@ final class ProcedureParser {
   }) {
     final Token? token = cursor.peek();
     if (token == null) {
-      throw _DeleteSentence(onMissing, cursor.card, cursor.column);
+      throw _DeleteSentence.at(cursor, onMissing);
     }
     if (token.kind == TokenKind.word &&
         figurativeConstants.contains(token.text)) {
@@ -566,7 +532,7 @@ final class ProcedureParser {
       }
       return NameOperand(name);
     }
-    throw _DeleteSentence(onMissing, token.card, token.column);
+    throw _DeleteSentence.atToken(token, onMissing);
   }
 
   /// `SET target, … = expression [TRUNCATED] [, ON OVERFLOW clause]`
@@ -594,21 +560,11 @@ final class ProcedureParser {
         // The condition-name form (F p. 46; D5.6). A subscript on it
         // is rejected (J 90.01.03; msg 910).
         if (first.subscripts.isNotEmpty) {
-          diagnostics.add(
-            Diagnostic(
-              msgSubscriptedConditionName,
-              first.anchor.card,
-              column: first.anchor.column,
-            ),
-          );
+          diagnostics.report(msgSubscriptedConditionName, first.anchor);
         }
         return SetConditionClause(verb, first);
       }
-      throw _DeleteSentence(
-        msgIllegalSentenceStructure,
-        cursor.card,
-        cursor.column,
-      );
+      throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
     }
     final ArithExpr value = _parseValueExpression(cursor);
     final bool truncated = cursor.takeWord('TRUNCATED');
@@ -659,16 +615,10 @@ final class ProcedureParser {
   Clause _parseOnOverflow(TokenCursor cursor, Token verb, int targetCount) {
     cursor.take();
     if (!cursor.takeWord('OVERFLOW')) {
-      throw _DeleteSentence(
-        msgIllegalSentenceStructure,
-        cursor.card,
-        cursor.column,
-      );
+      throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
     }
     if (targetCount != 1) {
-      diagnostics.add(
-        Diagnostic(msgSentenceStructureError, verb.card, column: verb.column),
-      );
+      diagnostics.report(msgSentenceStructureError, verb);
     }
     return _parseClause(cursor);
   }
@@ -684,11 +634,7 @@ final class ProcedureParser {
       allowLiteral: true,
     );
     if (!cursor.takeWord('TO')) {
-      throw _DeleteSentence(
-        msgIllegalSentenceStructure,
-        cursor.card,
-        cursor.column,
-      );
+      throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
     }
     final List<NameReference> targets = _parseNameSeries(
       cursor,
@@ -714,11 +660,7 @@ final class ProcedureParser {
   Clause _parseGoTo(TokenCursor cursor) {
     final Token verb = cursor.take();
     if (!cursor.takeWord('TO')) {
-      throw _DeleteSentence(
-        msgIllegalSentenceStructure,
-        cursor.card,
-        cursor.column,
-      );
+      throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
     }
     if (cursor.takeSymbol('(')) {
       // `GO TO (name, …) ON index` — the parentheses are part of the
@@ -730,11 +672,7 @@ final class ProcedureParser {
         names.add(_expectName(cursor, msgIllegalSentenceStructure));
       }
       if (!cursor.takeSymbol(')') || !cursor.takeWord('ON')) {
-        throw _DeleteSentence(
-          msgIllegalSentenceStructure,
-          cursor.card,
-          cursor.column,
-        );
+        throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
       }
       final NameReference index = _expectName(
         cursor,
@@ -769,11 +707,7 @@ final class ProcedureParser {
       cursor.take();
       final NameReference name = parseNameReference(cursor, diagnostics);
       if (!cursor.isWord('WHEN') && !cursor.isWord('IF')) {
-        throw _DeleteSentence(
-          msgIllegalSentenceStructure,
-          cursor.card,
-          cursor.column,
-        );
+        throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
       }
       _takeWhen(cursor);
       targets.add(GoToTarget(name, parseCondExpr(cursor, diagnostics)));
@@ -787,9 +721,7 @@ final class ProcedureParser {
   void _takeWhen(TokenCursor cursor) {
     final Token word = cursor.take();
     if (word.text == 'IF') {
-      diagnostics.add(
-        Diagnostic(msgWhenSubstitutedForIf, word.card, column: word.column),
-      );
+      diagnostics.report(msgWhenSubstitutedForIf, word);
     }
   }
 
@@ -803,8 +735,10 @@ final class ProcedureParser {
     if (cursor.takeWord('EXACTLY')) {
       exactlyTimes = _parseDoParameter(cursor);
       if (!cursor.takeWord('TIMES')) {
-        diagnostics.add(
-          Diagnostic(msgInvalidDoForm, cursor.card, column: cursor.column),
+        diagnostics.reportAt(
+          msgInvalidDoForm,
+          cursor.card,
+          column: cursor.column,
         );
       }
     } else if (cursor.takeWord('FOR')) {
@@ -824,9 +758,7 @@ final class ProcedureParser {
       }
       if (list.length > 3) {
         // At most three indices (F p. 51; D5.2: msg 83 beyond).
-        diagnostics.add(
-          Diagnostic(msgInvalidDoForm, verb.card, column: verb.column),
-        );
+        diagnostics.report(msgInvalidDoForm, verb);
       }
       indices = list;
     }
@@ -883,7 +815,7 @@ final class ProcedureParser {
   ArithExpr _parseDoParameter(TokenCursor cursor) {
     final Token? token = cursor.peek();
     if (token == null) {
-      throw _DeleteSentence(msgInvalidDoForm, cursor.card, cursor.column);
+      throw _DeleteSentence.at(cursor, msgInvalidDoForm);
     }
     if (token.kind == TokenKind.numericLiteral) {
       return LiteralOperand(cursor.take());
@@ -913,22 +845,22 @@ final class ProcedureParser {
       }
       return NameOperand(NameReference(words));
     }
-    throw _DeleteSentence(msgInvalidDoForm, token.card, token.column);
+    throw _DeleteSentence.atToken(token, msgInvalidDoForm);
   }
 
   /// `index = p(q)r` (F pp. 50–51).
   DoIndex _parseDoIndex(TokenCursor cursor) {
     final NameReference index = _expectName(cursor, msgInvalidDoForm);
     if (!cursor.takeSymbol('=')) {
-      throw _DeleteSentence(msgInvalidDoForm, cursor.card, cursor.column);
+      throw _DeleteSentence.at(cursor, msgInvalidDoForm);
     }
     final ArithExpr from = _parseDoParameter(cursor);
     if (!cursor.takeSymbol('(')) {
-      throw _DeleteSentence(msgInvalidDoForm, cursor.card, cursor.column);
+      throw _DeleteSentence.at(cursor, msgInvalidDoForm);
     }
     final ArithExpr by = _parseDoParameter(cursor);
     if (!cursor.takeSymbol(')')) {
-      throw _DeleteSentence(msgInvalidDoForm, cursor.card, cursor.column);
+      throw _DeleteSentence.at(cursor, msgInvalidDoForm);
     }
     final ArithExpr to = _parseDoParameter(cursor);
     return DoIndex(index, from, by, to);
@@ -946,18 +878,12 @@ final class ProcedureParser {
     if (token != null && token.kind == TokenKind.numericLiteral) {
       if (token.text.length > 6) {
         // n is at most 6 digits (J 05.06.04).
-        diagnostics.add(
-          Diagnostic(
-            msgSentenceStructureError,
-            token.card,
-            column: token.column,
-          ),
-        );
+        diagnostics.report(msgSentenceStructureError, token);
       }
       return StopClause(verb, number: cursor.take(), run: false);
     }
     // A bare STOP. is a syntax error (D2.7).
-    throw _DeleteSentence(msgIncompleteStatement, verb.card, verb.column);
+    throw _DeleteSentence.atToken(verb, msgIncompleteStatement);
   }
 
   /// `OPEN|CLOSE file, …` or `… ALL FILES` (F pp. 39, 41).
@@ -976,10 +902,9 @@ final class ProcedureParser {
         token.kind != TokenKind.word ||
         isNameStopWord(token.text)) {
       // Msgs 139/138: a file name must follow (J 90.04.01).
-      throw _DeleteSentence(
+      throw _DeleteSentence.at(
+        cursor,
         open ? msgOpenNeedsFileName : msgCloseNeedsFileName,
-        cursor.card,
-        cursor.column,
       );
     }
     final List<NameReference> files = _parseNameSeries(
@@ -1013,17 +938,11 @@ final class ProcedureParser {
         // recorded leniency (D10.5b). --pedantic warns (msg 927;
         // D11.4); the clause parses the same either way.
         final Token peeked = cursor.peek()!;
-        diagnostics.add(
-          Diagnostic(msgAtEndWithoutComma, peeked.card, column: peeked.column),
-        );
+        diagnostics.report(msgAtEndWithoutComma, peeked);
       }
       final Token at = cursor.take();
       if (!cursor.takeWord('END')) {
-        throw _DeleteSentence(
-          msgIllegalSentenceStructure,
-          cursor.card,
-          cursor.column,
-        );
+        throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
       }
       atEnd = _parseAtEnd(cursor, at);
     }
@@ -1037,13 +956,11 @@ final class ProcedureParser {
   AtEndClause _parseAtEnd(TokenCursor cursor, Token at) {
     final Token? token = cursor.peek();
     if (token == null || token.kind != TokenKind.word) {
-      diagnostics.add(
-        Diagnostic(
-          msgAtEndNeedsName,
-          cursor.card,
-          column: cursor.column,
-          operands: [token?.text ?? ''],
-        ),
+      diagnostics.reportAt(
+        msgAtEndNeedsName,
+        cursor.card,
+        column: cursor.column,
+        operands: [token?.text ?? ''],
       );
       return AtEndClause(at);
     }
@@ -1052,14 +969,7 @@ final class ProcedureParser {
       return AtEndClause(at, bareName: parseNameReference(cursor, diagnostics));
     }
     if (isNameStopWord(token.text) && !_verbs.contains(token.text)) {
-      diagnostics.add(
-        Diagnostic(
-          msgAtEndNeedsName,
-          token.card,
-          column: token.column,
-          operands: [token.text],
-        ),
-      );
+      diagnostics.report(msgAtEndNeedsName, token, operands: [token.text]);
       cursor.take();
       return AtEndClause(at);
     }
@@ -1068,12 +978,9 @@ final class ProcedureParser {
       // A non-transfer clause is accepted at low severity (D6.6).
       // --pedantic issues 922 in place of 911 (D11.4); the clause is
       // kept as parsed either way.
-      diagnostics.add(
-        Diagnostic(
-          pedantic ? msgAtEndNotTransferRejected : msgAtEndNotTransfer,
-          token.card,
-          column: token.column,
-        ),
+      diagnostics.report(
+        pedantic ? msgAtEndNotTransferRejected : msgAtEndNotTransfer,
+        token,
       );
     }
     return AtEndClause(at, statement: statement);
@@ -1127,18 +1034,14 @@ final class ProcedureParser {
           token.kind == TokenKind.floatingLiteral) {
         // An unquoted number in the item list (msg 131): displayed
         // values are quoted literals or fields (F p. 54).
-        diagnostics.add(
-          Diagnostic(msgInvalidDisplay, token.card, column: token.column),
-        );
+        diagnostics.report(msgInvalidDisplay, token);
         cursor.take();
         continue;
       }
       break;
     }
     if (items.isEmpty) {
-      diagnostics.add(
-        Diagnostic(msgInvalidDisplay, verb.card, column: verb.column),
-      );
+      diagnostics.report(msgInvalidDisplay, verb);
     }
     return DisplayClause(verb, items);
   }
@@ -1149,32 +1052,20 @@ final class ProcedureParser {
     final pairs = <CallPair>[];
     while (true) {
       if (!cursor.takeSymbol('(')) {
-        throw _DeleteSentence(
-          msgIllegalSentenceStructure,
-          cursor.card,
-          cursor.column,
-        );
+        throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
       }
       final NameReference oldName = _expectName(
         cursor,
         msgIllegalSentenceStructure,
       );
       if (!cursor.takeSymbol(')')) {
-        throw _DeleteSentence(
-          msgIllegalSentenceStructure,
-          cursor.card,
-          cursor.column,
-        );
+        throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
       }
       final Token? newName = cursor.peek();
       if (newName == null ||
           newName.kind != TokenKind.word ||
           isNameStopWord(newName.text)) {
-        throw _DeleteSentence(
-          msgIllegalSentenceStructure,
-          cursor.card,
-          cursor.column,
-        );
+        throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
       }
       pairs.add(CallPair(oldName, cursor.take()));
       if (cursor.isSymbol(',') && cursor.isSymbol('(', 1)) {
@@ -1199,11 +1090,7 @@ final class ProcedureParser {
     if (cursor.takeWord('COMMERCIAL') && cursor.takeWord('TRANSLATOR')) {
       return EnterClause(verb, crypt: false);
     }
-    throw _DeleteSentence(
-      msgIllegalSentenceStructure,
-      cursor.card,
-      cursor.column,
-    );
+    throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
   }
 
   /// `NOTE any text.` — the rest of the sentence is raw text (F p. 59).
@@ -1220,11 +1107,7 @@ final class ProcedureParser {
   Clause _parseBeginSection(TokenCursor cursor) {
     final Token verb = cursor.take();
     if (!cursor.takeWord('SECTION')) {
-      throw _DeleteSentence(
-        msgIllegalSentenceStructure,
-        cursor.card,
-        cursor.column,
-      );
+      throw _DeleteSentence.at(cursor, msgIllegalSentenceStructure);
     }
     var usingParameters = const <NameReference>[];
     if (cursor.takeWord('USING')) {
@@ -1323,41 +1206,26 @@ final class ProcedureParser {
       if (clause is BeginSectionClause) {
         _sectionCount++;
         if (_sectionCount > 35) {
-          diagnostics.add(Diagnostic(msgTooManySections, scan.cards.first));
+          diagnostics.reportAt(msgTooManySections, scan.cards.first);
           throw const StopCompilation();
         }
         _openSections.add(scan.label ?? '');
         if (_openSections.length > 18) {
-          diagnostics.add(Diagnostic(msgSectionsTooDeep, scan.cards.first));
+          diagnostics.reportAt(msgSectionsTooDeep, scan.cards.first);
           throw const StopCompilation();
         }
       } else if (clause is EndClause) {
         if (!endAlone) {
-          diagnostics.add(
-            Diagnostic(
-              msgEndNotAlone,
-              clause.verb.card,
-              column: clause.verb.column,
-            ),
-          );
+          diagnostics.report(msgEndNotAlone, clause.verb);
         }
         final String named = clause.sectionName?.text ?? '';
         if (_openSections.isEmpty) {
-          diagnostics.add(
-            Diagnostic(
-              msgEndWithoutSection,
-              clause.verb.card,
-              column: clause.verb.column,
-            ),
-          );
+          diagnostics.report(msgEndWithoutSection, clause.verb);
         } else if (_openSections.last != named) {
-          diagnostics.add(
-            Diagnostic(
-              msgEndWrongSection,
-              clause.verb.card,
-              column: clause.verb.column,
-              operands: [named, _openSections.last],
-            ),
+          diagnostics.report(
+            msgEndWrongSection,
+            clause.verb,
+            operands: [named, _openSections.last],
           );
           _openSections.removeLast();
         } else {

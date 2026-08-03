@@ -83,7 +83,7 @@ DataItem _parseEntry(
   bool pedantic = false,
 }) {
   void conflict() {
-    diagnostics.add(Diagnostic(msgDataCardCodingConflict, entry.cards.first));
+    diagnostics.reportAt(msgDataCardCodingConflict, entry.cards.first);
   }
 
   final DataTypeCode? typeCode = _typeCodes[entry.typeText];
@@ -91,20 +91,16 @@ DataItem _parseEntry(
     // A list-1/list-2 key word declared as a data name: msg 178, the
     // name is kept as a data name, parsing continues (D1.5; D10.8).
     // A REDEF-line name is discarded below and takes msg 918 instead.
-    diagnostics.add(
-      Diagnostic(msgKeyWordAsDataName, entry.cards.first, column: 7),
-    );
+    diagnostics.reportAt(msgKeyWordAsDataName, entry.cards.first, column: 7);
   }
   if (typeCode == null) {
     // FUNCT and PARAM are "no longer in the language" (J 02.05.03);
     // anything else was never in it.
-    diagnostics.add(
-      Diagnostic(
-        msgTypeCodeNotInLanguage,
-        entry.cards.first,
-        column: 25,
-        operands: [entry.typeText],
-      ),
+    diagnostics.reportAt(
+      msgTypeCodeNotInLanguage,
+      entry.cards.first,
+      column: 25,
+      operands: [entry.typeText],
     );
   }
 
@@ -113,8 +109,10 @@ DataItem _parseEntry(
   if (entry.quantityText.isNotEmpty) {
     final int? quantity = entry.quantity;
     if (quantity == null || quantity < 1 || quantity > 32767) {
-      diagnostics.add(
-        Diagnostic(msgQuantityOutOfRange, entry.cards.first, column: 31),
+      diagnostics.reportAt(
+        msgQuantityOutOfRange,
+        entry.cards.first,
+        column: 31,
       );
     } else if (typeCode == DataTypeCode.record) {
       conflict();
@@ -144,12 +142,10 @@ DataItem _parseEntry(
         // entered in the dictionary (D3.4). --pedantic issues 921 in
         // place of 918 (D11.4); the name is discarded identically
         // either way.
-        diagnostics.add(
-          Diagnostic(
-            pedantic ? msgRedefNameRejected : msgRedefNameDiscarded,
-            entry.cards.first,
-            column: 7,
-          ),
+        diagnostics.reportAt(
+          pedantic ? msgRedefNameRejected : msgRedefNameDiscarded,
+          entry.cards.first,
+          column: 7,
         );
       }
       return DataItem(
@@ -165,7 +161,7 @@ DataItem _parseEntry(
     case DataTypeCode.copy:
       // F's form: the original name, optionally `LIBRARY name`. COPY is
       // deferred in J (J 90.01.03; D7.4): parsed, then refused.
-      diagnostics.add(Diagnostic(msgCopyNotHandled, entry.cards.first));
+      diagnostics.reportAt(msgCopyNotHandled, entry.cards.first);
       var i = 0;
       if (i < tokens.length && tokens[i].text == 'LIBRARY') {
         i++;
@@ -269,13 +265,7 @@ DataItem _parseOrderedDescription(
         i += 3;
       } else {
         // `QUANTITY IN` with no following name (F pp. 82–83).
-        diagnostics.add(
-          Diagnostic(
-            msgDataCardCodingConflict,
-            token.card,
-            column: token.column,
-          ),
-        );
+        diagnostics.report(msgDataCardCodingConflict, token);
         i++;
       }
       continue;

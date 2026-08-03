@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'messages.dart';
 import 'severities.dart';
 import 'source_card.dart';
+import 'token.dart';
 
 /// Thrown after a severity-5 diagnostic is issued: compilation stops
 /// at the point of detection (D9.1). The phase driver catches it and
@@ -130,4 +131,28 @@ final class Diagnostic {
       '${message.number} $severity $text '
       '${card == null ? '(whole program)' : '(card ${card!.cardNumber}'
                 '${column == null ? '' : ', column $column'})'}';
+}
+
+/// Flattens the two dominant [Diagnostic] emission shapes at scanner and
+/// parser call sites to one line each, with emission order and operand
+/// order unchanged from the equivalent `add(Diagnostic(...))` call.
+extension DiagnosticReporting on List<Diagnostic> {
+  /// Reports [message] anchored at [at]'s card and column — the shape
+  /// used everywhere a single [Token] is the condition's anchor.
+  void report(Message message, Token at, {List<String> operands = const []}) {
+    add(Diagnostic(message, at.card, column: at.column, operands: operands));
+  }
+
+  /// Reports [message] anchored at [card], with an optional [column] —
+  /// the shape used where no single token anchors the condition: a
+  /// whole-card condition, a division-level card, or an explicit fixed
+  /// column such as a data-card field.
+  void reportAt(
+    Message message,
+    SourceCard card, {
+    int? column,
+    List<String> operands = const [],
+  }) {
+    add(Diagnostic(message, card, column: column, operands: operands));
+  }
 }

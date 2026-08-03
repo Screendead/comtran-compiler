@@ -84,14 +84,14 @@ final class SourceProgram {
         if (compileCard == null && currentGroup == null) {
           compileCard = card;
         } else {
-          problems.add(Diagnostic(msgDuplicateCompileCard, card));
+          problems.reportAt(msgDuplicateCompileCard, card);
         }
         continue;
       }
       if (currentGroup == null) {
         // Omission of a division header is a catastrophic compile error
         // (J 05.06.01); the message is ours (decision D2.3).
-        problems.add(Diagnostic(msgTextBeforeHeader, card));
+        problems.reportAt(msgTextBeforeHeader, card);
         continue;
       }
       currentGroup.add(card);

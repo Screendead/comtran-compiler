@@ -104,9 +104,7 @@ EnvironmentSpec? _scanSpec(
 
   void gate(SourceCard card, int from, int to) {
     for (final int column in card.unreadableColumns(from, to)) {
-      diagnostics.add(
-        Diagnostic(msgIllegalCharacterReplaced, card, column: column),
-      );
+      diagnostics.reportAt(msgIllegalCharacterReplaced, card, column: column);
     }
   }
 
@@ -119,7 +117,7 @@ EnvironmentSpec? _scanSpec(
   if (!environmentTypeCodes.contains(typeText)) {
     // The card is deleted with an error message (J 02.06.01.01; J 90.04,
     // message 144,00). Its continuation cards fall with it.
-    diagnostics.add(Diagnostic(msgIllegalEnvironmentType, first));
+    diagnostics.reportAt(msgIllegalEnvironmentType, first);
     return null;
   }
 
@@ -140,13 +138,13 @@ EnvironmentSpec? _scanSpec(
   if (name.length > 30) {
     // Names may contain 1 to 30 characters (F p. 15, rule 3; J
     // 02.08.02); the compressed name can exceed one card's 16 columns.
-    diagnostics.add(Diagnostic(msgNameTooLong, first, operands: [name]));
+    diagnostics.reportAt(msgNameTooLong, first, operands: [name]);
   }
   if (name.isEmpty && typeText == 'FILE') {
-    diagnostics.add(Diagnostic(msgFileCardLacksName, first));
+    diagnostics.reportAt(msgFileCardLacksName, first);
   }
   if (name.isEmpty && typeText == 'COND') {
-    diagnostics.add(Diagnostic(msgCondCardLacksName, first));
+    diagnostics.reportAt(msgCondCardLacksName, first);
   }
 
   // The type field belongs to the first card only; a type code on a
@@ -155,7 +153,7 @@ EnvironmentSpec? _scanSpec(
   // are not checked.
   for (final SourceCard card in group.skip(1)) {
     if ([for (var c = 25; c <= 30; c++) card.isPunched(c)].contains(true)) {
-      diagnostics.add(Diagnostic(msgFixedFieldOnContinuation, card));
+      diagnostics.reportAt(msgFixedFieldOnContinuation, card);
     }
   }
 
@@ -211,9 +209,7 @@ List<Token> _scanOptions(List<SourceCard> group, List<Diagnostic> diagnostics) {
       }
       final String? glyph = card.glyphAt(column);
       if (glyph == null) {
-        diagnostics.add(
-          Diagnostic(msgIllegalCharacterReplaced, card, column: column),
-        );
+        diagnostics.reportAt(msgIllegalCharacterReplaced, card, column: column);
         if (run.isEmpty) {
           runCard = card;
           runColumn = column;
@@ -261,9 +257,7 @@ int _scanLiteral(
       continue;
     }
     if (card.bcdAt(column) == null) {
-      diagnostics.add(
-        Diagnostic(msgIllegalCharacterReplaced, card, column: column),
-      );
+      diagnostics.reportAt(msgIllegalCharacterReplaced, card, column: column);
       buffer.write('0');
       column++;
       continue;
@@ -278,9 +272,7 @@ int _scanLiteral(
     column++;
   }
   if (!closed) {
-    diagnostics.add(
-      Diagnostic(msgSecondQuoteMissing, card, column: openColumn),
-    );
+    diagnostics.reportAt(msgSecondQuoteMissing, card, column: openColumn);
   }
   final String text = closed
       ? buffer.toString()

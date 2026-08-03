@@ -52,14 +52,14 @@ List<EnvironmentCard> parseEnvironmentGroup(
     if (spec.name.isNotEmpty && _isBarredName(spec.name)) {
       // A list-1/list-2 key word declared as an Environment name:
       // msg 178, the name is kept, parsing continues (D1.5; D10.8).
-      diagnostics.add(Diagnostic(msgKeyWordAsDataName, spec.cards.first));
+      diagnostics.reportAt(msgKeyWordAsDataName, spec.cards.first);
     }
     switch (spec.typeText) {
       case 'FILE':
         tally.count++;
         if (tally.count > 63) {
           // "A maximum of 63 files may be described" (J 90.01.04).
-          diagnostics.add(Diagnostic(msgTooManyFiles, spec.cards.first));
+          diagnostics.reportAt(msgTooManyFiles, spec.cards.first);
         }
         cards.add(_parseFileCard(spec, diagnostics, pedantic: pedantic));
       case 'SPECIF':
@@ -164,7 +164,7 @@ FileCard _parseFileCard(
   } else {
     // "First option word must be INPUT, OUTPUT, or CHECKPOINT"; a
     // best-guess INPUT direction lets the rest of the card still parse.
-    diagnostics.add(Diagnostic(msgFileCardFormatError, spec.cards.first));
+    diagnostics.reportAt(msgFileCardFormatError, spec.cards.first);
     if (tokens.isNotEmpty) {
       i = 1;
     }
@@ -175,7 +175,7 @@ FileCard _parseFileCard(
     // "If a file is designated CHECKPOINT it may have no other usage"
     // (J 02.06.03).
     if (_skipCommas(tokens, i) < tokens.length) {
-      diagnostics.add(Diagnostic(msgFileCardFormatError, spec.cards.first));
+      diagnostics.reportAt(msgFileCardFormatError, spec.cards.first);
     }
     return card;
   }
@@ -213,13 +213,7 @@ FileCard _parseFileCard(
         final (int next, int? value) = _takeInt(tokens, i + 1);
         i = next;
         if (value == null) {
-          diagnostics.add(
-            Diagnostic(
-              msgBlocksizeNeedsInteger,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgBlocksizeNeedsInteger, token);
         } else {
           card.blocksize = value;
         }
@@ -228,18 +222,10 @@ FileCard _parseFileCard(
         final (int next, Token? name) = _takeWord(tokens, afterKeyword);
         i = next;
         if (name == null) {
-          diagnostics.add(
-            Diagnostic(msgOnErrorNeedsName, token.card, column: token.column),
-          );
+          diagnostics.report(msgOnErrorNeedsName, token);
         } else if (direction == FileDirection.output) {
           // ON ERROR is input-only (J 02.06.03-04).
-          diagnostics.add(
-            Diagnostic(
-              msgIllegalWordInFileCard,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgIllegalWordInFileCard, token);
         } else {
           card.onError = name;
         }
@@ -248,9 +234,7 @@ FileCard _parseFileCard(
         final (int next, Token? name) = _takeWord(tokens, afterKeyword);
         i = next;
         if (name == null) {
-          diagnostics.add(
-            Diagnostic(msgForLabelNeedsName, token.card, column: token.column),
-          );
+          diagnostics.report(msgForLabelNeedsName, token);
         } else {
           card.forLabel = name;
         }
@@ -265,13 +249,7 @@ FileCard _parseFileCard(
       case 'PATTERN':
         // Reserved, rules bound, syntax deferred to M5 (D9.12): never
         // msg 89 or 96 for this word.
-        diagnostics.add(
-          Diagnostic(
-            msgPatternNotImplemented,
-            token.card,
-            column: token.column,
-          ),
-        );
+        diagnostics.report(msgPatternNotImplemented, token);
         i++;
       case 'BLOCK':
         final int next = _consumeWord(tokens, i + 1, 'CONTROL');
@@ -279,13 +257,7 @@ FileCard _parseFileCard(
         if (current == null || direction == FileDirection.output) {
           // Input-only: the Output Files form has no BLOCK CONTROL and
           // its meaning is input-specific (J 02.06.03; J 02.06.05).
-          diagnostics.add(
-            Diagnostic(
-              msgIllegalWordInFileCard,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgIllegalWordInFileCard, token);
         } else {
           current.blockControl = true;
         }
@@ -295,21 +267,9 @@ FileCard _parseFileCard(
         final (int next, Token? name) = _takeWord(tokens, j);
         i = next;
         if (current == null) {
-          diagnostics.add(
-            Diagnostic(
-              msgIllegalWordInFileCard,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgIllegalWordInFileCard, token);
         } else if (name == null) {
-          diagnostics.add(
-            Diagnostic(
-              msgFindLengthNeedsName,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgFindLengthNeedsName, token);
         } else {
           current.findLengthIn = name;
         }
@@ -319,34 +279,16 @@ FileCard _parseFileCard(
         final (int next, Token? name) = _takeWord(tokens, j);
         i = next;
         if (current == null) {
-          diagnostics.add(
-            Diagnostic(
-              msgIllegalWordInFileCard,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgIllegalWordInFileCard, token);
         } else if (name == null) {
-          diagnostics.add(
-            Diagnostic(
-              msgPlaceLengthNeedsName,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgPlaceLengthNeedsName, token);
         } else {
           current.placeLengthIn = name;
         }
       case 'PRIMARY':
         if (current == null || direction == FileDirection.input) {
           // Output-only (J 02.06.04).
-          diagnostics.add(
-            Diagnostic(
-              msgIllegalWordInFileCard,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgIllegalWordInFileCard, token);
         } else {
           current.primary = true;
         }
@@ -357,13 +299,7 @@ FileCard _parseFileCard(
         i = j;
         if (current == null || direction == FileDirection.input) {
           // Output-only (J 02.06.04).
-          diagnostics.add(
-            Diagnostic(
-              msgIllegalWordInFileCard,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgIllegalWordInFileCard, token);
         } else {
           current.noControlWord = true;
         }
@@ -380,18 +316,10 @@ FileCard _parseFileCard(
                 tokens[i - 1].text == ',')) {
           // record.name.2 (or later) with no leading comma (D8.5).
           // --pedantic warns (msg 924; D11.4); the clause is unchanged.
-          diagnostics.add(
-            Diagnostic(
-              msgInputFileCommaOmitted,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgInputFileCommaOmitted, token);
         }
         if (_isBarredName(token.text)) {
-          diagnostics.add(
-            Diagnostic(msgKeyWordAsDataName, token.card, column: token.column),
-          );
+          diagnostics.report(msgKeyWordAsDataName, token);
         }
         current = FileRecordClause(token);
         card.records.add(current);
@@ -403,7 +331,7 @@ FileCard _parseFileCard(
     // (J 02.06.04). The keyword-without-integer case drew msg 91 above;
     // total absence draws the card-format message (D10.8; the minimum-24
     // and maximum-9999 range checks are the M3 data mapper's, D7.1).
-    diagnostics.add(Diagnostic(msgFileCardFormatError, spec.cards.first));
+    diagnostics.reportAt(msgFileCardFormatError, spec.cards.first);
   }
   return card;
 }
@@ -431,7 +359,7 @@ SpecifCard _parseSpecifCard(
     fileName = tokens[0];
     i = 1;
   } else {
-    diagnostics.add(Diagnostic(msgSpecifFileNameNotFirst, spec.cards.first));
+    diagnostics.reportAt(msgSpecifFileNameNotFirst, spec.cards.first);
     if (tokens.isNotEmpty) {
       i = 1;
     }
@@ -461,17 +389,9 @@ SpecifCard _parseSpecifCard(
         i = next;
         if (literal == null) {
           // `*` is legal for UNIT2 only (J 02.06.10).
-          diagnostics.add(
-            Diagnostic(msgUnitNeedsLiteral, token.card, column: token.column),
-          );
+          diagnostics.report(msgUnitNeedsLiteral, token);
         } else if (literal.text.length > 6) {
-          diagnostics.add(
-            Diagnostic(
-              msgKeyWordLiteralTooLong,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgKeyWordLiteralTooLong, token);
         } else {
           card.unit1 = literal.text;
         }
@@ -489,17 +409,9 @@ SpecifCard _parseSpecifCard(
           );
           i = next;
           if (literal == null) {
-            diagnostics.add(
-              Diagnostic(msgUnitNeedsLiteral, token.card, column: token.column),
-            );
+            diagnostics.report(msgUnitNeedsLiteral, token);
           } else if (literal.text.length > 6) {
-            diagnostics.add(
-              Diagnostic(
-                msgKeyWordLiteralTooLong,
-                token.card,
-                column: token.column,
-              ),
-            );
+            diagnostics.report(msgKeyWordLiteralTooLong, token);
           } else {
             card.unit2 = literal.text;
           }
@@ -537,23 +449,11 @@ SpecifCard _parseSpecifCard(
         final (int next, int? value) = _takeInt(tokens, i + 1);
         i = next;
         if (value == null) {
-          diagnostics.add(
-            Diagnostic(
-              msgActivityNeedsInteger,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgActivityNeedsInteger, token);
         } else if (value < 1 || value > 99) {
           // An integer followed, but outside 1-99 (J 02.06.11); no
           // dedicated message covers the range fault (D10.1).
-          diagnostics.add(
-            Diagnostic(
-              msgSpecifCardFormatError,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgSpecifCardFormatError, token);
         } else {
           card.activity = value;
         }
@@ -592,17 +492,9 @@ SpecifCard _parseSpecifCard(
         );
         i = next;
         if (literal == null) {
-          diagnostics.add(
-            Diagnostic(msgSerialNeedsLiteral, token.card, column: token.column),
-          );
+          diagnostics.report(msgSerialNeedsLiteral, token);
         } else if (literal.text.length > 5) {
-          diagnostics.add(
-            Diagnostic(
-              msgKeyWordLiteralTooLong,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgKeyWordLiteralTooLong, token);
         } else {
           card.serial = literal.text;
         }
@@ -614,27 +506,13 @@ SpecifCard _parseSpecifCard(
         );
         i = next;
         if (literal == null) {
-          diagnostics.add(
-            Diagnostic(msgReelNeedsLiteral, token.card, column: token.column),
-          );
+          diagnostics.report(msgReelNeedsLiteral, token);
         } else if (literal.text.length > 4) {
-          diagnostics.add(
-            Diagnostic(
-              msgKeyWordLiteralTooLong,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgKeyWordLiteralTooLong, token);
         } else if (!_allDigits(literal.text)) {
           // A literal followed, but not "4 or less numeric characters"
           // (J 02.06.12); no dedicated message covers the fault (D10.1).
-          diagnostics.add(
-            Diagnostic(
-              msgSpecifCardFormatError,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgSpecifCardFormatError, token);
         } else {
           card.reel = literal.text;
         }
@@ -646,31 +524,17 @@ SpecifCard _parseSpecifCard(
         );
         i = next;
         if (number == null) {
-          diagnostics.add(
-            Diagnostic(msgRetainNeedsInteger, token.card, column: token.column),
-          );
+          diagnostics.report(msgRetainNeedsInteger, token);
         } else if (number.text.length > 3) {
           // A number followed, but not "3 or less numeric characters"
           // (J 02.06.12); 160,00 names alphabetic literals only, so no
           // dedicated message covers the fault (D10.1).
-          diagnostics.add(
-            Diagnostic(
-              msgSpecifCardFormatError,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgSpecifCardFormatError, token);
         } else {
           card.retain = number.text;
         }
       default:
-        diagnostics.add(
-          Diagnostic(
-            msgSpecifCardFormatError,
-            token.card,
-            column: token.column,
-          ),
-        );
+        diagnostics.report(msgSpecifCardFormatError, token);
         i++;
     }
   }
@@ -706,13 +570,7 @@ PoolCard _parsePoolCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
         final (int next, int? value) = _takeInt(tokens, i + 1);
         i = next;
         if (value == null) {
-          diagnostics.add(
-            Diagnostic(
-              msgBuffercountNeedsInteger,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgBuffercountNeedsInteger, token);
         } else {
           card.bufferCount = value;
         }
@@ -720,13 +578,7 @@ PoolCard _parsePoolCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
         final (int next, int? value) = _takeInt(tokens, i + 1);
         i = next;
         if (value == null) {
-          diagnostics.add(
-            Diagnostic(
-              msgPoolBlocksizeNeedsInteger,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgPoolBlocksizeNeedsInteger, token);
         } else {
           card.blocksize = value;
         }
@@ -736,7 +588,7 @@ PoolCard _parsePoolCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
     }
   }
   if (card.fileNames.isEmpty) {
-    diagnostics.add(Diagnostic(msgPoolCardFormatError, spec.cards.first));
+    diagnostics.reportAt(msgPoolCardFormatError, spec.cards.first);
   }
   return card;
 }
@@ -764,13 +616,7 @@ GroupCard _parseGroupCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
         final (int next, int? value) = _takeInt(tokens, i + 1);
         i = next;
         if (value == null) {
-          diagnostics.add(
-            Diagnostic(
-              msgOpencountNeedsInteger,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgOpencountNeedsInteger, token);
         } else {
           card.openCount = value;
         }
@@ -778,13 +624,7 @@ GroupCard _parseGroupCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
         final (int next, int? value) = _takeInt(tokens, i + 1);
         i = next;
         if (value == null) {
-          diagnostics.add(
-            Diagnostic(
-              msgBuffercountNeedsInteger,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgBuffercountNeedsInteger, token);
         } else {
           card.bufferCount = value;
         }
@@ -794,7 +634,7 @@ GroupCard _parseGroupCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
     }
   }
   if (card.names.isEmpty) {
-    diagnostics.add(Diagnostic(msgGroupCardFormatError, spec.cards.first));
+    diagnostics.reportAt(msgGroupCardFormatError, spec.cards.first);
   }
   return card;
 }
@@ -815,14 +655,14 @@ ContrlCard? _parseContrlCard(
   final bool invalid =
       name.isEmpty || name.length > 6 || seenNames.contains(name);
   if (invalid) {
-    diagnostics.add(Diagnostic(msgContrlNameInvalid, spec.cards.first));
+    diagnostics.reportAt(msgContrlNameInvalid, spec.cards.first);
   }
   if (name.isNotEmpty) {
     seenNames.add(name);
   }
   // CONTRL has no object-deck effect (D7.8; J 90.01.04) — every CONTRL
   // card draws this in addition to its own format/name checks.
-  diagnostics.add(Diagnostic(msgEnvironmentTypeNotProcessed, spec.cards.first));
+  diagnostics.reportAt(msgEnvironmentTypeNotProcessed, spec.cards.first);
 
   final List<Token> tokens = spec.optionTokens;
   Token? first;
@@ -844,7 +684,7 @@ ContrlCard? _parseContrlCard(
     }
   }
   if (malformed) {
-    diagnostics.add(Diagnostic(msgContrlCardFormatError, spec.cards.first));
+    diagnostics.reportAt(msgContrlCardFormatError, spec.cards.first);
   }
   if (first == null) {
     return null;
@@ -870,9 +710,7 @@ OptionCard _parseOptionCard(
       continue;
     }
     if (token.kind != TokenKind.word) {
-      diagnostics.add(
-        Diagnostic(msgOptionCardFormatError, token.card, column: token.column),
-      );
+      diagnostics.report(msgOptionCardFormatError, token);
       i++;
       continue;
     }
@@ -880,13 +718,7 @@ OptionCard _parseOptionCard(
       case 'COLLATE':
         final int afterKeyword = _consumeWord(tokens, i + 1, 'COM');
         if (afterKeyword == i + 1) {
-          diagnostics.add(
-            Diagnostic(
-              msgOptionCardFormatError,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgOptionCardFormatError, token);
           i = afterKeyword;
         } else {
           card.collateCom = true;
@@ -909,23 +741,11 @@ OptionCard _parseOptionCard(
             (Token name) => card.conserveIn = name,
           );
         } else {
-          diagnostics.add(
-            Diagnostic(
-              msgOptionCardFormatError,
-              token.card,
-              column: token.column,
-            ),
-          );
+          diagnostics.report(msgOptionCardFormatError, token);
           i = afterKeyword;
         }
       default:
-        diagnostics.add(
-          Diagnostic(
-            msgOptionCardFormatError,
-            token.card,
-            column: token.column,
-          ),
-        );
+        diagnostics.report(msgOptionCardFormatError, token);
         i++;
     }
   }
@@ -972,7 +792,7 @@ CondCard _parseCondCard(
       pedantic: pedantic,
     );
   } else {
-    diagnostics.add(Diagnostic(msgCondCardFormatError, spec.cards.first));
+    diagnostics.reportAt(msgCondCardFormatError, spec.cards.first);
     setting = '000000000000';
   }
   return CondCard(spec, setting);
@@ -995,17 +815,17 @@ String _normalizeCondKeys(
       .split('')
       .every((String c) => '01234567'.contains(c));
   if (!allOctal) {
-    diagnostics.add(Diagnostic(msgCondKeysNotOctal, spec.cards.first));
+    diagnostics.reportAt(msgCondKeysNotOctal, spec.cards.first);
     return '000000000001';
   }
   if (raw.length > 12) {
-    diagnostics.add(Diagnostic(msgCondKeysTooLong, spec.cards.first));
+    diagnostics.reportAt(msgCondKeysTooLong, spec.cards.first);
     return raw.substring(raw.length - 12);
   }
   if (pedantic && raw.length < 12) {
     // The under-length case: padded silently in both modes (D9.16).
     // --pedantic warns (msg 925; D11.4); the padded value is unchanged.
-    diagnostics.add(Diagnostic(msgCondKeyUnderLength, spec.cards.first));
+    diagnostics.reportAt(msgCondKeyUnderLength, spec.cards.first);
   }
   return raw.padLeft(12, '0');
 }

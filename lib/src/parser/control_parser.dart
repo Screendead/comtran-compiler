@@ -37,9 +37,7 @@ CompileCard? parseCompileCard(
     // Leading blanks are ignored (J 02.01.01); a blank surviving the
     // trim of both ends is necessarily imbedded (D7.11). The detected
     // name is the same trimmed value stored above.
-    diagnostics.add(
-      Diagnostic(msgDeckNameImbeddedBlanks, card, operands: [deckName]),
-    );
+    diagnostics.reportAt(msgDeckNameImbeddedBlanks, card, operands: [deckName]);
   }
   final optionsFrom = historical ? 15 : 14;
   final options = <String>[];
@@ -56,9 +54,7 @@ CompileCard? parseCompileCard(
     }
     options.add(option);
     if (!compileOptions.contains(option)) {
-      diagnostics.add(
-        Diagnostic(msgUnknownCompileOption, card, operands: [option]),
-      );
+      diagnostics.reportAt(msgUnknownCompileOption, card, operands: [option]);
     }
   }
   return CompileCard(
