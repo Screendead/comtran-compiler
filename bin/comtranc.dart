@@ -75,11 +75,20 @@ int _run(List<String> arguments) {
       '${now.day.toString().padLeft(2, '0')}/'
       '${(now.year % 100).toString().padLeft(2, '0')}';
   time ??= (now.hour + now.minute / 60).toStringAsFixed(2);
+  // The compilation's one diagnostic sink (D9.1): both phases record
+  // into it, and its severity-5 throw stops each phase at the point of
+  // detection.
+  final sink = DiagnosticSink();
   try {
     final FrontEndResult result = runFrontEnd(
       decodeCanon(File(deckPath).readAsBytesSync()),
+      sink: sink,
     );
-    final ParseResult parse = runParser(result);
+    // A front-end stop skips the parser: the compilation stopped at
+    // the point of detection (D9.1; D10.2).
+    final ParseResult? parse = result.stopped
+        ? null
+        : runParser(result, sink: sink);
     stdout.write(
       writeListing(
         result,
@@ -90,12 +99,17 @@ int _run(List<String> arguments) {
           title: title,
           linesPerPage: linesPerPage,
         ),
-        diagnostics: parse.diagnostics,
+        diagnostics: parse?.diagnostics ?? result.diagnostics,
       ),
     );
     // Severity 5 stops compilation (J 90.04.02); lower severities still
     // produce output.
-    return parse.maxSeverity >= 5 ? 1 : 0;
+    return sink.maxSeverity >= 5 ? 1 : 0;
+  } on StopCompilation {
+    // Both phases catch their own stop and return partial results; this
+    // net keeps a stop from any future phase on the same sink from
+    // crashing the driver (D9.1's job rule: stop, go to the next job).
+    return 1;
   } on FormatException catch (e) {
     stderr.writeln('error: ${e.message}');
     return 1;

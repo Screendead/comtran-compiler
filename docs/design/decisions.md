@@ -1009,6 +1009,8 @@ record built on it.*
 
 **Oracle.** Oracle (4) for the checklist mechanics: a build test that the checklist covers ids 0-209 exactly once; a test that exactly ids 90 and 110 carry "no B.2 row" and that both carry their replacement citations; a golden test that our message-text table equals the transcribed listing byte for byte; per-id behavior tests as listed in the checklist. Oracles (1) and (2) apply only negatively here: the 90.05 sample must trigger none of the enforced rules.
 
+*Cross-reference (2026-08-03):* the checklist landed as `docs/design/message-checklist.tsv` (one row per id 0,00-209,00 plus the 900 series), gated by `test/message_checklist_test.dart`, which fails when an id lacks a disposition, when the enforced set differs from the compiler's message tables, when an enforced id names no live test, or when a text, class, or B.2 citation drifts. Two deltas from the Implementation paragraph above: the file is hand-maintained and machine-verified rather than generated (the gate makes drift impossible, and the dispositions are judgment, not derivation), and the B.2 column cites the group heading — the heading plus the row's own message number identify the B.2 row, so no rule text is copied.
+
 *Citations:* (J 90.04.01); (J 02.02.01); definition §8.4 B.2 (all rows); (J 90.01.02); (J 90.01.03 b.i); (J 90.01.04 c.i); (J 02.06.02); Open Question 71; CLAUDE.md rule that the definition is the ground truth to be cited, not copied
 
 ### D9.4 — B.2 msg 62 vs the attested missing-period leniency
@@ -1186,3 +1188,15 @@ record built on it.*
 **Oracle.** Oracle (4): one test per id in `test/environment_parser_test.dart`, plus fallback tests for the three 153 cases. Oracle (2) constrains from above: the 90.05 sample's seven SPECIF cards must keep drawing zero diagnostics.
 
 *Citations:* (J 90.04.01) msgs 153-160; (J 02.06.08); (J 02.06.10-12); (J 90.08.01); docs/design/severity-notes.md (C2 card-option-operand family); D7.8
+
+### D10.2 — The diagnostic sink and the severity-5 stop in every phase
+
+**Decision.** Implement D9.1's "one diagnostic sink object" as `DiagnosticSink` (`lib/src/lexer/diagnostic.dart`): the ordered diagnostic list plus the running maximum severity. Recording a severity-5 diagnostic sets the sink's stopped flag and throws `StopCompilation`, so the phase that detects the condition stops at the point of detection — the front end included, which previously scanned on after a severity-5 row (review finding DIAG-2). The driver creates one sink per job and passes it to `runFrontEnd` and `runParser`; the scanners and the parser record into it directly. Each phase function catches `StopCompilation` itself and returns its partial result with a `stopped` flag; the driver skips the parser when the front end stopped, and keeps a `StopCompilation` net around both phases for any future phase that does not catch.
+
+**Rationale.** J 90.04.02: "An error severity code of 5 causes the compiler to stop compiling. It then proceeds to the next job." D9.1 (c) records the rule as attested with no phase exemption, and M2-13 already gave the parser the stop path; the front end lacked one, so message 148,00 (severity 5) let the whole deck scan and parse on. The phase-internal catch, rather than a throw through to the driver, is required by the listing: a thrown exception discards the phase's return value, and the compilation listing needs the partial `FrontEndResult` (source echo, statement numbers, diagnostics up to the stop). The per-job catch D9.1 assigns to the job driver moves there when the M2-15 job loop lands; the driver's net is its placeholder.
+
+**Implementation.** The scanners (`scanDataDescription`, `scanEnvironment`, `scanProcedure`) take an optional sink and keep their per-scan diagnostic lists as slices of it, so scan results are unchanged for direct callers; a plain list (no stop path) remains usable in unit tests of one scanner or parser function. `runParser` reads its slice the same way, so `ParseResult.parserDiagnostics` and the merged ordering (M2-2) are unchanged. The parser's explicit severity-5 throws (msgs 149, 915) stay for plain-list callers; under a sink the throw comes from the recording itself.
+
+**Oracle.** Oracle (4): `test/parser_test.dart` "the severity-5 stop path (D9.1; D10.2)" — a front-end 148,00 stops the scan at its point (later faults undiagnosed, later groups unscanned), a parser 149,00 stops the parse on the shared sink, and a clean two-phase run keeps one sink with the running maximum. Oracle (2): the 90.05 compilation is unaffected (zero diagnostics).
+
+*Citations:* (J 90.04.02); decisions.md D9.1 (c) and Implementation; docs/design/m2-parser.md M2-13, M2-15; docs/design/severity-notes.md (148 = C5)

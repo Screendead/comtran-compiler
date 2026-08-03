@@ -66,6 +66,18 @@ void main() {
       expect(program.problems, isEmpty);
     });
 
+    test('a second compile card draws 904,00 and is ignored', () {
+      final SourceProgram program = _program([
+        r'$CMPLE MYDECK  LIST',
+        r'$CMPLE MYDECK  LIST',
+        '      *DATA',
+        '      A',
+      ]);
+      expect(program.compileCard?.cardNumber, 1);
+      expect(program.problems.single.message, msgDuplicateCompileCard);
+      expect(program.problems.single.card.cardNumber, 2);
+    });
+
     test('an asterisk outside column 7 is not a header', () {
       final SourceProgram program = _program(['       *DATA', '      *DATA']);
       expect(program.groups, hasLength(1));
