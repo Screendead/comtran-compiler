@@ -63,6 +63,23 @@ const FIELD_TOKENS: Rule[] = [LITERAL, FLOATING, NUMERIC];
 /** Tokens of free-form procedure text. */
 const PROCEDURE_TOKENS: Rule[] = [LITERAL, TERMINATOR, FLOATING, NUMERIC];
 
+/**
+ * The leading label of a procedure line: a non-space word starting right
+ * after the serial field. A label may run past the name margin into the
+ * text field (F p. 37), so — unlike every other field — it is not a
+ * fixed-width capture; it is a pattern nested inside the combined
+ * name-margin-and-text capture, matched against just that capture's text.
+ */
+const PROCEDURE_LABEL: Rule = {
+  match: '^([^ ]+)',
+  captures: { '1': { name: PROCEDURE_FIELDS[1].scope } },
+};
+
+/** Columns 7 through 72: the name margin and text fields combined, since a
+ * procedure label can run from one into the other. */
+const PROCEDURE_TEXT_WIDTH =
+  PROCEDURE_FIELDS[2].end - PROCEDURE_FIELDS[1].start + 1;
+
 function escapeHeader(word: string): string {
   return word.replace(/\*/g, '\\*');
 }
@@ -176,17 +193,14 @@ export function buildGrammar(): Rule {
       'procedure-division': divisionRegion('procedure', [
         { include: '#punch-line' },
         {
-          match: `^(.{${SERIAL_WIDTH}})([^ ]+)`,
+          match: `^(.{${SERIAL_WIDTH}})(.{0,${PROCEDURE_TEXT_WIDTH}})(.*)$`,
           captures: {
             '1': { name: SERIAL_SCOPE },
-            '2': { name: PROCEDURE_FIELDS[1].scope },
+            '2': { patterns: [PROCEDURE_LABEL, ...PROCEDURE_TOKENS] },
+            '3': { name: PROCEDURE_FIELDS[3].scope },
           },
         },
-        {
-          match: `^(.{1,${SERIAL_WIDTH}})`,
-          captures: { '1': { name: SERIAL_SCOPE } },
-        },
-        ...PROCEDURE_TOKENS,
+        SHORT_LINE,
       ]),
       'finish-card': {
         match: `^(.{${SERIAL_WIDTH}})(\\*FINISH)$`,

@@ -147,6 +147,7 @@
   var col = 1;
   var row = 3;
   var prevCol = 0;
+  var prevRow = -1;
   var typeMode = false;
   var cw = 15;
   /** @type {ReturnType<typeof setTimeout>|0} */
@@ -515,20 +516,20 @@
     return parts.join(' | ');
   }
 
+  // Moves the column highlight and the single current-cell marker from the
+  // previous cursor position to the current one. Touches only the cells
+  // that actually change, not every one of the 960 cells in the grid.
   function highlight() {
     if (prevCol >= 1) {
       setColClass(prevCol, false);
     }
     setColClass(col, true);
-    prevCol = col;
-    for (var r = 0; r < ROWS; r++) {
-      for (var c = 0; c < COLS; c++) {
-        var want = r === row && c === col - 1;
-        if (cells[r][c].classList.contains('cur-cell') !== want) {
-          cells[r][c].classList.toggle('cur-cell', want);
-        }
-      }
+    if (prevRow >= 0 && prevCol >= 1) {
+      cells[prevRow][prevCol - 1].classList.remove('cur-cell');
     }
+    cells[row][col - 1].classList.add('cur-cell');
+    prevCol = col;
+    prevRow = row;
   }
 
   /**

@@ -74,6 +74,7 @@
     "compile": "tsc -p ./ && tsc -p ./tsconfig.media.json",
     "watch": "tsc -w -p ./",
     "grammar": "tsc -p ./ && node out/generateGrammar.js",
+    "vectors": "tsc -p ./ && node out/generateCharCodeVectors.js",
     "test": "npm run compile && node --test \"test/**/*.test.js\"",
     "package": "npm run compile && vsce package"
   },

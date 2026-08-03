@@ -10,7 +10,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { buildGrammar } = require('../out/grammar.js');
-const { configurationDefaults } = require('../out/columns.js');
+const { PROCEDURE_FIELDS, configurationDefaults } = require('../out/columns.js');
 
 const COMMITTED = path.join(
   __dirname,
@@ -96,21 +96,40 @@ test('the environment card rule slices name, type and options', () => {
   assert.ok(m[4].startsWith('INPUT,BINARY')); // options 31-71
 });
 
-test('the procedure label rule takes the leading margin word', () => {
+test('the procedure card rule bounds text to column 72 and identification to 73-80', () => {
   const rule = repo['procedure-division'].patterns[1];
-  const m = lineWith([[7, 'START'], [18, 'OPEN ALL FILES.']]).match(
-    new RegExp(rule.match),
-  );
+  const line = lineWith([
+    [7, 'START'],
+    [18, 'OPEN ALL FILES.'],
+    [73, 'PAGE0010'],
+  ]);
+  assert.equal(line.length, 80);
+  const m = line.match(new RegExp(rule.match));
   assert.ok(m);
-  assert.equal(m[2], 'START');
-  const unlabeled = lineWith([[13, 'MOVE BLANKS.']]).match(
-    new RegExp(rule.match),
-  );
-  assert.equal(unlabeled, null);
+  assert.equal(m[1], '      '); // serial 1-6
+  assert.equal(m[2].length, 66); // name margin + text, 7-72, fixed width
+  assert.ok(m[2].startsWith('START'));
+  assert.ok(m[2].includes('OPEN ALL FILES.'));
+  assert.equal(m[3], 'PAGE0010'); // identification 73-80, not swept into text
+
+  // Identification carries no nested tokenizing: a period there is never a
+  // sentence terminator, and digits there are never constant.numeric.
+  assert.equal(rule.captures['3'].name, PROCEDURE_FIELDS[3].scope);
+  assert.equal(rule.captures['3'].patterns, undefined);
+});
+
+test('the procedure label rule takes the leading margin word', () => {
+  const label = repo['procedure-division'].patterns[1].captures['2'].patterns[0];
+  const re = new RegExp(label.match);
+  const m = 'START OPEN ALL FILES.'.match(re);
+  assert.ok(m);
+  assert.equal(m[1], 'START');
+  assert.equal(re.test(' MOVE BLANKS.'), false); // no leading word: unlabeled
 });
 
 test('the terminator rule needs the period-blank and takes commentary', () => {
-  const terminator = repo['procedure-division'].patterns
+  const nested = repo['procedure-division'].patterns[1].captures['2'].patterns;
+  const terminator = nested
     .map((p) => p.match)
     .find((m) => typeof m === 'string' && m.includes('\\.'));
   const re = new RegExp(terminator);

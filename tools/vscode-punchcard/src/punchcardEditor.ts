@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { COLUMN_COUNT, blankCard } from './canonCodec';
 import {
+  CardKind,
   MARKER_NONE,
   MARKER_SPECIAL,
   MARKER_UNATTESTED,
@@ -9,6 +10,7 @@ import {
   fieldsFor,
   previewOf,
   readCard,
+  reclassifyCard,
 } from './cardView';
 import { DIVISION_FIELDS, GENERIC_FIELDS } from './columns';
 import { bcdFromGlyph, punchesFromBcd } from './charCode';
@@ -19,6 +21,15 @@ interface PanelState {
   index: number;
   /** The document structure revision this webview last saw. */
   structure: number;
+  /** The `kinds` array last sent to this panel, to send it again only when
+   * it changes. */
+  lastKinds: CardKind[] | null;
+}
+
+/** A document's classification, cached against its structure revision. */
+interface Classification {
+  revision: number;
+  kinds: CardKind[];
 }
 
 /** The punch-level editor for `.ctdeck` files. */
@@ -44,6 +55,10 @@ export class PunchcardEditorProvider
   private readonly panelsByDocument = new Map<
     PunchcardDocument,
     Set<vscode.WebviewPanel>
+  >();
+  private readonly classifications = new Map<
+    PunchcardDocument,
+    Classification
   >();
 
   private readonly _onDidChangeCustomDocument = new vscode.EventEmitter<
@@ -78,7 +93,7 @@ export class PunchcardEditorProvider
     panel: vscode.WebviewPanel,
     _token: vscode.CancellationToken,
   ): Promise<void> {
-    this.panels.set(panel, { index: 0, structure: -1 });
+    this.panels.set(panel, { index: 0, structure: -1, lastKinds: null });
     let set = this.panelsByDocument.get(document);
     if (set === undefined) {
       set = new Set();
@@ -95,6 +110,7 @@ export class PunchcardEditorProvider
       siblings?.delete(panel);
       if (siblings !== undefined && siblings.size === 0) {
         this.panelsByDocument.delete(document);
+        this.classifications.delete(document);
       }
     });
 
@@ -228,6 +244,43 @@ export class PunchcardEditorProvider
     }
   }
 
+  /**
+   * The classification of `document`'s deck. Reuses the cached array when
+   * the deck's structure has not changed since it was built, and — for a
+   * non-structural edit to one card — when re-classifying just that card
+   * gives the same kind it already had. A full recompute reads every
+   * card's 80 columns; both shortcuts avoid that on the common path of one
+   * punch at a time.
+   */
+  private kindsFor(
+    document: PunchcardDocument,
+    changed: number | null | undefined,
+  ): CardKind[] {
+    const cached = this.classifications.get(document);
+    if (cached === undefined || cached.revision !== document.structureRevision) {
+      return this.recomputeKinds(document);
+    }
+    if (
+      typeof changed === 'number' &&
+      changed >= 0 &&
+      changed < document.cardCount &&
+      reclassifyCard(document.deck, cached.kinds, changed) !==
+        cached.kinds[changed]
+    ) {
+      return this.recomputeKinds(document);
+    }
+    return cached.kinds;
+  }
+
+  private recomputeKinds(document: PunchcardDocument): CardKind[] {
+    const kinds = classifyCards(document.deck);
+    this.classifications.set(document, {
+      revision: document.structureRevision,
+      kinds,
+    });
+    return kinds;
+  }
+
   private send(
     document: PunchcardDocument,
     panel: vscode.WebviewPanel,
@@ -244,7 +297,9 @@ export class PunchcardEditorProvider
     const index = state.index;
     const card = document.cardCount > 0 ? document.card(index) : null;
     const changed = options.changed;
-    const kinds = classifyCards(document.deck);
+    const kinds = this.kindsFor(document, changed);
+    const kindsChanged = state.lastKinds !== kinds;
+    state.lastKinds = kinds;
     void panel.webview.postMessage({
       type: 'state',
       cardCount: document.cardCount,
@@ -259,7 +314,7 @@ export class PunchcardEditorProvider
       columns: card === null ? [] : Array.from(card),
       readout: card === null ? [] : readCard(card),
       cursor: options.cursor ?? null,
-      kinds,
+      kinds: kindsChanged ? kinds : undefined,
       tables: { generic: GENERIC_FIELDS, ...DIVISION_FIELDS },
       fields: fieldsFor(card === null ? 'blank' : kinds[index]),
       markers: {

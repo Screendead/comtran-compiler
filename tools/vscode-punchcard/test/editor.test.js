@@ -363,6 +363,45 @@ test('a toggle message punches and reports the new state', async () => {
   assert.equal(state.preview.index, 0);
 });
 
+test('kinds go out when a card changes kind, then are omitted while it stays the same', async () => {
+  const { panel } = await openEditor('kinds-stable', [blankCard(), blankCard()]);
+
+  // First punch: blank -> loose is a real change, so kinds go out.
+  panel.send({ type: 'toggle', index: 0, column: 20, row: 3 });
+  assert.notEqual(lastState(panel).kinds, undefined);
+
+  // Second punch, same card, still loose: no change, so kinds are omitted.
+  panel.posted.length = 0;
+  panel.send({ type: 'toggle', index: 0, column: 50, row: 3 });
+  const state = panel.posted[panel.posted.length - 1];
+  assert.equal(state.type, 'state');
+  assert.equal(state.kinds, undefined);
+});
+
+test('kinds are resent exactly when a punch changes that card into a header', async () => {
+  const { document, panel } = await openEditor('kinds-header', [
+    blankCard(),
+    blankCard(),
+  ]);
+  const glyphs = [
+    [7, '*'],
+    [8, 'D'],
+    [9, 'A'],
+    [10, 'T'],
+    [11, 'A'],
+  ];
+  const resent = [];
+  for (const [column, glyph] of glyphs) {
+    panel.posted.length = 0;
+    panel.send({ type: 'typeGlyph', index: 0, column, glyph });
+    resent.push(panel.posted[0].kinds !== undefined);
+  }
+  // blank -> loose (change), loose -> loose x3 (no change), loose ->
+  // header-data (change, once "*DATA" completes).
+  assert.deepEqual(resent, [true, false, false, false, true]);
+  assert.notEqual(document.card(0)[6], 0);
+});
+
 test('typing a glyph punches its code and advances the cursor', async () => {
   const { document, panel } = await openEditor('type', [blankCard()]);
   panel.send({ type: 'typeGlyph', index: 0, column: 13, glyph: 'a' });

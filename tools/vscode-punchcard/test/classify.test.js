@@ -10,7 +10,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { decodeCanon } = require('../out/canonCodec.js');
-const { classifyCards, fieldsFor } = require('../out/cardView.js');
+const { classifyCards, fieldsFor, reclassifyCard } = require('../out/cardView.js');
 const { bcdFromGlyph, punchesFromBcd } = require('../out/charCode.js');
 const {
   DATA_FIELDS,
@@ -71,6 +71,46 @@ test('control, finish and loose cards classify as the splitter would', () => {
     'finish',
     'loose',
   ]);
+});
+
+test('a blank card after *FINISH classifies as loose, not blank', () => {
+  // lib/src/lexer/source_program.dart tests finishCard before isBlank, so a
+  // blank card after *FINISH is a problem (msgCardAfterFinish), not silently
+  // dropped. The classifier must test the same guard in the same order.
+  const kinds = classifyCards([
+    cardFromText('      *FINISH'),
+    cardFromText(''),
+    cardFromText('      AFTER THE FINISH CARD'),
+  ]);
+  assert.deepEqual(kinds, ['finish', 'loose', 'loose']);
+});
+
+test('reclassifyCard matches classifyCards for every index (VSC-4 cache)', () => {
+  const deck = [
+    cardFromText('$CMPLE'),
+    cardFromText('      *DATA'),
+    cardFromText('      HOURS'),
+    cardFromText('      *ENVIRONMENT'),
+    cardFromText('      *PROCEDURE'),
+    cardFromText('      START OPEN FILE.'),
+    cardFromText('      *FINISH'),
+    cardFromText(''),
+  ];
+  const kinds = classifyCards(deck);
+  deck.forEach((_, i) => {
+    assert.equal(reclassifyCard(deck, kinds, i), kinds[i], `card ${i + 1}`);
+  });
+});
+
+test('reclassifyCard catches a card whose own kind changed', () => {
+  const deck = [cardFromText('      *DATA'), cardFromText('      HOURS')];
+  const kinds = classifyCards(deck);
+  assert.equal(kinds[1], 'data');
+  // Edit card 2 into a second data header: its own kind changes even
+  // though nothing before it did.
+  deck[1] = cardFromText('      *DATA');
+  assert.equal(reclassifyCard(deck, kinds, 1), 'header-data');
+  assert.notEqual(reclassifyCard(deck, kinds, 1), kinds[1]);
 });
 
 test('a header needs the asterisk in column 7 and a bare body', () => {
