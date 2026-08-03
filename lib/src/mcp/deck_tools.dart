@@ -16,7 +16,6 @@ import '../chars/char_code.dart';
 
 /// A tool failure with a machine-readable [kind].
 final class DeckToolException implements Exception {
-  /// Makes a failure of category [kind] with the text [message].
   const DeckToolException(this.kind, this.message);
 
   /// The failure category, e.g. `not_found`, `format`, `invalid_argument`.

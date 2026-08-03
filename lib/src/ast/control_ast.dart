@@ -9,7 +9,6 @@ import '../lexer/source_card.dart';
 
 /// The parsed compile control card.
 final class CompileCard {
-  /// Creates the parsed card.
   CompileCard({
     required this.card,
     required this.historicalSpelling,
@@ -18,7 +17,6 @@ final class CompileCard {
     required this.secondaryIdentifier,
   });
 
-  /// The source card.
   final SourceCard card;
 
   /// Whether the card is the 1961 `*COMPILE` form rather than `$CMPLE`

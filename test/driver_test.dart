@@ -266,5 +266,31 @@ void main() {
         contains('END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.'),
       );
     });
+
+    test('--explain prints diagnostics to stderr without changing stdout', () {
+      final ProcessResult plain = Process.runSync(Platform.resolvedExecutable, [
+        'run',
+        'comtran:comtranc',
+        payrollDeckPath,
+        '--date=10/18/61',
+        '--time=2.45',
+      ]);
+      final ProcessResult explained =
+          Process.runSync(Platform.resolvedExecutable, [
+            'run',
+            'comtran:comtranc',
+            payrollDeckPath,
+            '--date=10/18/61',
+            '--time=2.45',
+            '--explain',
+          ]);
+      expect(explained.exitCode, plain.exitCode);
+      expect(explained.stdout, plain.stdout);
+      expect(plain.stderr, isEmpty);
+      expect(
+        explained.stderr,
+        contains('END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.'),
+      );
+    });
   });
 }

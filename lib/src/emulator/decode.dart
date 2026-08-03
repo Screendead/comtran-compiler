@@ -170,16 +170,13 @@ final class Instruction {
   /// The raw 36-bit instruction word.
   final int word;
 
-  /// The decoded operation.
   final Op op;
 
   /// The decrement field (type A).
   int get decrement => Word36.decrement(word);
 
-  /// The tag field.
   int get tag => Word36.tag(word);
 
-  /// The address field.
   int get address => Word36.address(word);
 
   /// Whether positions 12 and 13 both hold 1 (indirect addressing).

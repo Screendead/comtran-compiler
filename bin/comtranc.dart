@@ -24,6 +24,9 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
   --pedantic         add non-historical written-language-strictness
                       diagnostics (D0.8); changes no parse result or
                       generated value
+  --explain          after compiling, print each job's diagnostics to
+                      stderr, one per line; the listing on stdout is
+                      unchanged
   --version          print the version and exit
 ''';
 
@@ -45,6 +48,7 @@ int _run(List<String> arguments) {
   var title = '';
   var linesPerPage = 55;
   var pedantic = false;
+  var explain = false;
   for (final argument in arguments) {
     if (argument.startsWith('--date=')) {
       date = argument.substring(7);
@@ -63,6 +67,8 @@ int _run(List<String> arguments) {
       linesPerPage = value;
     } else if (argument == '--pedantic') {
       pedantic = true;
+    } else if (argument == '--explain') {
+      explain = true;
     } else if (argument.startsWith('--')) {
       stderr.write(_usage);
       return 2;
@@ -102,6 +108,9 @@ int _run(List<String> arguments) {
       stdout.write(
         writeListing(job.frontEnd, options, diagnostics: job.diagnostics),
       );
+      if (explain) {
+        job.diagnostics.forEach(stderr.writeln);
+      }
     }
     // Severity 5 stops a job (J 90.04.02); lower severities still
     // produce output.

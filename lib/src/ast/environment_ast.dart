@@ -33,10 +33,8 @@ enum FileDirection {
 /// "the options must be listed after the record name to which they
 /// apply" (J 02.06.04).
 final class FileRecordClause {
-  /// Creates the clause for the record named by [name].
   FileRecordClause(this.name);
 
-  /// The record name token.
   final Token name;
 
   /// `BLOCK CONTROL` (input; J 02.06.04).
@@ -57,7 +55,7 @@ final class FileRecordClause {
 
 /// A `FILE` card (J 02.06.02–07).
 final class FileCard extends EnvironmentCard {
-  /// Creates the card; option fields start at their defaults.
+  /// Option fields start at their defaults.
   FileCard(super.spec, this.direction);
 
   /// INPUT, OUTPUT, or CHECKPOINT.
@@ -93,7 +91,7 @@ final class FileCard extends EnvironmentCard {
 /// A `SPECIF` card (J 02.06.07–12). The file name is the first option;
 /// the name field is unused.
 final class SpecifCard extends EnvironmentCard {
-  /// Creates the card; option fields start at their defaults.
+  /// Option fields start at their defaults.
   SpecifCard(super.spec);
 
   /// The file name the card modifies (J 02.06.08), or `null` when
@@ -158,7 +156,7 @@ final class SpecifCard extends EnvironmentCard {
 
 /// A `POOL` card (J 02.06.13). The pool name is in the name field.
 final class PoolCard extends EnvironmentCard {
-  /// Creates the card; option fields start at their defaults.
+  /// Option fields start at their defaults.
   PoolCard(super.spec);
 
   /// The file names pooled, source order.
@@ -177,7 +175,7 @@ final class PoolCard extends EnvironmentCard {
 /// names are stored as one name list; telling pool from file needs the
 /// symbol table and is M3's.
 final class GroupCard extends EnvironmentCard {
-  /// Creates the card; option fields start at their defaults.
+  /// Option fields start at their defaults.
   GroupCard(super.spec);
 
   /// The names on the card, source order. When a pool name is present
@@ -196,9 +194,9 @@ final class GroupCard extends EnvironmentCard {
 /// A `CONTRL` card (J 02.06.15–16). The load name is in the name field,
 /// at most 6 characters and unique (msg 207,00).
 final class ContrlCard extends EnvironmentCard {
-  /// Creates the card for the area [first] (a section, sentence, or
-  /// record name), optionally extended `TO` [to] — the area excludes
-  /// [to] itself (J 02.06.16).
+  /// The area is [first] (a section, sentence, or record name),
+  /// optionally extended `TO` [to] — the area excludes [to] itself
+  /// (J 02.06.16).
   ContrlCard(super.spec, this.first, this.to);
 
   /// The section, sentence, or record name opening the area.
@@ -211,7 +209,7 @@ final class ContrlCard extends EnvironmentCard {
 /// An `OPTION` card (J 02.06.16–17): two independent, separately
 /// scopeable slots.
 final class OptionCard extends EnvironmentCard {
-  /// Creates the card; option fields start at their defaults.
+  /// Option fields start at their defaults.
   OptionCard(super.spec);
 
   /// `COLLATE COM` — the Commercial collating sequence (J 02.06.16).
@@ -231,7 +229,6 @@ final class OptionCard extends EnvironmentCard {
 
 /// A `COND` card (J 02.06.17): console-key condition names.
 final class CondCard extends EnvironmentCard {
-  /// Creates the card with its normalized key [setting].
   CondCard(super.spec, this.setting);
 
   /// The key setting: exactly 12 octal digits after normalization —

@@ -179,7 +179,6 @@ linter:
     - prefer_typing_uninitialized_variables
     - prefer_void_to_null
     - provide_deprecation_message
-    - public_member_api_docs
     - recursive_getters
     - remove_deprecations_in_breaking_versions
     - require_trailing_commas
@@ -252,7 +251,7 @@ linter:
     - void_checks
 
     # ------------------------------------------------------------------
-    # NOT ENABLED — 23 rules, each with its reason. Do not add one back
+    # NOT ENABLED — 24 rules, each with its reason. Do not add one back
     # without deleting its line here.
     # ------------------------------------------------------------------
     #
@@ -285,4 +284,5 @@ linter:
     #
     # Judgment calls.
     # - avoid_types_on_closure_parameters         # 95 hits; it deletes type information the author wrote on purpose, and strict-inference already catches inference failure.
+    # - public_member_api_docs                    # it forced a no-information doc comment onto every public member. A doc comment is now reserved for a citation or a semantic fact.
     # - use_late_for_private_fields_and_variables # experimental; `late` trades a compile-time null check for a runtime LateInitializationError. A compiler should fail at compile time.

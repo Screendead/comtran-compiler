@@ -8,7 +8,6 @@ import 'word.dart';
 /// Carries the signed octal operation code, the instruction's location, and
 /// the full word. The CPU throws before it changes any state.
 final class UnimplementedOpcode7090 implements Exception {
-  /// Creates the exception for [operation] found at [location] in [word].
   UnimplementedOpcode7090(this.operation, this.location, this.word);
 
   /// The signed octal operation code (`+0522`, `-2`, or a 0760-family
@@ -35,7 +34,6 @@ final class UnimplementedOpcode7090 implements Exception {
 /// its behavior; the J citations for *why* each instruction is in the subset
 /// are in the design document's §5 table.
 final class Cpu {
-  /// A CPU over [state].
   Cpu(this.state);
 
   /// The machine state the CPU reads and writes.

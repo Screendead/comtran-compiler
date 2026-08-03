@@ -109,7 +109,6 @@ enum DeckCheckStatus {
 
 /// One line of a check report.
 final class DeckCheckResult {
-  /// Creates the result.
   const DeckCheckResult({
     required this.path,
     required this.status,
@@ -123,13 +122,11 @@ final class DeckCheckResult {
   /// The mirror that belongs to [path], when [path] is a canon file.
   final String? mirrorPath;
 
-  /// What the check found.
   final DeckCheckStatus status;
 
   /// A one-line explanation, for a report.
   final String message;
 
-  /// Whether the check passed.
   bool get passed => status == DeckCheckStatus.ok;
 }
 

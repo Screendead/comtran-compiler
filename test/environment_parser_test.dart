@@ -3,6 +3,34 @@ import 'package:test/test.dart';
 
 import 'support/deck_fixtures.dart';
 
+/// The result of [_parse]: the parsed cards, the diagnostics the parse
+/// drew, and the scan they came from. Most call sites want only the cards
+/// and diagnostics fields; the scan field is kept for the few tests that
+/// inspect the scan directly (its own diagnostics, or `scan.specs`).
+typedef _EnvParse = ({
+  List<EnvironmentCard> cards,
+  List<Diagnostic> diagnostics,
+  EnvironmentScan scan,
+});
+
+/// Scans and parses one inline Environment Division fixture, built from
+/// [environmentCard] lines.
+_EnvParse _parse(
+  List<String> lines, {
+  bool pedantic = false,
+  FileCardTally? fileTally,
+}) {
+  final EnvironmentScan scan = scanEnvironment(sourceCards(lines));
+  final diagnostics = <Diagnostic>[];
+  final List<EnvironmentCard> cards = parseEnvironmentGroup(
+    scan,
+    diagnostics,
+    pedantic: pedantic,
+    fileTally: fileTally,
+  );
+  return (cards: cards, diagnostics: diagnostics, scan: scan);
+}
+
 void main() {
   group('the 90.05 environment division', () {
     test('parses with zero added diagnostics and matches the deck', () {
@@ -69,173 +97,120 @@ void main() {
 
   group('FILE card errors', () {
     test('no direction word draws 89,00', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'F',
-            type: 'FILE',
-            options: 'MASTER,BLOCKSIZE 10',
-          ),
-        ]),
-      );
-      expect(scan.diagnostics, isEmpty);
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics.single.message, msgFileCardFormatError);
-      expect(cards.single, isA<FileCard>());
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'F',
+          type: 'FILE',
+          options: 'MASTER,BLOCKSIZE 10',
+        ),
+      ]);
+      expect(result.scan.diagnostics, isEmpty);
+      expect(result.diagnostics.single.message, msgFileCardFormatError);
+      expect(result.cards.single, isA<FileCard>());
     });
 
     test('BLOCKSIZE with no following integer draws 91,00', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'F',
-            type: 'FILE',
-            options: 'INPUT,MASTER,BLOCKSIZE',
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      expect(diagnostics.single.message, msgBlocksizeNeedsInteger);
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'F',
+          type: 'FILE',
+          options: 'INPUT,MASTER,BLOCKSIZE',
+        ),
+      ]);
+      expect(result.diagnostics.single.message, msgBlocksizeNeedsInteger);
     });
 
     test('ON ERROR with no following name draws 92,00', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'F',
-            type: 'FILE',
-            options: 'INPUT,MASTER,BLOCKSIZE 10,ON ERROR',
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      expect(diagnostics.single.message, msgOnErrorNeedsName);
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'F',
+          type: 'FILE',
+          options: 'INPUT,MASTER,BLOCKSIZE 10,ON ERROR',
+        ),
+      ]);
+      expect(result.diagnostics.single.message, msgOnErrorNeedsName);
     });
 
     test('PRIMARY on an INPUT file draws 96,00', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'F',
-            type: 'FILE',
-            options: 'INPUT,MASTER,BLOCKSIZE 10,PRIMARY',
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      expect(diagnostics.single.message, msgIllegalWordInFileCard);
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'F',
+          type: 'FILE',
+          options: 'INPUT,MASTER,BLOCKSIZE 10,PRIMARY',
+        ),
+      ]);
+      expect(result.diagnostics.single.message, msgIllegalWordInFileCard);
     });
 
     test('a FILE card without BLOCKSIZE draws 89,00 (J 02.06.04)', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(name: 'F', type: 'FILE', options: 'INPUT,MASTER'),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      expect(diagnostics.single.message, msgFileCardFormatError);
+      final _EnvParse result = _parse([
+        environmentCard(name: 'F', type: 'FILE', options: 'INPUT,MASTER'),
+      ]);
+      expect(result.diagnostics.single.message, msgFileCardFormatError);
     });
 
     test('a CHECKPOINT file needs no BLOCKSIZE', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(name: 'F', type: 'FILE', options: 'CHECKPOINT'),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      expect(diagnostics, isEmpty);
+      final _EnvParse result = _parse([
+        environmentCard(name: 'F', type: 'FILE', options: 'CHECKPOINT'),
+      ]);
+      expect(result.diagnostics, isEmpty);
     });
 
     test('BLOCK CONTROL on an OUTPUT file draws 96,00 (J 02.06.03)', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'F',
-            type: 'FILE',
-            options: 'OUTPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      expect(diagnostics.single.message, msgIllegalWordInFileCard);
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'F',
+          type: 'FILE',
+          options: 'OUTPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
+        ),
+      ]);
+      expect(result.diagnostics.single.message, msgIllegalWordInFileCard);
     });
 
     test('BLOCK CONTROL on an INPUT record stays clean', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'F',
-            type: 'FILE',
-            options: 'INPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      expect(diagnostics, isEmpty);
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'F',
+          type: 'FILE',
+          options: 'INPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
+        ),
+      ]);
+      expect(result.diagnostics, isEmpty);
     });
 
     test('a key word as a FILE or record name draws 178,00 (D10.8)', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'ZERO',
-            type: 'FILE',
-            options: 'INPUT,BLOCKSIZE 10,MOVE',
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics.map((Diagnostic d) => d.message), [
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'ZERO',
+          type: 'FILE',
+          options: 'INPUT,BLOCKSIZE 10,MOVE',
+        ),
+      ]);
+      expect(result.diagnostics.map((Diagnostic d) => d.message), [
         msgKeyWordAsDataName,
         msgKeyWordAsDataName,
       ]);
-      final card = cards.single as FileCard;
+      final card = result.cards.single as FileCard;
       expect(card.records.single.name.text, 'MOVE');
     });
 
     test('a second input record with no leading comma draws 924 under '
         '--pedantic (D8.5)', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'F',
-            type: 'FILE',
-            options: 'INPUT,REC1 REC2,BLOCKSIZE 10',
-          ),
-        ]),
-      );
-      expect(scan.diagnostics, isEmpty);
-      final plainDiagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> plainCards = parseEnvironmentGroup(
-        scan,
-        plainDiagnostics,
-      );
-      expect(plainDiagnostics, isEmpty);
-      final pedanticDiagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> pedanticCards = parseEnvironmentGroup(
-        scan,
-        pedanticDiagnostics,
-        pedantic: true,
-      );
-      expect(pedanticDiagnostics.single.message, msgInputFileCommaOmitted);
+      final List<String> lines = [
+        environmentCard(
+          name: 'F',
+          type: 'FILE',
+          options: 'INPUT,REC1 REC2,BLOCKSIZE 10',
+        ),
+      ];
+      final _EnvParse plain = _parse(lines);
+      expect(plain.scan.diagnostics, isEmpty);
+      expect(plain.diagnostics, isEmpty);
+      final _EnvParse pedantic = _parse(lines, pedantic: true);
+      expect(pedantic.diagnostics.single.message, msgInputFileCommaOmitted);
       // The record list is identical in both modes (D11.4).
-      final plainCard = plainCards.single as FileCard;
-      final pedanticCard = pedanticCards.single as FileCard;
+      final plainCard = plain.cards.single as FileCard;
+      final pedanticCard = pedantic.cards.single as FileCard;
       expect(
         [for (final FileRecordClause r in pedanticCard.records) r.name.text],
         [for (final FileRecordClause r in plainCard.records) r.name.text],
@@ -244,54 +219,44 @@ void main() {
 
     test('a second input record after a comma stays clean under --pedantic '
         '(D8.5)', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'F',
-            type: 'FILE',
-            options: 'INPUT,REC1,REC2,BLOCKSIZE 10',
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics, pedantic: true);
-      expect(diagnostics, isEmpty);
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'F',
+          type: 'FILE',
+          options: 'INPUT,REC1,REC2,BLOCKSIZE 10',
+        ),
+      ], pedantic: true);
+      expect(result.diagnostics, isEmpty);
     });
 
     test('the 64th FILE card draws 193,00 across groups (D10.8)', () {
       final tally = FileCardTally();
       final diagnostics = <Diagnostic>[];
       for (var group = 0; group < 2; group++) {
-        final EnvironmentScan scan = scanEnvironment(
-          sourceCards([
-            for (var i = 0; i < 32; i++)
-              environmentCard(
-                name: 'F$group$i',
-                type: 'FILE',
-                options: 'INPUT,R$group$i,BLOCKSIZE 10',
-              ),
-          ]),
-        );
-        parseEnvironmentGroup(scan, diagnostics, fileTally: tally);
+        final _EnvParse result = _parse([
+          for (var i = 0; i < 32; i++)
+            environmentCard(
+              name: 'F$group$i',
+              type: 'FILE',
+              options: 'INPUT,R$group$i,BLOCKSIZE 10',
+            ),
+        ], fileTally: tally);
+        diagnostics.addAll(result.diagnostics);
       }
       expect(tally.count, 64);
       expect(diagnostics.single.message, msgTooManyFiles);
     });
 
     test('PATTERN draws 905,00 and nothing else (D9.12)', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'F',
-            type: 'FILE',
-            options: 'INPUT,MASTER,PATTERN,BLOCKSIZE 10',
-          ),
-        ]),
-      );
-      expect(scan.diagnostics, isEmpty);
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      expect(diagnostics.map((Diagnostic d) => d.message), [
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'F',
+          type: 'FILE',
+          options: 'INPUT,MASTER,PATTERN,BLOCKSIZE 10',
+        ),
+      ]);
+      expect(result.scan.diagnostics, isEmpty);
+      expect(result.diagnostics.map((Diagnostic d) => d.message), [
         msgPatternNotImplemented,
       ]);
     });
@@ -299,18 +264,11 @@ void main() {
 
   group('FILE keyword coverage (TSTC-02)', () {
     FileCard parse(String options) {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(name: 'F', type: 'FILE', options: options),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics, isEmpty, reason: options);
-      return cards.single as FileCard;
+      final _EnvParse result = _parse([
+        environmentCard(name: 'F', type: 'FILE', options: options),
+      ]);
+      expect(result.diagnostics, isEmpty, reason: options);
+      return result.cards.single as FileCard;
     }
 
     test('CARD forces BEGIN (J 02.06.04)', () {
@@ -355,26 +313,15 @@ void main() {
   });
 
   group('SPECIF operand errors (D10.1)', () {
-    List<Diagnostic> diagnose(String options) {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([environmentCard(type: 'SPECIF', options: options)]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      return diagnostics;
-    }
+    List<Diagnostic> diagnose(String options) =>
+        _parse([environmentCard(type: 'SPECIF', options: options)]).diagnostics;
 
     test('a literal first item draws 154,00', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([environmentCard(type: 'SPECIF', options: "'D1',DEFER")]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics.single.message, msgSpecifFileNameNotFirst);
-      expect((cards.single as SpecifCard).fileName, isNull);
+      final _EnvParse result = _parse([
+        environmentCard(type: 'SPECIF', options: "'D1',DEFER"),
+      ]);
+      expect(result.diagnostics.single.message, msgSpecifFileNameNotFirst);
+      expect((result.cards.single as SpecifCard).fileName, isNull);
     });
 
     test('UNIT1 with no following literal draws 155,00', () {
@@ -411,18 +358,11 @@ void main() {
     });
 
     test('an over-length SERIAL literal draws 160,00 and is dropped', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(type: 'SPECIF', options: "MASTER,SERIAL 'ABC123'"),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics.single.message, msgKeyWordLiteralTooLong);
-      expect((cards.single as SpecifCard).serial, isNull);
+      final _EnvParse result = _parse([
+        environmentCard(type: 'SPECIF', options: "MASTER,SERIAL 'ABC123'"),
+      ]);
+      expect(result.diagnostics.single.message, msgKeyWordLiteralTooLong);
+      expect((result.cards.single as SpecifCard).serial, isNull);
     });
 
     test('an over-length REEL literal draws 160,00', () {
@@ -463,16 +403,11 @@ void main() {
 
   group('SPECIF label density (J 02.06.12)', () {
     SpecifCard parse(String options) {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([environmentCard(type: 'SPECIF', options: options)]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics, isEmpty);
-      return cards.single as SpecifCard;
+      final _EnvParse result = _parse([
+        environmentCard(type: 'SPECIF', options: options),
+      ]);
+      expect(result.diagnostics, isEmpty);
+      return result.cards.single as SpecifCard;
     }
 
     test('HIGH/LOW after LABELS is the label density', () {
@@ -498,16 +433,11 @@ void main() {
 
   group('SPECIF keyword coverage (TSTC-02)', () {
     SpecifCard parse(String options) {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([environmentCard(type: 'SPECIF', options: options)]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics, isEmpty, reason: options);
-      return cards.single as SpecifCard;
+      final _EnvParse result = _parse([
+        environmentCard(type: 'SPECIF', options: options),
+      ]);
+      expect(result.diagnostics, isEmpty, reason: options);
+      return result.cards.single as SpecifCard;
     }
 
     test('UNIT2 takes a quoted literal (J 02.06.10)', () {
@@ -575,66 +505,44 @@ void main() {
 
   group('other card errors', () {
     test('SPECIF with an unknown word draws 153,00', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(type: 'SPECIF', options: 'MASTER,FROBOZZ'),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      expect(diagnostics.single.message, msgSpecifCardFormatError);
+      final _EnvParse result = _parse([
+        environmentCard(type: 'SPECIF', options: 'MASTER,FROBOZZ'),
+      ]);
+      expect(result.diagnostics.single.message, msgSpecifCardFormatError);
     });
 
     test('POOL BLOCKSIZE with no following integer draws 162,00', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'POOLA',
-            type: 'POOL',
-            options: 'FILEA,BLOCKSIZE',
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics.single.message, msgPoolBlocksizeNeedsInteger);
-      expect((cards.single as PoolCard).fileNames, hasLength(1));
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'POOLA',
+          type: 'POOL',
+          options: 'FILEA,BLOCKSIZE',
+        ),
+      ]);
+      expect(result.diagnostics.single.message, msgPoolBlocksizeNeedsInteger);
+      expect((result.cards.single as PoolCard).fileNames, hasLength(1));
     });
 
     test('GROUP OPENCOUNT with no following integer draws 165,00', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(type: 'GROUP', options: 'FILEA,OPENCOUNT'),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics.single.message, msgOpencountNeedsInteger);
-      expect((cards.single as GroupCard).names, hasLength(1));
+      final _EnvParse result = _parse([
+        environmentCard(type: 'GROUP', options: 'FILEA,OPENCOUNT'),
+      ]);
+      expect(result.diagnostics.single.message, msgOpencountNeedsInteger);
+      expect((result.cards.single as GroupCard).names, hasLength(1));
     });
 
     test(
       // ignore: lines_longer_than_80_chars, reason: docs/design/message-checklist.tsv matches this test by literal name (msgs 90, 207); a split string would still concatenate but the checklist test greps raw source text, so the literal must stay on one line.
       'a CONTRL name over 6 characters draws 207,00; well-formed card also gets 90,00',
       () {
-        final EnvironmentScan scan = scanEnvironment(
-          sourceCards([
-            environmentCard(
-              name: 'TOOLONGNAME',
-              type: 'CONTRL',
-              options: 'SECTIONA',
-            ),
-          ]),
-        );
-        final diagnostics = <Diagnostic>[];
-        parseEnvironmentGroup(scan, diagnostics);
-        expect(diagnostics.map((Diagnostic d) => d.message), [
+        final _EnvParse result = _parse([
+          environmentCard(
+            name: 'TOOLONGNAME',
+            type: 'CONTRL',
+            options: 'SECTIONA',
+          ),
+        ]);
+        expect(result.diagnostics.map((Diagnostic d) => d.message), [
           msgContrlNameInvalid,
           msgEnvironmentTypeNotProcessed,
         ]);
@@ -642,22 +550,18 @@ void main() {
     );
 
     test('a duplicate CONTRL name draws 207,00 on the repeat only', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(name: 'AREA1', type: 'CONTRL', options: 'SECTA'),
-          environmentCard(name: 'AREA1', type: 'CONTRL', options: 'SECTB'),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      final Iterable<Diagnostic> nameErrors = diagnostics.where(
+      final _EnvParse result = _parse([
+        environmentCard(name: 'AREA1', type: 'CONTRL', options: 'SECTA'),
+        environmentCard(name: 'AREA1', type: 'CONTRL', options: 'SECTB'),
+      ]);
+      final Iterable<Diagnostic> nameErrors = result.diagnostics.where(
         (Diagnostic d) => d.message == msgContrlNameInvalid,
       );
       expect(nameErrors, hasLength(1));
-      expect(nameErrors.single.card, scan.specs[1].cards.first);
+      expect(nameErrors.single.card, result.scan.specs[1].cards.first);
       // Both cards still get 90,00 (D7.8).
       expect(
-        diagnostics.where(
+        result.diagnostics.where(
           (Diagnostic d) => d.message == msgEnvironmentTypeNotProcessed,
         ),
         hasLength(2),
@@ -665,112 +569,67 @@ void main() {
     });
 
     test('OPTION with unrecognized content draws 3,00', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([environmentCard(type: 'OPTION', options: 'FROBOZZ')]),
-      );
-      final diagnostics = <Diagnostic>[];
-      parseEnvironmentGroup(scan, diagnostics);
-      expect(diagnostics.single.message, msgOptionCardFormatError);
+      final _EnvParse result = _parse([
+        environmentCard(type: 'OPTION', options: 'FROBOZZ'),
+      ]);
+      expect(result.diagnostics.single.message, msgOptionCardFormatError);
     });
   });
 
   group('COND key setting normalization (D9.16)', () {
     test("KEYS '77' pads silently to 12 octal digits", () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(name: 'COND1', type: 'COND', options: "KEYS '77'"),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics, isEmpty);
-      expect((cards.single as CondCard).setting, '000000000077');
+      final _EnvParse result = _parse([
+        environmentCard(name: 'COND1', type: 'COND', options: "KEYS '77'"),
+      ]);
+      expect(result.diagnostics, isEmpty);
+      expect((result.cards.single as CondCard).setting, '000000000077');
     });
 
     test('a short KEYS setting draws 925 under --pedantic (D9.16)', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(name: 'COND1', type: 'COND', options: "KEYS '77'"),
-        ]),
-      );
-      final plainDiagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> plainCards = parseEnvironmentGroup(
-        scan,
-        plainDiagnostics,
-      );
-      expect(plainDiagnostics, isEmpty);
-      final pedanticDiagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> pedanticCards = parseEnvironmentGroup(
-        scan,
-        pedanticDiagnostics,
-        pedantic: true,
-      );
-      expect(pedanticDiagnostics.single.message, msgCondKeyUnderLength);
+      final List<String> lines = [
+        environmentCard(name: 'COND1', type: 'COND', options: "KEYS '77'"),
+      ];
+      final _EnvParse plain = _parse(lines);
+      expect(plain.diagnostics, isEmpty);
+      final _EnvParse pedantic = _parse(lines, pedantic: true);
+      expect(pedantic.diagnostics.single.message, msgCondKeyUnderLength);
       // The padded value is identical in both modes (D11.4).
       expect(
-        (pedanticCards.single as CondCard).setting,
-        (plainCards.single as CondCard).setting,
+        (pedantic.cards.single as CondCard).setting,
+        (plain.cards.single as CondCard).setting,
       );
     });
 
     test('a 13-digit KEYS setting draws 6,00 and keeps the rightmost 12', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'COND1',
-            type: 'COND',
-            options: "KEYS '0123456701234'",
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics.single.message, msgCondKeysTooLong);
-      expect((cards.single as CondCard).setting, '123456701234');
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'COND1',
+          type: 'COND',
+          options: "KEYS '0123456701234'",
+        ),
+      ]);
+      expect(result.diagnostics.single.message, msgCondKeysTooLong);
+      expect((result.cards.single as CondCard).setting, '123456701234');
     });
 
     test('a KEYS setting with an imbedded blank draws 7,00 (D9.16)', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'COND1',
-            type: 'COND',
-            options: "KEYS '77 001'",
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics.single.message, msgCondKeysNotOctal);
-      expect((cards.single as CondCard).setting, '000000000001');
+      final _EnvParse result = _parse([
+        environmentCard(name: 'COND1', type: 'COND', options: "KEYS '77 001'"),
+      ]);
+      expect(result.diagnostics.single.message, msgCondKeysNotOctal);
+      expect((result.cards.single as CondCard).setting, '000000000001');
     });
 
     test('a KEYS setting with an 8 draws 7,00 and becomes key setting 1', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'COND1',
-            type: 'COND',
-            options: "KEYS '780000000000'",
-          ),
-        ]),
-      );
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        scan,
-        diagnostics,
-      );
-      expect(diagnostics.single.message, msgCondKeysNotOctal);
-      expect((cards.single as CondCard).setting, '000000000001');
+      final _EnvParse result = _parse([
+        environmentCard(
+          name: 'COND1',
+          type: 'COND',
+          options: "KEYS '780000000000'",
+        ),
+      ]);
+      expect(result.diagnostics.single.message, msgCondKeysNotOctal);
+      expect((result.cards.single as CondCard).setting, '000000000001');
     });
   });
 
@@ -778,79 +637,76 @@ void main() {
     test(
       'every issued message id has a severity row (Diagnostic.severity)',
       () {
-        final EnvironmentScan scan = scanEnvironment(
-          sourceCards([
-            // 89 (bad direction).
-            environmentCard(name: 'F1', type: 'FILE', options: 'MASTER'),
-            // 91, 92, 93, 905, 96 (PRIMARY on an input file) — split across a
-            // continuation card; the options field is 41 columns wide.
-            environmentCard(
-              name: 'F2',
-              type: 'FILE',
-              options: 'INPUT,MASTER,BLOCKSIZE,ON ERROR,',
-              continued: true,
-            ),
-            environmentCard(options: 'FOR LABEL,PATTERN,PRIMARY'),
-            // 94, 95 — likewise split.
-            environmentCard(
-              name: 'F3',
-              type: 'FILE',
-              options: 'OUTPUT,REC1,FIND LENGTH IN,',
-              continued: true,
-            ),
-            environmentCard(options: 'PLACE LENGTH IN'),
-            // 153.
-            environmentCard(type: 'SPECIF', options: 'MASTER,FROBOZZ'),
-            // 154, 155, 156 — split across a continuation card.
-            environmentCard(
-              type: 'SPECIF',
-              options: "'X',UNIT1,SERIAL,",
-              continued: true,
-            ),
-            // 157, 158, 159, 160.
-            environmentCard(options: "REEL,RETAIN,ACTIVITY,UNIT2 'ABC1234'"),
-            // 161 (no file names at all).
-            environmentCard(
-              name: 'POOLA',
-              type: 'POOL',
-              options: 'BUFFERCOUNT 5',
-            ),
-            // 163.
-            environmentCard(
-              name: 'POOLB',
-              type: 'POOL',
-              options: 'FILEA,BUFFERCOUNT',
-            ),
-            // 164 (no names at all).
-            environmentCard(type: 'GROUP', options: 'OPENCOUNT 5'),
-            // 176 (malformed shape) plus 90.
-            environmentCard(name: 'BAD1', type: 'CONTRL'),
-            // 207 (over-length) plus 90.
-            environmentCard(
-              name: 'TOOLONGNAME',
-              type: 'CONTRL',
-              options: 'SECTIONA',
-            ),
-            // 3.
-            environmentCard(type: 'OPTION', options: 'FROBOZZ'),
-            // 4 (missing KEYS).
-            environmentCard(name: 'COND1', type: 'COND', options: 'FOO'),
-            // 6.
-            environmentCard(
-              name: 'COND2',
-              type: 'COND',
-              options: "KEYS '0123456701234'",
-            ),
-            // 7.
-            environmentCard(
-              name: 'COND3',
-              type: 'COND',
-              options: "KEYS '780000000000'",
-            ),
-          ]),
-        );
-        final diagnostics = <Diagnostic>[];
-        parseEnvironmentGroup(scan, diagnostics);
+        final _EnvParse result = _parse([
+          // 89 (bad direction).
+          environmentCard(name: 'F1', type: 'FILE', options: 'MASTER'),
+          // 91, 92, 93, 905, 96 (PRIMARY on an input file) — split across a
+          // continuation card; the options field is 41 columns wide.
+          environmentCard(
+            name: 'F2',
+            type: 'FILE',
+            options: 'INPUT,MASTER,BLOCKSIZE,ON ERROR,',
+            continued: true,
+          ),
+          environmentCard(options: 'FOR LABEL,PATTERN,PRIMARY'),
+          // 94, 95 — likewise split.
+          environmentCard(
+            name: 'F3',
+            type: 'FILE',
+            options: 'OUTPUT,REC1,FIND LENGTH IN,',
+            continued: true,
+          ),
+          environmentCard(options: 'PLACE LENGTH IN'),
+          // 153.
+          environmentCard(type: 'SPECIF', options: 'MASTER,FROBOZZ'),
+          // 154, 155, 156 — split across a continuation card.
+          environmentCard(
+            type: 'SPECIF',
+            options: "'X',UNIT1,SERIAL,",
+            continued: true,
+          ),
+          // 157, 158, 159, 160.
+          environmentCard(options: "REEL,RETAIN,ACTIVITY,UNIT2 'ABC1234'"),
+          // 161 (no file names at all).
+          environmentCard(
+            name: 'POOLA',
+            type: 'POOL',
+            options: 'BUFFERCOUNT 5',
+          ),
+          // 163.
+          environmentCard(
+            name: 'POOLB',
+            type: 'POOL',
+            options: 'FILEA,BUFFERCOUNT',
+          ),
+          // 164 (no names at all).
+          environmentCard(type: 'GROUP', options: 'OPENCOUNT 5'),
+          // 176 (malformed shape) plus 90.
+          environmentCard(name: 'BAD1', type: 'CONTRL'),
+          // 207 (over-length) plus 90.
+          environmentCard(
+            name: 'TOOLONGNAME',
+            type: 'CONTRL',
+            options: 'SECTIONA',
+          ),
+          // 3.
+          environmentCard(type: 'OPTION', options: 'FROBOZZ'),
+          // 4 (missing KEYS).
+          environmentCard(name: 'COND1', type: 'COND', options: 'FOO'),
+          // 6.
+          environmentCard(
+            name: 'COND2',
+            type: 'COND',
+            options: "KEYS '0123456701234'",
+          ),
+          // 7.
+          environmentCard(
+            name: 'COND3',
+            type: 'COND',
+            options: "KEYS '780000000000'",
+          ),
+        ]);
+        final List<Diagnostic> diagnostics = result.diagnostics;
 
         // The exact spread of message ids this parser issues, in source
         // order, each paired with its card: a duplicated, missing, or

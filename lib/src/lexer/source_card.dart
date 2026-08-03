@@ -97,3 +97,21 @@ final class SourceCard {
     return column;
   }
 }
+
+/// Partitions [cards] into continuation groups: a group is complete when
+/// column 72 is blank (J 02.03.02, §3.b: "Data and Environment entries are
+/// considered complete when column 72 is blank").
+List<List<SourceCard>> continuationGroups(List<SourceCard> cards) {
+  final groups = <List<SourceCard>>[];
+  var i = 0;
+  while (i < cards.length) {
+    final group = <SourceCard>[cards[i]];
+    while (cards[i].isPunched(72) && i + 1 < cards.length) {
+      i++;
+      group.add(cards[i]);
+    }
+    i++;
+    groups.add(group);
+  }
+  return groups;
+}
