@@ -1,15 +1,13 @@
-import 'dart:io';
-
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
+
+import 'support/deck_fixtures.dart';
 
 SourceCard _card(String line) => SourceCard(mirrorToDeck('$line\n').single, 1);
 
 void main() {
   test('the 90.05 *COMPILE card parses per D7.12', () {
-    final FrontEndResult result = runFrontEnd(
-      decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
-    );
+    final FrontEndResult result = runFrontEnd(loadPayrollDeck());
     final diagnostics = <Diagnostic>[];
     final CompileCard card = parseCompileCard(
       result.program.compileCard,

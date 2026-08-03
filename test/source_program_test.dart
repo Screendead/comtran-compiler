@@ -1,7 +1,7 @@
-import 'dart:io';
-
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
+
+import 'support/deck_fixtures.dart';
 
 SourceProgram _program(List<String> lines) =>
     SourceProgram.fromDeck(mirrorToDeck('${lines.join('\n')}\n'));
@@ -35,9 +35,7 @@ void main() {
 
   group('SourceProgram.fromDeck', () {
     test('splits the 90.05 deck into its control card and divisions', () {
-      final program = SourceProgram.fromDeck(
-        decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
-      );
+      final program = SourceProgram.fromDeck(loadPayrollDeck());
       expect(program.compileCard?.cardNumber, 1);
       expect(program.compileCard?.body, startsWith('*COMPILE'));
       expect(program.finishCard, isNull);

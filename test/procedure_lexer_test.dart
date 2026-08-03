@@ -1,14 +1,9 @@
-import 'dart:io';
-
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
-ProcedureScan _scan(List<String> lines) {
-  final List<CardImage> deck = mirrorToDeck('${lines.join('\n')}\n');
-  return scanProcedure([
-    for (var i = 0; i < deck.length; i++) SourceCard(deck[i], i + 1),
-  ]);
-}
+import 'support/deck_fixtures.dart';
+
+ProcedureScan _scan(List<String> lines) => scanProcedure(sourceCards(lines));
 
 List<String> _texts(ProcedureSentence sentence) => [
   for (final Token t in sentence.tokens) t.text,
@@ -268,9 +263,7 @@ void main() {
 
   group('the 90.05 deck', () {
     test('scans to exactly 43 sentences with no diagnostics', () {
-      final program = SourceProgram.fromDeck(
-        decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
-      );
+      final program = SourceProgram.fromDeck(loadPayrollDeck());
       final ProcedureScan scan = scanProcedure(
         program.cardsOf(Division.procedure),
       );

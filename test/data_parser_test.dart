@@ -1,33 +1,11 @@
-import 'dart:io';
-
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
-List<SourceCard> _cards(List<String> lines) {
-  final List<CardImage> deck = mirrorToDeck('${lines.join('\n')}\n');
-  return [for (var i = 0; i < deck.length; i++) SourceCard(deck[i], i + 1)];
-}
-
-// Builds a data card from its fields at the documented columns.
-String _card({
-  String name = '',
-  String level = '',
-  String type = '',
-  String quantity = '',
-  String mode = '',
-  String justify = '',
-  String description = '',
-}) {
-  final line =
-      '${' ' * 6}${name.padRight(16)}${level.padLeft(2)}${type.padRight(6)}'
-      '${quantity.padLeft(5)}${mode.padRight(1)}${justify.padRight(1)}'
-      '${description.padRight(34)}';
-  return line.trimRight();
-}
+import 'support/deck_fixtures.dart';
 
 // Scans and parses one constructed data division.
 (List<DataItem>, List<Diagnostic>) _parse(List<String> lines) {
-  final DataScan scan = scanDataDescription(_cards(lines));
+  final DataScan scan = scanDataDescription(sourceCards(lines));
   expect(scan.diagnostics, isEmpty, reason: 'scan must be clean');
   final diagnostics = <Diagnostic>[];
   final List<DataItem> items = parseDataGroup(scan, diagnostics);
@@ -39,9 +17,7 @@ void main() {
     late final List<DataItem> items;
 
     setUpAll(() {
-      final FrontEndResult result = runFrontEnd(
-        decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
-      );
+      final FrontEndResult result = runFrontEnd(loadPayrollDeck());
       final DataGroupScan scan = result.groupScans
           .whereType<DataGroupScan>()
           .single;
@@ -117,7 +93,7 @@ void main() {
     test('a withdrawn or unknown code draws 907 and a null typeCode', () {
       for (final code in ['FUNCT', 'PARAM', 'JUNK']) {
         final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-          _card(name: 'F', level: '2', type: code, description: '99'),
+          dataCard(name: 'F', level: '2', type: code, description: '99'),
         ]);
         expect(items.single.typeCode, isNull, reason: code);
         expect(diagnostics.single.message, msgTypeCodeNotInLanguage);
@@ -128,7 +104,7 @@ void main() {
 
     test('a RECORD card with a Quantity draws 906', () {
       final (_, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'R', level: '1', type: 'RECORD', quantity: '5'),
+        dataCard(name: 'R', level: '1', type: 'RECORD', quantity: '5'),
       ]);
       expect(diagnostics.single.message, msgDataCardCodingConflict);
     });
@@ -136,7 +112,7 @@ void main() {
     test('an RCDMRK card accepts an explicit pictorial, as the sample '
         'punches (J 90.05, statement 42,00)', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'M', level: '2', type: 'RCDMRK', description: 'A'),
+        dataCard(name: 'M', level: '2', type: 'RCDMRK', description: 'A'),
       ]);
       expect(items.single.typeCode, DataTypeCode.rcdmrk);
       expect(items.single.pictorial!.text, 'A');
@@ -145,15 +121,15 @@ void main() {
 
     test('an RCDMRK card with more than a pictorial draws 906', () {
       final (_, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'M', level: '2', type: 'RCDMRK', description: "A 'X'"),
+        dataCard(name: 'M', level: '2', type: 'RCDMRK', description: "A 'X'"),
       ]);
       expect(diagnostics.single.message, msgDataCardCodingConflict);
     });
 
     test('a COND entry takes exactly one quoted constant', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'MARRIED', level: '7', type: 'COND', description: "'M'"),
-        _card(name: 'SINGLE', level: '7', type: 'COND', description: 'M'),
+        dataCard(name: 'MARRIED', level: '7', type: 'COND', description: "'M'"),
+        dataCard(name: 'SINGLE', level: '7', type: 'COND', description: 'M'),
       ]);
       expect(items.first.constant!.text, 'M');
       expect(diagnostics.single.message, msgDataCardCodingConflict);
@@ -162,7 +138,7 @@ void main() {
 
     test('a REDEF card with more than the target name draws 906', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(type: 'REDEF', description: 'TABLE EXTRA'),
+        dataCard(type: 'REDEF', description: 'TABLE EXTRA'),
       ]);
       expect(items.single.targetName!.text, 'TABLE');
       expect(items.single.extras.single.text, 'EXTRA');
@@ -171,7 +147,12 @@ void main() {
 
     test('a COPY entry parses its target and draws 110', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'NEW', level: '2', type: 'COPY', description: 'OLD.NAME'),
+        dataCard(
+          name: 'NEW',
+          level: '2',
+          type: 'COPY',
+          description: 'OLD.NAME',
+        ),
       ]);
       expect(items.single.typeCode, DataTypeCode.copy);
       expect(items.single.targetName!.text, 'OLD.NAME');
@@ -182,7 +163,7 @@ void main() {
   group('the Quantity field', () {
     test('accepts 1 through 32767 (J 02.05.04)', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'T', level: '2', quantity: '32767', description: '99'),
+        dataCard(name: 'T', level: '2', quantity: '32767', description: '99'),
       ]);
       expect(items.single.entry.quantity, 32767);
       expect(diagnostics, isEmpty);
@@ -191,7 +172,12 @@ void main() {
     test('rejects zero, overflow, and non-numbers with 908', () {
       for (final quantity in ['0', '32768', '1A']) {
         final (_, List<Diagnostic> diagnostics) = _parse([
-          _card(name: 'T', level: '2', quantity: quantity, description: '99'),
+          dataCard(
+            name: 'T',
+            level: '2',
+            quantity: quantity,
+            description: '99',
+          ),
         ]);
         expect(
           diagnostics.single.message,
@@ -205,7 +191,7 @@ void main() {
   group('the description clauses', () {
     test('QUANTITY IN takes the following name (F pp. 82-83)', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(
+        dataCard(
           name: 'ITEM',
           level: '3',
           quantity: '50',
@@ -219,14 +205,18 @@ void main() {
 
     test('QUANTITY IN without a name draws 906', () {
       final (_, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'ITEM', level: '3', description: '99 QUANTITY IN'),
+        dataCard(name: 'ITEM', level: '3', description: '99 QUANTITY IN'),
       ]);
       expect(diagnostics.single.message, msgDataCardCodingConflict);
     });
 
     test('BLANK WHEN ZERO is a clause, not a name (J 02.05.07)', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'AMT', level: '3', description: r'$99.99 BLANK WHEN ZERO'),
+        dataCard(
+          name: 'AMT',
+          level: '3',
+          description: r'$99.99 BLANK WHEN ZERO',
+        ),
       ]);
       expect(items.single.pictorial!.text, r'$99.99');
       expect(items.single.blankWhenZero, isTrue);
@@ -236,7 +226,7 @@ void main() {
 
     test('a non-format run reads as a name (J 02.05.06)', () {
       final (List<DataItem> items, _) = _parse([
-        _card(name: 'W', level: '3', description: 'EMPLOYEE.RATE'),
+        dataCard(name: 'W', level: '3', description: 'EMPLOYEE.RATE'),
       ]);
       expect(items.single.pictorial, isNull);
       expect(items.single.targetName!.text, 'EMPLOYEE.RATE');
@@ -246,10 +236,10 @@ void main() {
   group('the level hierarchy', () {
     test('levels need not be consecutive (F p. 68)', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'R', level: '1', type: 'RECORD'),
-        _card(name: 'A', level: '5', description: '99'),
-        _card(name: 'B', level: '20', description: '99'),
-        _card(name: 'C', level: '5', description: '99'),
+        dataCard(name: 'R', level: '1', type: 'RECORD'),
+        dataCard(name: 'A', level: '5', description: '99'),
+        dataCard(name: 'B', level: '20', description: '99'),
+        dataCard(name: 'C', level: '5', description: '99'),
       ]);
       expect(diagnostics, isEmpty);
       final DataItem r = items[0];
@@ -261,9 +251,9 @@ void main() {
 
     test('a level-less entry attaches at the current position', () {
       final (List<DataItem> items, _) = _parse([
-        _card(name: 'R', level: '1', type: 'RECORD'),
-        _card(name: 'A', level: '2', description: '99'),
-        _card(type: 'REDEF', description: 'A'),
+        dataCard(name: 'R', level: '1', type: 'RECORD'),
+        dataCard(name: 'A', level: '2', description: '99'),
+        dataCard(type: 'REDEF', description: 'A'),
       ]);
       expect(items[2].parent, same(items[1]));
       expect(items[2].children, isEmpty);
@@ -273,9 +263,9 @@ void main() {
       // W opens at level 1; the level-5 RECORD terminates it and roots
       // its own hierarchy — it never nests under W.
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'W', level: '1', description: '99'),
-        _card(name: 'R', level: '5', type: 'RECORD'),
-        _card(name: 'A', level: '7', description: '99'),
+        dataCard(name: 'W', level: '1', description: '99'),
+        dataCard(name: 'R', level: '5', type: 'RECORD'),
+        dataCard(name: 'A', level: '7', description: '99'),
       ]);
       expect(diagnostics, isEmpty);
       expect(items[1].parent, isNull);
@@ -287,8 +277,8 @@ void main() {
   group('name bars and the REDEF line (2026-08-03 review)', () {
     test('a key word as a data name draws 178 and is kept (D1.5)', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'RECORD', level: '2', description: '99'),
-        _card(name: 'MOVE', level: '2', description: '99'),
+        dataCard(name: 'RECORD', level: '2', description: '99'),
+        dataCard(name: 'MOVE', level: '2', description: '99'),
       ]);
       expect(diagnostics.map((Diagnostic d) => d.message), [
         msgKeyWordAsDataName,
@@ -299,8 +289,8 @@ void main() {
 
     test('a named REDEF line draws 918 and discards the name (D3.4)', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'A', level: '2', description: '99'),
-        _card(name: 'NEW.NAME', type: 'REDEF', description: 'A'),
+        dataCard(name: 'A', level: '2', description: '99'),
+        dataCard(name: 'NEW.NAME', type: 'REDEF', description: 'A'),
       ]);
       expect(diagnostics.single.message, msgRedefNameDiscarded);
       expect(items[1].nameDiscarded, isTrue);
@@ -309,16 +299,16 @@ void main() {
 
     test('a level or mode on a REDEF line draws 906 (J 02.05.02)', () {
       final (_, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'A', level: '2', description: '99'),
-        _card(level: '2', type: 'REDEF', description: 'A'),
+        dataCard(name: 'A', level: '2', description: '99'),
+        dataCard(level: '2', type: 'REDEF', description: 'A'),
       ]);
       expect(diagnostics.single.message, msgDataCardCodingConflict);
     });
 
     test('a bare REDEF line stays clean', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'A', level: '2', description: '99'),
-        _card(type: 'REDEF', description: 'A'),
+        dataCard(name: 'A', level: '2', description: '99'),
+        dataCard(type: 'REDEF', description: 'A'),
       ]);
       expect(diagnostics, isEmpty);
       expect(items[1].nameDiscarded, isFalse);
@@ -328,7 +318,7 @@ void main() {
   group('the format-shaped discriminator (J 02.05.05-06)', () {
     test('a name of format letters and a bare digit is a name', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'X', level: '2', description: 'SAV1'),
+        dataCard(name: 'X', level: '2', description: 'SAV1'),
       ]);
       expect(diagnostics, isEmpty);
       expect(items.single.pictorial, isNull);
@@ -337,8 +327,8 @@ void main() {
 
     test('digits 8 and 9 and a (n) count stay format characters', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        _card(name: 'X', level: '2', description: 'A(15)'),
-        _card(name: 'Y', level: '2', description: '9(5)V98'),
+        dataCard(name: 'X', level: '2', description: 'A(15)'),
+        dataCard(name: 'Y', level: '2', description: '9(5)V98'),
       ]);
       expect(diagnostics, isEmpty);
       expect(items[0].pictorial!.text, 'A(15)');

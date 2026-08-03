@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
-FrontEndResult _payroll() => runFrontEnd(
-  decodeCanon(File('tests/90.05-payroll.ctdeck').readAsBytesSync()),
-);
+import 'support/deck_fixtures.dart';
+
+FrontEndResult _payroll() => runFrontEnd(loadPayrollDeck());
 
 const ListingOptions _sampleOptions = ListingOptions(
   date: '10/18/61',
@@ -77,7 +77,7 @@ void main() {
       final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
         'run',
         'comtran:comtranc',
-        'tests/90.05-payroll.ctdeck',
+        payrollDeckPath,
         '--date=10/18/61',
         '--time=2.45',
         '--title=COMPILATION OF SAMPLE PROBLEM',
