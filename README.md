@@ -46,7 +46,6 @@ generation does not exist yet.
 | `docs/design/` | The design records: the D0–D9 decision log (`decisions.md`), one document per milestone (`m1-front-end.md`, `m2-parser.md`), plus `deck-format.md`, `emulator.md`, and `severity-notes.md`. |
 | `docs/comtran-language-definition.md` | The working language reference (~4,250 lines): a structured, fully cited definition of COMTRAN extracted from the manuals. §8.3 catalogs the F/J divergences and §8.5 every ambiguity with a plausible resolution. The end-of-file **Open Questions** list tracks what the sources cannot settle, and states its own item count. |
 | `docs/HANDOVER.md` | Project state, the roadmap, and the next task. |
-| `docs/research-2026-08-01-interrupted.md` | **Archive, provenance only.** Raw, unverified output of the research passes. The definition supersedes it. Do not read it for current work. |
 | `comtran-manuals/` | Faithful Markdown conversions of both manuals, with a 150-dpi scan of every page as ground truth. **Read-only.** Citation and fidelity conventions in `comtran-manuals/README.md`. |
 | `comtran-manuals/F28-8043/` | *General Information Manual* (June 1960) — the 1960 language design. |
 | `comtran-manuals/J28-6169/` | *709/7090 Processor Preliminary Reference Manual* (Jan 1962) — the implemented field-test language. |
