@@ -153,58 +153,102 @@ function bodyOf(text: string): string {
   return text.slice(6, 72).replace(/ +$/, '');
 }
 
+/** The length of the `'header-'` prefix on a `CardKind`. */
+const HEADER_PREFIX_LENGTH = 'header-'.length;
+
 /**
- * Classifies every card of `deck` by walking the division headers, with the
- * same rules as the compiler's deck splitter (`lib/src/lexer/
- * source_program.dart`): a header has `*` in column 7 and only the header
- * word in the body; `*FINISH` ends the deck; `$CMPLE` in columns 1-6 or
- * `*COMPILE` from column 7 is a control card before the first header.
+ * Classifies one card given the division/finished state it inherits from
+ * every earlier card, with the same rules as the compiler's deck splitter
+ * (`lib/src/lexer/source_program.dart`): a header has `*` in column 7 and
+ * only the header word in the body; `*FINISH` ends the deck; `$CMPLE` in
+ * columns 1-6 or `*COMPILE` from column 7 is a control card before the
+ * first header. This is the one place that reads a card's 80 columns for
+ * classification; callers that already know the inherited state (see
+ * `reclassifyCard`) can re-classify a single card without re-reading every
+ * earlier one.
  */
+function classifyOne(
+  card: Card,
+  division: DivisionName | null,
+  finished: boolean,
+): CardKind {
+  if (finished) {
+    return 'loose';
+  }
+  let blank = true;
+  for (let i = 0; i < COLUMN_COUNT; i++) {
+    if (card[i] !== 0) {
+      blank = false;
+      break;
+    }
+  }
+  if (blank) {
+    return 'blank';
+  }
+  if (!isGlyphCard(card)) {
+    return 'binary';
+  }
+  const text = previewOf(card);
+  const body = bodyOf(text);
+  if (text[6] === '*') {
+    for (const name of Object.keys(DIVISION_HEADERS) as DivisionName[]) {
+      if (body === DIVISION_HEADERS[name]) {
+        return `header-${name}`;
+      }
+    }
+  }
+  if (body.startsWith('*FINISH') && body.slice(7).trim() === '') {
+    return 'finish';
+  }
+  if (division === null) {
+    if (text.slice(0, 6) === '$CMPLE' || body.startsWith('*COMPILE')) {
+      return 'control';
+    }
+    return 'loose';
+  }
+  return division;
+}
+
+/** Classifies every card of `deck` by walking the division headers. */
 export function classifyCards(deck: readonly Card[]): CardKind[] {
   let division: DivisionName | null = null;
   let finished = false;
-
-  const classify = (card: Card): CardKind => {
-    if (finished) {
-      return 'loose';
-    }
-    let blank = true;
-    for (let i = 0; i < COLUMN_COUNT; i++) {
-      if (card[i] !== 0) {
-        blank = false;
-        break;
-      }
-    }
-    if (blank) {
-      return 'blank';
-    }
-    if (!isGlyphCard(card)) {
-      return 'binary';
-    }
-    const text = previewOf(card);
-    const body = bodyOf(text);
-    if (text[6] === '*') {
-      for (const name of Object.keys(DIVISION_HEADERS) as DivisionName[]) {
-        if (body === DIVISION_HEADERS[name]) {
-          division = name;
-          return `header-${name}`;
-        }
-      }
-    }
-    if (body.startsWith('*FINISH') && body.slice(7).trim() === '') {
+  const kinds: CardKind[] = [];
+  for (const card of deck) {
+    const kind = classifyOne(card, division, finished);
+    kinds.push(kind);
+    if (kind === 'finish') {
       finished = true;
-      return 'finish';
+    } else if (kind.startsWith('header-')) {
+      division = kind.slice(HEADER_PREFIX_LENGTH) as DivisionName;
     }
-    if (division === null) {
-      if (text.slice(0, 6) === '$CMPLE' || body.startsWith('*COMPILE')) {
-        return 'control';
-      }
-      return 'loose';
-    }
-    return division;
-  };
+  }
+  return kinds;
+}
 
-  return deck.map(classify);
+/**
+ * Re-classifies `deck[index]` alone, given the classification `kinds`
+ * already holds for every card before it (unaffected by an edit to
+ * `index`). Lets a caller check whether a non-structural edit changed just
+ * that one card's own kind without re-reading every earlier card's columns
+ * — the O(deck) cost `classifyCards` pays on every call.
+ */
+export function reclassifyCard(
+  deck: readonly Card[],
+  kinds: readonly CardKind[],
+  index: number,
+): CardKind {
+  let division: DivisionName | null = null;
+  let finished = false;
+  for (let i = 0; i < index; i++) {
+    const kind = kinds[i];
+    if (kind === 'finish') {
+      finished = true;
+    } else if (kind.startsWith('header-')) {
+      division = kind.slice(HEADER_PREFIX_LENGTH) as DivisionName;
+    }
+  }
+  return classifyOne(deck[index], division, finished);
 }
 
 /** The field table for a card of `kind`. */
