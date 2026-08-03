@@ -212,3 +212,34 @@ export const DIVISION_FIELDS: Record<DivisionName, DeckField[]> = {
   environment: ENVIRONMENT_FIELDS,
   procedure: PROCEDURE_FIELDS,
 };
+
+/**
+ * Vertical-ruler columns for the generic card form: the column just before
+ * each field after the first (the boundary between it and its predecessor),
+ * plus the card's last column.
+ */
+export function rulerColumns(fields: DeckField[] = GENERIC_FIELDS): number[] {
+  const rulers: number[] = [];
+  for (let i = 1; i < fields.length; i++) {
+    rulers.push(fields[i].start - 1);
+  }
+  rulers.push(fields[fields.length - 1].end);
+  return rulers;
+}
+
+/**
+ * The `contributes.configurationDefaults` block for the `comtran-deck`
+ * language, built from this file's field tables so the rulers cannot drift
+ * from the ones the grammar and the card list use. `generateGrammar.ts`
+ * writes this into `package.json`; `test/grammar.test.js` fails while the
+ * committed value is stale.
+ */
+export function configurationDefaults(): Record<string, unknown> {
+  return {
+    '[comtran-deck]': {
+      'editor.rulers': rulerColumns(),
+      'editor.wordWrap': 'off',
+      'editor.fontFamily': 'monospace',
+    },
+  };
+}

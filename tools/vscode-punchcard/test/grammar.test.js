@@ -10,6 +10,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { buildGrammar } = require('../out/grammar.js');
+const { configurationDefaults } = require('../out/columns.js');
 
 const COMMITTED = path.join(
   __dirname,
@@ -17,6 +18,8 @@ const COMMITTED = path.join(
   'syntaxes',
   'comtran-deck.tmLanguage.json',
 );
+
+const PACKAGE_JSON = path.join(__dirname, '..', 'package.json');
 
 const grammar = buildGrammar();
 const repo = grammar.repository;
@@ -33,6 +36,15 @@ function lineWith(parts) {
 test('the committed grammar file matches the builder', () => {
   const committed = JSON.parse(fs.readFileSync(COMMITTED, 'utf8'));
   assert.deepEqual(committed, grammar, 'run: npm run grammar');
+});
+
+test('the committed configurationDefaults match the column tables', () => {
+  const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
+  assert.deepEqual(
+    pkg.contributes.configurationDefaults,
+    configurationDefaults(),
+    'run: npm run grammar',
+  );
 });
 
 test('the data card rule slices at the shared field boundaries', () => {

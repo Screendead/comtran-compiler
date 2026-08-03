@@ -51,7 +51,19 @@
         "scopeName": "source.comtran-deck",
         "path": "./syntaxes/comtran-deck.tmLanguage.json"
       }
-    ]
+    ],
+    "configurationDefaults": {
+      "[comtran-deck]": {
+        "editor.rulers": [
+          6,
+          12,
+          72,
+          80
+        ],
+        "editor.wordWrap": "off",
+        "editor.fontFamily": "monospace"
+      }
+    }
   },
   "scripts": {
     "compile": "tsc -p ./",
