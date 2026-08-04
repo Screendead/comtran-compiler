@@ -11,12 +11,15 @@ import 'support/deck_fixtures.dart';
 
 SemanticResult _resolve(
   List<String> data, {
+  List<String> environment = const [],
   List<String> procedure = const [],
   bool tableLimits = true,
 }) {
   final lines = [
     '      *DATA',
     ...data,
+    if (environment.isNotEmpty) '      *ENVIRONMENT',
+    ...environment,
     if (procedure.isNotEmpty) '      *PROCEDURE',
     ...procedure,
   ];
@@ -79,8 +82,20 @@ void main() {
 
     test('an AT END bare name that names nothing draws 188,00 '
         '(D6.6)', () {
+      // The GET binds a record of an input file, so only the AT END
+      // name is at fault (M3-18 speaks for the operand).
       final SemanticResult result = _resolve(
-        const [],
+        [
+          dataCard(name: 'MASTER', level: '1', type: 'RECORD'),
+          dataCard(name: 'EMP', level: '2', description: 'A(6)'),
+        ],
+        environment: [
+          environmentCard(
+            name: 'FIN',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,MASTER,BLOCKSIZE 5',
+          ),
+        ],
         procedure: ['            GET MASTER, AT END AWAY.'],
       );
       expect(_ids(result), ['188,00']);

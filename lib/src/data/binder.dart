@@ -4,9 +4,8 @@
 /// Stage 1 covers what needs no procedure walk: FILE-card record
 /// resolution, the BLOCKSIZE checks (D7.1; D10.8), SPECIF file
 /// resolution, the BCD-output mode check, and the located-or-
-/// transmitted classification (J 02.07.03; J 02.07.05). The
-/// procedure-referencing binder rows (msgs 9, 10, 17, 19, 195, 198)
-/// and the POOL/GROUP buffer minimums land with stage 2's resolution.
+/// transmitted classification (J 02.07.03; J 02.07.05). The rows that
+/// need the procedure walk are `verb_binder.dart`'s (M3-18).
 library;
 
 import '../ast/data_ast.dart';
@@ -27,12 +26,18 @@ final class EnvironmentBinder {
   /// One entry per RECORD-typed item, source order.
   final List<RecordInfo> records = [];
 
-  final Map<String, RecordInfo> _recordByName = {};
-  final Map<String, FileCard> _fileByName = {};
+  /// The first declaration under each record name, and the first FILE
+  /// card under each file name — the lookups the stage-2 verb binder
+  /// resolves its operands through (M3-18).
+  final Map<String, RecordInfo> recordByName = {};
+  final Map<String, FileCard> fileByName = {};
+
+  /// The records each FILE card's clauses bound, per card.
+  final Map<FileCard, List<RecordInfo>> boundRecords = Map.identity();
 
   /// Files whose FILE card the binder rejected (msg 931): their
   /// bindings are void.
-  final Set<FileCard> _rejected = Set.identity();
+  final Set<FileCard> rejectedFiles = Set.identity();
 
   void bind(List<EnvironmentCard> cards) {
     for (final DataItem item in mapper.items) {
@@ -41,19 +46,19 @@ final class EnvironmentBinder {
         records.add(record);
         // Record names must be unique (D2.5); uniqueness itself is
         // stage 2's check, so the first declaration wins here.
-        _recordByName.putIfAbsent(record.name, () => record);
+        recordByName.putIfAbsent(record.name, () => record);
       }
     }
     final List<FileCard> files = cards.whereType<FileCard>().toList();
     for (final file in files) {
       if (file.spec.name.isNotEmpty) {
-        _fileByName.putIfAbsent(file.spec.name, () => file);
+        fileByName.putIfAbsent(file.spec.name, () => file);
       }
     }
     files.forEach(_bindFile);
     for (final SpecifCard specif in cards.whereType<SpecifCard>()) {
       final Token? fileName = specif.fileName;
-      if (fileName != null && !_fileByName.containsKey(fileName.text)) {
+      if (fileName != null && !fileByName.containsKey(fileName.text)) {
         // A SPECIF modifies one FILE card (J 02.06.08).
         diagnostics.report(
           msgNameIsNotFile,
@@ -69,17 +74,14 @@ final class EnvironmentBinder {
     }
   }
 
-  /// The records a FILE card's clauses bound, per card.
-  final Map<FileCard, List<RecordInfo>> _bound = Map.identity();
-
   void _bindFile(FileCard file) {
-    _bound[file] = [];
+    boundRecords[file] = [];
     final int? blocksize = file.blocksize;
     if (blocksize != null && blocksize > 9999) {
       // "Maximum blocksize is 9999 words" (J 02.06.04); no message
       // is attested for the excess (D7.1).
       diagnostics.reportAt(msgBlocksizeOverMaximum, file.spec.cards.first);
-      _rejected.add(file);
+      rejectedFiles.add(file);
       return;
     }
     if (file.records.isEmpty && file.direction != FileDirection.checkpoint) {
@@ -90,7 +92,7 @@ final class EnvironmentBinder {
       );
     }
     for (final FileRecordClause clause in file.records) {
-      final RecordInfo? record = _recordByName[clause.name.text];
+      final RecordInfo? record = recordByName[clause.name.text];
       if (record == null) {
         if (mapper.itemsNamed(clause.name.text).isNotEmpty) {
           diagnostics.report(
@@ -107,7 +109,7 @@ final class EnvironmentBinder {
         }
         continue;
       }
-      _bound[file]!.add(record);
+      boundRecords[file]!.add(record);
       switch (file.direction) {
         case FileDirection.input:
           if (record.inputFiles.isNotEmpty) {
@@ -144,7 +146,7 @@ final class EnvironmentBinder {
       if (file.direction != FileDirection.input) {
         continue;
       }
-      final List<RecordInfo> bound = _bound[file] ?? const [];
+      final List<RecordInfo> bound = boundRecords[file] ?? const [];
       // "The 'transmit' mode is triggered by the selection of the
       // SPANS, HOLD or CARD options on the Environment FILE card"
       // (J 02.07.03), and "all input records containing arrays will
@@ -205,7 +207,7 @@ final class EnvironmentBinder {
   }
 
   void _checkBlocksizeFit(FileCard file) {
-    if (_rejected.contains(file)) {
+    if (rejectedFiles.contains(file)) {
       return;
     }
     int? blocksize = file.blocksize;
@@ -225,7 +227,8 @@ final class EnvironmentBinder {
     if (file.holdOrSpans) {
       return; // Records may span blocks; no fit to check (msg 5).
     }
-    for (final RecordInfo record in _bound[file] ?? const <RecordInfo>[]) {
+    for (final RecordInfo record
+        in boundRecords[file] ?? const <RecordInfo>[]) {
       final int? extent = mapper.rootExtent[record.item];
       if (extent == null) {
         continue;
@@ -242,12 +245,13 @@ final class EnvironmentBinder {
   }
 
   void _checkOutputMode(FileCard file) {
-    if (_rejected.contains(file) ||
+    if (rejectedFiles.contains(file) ||
         file.binary ||
         file.direction != FileDirection.output) {
       return;
     }
-    for (final RecordInfo record in _bound[file] ?? const <RecordInfo>[]) {
+    for (final RecordInfo record
+        in boundRecords[file] ?? const <RecordInfo>[]) {
       final bool binaryContents = subtreeOf(record.item).any((DataItem item) {
         final ItemSemantics? s = mapper.semantics[item];
         return s != null &&

@@ -15,8 +15,26 @@ import '../lexer/messages.dart';
 /// 24 and 12 as captured; D9.5 keeps the bytes.
 final Message msgRecordExceedsBlocksize = messageCatalog['5,00']!;
 
+/// `8,00` — a GET or FILE operand that names nothing at all, or names
+/// a statement, a section, or a condition (M3-18). A name that reaches
+/// a file or a plain field takes msg 16 instead.
+final Message msgNeitherRecordNorFile = messageCatalog['8,00']!;
+
+/// `9,00` — a GET operand that names a record on no FILE card
+/// (M3-18).
+final Message msgRecordNotOnFileCard = messageCatalog['9,00']!;
+
+/// `10,00` — a GET operand that names a record on FILE cards, none of
+/// them input (M3-18).
+final Message msgRecordNotOnInputFile = messageCatalog['10,00']!;
+
 /// `11,00` — a record named on more than one input FILE card.
 final Message msgRecordOnTwoInputFiles = messageCatalog['11,00']!;
+
+/// `12,00` — a GET RECORD FROM on a file that meets none of the
+/// J 02.07.04 preconditions, so no record length can be determined.
+/// PATTERN, the fifth precondition, waits for its M5 syntax (D9.12).
+final Message msgGetRecordFromLength = messageCatalog['12,00']!;
 
 /// `13,00` — a FILE card that names no record at all. The 13/15 split
 /// is ours: both catalog texts are identical, so 13 takes the
@@ -24,22 +42,40 @@ final Message msgRecordOnTwoInputFiles = messageCatalog['11,00']!;
 /// M1-8 precedent of splitting overlapping ids by trigger.
 final Message msgFileCardLacksRecord = messageCatalog['13,00']!;
 
+/// `14,00` — a GET RECORD FROM naming a file that is not an input
+/// file (M3-18).
+final Message msgGetRecordFromNotInput = messageCatalog['14,00']!;
+
 /// `15,00` — a FILE-card record name with no corresponding Data
 /// Description entry (the other half of the 13/15 split above).
 final Message msgFileRecordUndeclared = messageCatalog['15,00']!;
 
 /// `16,00` — a FILE-card record name that resolves to a data item
-/// without the RECORD type code.
+/// without the RECORD type code, or a GET or FILE operand that names a
+/// file or a plain field (M3-18: the FILE-verb non-record case, which
+/// leaves msg 17 without a trigger).
 final Message msgFileNameNotRecord = messageCatalog['16,00']!;
+
+/// `19,00` — a FILE operand that names a record on no output FILE
+/// card (M3-18).
+final Message msgRecordNotOnOutputFile = messageCatalog['19,00']!;
 
 /// `20,00` — an output file in BCD form carrying a record with
 /// binary contents — an internal-mode or floating field
 /// (J 02.05.04: internal means binary).
 final Message msgBinaryDataOnBcdTape = messageCatalog['20,00']!;
 
-/// `21,00` — a SPECIF card whose first option names no FILE card
-/// (J 02.06.08).
+/// `21,00` — a name that must be a file and is not: a SPECIF card's
+/// first option (J 02.06.08), a POOL or GROUP variable-field file name
+/// (J 02.06.13–14), or an OPEN, CLOSE, or FILE IN operand (M3-18).
 final Message msgNameIsNotFile = messageCatalog['21,00']!;
+
+/// `22,00` — a FILE IN operand that names a file open for input or
+/// checkpoint use (M3-18).
+final Message msgFileIsNotOutput = messageCatalog['22,00']!;
+
+/// `23,00` — a GET RECORD FROM operand that names no file (M3-18).
+final Message msgGetRecordFromNotFile = messageCatalog['23,00']!;
 
 /// `25,00` — an operand whose data format is improper for its use: a
 /// condition or environment name at a data site, a non-condition where
@@ -275,9 +311,30 @@ final Message msgQuantityItemFollowsVariable = messageCatalog['105,00']!;
 /// (M3-17).
 final Message msgUndefinedSymbol = messageCatalog['108,00']!;
 
+/// `111,00` — a FIND LENGTH IN name that is not an external or
+/// internal decimal field without fraction positions. The proper
+/// format is ours (M3-18).
+final Message msgFindLengthFormat = messageCatalog['111,00']!;
+
+/// `112,00` — a PLACE LENGTH IN name of the same improper format
+/// (M3-18).
+final Message msgPlaceLengthFormat = messageCatalog['112,00']!;
+
+/// `117,00` — FIND LENGTH IN on some but not all of the records of a
+/// file a GET RECORD FROM names (M3-18).
+final Message msgFindLengthNotUniform = messageCatalog['117,00']!;
+
+/// `118,00` — PLACE LENGTH IN on some but not all of those records
+/// (M3-18).
+final Message msgPlaceLengthNotUniform = messageCatalog['118,00']!;
+
 /// `120,00` — an alphameric-class source or target in an ADD; that
 /// operand is eliminated and the rest of the ADD proceeds (M3-21).
 final Message msgEliminatedFromAdd = messageCatalog['120,00']!;
+
+/// `121,00` — BLOCK CONTROL on some but not all of those records
+/// (M3-18).
+final Message msgBlockControlNotUniform = messageCatalog['121,00']!;
 
 /// `123,00` — a variable-length item as a comparison operand
 /// (J 02.04.07 rule 5).
@@ -361,10 +418,22 @@ final Message msgDoTargetNotProcedure = messageCatalog['188,00']!;
 /// GIVING clause lists (M3-17; M3-19).
 final Message msgNotProperlyDefined = messageCatalog['191,00']!;
 
+/// `195,00` — a FILE IN whose file card does not name the record. The
+/// text prints NAME.2 before NAME.1: the operands stay file, record.
+final Message msgFileCardLacksThisRecord = messageCatalog['195,00']!;
+
 /// `197,00` — a RECORD entry after a higher-numbered top-level entry
 /// in the same portion: description punched before its record name
 /// (M3-17).
 final Message msgRecordNameMustPrecede = messageCatalog['197,00']!;
+
+/// `198,00` — a file no GET and no FILE verb processes. Checkpoint
+/// files are exempt: they carry no record (J 02.06.03; M3-18).
+final Message msgNoRecordsProcessed = messageCatalog['198,00']!;
+
+/// `202,00` — the 128th located record. One base locator serves one
+/// located record, "Appox-Max" 127 (J 90.01.05 item d; D9.7).
+final Message msgBaseLocatorCapacity = messageCatalog['202,00']!;
 
 /// `206,00` — a subscript variable of a legal format that is not
 /// right-justified internal decimal, the one form the generator
@@ -434,6 +503,50 @@ const Message msgCallOldNameSubscripted = Message.ours(
   '936,00',
   'SUBSCRIPT CANNOT BE USED IN THE OLD NAME OF A -CALL-. '
       'PAIR DROPPED. (NON-HISTORICAL.)',
+);
+
+/// Ours — a POOL BUFFERCOUNT below the number of files in the pool, or
+/// below the buffers its groups claim; "nn must be equal to or greater
+/// than" both (J 02.06.13). The minimum is used, following msg 209's
+/// substitution precedent (M3-18).
+const Message msgPoolBufferCountRaised = Message.ours(
+  '937,00',
+  "-POOL- 'NAME.1' -BUFFERCOUNT- IS BELOW ITS MINIMUM. THE MINIMUM IS "
+      'USED. (NON-HISTORICAL.)',
+);
+
+/// Ours — a GROUP BUFFERCOUNT below the group's OPENCOUNT, which
+/// J 02.06.14 forbids. The OPENCOUNT is used (M3-18).
+const Message msgGroupBufferCountRaised = Message.ours(
+  '938,00',
+  '-GROUP- -BUFFERCOUNT- IS BELOW ITS -OPENCOUNT-. THE -OPENCOUNT- IS '
+      'USED. (NON-HISTORICAL.)',
+);
+
+/// Ours — a GROUP card whose first variable-field item names no pool.
+/// "The POOL to which a particular GROUP of files belongs must be
+/// specified by listing the pool.name as the first item"
+/// (J 02.06.14).
+const Message msgGroupLacksPool = Message.ours(
+  '939,00',
+  "-GROUP- CARD ITEM 'NAME.1' IS NOT A -POOL- NAME. THE -GROUP- IS NOT "
+      'ASSIGNED. (NON-HISTORICAL.)',
+);
+
+/// Ours — a LABEL entry over "the single 14 word label area in the
+/// Input/Output Control System" (J 02.05.03; M3-18).
+const Message msgLabelAreaTooLong = Message.ours(
+  '940,00',
+  "-LABEL- AREA 'NAME.1' EXCEEDS 14 WORDS. (NON-HISTORICAL.)",
+);
+
+/// Ours — a field described after a variable length array of the same
+/// hierarchy, which J 90.01.01 forbids; no catalog id covers it
+/// (M3-16; M3-18).
+const Message msgFieldAfterVariableArray = Message.ours(
+  '941,00',
+  "FIELD 'NAME.1' IS DESCRIBED AFTER A VARIABLE LENGTH ARRAY OF THE "
+      'SAME HIERARCHY. (NON-HISTORICAL.)',
 );
 
 /// Ours — the dictionary past D9.7's message-less 3500-name limit
