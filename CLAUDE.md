@@ -92,6 +92,7 @@ clone does not have them.
 | `docs/design/decisions.md` | The D-number decision slate. Every record binds the code. |
 | the other files in `docs/design/` | The per-milestone and per-component design records |
 | `docs/comtran-language-definition.md` | The source language |
+| `REVIEW.md` | The criteria for every code review. `/code-review` injects the file into each review agent. |
 
 Two rules keep these apart:
 
@@ -197,8 +198,17 @@ span, a code block, a blockquote or a quotation.
 - Make atomic commits. Each component must work in each commit. Never split a
   working component across two commits.
 - Ultracode mode (Jack's multi-agent workflow mode): hand-pick the model for
-  every worker. Pick the least powerful model that can do the job. Do not spawn
-  a workflow of 15 top-tier agents.
+  every worker. Pick the least powerful model that can do the job. A cheap
+  model does search and mechanical edits; design and review need a top-tier
+  model. Do not spawn a workflow of 15 top-tier agents.
+- In a workflow worker prompt, never pipe `dart test` through `head` — the
+  test runner hangs when `head` exits early. Pipe through `tail -40`, check
+  that the output ends with "All tests passed!", and set a 300-second
+  timeout.
+- A multi-agent refactor gets an independent adversarial review before merge.
+  The reviewer starts with fresh context and reads the diff and the
+  repository, never the author's plan or rationale. Every finding must cite
+  file:line and quote the text.
 
 ## 12. Response style: ASD-STE100 Simplified Technical English (Issue 9)
 
