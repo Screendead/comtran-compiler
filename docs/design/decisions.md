@@ -459,9 +459,11 @@ record built on it.*
 
 **Implementation.** Data mapper: field-type classification during DATA division processing assigns 'group / non-format' to any entry lacking a pictorial clause, with derived alphameric length. Codegen: procedure-division comparison-statement generation consults this classification to select the alphameric comparison path per [J 02.04.07] rule 4, then applies rule 2b -- constant-fold = / NOT = when the two operand lengths differ and emit only the selected transfer; for the relative-magnitude operators emit a comparison over the equalized length obtained by right truncation of the longer field. The fold is operator-scoped, so it applies in every construct that evaluates such a condition (IF sentences, conditional GO TO WHEN clauses, TR operands), per Open Question 42.
 
+**Amended (M3, 2026-08-04).** The mapper realizes the group length as the group's physical extent, carried in `ItemSemantics.storageChars`. The Decision sentence "its length is the sum of its subfields' lengths" is superseded by the extent. The sum and the extent agree on the worked example in [J 02.05.06]. They diverge in two cases. A redefinition head adds no length: "redefinition of a record area does not give it length" ([J 02.05.01]). Interior alignment padding is part of the extent, because a comparison over the group covers the padded storage. The M3-4 amendment in `docs/design/m3-data.md` records the same ground.
+
 **Oracle.** decision-conformance only
 
-*Citations:* ([J 02.04.07]; [J 02.05.06])
+*Citations:* ([J 02.04.07]; [J 02.05.06]; [J 02.05.01])
 
 ### D3.4 — The REDEF line: name and layout
 

@@ -41,7 +41,7 @@ final Message msgBinaryDataOnBcdTape = messageCatalog['20,00']!;
 /// (J 02.06.08).
 final Message msgNameIsNotFile = messageCatalog['21,00']!;
 
-/// `32,00` — a mode-versus-pictorial conflict the [J 02.05.05] chart
+/// `32,00` — a mode-versus-pictorial conflict the J 02.05.05 chart
 /// does not define: edit characters or FF under the wrong mode, an
 /// overpunch under mode I. The pictorial's format is used (M3-4).
 final Message msgModeDescriptionConflict = messageCatalog['32,00']!;
@@ -51,11 +51,17 @@ final Message msgModeDescriptionConflict = messageCatalog['32,00']!;
 /// alphameric over the storage-reserving positions (M3-4).
 final Message msgIllegalFormatCombination = messageCatalog['33,00']!;
 
+/// `34,00` — a repetition count over `Pictorial.maxCount`, which the
+/// clamped format replaces. The 1962 maximum is unstated; 99999 sits
+/// above every field a blocksize can hold (M3-16 as amended
+/// 2026-08-04).
+final Message msgFormatCharacterCountExceeded = messageCatalog['34,00']!;
+
 /// `35,00` — a numeric length past what the field form can hold: a
 /// scientific decimal fraction over the attested 16-digit maximum
-/// ([J 02.05.05] note 4; 16 kept), or a right-justified internal
+/// (J 02.05.05 note 4; 16 kept), or a right-justified internal
 /// field over the 21 digits two register words hold (derived bound,
-/// M3-16; 21 kept). Msg 34 stays reserved.
+/// M3-16; 21 kept).
 final Message msgNumericLengthExceededInField = messageCatalog['35,00']!;
 
 /// `36,00` — sub-organization under a formatted field; only COND may
@@ -105,7 +111,7 @@ final Message msgRedefTargetIsCond = messageCatalog['45,00']!;
 final Message msgRedefTargetNotDataName = messageCatalog['46,00']!;
 
 /// `47,00` — QUANTITY IN on an entry without an explicitly described
-/// format ([J 02.05.05]; the variable field must be a formatted
+/// format (J 02.05.05; the variable field must be a formatted
 /// leaf).
 final Message msgQuantityInOnGroup = messageCatalog['47,00']!;
 
@@ -148,7 +154,7 @@ final Message msgNonNumericInNumericField = messageCatalog['67,00']!;
 final Message msgRedefJustificationConflict = messageCatalog['80,00']!;
 
 /// `81,00` — the first redefining entry's level differs from the
-/// redefined item's ([J 02.05.02]: "must have the same level
+/// redefined item's (J 02.05.02: "must have the same level
 /// number").
 final Message msgRedefLevelConflict = messageCatalog['81,00']!;
 
@@ -175,7 +181,7 @@ final Message msgQuantityItemFollowsVariable = messageCatalog['105,00']!;
 final Message msgNoRightParenthesis = messageCatalog['133,00']!;
 
 /// `209,00` — an input card file's BLOCKSIZE under the stated
-/// 24-word minimum ([J 02.06.04]); 24 is used. The catalog text ends
+/// 24-word minimum (J 02.06.04); 24 is used. The catalog text ends
 /// at "IS" as printed (D9.5).
 final Message msgInsufficientBlocksize = messageCatalog['209,00']!;
 

@@ -2,10 +2,12 @@
 /// pictorial measurement (M3-5), and the storage allocator (M3-6).
 ///
 /// The allocator replays the 1962 storage assignment counter over the
-/// entries in source order ([J 02.05.04]; D3.4's save/restore rule for
+/// entries in source order (J 02.05.04; D3.4's save/restore rule for
 /// REDEF). Offsets are relative to each top-level item's space; M4
 /// binds spaces to object addresses (M3-6).
 library;
+
+import 'dart:math' as math;
 
 import '../ast/data_ast.dart';
 import '../lexer/data_lexer.dart';
@@ -15,6 +17,8 @@ import '../lexer/token.dart';
 import 'data_map.dart';
 import 'data_messages.dart';
 import 'pictorial.dart';
+
+const double _log2Of10 = math.ln10 / math.ln2;
 
 /// One open hierarchy level during the allocation walk.
 final class _Frame {
@@ -91,21 +95,9 @@ final class DataMapper {
         _byName.putIfAbsent(item.entry.name, () => []).add(item);
       }
     }
-    items.forEach(_classify);
-    for (final DataItem item in items.reversed) {
-      // Children follow their parent in card order, so the reverse
-      // walk sums each group's subfields after they are known (D3.3).
-      final ItemSemantics sem = semantics[item]!;
-      if (sem.fieldClass == FieldClass.group) {
-        var sum = 0;
-        for (final DataItem child in _storageChildren(item)) {
-          final ItemSemantics childSem = semantics[child]!;
-          sum += childSem.charLength * childSem.quantity;
-        }
-        sem.charLength = sum;
-      }
-    }
-    items.forEach(_positionAdvisory);
+    items
+      ..forEach(_classify)
+      ..forEach(_positionAdvisory);
     _allocate();
   }
 
@@ -226,9 +218,6 @@ final class DataMapper {
       }
       sem.storageChars = _internalChars(sem);
     }
-    if (sem.fieldClass != FieldClass.group) {
-      sem.charLength = sem.storageChars;
-    }
 
     if (pedantic &&
         entry.quantityText.isNotEmpty &&
@@ -262,13 +251,20 @@ final class DataMapper {
     sem
       ..digits = shape.valueDigits
       ..fractionDigits = shape.fractionDigits
-      ..sign = shape.sign
       ..storageChars = shape.storageChars;
     if (shape.zeroCountRepaired) {
       diagnostics.reportAt(
         msgZeroCountInPictorial,
         entry.cards.first,
         column: sem.item.pictorial?.column,
+      );
+    }
+    if (shape.countClamped) {
+      diagnostics.reportAt(
+        msgFormatCharacterCountExceeded,
+        entry.cards.first,
+        column: sem.item.pictorial?.column,
+        operands: [entry.name],
       );
     }
 
@@ -318,7 +314,7 @@ final class DataMapper {
       sem.fieldClass = FieldClass.scientificDecimal;
       if (shape.fractionDigits > 16) {
         // "The maximum fractional portion of a scientific decimal
-        // field is 16 digits" ([J 02.05.05] note 4).
+        // field is 16 digits" (J 02.05.05 note 4).
         conflict(msgNumericLengthExceededInField);
         sem.fractionDigits = 16;
       }
@@ -464,9 +460,12 @@ final class DataMapper {
       return 0;
     }
     // "The least multiple of 6 bits sufficient to contain the number
-    // and its sign" (J 02.05.04).
-    final int bits =
-        (BigInt.from(10).pow(sem.digits) - BigInt.one).bitLength + 1;
+    // and its sign" (J 02.05.04). 10^n - 1 occupies
+    // floor(n * log2 10) + 1 bits; the double product picks the same
+    // side of every boundary far past any pictorial a deck can punch.
+    // Below 50000 digits it comes no nearer an integer than 1e-5,
+    // where its own error is 1e-12.
+    final int bits = (sem.digits * _log2Of10).floor() + 2;
     return (bits + 5) ~/ 6;
   }
 
@@ -508,10 +507,14 @@ final class DataMapper {
   void _allocate() {
     for (final DataItem item in items) {
       final ItemSemantics sem = semantics[item]!;
-      while (_frames.isNotEmpty && !identical(_frames.last.item, item.parent)) {
-        _closeFrame(_frames.removeLast());
-      }
       if (_redef != null && !_isUnder(item, _redef!.head)) {
+        // A group inside the overlay closes on the overlay's counter,
+        // so its repetitions measure the redefined area before the
+        // restore below puts the counter back (J 02.05.02).
+        while (_frames.isNotEmpty &&
+            _isUnder(_frames.last.item, _redef!.head)) {
+          _closeFrame(_frames.removeLast());
+        }
         // Level termination restores the counter; another REDEF
         // terminates without restoring (J 02.05.02).
         final _Redef redef = _redef!;
@@ -520,6 +523,13 @@ final class DataMapper {
           _cursorRoot = redef.savedRoot;
           _cursorChar = redef.savedChar;
         }
+      }
+      // A level number ends a level, an entry without one never does
+      // (J 02.05.01): a REDEF marker and a diagnosed level-less entry
+      // hang off the preceding leaf, which owns no frame, and every
+      // enclosing frame stays open over them.
+      while (_frames.isNotEmpty && !_isUnder(item, _frames.last.item)) {
+        _closeFrame(_frames.removeLast());
       }
       if (sem.fieldClass == FieldClass.condition) {
         continue;
@@ -636,9 +646,19 @@ final class DataMapper {
     }
     _redef = _Redef(head, _cursorRoot, _cursorChar);
     _cursorRoot = targetSem.spaceRoot;
-    _cursorChar = targetSem.startChar;
+    _cursorChar = _reservationStart(targetSem);
     redefLinks.add((target, head));
   }
+
+  /// The character [sem]'s own reservation began at. A right-justified
+  /// field reserves "beginning in a new word so that the field's last
+  /// character is also the rightmost character of its final word"
+  /// (J 02.05.04): its storage starts at that word, not at its first
+  /// character.
+  int _reservationStart(ItemSemantics sem) =>
+      sem.justification == Justification.right
+      ? sem.startChar ~/ 6 * 6
+      : sem.startChar;
 
   void _allocateItem(DataItem item, ItemSemantics sem) {
     (DataItem?, int)? labelResume;
@@ -698,7 +718,7 @@ final class DataMapper {
         stride = words * 6;
       case Justification.packed:
         if (sem.fieldClass == FieldClass.floatingPoint) {
-          // A floating binary field is a machine word ([J 02.05.05]);
+          // A floating binary field is a machine word (J 02.05.05);
           // it cannot straddle one.
           _cursorChar = _roundUpWord(_cursorChar);
         }
@@ -757,7 +777,7 @@ final class DataMapper {
     }
     if (sem.shape == null || item.children.isNotEmpty) {
       // The variable field must carry an explicit format and no
-      // subfields ([J 02.05.06]; msg 47).
+      // subfields (J 02.05.06; msg 47).
       diagnostics.report(msgQuantityInOnGroup, name);
       return;
     }
@@ -850,6 +870,9 @@ final class DataMapper {
       return;
     }
     final int extent = frame.endChar - frame.startChar;
+    // The extent is the D3.3 length too: a redefinition head adds no
+    // length of its own (J 02.05.01 b), but an overlay running past
+    // its target does lengthen the group (J 02.05.02).
     sem
       ..storageChars = extent
       ..strideChars = extent

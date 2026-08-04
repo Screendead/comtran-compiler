@@ -55,7 +55,7 @@ Terms that appear without expansion:
 One M0 deferral is open: **D4.1**, the MOVPAK round-step emission rule. Decide
 it no later than M4.
 
-Test baseline, measured 2026-08-04: 769 Dart tests pass, and 111 extension
+Test baseline, measured 2026-08-04: 790 Dart tests pass, and 111 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck` compiles the
@@ -103,7 +103,7 @@ binds work outside the definition.
 - §8.5 and Open Questions are living lists. Annotate an entry in place with the
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
-- The conversions stay read-only. Three erratum candidates wait for Jack's
+- The conversions stay read-only. Four erratum candidates wait for Jack's
   explicit authorization:
   1. The 90.05 transcription renders the `*CTEND` card's date as `10/18/61`.
      The card prints `101861` (recorded in §8.5.8).
@@ -117,6 +117,11 @@ binds work outside the definition.
      and 228,00 sit one line low. A printer half-line stagger causes this.
      `docs/design/m1-front-end.md` M1-14 records the scan-correct grouping,
      and the M1 tests assert it.
+  4. The [J 02.05.05] chart transcription renders the Edited Field row's
+     rightmost-character list as `8 or 9 or 8̅ or 9̅`. The scan
+     (`images/page-031.png`) marks all four glyphs: minus-8, minus-9, plus-8,
+     plus-9. The language definition repeats the unmarked reading. The M3-4
+     amendment in `docs/design/m3-data.md` records the scan reading.
 - The page scans (`comtran-manuals/*/images/page-NNN.png`) are ground truth for
   any disputed reading.
 - For any claim about card columns, measure the page scan. Never trust the
@@ -250,6 +255,7 @@ M2 to M6.
 
 [F p. 12]: ../comtran-manuals/F28-8043/02-language-structure.md#underlying-principles
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
+[J 02.05.05]: ../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card
 [J 90.02]: ../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.10]: ../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers

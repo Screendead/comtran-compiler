@@ -15,7 +15,7 @@ Iterable<DataItem> subtreeOf(DataItem item) sync* {
   }
 }
 
-/// The six field types of the [J 02.05.05] chart, plus the structural
+/// The six field types of the J 02.05.05 chart, plus the structural
 /// kinds a data entry can be instead of a field.
 enum FieldClass {
   /// A field with no pictorial: alphameric, length the sum of its
@@ -66,16 +66,12 @@ final class ItemSemantics {
   Justification justification = Justification.packed;
 
   /// Storage characters of one occurrence: a leaf's reservation, or a
-  /// group's end-to-start extent including interior alignment.
+  /// group's end-to-start extent including interior alignment. This is
+  /// the D3.3 comparison length (amended 2026-08-04).
   int storageChars = 0;
-
-  /// The D3.3 length: a leaf's storage, a group's sum of subfields.
-  int charLength = 0;
 
   /// More than 10 represented digits, or FF (J 02.05.06).
   bool doublePrecision = false;
-
-  SignConvention sign = SignConvention.none;
 
   /// Digits the field represents, `S` fillers included.
   int digits = 0;
@@ -123,19 +119,13 @@ final class ItemSemantics {
 }
 
 /// One transmitted storage area: a top-level data item with program
-/// storage, in source order (M3-6; Location Counter 0, [J 90.02.01]).
+/// storage, in source order (M3-6; Location Counter 0, J 90.02.01).
 final class AreaInfo {
-  AreaInfo(this.root, this.name, {required this.isRecord, required this.words});
-
-  /// The top-level item the area reserves storage for.
-  final DataItem root;
+  AreaInfo(this.name, {required this.words});
 
   /// The punched name; empty for an unnamed entry (its GN name is
   /// stage 3's).
   final String name;
-
-  /// Whether the root carries the RECORD type code.
-  final bool isRecord;
 
   /// The area's initial words: a 36-bit value where any character is
   /// initialized, `null` for a wholly uninitialized word (M3-7).
@@ -201,27 +191,8 @@ final class SemanticResult {
 
   /// Every phase's diagnostics as one block, ordered by card number,
   /// stable within one card (the M2-2 merge rule).
-  late final List<Diagnostic> diagnostics = _merged();
-
-  List<Diagnostic> _merged() {
-    int key(Diagnostic d) => d.card?.cardNumber ?? 1 << 30;
-    final all =
-        <(int, int, Diagnostic)>[
-          for (final (int i, Diagnostic d) in parse.diagnostics.indexed)
-            (key(d), i, d),
-          for (final (int i, Diagnostic d) in semanticDiagnostics.indexed)
-            (key(d), parse.diagnostics.length + i, d),
-        ]..sort(
-          ((int, int, Diagnostic) a, (int, int, Diagnostic) b) =>
-              a.$1 != b.$1 ? a.$1 - b.$1 : a.$2 - b.$2,
-        );
-    return List.unmodifiable([for (final (_, _, Diagnostic d) in all) d]);
-  }
-
-  /// The highest severity across all phases, or 0 with no diagnostics.
-  int get maxSeverity => diagnostics.isEmpty
-      ? 0
-      : diagnostics
-            .map((Diagnostic d) => d.severity)
-            .reduce((int a, int b) => a > b ? a : b);
+  late final List<Diagnostic> diagnostics = mergeDiagnosticPhases(
+    parse.diagnostics,
+    semanticDiagnostics,
+  );
 }

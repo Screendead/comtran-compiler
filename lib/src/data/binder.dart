@@ -4,9 +4,9 @@
 /// Stage 1 covers what needs no procedure walk: FILE-card record
 /// resolution, the BLOCKSIZE checks (D7.1; D10.8), SPECIF file
 /// resolution, the BCD-output mode check, and the located-or-
-/// transmitted classification (J 02.07.05). The procedure-referencing
-/// binder rows (msgs 9, 10, 17, 19, 195, 198) and the POOL/GROUP
-/// buffer minimums land with stage 2's resolution.
+/// transmitted classification (J 02.07.03; J 02.07.05). The
+/// procedure-referencing binder rows (msgs 9, 10, 17, 19, 195, 198)
+/// and the POOL/GROUP buffer minimums land with stage 2's resolution.
 library;
 
 import '../ast/data_ast.dart';
@@ -62,7 +62,7 @@ final class EnvironmentBinder {
         );
       }
     }
-    records.forEach(_classifyRecord);
+    _classifyRecords(files);
     for (final file in files) {
       _checkBlocksizeFit(file);
       _checkOutputMode(file);
@@ -76,7 +76,7 @@ final class EnvironmentBinder {
     _bound[file] = [];
     final int? blocksize = file.blocksize;
     if (blocksize != null && blocksize > 9999) {
-      // "Maximum blocksize is 9999 words" ([J 02.06.04]); no message
+      // "Maximum blocksize is 9999 words" (J 02.06.04); no message
       // is attested for the excess (D7.1).
       diagnostics.reportAt(msgBlocksizeOverMaximum, file.spec.cards.first);
       _rejected.add(file);
@@ -126,46 +126,59 @@ final class EnvironmentBinder {
     }
   }
 
-  void _classifyRecord(RecordInfo record) {
-    record.variable = subtreeOf(
-      record.item,
-    ).any((DataItem item) => mapper.semantics[item]?.variableLength ?? false);
-    if (record.inputFiles.isEmpty) {
-      return; // Output-only and unfiled records take program storage.
+  /// Locate or transmit is a property of the file, not of the record:
+  /// its triggers are FILE-card options (J 02.07.03) and a forced
+  /// record takes its file-mates with it (J 02.07.05 c-ii). A record
+  /// named by two input files is already msg 11 (J 02.07.04), so the
+  /// forced mode is not carried on past it (M3-11 reconstruction).
+  void _classifyRecords(List<FileCard> files) {
+    for (final RecordInfo record in records) {
+      // Output-only and unfiled records take program storage.
+      record
+        ..variable = subtreeOf(record.item).any(
+          (DataItem item) => mapper.semantics[item]?.variableLength ?? false,
+        )
+        ..located = record.inputFiles.isNotEmpty;
     }
-    final bool holdOrSpans = record.inputFiles.any(
-      (String name) => _fileByName[name]?.holdOrSpans ?? false,
-    );
-    if (holdOrSpans) {
-      // "Transmission occurs when either the HOLD or SPANS option is
-      // specified" (J 02.07.05).
-      return;
-    }
-    final bool hasArray = subtreeOf(record.item).any((DataItem item) {
-      final ItemSemantics? s = mapper.semantics[item];
-      return s != null && (s.quantity > 1 || s.variableLength);
-    });
-    if (hasArray) {
-      // "All input records containing arrays will be processed in the
-      // transmit mode by the field test processor" (J 90.01.01).
-      return;
-    }
-    if (_sharedByRedef(record)) {
-      record.forcedTransmit = true;
-      for (final String fileName in record.inputFiles) {
-        final FileCard? file = _fileByName[fileName];
-        if (file != null) {
-          diagnostics.reportAt(
-            msgRecordsForcedTransmit,
-            file.spec.cards.first,
-            operands: [fileName],
-          );
-        }
+    for (final file in files) {
+      if (file.direction != FileDirection.input) {
+        continue;
       }
-      return;
+      final List<RecordInfo> bound = _bound[file] ?? const [];
+      // "The 'transmit' mode is triggered by the selection of the
+      // SPANS, HOLD or CARD options on the Environment FILE card"
+      // (J 02.07.03), and "all input records containing arrays will
+      // be processed in the transmit mode by the field test
+      // processor" (J 90.01.01).
+      bool transmits =
+          file.holdOrSpans || file.card || bound.any(_containsArray);
+      if (!transmits && bound.any(_sharedByRedef)) {
+        transmits = true;
+        for (final record in bound) {
+          record.forcedTransmit = true;
+        }
+        // Only a file that was to be located announces the change
+        // (J 02.07.05 c-ii).
+        diagnostics.reportAt(
+          msgRecordsForcedTransmit,
+          file.spec.cards.first,
+          operands: [file.spec.name],
+        );
+      }
+      if (!transmits) {
+        continue; // "'Locate' is assumed" (J 02.07.03).
+      }
+      for (final record in bound) {
+        record.located = false;
+      }
     }
-    record.located = true;
   }
+
+  bool _containsArray(RecordInfo record) =>
+      subtreeOf(record.item).any((DataItem item) {
+        final ItemSemantics? s = mapper.semantics[item];
+        return s != null && (s.quantity > 1 || s.variableLength);
+      });
 
   /// Whether a REDEF shares [record]'s area with data other than
   /// records (J 02.07.05 c-ii). Records REDEF'd together stay
@@ -201,7 +214,7 @@ final class EnvironmentBinder {
     }
     if (file.card && file.direction == FileDirection.input && blocksize < 24) {
       // "All input card files must have a block size of at lease 24
-      // words" ([J 02.06.04], spelling as printed); 24 is used.
+      // words" (J 02.06.04, spelling as printed); 24 is used.
       diagnostics.reportAt(
         msgInsufficientBlocksize,
         file.spec.cards.first,

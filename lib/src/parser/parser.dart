@@ -84,24 +84,10 @@ final class ParseResult {
   /// Front-end and parser diagnostics as one block, ordered by card
   /// number, stable within one card (design note M2-2; the 1962
   /// ordering is unattested).
-  late final List<Diagnostic> diagnostics = _merged();
-
-  List<Diagnostic> _merged() {
-    // A whole-program diagnostic (no card; D11.3) sorts after every
-    // carded one.
-    int key(Diagnostic d) => d.card?.cardNumber ?? 1 << 30;
-    final all =
-        <(int, int, Diagnostic)>[
-          for (final (int i, Diagnostic d) in frontEnd.diagnostics.indexed)
-            (key(d), i, d),
-          for (final (int i, Diagnostic d) in parserDiagnostics.indexed)
-            (key(d), frontEnd.diagnostics.length + i, d),
-        ]..sort(
-          ((int, int, Diagnostic) a, (int, int, Diagnostic) b) =>
-              a.$1 != b.$1 ? a.$1 - b.$1 : a.$2 - b.$2,
-        );
-    return List.unmodifiable([for (final (_, _, Diagnostic d) in all) d]);
-  }
+  late final List<Diagnostic> diagnostics = mergeDiagnosticPhases(
+    frontEnd.diagnostics,
+    parserDiagnostics,
+  );
 
   /// The highest severity across both phases, or 0 with no diagnostics.
   int get maxSeverity => diagnostics.isEmpty

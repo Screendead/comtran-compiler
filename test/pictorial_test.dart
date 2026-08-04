@@ -44,6 +44,17 @@ void main() {
       expect(Pictorial.tryParse('9(4)J')!.sign, SignConvention.overpunchMinus);
     });
 
+    test('an overpunched 8 makes the field edited (J 02.05.05)', () {
+      // H is a plus-overpunched 8, Q a minus-overpunched 8.
+      final Pictorial plus = Pictorial.tryParse('99H')!;
+      expect(plus.hasEditCharacters, isTrue);
+      expect(plus.sign, SignConvention.overpunchPlus);
+      expect(plus.digitCount, 3);
+      expect(Pictorial.tryParse('99Q')!.hasEditCharacters, isTrue);
+      expect(Pictorial.tryParse('99I')!.hasEditCharacters, isFalse);
+      expect(Pictorial.tryParse('9(4)J')!.hasEditCharacters, isFalse);
+    });
+
     test('a zone letter after A, X, or F keeps the run a name', () {
       expect(Pictorial.tryParse('AAR'), isNull);
       expect(Pictorial.tryParse('9F9R'), isNull);
@@ -65,6 +76,15 @@ void main() {
       final Pictorial shape = Pictorial.tryParse('9(0)')!;
       expect(shape.storageChars, 1);
       expect(shape.zeroCountRepaired, isTrue);
+    });
+
+    test('a count past 99999 clamps to it and is flagged (msg 34)', () {
+      final Pictorial shape = Pictorial.tryParse('9(99999999999999999999)')!;
+      expect(shape.storageChars, 99999);
+      expect(shape.countClamped, isTrue);
+      final Pictorial padded = Pictorial.tryParse('9(00000000004)')!;
+      expect(padded.storageChars, 4);
+      expect(padded.countClamped, isFalse);
     });
 
     test('an unclosed count is accepted only when allowed (msg 133)', () {

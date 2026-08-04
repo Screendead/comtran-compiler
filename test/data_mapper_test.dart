@@ -38,6 +38,36 @@ ItemSemantics _sem(SemanticResult result, String name) => result
 
 int _octal(String word) => int.parse(word, radix: 8);
 
+/// A FILE-type Environment card, the binder tests' one recurring shape.
+String _fileCard(String name, String options) =>
+    environmentCard(name: name, type: 'FILE', options: options);
+
+/// Maps one data card whose `?` in [description] is repunched as [bcd].
+/// Plus zero (12-0) and minus zero (11-0) carry no Set H glyph, so no
+/// mirror line can express an overpunched zero (deck-format spec §4.3).
+SemanticResult _mapPunched(String description, int bcd) {
+  final List<int> columns = blankColumns();
+  punchGlyphs(
+    columns,
+    1,
+    dataCard(
+      name: 'S',
+      level: '1',
+      mode: 'E',
+      description: description.replaceAll('?', ' '),
+    ),
+  );
+  columns[37 + description.indexOf('?')] = punchesFromBcd(bcd)!;
+  return runSemantics(
+    runParser(
+      runFrontEnd([
+        mirrorToDeck('      *DATA\n').single,
+        CardImage.fromColumns(columns),
+      ]),
+    ),
+  );
+}
+
 void main() {
   group('the six-way classifier (M3-4)', () {
     test('classifies each chart type from mode and pictorial', () {
@@ -84,7 +114,7 @@ void main() {
       // C2 packs into the least multiple of 6 bits: 8 bits round to 2
       // characters (J 02.05.04).
       expect(_sem(result, 'C2').storageChars, 2);
-      expect(group.charLength, 4);
+      expect(group.storageChars, 4);
     });
 
     test('edit characters under mode I draw 32,00 and the pictorial '
@@ -177,7 +207,7 @@ void main() {
       ]);
       final ItemSemantics sem = _sem(result, 'S');
       expect(sem.fieldClass, FieldClass.externalDecimal);
-      expect(sem.sign, SignConvention.overpunchMinus);
+      expect(sem.shape!.sign, SignConvention.overpunchMinus);
       expect(sem.storageChars, 3);
     });
 
@@ -197,6 +227,29 @@ void main() {
       ]);
       expect(_ids(result), ['60,00']);
       expect(_sem(result, 'X').storageChars, 1);
+    });
+
+    test('a repetition count past 99999 draws 34,00 and is clamped', () {
+      final SemanticResult result = _map([
+        dataCard(name: 'X', level: '1', description: 'A(99999999999999999999)'),
+      ]);
+      expect(_ids(result), ['34,00']);
+      expect(_sem(result, 'X').storageChars, 99999);
+    });
+
+    test('a clamped count sizes a packed internal field (J 02.05.04)', () {
+      final SemanticResult result = _map([
+        dataCard(
+          name: 'P',
+          level: '1',
+          mode: 'I',
+          description: '9(999999999999)',
+        ),
+      ]);
+      expect(_ids(result), ['34,00']);
+      // 99999 digits and a sign occupy 332191 bits, 55366 characters
+      // at six bits each.
+      expect(_sem(result, 'P').storageChars, 55366);
     });
 
     test('an entry with no length draws 42,00', () {
@@ -429,6 +482,114 @@ void main() {
       expect(area.words, [isNull, _octal('720000000000')]);
     });
 
+    test('a REDEF inside a record keeps the record open '
+        '(J 02.05.01)', () {
+      final SemanticResult result = _map([
+        dataCard(name: 'R', level: '1', type: 'RECORD'),
+        dataCard(name: 'A', level: '2', description: 'AA'),
+        dataCard(name: 'B', level: '2', description: 'AA'),
+        dataCard(type: 'REDEF', description: 'A'),
+        dataCard(name: 'C', level: '2', description: 'A(4)'),
+        dataCard(name: 'D', level: '2', description: 'AA'),
+      ]);
+      expect(_ids(result), isEmpty);
+      final ItemSemantics record = _sem(result, 'R');
+      // C overlays A and B; D resumes after them, still inside R.
+      expect(_sem(result, 'C').startChar, 0);
+      expect(_sem(result, 'D').startChar, 4);
+      // The redefinition head adds no length (J 02.05.01 b).
+      expect(record.storageChars, 6);
+    });
+
+    test('an overlay past its target lengthens the enclosing group '
+        '(J 02.05.06)', () {
+      final SemanticResult result = _map([
+        dataCard(name: 'R', level: '1', type: 'RECORD'),
+        dataCard(name: 'A', level: '2', description: 'AA'),
+        dataCard(name: 'B', level: '2', description: 'AA'),
+        dataCard(type: 'REDEF', description: 'A'),
+        dataCard(name: 'C', level: '2', description: 'A(8)'),
+        dataCard(name: 'D', level: '2', description: 'AA'),
+      ]);
+      expect(_ids(result), isEmpty);
+      expect(_sem(result, 'R').storageChars, 8);
+      expect(result.areas.single.extentWords, 2);
+    });
+
+    test('an overlay inside a repeated group stays inside it '
+        '(J 02.05.02)', () {
+      final SemanticResult result = _map([
+        dataCard(name: 'R', level: '1', type: 'RECORD'),
+        dataCard(name: 'G', level: '2', quantity: '3'),
+        dataCard(name: 'A', level: '3', description: 'AA'),
+        dataCard(name: 'B', level: '3', description: 'AA'),
+        dataCard(type: 'REDEF', description: 'A'),
+        dataCard(name: 'C', level: '3', description: 'A(4)'),
+        dataCard(name: 'D', level: '3', description: 'AA'),
+      ]);
+      expect(_ids(result), isEmpty);
+      expect(_sem(result, 'D').startChar, 4);
+      final ItemSemantics element = _sem(result, 'G');
+      expect(element.strideChars, 6);
+      expect(element.extentChars, 18);
+      expect(result.areas.single.extentWords, 3);
+    });
+
+    test('the counter restores over a repeated group that ends with '
+        'the redefinition (J 02.05.02)', () {
+      final SemanticResult result = _map([
+        dataCard(name: 'R', level: '1', type: 'RECORD'),
+        dataCard(name: 'G', level: '2', quantity: '2'),
+        dataCard(name: 'A', level: '3', description: 'A(6)'),
+        dataCard(type: 'REDEF', description: 'A'),
+        dataCard(name: 'B', level: '3', description: 'AA'),
+        dataCard(name: 'D', level: '2', description: 'AA'),
+      ]);
+      expect(_ids(result), isEmpty);
+      // D terminates the redefinition and closes G at once: the
+      // restored counter must still clear G's two repetitions.
+      expect(_sem(result, 'G').extentChars, 12);
+      expect(_sem(result, 'D').startChar, 12);
+    });
+
+    test('a diagnosed level-less entry keeps the record open '
+        '(J 02.05.01)', () {
+      final SemanticResult result = _map([
+        dataCard(name: 'R', level: '1', type: 'RECORD'),
+        dataCard(name: 'A', level: '2', description: 'AA'),
+        dataCard(name: 'Q', description: 'AA'),
+        dataCard(name: 'B', level: '2', description: 'AA'),
+      ]);
+      expect(_ids(result), ['36,00']);
+      expect(_sem(result, 'R').storageChars, 4);
+    });
+
+    test('a redefinition of a right-justified field shares its word '
+        '(J 02.05.04)', () {
+      final SemanticResult result = _map([
+        dataCard(
+          name: 'X',
+          level: '1',
+          mode: 'E',
+          justify: 'R',
+          description: '9(4)',
+        ),
+        dataCard(type: 'REDEF', description: 'X'),
+        dataCard(
+          name: 'Y',
+          level: '1',
+          mode: 'E',
+          justify: 'R',
+          description: '9(4)',
+        ),
+      ]);
+      expect(_ids(result), isEmpty);
+      // X ends at the rightmost character of word 0, so its
+      // reservation begins at that word's boundary; Y repeats it.
+      expect(_sem(result, 'Y').startChar, 2);
+      expect(result.areas.single.extentWords, 1);
+    });
+
     test('a REDEF to a later definition draws 40,00', () {
       final SemanticResult result = _map([
         dataCard(type: 'REDEF', description: 'LATER'),
@@ -465,13 +626,7 @@ void main() {
           dataCard(type: 'REDEF', description: 'F1'),
           dataCard(name: 'Y', level: '1', description: 'AA'),
         ],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,X,BLOCKSIZE 5',
-          ),
-        ],
+        environment: [_fileCard('F1', 'INPUT,BCD,TAPE,X,BLOCKSIZE 5')],
       );
       expect(_ids(result), contains('46,00'));
     });
@@ -516,9 +671,9 @@ void main() {
       expect(_ids(result), ['930,00']);
       expect(result.semanticDiagnostics.single.severity, 2);
       expect(_sem(result, 'D').quantity, 1);
-      // The repair lands before the D3.3 length pass, so the group
-      // length agrees with the storage allocated.
-      expect(_sem(result, 'C').charLength, 2);
+      // The repair lands before allocation, so the group length
+      // agrees with the storage allocated.
+      expect(_sem(result, 'C').storageChars, 2);
       expect(result.areas.single.extentWords, 3);
     });
 
@@ -776,7 +931,7 @@ void main() {
     });
 
     test('an imbedded blank in a numeric constant draws 67,00; a '
-        'leading blank reads as zero ([J 02.05.05] note 3)', () {
+        'leading blank reads as zero (J 02.05.05 note 3)', () {
       final SemanticResult imbedded = _map([
         dataCard(name: 'X', level: '1', mode: 'E', description: "999 '1 3'"),
       ]);
@@ -794,6 +949,18 @@ void main() {
       ]);
       expect(_ids(result), isEmpty);
       expect(result.areas.single.words, [_octal('010243000000')]);
+    });
+
+    test('an overpunched zero is a legal external final digit '
+        '(J 02.05.05 chart)', () {
+      final SemanticResult minus = _mapPunched("99R '12?'", 0x2A);
+      expect(_ids(minus), isEmpty);
+      expect(minus.areas.single.words, [_octal('010252000000')]);
+      final SemanticResult plus = _mapPunched("99A '12?'", 0x1A);
+      expect(_ids(plus), isEmpty);
+      expect(plus.areas.single.words, [_octal('010232000000')]);
+      // The admitted zero still meets the pictorial's convention.
+      expect(_ids(_mapPunched("99R '12?'", 0x1A)), ['58,00']);
     });
 
     test('an external constant without the pictorial sign draws '
@@ -817,6 +984,19 @@ void main() {
       expect(_ids(result), ['67,00']);
     });
 
+    test('a blank after an internal sign is imbedded (M3-16)', () {
+      final SemanticResult result = _map([
+        dataCard(
+          name: 'X',
+          level: '1',
+          mode: 'I',
+          justify: 'R',
+          description: "99 '+ 1'",
+        ),
+      ]);
+      expect(_ids(result), ['67,00']);
+    });
+
     test('a constant on an edited field draws 57,00', () {
       final SemanticResult result = _map([
         dataCard(name: 'X', level: '1', description: "88.99 '12.34'"),
@@ -824,11 +1004,71 @@ void main() {
       expect(_ids(result), ['57,00']);
     });
 
+    test('an overpunched 8 takes the edited constant check '
+        '(J 02.05.05)', () {
+      final SemanticResult eight = _map([
+        dataCard(name: 'X', level: '1', description: "99H '123'"),
+      ]);
+      expect(_sem(eight, 'X').fieldClass, FieldClass.edited);
+      expect(_ids(eight), ['57,00']);
+      final SemanticResult nine = _map([
+        dataCard(name: 'Y', level: '1', description: "99I '123'"),
+      ]);
+      expect(_sem(nine, 'Y').fieldClass, FieldClass.externalDecimal);
+      expect(_ids(nine), ['58,00']);
+    });
+
     test('an illegal scientific constant character draws 54,00', () {
       final SemanticResult result = _map([
         dataCard(name: 'X', level: '1', mode: 'E', description: "9F9 'A9'"),
       ]);
       expect(_ids(result), ['54,00']);
+    });
+
+    test('a scientific constant takes leading blanks only (M3-16)', () {
+      final SemanticResult leading = _map([
+        dataCard(name: 'X', level: '1', mode: 'E', description: "99F9 ' 13'"),
+      ]);
+      expect(_ids(leading), isEmpty);
+      expect(leading.areas.single.words, [_octal('600103000000')]);
+      final SemanticResult imbedded = _map([
+        dataCard(name: 'X', level: '1', mode: 'E', description: "99F9 '1 3'"),
+      ]);
+      expect(_ids(imbedded), ['67,00']);
+      final SemanticResult trailing = _map([
+        dataCard(name: 'X', level: '1', mode: 'E', description: "99F9 '13 '"),
+      ]);
+      expect(_ids(trailing), ['67,00']);
+    });
+
+    test('a floating constant takes leading blanks only (M3-16)', () {
+      final SemanticResult leading = _map([
+        dataCard(name: 'X', level: '1', mode: 'I', description: "F ' 12'"),
+      ]);
+      expect(_ids(leading), isEmpty);
+      // +12.0: characteristic 204 octal, fraction 600000000 octal.
+      expect(leading.areas.single.words, [_octal('204600000000')]);
+      final SemanticResult imbedded = _map([
+        dataCard(name: 'X', level: '1', mode: 'I', description: "F '1 2'"),
+      ]);
+      expect(_ids(imbedded), ['67,00']);
+      final SemanticResult trailing = _map([
+        dataCard(name: 'X', level: '1', mode: 'I', description: "F '12 '"),
+      ]);
+      expect(_ids(trailing), ['67,00']);
+    });
+
+    test('a floating constant signs the fraction and rejects a '
+        'misplaced sign (J 02.04.02)', () {
+      final SemanticResult signed = _map([
+        dataCard(name: 'X', level: '1', mode: 'I', description: "F '+12'"),
+      ]);
+      expect(_ids(signed), isEmpty);
+      expect(signed.areas.single.words, [_octal('204600000000')]);
+      final SemanticResult imbedded = _map([
+        dataCard(name: 'X', level: '1', mode: 'I', description: "F '1+2'"),
+      ]);
+      expect(_ids(imbedded), ['54,00']);
     });
 
     test('a floating constant too large draws 55,00', () {
@@ -909,13 +1149,7 @@ void main() {
           dataCard(name: 'R1', level: '1', type: 'RECORD'),
           dataCard(name: 'F', level: '2', description: "A(6) 'ABCDEF'"),
         ],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5',
-          ),
-        ],
+        environment: [_fileCard('F1', 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5')],
       );
       expect(_ids(result), ['43,00']);
       expect(result.areas, isEmpty);
@@ -933,16 +1167,8 @@ void main() {
           dataCard(name: 'PLAIN', level: '1', description: 'A(6)'),
         ],
         environment: [
-          environmentCard(
-            name: 'FIN',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,RIN,BLOCKSIZE 5',
-          ),
-          environmentCard(
-            name: 'FOUT',
-            type: 'FILE',
-            options: 'OUTPUT,BCD,TAPE,ROUT,BLOCKSIZE 5',
-          ),
+          _fileCard('FIN', 'INPUT,BCD,TAPE,RIN,BLOCKSIZE 5'),
+          _fileCard('FOUT', 'OUTPUT,BCD,TAPE,ROUT,BLOCKSIZE 5'),
         ],
       );
       expect(_ids(result), isEmpty);
@@ -964,13 +1190,7 @@ void main() {
           dataCard(name: 'RIN', level: '1', type: 'RECORD'),
           dataCard(name: 'A1', level: '2', quantity: '3', description: 'AA'),
         ],
-        environment: [
-          environmentCard(
-            name: 'FIN',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,RIN,BLOCKSIZE 5',
-          ),
-        ],
+        environment: [_fileCard('FIN', 'INPUT,BCD,TAPE,RIN,BLOCKSIZE 5')],
       );
       expect(result.records.single.located, isFalse);
       expect(result.areas.single.name, 'RIN');
@@ -995,13 +1215,7 @@ void main() {
             description: 'A(6) QUANTITY IN CNT',
           ),
         ],
-        environment: [
-          environmentCard(
-            name: 'FOUT',
-            type: 'FILE',
-            options: 'OUTPUT,BCD,TAPE,RV,BLOCKSIZE 6',
-          ),
-        ],
+        environment: [_fileCard('FOUT', 'OUTPUT,BCD,TAPE,RV,BLOCKSIZE 6')],
       );
       expect(_ids(result), isEmpty);
       final RecordInfo record = result.records.single;
@@ -1018,13 +1232,7 @@ void main() {
           dataCard(type: 'REDEF', description: 'RIN'),
           dataCard(name: 'OTHER', level: '1', description: 'A(6)'),
         ],
-        environment: [
-          environmentCard(
-            name: 'FIN',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,RIN,BLOCKSIZE 5',
-          ),
-        ],
+        environment: [_fileCard('FIN', 'INPUT,BCD,TAPE,RIN,BLOCKSIZE 5')],
       );
       expect(_ids(result), ['932,00']);
       final RecordInfo record = result.records.single;
@@ -1044,16 +1252,8 @@ void main() {
           dataCard(name: 'B1', level: '2', description: 'A(6)'),
         ],
         environment: [
-          environmentCard(
-            name: 'FIN',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,RIN,BLOCKSIZE 5',
-          ),
-          environmentCard(
-            name: 'FTWO',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,RTWO,BLOCKSIZE 5',
-          ),
+          _fileCard('FIN', 'INPUT,BCD,TAPE,RIN,BLOCKSIZE 5'),
+          _fileCard('FTWO', 'INPUT,BCD,TAPE,RTWO,BLOCKSIZE 5'),
         ],
       );
       expect(_ids(result), isEmpty);
@@ -1062,16 +1262,73 @@ void main() {
       expect(result.areas, isEmpty);
     });
 
+    test('a REDEF-forced transmit covers every record of the file '
+        '(J 02.07.05 c-ii)', () {
+      final SemanticResult result = _map(
+        [
+          dataCard(name: 'RIN', level: '1', type: 'RECORD'),
+          dataCard(name: 'A1', level: '2', description: 'A(6)'),
+          dataCard(type: 'REDEF', description: 'RIN'),
+          dataCard(name: 'OTHER', level: '1', description: 'A(6)'),
+          dataCard(name: 'RTWO', level: '1', type: 'RECORD'),
+          dataCard(name: 'B1', level: '2', description: 'A(6)'),
+        ],
+        environment: [_fileCard('FIN', 'INPUT,BCD,TAPE,RIN,RTWO,BLOCKSIZE 5')],
+      );
+      expect(_ids(result), ['932,00']);
+      expect(result.records[0].located, isFalse);
+      expect(result.records[0].forcedTransmit, isTrue);
+      expect(result.records[1].located, isFalse);
+      expect(result.records[1].forcedTransmit, isTrue);
+      expect([for (final AreaInfo a in result.areas) a.name], ['RIN', 'RTWO']);
+    });
+
+    test('an array in one record transmits every record of the file '
+        '(J 90.01.01)', () {
+      final SemanticResult result = _map(
+        [
+          dataCard(name: 'RIN', level: '1', type: 'RECORD'),
+          dataCard(name: 'A1', level: '2', quantity: '3', description: 'AA'),
+          dataCard(name: 'RTWO', level: '1', type: 'RECORD'),
+          dataCard(name: 'B1', level: '2', description: 'A(6)'),
+        ],
+        environment: [_fileCard('FIN', 'INPUT,BCD,TAPE,RIN,RTWO,BLOCKSIZE 5')],
+      );
+      expect(_ids(result), isEmpty);
+      expect(result.records[1].located, isFalse);
+      expect(result.records[1].forcedTransmit, isFalse);
+      expect([for (final AreaInfo a in result.areas) a.name], ['RIN', 'RTWO']);
+    });
+
+    test('the forced mode does not travel on past a record named by two '
+        'input files (M3-11 reconstruction)', () {
+      final SemanticResult result = _map(
+        [
+          dataCard(name: 'RIN', level: '1', type: 'RECORD'),
+          dataCard(name: 'A1', level: '2', description: 'A(6)'),
+          dataCard(type: 'REDEF', description: 'RIN'),
+          dataCard(name: 'OTHER', level: '1', description: 'A(6)'),
+          dataCard(name: 'RTWO', level: '1', type: 'RECORD'),
+          dataCard(name: 'B1', level: '2', description: 'A(6)'),
+          dataCard(name: 'RTHREE', level: '1', type: 'RECORD'),
+          dataCard(name: 'C1', level: '2', description: 'A(6)'),
+        ],
+        environment: [
+          _fileCard('FIN', 'INPUT,BCD,TAPE,RIN,RTWO,BLOCKSIZE 5'),
+          _fileCard('FTHREE', 'INPUT,BCD,TAPE,RTWO,RTHREE,BLOCKSIZE 5'),
+        ],
+      );
+      // The second input binding of RTWO is itself an error
+      // (J 02.07.04), and only such a program can see a mixed file.
+      expect(_ids(result), ['11,00', '932,00']);
+      expect(result.records[1].located, isFalse);
+      expect(result.records[2].located, isTrue);
+    });
+
     test('a FILE card naming no record draws 13,00', () {
       final SemanticResult result = _map(
         [dataCard(name: 'X', level: '1', description: 'AA')],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,BLOCKSIZE 5',
-          ),
-        ],
+        environment: [_fileCard('F1', 'INPUT,BCD,TAPE,BLOCKSIZE 5')],
       );
       expect(_ids(result), ['13,00']);
     });
@@ -1079,13 +1336,7 @@ void main() {
     test('a FILE-card record name with no data entry draws 15,00', () {
       final SemanticResult result = _map(
         [dataCard(name: 'X', level: '1', description: 'AA')],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,NOPE,BLOCKSIZE 5',
-          ),
-        ],
+        environment: [_fileCard('F1', 'INPUT,BCD,TAPE,NOPE,BLOCKSIZE 5')],
       );
       expect(_ids(result), ['15,00']);
     });
@@ -1093,13 +1344,7 @@ void main() {
     test('a FILE-card record name that is not a RECORD draws 16,00', () {
       final SemanticResult result = _map(
         [dataCard(name: 'X', level: '1', description: 'AA')],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,X,BLOCKSIZE 5',
-          ),
-        ],
+        environment: [_fileCard('F1', 'INPUT,BCD,TAPE,X,BLOCKSIZE 5')],
       );
       expect(_ids(result), ['16,00']);
     });
@@ -1111,16 +1356,8 @@ void main() {
           dataCard(name: 'A1', level: '2', description: 'AA'),
         ],
         environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5',
-          ),
-          environmentCard(
-            name: 'F2',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5',
-          ),
+          _fileCard('F1', 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5'),
+          _fileCard('F2', 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5'),
         ],
       );
       expect(_ids(result), ['11,00']);
@@ -1143,13 +1380,7 @@ void main() {
           dataCard(name: 'R1', level: '1', type: 'RECORD'),
           dataCard(name: 'A1', level: '2', description: 'A(30)'),
         ],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'OUTPUT,BCD,TAPE,R1,BLOCKSIZE 3',
-          ),
-        ],
+        environment: [_fileCard('F1', 'OUTPUT,BCD,TAPE,R1,BLOCKSIZE 3')],
       );
       expect(_ids(result), ['5,00']);
       expect(result.semanticDiagnostics.single.severity, 4);
@@ -1161,13 +1392,7 @@ void main() {
           dataCard(name: 'R1', level: '1', type: 'RECORD'),
           dataCard(name: 'A1', level: '2', description: 'A(30)'),
         ],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'OUTPUT,BCD,TAPE,R1,BLOCKSIZE 3,SPANS',
-          ),
-        ],
+        environment: [_fileCard('F1', 'OUTPUT,BCD,TAPE,R1,BLOCKSIZE 3,SPANS')],
       );
       expect(_ids(result), isEmpty);
     });
@@ -1178,13 +1403,7 @@ void main() {
           dataCard(name: 'R1', level: '1', type: 'RECORD'),
           dataCard(name: 'A1', level: '2', description: 'A(30)'),
         ],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,R1,BLOCKSIZE 3,SPANS',
-          ),
-        ],
+        environment: [_fileCard('F1', 'INPUT,BCD,TAPE,R1,BLOCKSIZE 3,SPANS')],
       );
       expect(_ids(result), isEmpty);
       expect(result.records.single.located, isFalse);
@@ -1198,16 +1417,23 @@ void main() {
           dataCard(name: 'R1', level: '1', type: 'RECORD'),
           dataCard(name: 'A1', level: '2', description: 'AA'),
         ],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'INPUT,BCD,CARD,R1,BLOCKSIZE 10',
-          ),
-        ],
+        environment: [_fileCard('F1', 'INPUT,BCD,CARD,R1,BLOCKSIZE 10')],
       );
       expect(_ids(result), ['209,00']);
       expect(result.semanticDiagnostics.single.severity, 1);
+    });
+
+    test('an input CARD file transmits its records (J 02.07.03)', () {
+      final SemanticResult result = _map(
+        [
+          dataCard(name: 'R1', level: '1', type: 'RECORD'),
+          dataCard(name: 'A1', level: '2', description: "A(6) 'ABCDEF'"),
+        ],
+        environment: [_fileCard('F1', 'INPUT,BCD,CARD,R1,BLOCKSIZE 24')],
+      );
+      expect(_ids(result), isEmpty);
+      expect(result.records.single.located, isFalse);
+      expect(result.areas.single.name, 'R1');
     });
 
     test('a BLOCKSIZE over 9999 draws 931,00 and the card is '
@@ -1217,13 +1443,7 @@ void main() {
           dataCard(name: 'R1', level: '1', type: 'RECORD'),
           dataCard(name: 'A1', level: '2', description: 'AA'),
         ],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,R1,BLOCKSIZE 10000',
-          ),
-        ],
+        environment: [_fileCard('F1', 'INPUT,BCD,TAPE,R1,BLOCKSIZE 10000')],
       );
       expect(_ids(result), ['931,00']);
       expect(result.semanticDiagnostics.single.severity, 4);
@@ -1236,13 +1456,7 @@ void main() {
           dataCard(name: 'R1', level: '1', type: 'RECORD'),
           dataCard(name: 'A1', level: '2', description: 'AA'),
         ],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,R1,BLOCKSIZE 9999',
-          ),
-        ],
+        environment: [_fileCard('F1', 'INPUT,BCD,TAPE,R1,BLOCKSIZE 9999')],
       );
       expect(_ids(result), isEmpty);
     });
@@ -1259,13 +1473,7 @@ void main() {
             description: '99',
           ),
         ],
-        environment: [
-          environmentCard(
-            name: 'F1',
-            type: 'FILE',
-            options: 'OUTPUT,BCD,TAPE,R1,BLOCKSIZE 5',
-          ),
-        ],
+        environment: [_fileCard('F1', 'OUTPUT,BCD,TAPE,R1,BLOCKSIZE 5')],
       );
       expect(_ids(result), ['20,00']);
     });
@@ -1333,6 +1541,36 @@ void main() {
         [for (final AreaInfo area in pedantic.areas) area.words],
         [for (final AreaInfo area in plain.areas) area.words],
       );
+    });
+  });
+
+  group('the cross-phase diagnostic merge (M2-2)', () {
+    test('orders a semantic and a parser diagnostic by card number', () {
+      // Card 2 draws a semantic diagnostic (32,00, mode-pictorial
+      // conflict); card 3 draws a parser diagnostic (178,00, key word
+      // as data name). Plain concatenation of the two phases would
+      // print card 3's diagnostic first (mirrors parser_test.dart:50).
+      final List<String> lines = [
+        '      *DATA',
+        dataCard(name: 'X', level: '1', mode: 'I', description: '99R'),
+        dataCard(name: 'MOVE', level: '1', description: '99'),
+        '      *PROCEDURE',
+        '            STOP RUN.',
+      ];
+      final ParseResult parse = runParser(
+        runFrontEnd(mirrorToDeck('${lines.join('\n')}\n')),
+      );
+      final SemanticResult result = runSemantics(parse);
+      expect(parse.parserDiagnostics.single.message.number, '178,00');
+      expect(result.semanticDiagnostics.single.message.number, '32,00');
+      expect(result.diagnostics.map((Diagnostic d) => d.message.number), [
+        '32,00',
+        '178,00',
+      ]);
+      expect(result.diagnostics.map((Diagnostic d) => d.card!.cardNumber), [
+        2,
+        3,
+      ]);
     });
   });
 }

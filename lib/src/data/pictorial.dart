@@ -2,7 +2,7 @@
 ///
 /// From a pictorial run the mapper needs: the storage character count
 /// (each format character one position; `V`, `S`, and `F` reserve
-/// nothing — F p. 80; [J 02.05.05]), the digit count, the scale, and
+/// nothing — F p. 80; J 02.05.05), the digit count, the scale, and
 /// the sign convention. A single trailing zone letter A–R is an
 /// overpunched digit — the punch-level form of the chart's `9̅` (M2-3
 /// amendment; design note M3-5).
@@ -10,7 +10,7 @@ library;
 
 /// The sign conventions a pictorial can state: the external-decimal
 /// overpunch pair (J 90.02.15) and the edited reserved positions
-/// (J 90.02.17's seven-valued set, [J 02.05.05] note 2).
+/// (J 90.02.17's seven-valued set, J 02.05.05 note 2).
 enum SignConvention {
   /// No sign specification.
   none,
@@ -53,10 +53,7 @@ enum _Kind {
 
 /// A measured pictorial.
 final class Pictorial {
-  Pictorial._(this.text, List<(_Kind, int)> elements) : _elements = elements;
-
-  /// The pictorial as punched.
-  final String text;
+  Pictorial._(List<(_Kind, int)> elements) : _elements = elements;
 
   final List<(_Kind, int)> _elements;
 
@@ -67,11 +64,21 @@ final class Pictorial {
   /// digits through the end of the run were read as the count.
   bool missingRightParen = false;
 
+  /// Whether a repetition count over [maxCount] was clamped to it
+  /// (msg 34).
+  bool countClamped = false;
+
+  /// The largest repetition count kept as punched. A blocksize holds
+  /// at most 9999 words, 59994 characters (J 02.06.04), so no field
+  /// a machine can read reaches this bound; a larger count is a
+  /// keying error (M3-16 amendment).
+  static const int maxCount = 99999;
+
   int _count(_Kind kind) => _elements
       .where(((_Kind, int) e) => e.$1 == kind)
       .fold(0, (int sum, (_Kind, int) e) => sum + e.$2);
 
-  /// A and X positions ([J 02.05.04]: synonymous).
+  /// A and X positions (J 02.05.04: synonymous).
   late final int alphamericCount = _count(_Kind.alpha);
 
   /// Digit positions reserving storage: `9`, `8`, `*`, and the
@@ -86,7 +93,7 @@ final class Pictorial {
   late final int sCount = _count(_Kind.s);
 
   /// Digits the field represents: stored positions plus `S` fillers.
-  /// More than 10 makes the field double precision ([J 02.05.06]).
+  /// More than 10 makes the field double precision (J 02.05.06).
   int get valueDigits => digitCount + sCount;
 
   /// Storage positions: one per format character except `V`, `S`, and
@@ -100,27 +107,31 @@ final class Pictorial {
   );
 
   /// Whether an edit character appears: `8 * . , $ + -` characterize
-  /// an edited field ([J 02.05.05]).
-  late final bool hasEditCharacters = _elements.any(
-    ((_Kind, int) e) => switch (e.$1) {
-      _Kind.eight ||
-      _Kind.star ||
-      _Kind.period ||
-      _Kind.comma ||
-      _Kind.dollar ||
-      _Kind.plus ||
-      _Kind.minus => true,
-      _ => false,
-    },
-  );
+  /// an edited field (J 02.05.05). An overpunched 8 is one of them:
+  /// the chart admits it in the Edited Field row only, the External
+  /// Decimal row taking an overpunched 9 alone (images/page-031.png).
+  late final bool hasEditCharacters =
+      _overpunchDigit == 8 ||
+      _elements.any(
+        ((_Kind, int) e) => switch (e.$1) {
+          _Kind.eight ||
+          _Kind.star ||
+          _Kind.period ||
+          _Kind.comma ||
+          _Kind.dollar ||
+          _Kind.plus ||
+          _Kind.minus => true,
+          _ => false,
+        },
+      );
 
   /// The `F` count: 1 is single precision, 2 (`FF`) double
-  /// ([J 02.05.05]).
+  /// (J 02.05.05).
   late final int fCount = _count(_Kind.f);
 
   /// Edit characters outside the scientific repertoire — `8 * , $`
   /// (the chart admits `9 (n) F . V + -` for scientific decimal,
-  /// [J 02.05.05]).
+  /// J 02.05.05).
   late final bool hasNonScientificEdit = _elements.any(
     ((_Kind, int) e) => switch (e.$1) {
       _Kind.eight || _Kind.star || _Kind.comma || _Kind.dollar => true,
@@ -135,7 +146,7 @@ final class Pictorial {
   /// with no `V`, minus the trailing `S` run (`999SSS` scales by a
   /// thousand — F p. 80). Digits after an `F` are the exponent, never
   /// fraction (the scientific form is fraction, `F`, exponent —
-  /// [J 02.04.02]).
+  /// J 02.04.02).
   late final int fractionDigits = _fractionDigits();
 
   int _fractionDigits() {
@@ -183,6 +194,9 @@ final class Pictorial {
 
   SignConvention? _overpunchSign;
 
+  /// The digit the trailing zone letter punches: A–I and J–R carry 1–9.
+  int? _overpunchDigit;
+
   /// The pictorial's sign convention. An overpunch wins; otherwise the
   /// first free-standing sign, leading when it precedes every digit
   /// position.
@@ -220,11 +234,12 @@ final class Pictorial {
 
   /// Parses [text] as a pictorial. Returns `null` when the text is not
   /// format-shaped — the caller then reads it as a name
-  /// ([J 02.05.06]). [allowUnclosedCount] additionally accepts a
+  /// (J 02.05.06). [allowUnclosedCount] additionally accepts a
   /// trailing `(digits` with no right parenthesis, the msg 133 form.
   static Pictorial? tryParse(String text, {bool allowUnclosedCount = false}) {
     final elements = <(_Kind, int)>[];
     var zeroRepaired = false;
+    var clamped = false;
     var unclosed = false;
     var i = 0;
     while (i < text.length) {
@@ -257,8 +272,10 @@ final class Pictorial {
               ((_Kind, int) e) => e.$1 == _Kind.alpha || e.$1 == _Kind.f,
             )) {
           elements.add((_Kind.overpunch, 1));
-          return Pictorial._(text, elements)
+          return Pictorial._(elements)
             ..zeroCountRepaired = zeroRepaired
+            ..countClamped = clamped
+            .._overpunchDigit = minus ? code - 0x49 : code - 0x40
             .._overpunchSign = minus
                 ? SignConvention.overpunchMinus
                 : SignConvention.overpunchPlus;
@@ -281,7 +298,14 @@ final class Pictorial {
           }
           unclosed = true;
         }
-        int count = digits.isEmpty ? 1 : int.parse(digits);
+        // int.parse throws over 2^63; the description field is wide
+        // enough to punch a count past that.
+        final int? parsed = digits.isEmpty ? 1 : int.tryParse(digits);
+        int count = parsed ?? maxCount;
+        if (parsed == null || count > maxCount) {
+          count = maxCount; // msg 34: the clamped format is used.
+          clamped = true;
+        }
         if (count == 0) {
           count = 1; // msg 60: a zero count is replaced by one.
           zeroRepaired = true;
@@ -295,8 +319,9 @@ final class Pictorial {
     if (elements.isEmpty) {
       return null;
     }
-    return Pictorial._(text, elements)
+    return Pictorial._(elements)
       ..zeroCountRepaired = zeroRepaired
+      ..countClamped = clamped
       ..missingRightParen = unclosed;
   }
 }

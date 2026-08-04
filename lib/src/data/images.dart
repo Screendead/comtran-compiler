@@ -116,16 +116,14 @@ final class ImageBuilder {
       final isRecord = root.typeCode == DataTypeCode.record;
       if (isRecord && extentChars % 6 != 0) {
         // A record's partial final word is blank-filled automatically
-        // ([J 90.05.02], [J 90.05.04]).
+        // (J 90.05.02, J 90.05.04).
         for (var char = extentChars; char < extentWords * 6; char++) {
           _setChar(char, bcdBlank);
         }
       }
       areas.add(
         AreaInfo(
-          root,
           root.entry.name,
-          isRecord: isRecord,
           words: [
             for (var i = 0; i < extentWords; i++)
               _touched[i] ? _words[i] : null,
@@ -247,13 +245,16 @@ final class ImageBuilder {
         continue;
       }
       if (c == bcdBlank && leading) {
-        continue; // Leading blanks read as zeros ([J 02.05.05] note 3).
+        continue; // Leading blanks read as zeros (J 02.05.05 note 3).
       }
-      if (i == bcd.length - 1 && c >= 0x21 && c <= 0x29) {
+      // "An overpunch with the rightmost digit" (J 02.05.05 chart):
+      // the zone letters J-R and A-I carry 1 to 9, and the glyphless
+      // minus zero and plus zero carry zero.
+      if (i == bcd.length - 1 && c >= 0x21 && c <= 0x2A) {
         zone = SignConvention.overpunchMinus;
         continue;
       }
-      if (i == bcd.length - 1 && c >= 0x11 && c <= 0x19) {
+      if (i == bcd.length - 1 && c >= 0x11 && c <= 0x1A) {
         zone = SignConvention.overpunchPlus;
         continue;
       }
@@ -289,12 +290,14 @@ final class ImageBuilder {
     for (var i = 0; i < bcd.length; i++) {
       final int c = bcd[i];
       if (c == _bcdPlus || c == _bcdMinus) {
-        // Leading, trailing, or no sign (J 02.05.07).
+        // Leading, trailing, or no sign (J 02.05.07). A sign ends the
+        // leading-blank run, as in the floating and scientific paths.
         if (i != 0 && i != bcd.length - 1) {
           diagnostics.report(msgNonNumericInNumericField, item.constant!);
           return false;
         }
         minus = c == _bcdMinus;
+        leading = false;
         continue;
       }
       if (c <= 0x09) {
@@ -303,7 +306,7 @@ final class ImageBuilder {
         continue;
       }
       if (c == bcdBlank && leading) {
-        // Leading blanks read as zeros ([J 02.05.05] note 3).
+        // Leading blanks read as zeros (J 02.05.05 note 3).
         digits.add(0);
         continue;
       }
@@ -365,13 +368,19 @@ final class ImageBuilder {
       );
       return false;
     }
+    var leading = true;
     for (final c in bcd) {
+      if (c == bcdBlank) {
+        if (leading) {
+          continue; // Leading blanks read as zeros (J 02.05.05 note 3).
+        }
+        diagnostics.report(msgNonNumericInNumericField, item.constant!);
+        return false;
+      }
+      leading = false;
+      // "digits . + -" (J 02.05.05 chart), blanks excluded.
       final bool legal =
-          c <= 0x09 ||
-          c == bcdBlank ||
-          c == _bcdPeriod ||
-          c == _bcdPlus ||
-          c == _bcdMinus;
+          c <= 0x09 || c == _bcdPeriod || c == _bcdPlus || c == _bcdMinus;
       if (!legal) {
         diagnostics.report(msgIllegalConstantCharacter, item.constant!);
         return false;
@@ -391,18 +400,26 @@ final class ImageBuilder {
   ) {
     assert(start % 6 == 0, 'floating field off the word boundary');
     final buffer = StringBuffer();
+    var leading = true;
     for (final c in bcd) {
+      if (c == bcdBlank) {
+        if (leading) {
+          continue; // Leading blanks read as zeros (J 02.05.05 note 3).
+        }
+        diagnostics.report(msgNonNumericInNumericField, item.constant!);
+        return false;
+      }
+      leading = false;
       if (c <= 0x09) {
         buffer.writeCharCode(0x30 + c);
       } else if (c == _bcdPeriod) {
         buffer.write('.');
       } else if (c == _bcdMinus) {
         buffer.write('-');
-      } else if (c == _bcdPlus || c == bcdBlank) {
-        // A plus adds nothing; blanks read as zeros.
-        if (c == bcdBlank) {
-          buffer.write('0');
-        }
+      } else if (c == _bcdPlus) {
+        // A sign the parse below rejects anywhere but the front: this
+        // path reads no F exponent (J 02.04.02).
+        buffer.write('+');
       } else {
         diagnostics.report(msgIllegalConstantCharacter, item.constant!);
         return false;
