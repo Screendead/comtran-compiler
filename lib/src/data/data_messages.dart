@@ -573,11 +573,10 @@ const Message msgDictionaryCapacity = Message.ours(
       '(NON-HISTORICAL.)',
 );
 
-/// Ours — `--pedantic` only: a BLANK moved or SET into an external
-/// decimal, internal decimal, floating point, or scientific decimal
-/// field — the J 02.04.02 chart's starred cells, accepted in the
-/// default mode (D4.11; M3-21). The chart's edited cell is excluded:
-/// the 90.05 sample blanks two edited fields and reports no error.
+/// Ours — `--pedantic` only: a BLANK moved or SET into any
+/// non-alphameric field — the J 02.04.02 chart's starred cells, the
+/// edited one included, accepted in the default mode (D4.11; D11.4 as
+/// amended). The 90.05 sample's three blanked edited fields draw it.
 const Message msgDoubtfulFigurativeUsage = Message.ours(
   '943,00',
   'DOUBTFUL FIGURATIVE CONSTANT USAGE ACCEPTED. (NON-HISTORICAL.)',

@@ -125,6 +125,17 @@ void main() {
       expect(_ids(result), ['61,00']);
     });
 
+    test('a list-3 word as a label draws no 61,00 (J 02.03.03)', () {
+      // "may be used as Procedure and Data names providing it is not
+      // necessary to reference the ... items in the Environment
+      // Division"; msg 152 covers the environment-used case.
+      final SemanticResult result = _resolve(
+        const [],
+        procedure: ["      HOLD.       DISPLAY 'A'.", '            STOP RUN.'],
+      );
+      expect(_ids(result), isEmpty);
+    });
+
     test('PROGRAM.START as a data name draws 142,00 (D2.1)', () {
       final SemanticResult result = _resolve([
         dataCard(name: 'PROGRAM.START', level: '1', description: 'A(2)'),
@@ -293,7 +304,7 @@ void main() {
       dataCard(name: 'T', level: '1', description: '9(5)'),
     ];
 
-    test('a synonym resolves unqualified thereafter (J 02.03.02)', () {
+    test('a synonym resolves unqualified thereafter (J 02.03.03)', () {
       final SemanticResult result = _resolve(
         callData(),
         procedure: [
@@ -460,6 +471,20 @@ void main() {
         dataCard(name: 'X', level: '1', description: 'A(2) PRICE.X'),
       ]);
       expect(_ids(result), isEmpty);
+    });
+
+    test('a stray name equal only to an environment name draws '
+        '185,00', () {
+      // "a data, key, or a procedure name" (J 02.05.06 e) — a file
+      // name is none of the three.
+      final SemanticResult result = _resolve(
+        [
+          dataCard(name: 'R1', level: '1', type: 'RECORD'),
+          dataCard(name: 'X', level: '2', description: 'A(2) FIN'),
+        ],
+        environment: [_fileCard('FIN', 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5')],
+      );
+      expect(_ids(result), ['185,00']);
     });
 
     test('unclaimed description tokens draw 185,00', () {

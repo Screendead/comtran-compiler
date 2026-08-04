@@ -5,7 +5,7 @@
 /// M3-21 (`docs/design/m3-data.md`). The pipeline order is M3-17's:
 /// the dictionary and the CALL pass run before the environment binder,
 /// because CALL exists to give the Environment Description one-word
-/// names (J 02.03.02).
+/// names (J 02.03.03).
 library;
 
 import '../ast/data_ast.dart';
@@ -183,8 +183,12 @@ final class NameResolver extends ClauseWalk {
       final String? label = sentence.scan.label;
       if (label != null) {
         final SourceCard anchor = sentence.scan.cards.first;
-        if (label != programStartName && keyWordClassOf(label) != null) {
-          // An operation found in the name field (msg 61; M3-17).
+        if (label != programStartName &&
+            keyWordClassOf(label) != null &&
+            keyWordClassOf(label) != KeyWordClass.environmentConditional) {
+          // An operation found in the name field (msg 61; M3-17 as
+          // amended). List-3 words are legal procedure names
+          // (J 02.03.03); msg 152 covers the environment-used ones.
           diagnostics.reportAt(
             msgOperationAsName,
             anchor,
@@ -471,7 +475,8 @@ final class NameResolver extends ClauseWalk {
     }
     if (dictionary.named(last).isNotEmpty) {
       // The name exists only as an environment or procedure name — a
-      // format-less object at a data site (M3-17 as amended).
+      // format-less object at a data site (M3-17 as amended
+      // 2026-08-04).
       report(msgImproperFormatForUse, ref.anchor, operands: [ref.text]);
       return null;
     }
@@ -654,7 +659,9 @@ final class NameResolver extends ClauseWalk {
         final bool known =
             keyWordClassOf(name) != null ||
             mapper.itemsNamed(name).isNotEmpty ||
-            dictionary.named(name).isNotEmpty;
+            dictionary
+                .named(name)
+                .any((DictionaryEntry e) => e.kind != NameKind.environment);
         if (!known) {
           diagnostics.report(msgPictorialError, stray);
           faulted = true;

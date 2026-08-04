@@ -238,20 +238,16 @@ final class LegalityChecker extends ClauseWalk {
 
   /// The pairs below [from] and [to]: matching names, descended to the
   /// lowest level at which no descendant pair matches (D4.12;
-  /// J 02.04.04 examples a and c).
+  /// J 02.04.04 examples a and c). An unnamed level contributes no
+  /// qualifier, so its children match at the parent's level — the
+  /// qualifier-chain rule, matching the resolver's own walk.
   List<(DataItem, DataItem)> _pairBelow(DataItem from, DataItem to) {
     final pairs = <(DataItem, DataItem)>[];
-    for (final DataItem child in from.children) {
+    for (final DataItem child in _namedBelow(from)) {
       final String name = child.entry.name;
-      if (name.isEmpty || child.nameDiscarded || !_pairable(child)) {
-        continue;
-      }
-      final DataItem? mate = to.children
-          .where(
-            (DataItem c) =>
-                c.entry.name == name && !c.nameDiscarded && _pairable(c),
-          )
-          .firstOrNull;
+      final DataItem? mate = _namedBelow(
+        to,
+      ).where((DataItem c) => c.entry.name == name).firstOrNull;
       if (mate == null) {
         continue;
       }
@@ -259,6 +255,21 @@ final class LegalityChecker extends ClauseWalk {
       pairs.addAll(deeper.isEmpty ? [(child, mate)] : deeper);
     }
     return pairs;
+  }
+
+  /// The nearest named descendants of [item], seen through unnamed
+  /// levels.
+  Iterable<DataItem> _namedBelow(DataItem item) sync* {
+    for (final DataItem child in item.children) {
+      if (child.nameDiscarded || !_pairable(child)) {
+        continue;
+      }
+      if (child.entry.name.isEmpty) {
+        yield* _namedBelow(child);
+      } else {
+        yield child;
+      }
+    }
   }
 
   bool _pairable(DataItem item) =>

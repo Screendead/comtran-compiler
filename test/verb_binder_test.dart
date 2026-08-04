@@ -85,6 +85,34 @@ void main() {
       expect(_ids(result), ['16,00']);
     });
 
+    test('a GET through a record synonym binds like the record '
+        '(J 02.03.03)', () {
+      final SemanticResult result = _bind(
+        _record('R1'),
+        environment: _fileCards('FIN', [
+          'INPUT',
+          'BCD',
+          'TAPE',
+          'R1',
+          'BLOCKSIZE 5',
+        ]),
+        procedure: ['            CALL (R1) SYN.', '            GET SYN.'],
+      );
+      expect(_ids(result), isEmpty);
+    });
+
+    test('a GET of a condition name draws 8,00', () {
+      final SemanticResult result = _bind(
+        [
+          dataCard(name: 'R1', level: '1', type: 'RECORD'),
+          dataCard(name: 'R1F', level: '2', description: 'A(2)'),
+          dataCard(name: 'WED', level: '3', type: 'COND', description: "'AB'"),
+        ],
+        procedure: ['            GET WED.'],
+      );
+      expect(_ids(result), ['8,00']);
+    });
+
     test('a GET of a record on no FILE card draws 9,00', () {
       final SemanticResult result = _bind(
         _record('R1'),
@@ -336,6 +364,26 @@ void main() {
       expect(_ids(result), ['111,00']);
     });
 
+    test('FIND LENGTH IN resolves a CALL synonym (J 02.03.03)', () {
+      final SemanticResult result = _bind(
+        [
+          ..._record('R1'),
+          dataCard(name: 'HDR', level: '1', type: 'RECORD'),
+          dataCard(name: 'LEN', level: '2', mode: 'I', description: '99'),
+        ],
+        environment: _fileCards('FIN', [
+          'INPUT',
+          'BCD',
+          'TAPE',
+          'R1',
+          'FIND LENGTH IN M.LEN',
+          'BLOCKSIZE 5',
+        ]),
+        procedure: ['            CALL (HDR LEN) M.LEN.', '            GET R1.'],
+      );
+      expect(_ids(result), isEmpty);
+    });
+
     test('PLACE LENGTH IN an alphameric field draws 112,00', () {
       final SemanticResult result = _bind(
         _record('R1'),
@@ -487,6 +535,26 @@ void main() {
       expect(_ids(result), isEmpty);
     });
 
+    test('a defaulted GROUP claims its OPENCOUNT against the pool '
+        '(J 02.06.14)', () {
+      // The loader's doubled count is an attempt with an express
+      // fallback, not a compile-time minimum.
+      final SemanticResult result = _bind(
+        data(),
+        environment: [
+          ...files(),
+          environmentCard(
+            name: 'P',
+            type: 'POOL',
+            options: 'FIN,FOUT,BUFFERCOUNT 2',
+          ),
+          environmentCard(type: 'GROUP', options: 'P,OPENCOUNT 2,FIN,FOUT'),
+        ],
+        procedure: procedure,
+      );
+      expect(_ids(result), isEmpty);
+    });
+
     test('a GROUP whose first item is no pool draws 939,00', () {
       final SemanticResult result = _bind(
         data(),
@@ -530,7 +598,7 @@ void main() {
     });
 
     test('a field after a variable length array draws 941,00 '
-        '(J 90.01.01)', () {
+        '(J 90.01.04)', () {
       final SemanticResult result = _bind([
         dataCard(name: 'R1', level: '1', type: 'RECORD'),
         dataCard(name: 'CNT', level: '2', description: '99'),
@@ -541,6 +609,22 @@ void main() {
           description: 'A QUANTITY IN CNT',
         ),
         dataCard(name: 'TAIL', level: '2', description: 'A(2)'),
+      ]);
+      expect(_ids(result), ['941,00']);
+    });
+
+    test('a later field merely sharing the count name draws 941,00', () {
+      // Msg 941 yields to the count field itself, not to its name.
+      final SemanticResult result = _bind([
+        dataCard(name: 'R1', level: '1', type: 'RECORD'),
+        dataCard(name: 'CNT', level: '2', description: '99'),
+        dataCard(
+          name: 'ARR',
+          level: '2',
+          quantity: '5',
+          description: 'A QUANTITY IN CNT',
+        ),
+        dataCard(name: 'CNT', level: '2', description: '99'),
       ]);
       expect(_ids(result), ['941,00']);
     });

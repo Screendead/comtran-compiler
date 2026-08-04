@@ -33,7 +33,7 @@ import 'verb_binder.dart';
 /// The phase order is M3-17's: mapper, dictionary, the CALL pass, the
 /// environment binder, images, then reference resolution — the CALL
 /// pass precedes the binder because CALL exists to give the
-/// Environment Description one-word names (J 02.03.02).
+/// Environment Description one-word names (J 02.03.03).
 SemanticResult runSemantics(
   ParseResult parse, {
   DiagnosticSink? sink,

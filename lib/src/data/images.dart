@@ -11,6 +11,7 @@ library;
 import '../ast/data_ast.dart';
 import '../chars/char_code.dart';
 import '../lexer/diagnostic.dart';
+import '../lexer/messages.dart';
 import '../lexer/source_card.dart';
 import '../lexer/token.dart';
 import 'data_map.dart';
@@ -414,12 +415,15 @@ final class ImageBuilder {
         buffer.writeCharCode(0x30 + c);
       } else if (c == _bcdPeriod) {
         buffer.write('.');
-      } else if (c == _bcdMinus) {
-        buffer.write('-');
-      } else if (c == _bcdPlus) {
-        // A sign the parse below rejects anywhere but the front: this
-        // path reads no F exponent (J 02.04.02).
-        buffer.write('+');
+      } else if (c == _bcdMinus || c == _bcdPlus) {
+        if (buffer.isNotEmpty) {
+          // A sign after the leading position is an incorrect sign
+          // usage, not a foreign character: this path reads no F
+          // exponent (M3-21 amends M3-16's open).
+          diagnostics.report(msgIncorrectNumericForm, item.constant!);
+          return false;
+        }
+        buffer.write(c == _bcdMinus ? '-' : '+');
       } else {
         diagnostics.report(msgIllegalConstantCharacter, item.constant!);
         return false;

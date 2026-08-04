@@ -124,6 +124,26 @@ void main() {
       expect(_pairs(result), [('FIELD.1', 'FIELD.1'), ('FIELD.2', 'FIELD.2')]);
     });
 
+    test('correspondence sees through an unnamed level (D4.12)', () {
+      // An unnamed entry contributes no qualifier, so the chains below
+      // the roots are identical.
+      final List<String> data = [
+        dataCard(name: 'DATA.1', level: '1'),
+        dataCard(level: '2'),
+        dataCard(name: 'FIELD.1', level: '3', description: 'A(2)'),
+        dataCard(name: 'DATA.2', level: '1'),
+        dataCard(name: 'FIELD.1', level: '2', description: 'A(2)'),
+      ];
+      const procedure = ['            MOVE CORRESPONDING DATA.1 TO DATA.2.'];
+      final SemanticResult result = _check(
+        data,
+        procedure: procedure,
+        pedantic: true,
+      );
+      expect(_ids(result), isEmpty);
+      expect(_pairs(result), [('FIELD.1', 'FIELD.1')]);
+    });
+
     test('a group pairs against an elementary field (example c)', () {
       List<String> data(String description) => [
         dataCard(name: 'DATA.1', level: '1'),

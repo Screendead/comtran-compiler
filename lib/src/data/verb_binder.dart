@@ -6,7 +6,7 @@
 /// rather than resolved again. The entry also carries the FILE-card
 /// options that need the data map, the POOL and GROUP buffer minimums
 /// (J 02.06.13–14), the LABEL area cap (J 02.05.03), the field-after-
-/// a-variable-array rule (J 90.01.01), and the base-locator counter
+/// a-variable-array rule (J 90.01.04), and the base-locator counter
 /// (D9.7).
 library;
 
@@ -247,14 +247,28 @@ final class VerbBinder extends ClauseWalk {
   /// nothing, or a procedure or condition name (M3-18).
   RecordInfo? _record(NameReference reference) {
     final String last = reference.words.last.text;
+    final DataItem? synonymItem = resolver.dictionary.synonym(last)?.item;
     if (reference.words.length == 1) {
       final RecordInfo? record = binder.recordByName[last];
       if (record != null) {
         return record;
       }
+      if (synonymItem != null) {
+        // A CALL synonym of a record binds like the record: the CALL
+        // pass precedes the binder for this (M3-17; J 02.03.03).
+        final RecordInfo? called = binder.records
+            .where((RecordInfo r) => identical(r.item, synonymItem))
+            .firstOrNull;
+        if (called != null) {
+          return called;
+        }
+      }
     }
-    if (mapper.itemsNamed(last).isNotEmpty ||
-        resolver.dictionary.synonym(last) != null ||
+    final bool namesField = mapper
+        .itemsNamed(last)
+        .any((DataItem i) => i.typeCode != DataTypeCode.cond);
+    if (namesField ||
+        synonymItem != null ||
         binder.fileByName.containsKey(last)) {
       _reportRecord(msgFileNameNotRecord, reference, reference.text);
       return null;
@@ -306,13 +320,16 @@ final class VerbBinder extends ClauseWalk {
 
   /// A length field holds a record length, so its format is ours:
   /// external or internal decimal with no fraction positions (M3-18).
-  /// Qualified names are barred here (J 90.01.05), so the name is
+  /// Qualified names are barred here (J 90.01.04), so the name is
   /// matched whole and the M3-17 triage speaks for an ambiguous one.
   void _checkLengthField(Token? name, Message improper) {
     if (name == null) {
       return;
     }
-    final List<DataItem> candidates = mapper.itemsNamed(name.text);
+    final DataItem? synonymItem = resolver.dictionary.synonym(name.text)?.item;
+    final List<DataItem> candidates = synonymItem != null
+        ? [synonymItem]
+        : mapper.itemsNamed(name.text);
     if (candidates.isEmpty) {
       diagnostics.report(msgUndefinedSymbol, name, operands: [name.text]);
       return;
@@ -352,10 +369,12 @@ final class VerbBinder extends ClauseWalk {
       final List<Token> files = names.skip(1).toList();
       _checkPooledFiles(files);
       // "If no OPENCOUNT is given, the OPENCOUNT will be assumed equal
-      // to the number of files in the GROUP", and the default buffer
-      // count is twice that — never below it, so a default is silent.
+      // to the number of files in the GROUP". A defaulted buffer count
+      // claims only the OPENCOUNT against the pool: the loader's
+      // doubled count is an attempt with an express fallback when the
+      // POOL BUFFERCOUNT prevents it (J 02.06.14).
       final int openCount = group.openCount ?? files.length;
-      int buffers = group.bufferCount ?? openCount * 2;
+      int buffers = group.bufferCount ?? openCount;
       if (buffers < openCount) {
         diagnostics.reportAt(msgGroupBufferCountRaised, group.spec.cards.first);
         buffers = openCount;
@@ -411,7 +430,7 @@ final class VerbBinder extends ClauseWalk {
   }
 
   /// "No fields may be described after a variable length array in the
-  /// same hierarchy" (J 90.01.01): the field's own position depends on
+  /// same hierarchy" (J 90.01.04): the field's own position depends on
   /// a length only execution knows. The hierarchy is the top-level
   /// entry (M3-11).
   ///
@@ -420,8 +439,12 @@ final class VerbBinder extends ClauseWalk {
   /// constant takes msg 43 (D3.6), and msg 941 covers the rest — the
   /// gap M3-16 records as having no attested id.
   void _checkFieldsAfterVariableArrays() {
+    final Map<DataItem, int> index = Map.identity();
+    for (final (int i, DataItem item) in mapper.items.indexed) {
+      index[item] = i;
+    }
     final Set<DataItem> variableRoots = Set.identity();
-    final countNames = <(DataItem, String)>{};
+    final Set<DataItem> countItems = Set.identity();
     for (final DataItem item in mapper.items) {
       final ItemSemantics sem = mapper.semantics[item]!;
       final DataItem root = _rootOf(item);
@@ -429,14 +452,17 @@ final class VerbBinder extends ClauseWalk {
         // A refused QUANTITY IN (msg 47) leaves a group, not an array.
         if (sem.fieldClass != FieldClass.group) {
           variableRoots.add(root);
-          countNames.add((root, item.quantityInName!.text));
+          final DataItem? count = _quantityCount(item, index);
+          if (count != null) {
+            countItems.add(count);
+          }
         }
         continue;
       }
       if (sem.dropped ||
           sem.storageChars == 0 ||
           item.constant != null ||
-          countNames.contains((root, item.entry.name)) ||
+          countItems.contains(item) ||
           sem.fieldClass == FieldClass.group ||
           sem.fieldClass == FieldClass.condition ||
           sem.fieldClass == FieldClass.redefinition ||
@@ -449,6 +475,26 @@ final class VerbBinder extends ClauseWalk {
         operands: [item.entry.name],
       );
     }
+  }
+
+  /// The count field the array's QUANTITY IN resolved to — the latest
+  /// candidate preceding the array, or the first candidate when none
+  /// precedes, the mapper's own rule. The fallback drew msg 105, which
+  /// speaks for its placement, so msg 941 yields to it (M3-18).
+  DataItem? _quantityCount(DataItem array, Map<DataItem, int> index) {
+    final Token? name = array.quantityInName;
+    if (name == null) {
+      return null;
+    }
+    final int here = index[array]!;
+    final List<DataItem> candidates = mapper.itemsNamed(name.text);
+    DataItem? preceding;
+    for (final candidate in candidates) {
+      if (index[candidate]! < here) {
+        preceding = candidate;
+      }
+    }
+    return preceding ?? candidates.firstOrNull;
   }
 
   DataItem _rootOf(DataItem item) {

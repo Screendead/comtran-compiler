@@ -219,22 +219,28 @@ final class TransferChecker extends ClauseWalk {
 
   /// The USING and GIVING counts against the target's declaration. A
   /// statement target declares neither, so every argument on it is an
-  /// excess (M3-19).
+  /// excess (M3-19). An absent clause substitutes nothing and is
+  /// legal: the values already in the parameter or function fields
+  /// serve (F p. 33).
   void _checkSubstitution(DoClause clause, DictionaryEntry target) {
     final BeginSectionClause? section = target.kind == NameKind.section
         ? target.sentence!.clauses.whereType<BeginSectionClause>().firstOrNull
         : null;
     final int using = section?.usingParameters.length ?? 0;
     final int giving = section?.givingFunctions.length ?? 0;
-    if (clause.usingArguments.length > using) {
-      report(msgTooManyUsingParameters, clause.verb);
-    } else if (clause.usingArguments.length < using) {
-      report(msgTooFewUsingParameters, clause.verb);
+    if (clause.usingArguments.isNotEmpty) {
+      if (clause.usingArguments.length > using) {
+        report(msgTooManyUsingParameters, clause.verb);
+      } else if (clause.usingArguments.length < using) {
+        report(msgTooFewUsingParameters, clause.verb);
+      }
     }
-    if (clause.givingResults.length > giving) {
-      report(msgTooManyGivingParameters, clause.verb);
-    } else if (clause.givingResults.length < giving) {
-      report(msgTooFewGivingParameters, clause.verb);
+    if (clause.givingResults.isNotEmpty) {
+      if (clause.givingResults.length > giving) {
+        report(msgTooManyGivingParameters, clause.verb);
+      } else if (clause.givingResults.length < giving) {
+        report(msgTooFewGivingParameters, clause.verb);
+      }
     }
   }
 

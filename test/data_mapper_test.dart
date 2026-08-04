@@ -149,6 +149,21 @@ void main() {
       expect(sem.storageChars, 4);
     });
 
+    test('an overpunch on a digit other than 8 or 9 draws 33,00 and '
+        'the format stands (M3-5)', () {
+      // J is a minus overpunch on 1 — outside the chart's rightmost-
+      // character lists, which admit 9 and 8 alone.
+      final SemanticResult result = _map([
+        dataCard(name: 'X', level: '1', mode: 'E', description: '99J'),
+      ]);
+      expect(_ids(result), ['33,00']);
+      expect(_sem(result, 'X').fieldClass, FieldClass.externalDecimal);
+      final SemanticResult nine = _map([
+        dataCard(name: 'X', level: '1', mode: 'E', description: '99R'),
+      ]);
+      expect(_ids(nine), isEmpty);
+    });
+
     test('a mixed A and 9 pictorial downgrades silently (J 90.01.03)', () {
       final SemanticResult result = _map([
         dataCard(name: 'X', level: '1', description: 'A99'),
@@ -1065,10 +1080,12 @@ void main() {
       ]);
       expect(_ids(signed), isEmpty);
       expect(signed.areas.single.words, [_octal('204600000000')]);
+      // A misplaced sign is an incorrect sign usage, msg 53, not a
+      // foreign character (M3-21 amends M3-16's open).
       final SemanticResult imbedded = _map([
         dataCard(name: 'X', level: '1', mode: 'I', description: "F '1+2'"),
       ]);
-      expect(_ids(imbedded), ['54,00']);
+      expect(_ids(imbedded), ['53,00']);
     });
 
     test('a floating constant too large draws 55,00', () {

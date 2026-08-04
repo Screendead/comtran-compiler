@@ -212,6 +212,17 @@ void main() {
       expect(_ids(result), ['75,00']);
     });
 
+    test('a bare DO of a USING or GIVING section draws nothing '
+        '(F p. 33)', () {
+      // The values already in the parameter and function fields serve;
+      // both clauses are optional on the DO.
+      final SemanticResult result = _resolve(
+        _fields(),
+        procedure: section(' USING ARG GIVING T.', 'DO S.'),
+      );
+      expect(_ids(result), isEmpty);
+    });
+
     test('a statement target declares none, so any USING draws '
         '72,00', () {
       final SemanticResult result = _resolve(
