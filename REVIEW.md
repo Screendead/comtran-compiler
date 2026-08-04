@@ -11,33 +11,39 @@ style point.
   edit to a generated file (CLAUDE.md section 10), a hand edit to a
   `.deck` mirror.
 - **Advisory:** a humanness finding from the list below, a style point, a
-  nit. Cap nits at five per review; keep the ones with the most leverage.
+  nit. Cap nits at five per review; keep the most useful ones.
 
 Every finding must cite `file:line` and quote the text it concerns. Drop
 a finding that cannot.
 
 ## Humanness
 
-Flag these seven. They are advisory, not blocking.
+A humanness finding marks code or prose that reads as machine output, not
+as the work of a careful person. Flag these seven. They are advisory, not
+blocking.
 
 1. A ghost abstraction: a helper, class, or layer with one caller and no
-   second caller in sight.
+   likely second caller.
 2. A comment or doc comment that restates the symbol's name or the next
    line.
 3. Dead weight: unreferenced code, an unused parameter, commented-out
    code.
 4. Repeated ceremony: the same multi-line pattern at many sites that one
    local helper would remove.
-5. Document weight: a markdown file that outgrew its audience or its job.
+5. Document weight: a markdown file larger than its audience or its
+   purpose needs.
 6. Test slop: duplicate coverage, a test that asserts the mock, setup
    that restates the implementation.
-7. Idiom mismatch: code whose naming, comment density, or shape breaks
-   with the file around it.
+7. Idiom mismatch: code whose naming, comment density, or shape does not
+   match the file around it.
 
 ## Repository specifics
 
-- `comtran-manuals/` is read-only ground truth. Any change there is a
-  blocker unless the pull request quotes Jack's authorization.
+- `comtran-manuals/` is read-only. The page scan is ground truth; a
+  conversion is a transcription of it. Never settle a disputed reading or
+  a column claim from a transcription — measure the scan. Any change
+  under `comtran-manuals/` is a blocker unless the pull request quotes
+  Jack's authorization.
 - Never ask for a fix to 1960s spelling or to a genuine typo in manual
   text. Fidelity is by design.
 - A `.deck` file is the generated mirror of its `.ctdeck` canon. A diff
