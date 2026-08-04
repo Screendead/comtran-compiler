@@ -197,8 +197,15 @@ span, a code block, a blockquote or a quotation.
 - Make atomic commits. Each component must work in each commit. Never split a
   working component across two commits.
 - Ultracode mode (Jack's multi-agent workflow mode): hand-pick the model for
-  every worker. Pick the least powerful model that can do the job. Do not spawn
-  a workflow of 15 top-tier agents.
+  every worker. Pick the least powerful model that can do the job. A cheap
+  model does search and mechanical edits; design and review need a top-tier
+  model. Do not spawn a workflow of 15 top-tier agents.
+- In a workflow worker prompt, never pipe `dart test` through `head` — the
+  runner wedges on the dead pipe. Pipe through `tail -40`, check that the
+  output ends with "All tests passed!", and set a 300-second timeout.
+- A multi-agent refactor gets an independent adversarial review before merge.
+  The reviewer gets fresh context and the diff only. Every finding must cite
+  file:line and quote the text.
 
 ## 12. Response style: ASD-STE100 Simplified Technical English (Issue 9)
 
