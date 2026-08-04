@@ -45,8 +45,11 @@ verification.
   1960s spellings ("alphameric", "imbedded") and genuine typewriter typos in
   J28-6169 ("Mimimum", "dinsity", "alwyas", "standart", …) — each suspected typo
   was checked against the scan and kept only if the original prints it that way.
-  Overpunched digits (printed with an overbar) are rendered with a Unicode
-  combining overline, e.g. `9̅`.
+  Overpunched digits are rendered by zone: a minus-zone overpunch (an overbar
+  in print) with a Unicode combining overline, e.g. `9̅`; a plus-zone
+  overpunch (a small raised plus in print) with a superscript plus, e.g.
+  `9⁺`. The convention was amended 2026-08-04, with authorization; it
+  formerly flattened both zones to `9̅`.
 - **Images:** figures, flowcharts, coding-form facsimiles, and complex ruled
   tables are embedded as page images at the point they occur, usually alongside a
   best-effort text transcription. Complex tables reproduced as Markdown also embed

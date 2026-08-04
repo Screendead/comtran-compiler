@@ -1074,7 +1074,7 @@ record built on it.*
 ### D8.2 — External Decimal row of the J field-type chart
 
 **Status.** Locked.
-**Decision.** Implement the External Decimal "Legitimate Format Characters" set as: 9, the count specifier (n), S, V — plus the overpunched 9 (the minus- and plus-overpunch glyphs, both rendered `9̅` under the conversion's overline convention), which J's chart permits only as the rightmost character of the field. Whether the field-test compiler diagnosed an overpunched 9 in any other position is unattested; by recorded design decision this compiler diagnoses it as a Data Description format error.
+**Decision.** Implement the External Decimal "Legitimate Format Characters" set as: 9, the count specifier (n), S, V — plus the overpunched 9 (the minus- and plus-overpunch glyphs, `9̅` and `9⁺` under the conversion's zone-rendering convention, amended 2026-08-04), which J's chart permits only as the rightmost character of the field. Whether the field-test compiler diagnosed an overpunched 9 in any other position is unattested; by recorded design decision this compiler diagnoses it as a Data Description format error.
 
 **Rationale.** The transcribed cell was a run-together reading of a ruled chart; parsed as 9, (n), S, V with the two overpunch glyphs restricted to the rightmost position, the reading is consistent with the chart's own note 1 and with the parallel Edited-field cell on the same page. The permission is documented; the diagnostic is not, so it is stated as a decision rather than as a documented rule.
 

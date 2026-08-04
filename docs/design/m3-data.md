@@ -153,7 +153,7 @@ starts from a fully resolved program and generates code only.
   recognizer (`data_parser.dart`, `data_lexer.dart`) is amended to match in
   stage 1, and M2-3 carries the dated amendment; the sample exercises no
   signed field, so the golden is unaffected. Constants are checked against the pictorial's sign convention
-  the same way ([J 02.05.07]'s `999̅` / `123̅` example).
+  the same way ([J 02.05.07]'s `999⁺` / `123⁺` example).
 
   *Amended 2026-08-04 (review): the measurement keeps the overpunched digit,
   not the sign alone. The zone letters run A–I for plus 1 to plus 9 and J–R
