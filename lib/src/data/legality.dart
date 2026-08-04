@@ -162,12 +162,10 @@ final class LegalityChecker extends ClauseWalk {
       return; // Legal in every column of the chart.
     }
     if (word.startsWith('BLANK')) {
-      // The starred BLANK cells are doubtful, not illegal (D4.11). The
-      // edited one is attested-silent: the 90.05 sample blanks two
-      // edited fields and reports no error.
-      if (pedantic &&
-          _classOfItem(item) == OperandClass.numeric &&
-          sem.fieldClass != FieldClass.edited) {
+      // The starred BLANK cells are doubtful, not illegal: silent in
+      // default mode, a pedantic note otherwise — the sample's own
+      // blanked edited fields included (D4.11).
+      if (pedantic && _classOfItem(item) == OperandClass.numeric) {
         report(msgDoubtfulFigurativeUsage, at);
       }
       return;

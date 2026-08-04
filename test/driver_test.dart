@@ -243,12 +243,23 @@ void main() {
       expect(job.frontEnd.statementCount, 229);
     });
 
-    test('the 90.05 job deck compiles with zero diagnostics under --pedantic '
-        '(D11.4)', () {
+    test('under --pedantic the 90.05 job deck draws exactly the D4.11 '
+        'notes (D11.4)', () {
       final DeckCompilation deck = compileDeck(loadJobDeck(), pedantic: true);
       final JobCompilation job = deck.jobs.single;
-      expect(job.diagnostics, isEmpty);
-      expect(deck.maxSeverity, 0);
+      // Statements 205,00 (two blanked edited targets) and 220,00 (one):
+      // the sample's own doubtful figurative moves, noted per D4.11.
+      expect(job.diagnostics.map((Diagnostic d) => d.message.number), [
+        '943,00',
+        '943,00',
+        '943,00',
+      ]);
+      expect(job.diagnostics.map((Diagnostic d) => d.card?.cardNumber), [
+        245,
+        245,
+        276,
+      ]);
+      expect(deck.maxSeverity, 1);
       expect(job.frontEnd.statementCount, 229);
     });
 

@@ -408,14 +408,13 @@ void main() {
       ]);
     });
 
-    test('BLANKS moved to an edited field is silent in both modes '
-        '(D4.11)', () {
+    test('BLANKS moved to an edited field is silent by default and '
+        'draws 943,00 under --pedantic (D4.11)', () {
       const procedure = ['            MOVE BLANKS TO EDIT.'];
       expect(_ids(_check(_fields(), procedure: procedure)), isEmpty);
-      expect(
-        _ids(_check(_fields(), procedure: procedure, pedantic: true)),
-        isEmpty,
-      );
+      expect(_ids(_check(_fields(), procedure: procedure, pedantic: true)), [
+        '943,00',
+      ]);
     });
   });
 }

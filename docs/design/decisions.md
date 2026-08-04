@@ -87,7 +87,7 @@ Every other row points at its own record.
 | [D4.9](#d49--edited-source-moved-to-an-alphameric-target) | Edited source moved to an alphameric target | Locked |
 | [D4.10](#d410--abc) | A**B**C | Locked |
 | [D4.11](#d411--move-blanks-into-editedexternal-fields--doubtful-yet-compiles-clean) | MOVE BLANKS into edited/external fields — "doubtful" yet compiles clean | Locked |
-| [D4.12](#d412--corresponding-matching-f-name-only-vs-j-qualifier-chain) | CORRESPONDING matching: F name-only vs J qualifier-chain | Locked |
+| [D4.12](#d412--corresponding-matching-f-name-only-vs-j-qualifier-chain) | CORRESPONDING matching: F name-only vs J qualifier-chain | Amended |
 | [D4.13](#d413--call-non-unique-oldname-and-qualified-synonyms) | CALL: non-unique old.name and qualified synonyms | Locked |
 | **[D5 — Control flow (§8.5.5)](#d5--control-flow-855)** | | |
 | [D5.1](#d51--do--for-termination-is-an-equality-test) | DO … FOR termination is an equality test | Locked |
@@ -160,7 +160,7 @@ Every other row points at its own record.
 | [D11.1](#d111--the-job-splitter-card-level-job-boundaries) | The job splitter: card-level job boundaries | Locked |
 | [D11.2](#d112--per-job-compilation-state-numbering-listings-and-the-exit-code) | Per-job compilation state, numbering, listings, and the exit code | Locked |
 | [D11.3](#d113--message-132-at-end-of-input-and-the-9005-job-deck) | Message 132 at end of input, and the 90.05 job deck | Locked |
-| [D11.4](#d114--the---pedantic-flag-mechanism-and-the-m2-site-set) | The --pedantic flag: mechanism and the M2 site set | Locked |
+| [D11.4](#d114--the---pedantic-flag-mechanism-and-the-m2-site-set) | The --pedantic flag: mechanism and the M2 site set | Amended |
 
 ## D0 — Top-level slate (Jack's calls, locked 2026-08-02)
 
@@ -676,6 +676,8 @@ record built on it.*
 **Implementation.** Lands in the semantic analyzer (correspondence pairing over the data-description tree; subscript propagation), codegen (one move or add sequence per matched pair, in data-description order) and diagnostics. Diagnostics: an illegal group pair after the alphameric assumption is diagnosed — J names no message, so we emit msg 84 ("ILLEGAL MOVE - FROM 'NAME.1' … TO 'NAME.2' … NOTHING DONE ."), a design decision under D0.4; severity per Open Question 65. No diagnostic for an unmatched name in the default mode. --pedantic delta: an optional non-historical note listing names that matched nothing; excluded from listing-diff output.
 
 **Oracle.** listing-diff against the object listing ([J 90.05] listing, PDF pp. 203–204 — the generated `CLA / TSX SYS)180,4 / PZE / TXI SYS)267,1,4 / OCT / AXT` sequences for statement 199,00, `MOVE CORRESPONDING GRAND.TOTALS TO PAYRECORD`, whose source text is at PDF p. 196). Manual example ([J 02.04.04]–05 examples a, b, c and the subscripted form). Decision-conformance only for the msg 84 choice on an illegal group pair, and for ADD CORRESPONDING, which the sample does not exercise with the option.
+
+**Amended (M3 stage 2, 2026-08-04).** The Implementation sentence "an optional non-historical note listing names that matched nothing" is concretized one level up. Msg 944,00 (`NO -CORRESPONDING- NAMES MATCH. ACCEPTED. (NON-HISTORICAL.)`) fires once per clause, and only when the clause produces no pairs at all — the Decision's "moves that match nothing." A partially matching clause draws nothing in either mode. The sample attests partial mismatch as normal J style: the 90.05 CORRESPONDING clauses leave names unmatched, and the restructured sample moves them explicitly — `MOVE CORRESPONDING GRAND.TOTALS TO PAYRECORD` is followed at once by `MOVE GRAND.TOTALS HOURS TO PAYRECORD HRS`, because PAYRECORD's field is HRS, not HOURS ([J 90.05] listing PDF p. 196). A per-name pedantic note would flag that attested style; the clause-level note flags only the F-style latent defect the Decision names.
 
 *Citations:* ([F p. 43], p. 93; [J 02.04.03]–05; [J 90.05] listing PDF pp. 195–196); Attested rules added: ([J 02.04.04]–05 c, subscript rule; [J 90.04.01] msg 84; [J 90.05] listing, PDF pp. 196, 203–204)
 
@@ -1650,6 +1652,8 @@ The deferred sites stay with their owning milestones, so the flag's coverage is 
 **Implementation.** The sites and their code locations: 919 in `lib/src/lexer/data_lexer.dart` (the D1.1 continuation join); 920 in `lib/src/lexer/procedure_lexer.dart` (the `labelHadPeriod` record); 921 in `lib/src/parser/data_parser.dart` (the 918 site); 922 in `lib/src/parser/procedure_parser.dart` (the 911 site); 923 in `lib/src/parser/control_parser.dart`; 924 in `lib/src/parser/environment_parser.dart` (the D8.5 branch); 925 in `_normalizeCondKeys`; 926–928 in `_parseClauseSeries` and `_parseGet`; 929 in the job splitter. Severity rows and checklist rows land with the code.
 
 **Oracle.** Oracle (4): one test per site — silent in default mode, the pedantic diagnostic under `--pedantic`, and the parse result identical in both modes; the two escalations additionally assert that 918 and 911 are replaced, not doubled. Oracle (2): the 90.05 job deck compiles clean in both modes.
+
+**Amended (M3 stage 2, 2026-08-04).** Oracle (2)'s clause "clean in both modes" is superseded. The deferred D4.11 site is live from M3 stage 2, and its note fires on the sample's own doubtful moves. The 90.05 job deck compiles clean in default mode. Under `--pedantic` it draws exactly three 943,00 notes: two for statement 205,00's blanked edited targets and one for statement 220,00's ([J 90.05] listing PDF pp. 196–197). D4.11 already excludes the note from any listing used for listing-diff. The diagnostics-only invariant stands.
 
 *Citations:* D0.8; D9.2; D9.7; D9.16; D1.1; D1.3; D9.4; D3.4; D6.6; D7.11; D8.5; D10.5; ([J 02.01.01]); ([F p. 83])
 

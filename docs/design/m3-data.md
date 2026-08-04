@@ -454,8 +454,10 @@ starts from a fully resolved program and generates code only.
   msg 39 covers the group case in default mode. Ids 933 to 935 issue
   under `--pedantic` only. See M3-16 for the other stage-1 message
   choices.*
-  *Amended 2026-08-04 (stage 2): the sequence extends to 946. M3-21
-  records the stage-2 allocations and their severities.*
+  *Amended 2026-08-04 (stage 2): the sequence extends to 945. M3-21
+  records the stage-2 allocations and their severities. The both-modes
+  sentence is superseded: the deck draws exactly three 943 notes under
+  `--pedantic` (D11.4 as amended).*
 
 - **M3-16. Stage-1 message choices (2026-08-04).** The splits,
   thresholds, and deferrals stage 1 fixed, recorded so stage 2 does not
@@ -564,7 +566,7 @@ starts from a fully resolved program and generates code only.
     msg 936 and the pair is dropped. A synonym equal to an existing
     dictionary name draws 166 (ours — a synonym is "a new unique simple
     name"). A qualified reference that ends in a synonym draws 101. A
-    record.name as old.name draws pedantic msg 946.
+    record.name as old.name draws pedantic msg 945.
   - **COND binding (M3-9).** A COND entry binds to the nearest preceding
     formatted entry; its constant converts under that field's format,
     and a mismatch draws msg 37. An Environment COND card's name enters
@@ -639,6 +641,11 @@ starts from a fully resolved program and generates code only.
     records that no attested id exists).
   - **Base locators (D9.7).** The 128th located record draws msg 202.
 
+  *Amended 2026-08-04 (stage 2 build): msg 198 runs only in a job with
+  at least one GET or FILE verb (ours, scope). Msg 941 yields to an
+  attested id on the same entry: msg 105 on the count field, msg 43 on
+  a constant-bearing entry.*
+
 ## Functions and DO substitution under J
 
 - **M3-19. The GIVING-function reading (2026-08-04).** PARAM and FUNCT
@@ -655,6 +662,10 @@ starts from a fully resolved program and generates code only.
     section's declaration: more draws 72 or 74, fewer draws 73 or 75. A
     target that declares none — a plain statement included — has count
     zero, so any DO list draws 72 or 74 (ours).
+
+  *Amended 2026-08-04 (stage 2 build): the count comparison runs both
+  ways — a bare DO of a section that declares USING or GIVING draws 73
+  or 75, the absent list counting zero (ours).*
 
 ## Subscript reference checks
 
@@ -699,6 +710,13 @@ starts from a fully resolved program and generates code only.
     number. The 101st deletes the sentence with msg 177; its text
     states the recovery.
 
+  *Amended 2026-08-04 (stage 2 build): the format rows cascade — 71,
+  79, 31, 206 — one message per subscript variable (ours). The sentence
+  table keys on the written reference, subscripts excluded (ours). A
+  msg 177 deletion suppresses the sentence's legality and transfer
+  checks too. A transfer target of three or more words resolves to
+  nothing (D2.5 defines one- and two-word forms).*
+
 ## Stage-2 message allocations and adopted opens
 
 - **M3-21. Allocations and the two opens (2026-08-04).**
@@ -732,13 +750,15 @@ starts from a fully resolved program and generates code only.
     parser's structural site stands. A variable-length item in a
     comparison draws 123. An alphameric-class operand inside a true
     arithmetic expression draws 25; inside an ADD list it is eliminated
-    with 120. HIGH.VALUE, LOW.VALUE, or BLANK moved to internal decimal
-    or floating point, or compared to a non-alphameric field, draws 82.
+    with 120. HIGH.VALUE or LOW.VALUE moved to internal decimal or
+    floating point draws 82 — the chart's two Illegal cells; HIGH.VALUE,
+    LOW.VALUE, or BLANK compared to a non-alphameric field draws 82 too.
     A figurative constant moved to a variable-length array draws 180;
     to a field over 32766 characters, 181 (D4.6). The doubtful starred
-    chart cells — BLANK to external, edited, internal, floating, or
+    BLANK cells — external, edited, internal, floating, and
     scientific — stay silent in default mode per D4.11's attested
-    silence and draw pedantic 944.
+    silence and draw pedantic 943, the edited cell included (D11.4 as
+    amended).
   - **Capacity homes (M3-12; D9.7).** In the mapper walk: msg 200 at the
     26th QUANTITY IN, 201 at the 24th hierarchy level, 203 at the 86th
     array dimension, 204 at the 36th distinct edited format. In the
@@ -746,6 +766,10 @@ starts from a fully resolved program and generates code only.
     section-nesting limit stays the parser's msg 915 (M2). In the
     binder: 202. The non-historical `--no-table-limits` switch lifts
     the D9.7 counters only; the D3.1 caps and msg 34's clamp stand.
+
+  *Amended 2026-08-04 (stage 2 build): msg 944 fires once per clause,
+  only when no name matches — text NO -CORRESPONDING- NAMES MATCH.
+  ACCEPTED. (NON-HISTORICAL.) (D4.12 as amended).*
 
 ## The storage oracle
 
@@ -791,7 +815,8 @@ the golden rewrite.
 
 ## Oracles
 
-- The 90.05 job deck compiles clean in both modes at every stage.
+- The 90.05 job deck compiles clean in default mode; `--pedantic` adds
+  only the three D4.11 notes (D11.4 as amended).
 - Stage 1: the M3-14 fixture — offsets, extents, and initial words match
   the 1962 storage section.
 - Stage 3: the rewritten golden matches the scan-measured 1962 listing,
