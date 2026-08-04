@@ -171,6 +171,7 @@ final class SemanticResult {
     required this.records,
     required this.dictionary,
     required this.dataResolutions,
+    required this.correspondingPairs,
     required this.keysConditions,
     required this.semanticDiagnostics,
     required this.stopped,
@@ -193,6 +194,10 @@ final class SemanticResult {
 
   /// Every resolved data reference, identity-keyed (M3-17).
   final Map<NameReference, DataItem> dataResolutions;
+
+  /// The matched pairs of each MOVE or ADD CORRESPONDING clause, source
+  /// first, in data-description order (D4.12).
+  final Map<Clause, List<(DataItem, DataItem)>> correspondingPairs;
 
   /// Condition references that resolve to an Environment COND card —
   /// the console-key test (J 02.06.17).

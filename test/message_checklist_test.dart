@@ -63,6 +63,8 @@ final Map<String, Message> _ours = {
     msgIneffectiveRightJustification,
     msgCallOldNameSubscripted,
     msgDictionaryCapacity,
+    msgDoubtfulFigurativeUsage,
+    msgCorrespondingMatchesNothing,
     msgCallOldNameIsRecord,
   ])
     m.number: m,

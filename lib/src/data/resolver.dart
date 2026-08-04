@@ -24,15 +24,14 @@ import 'mapper.dart';
 import 'pictorial.dart';
 
 /// Builds the dictionary and resolves every name of one job.
-final class NameResolver {
+final class NameResolver extends ClauseWalk {
   NameResolver(
-    this.diagnostics,
+    super.diagnostics,
     this.mapper, {
     this.pedantic = false,
     this.tableLimits = true,
   });
 
-  final List<Diagnostic> diagnostics;
   final DataMapper mapper;
   final bool pedantic;
 
@@ -56,8 +55,6 @@ final class NameResolver {
 
   /// Environment COND card names — console-key conditions.
   final Set<String> _keysConditionNames = {};
-
-  int _clause = 0;
 
   // ── The dictionary (M3-17) ───────────────────────────────────────
 
@@ -249,7 +246,7 @@ final class NameResolver {
   /// Enters every CALL synonym. Runs before the environment binder,
   /// which may resolve record names through synonyms.
   void callPass(List<List<Sentence>> procedureGroups) {
-    _walkClauses(procedureGroups, (Clause clause) {
+    walkClauses(procedureGroups, (Clause clause) {
       if (clause is! CallClause) {
         return;
       }
@@ -257,7 +254,7 @@ final class NameResolver {
         if (pair.oldName.subscripts.isNotEmpty) {
           // "Subscripts may not be used in specifying the (old.name)"
           // (J 90.01.01); no id is attested (M3-21).
-          _report(msgCallOldNameSubscripted, pair.oldName.anchor);
+          report(msgCallOldNameSubscripted, pair.oldName.anchor);
           continue;
         }
         final DataItem? target = _resolveDataRef(pair.oldName);
@@ -267,7 +264,7 @@ final class NameResolver {
         if (pedantic && target.typeCode == DataTypeCode.record) {
           // "The use of record.names should be avoided in CALL
           // statements" (J 02.04.05) — advisory only (D4.13).
-          _report(msgCallOldNameIsRecord, pair.oldName.anchor);
+          report(msgCallOldNameIsRecord, pair.oldName.anchor);
         }
         final String name = pair.newName.text;
         if (name == programStartName) {
@@ -280,7 +277,7 @@ final class NameResolver {
         }
         if (dictionary.named(name).isNotEmpty) {
           // A synonym is "a new unique simple name" (D4.13).
-          _report(msgNameNotUnique, pair.newName, operands: [name]);
+          report(msgNameNotUnique, pair.newName, operands: [name]);
           continue;
         }
         _enter(name, NameKind.synonym, pair.newName.card, item: target);
@@ -294,7 +291,7 @@ final class NameResolver {
   /// division. The I/O verb operands are the binder walk's (M3-18) and
   /// the transfer targets stage 3 of the walk's own rows (M3-20).
   void resolve(List<List<Sentence>> procedureGroups) {
-    _walkClauses(procedureGroups, _resolveClause);
+    walkClauses(procedureGroups, _resolveClause);
     _checkConditionEntries();
     _checkStrayDescriptionNames();
   }
@@ -406,7 +403,7 @@ final class NameResolver {
     if (synonym != null) {
       if (ref.words.length > 1) {
         // A synonym is never qualified (D4.13; Open Question 56).
-        _report(msgImproperlyQualified, ref.anchor, operands: [ref.text]);
+        report(msgImproperlyQualified, ref.anchor, operands: [ref.text]);
         return null;
       }
       dataResolutions[ref] = synonym.item!;
@@ -423,7 +420,7 @@ final class NameResolver {
       return candidates.single;
     }
     if (candidates.length > 1) {
-      _report(msgNameNotUnique, ref.anchor, operands: [ref.text]);
+      report(msgNameNotUnique, ref.anchor, operands: [ref.text]);
       return null;
     }
     if (declared.isNotEmpty) {
@@ -434,16 +431,16 @@ final class NameResolver {
           declared.every((DataItem item) => item.typeCode == DataTypeCode.cond)
           ? msgImproperFormatForUse
           : msgImproperlyQualified;
-      _report(message, ref.anchor, operands: [ref.text]);
+      report(message, ref.anchor, operands: [ref.text]);
       return null;
     }
     if (dictionary.named(last).isNotEmpty) {
       // The name exists only as an environment or procedure name — a
       // format-less object at a data site (M3-17 as amended).
-      _report(msgImproperFormatForUse, ref.anchor, operands: [ref.text]);
+      report(msgImproperFormatForUse, ref.anchor, operands: [ref.text]);
       return null;
     }
-    _report(msgUndefinedSymbol, ref.anchor, operands: [ref.text]);
+    report(msgUndefinedSymbol, ref.anchor, operands: [ref.text]);
     return null;
   }
 
@@ -472,7 +469,7 @@ final class NameResolver {
       if (setting) {
         // Console keys cannot be stored into; the reading is ours
         // (M3-17).
-        _report(msgNotProperlyDefined, ref.anchor, operands: [last]);
+        report(msgNotProperlyDefined, ref.anchor, operands: [last]);
       } else {
         keysConditions.add(ref);
       }
@@ -484,20 +481,20 @@ final class NameResolver {
         if (_chainMatches(item, ref)) item,
     ];
     if (candidates.length > 1) {
-      _report(msgNameNotUnique, ref.anchor, operands: [ref.text]);
+      report(msgNameNotUnique, ref.anchor, operands: [ref.text]);
       return;
     }
     if (candidates.isEmpty) {
       if (declared.isNotEmpty) {
-        _report(msgImproperlyQualified, ref.anchor, operands: [ref.text]);
+        report(msgImproperlyQualified, ref.anchor, operands: [ref.text]);
       } else if (dictionary.named(last).isNotEmpty) {
-        _report(
+        report(
           setting ? msgNotProperlyDefined : msgImproperFormatForUse,
           ref.anchor,
           operands: [ref.text],
         );
       } else {
-        _report(msgUndefinedSymbol, ref.anchor, operands: [ref.text]);
+        report(msgUndefinedSymbol, ref.anchor, operands: [ref.text]);
       }
       return;
     }
@@ -506,7 +503,7 @@ final class NameResolver {
       // A non-condition where only a condition may stand (D5.6;
       // M3-17): the test is dropped, or the SET is not a switch
       // setting.
-      _report(
+      report(
         setting ? msgNotProperlyDefined : msgImproperFormatForUse,
         ref.anchor,
         operands: [ref.text],
@@ -606,13 +603,19 @@ final class NameResolver {
       }
     }
   }
+}
 
-  // ── Shared machinery ─────────────────────────────────────────────
+/// The procedure walk the stage-2 phases share (M3-17): every clause of
+/// every live sentence, IF arms and ON OVERFLOW clauses included, with
+/// the clause number the `n,cc` diagnostic form needs (M2-6).
+abstract base class ClauseWalk {
+  ClauseWalk(this.diagnostics);
 
-  /// Walks every clause of every live sentence, IF arms and ON
-  /// OVERFLOW clauses included, tracking the clause number for the
-  /// `n,cc` diagnostic form (M2-6).
-  void _walkClauses(
+  final List<Diagnostic> diagnostics;
+
+  int _clause = 0;
+
+  void walkClauses(
     List<List<Sentence>> procedureGroups,
     void Function(Clause) visit,
   ) {
@@ -647,7 +650,7 @@ final class NameResolver {
 
   /// Reports [message] at [at], carrying the current clause number
   /// when the site is inside one (M2-6).
-  void _report(Message message, Token at, {List<String> operands = const []}) {
+  void report(Message message, Token at, {List<String> operands = const []}) {
     final diagnostic = Diagnostic(
       message,
       at.card,

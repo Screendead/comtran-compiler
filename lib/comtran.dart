@@ -39,6 +39,7 @@ export 'src/data/data_map.dart';
 export 'src/data/data_messages.dart';
 export 'src/data/dictionary.dart';
 export 'src/data/images.dart';
+export 'src/data/legality.dart';
 export 'src/data/mapper.dart';
 export 'src/data/pictorial.dart';
 export 'src/data/resolver.dart';

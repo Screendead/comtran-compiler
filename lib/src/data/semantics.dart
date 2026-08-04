@@ -11,6 +11,7 @@ import '../parser/parser.dart';
 import 'binder.dart';
 import 'data_map.dart';
 import 'images.dart';
+import 'legality.dart';
 import 'mapper.dart';
 import 'resolver.dart';
 
@@ -64,6 +65,7 @@ SemanticResult runSemantics(
   );
   var records = const <RecordInfo>[];
   var areas = const <AreaInfo>[];
+  var pairs = <Clause, List<(DataItem, DataItem)>>{};
   var stopped = false;
   try {
     mapper.map(dataGroups);
@@ -75,6 +77,13 @@ SemanticResult runSemantics(
     records = binder.records;
     areas = ImageBuilder(diagnostics, mapper, records).build();
     resolver.resolve(procedureGroups);
+    final legality = LegalityChecker(
+      diagnostics,
+      mapper,
+      resolver,
+      pedantic: pedantic,
+    )..check(procedureGroups);
+    pairs = legality.correspondingPairs;
   } on StopCompilation {
     // A severity-5 diagnostic stops the phase at the point of
     // detection (D9.1); everything mapped and diagnosed so far stands.
@@ -88,6 +97,7 @@ SemanticResult runSemantics(
     records: records,
     dictionary: resolver.dictionary,
     dataResolutions: resolver.dataResolutions,
+    correspondingPairs: pairs,
     keysConditions: resolver.keysConditions,
     semanticDiagnostics: List.unmodifiable(diagnostics.sublist(first)),
     stopped: stopped,

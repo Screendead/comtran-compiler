@@ -709,6 +709,12 @@ const Map<String, int> messageSeverities = {
   '936,00': 2,
   // C5 (ours, D9.7; M3-21): the dictionary capacity - unrecoverable.
   '942,00': 5,
+  // C1 (ours, --pedantic only, D4.11; M3-21): the blanks are stored as
+  // attested; advisory.
+  '943,00': 1,
+  // C1 (ours, --pedantic only, D4.12; M3-21): the clause generates
+  // nothing, as attested for an unmatched name; advisory.
+  '944,00': 1,
   // C1 (ours, --pedantic only, D4.13; M3-21): the CALL is accepted
   // unchanged; advisory.
   '945,00': 1,

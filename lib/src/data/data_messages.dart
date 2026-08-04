@@ -173,6 +173,24 @@ final Message msgRedefJustificationConflict = messageCatalog['80,00']!;
 /// number").
 final Message msgRedefLevelConflict = messageCatalog['81,00']!;
 
+/// `82,00` — HIGH.VALUE or LOW.VALUE moved to an internal decimal or
+/// floating point field — the J 02.04.02 chart's two Illegal cells —
+/// or HIGH.VALUE, LOW.VALUE, or BLANK compared to a field that is not
+/// alphameric (J 02.04.01 b). The starred BLANK moves are doubtful,
+/// not illegal, and take msg 943 (D4.11; M3-21).
+final Message msgIncorrectFigurativeUsage = messageCatalog['82,00']!;
+
+/// `84,00` — an alphameric-class source moved to a target that is
+/// neither alphameric nor a group (J 02.04.03 c), including a
+/// CORRESPONDING pair whose group source is assumed alphameric
+/// (J 02.04.04 c; D4.12).
+final Message msgIllegalMove = messageCatalog['84,00']!;
+
+/// `97,00` — a MOVE or ADD CORRESPONDING operand that resolves to
+/// nothing or to a field with no subordinates: correspondence is
+/// sought below the operand (J 02.04.04; M3-21).
+final Message msgInvalidCorresponding = messageCatalog['97,00']!;
+
 /// `101,00` — a reference whose final word is declared but whose
 /// qualifier chain matches no declaration, or a qualified reference
 /// ending in a CALL synonym (M3-17; D4.13).
@@ -200,6 +218,14 @@ final Message msgQuantityItemFollowsVariable = messageCatalog['105,00']!;
 /// (M3-17).
 final Message msgUndefinedSymbol = messageCatalog['108,00']!;
 
+/// `120,00` — an alphameric-class source or target in an ADD; that
+/// operand is eliminated and the rest of the ADD proceeds (M3-21).
+final Message msgEliminatedFromAdd = messageCatalog['120,00']!;
+
+/// `123,00` — a variable-length item as a comparison operand
+/// (J 02.04.07 rule 5).
+final Message msgVariableLengthComparison = messageCatalog['123,00']!;
+
 /// `133,00` — a repetition count with no closing right parenthesis;
 /// the digits through the end of the run are read as the count.
 final Message msgNoRightParenthesis = messageCatalog['133,00']!;
@@ -217,6 +243,16 @@ final Message msgListThreeWordAsName = messageCatalog['152,00']!;
 /// RECORD name, a CALL old.name naming more than one field, or a
 /// synonym equal to an existing name (M3-17; D2.5; D4.13).
 final Message msgNameNotUnique = messageCatalog['166,00']!;
+
+/// `180,00` — a figurative constant moved to a field whose length a
+/// QUANTITY IN fixes at execution time; a subscripted element of that
+/// array is proper (J 02.04.01 c-i).
+final Message msgFigurativeToVariableField = messageCatalog['180,00']!;
+
+/// `181,00` — a figurative constant moved to a field of 32767
+/// characters or more. J's prose says 2^15 - 1; the implemented
+/// maximum is the message text's 32766 (D4.6).
+final Message msgFigurativeToLongField = messageCatalog['181,00']!;
 
 /// `185,00` — a description run read as a name that is not a data,
 /// key, or procedure name (J 02.05.06 e), or description tokens no
@@ -304,6 +340,25 @@ const Message msgDictionaryCapacity = Message.ours(
   '942,00',
   'NUMBER OF NAMES EXCEEDS THE 3500 NAME DICTIONARY CAPACITY. '
       '(NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: a BLANK moved or SET into an external
+/// decimal, internal decimal, floating point, or scientific decimal
+/// field — the J 02.04.02 chart's starred cells, accepted in the
+/// default mode (D4.11; M3-21). The chart's edited cell is excluded:
+/// the 90.05 sample blanks two edited fields and reports no error.
+const Message msgDoubtfulFigurativeUsage = Message.ours(
+  '943,00',
+  'DOUBTFUL FIGURATIVE CONSTANT USAGE ACCEPTED. (NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: a CORRESPONDING clause under which no
+/// pair of names matches, so the clause generates nothing. A partial
+/// match draws nothing: the 90.05 sample leaves names unmatched in
+/// every CORRESPONDING clause it writes (D4.12; M3-21).
+const Message msgCorrespondingMatchesNothing = Message.ours(
+  '944,00',
+  'NO -CORRESPONDING- NAMES MATCH. ACCEPTED. (NON-HISTORICAL.)',
 );
 
 /// Ours — `--pedantic` only: a record.name as a CALL old.name, which
