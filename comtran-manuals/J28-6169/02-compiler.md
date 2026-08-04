@@ -728,7 +728,7 @@ b) The pictorial characters A and X are considered to be synonymous by the 7090 
 | Alphameric | A or X in format field | A X (n) | all characters |
 | External Decimal (1)(3) | E in Mode Column | 9 (n) SV9̅ or 9̅ in rightmost character | digits and leading blanks; an overpunch with the rightmost digit |
 | Internal Decimal | I in Mode Column | 9 (n) V S | binary |
-| Edited Field (2) | 8 * ., $ + - in format field or BLANK WHEN ZERO clause | 9 8 * ., $ + - S V (n); 8 or 9 or 8̅ or 9̅ in rightmost character | digits and leading blanks; an overpunch with the rightmost digit |
+| Edited Field (2) | 8 * ., $ + - in format field or BLANK WHEN ZERO clause | 9 8 * ., $ + - S V (n); 8̅ or 9̅ or 8̅ or 9̅ in rightmost character | digits and leading blanks; an overpunch with the rightmost digit |
 | Floating Point | I in Mode Column and F or FF in format field | F is single precision; FF if double precision | floating binary |
 | Scientific Decimal (4) | E in Mode Column and F in format field | 9 (n) F . V + - | digits . + - |
 
