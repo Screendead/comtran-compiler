@@ -24,6 +24,7 @@ and the roadmap live in `docs/HANDOVER.md`.*
 | `m1-front-end.md` | The M1 front end: `lib/src/lexer/` and `lib/src/listing/`. Holds the `M1-n` entries, the choices M1 had to make where a source is silent. |
 | `m2-parser.md` | The M2 parser: `lib/src/parser/` and `lib/src/ast/`. Holds the `M2-n` entries, in the same shape as the M1 note. |
 | `emulator.md` | The 7090 CPU core in `lib/src/emulator/`. Holds the `ED-n` entries. Draft until M4 connects codegen, the loader, and the runtime to it. |
+| `emit-stages.md` | The requirement that every compilation stage is dumpable behind a flag, with attested stages oracled against their evidence. Recorded 2026-08-04; M4 adopts or amends it. |
 | `severity-notes.md` | The severity assigned to every 90.04 message, under D9.2. Every value is our design decision, not recovered history. |
 | `message-checklist.tsv` | The per-message conformance checklist required by D9.3: one row per message id, with its class, disposition, component, B.2 rule, and test. |
 
