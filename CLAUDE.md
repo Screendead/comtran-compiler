@@ -210,12 +210,12 @@ span, a code block, a blockquote or a quotation.
   repository, never the author's plan or rationale. Every finding must cite
   file:line and quote the text.
 
-## 12. Response style: ASD-STE100 Simplified Technical English (Issue 9)
+## 12. Prose style: ASD-STE100 Simplified Technical English (Issue 9)
 
-**Scope.** STE governs repo prose documents and assistant responses. Exempt:
-verbatim manual quotes and citations, code, code comments, and commit messages.
-Never rewrite exempt text to fit STE — a rewritten transcription breaks ground
-truth.
+**Scope.** STE governs repo prose documents only. It does not govern assistant
+responses; those follow the Density rules below. Exempt: verbatim manual quotes
+and citations, code, code comments, and commit messages. Never rewrite exempt
+text to fit STE — a rewritten transcription breaks ground truth.
 
 Within that scope:
 
@@ -239,7 +239,7 @@ sentence and give the clearest approximation.
 
 ### Density
 
-STE governs the sentence. These rules govern the paragraph and the response:
+These rules govern assistant responses, at the paragraph and response level:
 
 - Open every response with the point, in one sentence that stands alone.
 - One new idea per paragraph. Two to four sentences per paragraph.
