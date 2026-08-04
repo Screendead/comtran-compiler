@@ -47,6 +47,10 @@ final Message msgNameIsNotFile = messageCatalog['21,00']!;
 /// inside a true arithmetic expression (M3-21).
 final Message msgImproperFormatForUse = messageCatalog['25,00']!;
 
+/// `30,00` — a function reference with fewer arguments than its
+/// owning section's BEGIN SECTION USING clause declares (M3-19).
+final Message msgFunctionArgumentsMissing = messageCatalog['30,00']!;
+
 /// `31,00` — a subscript variable with fraction positions; a scaled
 /// integer (a trailing `S` run) counts as one (M3-20).
 final Message msgSubscriptVariableNotInteger = messageCatalog['31,00']!;
@@ -168,6 +172,10 @@ final Message msgOperationAsName = messageCatalog['61,00']!;
 /// `67,00` — a non-numeric character in a numeric field's constant.
 final Message msgNonNumericInNumericField = messageCatalog['67,00']!;
 
+/// `68,00` — a function reference with more arguments than its owning
+/// section's BEGIN SECTION USING clause declares (M3-19).
+final Message msgFunctionTooManyArguments = messageCatalog['68,00']!;
+
 /// `70,00` — a subscript count above zero that differs from the
 /// referenced item's dimension count (M3-20).
 final Message msgArrayDimensionCheck = messageCatalog['70,00']!;
@@ -176,6 +184,34 @@ final Message msgArrayDimensionCheck = messageCatalog['70,00']!;
 /// or names a condition; F p. 31 admits a name or an index expression
 /// only. NAME.1 is the array (M3-20).
 final Message msgInvalidSubscriptVariable = messageCatalog['71,00']!;
+
+/// `72,00` — a DO carrying more USING arguments than its target
+/// section declares; a statement target declares none (M3-19).
+final Message msgTooManyUsingParameters = messageCatalog['72,00']!;
+
+/// `73,00` — a DO carrying fewer USING arguments than its target
+/// section declares (M3-19).
+final Message msgTooFewUsingParameters = messageCatalog['73,00']!;
+
+/// `74,00` — a DO carrying more GIVING results than its target
+/// section declares (M3-19).
+final Message msgTooManyGivingParameters = messageCatalog['74,00']!;
+
+/// `75,00` — a DO carrying fewer GIVING results than its target
+/// section declares (M3-19).
+final Message msgTooFewGivingParameters = messageCatalog['75,00']!;
+
+/// `76,00` — a FOR index variable of alphameric, edited, or group
+/// class (F pp. 49–53; M3-20).
+final Message msgLoopVariableFormat = messageCatalog['76,00']!;
+
+/// `77,00` — a named p, q, or r loop parameter of alphameric,
+/// edited, or group class (M3-20). NAME.1 is the parameter.
+final Message msgLoopParameterFormat = messageCatalog['77,00']!;
+
+/// `78,00` — a literal p, q, or r loop parameter that is not a whole
+/// number (M3-20). NAME.1 is the loop control variable.
+final Message msgLoopLiteralParameterFormat = messageCatalog['78,00']!;
 
 /// `79,00` — a subscript variable of alphameric, edited, or group
 /// class (M3-20).
@@ -247,6 +283,23 @@ final Message msgEliminatedFromAdd = messageCatalog['120,00']!;
 /// (J 02.04.07 rule 5).
 final Message msgVariableLengthComparison = messageCatalog['123,00']!;
 
+/// `127,00` — a GO TO target that names no statement and no section
+/// under the D2.5 scope rules (M3-20).
+final Message msgTransferTargetNotProcedure = messageCatalog['127,00']!;
+
+/// `128,00` — a GO TO target that a DO addresses, the AT END bare-name
+/// form included (D6.6); such a procedure is not re-entrant
+/// (Open Question 40; M3-20).
+final Message msgTransferToDoAddressed = messageCatalog['128,00']!;
+
+/// `129,00` — an assigned GO TO index of alphameric, edited, or group
+/// class (M3-20).
+final Message msgTransferIndexFormat = messageCatalog['129,00']!;
+
+/// `130,00` — an assigned GO TO index with fraction positions; the
+/// integral part serves (M3-20).
+final Message msgTransferIndexNotInteger = messageCatalog['130,00']!;
+
 /// `133,00` — a repetition count with no closing right parenthesis;
 /// the digits through the end of the run are read as the count.
 final Message msgNoRightParenthesis = messageCatalog['133,00']!;
@@ -264,6 +317,11 @@ final Message msgListThreeWordAsName = messageCatalog['152,00']!;
 /// RECORD name, a CALL old.name naming more than one field, or a
 /// synonym equal to an existing name (M3-17; D2.5; D4.13).
 final Message msgNameNotUnique = messageCatalog['166,00']!;
+
+/// `177,00` — the 101st distinct data reference of one sentence. The
+/// 100-name table size is invented (D9.7; Open Question 9); the
+/// sentence leaves the text (M3-20).
+final Message msgSentenceTableCapacity = messageCatalog['177,00']!;
 
 /// `180,00` — a figurative constant moved to a field whose length a
 /// QUANTITY IN fixes at execution time; a subscripted element of that
@@ -293,6 +351,10 @@ final Message msgSubscriptedNameCapacity = messageCatalog['184,00']!;
 /// key, or procedure name (J 02.05.06 e), or description tokens no
 /// clause claimed (M3-17).
 final Message msgPictorialError = messageCatalog['185,00']!;
+
+/// `188,00` — a DO target, or an AT END bare name (D6.6), that names
+/// no statement and no section under the D2.5 scope rules (M3-20).
+final Message msgDoTargetNotProcedure = messageCatalog['188,00']!;
 
 /// `191,00` — a name improper for its defining use: a SET of a name
 /// that is no settable condition, or a function reference to a name no

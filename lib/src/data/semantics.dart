@@ -14,6 +14,7 @@ import 'images.dart';
 import 'legality.dart';
 import 'mapper.dart';
 import 'resolver.dart';
+import 'transfers.dart';
 
 /// Runs the M3 semantic layer over [parse].
 ///
@@ -84,6 +85,7 @@ SemanticResult runSemantics(
       pedantic: pedantic,
     )..check(procedureGroups);
     pairs = legality.correspondingPairs;
+    TransferChecker(diagnostics, mapper, resolver).check(procedureGroups);
   } on StopCompilation {
     // A severity-5 diagnostic stops the phase at the point of
     // detection (D9.1); everything mapped and diagnosed so far stands.
@@ -99,6 +101,7 @@ SemanticResult runSemantics(
     dataResolutions: resolver.dataResolutions,
     correspondingPairs: pairs,
     keysConditions: resolver.keysConditions,
+    capacityDeletedSentences: resolver.deletedSentences,
     semanticDiagnostics: List.unmodifiable(diagnostics.sublist(first)),
     stopped: stopped,
   );

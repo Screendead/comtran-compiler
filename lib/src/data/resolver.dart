@@ -51,6 +51,20 @@ final class NameResolver extends ClauseWalk {
   /// the console-key test (J 02.06.17).
   final Set<NameReference> keysConditions = Set.identity();
 
+  /// The innermost section enclosing each sentence; a sentence of the
+  /// outermost scope is absent. A statement label scopes to this
+  /// section, and so does a one-word transfer target (D2.5).
+  final Map<Sentence, String> sectionScopes = Map.identity();
+
+  @override
+  final Set<Sentence> deletedSentences = Set.identity();
+
+  /// The distinct written names of the sentence being resolved — the
+  /// per-sentence table msg 177 caps (M3-20).
+  final Set<String> _sentenceTable = {};
+
+  Sentence? _tableSentence;
+
   late final SubscriptChecker _subscripts = SubscriptChecker(
     mapper,
     dataResolutions,
@@ -160,6 +174,9 @@ final class NameResolver extends ClauseWalk {
     // sentence's label is the section's name.
     final sectionStack = <String>[];
     for (final sentence in sentences) {
+      if (sectionStack.isNotEmpty) {
+        sectionScopes[sentence] = sectionStack.last;
+      }
       final bool opensSection = sentence.clauses.any(
         (Clause c) => c is BeginSectionClause,
       );
@@ -410,6 +427,9 @@ final class NameResolver extends ClauseWalk {
   /// The M3-17 triage over a data-reference site. Returns the resolved
   /// item, or `null` after a diagnostic.
   DataItem? _resolveDataRef(NameReference ref) {
+    if (!_admittedToSentenceTable(ref)) {
+      return null;
+    }
     final bool enclosing = _inSubscript;
     _inSubscript = true;
     ref.subscripts.forEach(_resolveExpr);
@@ -457,6 +477,32 @@ final class NameResolver extends ClauseWalk {
     }
     report(msgUndefinedSymbol, ref.anchor, operands: [ref.text]);
     return null;
+  }
+
+  /// Whether [ref] fits the sentence's reference table (M3-20). The
+  /// 101st distinct name deletes the sentence with msg 177, and every
+  /// later reference of it is refused, so the stage-2 checks below
+  /// this point never see it. The 100-name size is invented (D9.7;
+  /// Open Question 9).
+  bool _admittedToSentenceTable(NameReference ref) {
+    final Sentence? sentence = currentSentence;
+    if (!tableLimits || sentence == null) {
+      return true;
+    }
+    if (deletedSentences.contains(sentence)) {
+      return false;
+    }
+    if (!identical(sentence, _tableSentence)) {
+      _tableSentence = sentence;
+      _sentenceTable.clear();
+    }
+    _sentenceTable.add(ref.text);
+    if (_sentenceTable.length <= 100) {
+      return true;
+    }
+    report(msgSentenceTableCapacity, ref.anchor);
+    deletedSentences.add(sentence);
+    return false;
   }
 
   DataItem _resolvedTo(NameReference ref, DataItem item) {
@@ -636,6 +682,17 @@ abstract base class ClauseWalk {
 
   int _clause = 0;
 
+  Sentence? _sentence;
+
+  /// The sentence the visited clause belongs to; `null` outside a
+  /// walk.
+  Sentence? get currentSentence => _sentence;
+
+  /// Sentences msg 177 deleted from the text (M3-20). A phase that
+  /// runs after the resolver overrides this with the resolver's set,
+  /// so a deleted sentence takes no further stage-2 check.
+  Set<Sentence> get deletedSentences => const {};
+
   void walkClauses(
     List<List<Sentence>> procedureGroups,
     void Function(Clause) visit,
@@ -661,10 +718,12 @@ abstract base class ClauseWalk {
 
     for (final sentences in procedureGroups) {
       for (final sentence in sentences) {
-        if (sentence.deleted) {
+        if (sentence.deleted || deletedSentences.contains(sentence)) {
           continue;
         }
+        _sentence = sentence;
         sentence.clauses.forEach(walk);
+        _sentence = null;
       }
     }
   }

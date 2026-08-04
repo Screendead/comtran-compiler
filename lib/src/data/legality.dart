@@ -40,6 +40,9 @@ final class LegalityChecker extends ClauseWalk {
   final Map<Clause, List<(DataItem, DataItem)>> correspondingPairs =
       Map.identity();
 
+  @override
+  Set<Sentence> get deletedSentences => resolver.deletedSentences;
+
   void check(List<List<Sentence>> procedureGroups) {
     walkClauses(procedureGroups, _checkClause);
   }
