@@ -52,8 +52,9 @@ Terms that appear without expansion:
 | T3 MCP server and skill | Done 2026-08-03 (PR #8) | `bin/deckmcp.dart`, `.claude/skills/comtran-decks/` |
 | T4 deck syntax highlighting | Done 2026-08-03 (PR #14) | `editors/vscode-punchcard/` |
 
-One M0 deferral is open: **D4.1**, the MOVPAK round-step emission rule. Decide
-it no later than M4.
+The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
+round-step emission rule, is locked by Jack's call: a SET store through a
+step-list package rounds, a MOVE store truncates.
 
 Test baseline, measured 2026-08-04: 790 Dart tests pass, and 111 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
@@ -84,9 +85,8 @@ The next task is stage 2: the dictionary, procedure and environment name
 resolution, CALL synonyms, reference legality, CORRESPONDING pairing, the
 capacity checks (M3-12), and their diagnostics — the deferred binder rows
 (8, 9, 10, 17, 19, 195, 198), the POOL/GROUP buffer minimums, and the
-items M3-16 lists. Three standing items to carry in:
+items M3-16 lists. Two standing items to carry in:
 
-- The D4.1 deferral (MOVPAK round step) must be decided no later than M4.
 - D11.4 lists the --pedantic sites deferred to M3 and later (D4.12, D4.13,
   D3.5 among them); each lands with its owning milestone. M3-13 names the
   M3 set.
