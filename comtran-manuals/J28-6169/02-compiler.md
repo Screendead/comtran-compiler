@@ -726,9 +726,9 @@ b) The pictorial characters A and X are considered to be synonymous by the 7090 
 | Type of Field | Characterized By | Legitimate Format Characters in Description | Legitimate Information in Field |
 |---|---|---|---|
 | Alphameric | A or X in format field | A X (n) | all characters |
-| External Decimal (1)(3) | E in Mode Column | 9 (n) SV9̅ or 9̅ in rightmost character | digits and leading blanks; an overpunch with the rightmost digit |
+| External Decimal (1)(3) | E in Mode Column | 9 (n) SV9̅ or 9⁺ in rightmost character | digits and leading blanks; an overpunch with the rightmost digit |
 | Internal Decimal | I in Mode Column | 9 (n) V S | binary |
-| Edited Field (2) | 8 * ., $ + - in format field or BLANK WHEN ZERO clause | 9 8 * ., $ + - S V (n); 8 or 9 or 8̅ or 9̅ in rightmost character | digits and leading blanks; an overpunch with the rightmost digit |
+| Edited Field (2) | 8 * ., $ + - in format field or BLANK WHEN ZERO clause | 9 8 * ., $ + - S V (n); 8̅ or 9̅ or 8⁺ or 9⁺ in rightmost character | digits and leading blanks; an overpunch with the rightmost digit |
 | Floating Point | I in Mode Column and F or FF in format field | F is single precision; FF if double precision | floating binary |
 | Scientific Decimal (4) | E in Mode Column and F in format field | 9 (n) F . V + - | digits . + - |
 
@@ -788,7 +788,7 @@ ii less than the length of the constant the characters of the constant starting 
 
 c) If a field is defined as external decimal the length specified by the pictorial must be exactly equal to the length of the constant. Also, the constant must utilize the sign convention given in the pictorial e.g.,
 
-If the pictorial is 999̅, the number 123̅ would be correct
+If the pictorial is 999⁺, the number 123⁺ would be correct
 whereas 123 would not be correct
 
 d) If a field is defined as internal decimal the length of the field specified in the pictorial may be larger than the constant. In this case the constant is right justified in the field. If the constant is larger, the constant is truncated at the left-end to the size specified by the pictorial, converted and stored. Also, an error message is produced.
@@ -811,7 +811,7 @@ The compiler reserves sufficient storage for the maximum number of times the fie
 
 When associated with an output field this clause indicates that the field is to be replaced with blanks when it becomes zero. Since leading blanks in numeric input fields are automatically treated as zeros, the use of this clause is redundant. In some cases it may even result in decreased efficiency in the object program as these fields are treated as edited types.
 
-<!-- conversion notes: Page 02.05.05 (PDF 31) is a complex ruled table (the Data Field Type chart); a best-effort Markdown table is given and the source page image is embedded beneath it per chunk instructions. Overpunched sign digits are normalized throughout to Unicode combining overline (9̅, 8̅) per the conversion spec, including the worked example on 02.05.07 (PDF 33) where the source renders the overpunch as a small raised +/- above the digit rather than a full overline — the overline form was used for consistency with the spec's instruction and with the chart on 02.05.05; the underlying distinction being illustrated (sign-punched digit vs. plain digit) is preserved. Isolated marks at the top margin of PDF pages 32 ("ho") and 33 ("3.") appear to be scan/print artifacts rather than legible content and were omitted. The Name/Level/Type/Description and Name/Level/Mode/Justify/Description worked-example tables (02.05.01–02.05.04, 02.05.06) are reproduced as fenced code blocks to preserve column alignment and indentation, matching how they appear as coding-form-style entries in the source; original indentation of items such as E and H across the two REDEF examples is inconsistent in the source itself (not a transcription error) and has been preserved as printed. No pages in this chunk required full image-only fallback. -->
+<!-- conversion notes: Page 02.05.05 (PDF 31) is a complex ruled table (the Data Field Type chart); a best-effort Markdown table is given and the source page image is embedded beneath it per chunk instructions. Overpunched sign digits are rendered by zone (convention amended 2026-08-04, authorized): a minus-zone overpunch, an overbar in the source, as a combining overline (9̅, 8̅); a plus-zone overpunch, a small raised plus in the source, as a superscript plus (9⁺, 8⁺) — the form the 90.02 transcription already used. On the scans: the 02.05.05 chart's Edited row prints minus-8, minus-9, plus-8, plus-9 and its External row minus-9, plus-9; the worked example on 02.05.07 (PDF 33) prints 999⁺ and 123⁺, both plus forms. The conversion formerly flattened every overpunch to the overline form. Isolated marks at the top margin of PDF pages 32 ("ho") and 33 ("3.") appear to be scan/print artifacts rather than legible content and were omitted. The Name/Level/Type/Description and Name/Level/Mode/Justify/Description worked-example tables (02.05.01–02.05.04, 02.05.06) are reproduced as fenced code blocks to preserve column alignment and indentation, matching how they appear as coding-form-style entries in the source; original indentation of items such as E and H across the two REDEF examples is inconsistent in the source itself (not a transcription error) and has been preserved as printed. No pages in this chunk required full image-only fallback. -->
 
 <!-- 02.06.01.01 | PDF 34 -->
 **[02.06.01.01]**

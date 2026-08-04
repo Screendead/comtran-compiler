@@ -108,9 +108,10 @@ starts from a fully resolved program and generates code only.
     row admits an overpunched 9 alone. Read on the scan `images/page-031.png`,
     2026-08-04: the Edited row lists minus 8, minus 9, plus 8 and plus 9, and
     the External row lists minus 9 and plus 9. The conversion and the
-    definition transcribe the Edited row as "8 or 9 or 8̅ or 9̅", which drops
-    the marks on the first pair; that erratum waits for Jack's authorization
-    and is not made here. See M3-5 for the measurement.*
+    definition transcribed the Edited row as "8 or 9 or 8̅ or 9̅", which drops
+    the marks on the first pair; Jack authorized the correction and it was
+    made 2026-08-04 (§8.5.8-b records the reading). See M3-5 for the
+    measurement.*
   - `F` with mode I is floating point (`FF` double precision); `F` with mode
     E is scientific decimal, maximum 16 fraction digits ([J 02.05.05] notes).
   - Digits only (with `V`, `S`, `(n)`, an optional rightmost overpunch):
@@ -152,7 +153,7 @@ starts from a fully resolved program and generates code only.
   recognizer (`data_parser.dart`, `data_lexer.dart`) is amended to match in
   stage 1, and M2-3 carries the dated amendment; the sample exercises no
   signed field, so the golden is unaffected. Constants are checked against the pictorial's sign convention
-  the same way ([J 02.05.07]'s `999̅` / `123̅` example).
+  the same way ([J 02.05.07]'s `999⁺` / `123⁺` example).
 
   *Amended 2026-08-04 (review): the measurement keeps the overpunched digit,
   not the sign alone. The zone letters run A–I for plus 1 to plus 9 and J–R
