@@ -61,6 +61,9 @@ final Map<String, Message> _ours = {
     msgMixedPictorialDowngraded,
     msgQuantityOnUnnamedEntry,
     msgIneffectiveRightJustification,
+    msgCallOldNameSubscripted,
+    msgDictionaryCapacity,
+    msgCallOldNameIsRecord,
   ])
     m.number: m,
 };

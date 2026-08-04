@@ -24,7 +24,7 @@ id	class	disposition	component	b2	test	note	text
 22,00	C3	reserved	input/output binder	B.2 environment description		M3 (record/file consistency)	'NAME.1' IS NOT AN OUTPUT FILE. CHECK ENVIRONMENT DESCRIPTION.
 23,00	C3	reserved	input/output binder	B.2 environment description		M3 (GET RECORD FROM binding)	INCORRECT USE OF -GET RECORD FROM-. CHECK DATA DESCRIPTION OR ENVIRONMENT DESCRIPTION.
 24,00	C5	reserved	internal-error reporting	B.2 self-diagnostics		internal-consistency assertion (D9.15 group a)	ILLEGAL INTERNAL CONDITION. NOTHING DONE. POSSIBLE COMPILER ERROR.
-25,00	C2	reserved	name resolution	B.2 MOVE/ADD/SET/arithmetic		M3 (data-format checks, J 02.04.03)	OPERATION IGNORED BECAUSE 'NAME.1' HAS IMPROPER DATA FORMAT\n                    ( E  A(2) ) FOR THIS USE.
+25,00	C2	enforced	name resolution	B.2 MOVE/ADD/SET/arithmetic	test/resolver_test.dart: an environment name at a data site draws 25,00	M3 stage 2 (M3-17 triage; M3-21 data-format checks, J 02.04.03)	OPERATION IGNORED BECAUSE 'NAME.1' HAS IMPROPER DATA FORMAT\n                    ( E  A(2) ) FOR THIS USE.
 26,00	C2	reserved	code generator	B.2 MOVE/ADD/SET/arithmetic		M4 (transfer-address legality)	OPERATION IGNORED BECAUSE 'NAME.1' IS ILLEGAL TRANSFER ADDRESS.
 27,00	C1	reserved	code generator	B.2 MOVE/ADD/SET/arithmetic		M4 (scaling analysis)	DOWNSCALE GENERATED WHICH LOSES ALL SIGNIFICANT FIGURES.
 28,00	C1	reserved	code generator	B.2 MOVE/ADD/SET/arithmetic		M4 (compile-time constant folding)	ATTEMPTED DIVISION BY ZERO BYPASSED. RESULT TAKEN TO BE ZERO.
@@ -36,7 +36,7 @@ id	class	disposition	component	b2	test	note	text
 34,00	C1	enforced	data description	B.2 data description	test/data_mapper_test.dart: a repetition count past 99999 draws 34,00 and is clamped	M3 (pictorial content classification)	MAXIMUM FORMAT CHARACTER COUNT EXCEEDED. 'NAME.1' FORMAT USED.
 35,00	C1	enforced	data description	B.2 data description	test/data_mapper_test.dart: a scientific fraction over 16 digits draws 35,00	M3 (pictorial content classification)	MAXIMUM NUMERIC LENGTH EXCEEDED. 'NAME.1' FORMAT USED.
 36,00	C3	enforced	data description	B.2 data description	test/data_mapper_test.dart: sub-organization under a formatted field draws 36,00 and	M3 (format-level sub-organization)	DATA ON FORMAT DESCRIPTION LEVEL CANNOT HAVE SUB-ORGANIZATION.\n                    CHECK 'NAME.1'.
-37,00	C1	reserved	data description	B.2 data description		M3 (conditional-variable formats)	FORMAT ERROR FOR CONDITIONAL VARIABLE. 'NAME.1' FORMAT USED.
+37,00	C1	enforced	data description	B.2 data description	test/resolver_test.dart: a COND under a formatless variable draws 37,00	M3 stage 2 (M3-17 COND binding)	FORMAT ERROR FOR CONDITIONAL VARIABLE. 'NAME.1' FORMAT USED.
 38,00	C2	enforced	data description	B.2 data description	test/data_mapper_test.dart: a COND entry with a Quantity draws 38,00	M3 (conditional-variable QUANTITY bar)	CONDITIONAL VARIABLE CANNOT HAVE -QUANTITY-.
 39,00	C2	enforced	data description	B.2 data description	test/data_mapper_test.dart: right justification on a group draws 39,00 and is ignored	M3 (justification vs format level)	DATA NOT ON FORMAT DESCRIPTION LEVEL CANNOT BE SPECIFIED AS RIGHT JUSTIFIED.
 40,00	C3	enforced	data description	B.2 data description	test/data_mapper_test.dart: a REDEF to a later definition draws 40,00	M3 (REDEF target resolution)	-REDEF- TO 'NAME.1' CANNOT OCCUR BEFORE DEFINITION.
@@ -60,7 +60,7 @@ id	class	disposition	component	b2	test	note	text
 58,00	C2	enforced	data description	B.2 data description	test/data_mapper_test.dart: an external constant without the pictorial sign draws	M3 (external decimal constants)	CONSTANT OF EXTERNAL DECIMAL TYPE IN ERROR. CHECK 'NAME.1'.
 59,00	C2	enforced	data description	B.2 data description	test/data_mapper_test.dart: an over-long alphabetic constant draws 59,00 and is	M3 (constant vs pictorial length)	CONFLICT BETWEEN LENGTH OF ALPHABETIC CONSTANT AND PICTORIAL.
 60,00	C1	enforced	data description	B.2 data description	test/data_mapper_test.dart: a zero repetition count draws 60,00 and one is used	M3 (pictorial repair; C1)	ZERO COUNT IN PICTORIAL REPLACED BY ONE.
-61,00	C3	reserved	name resolution	B.2 names		M3 (operation defined as name)	OPERATION DEFINED AS NAME OR FOUND IN NAME FIELD.
+61,00	C3	enforced	name resolution	B.2 names	test/resolver_test.dart: a label that is a key word draws 61,00	M3 stage 2 (M3-17: operation found in name field)	OPERATION DEFINED AS NAME OR FOUND IN NAME FIELD.
 62,00	C1	enforced	card reader and lexer	B.2 lexical/card-format	test/procedure_lexer_test.dart: a sentence spans cards; a margin name closes an open one	trigger criterion non-historical (D9.4)	PREVIOUS CARD NOT PROPERLY TERMINATED. PERIOD ASSUMED.
 63,00	C3	enforced	procedure parser	B.2 MOVE/ADD/SET/arithmetic	test/procedure_parser_test.dart: a misplaced CORRESPONDING draws 63 and is skipped		NEITHER -ADD- NOR -MOVE- PRECEDES -CORRESPONDING-
 64,00	C3	enforced	procedure parser	B.2 sections/control flow	test/procedure_parser_test.dart: END with no open section draws 64; unclosed draws 66		CANNOT -END- SECTION WHEN NONE ARE OPEN.
@@ -100,14 +100,14 @@ id	class	disposition	component	b2	test	note	text
 98,00	C2	reserved	name resolution	B.2 DO/functions/subscripting		M3 (array description checks)	CHECK DATA DESCRIPTION OF ARRAY OF ELEMENTS, 'NAME.1'.
 99,00	C4	reserved	code generator	B.2 sections/control flow		M4 (program-continuity checks)	PROBABLE PROGRAM CONTINUITY ERROR. PROGRAM FLOWS INTO STATEMENT OR SECTION\n                    'NAME.1' ADDRESSED BY A -DO-.
 100,00	C2	enforced	card reader and lexer	B.2 numeric limits	test/data_lexer_test.dart: an over-long pictorial draws 100,00		DATA DESCRIPTION CONTAINS PICTORIAL WHICH EXCEEDS LEGAL LIMIT OF 30 CHARACTERS.
-101,00	C2	reserved	name resolution	B.2 names		M3 (qualification)	'NAME.1' IS AN IMPROPERLY QUALIFIED NAME.
+101,00	C2	enforced	name resolution	B.2 names	test/resolver_test.dart: a declared name with a wrong qualifier chain draws	M3 stage 2 (M3-17 triage; D4.13 synonym qualification)	'NAME.1' IS AN IMPROPERLY QUALIFIED NAME.
 102,00	C3	enforced	data description	B.2 data description	test/data_mapper_test.dart: QUANTITY IN naming an alphameric field draws 102,00	M3 (QUANTITY IN typing)	NAME OF NUMERIC TYPE MUST FOLLOW -QUANTITY IN-.\n                    'NAME.1' IS ALPHABETIC TYPE.
 103,00	C3	enforced	data description	B.2 data description	test/data_mapper_test.dart: a LABEL entry with a Quantity draws 103,00	M3 (QUANTITY item typing)	DATA NAME HAVING -RECORD-, -COND-, -REDEF- OR -LABEL- CANNOT BE -QUANTITY- ITEM.
 104,00	C1	enforced	data description	B.2 data description	test/data_mapper_test.dart: a REDEF between nonformat and format levels draws 104,00	M3; criterion attested, severity ours (D9.11)	-REDEF- OR -LABEL- OCCURRING BETWEEN NONFORMAT AND FORMAT DESCRIBED\n                    LEVELS MAY AFFECT POSITIONING ADVERSELY.
 105,00	C3	enforced	data description	B.2 data description	test/data_mapper_test.dart: a count field after its variable field draws 105,00	M3 (QUANTITY/variable-field order)	-QUANTITY- ITEM 'NAME.1' CANNOT FOLLOW VARIABLE FIELD WHICH\n                    DEPENDS ON THE -QUANTITY- ITEM ITSELF.
 106,00	C2	enforced	procedure parser	B.2 environment description	test/procedure_parser_test.dart: the AT END slot accepts a bare name; junk draws 106 (D6.6)		STATEMENT OR SECTION NAME MUST FOLLOW -AT END-. CHECK 'NAME.1'.
 107,00	C3	enforced	procedure parser	B.2 conditionals	test/expression_parser_test.dart: a hybrid relation spelling draws 107 (M2-17)		ILLEGAL COMPARISON STRUCTURE.
-108,00	C4	reserved	name resolution	B.2 names		M3 (undefined symbols)	'NAME.1' IS AN UNDEFINED SYMBOL.
+108,00	C4	enforced	name resolution	B.2 names	test/resolver_test.dart: a reference declared nowhere draws 108,00	M3 stage 2 (M3-17 triage)	'NAME.1' IS AN UNDEFINED SYMBOL.
 109,00	C5	reserved	internal-error reporting	B.2 self-diagnostics		subscript-resolution assertion (D9.15 group a)	PROCESSOR UNABLE TO FIND VARIABLE USED AS SUBSCRIPT. POSSIBLE COMPILER ERROR.
 110,00	C4	enforced	data description, procedure parser	no B.2 row	test/data_parser_test.dart: a COPY entry parses its target and draws 110	no B.2 row: (J 90.01.02) with (J 90.01.03 b.i); D9.8	-COPY- AND -LIBRARY- ARE NOT YET HANDLED BY SYSTEM.
 111,00	C2	reserved	input/output binder	B.2 environment description		M3 (FIND LENGTH IN formats)	'NAME.1' HAS IMPROPER DATA FORMAT FOR THIS USE IN THE\n                    -FIND LENGTH IN- OPTION.
@@ -141,7 +141,7 @@ id	class	disposition	component	b2	test	note	text
 139,00	C3	enforced	procedure parser	B.2 environment description	test/procedure_parser_test.dart: OPEN without a file name draws 139		FILE NAME SHOULD FOLLOW -OPEN-.
 140,00	C5	unreachable	none	B.2 self-diagnostics		internal text synchronization failure; media/hardware failure, unreachable by construction in a Dart implementation (D9.15 group b)	INTERNAL TEXT SYNCHRONIZATION FAILURE. DUBIOUS COMPILATION.
 141,00	C1	enforced	procedure parser	B.2 sections/control flow	test/procedure_parser_test.dart: PROGRAM.START: a duplicate draws 141; a DO on it draws 143		MORE THAN ONE -PROGRAM.START-. FIRST USED.
-142,00	C4	reserved	name resolution	B.2 sections/control flow		M3 (PROGRAM.START target check, D2.1)	-PROGRAM.START- MUST BE A STATEMENT OR SECTION NAME.
+142,00	C4	enforced	name resolution	B.2 sections/control flow	test/resolver_test.dart: PROGRAM.START as a data name draws 142,00	M3 stage 2 (M3-17; D2.1)	-PROGRAM.START- MUST BE A STATEMENT OR SECTION NAME.
 143,00	C4	enforced	procedure parser	B.2 sections/control flow	test/procedure_parser_test.dart: PROGRAM.START: a duplicate draws 141; a DO on it draws 143		-PROGRAM.START- CANNOT BE A STATEMENT OR SECTION NAME ADDRESSED BY A -DO-.
 144,00	C3	enforced	card reader and lexer	B.2 environment description	test/environment_lexer_test.dart: a first card without a legal type is deleted with 144,00		ILLEGAL ENVIRONMENT CARD TYPE.
 145,00	C3	reserved	CRYPT assembler	B.2 CRYPT		M4	MISSING ADDRESS.
@@ -151,7 +151,7 @@ id	class	disposition	component	b2	test	note	text
 149,00	C5	enforced	procedure parser	B.2 capacity overflow	test/procedure_parser_test.dart: the 36th section stops compilation with one 149 (D9.1)	35-section cap hard-enforced (D9.7); severity C5 stops the compile	NUMBER OF SECTIONS IN PROGRAM EXCEEDS INTERNAL TABLE CAPACITY.
 150,00	C2	enforced	card reader and lexer	B.2 numeric limits	test/procedure_lexer_test.dart: an over-long literal draws 150,00		ALPHABETIC LITERAL EXCEEDS 50 CHARACTERS.
 151,00	C4	reserved	CRYPT assembler	B.2 CRYPT		M4 (VFD deferred, D9.8)	VFD IS NOT YET HANDLED BY SYSTEM.
-152,00	C1	reserved	name resolution	B.2 names		M3 (key-word list 3, M2-7)	'NAME.1' SHOULD NOT BE USED AS DATA NAME.
+152,00	C1	enforced	name resolution	B.2 names	test/resolver_test.dart: a name equal to a used list-3 word draws 152,00	M3 stage 2 (M3-17; key-word list 3, M2-7)	'NAME.1' SHOULD NOT BE USED AS DATA NAME.
 153,00	C3	enforced	environment description	B.2 environment description	test/environment_parser_test.dart: an out-of-range ACTIVITY integer draws the 153,00 fallback	fallback for SPECIF faults with no dedicated message (D10.1)	-SPECIF- CARD FORMAT ERROR.
 154,00	C3	enforced	environment description	B.2 environment description	test/environment_parser_test.dart: a literal first item draws 154,00		FILE NAME MUST BE FIRST ITEM IN VARIABLE FIELD.
 155,00	C2	enforced	environment description	B.2 environment description	test/environment_parser_test.dart: UNIT1 with no following literal draws 155,00		ALPHAMERIC LITERAL MUST FOLLOW -UNIT-.
@@ -165,7 +165,7 @@ id	class	disposition	component	b2	test	note	text
 163,00	C2	enforced	environment description	B.2 environment description	test/environment_parser_test.dart: every issued message id has a severity row (Diagnostic.severity)		NUMERIC INTEGER MUST FOLLOW -BUFFERCOUNT-.
 164,00	C3	enforced	environment description	B.2 environment description	test/environment_parser_test.dart: every issued message id has a severity row (Diagnostic.severity)		-GROUP- CARD FORMAT ERROR.
 165,00	C2	enforced	environment description	B.2 environment description	test/environment_parser_test.dart: GROUP OPENCOUNT with no following integer draws 165,00		NUMERIC INTEGER MUST FOLLOW -OPENCOUNT-.
-166,00	C3	reserved	name resolution	B.2 names		M3 (uniqueness within a section)	'NAME.1' IS NOT UNIQUE IN THIS SECTION.
+166,00	C3	enforced	name resolution	B.2 names	test/resolver_test.dart: an ambiguous reference draws 166,00	M3 stage 2 (M3-17 triage and definition scopes; D2.5; D4.13)	'NAME.1' IS NOT UNIQUE IN THIS SECTION.
 167,00	C2	enforced	card reader and lexer	B.2 lexical/card-format	test/environment_lexer_test.dart: an unclosed literal draws 167,00		SECOND QUOTE MARK MISSING.
 168,00	C2	enforced	card reader and lexer	B.2 lexical/card-format	test/procedure_lexer_test.dart: an unclosed literal draws 168,00		ALPHABETIC LITERAL EXTENDS ACROSS CARDS.
 169,00	C4	reserved	code generator	B.2 sections/control flow		M4 (program-continuity checks)	PROBABLE PROGRAM CONTINUITY ERROR. PROGRAM FLOWS INTO GENERATED CONSTANTS.
@@ -184,19 +184,19 @@ id	class	disposition	component	b2	test	note	text
 182,00	C2	reserved	name resolution	B.2 MOVE/ADD/SET/arithmetic		M3 (data-format checks)	IMPROPER DATA FORMAT.
 183,00	C5	reserved	name resolution	B.2 capacity overflow		M3 (index expression table, D9.7)	NUMBER OF SUBSCRIPT EXPRESSIONS USED EXCEEDS INTERNAL TABLE CAPACITY.
 184,00	C5	reserved	name resolution	B.2 capacity overflow		M3 (positional indicator table, D9.7)	NUMBER OF SUBSCRIPTED NAMES USED EXCEEDS INTERNAL TABLE CAPACITY.
-185,00	C2	reserved	data description	B.2 data description		M3 (pictorial content classification)	DATA DESCRIPTION PICTORIAL ERROR.
+185,00	C2	enforced	data description	B.2 data description	test/resolver_test.dart: an unresolvable stray name draws 185,00	M3 stage 2 (M3-17 stray names and extras, J 02.05.06 e)	DATA DESCRIPTION PICTORIAL ERROR.
 186,00	C1	enforced	card reader and lexer	B.2 lexical/card-format	test/environment_lexer_test.dart: type content on a continuation card draws 186,00		DATA OR ENVIRONMENT FIXED FIELD INFORMATION SHOULD BE PUNCHED IN ONLY THE FIRST CARD\n                    OF A MULTIPLE CARD GROUP. POSSIBLE CONTINUATION CHARACTER ERROR.
 187,00	C3	reserved	code generator	B.2 conditionals		M4 (conditional test capacity); garbled tail preserved (D9.6)	CONDITIONAL EXPRESSION TEST CAPACITY EXCEEDED.\n                    REWRITE AS TWO OR MORE SEPARATE EXPRESSIONS, EACH WITH
 188,00	C3	reserved	name resolution	B.2 sections/control flow		M3 (DO target check)	'NAME.1', ADDRESSED BY A -DO-, IS NEITHER A STATEMENT NOR A SECTION NAME.
 189,00	C1	enforced	card reader and lexer	B.2 data description	test/data_lexer_test.dart: illegal mode and justification characters draw 189,00/190,00		EXTERNAL MODE SUBSTITUTED FOR ILLEGAL MODE CHARACTER.
 190,00	C1	enforced	card reader and lexer	B.2 data description	test/data_lexer_test.dart: illegal mode and justification characters draw 189,00/190,00		FIELD IS NOT JUSTIFIED BECAUSE OF ILLEGAL JUSTIFICATION CHARACTER.
-191,00	C4	reserved	name resolution	B.2 names		M3 (definition checks)	'NAME.1' IS NOT PROPERLY DEFINED.
+191,00	C4	enforced	name resolution	B.2 names	test/resolver_test.dart: SET of a non-condition draws 191,00	M3 stage 2 (M3-17; M3-19)	'NAME.1' IS NOT PROPERLY DEFINED.
 192,00	C3	enforced	procedure parser	B.2 lexical/card-format	test/procedure_parser_test.dart: ON OVERFLOW with more than one result draws 192 (F p. 44)	also used for key-word misuse with no attested message (D1.5)	SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD.
 193,00	C4	enforced	environment description	B.2 numeric limits	test/environment_parser_test.dart: the 64th FILE card draws 193,00 across groups (D10.8)	program-wide tally across environment groups (J 90.01.04; D10.8)	LIMIT OF 63 FILES EXCEEDED.
 194,00	C3	enforced	card reader and lexer	B.2 data description	test/data_lexer_test.dart: a named entry without a level draws 194,00; unnamed does not		DATA NAME LACKS LEVEL.
 195,00	C3	reserved	input/output binder	B.2 environment description		M3 (record/file consistency); NAME.2 prints before NAME.1 (msgs 5, 195)	CANNOT FILE RECORD 'NAME.2' IN THIS FILE,\n                    'NAME.1', BECAUSE ENVIRONMENT FILE CARD LACKS THIS RECORD NAME.
 196,00	C3	enforced	procedure parser	B.2 lexical/card-format	test/procedure_parser_test.dart: IF without THEN draws 196 and deletes		ILLEGAL SENTENCE STRUCTURE NOTHING DONE.
-197,00	C4	reserved	data description	B.2 data description		M3 (record-name precedence)	RECORD NAME MUST PRECEDE DESCRIPTION OF RECORD.
+197,00	C4	enforced	data description	B.2 data description	test/resolver_test.dart: a RECORD entry after leading description draws 197,00	M3 stage 2 (M3-17 record precedence; reading ours)	RECORD NAME MUST PRECEDE DESCRIPTION OF RECORD.
 198,00	C1	reserved	input/output binder	B.2 environment description		M3 (record/file consistency)	NO RECORDS PROCESSED IN FILE 'NAME.1'
 199,00	C1	reserved	code generator	B.2 MOVE/ADD/SET/arithmetic		M4 (scaling analysis)	UPSCALE MAY CAUSE HIGH ORDER TRUNCATION FOR STORE INTO 'NAME.1'
 200,00	C5	reserved	data description	B.2 capacity overflow		M3 (variable-length field table, D9.7)	NUMBER OF VARIABLE LENGTH FIELDS EXCEEDS INTERNAL TABLE CAPACITY.
@@ -245,3 +245,6 @@ id	class	disposition	component	b2	test	note	text
 933,00	C1	enforced	data description	ours (D9.7)	test/data_mapper_test.dart: --pedantic notes the mixed-pictorial downgrade with 933,00	M3 stage 1; --pedantic only (M3-13: the J 90.01.03 silent downgrade)	MIXED ALPHABETIC AND NUMERIC PICTORIAL IS TREATED AS ALPHAMERIC. (NON-HISTORICAL.)
 934,00	C1	enforced	data description	ours (D9.7)	test/data_mapper_test.dart: --pedantic notes a Quantity on an unnamed entry with	M3 stage 1; --pedantic only (M3-13: Open Question 18)	-QUANTITY- ON AN UNNAMED ENTRY WITHOUT NAMED SUBORDINATES. ACCEPTED. (NON-HISTORICAL.)
 935,00	C1	enforced	data description	ours (D9.7)	test/data_mapper_test.dart: --pedantic notes an ineffective R with 935,00	M3 stage 1; --pedantic only (M3-13: D3.5, the formatless-leaf case msg 39 does not cover)	RIGHT JUSTIFICATION IGNORED FOR A FIELD WITHOUT AN EXPLICITLY DESCRIBED FORMAT. (NON-HISTORICAL.)
+936,00	C2	enforced	name resolution	ours (D9.7)	test/resolver_test.dart: a subscripted old.name draws 936,00	M3 stage 2 (M3-21: no attested id, J 90.01.01)	SUBSCRIPT CANNOT BE USED IN THE OLD NAME OF A -CALL-. PAIR DROPPED. (NON-HISTORICAL.)
+942,00	C5	enforced	name resolution	ours (D9.7)	test/resolver_test.dart: the 3501st name draws 942,00	M3 stage 2 (M3-21: D9.7's message-less dictionary limit, J 90.01.05 a)	NUMBER OF NAMES EXCEEDS THE 3500 NAME DICTIONARY CAPACITY. (NON-HISTORICAL.)
+945,00	C1	enforced	name resolution	ours (D9.7)	test/resolver_test.dart: --pedantic notes a record.name old.name with 945,00	M3 stage 2; --pedantic only (M3-21: D4.13's deferred note)	A RECORD NAME IS USED AS THE OLD NAME OF A -CALL-. ACCEPTED. (NON-HISTORICAL.)

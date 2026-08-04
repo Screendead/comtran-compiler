@@ -25,7 +25,7 @@ void main() {
           '      *FINISH',
           r'$CMPLE JOBB',
           '      *PROCEDURE',
-          '            MOVE X TO Y.',
+          "            DISPLAY 'HI'.",
           '            STOP RUN.',
           '      *FINISH',
         ]),

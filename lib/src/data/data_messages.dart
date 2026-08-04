@@ -41,6 +41,12 @@ final Message msgBinaryDataOnBcdTape = messageCatalog['20,00']!;
 /// (J 02.06.08).
 final Message msgNameIsNotFile = messageCatalog['21,00']!;
 
+/// `25,00` — an operand whose data format is improper for its use: a
+/// condition or environment name at a data site, a non-condition where
+/// only a condition may stand (M3-17), or an alphameric-class operand
+/// inside a true arithmetic expression (M3-21).
+final Message msgImproperFormatForUse = messageCatalog['25,00']!;
+
 /// `32,00` — a mode-versus-pictorial conflict the J 02.05.05 chart
 /// does not define: edit characters or FF under the wrong mode, an
 /// overpunch under mode I. The pictorial's format is used (M3-4).
@@ -68,6 +74,11 @@ final Message msgNumericLengthExceededInField = messageCatalog['35,00']!;
 /// appear below one (J 02.05.06). The subordinate entries are
 /// dropped from storage.
 final Message msgFormatLevelSubOrganization = messageCatalog['36,00']!;
+
+/// `37,00` — a COND entry under a variable without an explicitly
+/// described format, or a COND constant that cannot match the
+/// variable's format (J 02.05.02; M3-17).
+final Message msgConditionalVariableFormat = messageCatalog['37,00']!;
 
 /// `38,00` — a COND entry carrying a Quantity: a condition names a
 /// value, never storage (F pp. 71–72).
@@ -146,6 +157,10 @@ final Message msgAlphabeticConstantConflict = messageCatalog['59,00']!;
 /// `60,00` — a `(0)` repetition count, replaced by one.
 final Message msgZeroCountInPictorial = messageCatalog['60,00']!;
 
+/// `61,00` — a statement label or section name that is a J key word:
+/// an operation found in the name field (M3-17).
+final Message msgOperationAsName = messageCatalog['61,00']!;
+
 /// `67,00` — a non-numeric character in a numeric field's constant.
 final Message msgNonNumericInNumericField = messageCatalog['67,00']!;
 
@@ -157,6 +172,11 @@ final Message msgRedefJustificationConflict = messageCatalog['80,00']!;
 /// redefined item's (J 02.05.02: "must have the same level
 /// number").
 final Message msgRedefLevelConflict = messageCatalog['81,00']!;
+
+/// `101,00` — a reference whose final word is declared but whose
+/// qualifier chain matches no declaration, or a qualified reference
+/// ending in a CALL synonym (M3-17; D4.13).
+final Message msgImproperlyQualified = messageCatalog['101,00']!;
 
 /// `102,00` — a QUANTITY IN name that resolves to a non-numeric
 /// field.
@@ -176,9 +196,42 @@ final Message msgRedefBetweenLevels = messageCatalog['104,00']!;
 /// field that depends on it.
 final Message msgQuantityItemFollowsVariable = messageCatalog['105,00']!;
 
+/// `108,00` — a reference whose final word is declared nowhere
+/// (M3-17).
+final Message msgUndefinedSymbol = messageCatalog['108,00']!;
+
 /// `133,00` — a repetition count with no closing right parenthesis;
 /// the digits through the end of the run are read as the count.
 final Message msgNoRightParenthesis = messageCatalog['133,00']!;
+
+/// `142,00` — PROGRAM.START declared as a data, environment, or
+/// synonym name; it may only label a statement or section (D2.1).
+final Message msgProgramStartMisdeclared = messageCatalog['142,00']!;
+
+/// `152,00` — a name equal to a list-3 key word that an environment
+/// card of the job uses (J 02.03.03; M2-7; M3-17). The name stands.
+final Message msgListThreeWordAsName = messageCatalog['152,00']!;
+
+/// `166,00` — a name that resolution cannot make unique: an ambiguous
+/// reference, a duplicate label within one section scope, a duplicate
+/// RECORD name, a CALL old.name naming more than one field, or a
+/// synonym equal to an existing name (M3-17; D2.5; D4.13).
+final Message msgNameNotUnique = messageCatalog['166,00']!;
+
+/// `185,00` — a description run read as a name that is not a data,
+/// key, or procedure name (J 02.05.06 e), or description tokens no
+/// clause claimed (M3-17).
+final Message msgPictorialError = messageCatalog['185,00']!;
+
+/// `191,00` — a name improper for its defining use: a SET of a name
+/// that is no settable condition, or a function reference to a name no
+/// GIVING clause lists (M3-17; M3-19).
+final Message msgNotProperlyDefined = messageCatalog['191,00']!;
+
+/// `197,00` — a RECORD entry after a higher-numbered top-level entry
+/// in the same portion: description punched before its record name
+/// (M3-17).
+final Message msgRecordNameMustPrecede = messageCatalog['197,00']!;
 
 /// `209,00` — an input card file's BLOCKSIZE under the stated
 /// 24-word minimum (J 02.06.04); 24 is used. The catalog text ends
@@ -235,4 +288,28 @@ const Message msgIneffectiveRightJustification = Message.ours(
   '935,00',
   'RIGHT JUSTIFICATION IGNORED FOR A FIELD WITHOUT AN EXPLICITLY '
       'DESCRIBED FORMAT. (NON-HISTORICAL.)',
+);
+
+/// Ours — a subscripted CALL old.name; the pair is dropped
+/// (J 90.01.01; D4.13; M3-21).
+const Message msgCallOldNameSubscripted = Message.ours(
+  '936,00',
+  'SUBSCRIPT CANNOT BE USED IN THE OLD NAME OF A -CALL-. '
+      'PAIR DROPPED. (NON-HISTORICAL.)',
+);
+
+/// Ours — the dictionary past D9.7's message-less 3500-name limit
+/// (J 90.01.05 item a; M3-21).
+const Message msgDictionaryCapacity = Message.ours(
+  '942,00',
+  'NUMBER OF NAMES EXCEEDS THE 3500 NAME DICTIONARY CAPACITY. '
+      '(NON-HISTORICAL.)',
+);
+
+/// Ours — `--pedantic` only: a record.name as a CALL old.name, which
+/// J advises against (J 02.04.05; D4.13; M3-21).
+const Message msgCallOldNameIsRecord = Message.ours(
+  '945,00',
+  'A RECORD NAME IS USED AS THE OLD NAME OF A -CALL-. ACCEPTED. '
+      '(NON-HISTORICAL.)',
 );

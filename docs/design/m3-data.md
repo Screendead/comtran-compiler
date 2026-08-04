@@ -707,11 +707,14 @@ starts from a fully resolved program and generates code only.
     938 GROUP buffer count below OPENCOUNT, raised, C1. 939 GROUP names
     no pool first, C3. 940 LABEL area over 14 words, C4. 941 field
     after a variable-length array, C4. 942 dictionary over 3500 names,
-    C5. 943 sections nested over 18, C5 — 942 and 943 are D9.7's two
-    message-less limits. Pedantic-only, D11.4 pattern, all C1: 944
-    doubtful figurative move accepted (D4.11), 945 CORRESPONDING names
-    that match nothing (D4.12), 946 record.name as CALL old.name
-    (D4.13).
+    C5 — D9.7's message-less dictionary limit. Pedantic-only, D11.4
+    pattern, all C1: 943 doubtful figurative move accepted (D4.11),
+    944 CORRESPONDING names that match nothing (D4.12), 945
+    record.name as CALL old.name (D4.13).
+    *Amended 2026-08-04 (build): this entry first gave D9.7's other
+    message-less limit — section nesting over 18 — an id here. The
+    parser's msg 915 has enforced it since M2, so no stage-2 id
+    exists and the three pedantic notes moved down one.*
   - **Msg 33 adopted (amends M3-5's open).** An overpunch on a digit
     other than 8 or 9 sits outside the chart's rightmost-character
     lists; it draws msg 33 and the measured format stands.
@@ -739,7 +742,8 @@ starts from a fully resolved program and generates code only.
   - **Capacity homes (M3-12; D9.7).** In the mapper walk: msg 200 at the
     26th QUANTITY IN, 201 at the 24th hierarchy level, 203 at the 86th
     array dimension, 204 at the 36th distinct edited format. In the
-    resolver: 183, 184, 942, 943, and msg 177's sentence table. In the
+    resolver: 183, 184, 942, and msg 177's sentence table; the
+    section-nesting limit stays the parser's msg 915 (M2). In the
     binder: 202. The non-historical `--no-table-limits` switch lifts
     the D9.7 counters only; the D3.1 caps and msg 34's clamp stand.
 

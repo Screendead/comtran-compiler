@@ -704,4 +704,12 @@ const Map<String, int> messageSeverities = {
   // C1 (ours, --pedantic only, M3-13): the ineffective R is ignored
   // as attested; advisory.
   '935,00': 1,
+  // C2 (ours, D4.13; M3-21): the CALL pair is dropped - operand-level
+  // loss.
+  '936,00': 2,
+  // C5 (ours, D9.7; M3-21): the dictionary capacity - unrecoverable.
+  '942,00': 5,
+  // C1 (ours, --pedantic only, D4.13; M3-21): the CALL is accepted
+  // unchanged; advisory.
+  '945,00': 1,
 };
