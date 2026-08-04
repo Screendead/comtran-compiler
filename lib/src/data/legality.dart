@@ -22,7 +22,7 @@ import 'resolver.dart';
 enum OperandClass { alphameric, numeric, unknown }
 
 /// Checks every procedure clause against the J 02.04 legality tables.
-final class LegalityChecker extends ClauseWalk {
+final class LegalityChecker extends ClauseWalk with OperandWalk {
   LegalityChecker(
     super.diagnostics,
     this.mapper,
@@ -50,18 +50,18 @@ final class LegalityChecker extends ClauseWalk {
   void _checkClause(Clause clause) {
     switch (clause) {
       case IfClause(:final condition):
-        _checkCondition(condition);
+        walkCond(condition);
       case MoveClause(:final source, :final targets, :final corresponding):
         if (corresponding) {
           _checkCorresponding(clause, source, targets, add: false);
           return;
         }
-        _checkArith(source, inArithmetic: false);
+        walkExpr(source);
         for (final target in targets) {
           _checkMove(source, target);
         }
       case SetClause(:final targets, :final value):
-        _checkArith(value, inArithmetic: false);
+        walkExpr(value);
         if (value is FigurativeOperand) {
           // The chart governs "MOVEing and SETting figurative constants"
           // alike (J 02.04.02).
@@ -74,7 +74,7 @@ final class LegalityChecker extends ClauseWalk {
           _checkCorresponding(clause, source, targets, add: true);
           return;
         }
-        _checkArith(source, inArithmetic: false);
+        walkExpr(source);
         _checkAddOperand(_classOf(source), _nameOf(source), source.anchor);
         for (final target in targets) {
           _checkAddOperand(_classOfRef(target), target.text, target.anchor);
@@ -83,21 +83,19 @@ final class LegalityChecker extends ClauseWalk {
         for (final target in targets) {
           final CondExpr? when = target.when;
           if (when != null) {
-            _checkCondition(when);
+            walkCond(when);
           }
         }
       case DoClause(:final exactlyTimes, :final indices, :final usingArguments):
         if (exactlyTimes != null) {
-          _checkArith(exactlyTimes, inArithmetic: false);
+          walkExpr(exactlyTimes);
         }
         for (final index in indices) {
-          _checkArith(index.from, inArithmetic: false);
-          _checkArith(index.by, inArithmetic: false);
-          _checkArith(index.to, inArithmetic: false);
+          walkExpr(index.from);
+          walkExpr(index.by);
+          walkExpr(index.to);
         }
-        for (final argument in usingArguments) {
-          _checkArith(argument, inArithmetic: false);
-        }
+        usingArguments.forEach(walkExpr);
       case SetConditionClause() ||
           DisplayClause() ||
           BeginSectionClause() ||
@@ -146,14 +144,17 @@ final class LegalityChecker extends ClauseWalk {
       return;
     }
     final Token at = target.anchor;
-    if (target.subscripts.isEmpty && _isVariableLength(item)) {
+    final bool element = target.subscripts.isNotEmpty;
+    if (!element && _isVariableLength(item)) {
       // The whole variable array is barred; one element of it is not
       // (J 02.04.01 c-i).
       report(msgFigurativeToVariableField, at);
       return;
     }
-    if (sem.extentChars > 32766) {
-      // The implemented maximum, against J's prose 2^15 - 1 (D4.6).
+    if ((element ? sem.storageChars : sem.extentChars) > 32766) {
+      // The implemented maximum, against J's prose 2^15 - 1 (D4.6). A
+      // subscript names one occurrence, so the length restriction
+      // measures that occurrence (J 02.04.01 c-ii).
       report(msgFigurativeToLongField, at);
       return;
     }
@@ -290,47 +291,24 @@ final class LegalityChecker extends ClauseWalk {
   /// name, literal, or figurative is a copy, not an expression: "the
   /// result field may be alphameric ... since no arithmetic expression
   /// is specified" (J 02.04.05 §6).
-  void _checkArith(ArithExpr expr, {required bool inArithmetic}) {
-    switch (expr) {
-      case NameOperand(:final name):
-        if (inArithmetic && _classOfRef(name) == OperandClass.alphameric) {
-          report(msgImproperFormatForUse, name.anchor, operands: [name.text]);
-        }
-      case BinaryExpr(:final left, :final right):
-        _checkArith(left, inArithmetic: true);
-        _checkArith(right, inArithmetic: true);
-      case UnaryExpr(:final operand):
-        _checkArith(operand, inArithmetic: true);
-      case TruthExpr(:final condition):
-        _checkCondition(condition);
-      case LiteralOperand() || FigurativeOperand() || FunctionCall():
-        break;
+  @override
+  void visitName(NameReference name, {required bool inArithmetic}) {
+    if (inArithmetic && _classOfRef(name) == OperandClass.alphameric) {
+      report(msgImproperFormatForUse, name.anchor, operands: [name.text]);
     }
   }
 
   // ── Comparisons (J 02.04.07) ─────────────────────────────────────
 
-  void _checkCondition(CondExpr condition) {
-    switch (condition) {
-      case Relation(:final left, :final right):
-        _checkArith(left, inArithmetic: false);
-        _checkArith(right, inArithmetic: false);
-        _checkComparand(left);
-        _checkComparand(right);
-        _checkFigurativeComparison(left, right);
-        _checkFigurativeComparison(right, left);
-        _checkComparisonClasses(left, right);
-      case AndExpr(:final left, :final right):
-        _checkCondition(left);
-        _checkCondition(right);
-      case OrExpr(:final left, :final right):
-        _checkCondition(left);
-        _checkCondition(right);
-      case NotExpr(:final operand):
-        _checkCondition(operand);
-      case ConditionReference():
-        break;
-    }
+  @override
+  void visitRelation(Relation relation) {
+    final ArithExpr left = relation.left;
+    final ArithExpr right = relation.right;
+    _checkComparand(left);
+    _checkComparand(right);
+    _checkFigurativeComparison(left, right);
+    _checkFigurativeComparison(right, left);
+    _checkComparisonClasses(left, right);
   }
 
   void _checkComparand(ArithExpr operand) {
@@ -420,13 +398,8 @@ final class LegalityChecker extends ClauseWalk {
 
   /// The reference that names [item] in full, general to specific — a
   /// CORRESPONDING pair has no written form to quote.
-  String _qualifiedName(DataItem item) {
-    final words = <String>[];
-    for (DataItem? each = item; each != null; each = each.parent) {
-      if (each.entry.name.isNotEmpty && !each.nameDiscarded) {
-        words.insert(0, each.entry.name);
-      }
-    }
-    return words.join(' ');
-  }
+  String _qualifiedName(DataItem item) => [
+    for (final DataItem each in ancestorsOf(item))
+      if (each.entry.name.isNotEmpty && !each.nameDiscarded) each.entry.name,
+  ].reversed.join(' ');
 }

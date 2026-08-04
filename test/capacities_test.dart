@@ -8,16 +8,6 @@ import 'package:test/test.dart';
 
 import 'support/deck_fixtures.dart';
 
-SemanticResult _map(List<String> data, {bool tableLimits = true}) {
-  final lines = ['      *DATA', ...data];
-  final List<CardImage> deck = mirrorToDeck('${lines.join('\n')}\n');
-  return runSemantics(runParser(runFrontEnd(deck)), tableLimits: tableLimits);
-}
-
-List<String> _ids(SemanticResult result) => [
-  for (final Diagnostic d in result.semanticDiagnostics) d.message.number,
-];
-
 /// [entries] variable-length fields, each with its own count field.
 List<String> _variableFields(int entries) => [
   for (var i = 0; i < entries; i++) ...[
@@ -53,40 +43,42 @@ List<String> _editedFormats(int entries) => [
 void main() {
   group('the capacity counters (M3-12; D9.7)', () {
     test('the 26th QUANTITY IN draws 200,00 and stops', () {
-      final SemanticResult result = _map(_variableFields(26));
-      expect(_ids(result), ['200,00']);
+      final SemanticResult result = runJob(data: _variableFields(26));
+      expect(ids(result), ['200,00']);
       expect(result.stopped, isTrue);
-      expect(_ids(_map(_variableFields(25))), isEmpty);
+      expect(ids(runJob(data: _variableFields(25))), isEmpty);
     });
 
     test('the 24th hierarchy level draws 201,00 and names the entry', () {
-      final SemanticResult result = _map(_hierarchy(24));
-      expect(_ids(result), ['201,00']);
+      final SemanticResult result = runJob(data: _hierarchy(24));
+      expect(ids(result), ['201,00']);
       expect(result.stopped, isTrue);
       expect(result.semanticDiagnostics.single.text, contains("'FOOT'"));
-      expect(_ids(_map(_hierarchy(23))), isEmpty);
+      expect(ids(runJob(data: _hierarchy(23))), isEmpty);
     });
 
     test('the 86th array dimension draws 203,00 and stops', () {
-      final SemanticResult result = _map(_arrays(86));
-      expect(_ids(result), ['203,00']);
+      final SemanticResult result = runJob(data: _arrays(86));
+      expect(ids(result), ['203,00']);
       expect(result.stopped, isTrue);
-      expect(_ids(_map(_arrays(85))), isEmpty);
+      expect(ids(runJob(data: _arrays(85))), isEmpty);
     });
 
     test('the 36th distinct edited format draws 204,00 and stops', () {
-      final SemanticResult result = _map(_editedFormats(36));
-      expect(_ids(result), ['204,00']);
+      final SemanticResult result = runJob(data: _editedFormats(36));
+      expect(ids(result), ['204,00']);
       expect(result.stopped, isTrue);
-      expect(_ids(_map(_editedFormats(35))), isEmpty);
+      expect(ids(runJob(data: _editedFormats(35))), isEmpty);
     });
 
     test('a repeated edited format counts once (J 90.01.05 item c)', () {
-      final SemanticResult result = _map([
-        ..._editedFormats(35),
-        dataCard(name: 'AGAIN', level: '1', description: r'$9(1)'),
-      ]);
-      expect(_ids(result), isEmpty);
+      final SemanticResult result = runJob(
+        data: [
+          ..._editedFormats(35),
+          dataCard(name: 'AGAIN', level: '1', description: r'$9(1)'),
+        ],
+      );
+      expect(ids(result), isEmpty);
     });
 
     test('--no-table-limits lifts all four counters', () {
@@ -96,8 +88,8 @@ void main() {
         _arrays(86),
         _editedFormats(36),
       ]) {
-        final SemanticResult lifted = _map(data, tableLimits: false);
-        expect(_ids(lifted), isEmpty);
+        final SemanticResult lifted = runJob(data: data, tableLimits: false);
+        expect(ids(lifted), isEmpty);
         expect(lifted.stopped, isFalse);
       }
     });

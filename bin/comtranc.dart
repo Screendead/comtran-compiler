@@ -15,8 +15,8 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
 
   Compiles every job on the deck ($CMPLE ... *FINISH) and prints one
   compilation listing per job.
-  (M1-M3 stage 1: front end, parser, data mapper — no code generation
-  yet.)
+  (M1-M3 stage 2: front end, parser, data mapper, dictionary, name
+  resolution, and the semantic checks — no code generation yet.)
 
   --date=mm/dd/yy    page-head date (default: today)
   --time=h.hh        page-head time, decimal hours (default: now)

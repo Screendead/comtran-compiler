@@ -126,9 +126,7 @@ final class VerbBinder extends ClauseWalk {
       );
       return;
     }
-    _processed.addAll(
-      record.inputFiles.map((String f) => binder.fileByName[f]!),
-    );
+    _processed.addAll(_filesBinding(record, FileDirection.input));
   }
 
   void _checkGetRecordFrom(NameReference name) {
@@ -158,10 +156,13 @@ final class VerbBinder extends ClauseWalk {
       return true; // Condition b.
     }
     final List<RecordInfo> records = binder.boundRecords[file] ?? const [];
+    // The length compared is the record's own extent: a record REDEF'd
+    // onto another owns no storage space, so the space table holds no
+    // length for it (J 02.07.05 c-iii keeps both records located).
     if (records.length == clauses.length &&
         records.every((RecordInfo r) => !r.variable) &&
         records
-                .map((RecordInfo r) => mapper.rootExtent[r.item])
+                .map((RecordInfo r) => mapper.semantics[r.item]!.extentChars)
                 .toSet()
                 .length ==
             1) {
@@ -216,9 +217,18 @@ final class VerbBinder extends ClauseWalk {
         _reportRecord(msgRecordNotOnOutputFile, clause.record, record.name);
         return;
       }
-      _processed.addAll(
-        record.outputFiles.map((String f) => binder.fileByName[f]!),
-      );
+      final List<FileCard> files = _filesBinding(
+        record,
+        FileDirection.output,
+      ).toList();
+      // "If the record carries the option PRIMARY in one or more of
+      // the output files to which it is associated ... it is only
+      // filed in those files wherein it is so classified"
+      // (J 02.07.07).
+      final List<FileCard> primary = files
+          .where((FileCard file) => _statesPrimary(file, record))
+          .toList();
+      _processed.addAll(primary.isEmpty ? files : primary);
       return;
     }
     final FileCard? file = _file(inFile, absent: msgNameIsNotFile);
@@ -241,6 +251,26 @@ final class VerbBinder extends ClauseWalk {
       );
     }
   }
+
+  /// The [direction] FILE cards whose clauses bound [record]. The
+  /// binding is read back by card identity: a file name reaches no
+  /// card when the card carries none (msg 1) and reaches the wrong one
+  /// when two cards punch the same name.
+  Iterable<FileCard> _filesBinding(
+    RecordInfo record,
+    FileDirection direction,
+  ) => binder.boundRecords.keys.where(
+    (FileCard file) =>
+        file.direction == direction &&
+        binder.boundRecords[file]!.any(
+          (RecordInfo bound) => identical(bound, record),
+        ),
+  );
+
+  bool _statesPrimary(FileCard file, RecordInfo record) => file.records.any(
+    (FileRecordClause clause) =>
+        clause.name.text == record.name && clause.primary,
+  );
 
   /// The record a GET or FILE operand names. Msg 16 speaks for a name
   /// that reaches a file or a plain field; msg 8 for one that reaches
@@ -447,7 +477,7 @@ final class VerbBinder extends ClauseWalk {
     final Set<DataItem> countItems = Set.identity();
     for (final DataItem item in mapper.items) {
       final ItemSemantics sem = mapper.semantics[item]!;
-      final DataItem root = _rootOf(item);
+      final DataItem root = ancestorsOf(item).last;
       if (sem.variableLength) {
         // A refused QUANTITY IN (msg 47) leaves a group, not an array.
         if (sem.fieldClass != FieldClass.group) {
@@ -495,14 +525,6 @@ final class VerbBinder extends ClauseWalk {
       }
     }
     return preceding ?? candidates.firstOrNull;
-  }
-
-  DataItem _rootOf(DataItem item) {
-    var root = item;
-    while (root.parent != null) {
-      root = root.parent!;
-    }
-    return root;
   }
 
   void _countLocatedRecords() {

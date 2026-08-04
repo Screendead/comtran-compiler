@@ -533,17 +533,21 @@ starts from a fully resolved program and generates code only.
   dictionary and the resolver to `lib/src/data/`. The dictionary holds every
   programmer name with its kind, level, position, and encounter number —
   the sequential numbering behind the object listing's `1)C` / `2)C`
-  ([J 90.02.02]). The kinds: data item, record, condition (a data COND
-  entry and an Environment COND card alike), CALL synonym, statement
-  name, section name, and environment name. GN names never enter it
-  (M3-8). A REDEF line's discarded name never enters it (D3.4).
+  ([J 90.02.02]). The kinds: data item, record, data condition (a COND
+  entry), keys condition (an Environment COND card), CALL synonym,
+  statement name, section name, and environment name. The two condition
+  kinds stay apart. A data condition resolves through the data map and
+  takes a dictionary word. A keys condition resolves by name alone and
+  takes none. GN names never enter it (M3-8). A REDEF line's discarded
+  name never enters it (D3.4).
   PROGRAM.START entered as a data or environment name draws msg 142
   (D2.1: it may only label a statement or section).
-  - **Pipeline order (ours).** `runSemantics` runs: mapper → dictionary →
-    CALL pass → environment binder → images → procedure resolution and
-    legality → capacity totals. The CALL pass precedes the binder
-    because CALL exists to give the Environment Description one-word
-    names ([J 02.03.03]).
+  - **Pipeline order (ours).** `runSemantics` runs: mapper → the mapper
+    capacity walk (M3-21) → dictionary → CALL pass → environment binder
+    → images → procedure resolution and legality → the resolver and
+    binder capacity totals, each in its own component. The CALL pass
+    precedes the binder because CALL exists to give the Environment
+    Description one-word names ([J 02.03.03]).
   - **Qualification ([J 02.05.02]–03; [F p. 15]–16).** A reference's words
     run general to specific, blank-separated; intermediate levels may be
     skipped. Matching follows level and position only, REDEF-blind. A
@@ -554,8 +558,10 @@ starts from a fully resolved program and generates code only.
   - **The triage (ours).** One rule set for every data-reference site.
     The last word names nothing anywhere: msg 108. The last word names
     items, but no candidate matches the qualifier chain: msg 101. More
-    than one candidate matches: msg 166. A site-specific row overrides
-    the triage where one is stated (M3-18; M3-20).
+    than one candidate matches: msg 166. The last word names only an
+    environment or procedure name, at a data site: msg 25, a
+    format-less object. A site-specific row overrides the triage where
+    one is stated (M3-18; M3-20).
   - **Procedure names (D2.5).** Two namespaces: program-global for data,
     record, synonym, and environment names; per-section for statement
     labels. A collision within a section's scope draws msg 166 at the
@@ -570,16 +576,17 @@ starts from a fully resolved program and generates code only.
   - **COND binding (M3-9).** A COND entry binds to the nearest preceding
     formatted entry; its constant converts under that field's format,
     and a mismatch draws msg 37. An Environment COND card's name enters
-    the dictionary as a condition name; a test of it is the KEYS test
-    ([J 02.06.17]). Ours: a condition reference that resolves to a
-    non-condition item draws msg 25; an unresolved one draws 108; a
-    `SET condition.name` whose name is not a condition name draws
-    msg 191.
+    the dictionary as a keys condition; an unqualified test of that name
+    is the KEYS test ([J 02.06.17]). Ours: a condition reference that
+    resolves to a non-condition item draws msg 25; an unresolved one
+    draws 108; a `SET condition.name` whose name is not a condition name
+    draws msg 191.
   - **Names that shadow operations (ours).** A statement label or section
-    name equal to any J key word draws msg 61 — the "found in name
-    field" half of its text. A data or procedure name equal to a list-3
-    word that an environment card of the job uses draws msg 152 (M2-7's
-    deferral; the name stands, C1).
+    name equal to a list-1 or list-2 key word draws msg 61 — the "found
+    in name field" half of its text. A list-3 word passes: [J 02.03.03]
+    admits it as a procedure or data name. A data or procedure name
+    equal to a list-3 word that an environment card of the job uses
+    draws msg 152 (M2-7's deferral; the name stands, C1).
   - **The stray description name and `extras` ([J 02.05.06] e).** A
     `targetName` on an entry that is not REDEF or COPY is the
     pictorial-read-as-name case. It must resolve to a data, key, or
@@ -592,15 +599,6 @@ starts from a fully resolved program and generates code only.
     reads as description punched before its record name. Classification
     only; no re-parenting (M3-10).
 
-  *Amended 2026-08-04 (review): msg 61 covers lists 1 and 2 only —
-  [J 02.03.03] admits a list-3 word as a procedure or data name, and
-  msg 152 covers the environment-used case. A fourth triage row
-  (ours): a name that exists only as an environment or procedure name
-  at a data site draws msg 25, a format-less object. The mapper
-  capacity walk (M3-21) runs directly after the mapper; the pipeline's
-  closing "capacity totals" names the resolver and binder counters,
-  which live in their own components.*
-
 ## The I/O verb binding map
 
 - **M3-18. The verb sites (2026-08-04).** The stage-1 binder kept every
@@ -609,8 +607,8 @@ starts from a fully resolved program and generates code only.
 
   | Site | Condition | Id |
   |---|---|---|
-  | GET x / FILE x | x resolves to nothing, or to neither a record nor a file | 8 |
-  | GET x / FILE x | x resolves to a file or a non-record data item | 16 |
+  | GET x / FILE x | x resolves to nothing, a procedure, or a condition | 8 |
+  | GET x / FILE x | x resolves to a file or a non-record data field | 16 |
   | GET x | x is a record on no FILE card | 9 |
   | GET x | x is a record on no input FILE card | 10 |
   | FILE x | x is a record on no output FILE card | 19 |
@@ -636,35 +634,29 @@ starts from a fully resolved program and generates code only.
   name that resolves to nothing draws msg 108 at the card. OPTION's
   section names stay unresolved in stage 2: no M3-tagged row covers
   them, and the leniency default holds where nothing is attested.
+  Msg 198 runs only in a job with at least one GET or FILE verb (ours,
+  scope). A checkpoint file is exempt: its FILE card form names no
+  records ([J 02.06.04]). A GET or FILE operand that is a CALL synonym
+  of a record binds like the record. A FIND or PLACE LENGTH IN name
+  resolves through synonyms first: the CALL pass exists for the
+  Environment Description ([J 02.03.03]).
   - **POOL and GROUP ([J 02.06.13]–14).** A POOL or GROUP variable-field
     file name that resolves to no file draws msg 21. A GROUP whose first
     variable-field item names no pool draws msg 939. A POOL buffer count
     below its file count — or below the total of its groups' buffer
     counts — is raised to the minimum and draws msg 937. A GROUP buffer
     count below its OPENCOUNT is raised and draws msg 938. The repair
-    reading follows msg 209's substitution precedent.
+    reading follows msg 209's substitution precedent. A defaulted GROUP
+    claims its OPENCOUNT against the pool minimum: the loader's doubled
+    count is an attempt with an express fallback ([J 02.06.14]).
   - **LABEL ([J 02.05.03]).** A LABEL-typed entry whose extent exceeds 14
     words draws msg 940.
   - **Variable arrays (M3-11; [J 90.01.04]).** A field described after a
     variable-length array in the same hierarchy draws msg 941 (M3-16
-    records that no attested id exists).
+    records that no attested id exists). Msg 941 yields to an attested
+    id on the same entry: msg 105 on the count field itself, msg 43 on
+    a constant-bearing entry.
   - **Base locators (D9.7).** The 128th located record draws msg 202.
-
-  *Amended 2026-08-04 (stage 2 build): msg 198 runs only in a job with
-  at least one GET or FILE verb (ours, scope). Msg 941 yields to an
-  attested id on the same entry: msg 105 on the count field, msg 43 on
-  a constant-bearing entry.*
-
-  *Amended 2026-08-04 (review): a checkpoint file is exempt from
-  msg 198 — its FILE card form names no records ([J 02.06.04]). A GET or
-  FILE operand that is a CALL synonym of a record binds like the
-  record, and a FIND or PLACE LENGTH IN name resolves through synonyms
-  first: the CALL pass exists for the Environment Description
-  ([J 02.03.03]). A condition name at a GET or FILE site draws msg 8,
-  not 16. A defaulted GROUP claims its OPENCOUNT against the pool
-  minimum — the loader's doubled count is an attempt with an express
-  fallback ([J 02.06.14]). Msg 941 yields to the count field itself, not
-  to its name.*
 
 ## Functions and DO substitution under J
 
@@ -681,17 +673,10 @@ starts from a fully resolved program and generates code only.
   - A DO with USING or GIVING checks its list against the target
     section's declaration: more draws 72 or 74, fewer draws 73 or 75. A
     target that declares none — a plain statement included — has count
-    zero, so any DO list draws 72 or 74 (ours).
-
-  *Amended 2026-08-04 (stage 2 build): the count comparison runs both
-  ways — a bare DO of a section that declares USING or GIVING draws 73
-  or 75, the absent list counting zero (ours).*
-
-  *Corrected 2026-08-04 (review): the both-ways note is withdrawn.
-  [F p. 33] makes each clause optional on the DO — the values already in
-  the parameter or function fields serve — and [F p. 53]'s own expansion
-  models the clauses as MOVEs around a bare DO. A DO checks only the
-  clause it writes.*
+    zero, so any DO list draws 72 or 74 (ours). A DO checks only the
+    clause it writes. Each clause is optional on the DO ([F p. 33]):
+    the values already in the parameter or function fields serve, and
+    [F p. 53]'s expansion models the clauses as MOVEs around a bare DO.
 
 ## Subscript reference checks
 
@@ -713,7 +698,8 @@ starts from a fully resolved program and generates code only.
   A reference with zero subscripts is the whole-array reference and is
   legal. Msg 206's predicate concretizes D9.11: any format other than
   right-justified internal decimal, the form our code generator indexes
-  with directly; the 90.05 sample stays silent.
+  with directly; the 90.05 sample stays silent. The format rows cascade
+  — 71, 79, 31, 206 — for one message per subscript variable (ours).
   - **Counters (D9.7).** Each unique pair of resolved array and flattened
     subscript notation is one positional indicator; the 91st draws
     msg 184. Msg 205 names the same 1962 table, and one event cannot
@@ -724,24 +710,20 @@ starts from a fully resolved program and generates code only.
     section name draws msg 127; a target that resolves to a
     DO-addressed name draws msg 128 (Q40). A DO target likewise
     unresolved draws msg 188; an AT END bare name is a DO (D6.6) and
-    shares 188. An assigned GO TO index of non-numeric class draws
-    msg 129; a numeric index with fraction positions draws msg 130 and
-    the integral part serves.
+    shares 188. A transfer target of three or more words resolves to
+    nothing (D2.5 defines the one- and two-word forms). An assigned
+    GO TO index of non-numeric class draws msg 129; a numeric index
+    with fraction positions draws msg 130 and the integral part serves.
   - **DO indexing ([F p. 49]–53).** A FOR index variable of non-numeric
     class draws msg 76. A named p, q, or r parameter of non-numeric
     class draws msg 77. A literal p, q, or r that is not a whole number
     draws msg 78.
   - **The sentence table (D9.7; Open Question 9).** The per-sentence
     reference table caps at 100 distinct data references, an invented
-    number. The 101st deletes the sentence with msg 177; its text
-    states the recovery.
-
-  *Amended 2026-08-04 (stage 2 build): the format rows cascade — 71,
-  79, 31, 206 — one message per subscript variable (ours). The sentence
-  table keys on the written reference, subscripts excluded (ours). A
-  msg 177 deletion suppresses the sentence's legality and transfer
-  checks too. A transfer target of three or more words resolves to
-  nothing (D2.5 defines one- and two-word forms).*
+    number. It keys on the written reference, subscripts excluded
+    (ours). The 101st deletes the sentence with msg 177; its text
+    states the recovery, and the deletion suppresses the sentence's
+    legality and transfer checks too.
 
 ## Stage-2 message allocations and adopted opens
 
@@ -752,21 +734,20 @@ starts from a fully resolved program and generates code only.
     no pool first, C3. 940 LABEL area over 14 words, C4. 941 field
     after a variable-length array, C4. 942 dictionary over 3500 names,
     C5 — D9.7's message-less dictionary limit. Pedantic-only, D11.4
-    pattern, all C1: 943 doubtful figurative move accepted (D4.11),
-    944 CORRESPONDING names that match nothing (D4.12), 945
-    record.name as CALL old.name (D4.13).
-    *Amended 2026-08-04 (build): this entry first gave D9.7's other
-    message-less limit — section nesting over 18 — an id here. The
-    parser's msg 915 has enforced it since M2, so no stage-2 id
-    exists and the three pedantic notes moved down one.*
+    pattern, all C1: 943 doubtful figurative move accepted (D4.11 as
+    amended), 944 a CORRESPONDING clause that matches no name at all,
+    one note per clause (D4.12 as amended), 945 record.name as CALL
+    old.name (D4.13).
   - **Msg 33 adopted (amends M3-5's open).** An overpunch on a digit
     other than 8 or 9 sits outside the chart's rightmost-character
     lists; it draws msg 33 and the measured format stands.
   - **Msg 53 adopted (amends M3-16's open).** A sign after the leading
-    position of a floating or scientific constant is an incorrect sign
-    usage, not a foreign character. The data converters draw msg 53 in
-    place of msg 54 for it, joining the procedure lexer's reading.
-    Msg 54 keeps the truly foreign characters.
+    position of a floating constant is an incorrect sign usage, not a
+    foreign character. The floating converter draws msg 53 in place of
+    msg 54 for it, joining the procedure lexer's reading. Msg 54 keeps
+    the truly foreign characters. The scientific converter stores its
+    constant unparsed, signs among its legal characters
+    ([J 02.05.05] chart), and stays silent.
   - **Legality ids (M3-10).** An alphameric-class source — alphameric or
     group (D3.3) — moved to a non-alphameric target draws msg 84; an
     illegal CORRESPONDING group pair draws 84 (D4.12); a CORRESPONDING
@@ -782,9 +763,8 @@ starts from a fully resolved program and generates code only.
     A figurative constant moved to a variable-length array draws 180;
     to a field over 32766 characters, 181 (D4.6). The doubtful starred
     BLANK cells — external, edited, internal, floating, and
-    scientific — stay silent in default mode per D4.11's attested
-    silence and draw pedantic 943, the edited cell included (D11.4 as
-    amended).
+    scientific — stay silent in default mode, per the attested silence,
+    and draw pedantic 943, the edited cell included (D4.11 as amended).
   - **Capacity homes (M3-12; D9.7).** In the mapper walk: msg 200 at the
     26th QUANTITY IN, 201 at the 24th hierarchy level, 203 at the 86th
     array dimension, 204 at the 36th distinct edited format. In the
@@ -792,15 +772,14 @@ starts from a fully resolved program and generates code only.
     section-nesting limit stays the parser's msg 915 (M2). In the
     binder: 202. The non-historical `--no-table-limits` switch lifts
     the D9.7 counters only; the D3.1 caps and msg 34's clamp stand.
-
-  *Amended 2026-08-04 (stage 2 build): msg 944 fires once per clause,
-  only when no name matches — text NO -CORRESPONDING- NAMES MATCH.
-  ACCEPTED. (NON-HISTORICAL.) (D4.12 as amended).*
-
-  *Amended 2026-08-04 (review): the misplaced-sign msg 53 lands in the
-  floating converter, where msg 54 drew it before. The scientific
-  converter stores its constant unparsed, signs among its legal
-  characters ([J 02.05.05] chart), and stays silent.*
+  - **What msg 942 counts (ours, a marked departure under D0.4).** The
+    3500-name counter tallies programmer names only. [J 90.01.05] item
+    a) counts "all program names whether defined by the programmer or
+    generated by the Compiler" in that one table. The generated classes
+    are the eight of [J 90.02.03]. Stage 3 allocates the GN names; the
+    other seven classes need code generation. The tally takes all eight
+    at M4. Until then the counter fires late, and a program at the true
+    1962 boundary compiles for us.
 
 ## The storage oracle
 
@@ -893,6 +872,7 @@ the golden rewrite.
 [J 90.01.05]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02.01]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#introduction
 [J 90.02.02]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.03]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.05]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.10]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
 [J 90.02.12]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers

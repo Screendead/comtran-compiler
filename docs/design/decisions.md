@@ -86,7 +86,7 @@ Every other row points at its own record.
 | [D4.8](#d48--multi-result-set) | Multi-result SET | Locked |
 | [D4.9](#d49--edited-source-moved-to-an-alphameric-target) | Edited source moved to an alphameric target | Locked |
 | [D4.10](#d410--abc) | A**B**C | Locked |
-| [D4.11](#d411--move-blanks-into-editedexternal-fields--doubtful-yet-compiles-clean) | MOVE BLANKS into edited/external fields — "doubtful" yet compiles clean | Locked |
+| [D4.11](#d411--move-blanks-into-editedexternal-fields--doubtful-yet-compiles-clean) | MOVE BLANKS into edited/external fields — "doubtful" yet compiles clean | Amended |
 | [D4.12](#d412--corresponding-matching-f-name-only-vs-j-qualifier-chain) | CORRESPONDING matching: F name-only vs J qualifier-chain | Amended |
 | [D4.13](#d413--call-non-unique-oldname-and-qualified-synonyms) | CALL: non-unique old.name and qualified synonyms | Locked |
 | **[D5 — Control flow (§8.5.5)](#d5--control-flow-855)** | | |
@@ -655,7 +655,7 @@ record built on it.*
 
 ### D4.11 — MOVE BLANKS into edited/external fields — "doubtful" yet compiles clean
 
-**Status.** Locked.
+**Status.** Amended.
 **Decision.** MOVE BLANKS to an edited field or to an external-decimal field is accepted and produces blanks. Codegen emits the attested figurative-constant call, not an inline fill: set the target pointer inline (`LDI CP)+nn / STI SYS)133`), enter MOVPAK at `TSX SYS)182,4`, then `TXI SYS)243,1,<target character count>` — SYS)243 being the MOVPAK subroutine that "moves blanks to an alphabetic field" ([J 90.02.25]). No numeric convert is called and no overflow test is emitted. This is attested for edited targets. Statement 205,00, `MOVE BLANKS TO PAYRECORD BONDEDUCTION, PAYRECORD BONDENOMINATION`, compiles to two such sequences with counts 7 and 8 at LOC 00672–00701; the targets are the edited fields `8889.99` and `88889.99`. Statement 220,00 repeats it with count 8 at LOC 01313–01316. Statement 199,00 blanks five alphameric fields the same way, with counts 15, 4, 2, 2, 2 at LOC 00462–00505. A BLANK move to an external-decimal target is not exercised by the sample; our codegen routes it through the same SYS)243 sequence with the target's full character count, which is a design decision under D0.4. In the default mode no message of any kind is produced, so the listing keeps the attested closing line "NO ERRORS WERE DETECTED DURING COMPILATION" (printed without a trailing period). --pedantic emits a non-historical "doubtful usage" warning for these two cases; the warning is excluded from any listing used for listing-diff.
 
 **Rationale.** The chart's note ("An error message is given for each doubtful or illegal usage") cannot be read literally for the starred entries, because the J sample blanks edited fields and still ends with no errors detected; D0.8 makes the attested compiler behavior the default and puts added strictness behind --pedantic. [J 90.04.01] does carry msg 82, "INCORRECT USAGE OF FIGURATIVE CONSTANT.", but the field-test compiler demonstrably does not emit it for BLANK into an edited field, so msg 82 must not be wired to this case.
@@ -664,11 +664,13 @@ record built on it.*
 
 **Oracle.** listing-diff against the object listing ([J 90.05] listing, PDF pp. 204, 206, 211 — the `LDI CP)+nn / STI SYS)133 / TSX SYS)182,4 / TXI SYS)243,1,n` sequences for statements 199,00 (n = 15, 4, 2, 2, 2), 205,00 (n = 7, 8) and 220,00 (n = 8)). The source-program listing (PDF pp. 196–197) is evidence of the absent diagnostic and of the exact closing line only. Decision-conformance only for a BLANK-to-external-decimal target and for the --pedantic warning.
 
+**Amended (M3 stage 2, 2026-08-04).** The Decision's "these two cases" is widened to five. The [J 02.04.02] chart stars every non-alphameric cell of the BLANK row: external decimal, internal decimal, edited, floating point, and scientific decimal. Msg 943,00 fires on all five under `--pedantic`, and the default mode stays silent on all five (M3-21). The chart's stored value differs by class: blanks for external decimal, edited and scientific decimal; 0's for internal decimal and floating point. The SYS)243 sequence above is the blanks case, and M4 codegen follows the chart column by column. Open, not done: the same chart stars six more doubtful cells, HIGH.VALUE and LOW.VALUE into external decimal, edited and scientific decimal. Those six draw no message in either mode. Extending 943 to them is a separate decision.
+
 *Citations:* ([J 02.04.02] chart; [J 90.05] listing PDF pp. 196–197); Attested codegen: ([J 90.02.10]–11, 90.02.24–25; [J 90.05] listing, PDF pp. 193, 196–197, 204, 206, 211); ([J 90.04.01] msg 82, not emitted for this case)
 
 ### D4.12 — CORRESPONDING matching: F name-only vs J qualifier-chain
 
-**Status.** Locked.
+**Status.** Amended.
 **Decision.** MOVE CORRESPONDING and ADD CORRESPONDING implement the J rule; the section is headed "CORRESPONDING Option with MOVE and ADD" and one pairing rule governs both verbs ([J 02.04.04]). Two fields correspond when, below the two operand roots, their qualifier chains are present and identical, name by name, down to the matched field. Matching is at the lowest possible level: a pair matches only where both sides are elementary, or where both sides are group fields with no matching elementary descendants. When a matched pair is a group, the source group "has no format characteristics of its own and is assumed to be alphameric", and the pair is then subject to the ordinary MOVE (or ADD) legality table — "If DATA.2 GROUP ITEM is a field into which alphameric information may not be legally moved, an error will be noted." ([J 02.04.04]–05 c). One move or add sequence is generated per matched pair, in data-description order. A subscript written on a CORRESPONDING operand is appended to every generated instruction for that side: "Data items referenced in a MOVE or ADD CORRESPONDING clause may be subscripted. The compiler simply appends the designated subscript to the generated instructions." ([J 02.04.04]–05). A name that matches nothing generates no code and no message. F's loose name-only rule is not implemented; F-sample moves that match nothing under J compile to nothing, and are recorded as latent defects of 1960 code, not as a compatibility mode.
 
 **Rationale.** [J 02.04.04] is authoritative over F (D0.1), and J's own restructured sample renames fields and adds explicit MOVEs precisely because the qualifier-chain rule leaves the F-style moves unmatched. The group-as-alphameric fallback, its legality check, the two-verb scope and the subscript rule are all printed in the same section and must be implemented with it.
@@ -1626,7 +1628,7 @@ Under this rule the raw 90.05 artifact (`test/fixtures/90.05-payroll.ctdeck`, 29
 
 ### D11.4 — The --pedantic flag: mechanism and the M2 site set
 
-**Status.** Locked.
+**Status.** Amended.
 **Decision.** `bin/comtranc.dart` gains `--pedantic` (D0.8), off by default. A boolean threads as an optional parameter through `runFrontEnd`, `runParser`, and the scanners and parsers that own a site. The mode holds one invariant: **--pedantic adds diagnostics and changes nothing else.** Every parse result, repaired value, and generated value is identical in both modes, and no existing message id changes severity (D9.2; D9.16). Each pedantic diagnostic takes its own non-historical id (D9.7 pattern). The two escalation records are satisfied by grade alone: D3.4's REDEF-line name is already discarded in both modes, and D6.6's non-transfer AT END clause is kept as parsed in both modes; under --pedantic each site issues its own error-class id in place of the default-mode warning (918, 911), leaving both recoveries untouched.
 
 The M2 site set, implemented this stage:
@@ -1653,7 +1655,7 @@ The deferred sites stay with their owning milestones, so the flag's coverage is 
 
 **Oracle.** Oracle (4): one test per site — silent in default mode, the pedantic diagnostic under `--pedantic`, and the parse result identical in both modes; the two escalations additionally assert that 918 and 911 are replaced, not doubled. Oracle (2): the 90.05 job deck compiles clean in both modes.
 
-**Amended (M3 stage 2, 2026-08-04).** Oracle (2)'s clause "clean in both modes" is superseded. The deferred D4.11 site is live from M3 stage 2, and its note fires on the sample's own doubtful moves. The 90.05 job deck compiles clean in default mode. Under `--pedantic` it draws exactly three 943,00 notes: two for statement 205,00's blanked edited targets and one for statement 220,00's ([J 90.05] listing PDF pp. 196–197). D4.11 already excludes the note from any listing used for listing-diff. The diagnostics-only invariant stands.
+**Amended (M3 stage 2, 2026-08-04).** Oracle (2)'s clause "clean in both modes" is superseded. The deferred D4.11 site is live from M3 stage 2, and its note fires on the sample's own doubtful moves. The 90.05 job deck compiles clean in default mode. Under `--pedantic` it draws exactly three 943,00 notes. Each note is clause-confined, so the listing's NUMBER column prints the clause digits (M2-6). Statement 205's MOVE BLANKS clause draws 205,03 twice, one note per blanked edited target. Statement 220's draws 220,03 once ([J 90.05] listing PDF pp. 196–197). D4.11 already excludes the note from any listing used for listing-diff. The diagnostics-only invariant stands.
 
 *Citations:* D0.8; D9.2; D9.7; D9.16; D1.1; D1.3; D9.4; D3.4; D6.6; D7.11; D8.5; D10.5; ([J 02.01.01]); ([F p. 83])
 

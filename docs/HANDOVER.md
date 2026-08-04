@@ -89,9 +89,8 @@ resolution, CALL synonyms, reference legality, CORRESPONDING pairing, the
 I/O verb binding map, the subscript and transfer checks, and the capacity
 counters. The checklist's M3 rows are enforced — msgs 17 and 205 stay
 reserved with notes — and ten non-historical ids were added (936 to 945).
-M3-17 to M3-21 record the site
-readings; their dated amendments record the build and review corrections.
-The `--no-table-limits` switch lifts the D9.7 counters.
+M3-17 to M3-21 record the site readings. The `--no-table-limits` switch
+lifts the D9.7 counters.
 
 The next task is stage 3: the listing extension — GN)nnn names and the LOC
 column, with the golden rewrite (M3-8). Two standing items to carry in:
@@ -205,7 +204,10 @@ PDF p. 217. It makes every milestone below testable at once.
 - **M4 — Core-verb code generation**: MOVE, SET, IF, WHEN, GO TO, and DO. DO
   follows the verified Q40 return-cell semantics, non-reentrancy included.
   Arithmetic follows §4.3 and the Q26–Q28 annotations. The emulator core
-  (`docs/design/emulator.md`) hardens here.
+  (`docs/design/emulator.md`) hardens here. The msg 942 dictionary counter
+  takes the compiler-generated names here too: [J 90.01.05] item a) counts
+  them with the programmer names, and M3 counts programmer names alone
+  (M3-21).
 - **M5 — I/O runtime**: OPEN, CLOSE, GET, and FILE; buffering and locate mode;
   AT END and ON ERROR per Q41; labels per Q45 and Q46 at the M0-chosen fidelity;
   DISPLAY and report output.
@@ -268,5 +270,6 @@ M2 to M6.
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.05.05]: ../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card
+[J 90.01.05]: ../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.10]: ../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers

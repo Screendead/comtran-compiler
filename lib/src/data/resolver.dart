@@ -11,6 +11,7 @@ library;
 import '../ast/data_ast.dart';
 import '../ast/environment_ast.dart';
 import '../ast/procedure_ast.dart';
+import '../chars/char_code.dart';
 import '../lexer/diagnostic.dart';
 import '../lexer/messages.dart';
 import '../lexer/reserved_words.dart';
@@ -25,7 +26,7 @@ import 'pictorial.dart';
 import 'subscripts.dart';
 
 /// Builds the dictionary and resolves every name of one job.
-final class NameResolver extends ClauseWalk {
+final class NameResolver extends ClauseWalk with OperandWalk {
   NameResolver(
     super.diagnostics,
     this.mapper, {
@@ -67,8 +68,7 @@ final class NameResolver extends ClauseWalk {
 
   late final SubscriptChecker _subscripts = SubscriptChecker(
     mapper,
-    dataResolutions,
-    report,
+    this,
     tableLimits: tableLimits,
   );
 
@@ -79,9 +79,6 @@ final class NameResolver extends ClauseWalk {
 
   /// List-3 words an environment card of the job uses (M2-7; M3-17).
   final Set<String> _usedListThree = {};
-
-  /// Environment COND card names — console-key conditions.
-  final Set<String> _keysConditionNames = {};
 
   // ── The dictionary (M3-17) ───────────────────────────────────────
 
@@ -105,8 +102,7 @@ final class NameResolver extends ClauseWalk {
       }
       final SourceCard anchor = card.spec.cards.first;
       if (card is CondCard) {
-        _keysConditionNames.add(name);
-        _enter(name, NameKind.condition, anchor);
+        _enter(name, NameKind.keysCondition, anchor);
       } else {
         if (name == programStartName) {
           // PROGRAM.START may only label a statement or section (D2.1).
@@ -149,7 +145,7 @@ final class NameResolver extends ClauseWalk {
       }
       final NameKind kind = switch (item.typeCode) {
         DataTypeCode.record => NameKind.record,
-        DataTypeCode.cond => NameKind.condition,
+        DataTypeCode.cond => NameKind.dataCondition,
         _ => NameKind.data,
       };
       if (kind == NameKind.record &&
@@ -177,9 +173,13 @@ final class NameResolver extends ClauseWalk {
       if (sectionStack.isNotEmpty) {
         sectionScopes[sentence] = sectionStack.last;
       }
-      final bool opensSection = sentence.clauses.any(
-        (Clause c) => c is BeginSectionClause,
-      );
+      // The parser walks the same clause tree, so an END in an IF arm
+      // closes the section here too (msg 179 is the parser's). This
+      // stack moves at most once per sentence; a sentence with two
+      // BEGINs or two ENDs is parser-diagnosed and scopes best-effort.
+      final bool opensSection = clauseTree(
+        sentence.clauses,
+      ).any((Clause c) => c is BeginSectionClause);
       final String? label = sentence.scan.label;
       if (label != null) {
         final SourceCard anchor = sentence.scan.cards.first;
@@ -226,7 +226,7 @@ final class NameResolver extends ClauseWalk {
         // The 18-level nesting limit is the parser's msg 915 (D9.7).
         sectionStack.add(label ?? '');
       }
-      if (sentence.clauses.any((Clause c) => c is EndClause) &&
+      if (clauseTree(sentence.clauses).any((Clause c) => c is EndClause) &&
           sectionStack.isNotEmpty) {
         sectionStack.removeLast();
       }
@@ -333,23 +333,23 @@ final class NameResolver extends ClauseWalk {
   void _resolveClause(Clause clause) {
     switch (clause) {
       case IfClause(:final condition):
-        _resolveCond(condition);
+        walkCond(condition);
       case MoveClause(:final source, :final targets):
-        _resolveExpr(source);
+        walkExpr(source);
         targets.forEach(_resolveDataRef);
       case SetClause(:final targets, :final value):
         targets.forEach(_resolveDataRef);
-        _resolveExpr(value);
+        walkExpr(value);
       case SetConditionClause(:final conditionName):
         _resolveConditionName(conditionName, setting: true);
       case AddClause(:final source, :final targets):
-        _resolveExpr(source);
+        walkExpr(source);
         targets.forEach(_resolveDataRef);
       case GoToClause(:final targets, :final index):
         for (final target in targets) {
           final CondExpr? when = target.when;
           if (when != null) {
-            _resolveCond(when);
+            walkCond(when);
           }
         }
         if (index != null) {
@@ -362,18 +362,18 @@ final class NameResolver extends ClauseWalk {
         :final givingResults,
       ):
         if (exactlyTimes != null) {
-          _resolveExpr(exactlyTimes);
+          walkExpr(exactlyTimes);
         }
         for (final index in indices) {
           _resolveDataRef(index.index);
-          _resolveExpr(index.from);
-          _resolveExpr(index.by);
-          _resolveExpr(index.to);
+          walkExpr(index.from);
+          walkExpr(index.by);
+          walkExpr(index.to);
         }
-        usingArguments.forEach(_resolveExpr);
+        usingArguments.forEach(walkExpr);
         givingResults.forEach(_resolveDataRef);
       case DisplayClause(:final items):
-        items.forEach(_resolveExpr);
+        items.forEach(walkExpr);
       case BeginSectionClause(:final usingParameters, :final givingFunctions):
         usingParameters.forEach(_resolveDataRef);
         givingFunctions.forEach(_resolveDataRef);
@@ -391,42 +391,19 @@ final class NameResolver extends ClauseWalk {
     }
   }
 
-  void _resolveExpr(ArithExpr expr) {
-    switch (expr) {
-      case NameOperand(:final name):
-        _resolveDataRef(name);
-      case BinaryExpr(:final left, :final right):
-        _resolveExpr(left);
-        _resolveExpr(right);
-      case UnaryExpr(:final operand):
-        _resolveExpr(operand);
-      case TruthExpr(:final condition):
-        _resolveCond(condition);
-      case FunctionCall(:final function, :final arguments):
-        _resolveDataRef(function);
-        arguments.forEach(_resolveDataRef);
-      case LiteralOperand() || FigurativeOperand():
-        break;
-    }
+  @override
+  void visitName(NameReference name, {required bool inArithmetic}) =>
+      _resolveDataRef(name);
+
+  @override
+  void visitFunction(FunctionCall call) {
+    _resolveDataRef(call.function);
+    call.arguments.forEach(_resolveDataRef);
   }
 
-  void _resolveCond(CondExpr condition) {
-    switch (condition) {
-      case Relation(:final left, :final right):
-        _resolveExpr(left);
-        _resolveExpr(right);
-      case ConditionReference(:final name):
-        _resolveConditionName(name, setting: false);
-      case AndExpr(:final left, :final right):
-        _resolveCond(left);
-        _resolveCond(right);
-      case OrExpr(:final left, :final right):
-        _resolveCond(left);
-        _resolveCond(right);
-      case NotExpr(:final operand):
-        _resolveCond(operand);
-    }
-  }
+  @override
+  void visitConditionName(ConditionReference reference) =>
+      _resolveConditionName(reference.name, setting: false);
 
   /// The M3-17 triage over a data-reference site. Returns the resolved
   /// item, or `null` after a diagnostic.
@@ -436,7 +413,7 @@ final class NameResolver extends ClauseWalk {
     }
     final bool enclosing = _inSubscript;
     _inSubscript = true;
-    ref.subscripts.forEach(_resolveExpr);
+    ref.subscripts.forEach(walkExpr);
     _inSubscript = enclosing;
     final String last = ref.words.last.text;
     final DictionaryEntry? synonym = dictionary.synonym(last);
@@ -537,7 +514,10 @@ final class NameResolver extends ClauseWalk {
 
   void _resolveConditionName(NameReference ref, {required bool setting}) {
     final String last = ref.words.last.text;
-    if (ref.words.length == 1 && _keysConditionNames.contains(last)) {
+    if (ref.words.length == 1 &&
+        dictionary
+            .named(last)
+            .any((DictionaryEntry e) => e.kind == NameKind.keysCondition)) {
       if (setting) {
         // Console keys cannot be stored into; the reading is ours
         // (M3-17).
@@ -607,18 +587,19 @@ final class NameResolver extends ClauseWalk {
       if (constant == null) {
         continue; // The absence drew msg 4-family rows at M2.
       }
-      final int length = constantBcd(constant, item.entry.cards).length;
+      final List<int> bcd = constantBcd(constant, item.entry.cards);
       final bool mismatch = switch (sem.fieldClass) {
         // External decimal: "the length specified by the pictorial
         // must be exactly equal to the length of the constant"
         // (J 02.05.07).
-        FieldClass.externalDecimal => length != shape.storageChars,
+        FieldClass.externalDecimal => bcd.length != shape.storageChars,
         // Internal decimal: right-justified into the capacity; larger
-        // is the fault (J 02.05.07).
-        FieldClass.internalDecimal => length > shape.valueDigits,
+        // is the fault (J 02.05.07). `sem.digits` is the capacity the
+        // store path fills, the mapper's 21-digit clamp included.
+        FieldClass.internalDecimal => _internalDigits(bcd) > sem.digits,
         // Alphameric: longer than the pictorial is the fault
         // (J 02.05.06).
-        FieldClass.alphameric => length > sem.storageChars,
+        FieldClass.alphameric => bcd.length > sem.storageChars,
         // A value cannot match an edited image (J 02.05.06 i).
         FieldClass.edited => true,
         _ => false,
@@ -704,32 +685,17 @@ abstract base class ClauseWalk {
     List<List<Sentence>> procedureGroups,
     void Function(Clause) visit,
   ) {
-    void walk(Clause clause) {
-      _clause = clause.clause;
-      visit(clause);
-      switch (clause) {
-        case IfClause(:final thenArm, :final otherwiseArm):
-          thenArm.forEach(walk);
-          otherwiseArm.forEach(walk);
-        case SetClause(:final onOverflow) when onOverflow != null:
-          walk(onOverflow);
-        case AddClause(:final onOverflow) when onOverflow != null:
-          walk(onOverflow);
-        case GetClause(:final atEnd) when atEnd?.statement != null:
-          walk(atEnd!.statement!);
-        default:
-          break;
-      }
-      _clause = 0;
-    }
-
     for (final sentences in procedureGroups) {
       for (final sentence in sentences) {
         if (sentence.deleted || deletedSentences.contains(sentence)) {
           continue;
         }
         _sentence = sentence;
-        sentence.clauses.forEach(walk);
+        for (final Clause clause in clauseTree(sentence.clauses)) {
+          _clause = clause.clause;
+          visit(clause);
+        }
+        _clause = 0;
         _sentence = null;
       }
     }
@@ -749,4 +715,73 @@ abstract base class ClauseWalk {
     }
     diagnostics.add(diagnostic);
   }
+}
+
+/// The operand walk the stage-2 checkers share: the names, function
+/// calls, and condition names of one expression or condition, reached
+/// through the operators, the two sides of a relation, and the
+/// condition inside a TruthExpr. Subscripts and function arguments hang
+/// below their site, and the hook that takes the site owns them.
+base mixin OperandWalk {
+  /// [inArithmetic] holds where an operator stands over the name.
+  void visitName(NameReference name, {required bool inArithmetic});
+
+  void visitFunction(FunctionCall call) {}
+
+  void visitConditionName(ConditionReference reference) {}
+
+  /// The relation itself, after both its sides.
+  void visitRelation(Relation relation) {}
+
+  void walkExpr(ArithExpr expr, {bool inArithmetic = false}) {
+    switch (expr) {
+      case NameOperand(:final name):
+        visitName(name, inArithmetic: inArithmetic);
+      case final FunctionCall call:
+        visitFunction(call);
+      case BinaryExpr(:final left, :final right):
+        walkExpr(left, inArithmetic: true);
+        walkExpr(right, inArithmetic: true);
+      case UnaryExpr(:final operand):
+        walkExpr(operand, inArithmetic: true);
+      case TruthExpr(:final condition):
+        walkCond(condition);
+      case LiteralOperand() || FigurativeOperand():
+        break;
+    }
+  }
+
+  void walkCond(CondExpr condition) {
+    switch (condition) {
+      case final Relation relation:
+        walkExpr(relation.left);
+        walkExpr(relation.right);
+        visitRelation(relation);
+      case final ConditionReference reference:
+        visitConditionName(reference);
+      case AndExpr(:final left, :final right):
+        walkCond(left);
+        walkCond(right);
+      case OrExpr(:final left, :final right):
+        walkCond(left);
+        walkCond(right);
+      case NotExpr(:final operand):
+        walkCond(operand);
+    }
+  }
+}
+
+/// The digit positions of an internal-decimal constant: a leading or
+/// trailing sign is a sign convention, not a digit (J 02.05.07 d), and
+/// the store path strips the same character (`images.dart`).
+int _internalDigits(List<int> bcd) {
+  var digits = 0;
+  for (var i = 0; i < bcd.length; i++) {
+    final String? glyph = glyphFromBcd(bcd[i]);
+    if ((glyph == '+' || glyph == '-') && (i == 0 || i == bcd.length - 1)) {
+      continue;
+    }
+    digits++;
+  }
+  return digits;
 }

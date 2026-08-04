@@ -71,7 +71,8 @@ final class DeckCompilation {
 /// non-historical written-language-strictness diagnostics (decision
 /// D0.8, D11.4) without changing any parse result or generated value.
 /// [tableLimits] false is the non-historical `--no-table-limits`
-/// switch: the D9.7 capacity counters stay silent (M3-12).
+/// switch: the D9.7 capacity counters, plus the parser's section caps
+/// (msgs 149, 915), stay silent (M3-12).
 DeckCompilation compileDeck(
   List<CardImage> deck, {
   bool pedantic = false,
@@ -93,7 +94,12 @@ DeckCompilation compileDeck(
     // the point of detection (D9.1; D10.2).
     final ParseResult? parse = frontEnd.stopped
         ? null
-        : runParser(frontEnd, sink: sink, pedantic: pedantic);
+        : runParser(
+            frontEnd,
+            sink: sink,
+            pedantic: pedantic,
+            tableLimits: tableLimits,
+          );
     // A parser stop skips the semantic layer the same way (D10.2).
     final SemanticResult? semantics = parse == null || parse.stopped
         ? null

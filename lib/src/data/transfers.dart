@@ -20,7 +20,7 @@ import 'resolver.dart';
 
 /// Checks the transfer, DO, loop-control, and function sites of the
 /// procedure division.
-final class TransferChecker extends ClauseWalk {
+final class TransferChecker extends ClauseWalk with OperandWalk {
   TransferChecker(super.diagnostics, this.mapper, this.resolver);
 
   final DataMapper mapper;
@@ -73,18 +73,18 @@ final class TransferChecker extends ClauseWalk {
   void _checkClause(Clause clause) {
     switch (clause) {
       case IfClause(:final condition):
-        _checkCondition(condition);
+        walkCond(condition);
       case MoveClause(:final source, :final targets):
-        _checkExpression(source);
+        walkExpr(source);
         targets.forEach(_checkReference);
       case SetClause(:final targets, :final value):
         targets.forEach(_checkReference);
-        _checkExpression(value);
+        walkExpr(value);
       case AddClause(:final source, :final targets):
-        _checkExpression(source);
+        walkExpr(source);
         targets.forEach(_checkReference);
       case DisplayClause(:final items):
-        items.forEach(_checkExpression);
+        items.forEach(walkExpr);
       case GetClause(atEnd: AtEndClause(bareName: final NameReference name?)):
         // An AT END bare name is compiled as `DO name` (D6.6).
         _resolveProcedure(name, absent: msgDoTargetNotProcedure);
@@ -114,7 +114,7 @@ final class TransferChecker extends ClauseWalk {
     for (final GoToTarget target in clause.targets) {
       final CondExpr? when = target.when;
       if (when != null) {
-        _checkCondition(when);
+        walkCond(when);
       }
       final DictionaryEntry? entry = _resolveProcedure(
         target.name,
@@ -143,7 +143,9 @@ final class TransferChecker extends ClauseWalk {
     }
     if (_nonNumeric(sem)) {
       report(msgTransferIndexFormat, index.anchor);
-    } else if (sem.fractionDigits != 0) {
+    } else if (sem.fractionDigits > 0) {
+      // A negative count is a trailing-`S` scale, whose values are
+      // whole (`999SSS` runs 000,000 to 999,000 — F p. 80).
       report(msgTransferIndexNotInteger, index.anchor);
     }
   }
@@ -205,7 +207,7 @@ final class TransferChecker extends ClauseWalk {
     }
     final ArithExpr? times = clause.exactlyTimes;
     if (times != null) {
-      _checkExpression(times);
+      walkExpr(times);
     }
     for (final DoIndex index in clause.indices) {
       _checkLoopVariable(index.index);
@@ -213,7 +215,7 @@ final class TransferChecker extends ClauseWalk {
         _checkLoopParameter(parameter, index.index);
       }
     }
-    clause.usingArguments.forEach(_checkExpression);
+    clause.usingArguments.forEach(walkExpr);
     clause.givingResults.forEach(_checkReference);
   }
 
@@ -316,44 +318,15 @@ final class TransferChecker extends ClauseWalk {
 
   // ── The expression walk ──────────────────────────────────────────
 
+  @override
+  void visitName(NameReference name, {required bool inArithmetic}) =>
+      _checkReference(name);
+
+  @override
+  void visitFunction(FunctionCall call) => _checkFunction(call);
+
   void _checkReference(NameReference reference) =>
-      reference.subscripts.forEach(_checkExpression);
-
-  void _checkExpression(ArithExpr expression) {
-    switch (expression) {
-      case final FunctionCall call:
-        _checkFunction(call);
-      case NameOperand(:final name):
-        _checkReference(name);
-      case BinaryExpr(:final left, :final right):
-        _checkExpression(left);
-        _checkExpression(right);
-      case UnaryExpr(:final operand):
-        _checkExpression(operand);
-      case TruthExpr(:final condition):
-        _checkCondition(condition);
-      case LiteralOperand() || FigurativeOperand():
-        break;
-    }
-  }
-
-  void _checkCondition(CondExpr condition) {
-    switch (condition) {
-      case Relation(:final left, :final right):
-        _checkExpression(left);
-        _checkExpression(right);
-      case AndExpr(:final left, :final right):
-        _checkCondition(left);
-        _checkCondition(right);
-      case OrExpr(:final left, :final right):
-        _checkCondition(left);
-        _checkCondition(right);
-      case NotExpr(:final operand):
-        _checkCondition(operand);
-      case ConditionReference():
-        break;
-    }
-  }
+      reference.subscripts.forEach(walkExpr);
 
   ItemSemantics? _semanticsOf(NameReference reference) {
     final DataItem? item = resolver.dataResolutions[reference];

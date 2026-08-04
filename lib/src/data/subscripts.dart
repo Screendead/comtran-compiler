@@ -9,34 +9,22 @@ library;
 
 import '../ast/data_ast.dart';
 import '../ast/procedure_ast.dart';
-import '../lexer/messages.dart';
 import '../lexer/token.dart';
 import 'data_map.dart';
 import 'data_messages.dart';
 import 'mapper.dart';
-
-/// Reports one diagnostic — `NameResolver.report`, which stamps the
-/// clause number.
-typedef SubscriptReporter =
-    void Function(Message message, Token at, {List<String> operands});
+import 'resolver.dart';
 
 /// Checks the subscripts of every resolved data reference and tallies
 /// the two D9.7 subscript tables.
 final class SubscriptChecker {
-  SubscriptChecker(
-    this.mapper,
-    this.resolutions,
-    this.report, {
-    required this.tableLimits,
-  });
+  SubscriptChecker(this.mapper, this.resolver, {required this.tableLimits});
 
   final DataMapper mapper;
 
-  /// The resolver's resolutions, read for the subscript variables the
-  /// enclosing reference already resolved.
-  final Map<NameReference, DataItem> resolutions;
-
-  final SubscriptReporter report;
+  /// The caller: its `report` stamps the clause number, and its
+  /// resolutions carry the subscript variables it resolved already.
+  final NameResolver resolver;
 
   /// False under `--no-table-limits` (D9.7): the counters stay silent.
   final bool tableLimits;
@@ -56,13 +44,13 @@ final class SubscriptChecker {
     }
     final int dimensions = _dimensionsOf(array);
     if (dimensions == 0) {
-      report(
+      resolver.report(
         msgArrayDescriptionCheck,
         reference.anchor,
         operands: [reference.text],
       );
     } else if (reference.subscripts.length != dimensions) {
-      report(
+      resolver.report(
         msgArrayDimensionCheck,
         reference.anchor,
         operands: [reference.text],
@@ -76,16 +64,10 @@ final class SubscriptChecker {
   }
 
   /// The quantity-bearing ancestors-or-self of [item] (M3-20).
-  int _dimensionsOf(DataItem item) {
-    var dimensions = 0;
-    for (DataItem? each = item; each != null; each = each.parent) {
-      final ItemSemantics? sem = mapper.semantics[each];
-      if (sem != null && (sem.quantity > 1 || sem.variableLength)) {
-        dimensions++;
-      }
-    }
-    return dimensions;
-  }
+  int _dimensionsOf(DataItem item) => ancestorsOf(item).where((DataItem each) {
+    final ItemSemantics? sem = mapper.semantics[each];
+    return sem != null && (sem.quantity > 1 || sem.variableLength);
+  }).length;
 
   void _checkTerm(ArithExpr term, NameReference array) {
     switch (term) {
@@ -113,18 +95,18 @@ final class SubscriptChecker {
     // Arrays are 1-origin and address whole elements, so a term below
     // one or with a fraction reaches nothing (J 02.04.07.01).
     if (value == null || negated || value < 1 || value != value.truncate()) {
-      report(msgImproperDataFormat, literal);
+      resolver.report(msgImproperDataFormat, literal);
     }
   }
 
   /// The four format rows of M3-20, in cascade: the first that applies
   /// speaks for the variable.
   void _checkVariable(NameReference variable, NameReference array) {
-    final DataItem? item = resolutions[variable];
+    final DataItem? item = resolver.dataResolutions[variable];
     if (variable.subscripts.isNotEmpty || item?.typeCode == DataTypeCode.cond) {
       // A subscript is a name or an index expression (F p. 31);
       // neither form admits a subscripted name or a condition.
-      report(
+      resolver.report(
         msgInvalidSubscriptVariable,
         variable.anchor,
         operands: [array.text],
@@ -138,7 +120,7 @@ final class SubscriptChecker {
     if (sem.fieldClass == FieldClass.alphameric ||
         sem.fieldClass == FieldClass.edited ||
         sem.fieldClass == FieldClass.group) {
-      report(
+      resolver.report(
         msgSubscriptVariableNotNumeric,
         variable.anchor,
         operands: [variable.text],
@@ -146,7 +128,7 @@ final class SubscriptChecker {
       return;
     }
     if (sem.fractionDigits != 0) {
-      report(
+      resolver.report(
         msgSubscriptVariableNotInteger,
         variable.anchor,
         operands: [variable.text],
@@ -158,7 +140,7 @@ final class SubscriptChecker {
       // D9.11's invented criterion: the generator indexes with a
       // right-justified internal decimal field directly, and converts
       // every other legal format first.
-      report(
+      resolver.report(
         msgInefficientSubscriptFormat,
         variable.anchor,
         operands: [variable.text],
@@ -174,7 +156,7 @@ final class SubscriptChecker {
     if (_indicators.length == 91) {
       // The "Appox-Max" 90 positional indicators (J 90.01.05; D9.7
       // rejects the unknown band above the printed number).
-      report(msgSubscriptedNameCapacity, reference.anchor);
+      resolver.report(msgSubscriptedNameCapacity, reference.anchor);
     }
   }
 
@@ -187,7 +169,7 @@ final class SubscriptChecker {
     _indexExpressions.add(_notation(subscript));
     if (_indexExpressions.length == 51) {
       // The "Appox-Max" 50 index expressions (J 90.01.05; D9.7).
-      report(msgIndexExpressionCapacity, subscript.anchor);
+      resolver.report(msgIndexExpressionCapacity, subscript.anchor);
     }
   }
 

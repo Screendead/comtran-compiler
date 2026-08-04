@@ -17,9 +17,12 @@ enum NameKind {
   /// (D2.5).
   record,
 
-  /// A condition name: a data COND entry, or an Environment COND card
+  /// A data COND entry's condition name.
+  dataCondition,
+
+  /// An Environment COND card's name — the console-key test
   /// (J 02.06.17).
-  condition,
+  keysCondition,
 
   /// A CALL synonym: a new unique simple name for one field (D4.13).
   synonym,
@@ -50,8 +53,8 @@ final class DictionaryEntry {
   final NameKind kind;
 
   /// The declaring data item — for [NameKind.data], [NameKind.record],
-  /// a data-COND [NameKind.condition], and the field a
-  /// [NameKind.synonym] names. `null` otherwise.
+  /// [NameKind.dataCondition], and the field a [NameKind.synonym]
+  /// names. `null` otherwise.
   final DataItem? item;
 
   /// The declaring sentence, for [NameKind.statement] and

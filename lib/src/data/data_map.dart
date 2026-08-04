@@ -17,6 +17,13 @@ Iterable<DataItem> subtreeOf(DataItem item) sync* {
   }
 }
 
+/// [item] and every ancestor of it, innermost first.
+Iterable<DataItem> ancestorsOf(DataItem item) sync* {
+  for (DataItem? each = item; each != null; each = each.parent) {
+    yield each;
+  }
+}
+
 /// The six field types of the J 02.05.05 chart, plus the structural
 /// kinds a data entry can be instead of a field.
 enum FieldClass {

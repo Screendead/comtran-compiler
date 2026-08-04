@@ -41,20 +41,12 @@ final class CapacityCounter {
           editedFormats.length == 36) {
         _report(msgEditedFormatCapacity, item);
       }
-      if (_depthOf(item) == 24) {
+      // The entry's own level counted in: the hierarchy is the chain of
+      // entries above it (J 90.01.05 item j).
+      if (ancestorsOf(item).length == 24) {
         _report(msgHierarchyDepthCapacity, item, named: true);
       }
     }
-  }
-
-  /// The entry's own level counted in: the hierarchy is the chain of
-  /// entries above it (J 90.01.05 item j).
-  int _depthOf(DataItem item) {
-    var depth = 1;
-    for (DataItem? each = item.parent; each != null; each = each.parent) {
-      depth++;
-    }
-    return depth;
   }
 
   void _report(Message message, DataItem item, {bool named = false}) {

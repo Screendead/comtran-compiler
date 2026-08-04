@@ -27,6 +27,37 @@ const String jobDeckPath = 'test/fixtures/90.05-payroll-job.ctdeck';
 List<CardImage> loadJobDeck() =>
     decodeCanon(File(jobDeckPath).readAsBytesSync());
 
+/// Runs the front end and stage-2 semantics over one job: a `*DATA` block,
+/// with an `*ENVIRONMENT` block and a `*PROCEDURE` block appended when
+/// [environment] or [procedure] is non-empty.
+SemanticResult runJob({
+  required List<String> data,
+  List<String> environment = const [],
+  List<String> procedure = const [],
+  bool pedantic = false,
+  bool tableLimits = true,
+}) {
+  final lines = [
+    '      *DATA',
+    ...data,
+    if (environment.isNotEmpty) '      *ENVIRONMENT',
+    ...environment,
+    if (procedure.isNotEmpty) '      *PROCEDURE',
+    ...procedure,
+  ];
+  final List<CardImage> deck = mirrorToDeck('${lines.join('\n')}\n');
+  final ParseResult parse = runParser(
+    runFrontEnd(deck),
+    tableLimits: tableLimits,
+  );
+  return runSemantics(parse, pedantic: pedantic, tableLimits: tableLimits);
+}
+
+/// The message-number id of every diagnostic [result] recorded.
+List<String> ids(SemanticResult result) => [
+  for (final Diagnostic d in result.semanticDiagnostics) d.message.number,
+];
+
 /// Numbers [lines] as a one-based [SourceCard] list: joins them with a
 /// trailing newline, reads them through [mirrorToDeck], then wraps each
 /// resulting [CardImage] with its 1-based deck position. This is the shape

@@ -723,8 +723,8 @@ const Map<String, int> messageSeverities = {
   '941,00': 4,
   // C5 (ours, D9.7; M3-21): the dictionary capacity - unrecoverable.
   '942,00': 5,
-  // C1 (ours, --pedantic only, D4.11; M3-21): the blanks are stored as
-  // attested; advisory.
+  // C1 (ours, --pedantic only, D4.11 as amended; M3-21): the chart's
+  // own value is stored - blanks or 0's by target class; advisory.
   '943,00': 1,
   // C1 (ours, --pedantic only, D4.12; M3-21): the clause generates
   // nothing, as attested for an unmatched name; advisory.

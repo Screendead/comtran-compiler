@@ -203,6 +203,74 @@ void main() {
     });
   });
 
+  group('--no-table-limits reaches every phase through compileDeck (D9.7)', () {
+    test("lifts the parser's 35-section cap", () {
+      final lines = <String>[r'$CMPLE JOBA', '      *PROCEDURE'];
+      for (var i = 1; i <= 36; i++) {
+        lines
+          ..add('      ${'S$i.'.padRight(12)}BEGIN SECTION.')
+          ..add('            END S$i.');
+      }
+      lines
+        ..add('            STOP RUN.')
+        ..add('      *FINISH');
+      final DeckCompilation deck = compileDeck(
+        _deck(lines),
+        tableLimits: false,
+      );
+      final JobCompilation job = deck.jobs.single;
+      expect(job.diagnostics, isEmpty);
+      expect(deck.maxSeverity, 0);
+    });
+
+    test("lifts the parser's depth-18 section cap", () {
+      final lines = <String>[r'$CMPLE JOBA', '      *PROCEDURE'];
+      for (var i = 1; i <= 19; i++) {
+        lines.add('      ${'S$i.'.padRight(12)}BEGIN SECTION.');
+      }
+      for (var i = 19; i >= 1; i--) {
+        lines.add('            END S$i.');
+      }
+      lines
+        ..add('            STOP RUN.')
+        ..add('      *FINISH');
+      final DeckCompilation deck = compileDeck(
+        _deck(lines),
+        tableLimits: false,
+      );
+      final JobCompilation job = deck.jobs.single;
+      expect(job.diagnostics, isEmpty);
+      expect(deck.maxSeverity, 0);
+    });
+
+    test("lifts the mapper's 26th QUANTITY IN counter", () {
+      final lines = <String>[r'$CMPLE JOBA', '      *DATA'];
+      for (var i = 0; i < 26; i++) {
+        lines
+          ..add(dataCard(name: 'C$i', level: '1', description: '99'))
+          ..add(
+            dataCard(
+              name: 'V$i',
+              level: '1',
+              quantity: '2',
+              description: 'A QUANTITY IN C$i',
+            ),
+          );
+      }
+      lines
+        ..add('      *PROCEDURE')
+        ..add('            STOP RUN.')
+        ..add('      *FINISH');
+      final DeckCompilation deck = compileDeck(
+        _deck(lines),
+        tableLimits: false,
+      );
+      final JobCompilation job = deck.jobs.single;
+      expect(job.diagnostics, isEmpty);
+      expect(deck.maxSeverity, 0);
+    });
+  });
+
   group('message 132 at end of input (D11.3)', () {
     test('a deck ending mid-job draws 132 at severity 5', () {
       final DeckCompilation deck = compileDeck(
