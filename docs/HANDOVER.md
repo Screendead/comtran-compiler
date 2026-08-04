@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-08-03. Audience: the next agent, or Jack. This file is the
+*Updated 2026-08-04. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -44,7 +44,7 @@ Terms that appear without expansion:
 | M2 stage 1 — AST and fixed-form parsers | Merged 2026-08-03 (PR #15) | `lib/src/ast/`, `lib/src/parser/` |
 | M2 stage 2 — procedure division | Merged 2026-08-03 (PR #17) | `lib/src/parser/procedure_parser.dart` |
 | M2 stage 3 — job stream and --pedantic | Merged 2026-08-03 (PRs #47–#49) | `lib/src/driver/` |
-| M3 — the semantic layer | **In progress.** Stage 1 (the data mapper) built 2026-08-04; stage 2 is the next task | `docs/design/m3-data.md`, `lib/src/data/` |
+| M3 — the semantic layer | **In progress.** Stages 1 and 2 built 2026-08-04; stage 3 is the next task | `docs/design/m3-data.md`, `lib/src/data/` |
 | M4 to M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -56,17 +56,20 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline, measured 2026-08-04: 790 Dart tests pass, and 111 extension
+Test baseline, measured 2026-08-04: 935 Dart tests pass, and 111 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck` compiles the
-manual's own payroll sample through the front end and the parser. The job deck
-is the 293-card artifact plus one reconstructed *FINISH card (D11.3); the raw
-artifact alone is an incomplete job and draws message 132. The compile prints
-the listing, numbered 1,00 to 229,00 exactly as the 1962 compile numbered it,
-with zero diagnostics. A golden test guards that listing byte for byte.
+manual's own payroll sample through the front end, the parser, and the
+semantic layer. The job deck is the 293-card artifact plus one reconstructed
+*FINISH card (D11.3); the raw artifact alone is an incomplete job and draws
+message 132. The compile prints the listing, numbered 1,00 to 229,00 exactly
+as the 1962 compile numbered it, with zero diagnostics. Under `--pedantic` it
+draws exactly three non-historical 943 notes, the sample's own doubtful
+blank-moves (D11.4 as amended). A golden test guards the default listing byte
+for byte.
 
-## The next task — M3 stage 2, the dictionary and resolution
+## The next task — M3 stage 3, the listing extension
 
 The M3 decision walk is recorded in `docs/design/m3-data.md` (2026-08-04).
 Jack's three calls are locked there: M3 is the full semantic layer in three
@@ -81,19 +84,24 @@ environment binder, and the stage-1 diagnostics, wired into the driver as
 `*DATA` storage section exactly. M3-16 records the stage-1 message choices
 and the deferrals.
 
-The next task is stage 2: the dictionary, procedure and environment name
+Stage 2 landed 2026-08-04: the dictionary, procedure and environment name
 resolution, CALL synonyms, reference legality, CORRESPONDING pairing, the
-capacity checks (M3-12), and their diagnostics — the deferred binder rows
-(8, 9, 10, 17, 19, 195, 198), the POOL/GROUP buffer minimums, and the
-items M3-16 lists. Two standing items to carry in:
+I/O verb binding map, the subscript and transfer checks, and the capacity
+counters. The checklist's M3 rows are enforced — msgs 17 and 205 stay
+reserved with notes — and ten non-historical ids were added (936 to 945).
+M3-17 to M3-21 record the site
+readings; their dated amendments record the build and review corrections.
+The `--no-table-limits` switch lifts the D9.7 counters.
 
-- D11.4 lists the --pedantic sites deferred to M3 and later (D4.12, D4.13,
-  D3.5 among them); each lands with its owning milestone. M3-13 names the
-  M3 set.
+The next task is stage 3: the listing extension — GN)nnn names and the LOC
+column, with the golden rewrite (M3-8). Two standing items to carry in:
+
+- D11.4 lists the --pedantic sites deferred beyond M3 (D5.1, D5.7, D6.1
+  among them); each lands with its owning milestone.
 - `docs/design/emit-stages.md` (2026-08-04) records Jack's requirement that
   every compilation stage is dumpable behind a flag, with attested stages
-  oracled against their evidence. Stage 2 does not depend on it. Land the
-  flag plumbing before the stage-3 listing rewrite if practical.
+  oracled against their evidence. Land the flag plumbing before the stage-3
+  listing rewrite if practical.
 
 ## Rules that bind future work
 
