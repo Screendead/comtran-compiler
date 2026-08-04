@@ -25,6 +25,7 @@ renumbered. Use the index below to find one.*
 | M3-13 | Diagnostics |
 | M3-14 | The storage oracle |
 | M3-15 | Open Question dispositions |
+| M3-16 | Stage-1 message choices |
 
 ## Charter
 
@@ -89,9 +90,27 @@ starts from a fully resolved program and generates code only.
   - A field with no pictorial is a group ("non-format") field: alphameric,
     length the sum of its subfields (D3.3; [J 02.05.06]). The only legal lower
     level under a formatted field is a COND entry ([J 02.05.06]).
+    *Amended 2026-08-04 (review): the allocator measures that length as the
+    group's physical extent, not as an arithmetic sum (M3-6). The two agree
+    on [J 02.05.06]'s worked example — its A is 12 characters either way — and
+    diverge in two cases. An arithmetic sum counts a redefinition head on top
+    of the fields it redefines, against "redefinition of a record area does
+    not give it length" ([J 02.05.01]), and it drops interior alignment
+    padding. The extent is the length a compare or a move over the group must
+    use, so D3.3's length is the extent. D3.3 carries a matching dated
+    amendment, and `ItemSemantics.storageChars` carries the value.*
   - Any of `8 * . , $ + -` in the pictorial, or BLANK WHEN ZERO, makes the
     field edited ([J 02.05.05]; D3.2). Note 2 of the chart gives edited fields
     both sign forms: a reserved sign position or a rightmost overpunch.
+    *Amended 2026-08-04 (review): an overpunched 8 is an 8 in the format
+    field, so it makes the field edited. The chart's rightmost-character list
+    admits an overpunched 8 in the Edited Field row only; the External Decimal
+    row admits an overpunched 9 alone. Read on the scan `images/page-031.png`,
+    2026-08-04: the Edited row lists minus 8, minus 9, plus 8 and plus 9, and
+    the External row lists minus 9 and plus 9. The conversion and the
+    definition transcribe the Edited row as "8 or 9 or 8̅ or 9̅", which drops
+    the marks on the first pair; that erratum waits for Jack's authorization
+    and is not made here. See M3-5 for the measurement.*
   - `F` with mode I is floating point (`FF` double precision); `F` with mode
     E is scientific decimal, maximum 16 fraction digits ([J 02.05.05] notes).
   - Digits only (with `V`, `S`, `(n)`, an optional rightmost overpunch):
@@ -135,6 +154,19 @@ starts from a fully resolved program and generates code only.
   signed field, so the golden is unaffected. Constants are checked against the pictorial's sign convention
   the same way ([J 02.05.07]'s `999̅` / `123̅` example).
 
+  *Amended 2026-08-04 (review): the measurement keeps the overpunched digit,
+  not the sign alone. The zone letters run A–I for plus 1 to plus 9 and J–R
+  for minus 1 to minus 9, so `99Q` and `99R` are the minus 8 and minus 9
+  pictorials and `99H` and `99I` are their plus twins. An overpunched 8
+  therefore makes the field edited (M3-4). Two consequences: a constant on
+  such a field draws msg 57 in place of the
+  external-decimal check (msg 58), and under mode I the conflict takes the
+  edited branch — the id stays msg 32, and the recorded class changes from
+  external decimal to edited. The digit position, the storage character, and
+  the sign convention are unchanged. Open: the chart admits an overpunched 8
+  or 9 only, while the scanner reads any zone letter, so an overpunched 1 to 7
+  draws no diagnostic. Msg 33 is the candidate id if stage 2 wants one.*
+
 ## The storage allocator and initial images
 
 - **M3-6. The allocator.** Storage is words of six 6-bit characters; the
@@ -160,6 +192,12 @@ starts from a fully resolved program and generates code only.
     listing, storage section).
   - **Internal, left or unjustified:** the least multiple of 6 bits holding
     the digits and a sign bit at the field's leftmost bit ([J 02.05.04]).
+    *Amended 2026-08-04 (review): the mapper obtains that bit count from the
+    closed form `floor(n * log2 10) + 2` for n digits, then rounds up to a
+    multiple of 6. The form is exact for every digit count a deck can punch —
+    checked against a big-integer oracle for every n up to 50000 and at 99999,
+    799992 and 8000000 — and it costs the same at any n. [J 02.05.04]'s rule is
+    unchanged; only the way the count is obtained is new.*
   - **Quantity replication:** the entry and its subordinates lay out once,
     then repeat; the stride is the element's (word, byte) extent. TABLE's
     twelve 2-word pairs attest whole-structure repetition ([J 90.05] listing,
@@ -168,6 +206,21 @@ starts from a fully resolved program and generates code only.
     over the target's origin, restore on termination (D3.4, D3.6;
     [J 02.05.02]). The redefinition allocates no new storage; TABLE.ITEM has
     no area of its own in the dump.
+    *Amended 2026-08-04 (review): three points the allocator now implements.
+    (a) The overlay restarts at the target's reservation start, not at its
+    first character. The two differ only for a right justified field, whose
+    reservation begins at the word boundary before its first character
+    ([J 02.05.04]). (b) An entry with no level number terminates nothing. A
+    record ends only at "a level number equal to or less than the one
+    associated with RECORD" ([J 02.05.01]), and [J 02.05.02]'s EXAMPLE 1 keeps
+    H inside A G after two REDEFs. A REDEF marker, and any level-less entry a
+    diagnostic left in place, therefore close no enclosing group. (c) The
+    termination order is ours, because J states no repetition mechanics: the
+    frames opened inside the overlay close on the overlay counter, then the
+    counter is restored ([J 02.05.02]), then the enclosing frames close. So a
+    repeated group inside the overlay grows the redefined area, and a repeated
+    group that ends at the terminating item advances from the restored
+    counter.*
   - **Record end:** a partial final word is blank-filled automatically
     ([J 90.05.02] and 90.05.04: "3 blanks (supplied automatically)").
   - **Area extents** round up to whole words; each transmitted top-level
@@ -192,6 +245,12 @@ starts from a fully resolved program and generates code only.
   - External decimal: pictorial length must equal the constant exactly, and
     the sign conventions must match ([J 02.05.07]); a violation draws
     msg 51 (M3-13).
+    *Amended 2026-08-04 (review): the overpunch may fall on a zero. The chart
+    admits "an overpunch with the rightmost digit" ([J 02.05.05]) and zero is a
+    digit, so `120̅` is a legal constant for `999̅`. Plus zero punches 12-0 and
+    minus zero 11-0; neither has a Set H glyph, so no listing line and no
+    `.deck` mirror can print one, and a test for one punches the column
+    directly.*
   - Internal decimal: right-justify into the pictorial's capacity; a larger
     constant is left-truncated, converted, stored, and diagnosed with
     msg 51 ([J 02.05.07]; M3-13). Signs: leading, trailing, or none.
@@ -302,6 +361,46 @@ starts from a fully resolved program and generates code only.
     program storage (CHECK at 00000 in the dump). A located record's
     fields get base-locator-relative offsets, byte 0 at the record head
     ([J 90.02.05]); it takes no BSS.
+    *Amended 2026-08-04 (review): the sharer that forces transmit is
+    data other than a record. Records REDEF'd together stay located
+    whatever their files: the same-file case is [J 02.07.05] c-iii, and
+    the cross-file case is deferred — "Records from different files
+    which have been REDEF'd together will not be automatically
+    transmitted by the field test processor ... SPANS or HOLD must be
+    used." ([J 90.01.01]). SPANS or HOLD there is the programmer's
+    duty; the binder adds no message for it.*
+    *Amended 2026-08-04 (review), the trigger set: transmit is triggered by
+    SPANS, HOLD or CARD on the Environment FILE card, and "'Locate' is assumed
+    when none of these options have been selected" ([J 02.07.03], scan
+    `images/page-054.png`). This record cited [J 02.07.05] alone, whose
+    opening recap names HOLD and SPANS only. Both statements sit in J, so the
+    J-over-F precedence rule does not decide between them. The definition
+    governs the recap. [J 02.07.03] stands inside the manual's
+    locate-and-transmit block ("5. Locate and Transmit"). The recap is passing
+    prose: on the scans it closes subsection a), "File characteristics and
+    processing requirements", of the GET-command discussion
+    (`images/page-055.png`, `images/page-056.png`). No message is attested for
+    the CARD trigger and the binder emits none.*
+    *Amended 2026-08-04 (review), the scope: the mode belongs to the file, not
+    to the record. A file transmits on any of three triggers. Its FILE card
+    selects SPANS, HOLD or CARD ([J 02.07.03]). A record it binds holds an
+    array ([J 90.01.01]). A record it binds shares its area by REDEF with data
+    other than records ([J 02.07.05] c-ii, scan `images/page-056.png`).
+    Otherwise the file locates. A record transmits if any input file that
+    names it transmits. Every trigger is a FILE-card fact, and c-ii forces
+    "all records of the file". One file therefore holds one mode. Msg 932
+    prints once per forced file, on the file name, and only where the file
+    would otherwise have located — c-ii reports a change. A file already
+    transmitting for an option or an array draws nothing. Two readings here
+    are ours. (a) A file's mode comes from its own options and its own
+    records, in one pass. A transmit that reaches a record by propagation
+    does not travel on into that record's other files. [J 02.07.04] allows a
+    record.name on one input file only, and msg 11 diagnoses the violation.
+    In every legal program the one-pass rule and a transitive closure agree.
+    (b) [J 90.01.01] states the array rule per record; the file-wide reading
+    follows from the file-scoped mode above, not from that sentence. The
+    [J 90.01.01] carve-out above is untouched, because propagation follows
+    file membership and never a REDEF link.*
   - BLOCKSIZE range checks land here (D10.8(b) assigns both to the M3
     data mapper): record-fit draws the attested msgs 5 and 209; the
     over-9999 value has no attested message and takes a 930-range id
@@ -338,6 +437,83 @@ starts from a fully resolved program and generates code only.
   subordinates (Q18), D3.5's ineffective-R candidate, and
   D4.11/D4.12/D4.13's deferred notes. The 90.05 job deck stays clean in
   both modes.
+  *Amended 2026-08-04 (stage 1): a constant inside a REDEF extent takes
+  the attested msg 43,00, per D3.6 as amended the same day — it takes no
+  930-series id. The sequence as allocated: 930 quantity nesting over
+  three (D3.1); 931 BLOCKSIZE over 9999 (D7.1); 932 the REDEF-sharing
+  forced transmit ([J 02.07.05] attests the transmit and a message, the
+  id is ours); 933 the mixed-pictorial downgrade; 934 Quantity on an
+  unnamed entry (Q18); 935 ineffective R on a formatless leaf (D3.5) —
+  msg 39 covers the group case in default mode. Ids 933 to 935 issue
+  under `--pedantic` only. See M3-16 for the other stage-1 message
+  choices.*
+
+- **M3-16. Stage-1 message choices (2026-08-04).** The splits,
+  thresholds, and deferrals stage 1 fixed, recorded so stage 2 does not
+  re-derive them:
+  - Msgs 13,00 and 15,00 print one catalog text; msg 16,00 prints its
+    own, "'NAME.2' IS NOT A RECORD. CHECK DATA DESCRIPTION."
+    ([J 90.04], scan `images/page-181.png`, read 2026-08-04 — this entry first
+    said all three shared one text). The 13-versus-15 split is the only
+    choice here, and it follows the M1-8 precedent: 13 for a FILE card
+    that names no record, 15 for a name that resolves to nothing.
+    Msg 16 covers a name that resolves to a non-record item.
+  - Msg 209 covers an input card file with BLOCKSIZE under 24, and the
+    binder repairs the value to 24. Msg 5 covers a bound record longer
+    than its file's blocksize without HOLD or SPANS.
+  - A blank Mode with a digit pictorial reads as external decimal.
+    Attested: DETAIL HOURS prints a blank Mode against pictorial `99V9`
+    ([J 90.05] listing, statement 31,00, PDF p. 192), and [J 90.05.02]'s
+    word table puts HOURS "in the first three characters" of the record's
+    third word — one character per digit. DETAIL is located and takes no
+    area, so the storage section holds no DETAIL row; this entry first
+    cited that section.
+  - Msg 35 fires at the attested bound — a scientific fraction over 16
+    digits — and at one derived bound: a right-justified internal field
+    over 21 digits, the most the two register words hold. Msg 34 stays
+    reserved; stage 1 attests no check for it.
+    *Amended 2026-08-04 (review): msg 34 is enforced. A pictorial
+    repetition count over 99999 clamps to 99999 and draws msg 34,00,
+    "MAXIMUM FORMAT CHARACTER COUNT EXCEEDED. 'NAME.1' FORMAT USED."
+    ([J 90.04]) — the attested text for an expanded count over the
+    maximum with the clamped format used, and it also covers an
+    alphameric count, which msg 35 does not. The cap is a keying-error
+    repair, not a capacity check: a BLOCKSIZE holds at most 9999 words,
+    that is 59994 characters ([J 02.06.04]), so no readable field reaches
+    99999 positions. Capacity proper stays M3-12. The clamp also bounds
+    the allocator, because the msg 100 pictorial-length check diagnoses a
+    long run without truncating it. The checklist row for 34,00 moves
+    from reserved to enforced. No 930-series id is allocated.*
+  - Only a leading blank in a numeric constant reads as zero
+    ([J 02.05.05] note 3); an imbedded blank draws msg 67.
+    *Amended 2026-08-04 (review): that rule now binds all four numeric
+    converters. Floating point and scientific decimal followed it only
+    after this repair; both discard the image on the first misplaced
+    blank, so a repeated entry draws one diagnostic. Any non-blank
+    character ends the leading run, a sign included, in all four paths. The split the four
+    share: msg 67 for a blank out of place, msg 54 for a character the
+    field type cannot store. A sign inside a floating constant is of the
+    second kind. The chart lists `+` and `-` as scientific-decimal
+    content, and note 4 makes scientific decimal the edited form of
+    floating point, but [J 02.04.02] puts a sign only in front of the
+    fraction or on the exponent of a `fraction F±exponent` literal, and
+    this converter reads no F exponent — so the front is the one position
+    a sign may hold, and a later sign draws msg 54. Msg 53,00, "INCORRECT
+    USAGE OF PERIOD, SIGN, OR F FOR CONSTANT OR LITERAL.", is the closer
+    1962 id. The procedure lexer already issues it for a procedure
+    literal (an F with no following digit; a second decimal point). If
+    stage 2 adopts it here, the data path joins that existing use and
+    must share its reading. Open, unattested and unpinned: an all-blank floating
+    constant draws msg 54, where note 3 read literally would make it
+    zero.*
+  - Msg 36 recovery: the subordinate entries drop, and the formatted
+    entry keeps its pictorial. COND children, REDEF markers, and
+    redefinition heads are exempt.
+  - Deferred to stage 2: the binder rows 8, 9, 10, 17, 19, 195, and
+    198; the POOL and GROUP buffer minimums; the capacity counters
+    (M3-12); the COND-value msg 37; the `DataItem.extras` judgment; the
+    LABEL 14-word cap; and the no-fields-after-a-variable-array rule,
+    which has no attested id.
 
 ## The storage oracle
 
@@ -399,6 +575,7 @@ the golden rewrite.
 [F p. 80]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
 [J 02.03.03]: ../../comtran-manuals/J28-6169/02-compiler.md#b-key-words
 [J 02.04.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-effect-of-data-storage-mode-on-arithmetic-efficiency
+[J 02.04.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-figurative-constants
 [J 02.04.06]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
 [J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
 [J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
@@ -408,9 +585,11 @@ the golden rewrite.
 [J 02.05.06]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.05.07]: ../../comtran-manuals/J28-6169/02-compiler.md#2-constants
 [J 02.06]: ../../comtran-manuals/J28-6169/02-compiler.md#0206-environment-description
+[J 02.06.04]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
 [J 02.06.08]: ../../comtran-manuals/J28-6169/02-compiler.md#d-specif-environment-card
 [J 02.06.13]: ../../comtran-manuals/J28-6169/02-compiler.md#d-specif-environment-card
 [J 02.07.03]: ../../comtran-manuals/J28-6169/02-compiler.md#5-locate-and-transmit
+[J 02.07.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-record-types
 [J 02.07.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-factors-affecting-choice-and-use-of-locate-or-transmit-mode
 [J 02.08]: ../../comtran-manuals/J28-6169/02-compiler.md#0208-the-7097090-machine-symbolic-language---crypt
 [J 90.01.01]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#appendix-9001-deferred-features-restrictions-and-limitations

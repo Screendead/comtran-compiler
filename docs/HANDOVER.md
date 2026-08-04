@@ -44,7 +44,7 @@ Terms that appear without expansion:
 | M2 stage 1 — AST and fixed-form parsers | Merged 2026-08-03 (PR #15) | `lib/src/ast/`, `lib/src/parser/` |
 | M2 stage 2 — procedure division | Merged 2026-08-03 (PR #17) | `lib/src/parser/procedure_parser.dart` |
 | M2 stage 3 — job stream and --pedantic | Merged 2026-08-03 (PRs #47–#49) | `lib/src/driver/` |
-| M3 — the semantic layer | **In progress.** Design note recorded 2026-08-04; stage 1 is the next task | `docs/design/m3-data.md` |
+| M3 — the semantic layer | **In progress.** Stage 1 (the data mapper) built 2026-08-04; stage 2 is the next task | `docs/design/m3-data.md`, `lib/src/data/` |
 | M4 to M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -55,7 +55,7 @@ Terms that appear without expansion:
 One M0 deferral is open: **D4.1**, the MOVPAK round-step emission rule. Decide
 it no later than M4.
 
-Test baseline, measured 2026-08-03: 631 Dart tests pass, and 111 extension
+Test baseline, measured 2026-08-04: 790 Dart tests pass, and 111 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck` compiles the
@@ -65,7 +65,7 @@ artifact alone is an incomplete job and draws message 132. The compile prints
 the listing, numbered 1,00 to 229,00 exactly as the 1962 compile numbered it,
 with zero diagnostics. A golden test guards that listing byte for byte.
 
-## The next task — M3 stage 1, the data mapper
+## The next task — M3 stage 2, the dictionary and resolution
 
 The M3 decision walk is recorded in `docs/design/m3-data.md` (2026-08-04).
 Jack's three calls are locked there: M3 is the full semantic layer in three
@@ -73,10 +73,18 @@ staged PRs (M3-1); the listing gains GN)nnn names and the LOC column with a
 golden rewrite in stage 3 (M3-8); and the 1962 object listing's `*DATA`
 storage section (PDF pp. 199–200) is the stage-1 acceptance oracle (M3-14).
 
-The next task is stage 1: the data mapper in a new `lib/src/data/` —
-field typing, pictorial measurement, the storage allocator, initial images,
-the environment binder, the data diagnostics, and the M3-14 oracle fixture
-transcribed from the page scans. Two standing items to carry in:
+Stage 1 landed 2026-08-04: `lib/src/data/` holds the field classifier, the
+pictorial measurement, the storage allocator, the initial images, the
+environment binder, and the stage-1 diagnostics, wired into the driver as
+`runSemantics`. The M3-14 oracle passes — the mapper reproduces the 1962
+`*DATA` storage section exactly. M3-16 records the stage-1 message choices
+and the deferrals.
+
+The next task is stage 2: the dictionary, procedure and environment name
+resolution, CALL synonyms, reference legality, CORRESPONDING pairing, the
+capacity checks (M3-12), and their diagnostics — the deferred binder rows
+(8, 9, 10, 17, 19, 195, 198), the POOL/GROUP buffer minimums, and the
+items M3-16 lists. Two standing items to carry in:
 
 - The D4.1 deferral (MOVPAK round step) must be decided no later than M4.
 - D11.4 lists the --pedantic sites deferred to M3 and later (D4.12, D4.13,
@@ -95,7 +103,7 @@ binds work outside the definition.
 - §8.5 and Open Questions are living lists. Annotate an entry in place with the
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
-- The conversions stay read-only. Three erratum candidates wait for Jack's
+- The conversions stay read-only. Four erratum candidates wait for Jack's
   explicit authorization:
   1. The 90.05 transcription renders the `*CTEND` card's date as `10/18/61`.
      The card prints `101861` (recorded in §8.5.8).
@@ -109,6 +117,11 @@ binds work outside the definition.
      and 228,00 sit one line low. A printer half-line stagger causes this.
      `docs/design/m1-front-end.md` M1-14 records the scan-correct grouping,
      and the M1 tests assert it.
+  4. The [J 02.05.05] chart transcription renders the Edited Field row's
+     rightmost-character list as `8 or 9 or 8̅ or 9̅`. The scan
+     (`images/page-031.png`) marks all four glyphs: minus-8, minus-9, plus-8,
+     plus-9. The language definition repeats the unmarked reading. The M3-4
+     amendment in `docs/design/m3-data.md` records the scan reading.
 - The page scans (`comtran-manuals/*/images/page-NNN.png`) are ground truth for
   any disputed reading.
 - For any claim about card columns, measure the page scan. Never trust the
@@ -242,6 +255,7 @@ M2 to M6.
 
 [F p. 12]: ../comtran-manuals/F28-8043/02-language-structure.md#underlying-principles
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
+[J 02.05.05]: ../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card
 [J 90.02]: ../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.10]: ../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers

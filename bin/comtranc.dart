@@ -1,8 +1,9 @@
 /// The compiler driver. It splits the deck into jobs (D11.1), runs the
-/// front end — card reader, scanners, statement numbering — and the M2
-/// parser once per job, and prints one compilation listing per job with
-/// the merged diagnostic block (roadmap M1–M2, `docs/HANDOVER.md`;
-/// design notes M2-1 and M2-15).
+/// front end — card reader, scanners, statement numbering — the M2
+/// parser, and the M3 semantic layer once per job, and prints one
+/// compilation listing per job with the merged diagnostic block
+/// (roadmap M1–M3, `docs/HANDOVER.md`; design notes M2-1, M2-15, and
+/// M3-2).
 library;
 
 import 'dart:io';
@@ -14,7 +15,8 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
 
   Compiles every job on the deck ($CMPLE ... *FINISH) and prints one
   compilation listing per job.
-  (M1+M2: front end and parser — no code generation yet.)
+  (M1-M3 stage 1: front end, parser, data mapper — no code generation
+  yet.)
 
   --date=mm/dd/yy    page-head date (default: today)
   --time=h.hh        page-head time, decimal hours (default: now)

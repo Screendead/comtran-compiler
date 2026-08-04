@@ -687,4 +687,21 @@ const Map<String, int> messageSeverities = {
   // C1 (ours, --pedantic only, D11.1e): the job is accepted unchanged;
   // advisory.
   '929,00': 1,
+  // C2 (ours, D3.1): the quantity clause is replaced by one -
+  // clause-level loss.
+  '930,00': 2,
+  // C4 (ours, D7.1): the FILE card is rejected - file-level loss.
+  '931,00': 4,
+  // C1 (ours, M3-11): the transmit is the attested behavior
+  // (J 02.07.05); advisory.
+  '932,00': 1,
+  // C1 (ours, --pedantic only, M3-13): the attested downgrade is
+  // unchanged; advisory.
+  '933,00': 1,
+  // C1 (ours, --pedantic only, M3-13): the quantity is accepted
+  // unchanged; advisory.
+  '934,00': 1,
+  // C1 (ours, --pedantic only, M3-13): the ineffective R is ignored
+  // as attested; advisory.
+  '935,00': 1,
 };

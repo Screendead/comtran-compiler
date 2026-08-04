@@ -459,9 +459,11 @@ record built on it.*
 
 **Implementation.** Data mapper: field-type classification during DATA division processing assigns 'group / non-format' to any entry lacking a pictorial clause, with derived alphameric length. Codegen: procedure-division comparison-statement generation consults this classification to select the alphameric comparison path per [J 02.04.07] rule 4, then applies rule 2b -- constant-fold = / NOT = when the two operand lengths differ and emit only the selected transfer; for the relative-magnitude operators emit a comparison over the equalized length obtained by right truncation of the longer field. The fold is operator-scoped, so it applies in every construct that evaluates such a condition (IF sentences, conditional GO TO WHEN clauses, TR operands), per Open Question 42.
 
+**Amended (M3, 2026-08-04).** The mapper realizes the group length as the group's physical extent, carried in `ItemSemantics.storageChars`. The Decision sentence "its length is the sum of its subfields' lengths" is superseded by the extent. The sum and the extent agree on the worked example in [J 02.05.06]. They diverge in two cases. A redefinition head adds no length: "redefinition of a record area does not give it length" ([J 02.05.01]). Interior alignment padding is part of the extent, because a comparison over the group covers the padded storage. The M3-4 amendment in `docs/design/m3-data.md` records the same ground.
+
 **Oracle.** decision-conformance only
 
-*Citations:* ([J 02.04.07]; [J 02.05.06])
+*Citations:* ([J 02.04.07]; [J 02.05.06]; [J 02.05.01])
 
 ### D3.4 — The REDEF line: name and layout
 
@@ -497,6 +499,8 @@ record built on it.*
 **Rationale.** J forbids constants 'as part or all of the redefinition of an area'. By its own wording that bars constants among the entries that make up the redefinition, not among the entries the REDEF is defined against. This reading is also the only one consistent with F's demonstrated technique, and with [J 90.01.03]'s advice that a record containing an array precede the REDEF. The catalog Resolution settles the constants question only; it says nothing about layout, so the layout must come from the REDEF-line decision rather than from an unqualified 'accepted unchanged'. [J 02.05.02] supplies the extent rule; without it the end of the redefinition, and so the end of the constants ban, is undefined.
 
 **Implementation.** Data mapper: the constants restriction applies to every entry inside the REDEF's extent, computed by the level rule above ([J 02.05.02]). Entries preceding the REDEF line are the original definition and are exempt. Diagnostics: a constant entry inside the redefinition is rejected per [J 02.05.06] item iv; no message number is attested for this restriction (msg 57,00 covers only constants in an edited-type field), so the message text and number are a recorded design decision. No diagnostic for constants before the REDEF line. See the REDEF-line record for the layout and storage-counter rules that apply to the same construct.
+
+**Amended (M3, 2026-08-04).** A message number is attested for this restriction. Catalog msg 43,00 reads "CONSTANT CANNOT BE ASSOCIATED WITH -REDEF- OR INPUT RECORD, OR PRECEDED BY VARIABLE LENGTH FIELD." (B.2 data description). The Implementation sentence "no message number is attested for this restriction" is superseded. The mapper issues msg 43,00 for a constant inside a REDEF extent, for a constant in a located input record, and for a constant after a variable length field, and does not store the constant. No 930-series number is allocated for this check.
 
 **Oracle.** manual example (citation) for the legality of constants in the original definition ([F pp. 74-75]); decision-conformance only for the extent rule and for the diagnostic text/number
 

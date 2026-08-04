@@ -133,6 +133,27 @@ final class Diagnostic {
                 '${column == null ? '' : ', column $column'})'}';
 }
 
+/// Merges [earlier] and [later] phase diagnostics into one card-ordered
+/// block, stable within one card by phase then detection order (design
+/// note M2-2; the 1962 ordering is unattested). A whole-program diagnostic
+/// (no card; D11.3) sorts after every carded one.
+List<Diagnostic> mergeDiagnosticPhases(
+  List<Diagnostic> earlier,
+  List<Diagnostic> later,
+) {
+  int key(Diagnostic d) => d.card?.cardNumber ?? 1 << 30;
+  final all =
+      <(int, int, Diagnostic)>[
+        for (final (int i, Diagnostic d) in earlier.indexed) (key(d), i, d),
+        for (final (int i, Diagnostic d) in later.indexed)
+          (key(d), earlier.length + i, d),
+      ]..sort(
+        ((int, int, Diagnostic) a, (int, int, Diagnostic) b) =>
+            a.$1 != b.$1 ? a.$1 - b.$1 : a.$2 - b.$2,
+      );
+  return List.unmodifiable([for (final (_, _, Diagnostic d) in all) d]);
+}
+
 /// Flattens the two dominant [Diagnostic] emission shapes at scanner and
 /// parser call sites to one line each, with emission order and operand
 /// order unchanged from the equivalent `add(Diagnostic(...))` call.

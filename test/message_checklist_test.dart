@@ -55,6 +55,12 @@ final Map<String, Message> _ours = {
     msgAtEndWithoutComma,
     msgTrailingCommaBeforePeriod,
     msgJobClosedByCompileCard,
+    msgQuantityNestedTooDeep,
+    msgBlocksizeOverMaximum,
+    msgRecordsForcedTransmit,
+    msgMixedPictorialDowngraded,
+    msgQuantityOnUnnamedEntry,
+    msgIneffectiveRightJustification,
   ])
     m.number: m,
 };
@@ -158,6 +164,7 @@ void main() {
     // is issued somewhere.
     final tables = <String, String>{
       for (final path in [
+        'lib/src/data/data_messages.dart',
         'lib/src/lexer/messages.dart',
         'lib/src/parser/parser_messages.dart',
       ])
@@ -196,6 +203,7 @@ void main() {
       for (final File f in sources) f.path: f.readAsStringSync(),
     };
     for (final path in [
+      'lib/src/data/data_messages.dart',
       'lib/src/lexer/messages.dart',
       'lib/src/parser/parser_messages.dart',
     ]) {
