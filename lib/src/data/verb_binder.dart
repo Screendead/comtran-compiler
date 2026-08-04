@@ -369,6 +369,9 @@ final class VerbBinder extends ClauseWalk {
       return;
     }
     final ItemSemantics sem = mapper.semantics[candidates.single]!;
+    // No fraction and no scale: a scaled field cannot hold an
+    // arbitrary length — 999SSS stores a thousandth of its value
+    // (F p. 80; M3-18).
     final bool proper =
         (sem.fieldClass == FieldClass.externalDecimal ||
             sem.fieldClass == FieldClass.internalDecimal) &&

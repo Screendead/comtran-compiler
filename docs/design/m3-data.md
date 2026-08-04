@@ -630,7 +630,9 @@ starts from a fully resolved program and generates code only.
   BEGIN option; all records standard variable; BLOCK CONTROL. PATTERN
   cannot rescue it until its M5 syntax lands (D9.12). The proper format
   for 111/112 (ours): external or internal decimal with no fraction
-  positions. An ON ERROR, FOR LABEL, FIND LENGTH IN, or PLACE LENGTH IN
+  and no scale positions — the message text says format, and a scaled
+  field cannot hold an arbitrary length (a length of 84 into 999SSS
+  stores zero). An ON ERROR, FOR LABEL, FIND LENGTH IN, or PLACE LENGTH IN
   name that resolves to nothing draws msg 108 at the card. OPTION's
   section names stay unresolved in stage 2: no M3-tagged row covers
   them, and the leniency default holds where nothing is attested.
@@ -691,7 +693,7 @@ starts from a fully resolved program and generates code only.
   | a subscript count above zero that differs from the dimension count | 70 |
   | a subscript's variable is itself subscripted, or is a condition name | 71 |
   | a subscript variable of alphameric, edited, or group class | 79 |
-  | a subscript variable with fraction positions | 31 |
+  | a subscript variable with fraction or scale positions | 31 |
   | a literal subscript term that is zero, negative, or fractional | 182 |
   | a legal subscript variable format that is not the direct-index form | 206 |
 
@@ -700,6 +702,13 @@ starts from a fully resolved program and generates code only.
   right-justified internal decimal, the form our code generator indexes
   with directly; the 90.05 sample stays silent. The format rows cascade
   — 71, 79, 31, 206 — for one message per subscript variable (ours).
+  Msg 31 bars a trailing-S scale too (ours). A scaled field stores a
+  thousandth of its value, and the attested lookup indexes by the raw
+  stored digits with no scaling step ([J 90.05] listing, LOC
+  01421–01432). [F p. 75] has the subscript "count individual items", so
+  the stored digits must equal the value. The language definition's
+  §8.5.4-n records the two senses of "integer"; the assigned GO TO
+  index takes the value sense (see Transfers below).
   - **Counters (D9.7).** Each unique pair of resolved array and flattened
     subscript notation is one positional indicator; the 91st draws
     msg 184. Msg 205 names the same 1962 table, and one event cannot
@@ -714,6 +723,9 @@ starts from a fully resolved program and generates code only.
     nothing (D2.5 defines the one- and two-word forms). An assigned
     GO TO index of non-numeric class draws msg 129; a numeric index
     with fraction positions draws msg 130 and the integral part serves.
+    A trailing-S scale passes: its values are whole, [F p. 49]'s rule
+    speaks of the index's value, and msg 130's truncation clause has
+    nothing to take ([F p. 80]; §8.5.4-n).
   - **DO indexing ([F p. 49]–53).** A FOR index variable of non-numeric
     class draws msg 76. A named p, q, or r parameter of non-numeric
     class draws msg 77. A literal p, q, or r that is not a whole number
@@ -843,6 +855,7 @@ the golden rewrite.
 [F p. 49]: ../../comtran-manuals/F28-8043/03-procedure-description.md#assigned
 [F p. 53]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-data-substitution
 [F p. 71]: ../../comtran-manuals/F28-8043/04-data-description.md#level-col-23-24
+[F p. 75]: ../../comtran-manuals/F28-8043/04-data-description.md#tables
 [F p. 80]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
 [J 02.03.03]: ../../comtran-manuals/J28-6169/02-compiler.md#b-key-words
 [J 02.04.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-effect-of-data-storage-mode-on-arithmetic-efficiency

@@ -127,6 +127,9 @@ final class SubscriptChecker {
       );
       return;
     }
+    // Fraction and scale positions alike: the attested lookup indexes
+    // by the raw stored digits with no scaling step (J 90.05 listing,
+    // LOC 01421), so the stored digits must equal the value (M3-20).
     if (sem.fractionDigits != 0) {
       resolver.report(
         msgSubscriptVariableNotInteger,
