@@ -47,6 +47,10 @@ final Message msgNameIsNotFile = messageCatalog['21,00']!;
 /// inside a true arithmetic expression (M3-21).
 final Message msgImproperFormatForUse = messageCatalog['25,00']!;
 
+/// `31,00` — a subscript variable with fraction positions; a scaled
+/// integer (a trailing `S` run) counts as one (M3-20).
+final Message msgSubscriptVariableNotInteger = messageCatalog['31,00']!;
+
 /// `32,00` — a mode-versus-pictorial conflict the J 02.05.05 chart
 /// does not define: edit characters or FF under the wrong mode, an
 /// overpunch under mode I. The pictorial's format is used (M3-4).
@@ -164,6 +168,19 @@ final Message msgOperationAsName = messageCatalog['61,00']!;
 /// `67,00` — a non-numeric character in a numeric field's constant.
 final Message msgNonNumericInNumericField = messageCatalog['67,00']!;
 
+/// `70,00` — a subscript count above zero that differs from the
+/// referenced item's dimension count (M3-20).
+final Message msgArrayDimensionCheck = messageCatalog['70,00']!;
+
+/// `71,00` — a subscript whose variable carries subscripts of its own
+/// or names a condition; F p. 31 admits a name or an index expression
+/// only. NAME.1 is the array (M3-20).
+final Message msgInvalidSubscriptVariable = messageCatalog['71,00']!;
+
+/// `79,00` — a subscript variable of alphameric, edited, or group
+/// class (M3-20).
+final Message msgSubscriptVariableNotNumeric = messageCatalog['79,00']!;
+
 /// `80,00` — the first redefining entry's justification differs from
 /// the redefined item's (J 02.05.02).
 final Message msgRedefJustificationConflict = messageCatalog['80,00']!;
@@ -190,6 +207,10 @@ final Message msgIllegalMove = messageCatalog['84,00']!;
 /// nothing or to a field with no subordinates: correspondence is
 /// sought below the operand (J 02.04.04; M3-21).
 final Message msgInvalidCorresponding = messageCatalog['97,00']!;
+
+/// `98,00` — a subscripted reference to an item no Quantity gives a
+/// dimension (M3-20).
+final Message msgArrayDescriptionCheck = messageCatalog['98,00']!;
 
 /// `101,00` — a reference whose final word is declared but whose
 /// qualifier chain matches no declaration, or a qualified reference
@@ -254,6 +275,20 @@ final Message msgFigurativeToVariableField = messageCatalog['180,00']!;
 /// maximum is the message text's 32766 (D4.6).
 final Message msgFigurativeToLongField = messageCatalog['181,00']!;
 
+/// `182,00` — a literal subscript term that is zero, negative, or
+/// fractional; arrays are 1-origin (J 02.04.07.01; M3-20). The catalog
+/// text takes no operand.
+final Message msgImproperDataFormat = messageCatalog['182,00']!;
+
+/// `183,00` — the 51st distinct `a * VARIABLE ± b` index expression
+/// (D9.7's "Appox-Max" 50; J 90.01.05).
+final Message msgIndexExpressionCapacity = messageCatalog['183,00']!;
+
+/// `184,00` — the 91st distinct positional indicator: one per unique
+/// array-and-subscript-notation pair (J 02.04.07; D9.7's "Appox-Max"
+/// 90). Msg 205 names the same table and stays reserved (M3-20).
+final Message msgSubscriptedNameCapacity = messageCatalog['184,00']!;
+
 /// `185,00` — a description run read as a name that is not a data,
 /// key, or procedure name (J 02.05.06 e), or description tokens no
 /// clause claimed (M3-17).
@@ -268,6 +303,11 @@ final Message msgNotProperlyDefined = messageCatalog['191,00']!;
 /// in the same portion: description punched before its record name
 /// (M3-17).
 final Message msgRecordNameMustPrecede = messageCatalog['197,00']!;
+
+/// `206,00` — a subscript variable of a legal format that is not
+/// right-justified internal decimal, the one form the generator
+/// indexes with directly. The criterion is invented (D9.11); C1.
+final Message msgInefficientSubscriptFormat = messageCatalog['206,00']!;
 
 /// `209,00` — an input card file's BLOCKSIZE under the stated
 /// 24-word minimum (J 02.06.04); 24 is used. The catalog text ends

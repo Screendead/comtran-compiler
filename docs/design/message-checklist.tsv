@@ -30,7 +30,7 @@ id	class	disposition	component	b2	test	note	text
 28,00	C1	reserved	code generator	B.2 MOVE/ADD/SET/arithmetic		M4 (compile-time constant folding)	ATTEMPTED DIVISION BY ZERO BYPASSED. RESULT TAKEN TO BE ZERO.
 29,00	C5	reserved	internal-error reporting	B.2 self-diagnostics		internal-consistency assertion (D9.15 group a)	ILLEGAL INTERNAL CONDITION. NOTHING DONE. POSSIBLE COMPILER ERROR.
 30,00	C2	reserved	name resolution	B.2 DO/functions/subscripting		M3 (function argument counts need the dictionary)	FUNCTION 'NAME.1' LACKS EXPLICIT SPECIFICATION OF ALL ARGUMENTS.
-31,00	C2	reserved	name resolution	B.2 DO/functions/subscripting		M3 (subscript variable formats)	SUBSCRIPT VARIABLE 'NAME.1' MUST BE AN INTEGER.
+31,00	C2	enforced	name resolution	B.2 DO/functions/subscripting	test/subscript_checks_test.dart: a fractional subscript variable draws 31,00	M3 stage 2 (M3-20: a subscript variable with fraction positions)	SUBSCRIPT VARIABLE 'NAME.1' MUST BE AN INTEGER.
 32,00	C1	enforced	data description	B.2 data description	test/data_mapper_test.dart: edit characters under mode I draw 32,00 and the pictorial	M3 (mode vs pictorial agreement)	MODE AND DATA DESCRIPTION CONFLICT. 'NAME.1' FORMAT USED.
 33,00	C1	enforced	data description	B.2 data description	test/data_mapper_test.dart: A mixed with edit characters draws 33,00 and the field is	M3 (pictorial content classification, M2-3)	ILLEGAL COMBINATION OF FORMAT CHARACTERS. CHECK DATA DESCRIPTION.\n                    'NAME.1' FORMAT USED.
 34,00	C1	enforced	data description	B.2 data description	test/data_mapper_test.dart: a repetition count past 99999 draws 34,00 and is clamped	M3 (pictorial content classification)	MAXIMUM FORMAT CHARACTER COUNT EXCEEDED. 'NAME.1' FORMAT USED.
@@ -69,8 +69,8 @@ id	class	disposition	component	b2	test	note	text
 67,00	C2	enforced	data description	B.2 data description	test/data_mapper_test.dart: a non-numeric character in a numeric constant draws 67,00	M3 (numeric field content)	THERE IS AN ILLEGAL NON-NUMERIC CHARACTER IN THE NUMERIC FIELD.
 68,00	C2	reserved	name resolution	B.2 DO/functions/subscripting		M3 (function argument counts)	EVALUATION IGNORED FOR FUNCTION 'NAME.1'.\n                    TOO MANY ARGUMENTS SPECIFIED.
 69,00	C5	reserved	internal-error reporting	B.2 self-diagnostics		assembly-stage assertion (D9.15 group a)	ILLEGAL INTERNAL CODE 'NAME.1' SENT TO ASSEMBLY.  POSSIBLE COMPILER ERROR.
-70,00	C2	reserved	name resolution	B.2 DO/functions/subscripting		M3 (array dimension checks)	CHECK ARRAY OF ELEMENTS, 'NAME.1', FOR NUMBER OF DIMENSIONS.
-71,00	C2	reserved	name resolution	B.2 DO/functions/subscripting		M3 (subscript variable formats)	INVALID FORMAT FOR SUBSCRIPT VARIABLE IN ARRAY OF ELEMENTS, 'NAME.1'.
+70,00	C2	enforced	name resolution	B.2 DO/functions/subscripting	test/subscript_checks_test.dart: a subscript count above the dimension count draws 70,00	M3 stage 2 (M3-20: the subscript count against the dimension count)	CHECK ARRAY OF ELEMENTS, 'NAME.1', FOR NUMBER OF DIMENSIONS.
+71,00	C2	enforced	name resolution	B.2 DO/functions/subscripting	test/subscript_checks_test.dart: a subscripted subscript variable draws 71,00	M3 stage 2 (M3-20: a subscripted or condition-name subscript variable, F p. 31)	INVALID FORMAT FOR SUBSCRIPT VARIABLE IN ARRAY OF ELEMENTS, 'NAME.1'.
 72,00	C3	reserved	name resolution	B.2 DO/functions/subscripting		M3 (DO USING/GIVING parameter counts)	TOO MANY -USING- PARAMETERS IN -DO- STATEMENT.
 73,00	C3	reserved	name resolution	B.2 DO/functions/subscripting		M3 (DO USING/GIVING parameter counts)	TOO FEW -USING- PARAMETERS IN -DO- STATEMENT.
 74,00	C3	reserved	name resolution	B.2 DO/functions/subscripting		M3 (DO USING/GIVING parameter counts)	TOO MANY -GIVING- PARAMETERS IN -DO- STATEMENT
@@ -78,7 +78,7 @@ id	class	disposition	component	b2	test	note	text
 76,00	C3	reserved	name resolution	B.2 DO/functions/subscripting		M3 (loop control variable formats)	FORMAT ERROR FOR LOOP CONTROL VARIABLE 'NAME.1'.
 77,00	C3	reserved	name resolution	B.2 DO/functions/subscripting		M3 (loop control variable formats)	FORMAT ERROR FOR PARAMETER 'NAME.1' OF LOOP CONTROL VARIABLE.
 78,00	C3	reserved	name resolution	B.2 DO/functions/subscripting		M3 (loop control variable formats)	FORMAT ERROR FOR LITERAL PARAMETER OF LOOP CONTROL VARIABLE 'NAME.1'.
-79,00	C2	reserved	name resolution	B.2 DO/functions/subscripting		M3 (subscript variable formats)	SUBSCRIPT VARIABLE 'NAME.1' MUST BE OF NUMERIC TYPE.
+79,00	C2	enforced	name resolution	B.2 DO/functions/subscripting	test/subscript_checks_test.dart: an alphameric subscript variable draws 79,00	M3 stage 2 (M3-20: an alphameric, edited, or group subscript variable)	SUBSCRIPT VARIABLE 'NAME.1' MUST BE OF NUMERIC TYPE.
 80,00	C2	enforced	data description	B.2 data description	test/data_mapper_test.dart: a redefinition with different justification draws 80,00	M3 (REDEF justification conflict)	CONFLICT BETWEEN JUSTIFICATION AS GIVEN BY ORIGINAL DEFINITION AND -REDEF-.
 81,00	C3	enforced	data description	B.2 data description	test/data_mapper_test.dart: a redefinition at a different level draws 81,00	M3 (REDEF level conflict)	CONFLICT BETWEEN LEVEL AS GIVEN BY ORIGINAL DEFINITION AND -REDEF-.
 82,00	C2	enforced	name resolution	B.2 MOVE/ADD/SET/arithmetic	test/legality_test.dart: HIGH.VALUE moved to an internal decimal field draws	M3 stage 2 (M3-21: the J 02.04.02 chart's Illegal cells and J 02.04.01 b)	INCORRECT USAGE OF FIGURATIVE CONSTANT.
@@ -97,7 +97,7 @@ id	class	disposition	component	b2	test	note	text
 95,00	C2	enforced	environment description	B.2 environment description	test/environment_parser_test.dart: every issued message id has a severity row (Diagnostic.severity)		DATA NAME MUST FOLLOW -FIND LENGTH IN- IN THE -FILE- CARD.
 96,00	C3	enforced	environment description	B.2 environment description	test/environment_parser_test.dart: PRIMARY on an INPUT file draws 96,00		THERE IS AN ILLEGAL WORD IN THE -FILE- CARD.
 97,00	C3	enforced	name resolution	B.2 MOVE/ADD/SET/arithmetic	test/legality_test.dart: an operand that is elementary or unresolved draws 97,00	M3 stage 2 (M3-21: a CORRESPONDING operand must be a group, J 02.04.04)	INVALID -CORRESPONDING- STATEMENT.
-98,00	C2	reserved	name resolution	B.2 DO/functions/subscripting		M3 (array description checks)	CHECK DATA DESCRIPTION OF ARRAY OF ELEMENTS, 'NAME.1'.
+98,00	C2	enforced	name resolution	B.2 DO/functions/subscripting	test/subscript_checks_test.dart: a subscripted reference to a flat item draws 98,00	M3 stage 2 (M3-20: a subscripted reference to an item with no dimensions)	CHECK DATA DESCRIPTION OF ARRAY OF ELEMENTS, 'NAME.1'.
 99,00	C4	reserved	code generator	B.2 sections/control flow		M4 (program-continuity checks)	PROBABLE PROGRAM CONTINUITY ERROR. PROGRAM FLOWS INTO STATEMENT OR SECTION\n                    'NAME.1' ADDRESSED BY A -DO-.
 100,00	C2	enforced	card reader and lexer	B.2 numeric limits	test/data_lexer_test.dart: an over-long pictorial draws 100,00		DATA DESCRIPTION CONTAINS PICTORIAL WHICH EXCEEDS LEGAL LIMIT OF 30 CHARACTERS.
 101,00	C2	enforced	name resolution	B.2 names	test/resolver_test.dart: a declared name with a wrong qualifier chain draws	M3 stage 2 (M3-17 triage; D4.13 synonym qualification)	'NAME.1' IS AN IMPROPERLY QUALIFIED NAME.
@@ -181,9 +181,9 @@ id	class	disposition	component	b2	test	note	text
 179,00	C3	enforced	procedure parser	B.2 sections/control flow	test/procedure_parser_test.dart: END must be the only clause in its sentence (msg 179)		-END- SECTION MUST BE THE ONLY CLAUSE IN THE SENTENCE.
 180,00	C4	enforced	name resolution	B.2 MOVE/ADD/SET/arithmetic	test/legality_test.dart: a figurative constant moved to a variable length field	M3 stage 2 (M3-21: J 02.04.01 c-i, the whole variable array only)	MOVE OF FIGURATIVE CONSTANT TO VARIABLE LENGTH FIELD NOT YET HANDLED BY SYSTEM.
 181,00	C4	enforced	name resolution	B.2 numeric limits	test/legality_test.dart: a figurative constant moved to a field over 32766	M3 stage 2 (D4.6: the implemented maximum is 32766 characters)	MOVE OF FIGURATIVE CONSTANT TO FIELD LONGER THAN 32766 CHARACTERS NOT YET HANDLED BY SYSTEM.
-182,00	C2	reserved	name resolution	B.2 MOVE/ADD/SET/arithmetic		M3 (data-format checks)	IMPROPER DATA FORMAT.
-183,00	C5	reserved	name resolution	B.2 capacity overflow		M3 (index expression table, D9.7)	NUMBER OF SUBSCRIPT EXPRESSIONS USED EXCEEDS INTERNAL TABLE CAPACITY.
-184,00	C5	reserved	name resolution	B.2 capacity overflow		M3 (positional indicator table, D9.7)	NUMBER OF SUBSCRIPTED NAMES USED EXCEEDS INTERNAL TABLE CAPACITY.
+182,00	C2	enforced	name resolution	B.2 MOVE/ADD/SET/arithmetic	test/subscript_checks_test.dart: a zero, negative, or fractional literal draws 182,00	M3 stage 2 (M3-20: a literal subscript term below one or fractional, J 02.04.07.01)	IMPROPER DATA FORMAT.
+183,00	C5	enforced	name resolution	B.2 capacity overflow	test/subscript_checks_test.dart: the 51st index expression draws 183,00	M3 stage 2 (M3-20: the index expression table, D9.7)	NUMBER OF SUBSCRIPT EXPRESSIONS USED EXCEEDS INTERNAL TABLE CAPACITY.
+184,00	C5	enforced	name resolution	B.2 capacity overflow	test/subscript_checks_test.dart: the 91st positional indicator draws 184,00	M3 stage 2 (M3-20: the positional indicator table, D9.7)	NUMBER OF SUBSCRIPTED NAMES USED EXCEEDS INTERNAL TABLE CAPACITY.
 185,00	C2	enforced	data description	B.2 data description	test/resolver_test.dart: an unresolvable stray name draws 185,00	M3 stage 2 (M3-17 stray names and extras, J 02.05.06 e)	DATA DESCRIPTION PICTORIAL ERROR.
 186,00	C1	enforced	card reader and lexer	B.2 lexical/card-format	test/environment_lexer_test.dart: type content on a continuation card draws 186,00		DATA OR ENVIRONMENT FIXED FIELD INFORMATION SHOULD BE PUNCHED IN ONLY THE FIRST CARD\n                    OF A MULTIPLE CARD GROUP. POSSIBLE CONTINUATION CHARACTER ERROR.
 187,00	C3	reserved	code generator	B.2 conditionals		M4 (conditional test capacity); garbled tail preserved (D9.6)	CONDITIONAL EXPRESSION TEST CAPACITY EXCEEDED.\n                    REWRITE AS TWO OR MORE SEPARATE EXPRESSIONS, EACH WITH
@@ -204,8 +204,8 @@ id	class	disposition	component	b2	test	note	text
 202,00	C5	reserved	data description	B.2 capacity overflow		M3 (base locator table, D9.7)	NUMBER OF DATA GROUPS ASSOCIATED WITH BASE LOCATOR EXCEEDS INTERNAL TABLE CAPACITY.
 203,00	C5	reserved	data description	B.2 capacity overflow		M3 (array table, D9.7)	NUMBER OF ARRAYS EXCEEDS INTERNAL TABLE CAPACITY.
 204,00	C5	reserved	data description	B.2 capacity overflow		M3 (edited field format table, D9.7)	NUMBER OF DIFFERENT EDIT FIELDS EXCEEDS INTERNAL TABLE CAPACITY.
-205,00	C5	reserved	name resolution	B.2 capacity overflow		M3 (subscript variable table, D9.7)	INTERNAL TABLE OVERFLOW. REDUCE DUPLICATE USAGE OF SUBSCRIPT VARIABLE NAMES.
-206,00	C1	reserved	name resolution	B.2 DO/functions/subscripting		M3 (subscript format advisory); criterion invented (D9.11)	'NAME.1' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
+205,00	C5	reserved	name resolution	B.2 capacity overflow		M3 (subscript variable table, D9.7); one 1962 table with msg 184, we issue 184 (M3-20)	INTERNAL TABLE OVERFLOW. REDUCE DUPLICATE USAGE OF SUBSCRIPT VARIABLE NAMES.
+206,00	C1	enforced	name resolution	B.2 DO/functions/subscripting	test/subscript_checks_test.dart: an external decimal subscript variable draws 206,00	M3 stage 2 (M3-20: the subscript format advisory); criterion invented (D9.11)	'NAME.1' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
 207,00	C3	enforced	environment description	B.2 numeric limits	test/environment_parser_test.dart: a CONTRL name over 6 characters draws 207,00; well-formed card also gets 90,00		-CONTRL- NAME MUST BE UNIQUE AND 6 CHARACTERS OR LESS.
 208,00	C3	enforced	procedure parser	B.2 lexical/card-format	test/procedure_parser_test.dart: a sentence starting with OTHERWISE draws 208 and deletes		SENTENCE CANNOT START WITH -OTHERWISE-
 209,00	C1	enforced	input/output binder	B.2 environment description	test/data_mapper_test.dart: an input card file under 24 words draws 209,00 and 24 is	M3 (blocksize adequacy)	'NAME.1' HAS INSUFFICIENT BLOCKSIZE. BLOCKSIZE USED IS

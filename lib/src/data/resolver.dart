@@ -22,6 +22,7 @@ import 'dictionary.dart';
 import 'images.dart';
 import 'mapper.dart';
 import 'pictorial.dart';
+import 'subscripts.dart';
 
 /// Builds the dictionary and resolves every name of one job.
 final class NameResolver extends ClauseWalk {
@@ -49,6 +50,18 @@ final class NameResolver extends ClauseWalk {
   /// Condition references that resolve to an Environment COND card —
   /// the console-key test (J 02.06.17).
   final Set<NameReference> keysConditions = Set.identity();
+
+  late final SubscriptChecker _subscripts = SubscriptChecker(
+    mapper,
+    dataResolutions,
+    report,
+    tableLimits: tableLimits,
+  );
+
+  /// Set while the triage runs over a subscript expression. A condition
+  /// name resolves there, so that M3-20's msg 71 speaks for it in place
+  /// of the triage's msg 25 (M3-17: a site-specific row overrides).
+  bool _inSubscript = false;
 
   /// List-3 words an environment card of the job uses (M2-7; M3-17).
   final Set<String> _usedListThree = {};
@@ -397,7 +410,10 @@ final class NameResolver extends ClauseWalk {
   /// The M3-17 triage over a data-reference site. Returns the resolved
   /// item, or `null` after a diagnostic.
   DataItem? _resolveDataRef(NameReference ref) {
+    final bool enclosing = _inSubscript;
+    _inSubscript = true;
     ref.subscripts.forEach(_resolveExpr);
+    _inSubscript = enclosing;
     final String last = ref.words.last.text;
     final DictionaryEntry? synonym = dictionary.synonym(last);
     if (synonym != null) {
@@ -406,18 +422,17 @@ final class NameResolver extends ClauseWalk {
         report(msgImproperlyQualified, ref.anchor, operands: [ref.text]);
         return null;
       }
-      dataResolutions[ref] = synonym.item!;
-      return synonym.item;
+      return _resolvedTo(ref, synonym.item!);
     }
     final List<DataItem> declared = mapper.itemsNamed(last);
     final List<DataItem> candidates = [
       for (final DataItem item in declared)
-        if (item.typeCode != DataTypeCode.cond && _chainMatches(item, ref))
+        if ((_inSubscript || item.typeCode != DataTypeCode.cond) &&
+            _chainMatches(item, ref))
           item,
     ];
     if (candidates.length == 1) {
-      dataResolutions[ref] = candidates.single;
-      return candidates.single;
+      return _resolvedTo(ref, candidates.single);
     }
     if (candidates.length > 1) {
       report(msgNameNotUnique, ref.anchor, operands: [ref.text]);
@@ -442,6 +457,12 @@ final class NameResolver extends ClauseWalk {
     }
     report(msgUndefinedSymbol, ref.anchor, operands: [ref.text]);
     return null;
+  }
+
+  DataItem _resolvedTo(NameReference ref, DataItem item) {
+    dataResolutions[ref] = item;
+    _subscripts.check(ref, item);
+    return item;
   }
 
   /// Whether [item]'s ancestor-name chain contains [ref]'s qualifier
