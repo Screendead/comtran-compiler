@@ -431,9 +431,25 @@ final Message msgRecordNameMustPrecede = messageCatalog['197,00']!;
 /// files are exempt: they carry no record (J 02.06.03; M3-18).
 final Message msgNoRecordsProcessed = messageCatalog['198,00']!;
 
+/// `200,00` — the 26th QUANTITY IN specification, "Appox-Max" 25
+/// (J 90.01.05 item e; D9.7's reading of Open Question 67).
+final Message msgVariableFieldCapacity = messageCatalog['200,00']!;
+
+/// `201,00` — the 24th level of one data hierarchy, "Appox-Max" 23
+/// (J 90.01.05 item j; D9.7). NAME.1 is the crossing entry.
+final Message msgHierarchyDepthCapacity = messageCatalog['201,00']!;
+
 /// `202,00` — the 128th located record. One base locator serves one
 /// located record, "Appox-Max" 127 (J 90.01.05 item d; D9.7).
 final Message msgBaseLocatorCapacity = messageCatalog['202,00']!;
+
+/// `203,00` — the 86th array dimension: one per explicit or implicit
+/// Quantity, "Appox-Max" 85 (J 90.01.05 item i; D9.7).
+final Message msgArrayDimensionCapacity = messageCatalog['203,00']!;
+
+/// `204,00` — the 36th distinct edited format, "Appox-Max" 35
+/// (J 90.01.05 item c; D9.7).
+final Message msgEditedFormatCapacity = messageCatalog['204,00']!;
 
 /// `206,00` — a subscript variable of a legal format that is not
 /// right-justified internal decimal, the one form the generator

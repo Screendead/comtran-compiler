@@ -9,6 +9,7 @@ import '../ast/procedure_ast.dart';
 import '../lexer/diagnostic.dart';
 import '../parser/parser.dart';
 import 'binder.dart';
+import 'capacities.dart';
 import 'data_map.dart';
 import 'images.dart';
 import 'legality.dart';
@@ -71,6 +72,9 @@ SemanticResult runSemantics(
   var stopped = false;
   try {
     mapper.map(dataGroups);
+    if (tableLimits) {
+      CapacityCounter(diagnostics, mapper).count();
+    }
     resolver
       ..buildDictionary(dataGroups, environmentCards, procedureGroups)
       ..callPass(procedureGroups);
