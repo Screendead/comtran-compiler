@@ -76,6 +76,10 @@ environment specifications (column-72 rule), and unclassified `word` tokens —
     - The description field keeps its ordered shape ([F p. 79]):
       `[pictorial] [constant] [name] [QUANTITY IN name] [BLANK WHEN ZERO]`,
       split by the non-format-character rule ([J 02.05.06]).
+      *Amended 2026-08-04 (M3-5, `m3-data.md`): a single trailing
+      overpunch zone letter after numeric format characters stays inside
+      the pictorial run — at punch level it is an overpunched digit, not
+      a name character.*
 
     The pictorial's *content* — character classes, the six-way field-type
     chart, sizing — is M3 (HANDOVER M3; `data_lexer.dart`'s own deferral

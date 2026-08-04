@@ -111,6 +111,10 @@ source citation. Amend by updating this file and `decisions.md` together.*
   reconstruction at D+0..D+5 — every serial in the sample is blank, so
   nothing attests it. Data and Environment lines echo with column 72
   blanked ([J 02.03.01], §2.c); procedure lines echo through 72.
+  *Amended 2026-08-04 (M3-8, `m3-data.md`): the name-address field is the
+  dictionary address, and M3 stage 3 fills it from the dictionary
+  allocator, with the golden rewritten there. The M1 blank stands until
+  that stage lands.*
 - **M1-16. Page head** template per the sample:
   `DATE mm/dd/yy   TIME  h.hh   ACCOUNT …ID. <identifier>  PAGE n`,
   the identifier from control-card columns 55–72 ([J 02.01.02]). The
