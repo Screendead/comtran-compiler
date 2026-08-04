@@ -2,12 +2,15 @@
 ///
 /// [compileDeck] splits the deck at its job boundaries and compiles
 /// each job independently: one fresh [DiagnosticSink], one front-end
-/// run, one parse, and one listing's worth of diagnostics per job
-/// (D11.2). Message 132 lands here when the deck ends mid-job (D11.3);
-/// message 903 lands here for the single-job tail (D11.1 rule d).
+/// run, one parse, one semantic pass, and one listing's worth of
+/// diagnostics per job (D11.2). Message 132 lands here when the deck
+/// ends mid-job (D11.3); message 903 lands here for the single-job
+/// tail (D11.1 rule d).
 library;
 
 import '../cards/card_image.dart';
+import '../data/data_map.dart';
+import '../data/semantics.dart';
 import '../lexer/diagnostic.dart';
 import '../lexer/front_end.dart';
 import '../lexer/messages.dart';
@@ -17,13 +20,23 @@ import 'job_splitter.dart';
 
 /// One job's compilation.
 final class JobCompilation {
-  JobCompilation._(this.frontEnd, this.parse, this.sink, this.diagnostics);
+  JobCompilation._(
+    this.frontEnd,
+    this.parse,
+    this.semantics,
+    this.sink,
+    this.diagnostics,
+  );
 
   /// The front-end result — the listing renders from it.
   final FrontEndResult frontEnd;
 
   /// The parse, or `null` when the front end stopped (D10.2).
   final ParseResult? parse;
+
+  /// The semantic layer's result, or `null` when an earlier phase
+  /// stopped (D10.2: the driver skips the phase).
+  final SemanticResult? semantics;
 
   /// The job's diagnostic sink (D11.2): its `maxSeverity` decides the
   /// job's severity.
@@ -75,8 +88,12 @@ DeckCompilation compileDeck(List<CardImage> deck, {bool pedantic = false}) {
     final ParseResult? parse = frontEnd.stopped
         ? null
         : runParser(frontEnd, sink: sink, pedantic: pedantic);
+    // A parser stop skips the semantic layer the same way (D10.2).
+    final SemanticResult? semantics = parse == null || parse.stopped
+        ? null
+        : runSemantics(parse, sink: sink, pedantic: pedantic);
     final diagnostics = <Diagnostic>[
-      ...parse?.diagnostics ?? frontEnd.diagnostics,
+      ...semantics?.diagnostics ?? parse?.diagnostics ?? frontEnd.diagnostics,
     ];
     for (var j = 0; j < slice.ignoredTail.length; j++) {
       // The single-job tail (D11.1 rule d). Card numbers continue past
@@ -112,7 +129,13 @@ DeckCompilation compileDeck(List<CardImage> deck, {bool pedantic = false}) {
       }
     }
     jobs.add(
-      JobCompilation._(frontEnd, parse, sink, List.unmodifiable(diagnostics)),
+      JobCompilation._(
+        frontEnd,
+        parse,
+        semantics,
+        sink,
+        List.unmodifiable(diagnostics),
+      ),
     );
   }
   return DeckCompilation._(List.unmodifiable(jobs));

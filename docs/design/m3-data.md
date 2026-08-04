@@ -25,6 +25,7 @@ renumbered. Use the index below to find one.*
 | M3-13 | Diagnostics |
 | M3-14 | The storage oracle |
 | M3-15 | Open Question dispositions |
+| M3-16 | Diagnostics |
 
 ## Charter
 
@@ -302,6 +303,14 @@ starts from a fully resolved program and generates code only.
     program storage (CHECK at 00000 in the dump). A located record's
     fields get base-locator-relative offsets, byte 0 at the record head
     ([J 90.02.05]); it takes no BSS.
+    *Amended 2026-08-04 (review): the sharer that forces transmit is
+    data other than a record. Records REDEF'd together stay located
+    whatever their files: the same-file case is [J 02.07.05] c-iii, and
+    the cross-file case is deferred — "Records from different files
+    which have been REDEF'd together will not be automatically
+    transmitted by the field test processor ... SPANS or HOLD must be
+    used." ([J 90.01.01]). SPANS or HOLD there is the programmer's
+    duty; the binder adds no message for it.*
   - BLOCKSIZE range checks land here (D10.8(b) assigns both to the M3
     data mapper): record-fit draws the attested msgs 5 and 209; the
     over-9999 value has no attested message and takes a 930-range id
@@ -338,6 +347,44 @@ starts from a fully resolved program and generates code only.
   subordinates (Q18), D3.5's ineffective-R candidate, and
   D4.11/D4.12/D4.13's deferred notes. The 90.05 job deck stays clean in
   both modes.
+  *Amended 2026-08-04 (stage 1): a constant inside a REDEF extent takes
+  the attested msg 43,00, per D3.6 as amended the same day — it takes no
+  930-series id. The sequence as allocated: 930 quantity nesting over
+  three (D3.1); 931 BLOCKSIZE over 9999 (D7.1); 932 the REDEF-sharing
+  forced transmit ([J 02.07.05] attests the transmit and a message, the
+  id is ours); 933 the mixed-pictorial downgrade; 934 Quantity on an
+  unnamed entry (Q18); 935 ineffective R on a formatless leaf (D3.5) —
+  msg 39 covers the group case in default mode. Ids 933 to 935 issue
+  under `--pedantic` only. See M3-16 for the other stage-1 message
+  choices.*
+
+- **M3-16. Stage-1 message choices (2026-08-04).** The splits,
+  thresholds, and deferrals stage 1 fixed, recorded so stage 2 does not
+  re-derive them:
+  - Msgs 13, 15, and 16 print one catalog text. The split follows the
+    M1-8 precedent: 13 for a FILE card that names no record; 15 for a
+    name that resolves to nothing; 16 for a name that resolves to a
+    non-record item.
+  - Msg 209 covers an input card file with BLOCKSIZE under 24, and the
+    binder repairs the value to 24. Msg 5 covers a bound record longer
+    than its file's blocksize without HOLD or SPANS.
+  - A blank Mode with a digit pictorial reads as external decimal.
+    Attested: DETAIL HOURS `99V9` takes one character per digit in the
+    90.05 storage section.
+  - Msg 35 fires at the attested bound — a scientific fraction over 16
+    digits — and at one derived bound: a right-justified internal field
+    over 21 digits, the most the two register words hold. Msg 34 stays
+    reserved; stage 1 attests no check for it.
+  - Only a leading blank in a numeric constant reads as zero
+    ([J 02.05.05] note 3); an imbedded blank draws msg 67.
+  - Msg 36 recovery: the subordinate entries drop, and the formatted
+    entry keeps its pictorial. COND children, REDEF markers, and
+    redefinition heads are exempt.
+  - Deferred to stage 2: the binder rows 8, 9, 10, 17, 19, 195, and
+    198; the POOL and GROUP buffer minimums; the capacity counters
+    (M3-12); the COND-value msg 37; the `DataItem.extras` judgment; the
+    LABEL 14-word cap; and the no-fields-after-a-variable-array rule,
+    which has no attested id.
 
 ## The storage oracle
 

@@ -30,9 +30,16 @@ const Map<String, DataTypeCode> _typeCodes = {
 /// other character reads as a name (J 02.05.06). The J 02.05.05 chart's
 /// format characters: the letters A X V S F, the digits 9 and 8, the
 /// edit specials, and digits inside a parenthesized (n) count — bare
-/// 0-7 are name characters (review DATA-8). The class matches the
-/// scanner's (`data_lexer.dart`).
-final RegExp _formatShaped = RegExp(r'^([AXVSF89*.$,+\-]|\([0-9]+\))+$');
+/// 0-7 are name characters (review DATA-8). One exception: a single
+/// trailing zone letter A–R after all-numeric format characters stays
+/// in the run — at punch level it is an overpunched digit, the sign
+/// form the chart writes 9̅ (M2-3 amendment 2026-08-04; design note
+/// M3-5, `m3-data.md`). The class matches the scanner's
+/// (`data_lexer.dart`).
+final RegExp _formatShaped = RegExp(
+  r'^([AXVSF89*.$,+\-]|\([0-9]+\))+$'
+  r'|^([VS89*.$,+\-]|\([0-9]+\))+[A-R]$',
+);
 
 /// Parses one data group's [scan] into items with the hierarchy wired,
 /// appending to [diagnostics]. The returned list is flat, in source

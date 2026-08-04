@@ -498,6 +498,8 @@ record built on it.*
 
 **Implementation.** Data mapper: the constants restriction applies to every entry inside the REDEF's extent, computed by the level rule above ([J 02.05.02]). Entries preceding the REDEF line are the original definition and are exempt. Diagnostics: a constant entry inside the redefinition is rejected per [J 02.05.06] item iv; no message number is attested for this restriction (msg 57,00 covers only constants in an edited-type field), so the message text and number are a recorded design decision. No diagnostic for constants before the REDEF line. See the REDEF-line record for the layout and storage-counter rules that apply to the same construct.
 
+**Amended (M3, 2026-08-04).** A message number is attested for this restriction. Catalog msg 43,00 reads "CONSTANT CANNOT BE ASSOCIATED WITH -REDEF- OR INPUT RECORD, OR PRECEDED BY VARIABLE LENGTH FIELD." (B.2 data description). The Implementation sentence "no message number is attested for this restriction" is superseded. The mapper issues msg 43,00 for a constant inside a REDEF extent, for a constant in a located input record, and for a constant after a variable length field, and does not store the constant. No 930-series number is allocated for this check.
+
 **Oracle.** manual example (citation) for the legality of constants in the original definition ([F pp. 74-75]); decision-conformance only for the extent rule and for the diagnostic text/number
 
 *Citations:* ([F pp. 74-75]; [J 02.05.06]; [J 02.05.02]; [J 90.01.03])

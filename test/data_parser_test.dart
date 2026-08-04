@@ -238,6 +238,19 @@ void main() {
       expect(items.single.pictorial, isNull);
       expect(items.single.targetName!.text, 'EMPLOYEE.RATE');
     });
+
+    test('a trailing zone letter keeps a digit run a pictorial '
+        '(M2-3 amendment, J 90.05)', () {
+      final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
+        dataCard(name: 'AMT', level: '3', description: '99R'),
+        dataCard(name: 'W', level: '3', description: 'AAR'),
+      ]);
+      expect(items[0].pictorial!.text, '99R');
+      expect(items[0].targetName, isNull);
+      expect(items[1].pictorial, isNull);
+      expect(items[1].targetName!.text, 'AAR');
+      expect(diagnostics, isEmpty);
+    });
   });
 
   group('the level hierarchy', () {

@@ -112,8 +112,15 @@ const int _textLast = 71;
 // The J 02.05.05 chart's legitimate format characters: the letters
 // A X V S F, the digits 9 and 8, the edit specials, and a digit run
 // only inside a parenthesized (n) count. Bare 0-7 are name characters
-// (J 02.05.06 e; review DATA-8).
-final RegExp _formatChars = RegExp(r'^([AXVSF89*.$,+\-]|\([0-9]+\))+$');
+// (J 02.05.06 e; review DATA-8). A single trailing zone letter A–R
+// after all-numeric format characters stays in the run — at punch
+// level it is an overpunched digit, the chart's 9̅ (M2-3 amendment
+// 2026-08-04; design note M3-5). The class matches the parser's
+// (`data_parser.dart`).
+final RegExp _formatChars = RegExp(
+  r'^([AXVSF89*.$,+\-]|\([0-9]+\))+$'
+  r'|^([VS89*.$,+\-]|\([0-9]+\))+[A-R]$',
+);
 
 DataEntry _scanEntry(
   List<SourceCard> group,

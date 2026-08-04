@@ -1,0 +1,114 @@
+# The *DATA storage section of the 1962 object listing — J 90.05, printer
+# pages 8 and 9 (PDF pp. 199-200; images/page-199.png, images/page-200.png).
+# Transcribed per the scan-measurement rule and verified against both page
+# scans (design note M3-14, docs/design/m3-data.md). The fixture holds the
+# printed values, not the print lines: BSS/OCT line selection and column
+# geometry stay with M4.
+#
+# Rows: octal LOC <tab> kind <tab> value <tab> symbol. Kind `oct` carries the
+# twelve-octal-digit initial word value; kind `bss` carries the decimal word
+# count of an uninitialized reservation. The symbol column holds the printed
+# label, blank on unlabelled lines.
+#
+# Area extents, for the reader (the test derives them from the rows):
+#   CHECK            00000  16 words  derived from PAYRECORD's offset
+#   PAYRECORD        00020  20 words  derived from DEPARTMENT.TOTAL's offset
+#   DEPARTMENT.TOTAL 00044  20 words  derived from BONDORDER's offset
+#   BONDORDER        00070   6 words  derived from ERROROUT's offset
+#   ERROROUT         00076   4 words  attested (BSS 4)
+#   WORKING          00102   9 words  attested (BSS 9)
+#   INTERNAL.TOTALS  00113   9 words  attested (BSS 9)
+#   GRAND.TOTALS     00124   9 words  attested (BSS 9)
+#   TABLE            00135  24 words  attested by its own OCT rows (+0 to +23)
+# MASTER and DETAIL are located records and print no area (J 02.07.05).
+# The listing opens the section with a `*DATA BSS 0` header line; it
+# reserves nothing and is not a row here.
+00000	oct	010000400000	CHECK
+00001	oct	400000606060
+00002	oct	606060606060
+00003	oct	606060606060
+00004	oct	606060606060
+00005	oct	606060606060
+00006	oct	606060000000
+00007	oct	000000720200
+00010	bss	2
+00012	oct	000000000060
+00013	oct	606060606060
+00014	oct	606060606060
+00015	oct	606060606060
+00016	oct	600000000000
+00017	oct	000000606060
+00020	oct	000060000000	PAYRECORD
+00021	oct	006000000000
+00022	bss	1
+00023	oct	000000000060
+00024	oct	000040000040
+00025	oct	000060606000
+00026	oct	000000000060
+00027	oct	600000000000
+00030	oct	000000606000
+00031	bss	1
+00032	oct	006060000000
+00033	oct	000000006060
+00034	bss	1
+00035	oct	006060000000
+00036	oct	000000006060
+00037	bss	1
+00040	oct	006060600000
+00041	oct	000000000060
+00042	oct	600000000000
+00043	oct	000000606060
+00044	oct	606060606060	DEPARTMENT.TOTAL
+00045	oct	606060602425
+00046	oct	472151634425
+00047	oct	456360000060
+00050	oct	634663214362
+00051	oct	606060606000
+00052	oct	000000000060
+00053	oct	600000000000
+00054	oct	000000606000
+00055	bss	1
+00056	oct	006060000000
+00057	oct	000000006060
+00060	bss	1
+00061	oct	006060000000
+00062	oct	000000006060
+00063	bss	1
+00064	oct	006060000000
+00065	oct	000000000060
+00066	oct	600000000000
+00067	oct	000000606060
+00070	oct	600000000000	BONDORDER
+00071	oct	006000000000
+00072	bss	1
+00073	oct	000000000060
+00074	oct	000000000060
+00075	bss	1
+00076	bss	4	ERROROUT
+00102	bss	9	WORKING
+00113	bss	9	INTERNAL.TOTALS
+00124	bss	9	GRAND.TOTALS
+00135	oct	000000001747	TABLE
+00136	oct	001000000600
+00137	oct	000000002733
+00140	oct	010000000600
+00141	oct	000000003717
+00142	oct	010200001100
+00143	oct	000000004703
+00144	oct	010500001100
+00145	oct	000000005667
+00146	oct	010500010200
+00147	oct	000000006653
+00150	oct	020000010200
+00151	oct	000000007637
+00152	oct	020000010500
+00153	oct	000000010623
+00154	oct	020500010500
+00155	oct	000000011607
+00156	oct	030000011000
+00157	oct	000000014543
+00160	oct	030000020500
+00161	oct	000000017477
+00162	oct	030000030500
+00163	oct	000000303237
+00164	oct	030000050000
