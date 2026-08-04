@@ -25,7 +25,7 @@ void main() {
           '      *FINISH',
           r'$CMPLE JOBB',
           '      *PROCEDURE',
-          '            MOVE X TO Y.',
+          "            DISPLAY 'HI'.",
           '            STOP RUN.',
           '      *FINISH',
         ]),
@@ -203,6 +203,74 @@ void main() {
     });
   });
 
+  group('--no-table-limits reaches every phase through compileDeck (D9.7)', () {
+    test("lifts the parser's 35-section cap", () {
+      final lines = <String>[r'$CMPLE JOBA', '      *PROCEDURE'];
+      for (var i = 1; i <= 36; i++) {
+        lines
+          ..add('      ${'S$i.'.padRight(12)}BEGIN SECTION.')
+          ..add('            END S$i.');
+      }
+      lines
+        ..add('            STOP RUN.')
+        ..add('      *FINISH');
+      final DeckCompilation deck = compileDeck(
+        _deck(lines),
+        tableLimits: false,
+      );
+      final JobCompilation job = deck.jobs.single;
+      expect(job.diagnostics, isEmpty);
+      expect(deck.maxSeverity, 0);
+    });
+
+    test("lifts the parser's depth-18 section cap", () {
+      final lines = <String>[r'$CMPLE JOBA', '      *PROCEDURE'];
+      for (var i = 1; i <= 19; i++) {
+        lines.add('      ${'S$i.'.padRight(12)}BEGIN SECTION.');
+      }
+      for (var i = 19; i >= 1; i--) {
+        lines.add('            END S$i.');
+      }
+      lines
+        ..add('            STOP RUN.')
+        ..add('      *FINISH');
+      final DeckCompilation deck = compileDeck(
+        _deck(lines),
+        tableLimits: false,
+      );
+      final JobCompilation job = deck.jobs.single;
+      expect(job.diagnostics, isEmpty);
+      expect(deck.maxSeverity, 0);
+    });
+
+    test("lifts the mapper's 26th QUANTITY IN counter", () {
+      final lines = <String>[r'$CMPLE JOBA', '      *DATA'];
+      for (var i = 0; i < 26; i++) {
+        lines
+          ..add(dataCard(name: 'C$i', level: '1', description: '99'))
+          ..add(
+            dataCard(
+              name: 'V$i',
+              level: '1',
+              quantity: '2',
+              description: 'A QUANTITY IN C$i',
+            ),
+          );
+      }
+      lines
+        ..add('      *PROCEDURE')
+        ..add('            STOP RUN.')
+        ..add('      *FINISH');
+      final DeckCompilation deck = compileDeck(
+        _deck(lines),
+        tableLimits: false,
+      );
+      final JobCompilation job = deck.jobs.single;
+      expect(job.diagnostics, isEmpty);
+      expect(deck.maxSeverity, 0);
+    });
+  });
+
   group('message 132 at end of input (D11.3)', () {
     test('a deck ending mid-job draws 132 at severity 5', () {
       final DeckCompilation deck = compileDeck(
@@ -243,12 +311,23 @@ void main() {
       expect(job.frontEnd.statementCount, 229);
     });
 
-    test('the 90.05 job deck compiles with zero diagnostics under --pedantic '
-        '(D11.4)', () {
+    test('under --pedantic the 90.05 job deck draws exactly the D4.11 '
+        'notes (D11.4)', () {
       final DeckCompilation deck = compileDeck(loadJobDeck(), pedantic: true);
       final JobCompilation job = deck.jobs.single;
-      expect(job.diagnostics, isEmpty);
-      expect(deck.maxSeverity, 0);
+      // Statements 205,00 (two blanked edited targets) and 220,00 (one):
+      // the sample's own doubtful figurative moves, noted per D4.11.
+      expect(job.diagnostics.map((Diagnostic d) => d.message.number), [
+        '943,00',
+        '943,00',
+        '943,00',
+      ]);
+      expect(job.diagnostics.map((Diagnostic d) => d.card?.cardNumber), [
+        245,
+        245,
+        276,
+      ]);
+      expect(deck.maxSeverity, 1);
       expect(job.frontEnd.statementCount, 229);
     });
 

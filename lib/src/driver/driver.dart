@@ -70,7 +70,14 @@ final class DeckCompilation {
 /// Compiles every job on [deck] (D11.1–D11.3). [pedantic] adds
 /// non-historical written-language-strictness diagnostics (decision
 /// D0.8, D11.4) without changing any parse result or generated value.
-DeckCompilation compileDeck(List<CardImage> deck, {bool pedantic = false}) {
+/// [tableLimits] false is the non-historical `--no-table-limits`
+/// switch: the D9.7 capacity counters, plus the parser's section caps
+/// (msgs 149, 915), stay silent (M3-12).
+DeckCompilation compileDeck(
+  List<CardImage> deck, {
+  bool pedantic = false,
+  bool tableLimits = true,
+}) {
   final List<JobSlice> slices = splitJobs(deck);
   final jobs = <JobCompilation>[];
   for (var i = 0; i < slices.length; i++) {
@@ -87,11 +94,21 @@ DeckCompilation compileDeck(List<CardImage> deck, {bool pedantic = false}) {
     // the point of detection (D9.1; D10.2).
     final ParseResult? parse = frontEnd.stopped
         ? null
-        : runParser(frontEnd, sink: sink, pedantic: pedantic);
+        : runParser(
+            frontEnd,
+            sink: sink,
+            pedantic: pedantic,
+            tableLimits: tableLimits,
+          );
     // A parser stop skips the semantic layer the same way (D10.2).
     final SemanticResult? semantics = parse == null || parse.stopped
         ? null
-        : runSemantics(parse, sink: sink, pedantic: pedantic);
+        : runSemantics(
+            parse,
+            sink: sink,
+            pedantic: pedantic,
+            tableLimits: tableLimits,
+          );
     final diagnostics = <Diagnostic>[
       ...semantics?.diagnostics ?? parse?.diagnostics ?? frontEnd.diagnostics,
     ];

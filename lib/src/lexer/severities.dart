@@ -704,4 +704,32 @@ const Map<String, int> messageSeverities = {
   // C1 (ours, --pedantic only, M3-13): the ineffective R is ignored
   // as attested; advisory.
   '935,00': 1,
+  // C2 (ours, D4.13; M3-21): the CALL pair is dropped - operand-level
+  // loss.
+  '936,00': 2,
+  // C1 (ours, J 02.06.13; M3-18): the minimum buffer count is used -
+  // no loss.
+  '937,00': 1,
+  // C1 (ours, J 02.06.14; M3-18): the OPENCOUNT is used - no loss.
+  '938,00': 1,
+  // C3 (ours, J 02.06.14; M3-18): the GROUP joins no pool - the card's
+  // whole effect is lost.
+  '939,00': 3,
+  // C4 (ours, J 02.05.03; M3-18): the label overruns the IOCS area -
+  // area-level loss.
+  '940,00': 4,
+  // C4 (ours, J 90.01.01; M3-18): the field's position is
+  // undeterminable - area-level loss.
+  '941,00': 4,
+  // C5 (ours, D9.7; M3-21): the dictionary capacity - unrecoverable.
+  '942,00': 5,
+  // C1 (ours, --pedantic only, D4.11 as amended; M3-21): the chart's
+  // own value is stored - blanks or 0's by target class; advisory.
+  '943,00': 1,
+  // C1 (ours, --pedantic only, D4.12; M3-21): the clause generates
+  // nothing, as attested for an unmatched name; advisory.
+  '944,00': 1,
+  // C1 (ours, --pedantic only, D4.13; M3-21): the CALL is accepted
+  // unchanged; advisory.
+  '945,00': 1,
 };

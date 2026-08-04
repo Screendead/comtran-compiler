@@ -111,7 +111,7 @@ final class Pictorial {
   /// the chart admits it in the Edited Field row only, the External
   /// Decimal row taking an overpunched 9 alone (images/page-031.png).
   late final bool hasEditCharacters =
-      _overpunchDigit == 8 ||
+      overpunchDigit == 8 ||
       _elements.any(
         ((_Kind, int) e) => switch (e.$1) {
           _Kind.eight ||
@@ -195,7 +195,7 @@ final class Pictorial {
   SignConvention? _overpunchSign;
 
   /// The digit the trailing zone letter punches: A–I and J–R carry 1–9.
-  int? _overpunchDigit;
+  int? overpunchDigit;
 
   /// The pictorial's sign convention. An overpunch wins; otherwise the
   /// first free-standing sign, leading when it precedes every digit
@@ -275,7 +275,7 @@ final class Pictorial {
           return Pictorial._(elements)
             ..zeroCountRepaired = zeroRepaired
             ..countClamped = clamped
-            .._overpunchDigit = minus ? code - 0x49 : code - 0x40
+            ..overpunchDigit = minus ? code - 0x49 : code - 0x40
             .._overpunchSign = minus
                 ? SignConvention.overpunchMinus
                 : SignConvention.overpunchPlus;

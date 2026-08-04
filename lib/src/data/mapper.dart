@@ -267,6 +267,14 @@ final class DataMapper {
         operands: [entry.name],
       );
     }
+    final int? overpunch = shape.overpunchDigit;
+    if (overpunch != null && overpunch != 8 && overpunch != 9) {
+      // The chart's rightmost-character lists admit an overpunched 9
+      // (external decimal) and 8 (edited) only; any other digit sits
+      // outside both. The measured format stands (M3-21 amends M3-5's
+      // open).
+      conflict(msgIllegalFormatCombination);
+    }
 
     if (shape.alphamericCount > 0) {
       sem.fieldClass = FieldClass.alphameric;

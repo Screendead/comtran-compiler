@@ -26,6 +26,11 @@ renumbered. Use the index below to find one.*
 | M3-14 | The storage oracle |
 | M3-15 | Open Question dispositions |
 | M3-16 | Stage-1 message choices |
+| M3-17 | The dictionary, the resolution triage, and the stage-2 pipeline |
+| M3-18 | The I/O verb binding map |
+| M3-19 | Functions and DO substitution under J |
+| M3-20 | Subscript reference checks |
+| M3-21 | Stage-2 message allocations and adopted opens |
 
 ## Charter
 
@@ -166,7 +171,8 @@ starts from a fully resolved program and generates code only.
   external decimal to edited. The digit position, the storage character, and
   the sign convention are unchanged. Open: the chart admits an overpunched 8
   or 9 only, while the scanner reads any zone letter, so an overpunched 1 to 7
-  draws no diagnostic. Msg 33 is the candidate id if stage 2 wants one.*
+  draws no diagnostic. Msg 33 is the candidate id if stage 2 wants one.
+  Resolved 2026-08-04: stage 2 adopts msg 33 for it (M3-21).*
 
 ## The storage allocator and initial images
 
@@ -448,6 +454,10 @@ starts from a fully resolved program and generates code only.
   msg 39 covers the group case in default mode. Ids 933 to 935 issue
   under `--pedantic` only. See M3-16 for the other stage-1 message
   choices.*
+  *Amended 2026-08-04 (stage 2): the sequence extends to 945. M3-21
+  records the stage-2 allocations and their severities. The both-modes
+  sentence is superseded: the deck draws exactly three 943 notes under
+  `--pedantic` (D11.4 as amended).*
 
 - **M3-16. Stage-1 message choices (2026-08-04).** The splits,
   thresholds, and deferrals stage 1 fixed, recorded so stage 2 does not
@@ -504,7 +514,8 @@ starts from a fully resolved program and generates code only.
     1962 id. The procedure lexer already issues it for a procedure
     literal (an F with no following digit; a second decimal point). If
     stage 2 adopts it here, the data path joins that existing use and
-    must share its reading. Open, unattested and unpinned: an all-blank floating
+    must share its reading. Resolved 2026-08-04: stage 2 adopts msg 53
+    for the misplaced sign (M3-21). Open, unattested and unpinned: an all-blank floating
     constant draws msg 54, where note 3 read literally would make it
     zero.*
   - Msg 36 recovery: the subordinate entries drop, and the formatted
@@ -515,6 +526,272 @@ starts from a fully resolved program and generates code only.
     (M3-12); the COND-value msg 37; the `DataItem.extras` judgment; the
     LABEL 14-word cap; and the no-fields-after-a-variable-array rule,
     which has no attested id.
+
+## The dictionary, the resolution triage, and the stage-2 pipeline
+
+- **M3-17. The dictionary and the triage (2026-08-04).** Stage 2 adds the
+  dictionary and the resolver to `lib/src/data/`. The dictionary holds every
+  programmer name with its kind, level, position, and encounter number —
+  the sequential numbering behind the object listing's `1)C` / `2)C`
+  ([J 90.02.02]). The kinds: data item, record, data condition (a COND
+  entry), keys condition (an Environment COND card), CALL synonym,
+  statement name, section name, and environment name. The two condition
+  kinds stay apart. A data condition resolves through the data map and
+  takes a dictionary word. A keys condition resolves by name alone and
+  takes none. GN names never enter it (M3-8). A REDEF line's discarded
+  name never enters it (D3.4).
+  PROGRAM.START entered as a data or environment name draws msg 142
+  (D2.1: it may only label a statement or section).
+  - **Pipeline order (ours).** `runSemantics` runs: mapper → the mapper
+    capacity walk (M3-21) → dictionary → CALL pass → environment binder
+    → images → procedure resolution and legality → the resolver and
+    binder capacity totals, each in its own component. The CALL pass
+    precedes the binder because CALL exists to give the Environment
+    Description one-word names ([J 02.03.03]).
+  - **Qualification ([J 02.05.02]–03; [F p. 15]–16).** A reference's words
+    run general to specific, blank-separated; intermediate levels may be
+    skipped. Matching follows level and position only, REDEF-blind. A
+    candidate is a data item whose ancestor-name chain contains the
+    reference's words in order, the last word naming the item itself.
+    Subscripts written on qualifier words flatten in word order (M2) and
+    count against the resolved item's dimensions (M3-20).
+  - **The triage (ours).** One rule set for every data-reference site.
+    The last word names nothing anywhere: msg 108. The last word names
+    items, but no candidate matches the qualifier chain: msg 101. More
+    than one candidate matches: msg 166. The last word names only an
+    environment or procedure name, at a data site: msg 25, a
+    format-less object. A site-specific row overrides the triage where
+    one is stated (M3-18; M3-20).
+  - **Procedure names (D2.5).** Two namespaces: program-global for data,
+    record, synonym, and environment names; per-section for statement
+    labels. A collision within a section's scope draws msg 166 at the
+    second definition. `DO A B` reads as statement name B qualified by
+    section name A (D2.5).
+  - **CALL (D4.13).** The old.name resolves through the triage: more than
+    one field draws 166, none draws 108. A subscripted old.name draws
+    msg 936 and the pair is dropped. A synonym equal to an existing
+    dictionary name draws 166 (ours — a synonym is "a new unique simple
+    name"). A qualified reference that ends in a synonym draws 101. A
+    record.name as old.name draws pedantic msg 945.
+  - **COND binding (M3-9).** A COND entry binds to the nearest preceding
+    formatted entry; its constant converts under that field's format,
+    and a mismatch draws msg 37. An Environment COND card's name enters
+    the dictionary as a keys condition; an unqualified test of that name
+    is the KEYS test ([J 02.06.17]). Ours: a condition reference that
+    resolves to a non-condition item draws msg 25; an unresolved one
+    draws 108; a `SET condition.name` whose name is not a condition name
+    draws msg 191.
+  - **Names that shadow operations (ours).** A statement label or section
+    name equal to a list-1 or list-2 key word draws msg 61 — the "found
+    in name field" half of its text. A list-3 word passes: [J 02.03.03]
+    admits it as a procedure or data name. A data or procedure name
+    equal to a list-3 word that an environment card of the job uses
+    draws msg 152 (M2-7's deferral; the name stands, C1).
+  - **The stray description name and `extras` ([J 02.05.06] e).** A
+    `targetName` on an entry that is not REDEF or COPY is the
+    pictorial-read-as-name case. It must resolve to a data, key, or
+    procedure name; otherwise the entry draws msg 185. Tokens left in
+    `DataItem.extras` draw msg 185 the same way, one message per entry
+    (ours). The 90.05 deck punches neither.
+  - **Record precedence (ours).** A RECORD entry that follows, in the
+    same *DATA portion, a top-level entry with a numerically greater
+    level number and no RECORD type draws msg 197: that leading group
+    reads as description punched before its record name. Classification
+    only; no re-parenting (M3-10).
+
+## The I/O verb binding map
+
+- **M3-18. The verb sites (2026-08-04).** The stage-1 binder kept every
+  per-card check; these rows need the procedure walk. The site map,
+  readings ours where no row's text states one:
+
+  | Site | Condition | Id |
+  |---|---|---|
+  | GET x / FILE x | x resolves to nothing, a procedure, or a condition | 8 |
+  | GET x / FILE x | x resolves to a file or a non-record data field | 16 |
+  | GET x | x is a record on no FILE card | 9 |
+  | GET x | x is a record on no input FILE card | 10 |
+  | FILE x | x is a record on no output FILE card | 19 |
+  | FILE x IN f | f resolves to nothing or to a non-file | 21 |
+  | FILE x IN f | f is an input-only file | 22 |
+  | FILE x IN f | f's FILE card lacks x | 195 |
+  | OPEN f / CLOSE f | f resolves to nothing or to a non-file | 21 |
+  | GET RECORD FROM f | f is an output-only file | 14 |
+  | GET RECORD FROM f | f resolves to nothing or to a non-file | 23 |
+  | GET RECORD FROM f | no [J 02.07.04] precondition holds | 12 |
+  | GET RECORD FROM f | FIND LENGTH IN on some, not all, of f's records | 117 |
+  | GET RECORD FROM f | PLACE LENGTH IN on some, not all, of f's records | 118 |
+  | GET RECORD FROM f | BLOCK CONTROL on some, not all, of f's records | 121 |
+  | FILE card | FIND LENGTH IN names a field of improper format | 111 |
+  | FILE card | PLACE LENGTH IN names a field of improper format | 112 |
+  | job end | no GET or FILE processes any record of file f | 198 |
+
+  Notes. Msg 12's preconditions: all records fixed and equal length; the
+  BEGIN option; all records standard variable; BLOCK CONTROL. PATTERN
+  cannot rescue it until its M5 syntax lands (D9.12). The proper format
+  for 111/112 (ours): external or internal decimal with no fraction
+  and no scale positions — the message text says format, and a scaled
+  field cannot hold an arbitrary length (a length of 84 into 999SSS
+  stores zero). An ON ERROR, FOR LABEL, FIND LENGTH IN, or PLACE LENGTH IN
+  name that resolves to nothing draws msg 108 at the card. OPTION's
+  section names stay unresolved in stage 2: no M3-tagged row covers
+  them, and the leniency default holds where nothing is attested.
+  Msg 198 runs only in a job with at least one GET or FILE verb (ours,
+  scope). A checkpoint file is exempt: its FILE card form names no
+  records ([J 02.06.04]). A GET or FILE operand that is a CALL synonym
+  of a record binds like the record. A FIND or PLACE LENGTH IN name
+  resolves through synonyms first: the CALL pass exists for the
+  Environment Description ([J 02.03.03]).
+  - **POOL and GROUP ([J 02.06.13]–14).** A POOL or GROUP variable-field
+    file name that resolves to no file draws msg 21. A GROUP whose first
+    variable-field item names no pool draws msg 939. A POOL buffer count
+    below its file count — or below the total of its groups' buffer
+    counts — is raised to the minimum and draws msg 937. A GROUP buffer
+    count below its OPENCOUNT is raised and draws msg 938. The repair
+    reading follows msg 209's substitution precedent. A defaulted GROUP
+    claims its OPENCOUNT against the pool minimum: the loader's doubled
+    count is an attempt with an express fallback ([J 02.06.14]).
+  - **LABEL ([J 02.05.03]).** A LABEL-typed entry whose extent exceeds 14
+    words draws msg 940.
+  - **Variable arrays (M3-11; [J 90.01.04]).** A field described after a
+    variable-length array in the same hierarchy draws msg 941 (M3-16
+    records that no attested id exists). Msg 941 yields to an attested
+    id on the same entry: msg 105 on the count field itself, msg 43 on
+    a constant-bearing entry.
+  - **Base locators (D9.7).** The 128th located record draws msg 202.
+
+## Functions and DO substitution under J
+
+- **M3-19. The GIVING-function reading (2026-08-04).** PARAM and FUNCT
+  are out of J ([J 02.05.03]), yet msgs 30, 68, and 72–75 live. The
+  definition's reading binds here: a function is a data name that a
+  BEGIN SECTION GIVING clause lists; the USING names are its
+  parameters; both are ordinary data items.
+  - A double-parenthesis function reference resolves its name through
+    the triage. A resolved name that no GIVING clause lists draws
+    msg 191 (ours). Its arguments resolve as data references.
+  - The argument count checks against the owning section's USING count:
+    fewer draws msg 30, more draws msg 68.
+  - A DO with USING or GIVING checks its list against the target
+    section's declaration: more draws 72 or 74, fewer draws 73 or 75. A
+    target that declares none — a plain statement included — has count
+    zero, so any DO list draws 72 or 74 (ours). A DO checks only the
+    clause it writes. Each clause is optional on the DO ([F p. 33]):
+    the values already in the parameter or function fields serve, and
+    [F p. 53]'s expansion models the clauses as MOVEs around a bare DO.
+
+## Subscript reference checks
+
+- **M3-20. The subscript and transfer site map (2026-08-04).** An item's
+  dimension count is its number of quantity-bearing ancestors-or-self —
+  an explicit or implicit Quantity above one, or a variable Quantity.
+  Readings ours unless a row's text states them:
+
+  | Condition | Id |
+  |---|---|
+  | a subscripted reference to an item with no dimensions | 98 |
+  | a subscript count above zero that differs from the dimension count | 70 |
+  | a subscript's variable is itself subscripted, or is a condition name | 71 |
+  | a subscript variable of alphameric, edited, or group class | 79 |
+  | a subscript variable with fraction or scale positions | 31 |
+  | a literal subscript term that is zero, negative, or fractional | 182 |
+  | a legal subscript variable format that is not the direct-index form | 206 |
+
+  A reference with zero subscripts is the whole-array reference and is
+  legal. Msg 206's predicate concretizes D9.11: any format other than
+  right-justified internal decimal, the form our code generator indexes
+  with directly; the 90.05 sample stays silent. The format rows cascade
+  — 71, 79, 31, 206 — for one message per subscript variable (ours).
+  Msg 31 bars a trailing-S scale too (ours). A scaled field stores a
+  thousandth of its value, and the attested lookup indexes by the raw
+  stored digits with no scaling step ([J 90.05] listing, LOC
+  01421–01432). [F p. 75] has the subscript "count individual items", so
+  the stored digits must equal the value. The language definition's
+  §8.5.4-n records the two senses of "integer"; the assigned GO TO
+  index takes the value sense (see Transfers below).
+  - **Counters (D9.7).** Each unique pair of resolved array and flattened
+    subscript notation is one positional indicator; the 91st draws
+    msg 184. Msg 205 names the same 1962 table, and one event cannot
+    print two rows, so 205 stays reserved with a note (ours). Each
+    unique `a * VARIABLE ± b` form is one index expression; the 51st
+    draws msg 183.
+  - **Transfers.** A GO TO target that resolves to no statement or
+    section name draws msg 127; a target that resolves to a
+    DO-addressed name draws msg 128 (Q40). A DO target likewise
+    unresolved draws msg 188; an AT END bare name is a DO (D6.6) and
+    shares 188. A transfer target of three or more words resolves to
+    nothing (D2.5 defines the one- and two-word forms). An assigned
+    GO TO index of non-numeric class draws msg 129; a numeric index
+    with fraction positions draws msg 130 and the integral part serves.
+    A trailing-S scale passes: its values are whole, [F p. 49]'s rule
+    speaks of the index's value, and msg 130's truncation clause has
+    nothing to take ([F p. 80]; §8.5.4-n).
+  - **DO indexing ([F p. 49]–53).** A FOR index variable of non-numeric
+    class draws msg 76. A named p, q, or r parameter of non-numeric
+    class draws msg 77. A literal p, q, or r that is not a whole number
+    draws msg 78.
+  - **The sentence table (D9.7; Open Question 9).** The per-sentence
+    reference table caps at 100 distinct data references, an invented
+    number. It keys on the written reference, subscripts excluded
+    (ours). The 101st deletes the sentence with msg 177; its text
+    states the recovery, and the deletion suppresses the sentence's
+    legality and transfer checks too.
+
+## Stage-2 message allocations and adopted opens
+
+- **M3-21. Allocations and the two opens (2026-08-04).**
+  - **The 930-sequence continues (M3-13):** 936 CALL old.name
+    subscripted, C2. 937 POOL buffer count below minimum, raised, C1.
+    938 GROUP buffer count below OPENCOUNT, raised, C1. 939 GROUP names
+    no pool first, C3. 940 LABEL area over 14 words, C4. 941 field
+    after a variable-length array, C4. 942 dictionary over 3500 names,
+    C5 — D9.7's message-less dictionary limit. Pedantic-only, D11.4
+    pattern, all C1: 943 doubtful figurative move accepted (D4.11 as
+    amended), 944 a CORRESPONDING clause that matches no name at all,
+    one note per clause (D4.12 as amended), 945 record.name as CALL
+    old.name (D4.13).
+  - **Msg 33 adopted (amends M3-5's open).** An overpunch on a digit
+    other than 8 or 9 sits outside the chart's rightmost-character
+    lists; it draws msg 33 and the measured format stands.
+  - **Msg 53 adopted (amends M3-16's open).** A sign after the leading
+    position of a floating constant is an incorrect sign usage, not a
+    foreign character. The floating converter draws msg 53 in place of
+    msg 54 for it, joining the procedure lexer's reading. Msg 54 keeps
+    the truly foreign characters. The scientific converter stores its
+    constant unparsed, signs among its legal characters
+    ([J 02.05.05] chart), and stays silent.
+  - **Legality ids (M3-10).** An alphameric-class source — alphameric or
+    group (D3.3) — moved to a non-alphameric target draws msg 84; an
+    illegal CORRESPONDING group pair draws 84 (D4.12); a CORRESPONDING
+    operand that is not a group, or does not resolve, draws 97. A
+    numeric-to-alphameric-class comparison — the edited-versus-alphameric
+    ban included — draws msg 107 at a second, resolution-time site; the
+    parser's structural site stands. A variable-length item in a
+    comparison draws 123. An alphameric-class operand inside a true
+    arithmetic expression draws 25; inside an ADD list it is eliminated
+    with 120. HIGH.VALUE or LOW.VALUE moved to internal decimal or
+    floating point draws 82 — the chart's two Illegal cells; HIGH.VALUE,
+    LOW.VALUE, or BLANK compared to a non-alphameric field draws 82 too.
+    A figurative constant moved to a variable-length array draws 180;
+    to a field over 32766 characters, 181 (D4.6). The doubtful starred
+    BLANK cells — external, edited, internal, floating, and
+    scientific — stay silent in default mode, per the attested silence,
+    and draw pedantic 943, the edited cell included (D4.11 as amended).
+  - **Capacity homes (M3-12; D9.7).** In the mapper walk: msg 200 at the
+    26th QUANTITY IN, 201 at the 24th hierarchy level, 203 at the 86th
+    array dimension, 204 at the 36th distinct edited format. In the
+    resolver: 183, 184, 942, and msg 177's sentence table; the
+    section-nesting limit stays the parser's msg 915 (M2). In the
+    binder: 202. The non-historical `--no-table-limits` switch lifts
+    the D9.7 counters only; the D3.1 caps and msg 34's clamp stand.
+  - **What msg 942 counts (ours, a marked departure under D0.4).** The
+    3500-name counter tallies programmer names only. [J 90.01.05] item
+    a) counts "all program names whether defined by the programmer or
+    generated by the Compiler" in that one table. The generated classes
+    are the eight of [J 90.02.03]. Stage 3 allocates the GN names; the
+    other seven classes need code generation. The tally takes all eight
+    at M4. Until then the counter fires late, and a program at the true
+    1962 boundary compiles for us.
 
 ## The storage oracle
 
@@ -560,7 +837,8 @@ the golden rewrite.
 
 ## Oracles
 
-- The 90.05 job deck compiles clean in both modes at every stage.
+- The 90.05 job deck compiles clean in default mode; `--pedantic` adds
+  only the three D4.11 notes (D11.4 as amended).
 - Stage 1: the M3-14 fixture — offsets, extents, and initial words match
   the 1962 storage section.
 - Stage 3: the rewritten golden matches the scan-measured 1962 listing,
@@ -572,7 +850,12 @@ the golden rewrite.
 
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
+[F p. 15]: ../../comtran-manuals/F28-8043/02-language-structure.md#condition-names
+[F p. 33]: ../../comtran-manuals/F28-8043/02-language-structure.md#functions
+[F p. 49]: ../../comtran-manuals/F28-8043/03-procedure-description.md#assigned
+[F p. 53]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-data-substitution
 [F p. 71]: ../../comtran-manuals/F28-8043/04-data-description.md#level-col-23-24
+[F p. 75]: ../../comtran-manuals/F28-8043/04-data-description.md#tables
 [F p. 80]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
 [J 02.03.03]: ../../comtran-manuals/J28-6169/02-compiler.md#b-key-words
 [J 02.04.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-effect-of-data-storage-mode-on-arithmetic-efficiency
@@ -581,6 +864,7 @@ the golden rewrite.
 [J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
 [J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-record
+[J 02.05.03]: ../../comtran-manuals/J28-6169/02-compiler.md#3-redef-see-iii-under-data-description-on-page-900103-for-limitation
 [J 02.05.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-param-and-funct
 [J 02.05.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.05.06]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
@@ -589,6 +873,8 @@ the golden rewrite.
 [J 02.06.04]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
 [J 02.06.08]: ../../comtran-manuals/J28-6169/02-compiler.md#d-specif-environment-card
 [J 02.06.13]: ../../comtran-manuals/J28-6169/02-compiler.md#d-specif-environment-card
+[J 02.06.14]: ../../comtran-manuals/J28-6169/02-compiler.md#f-group-environment-card
+[J 02.06.17]: ../../comtran-manuals/J28-6169/02-compiler.md#h-option-environment-cards
 [J 02.07.03]: ../../comtran-manuals/J28-6169/02-compiler.md#5-locate-and-transmit
 [J 02.07.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-record-types
 [J 02.07.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-factors-affecting-choice-and-use-of-locate-or-transmit-mode
@@ -599,6 +885,7 @@ the golden rewrite.
 [J 90.01.05]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02.01]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#introduction
 [J 90.02.02]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.03]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.05]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.10]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
 [J 90.02.12]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers

@@ -74,14 +74,23 @@ final class _DeleteSentence implements Exception {
 final class ProcedureParser {
   /// Every diagnostic appends to [diagnostics]. [pedantic] adds
   /// non-historical written-language-strictness diagnostics (decision
-  /// D0.8, D11.4) without changing any parsed clause.
-  ProcedureParser(this.diagnostics, {this.pedantic = false});
+  /// D0.8, D11.4) without changing any parsed clause. [tableLimits]
+  /// false is the non-historical `--no-table-limits` switch: the D9.7
+  /// section caps (msgs 149, 915) stay silent.
+  ProcedureParser(
+    this.diagnostics, {
+    this.pedantic = false,
+    this.tableLimits = true,
+  });
 
   /// The sink for every diagnostic.
   final List<Diagnostic> diagnostics;
 
   /// Whether `--pedantic` diagnostics are on (D11.4).
   final bool pedantic;
+
+  /// Whether the D9.7 section caps (msgs 149, 915) are enforced.
+  final bool tableLimits;
 
   final List<String> _openSections = [];
   int _sectionCount = 0;
@@ -185,27 +194,6 @@ final class ProcedureParser {
     }
   }
 
-  /// Every clause of [clauses], including those nested in IF arms, ON
-  /// OVERFLOW slots, and AT END slots.
-  Iterable<Clause> _clauseTree(List<Clause> clauses) sync* {
-    for (final clause in clauses) {
-      yield clause;
-      switch (clause) {
-        case IfClause(:final thenArm, :final otherwiseArm):
-          yield* _clauseTree(thenArm);
-          yield* _clauseTree(otherwiseArm);
-        case SetClause(:final onOverflow?):
-          yield* _clauseTree([onOverflow]);
-        case AddClause(:final onOverflow?):
-          yield* _clauseTree([onOverflow]);
-        case GetClause(atEnd: AtEndClause(:final statement?)):
-          yield* _clauseTree([statement]);
-        default:
-          break;
-      }
-    }
-  }
-
   /// F p. 60: program and processor commands cannot be intermixed in
   /// one sentence — such a sentence is meaningless and is deleted with
   /// msg 196 (design note M2-12). END is exempt: its own attested rule,
@@ -213,7 +201,7 @@ final class ProcedureParser {
   void _checkVerbMixing(List<Clause> clauses) {
     var sawProgram = false;
     var sawProcessor = false;
-    for (final Clause clause in _clauseTree(clauses)) {
+    for (final Clause clause in clauseTree(clauses)) {
       if (clause is EndClause) {
         continue;
       }
@@ -245,7 +233,7 @@ final class ProcedureParser {
   /// clauses generate no code (M2-5), so a STOP RUN inside one must
   /// still leave msg 175 to fire.
   void _commitSentenceFacts(List<Clause> clauses) {
-    for (final Clause clause in _clauseTree(clauses)) {
+    for (final Clause clause in clauseTree(clauses)) {
       switch (clause) {
         case StopClause(run: true):
           _sawStopRun = true;
@@ -1175,12 +1163,12 @@ final class ProcedureParser {
   /// Assigns clause numbers (design note M2-6): the conditional clause
   /// takes 01 when present, each imperative clause the next number, in
   /// source order through the arms and the nested ON OVERFLOW and AT
-  /// END imperative clauses ([_clauseTree] walks exactly that order);
+  /// END imperative clauses ([clauseTree] walks exactly that order);
   /// then stamps the sentence's parser diagnostics with the clause they
   /// were raised in.
   void _numberClauses(List<Clause> clauses, int diagnosticsFrom) {
     var next = 1;
-    for (final Clause clause in _clauseTree(clauses)) {
+    for (final Clause clause in clauseTree(clauses)) {
       clause.clause = next++;
     }
     // Best-effort clause attribution for the diagnostics raised while
@@ -1198,19 +1186,19 @@ final class ProcedureParser {
   /// included, so an END inside an IF arm is seen: BEGIN SECTION
   /// pushes (caps: 35 sections, msg 149; depth 18, msg 915 — D9.7,
   /// both severity 5, which stops compilation at the point of
-  /// detection, D9.1), END pops (msgs 64, 65) and must be the
-  /// sentence's only clause (msg 179).
+  /// detection, D9.1, unless [tableLimits] is false), END pops (msgs
+  /// 64, 65) and must be the sentence's only clause (msg 179).
   void _sectionWalk(List<Clause> clauses, ProcedureSentence scan) {
     final bool endAlone = clauses.length == 1 && clauses.first is EndClause;
-    for (final Clause clause in _clauseTree(clauses)) {
+    for (final Clause clause in clauseTree(clauses)) {
       if (clause is BeginSectionClause) {
         _sectionCount++;
-        if (_sectionCount > 35) {
+        if (tableLimits && _sectionCount > 35) {
           diagnostics.reportAt(msgTooManySections, scan.cards.first);
           throw const StopCompilation();
         }
         _openSections.add(scan.label ?? '');
-        if (_openSections.length > 18) {
+        if (tableLimits && _openSections.length > 18) {
           diagnostics.reportAt(msgSectionsTooDeep, scan.cards.first);
           throw const StopCompilation();
         }

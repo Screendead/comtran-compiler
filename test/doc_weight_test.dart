@@ -8,10 +8,11 @@ import 'package:test/test.dart';
 /// the commit message.
 const int defaultBudget = 8000;
 
-/// The two reference documents that grow with the project.
+/// The reference documents that grow with the project.
 const Map<String, int> budgets = <String, int>{
   'docs/comtran-language-definition.md': 115000,
   'docs/design/decisions.md': 50000,
+  'docs/design/m3-data.md': 9000,
 };
 
 int wordCount(String text) =>

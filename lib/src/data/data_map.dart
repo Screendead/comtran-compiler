@@ -3,8 +3,10 @@
 library;
 
 import '../ast/data_ast.dart';
+import '../ast/procedure_ast.dart';
 import '../lexer/diagnostic.dart';
 import '../parser/parser.dart';
+import 'dictionary.dart';
 import 'pictorial.dart';
 
 /// [item] and every descendant, preorder.
@@ -12,6 +14,13 @@ Iterable<DataItem> subtreeOf(DataItem item) sync* {
   yield item;
   for (final DataItem child in item.children) {
     yield* subtreeOf(child);
+  }
+}
+
+/// [item] and every ancestor of it, innermost first.
+Iterable<DataItem> ancestorsOf(DataItem item) sync* {
+  for (DataItem? each = item; each != null; each = each.parent) {
+    yield each;
   }
 }
 
@@ -167,6 +176,11 @@ final class SemanticResult {
     required this.semantics,
     required this.areas,
     required this.records,
+    required this.dictionary,
+    required this.dataResolutions,
+    required this.correspondingPairs,
+    required this.keysConditions,
+    required this.capacityDeletedSentences,
     required this.semanticDiagnostics,
     required this.stopped,
   });
@@ -182,6 +196,25 @@ final class SemanticResult {
 
   /// One entry per RECORD-typed top-level item, source order.
   final List<RecordInfo> records;
+
+  /// The program dictionary (M3-8; M3-17).
+  final Dictionary dictionary;
+
+  /// Every resolved data reference, identity-keyed (M3-17).
+  final Map<NameReference, DataItem> dataResolutions;
+
+  /// The matched pairs of each MOVE or ADD CORRESPONDING clause, source
+  /// first, in data-description order (D4.12).
+  final Map<Clause, List<(DataItem, DataItem)>> correspondingPairs;
+
+  /// Condition references that resolve to an Environment COND card —
+  /// the console-key test (J 02.06.17).
+  final Set<NameReference> keysConditions;
+
+  /// Sentences msg 177 deleted from the text: their references
+  /// overflowed the per-sentence table, so M4 generates nothing for
+  /// them (M3-20).
+  final Set<Sentence> capacityDeletedSentences;
 
   /// The semantic layer's own diagnostics, in detection order.
   final List<Diagnostic> semanticDiagnostics;

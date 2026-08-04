@@ -659,3 +659,26 @@ final class Sentence {
   /// statement number.
   final bool deleted;
 }
+
+// --- Clause traversal ------------------------------------------------------
+
+/// Every clause of [clauses], nested ones included: IF arms, ON
+/// OVERFLOW slots, and AT END slots.
+Iterable<Clause> clauseTree(List<Clause> clauses) sync* {
+  for (final clause in clauses) {
+    yield clause;
+    switch (clause) {
+      case IfClause(:final thenArm, :final otherwiseArm):
+        yield* clauseTree(thenArm);
+        yield* clauseTree(otherwiseArm);
+      case SetClause(:final onOverflow?):
+        yield* clauseTree([onOverflow]);
+      case AddClause(:final onOverflow?):
+        yield* clauseTree([onOverflow]);
+      case GetClause(atEnd: AtEndClause(:final statement?)):
+        yield* clauseTree([statement]);
+      default:
+        break;
+    }
+  }
+}

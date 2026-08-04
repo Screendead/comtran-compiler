@@ -15,8 +15,8 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
 
   Compiles every job on the deck ($CMPLE ... *FINISH) and prints one
   compilation listing per job.
-  (M1-M3 stage 1: front end, parser, data mapper — no code generation
-  yet.)
+  (M1-M3 stage 2: front end, parser, data mapper, dictionary, name
+  resolution, and the semantic checks — no code generation yet.)
 
   --date=mm/dd/yy    page-head date (default: today)
   --time=h.hh        page-head time, decimal hours (default: now)
@@ -26,6 +26,8 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
   --pedantic         add non-historical written-language-strictness
                       diagnostics (D0.8); changes no parse result or
                       generated value
+  --no-table-limits  lift the 1962 internal-table capacity limits
+                      (non-historical; D9.7)
   --explain          after compiling, print each job's diagnostics to
                       stderr, one per line; the listing on stdout is
                       unchanged
@@ -50,6 +52,7 @@ int _run(List<String> arguments) {
   var title = '';
   var linesPerPage = 55;
   var pedantic = false;
+  var tableLimits = true;
   var explain = false;
   for (final argument in arguments) {
     if (argument.startsWith('--date=')) {
@@ -69,6 +72,8 @@ int _run(List<String> arguments) {
       linesPerPage = value;
     } else if (argument == '--pedantic') {
       pedantic = true;
+    } else if (argument == '--no-table-limits') {
+      tableLimits = false;
     } else if (argument == '--explain') {
       explain = true;
     } else if (argument.startsWith('--')) {
@@ -98,6 +103,7 @@ int _run(List<String> arguments) {
     final DeckCompilation deck = compileDeck(
       decodeCanon(File(deckPath).readAsBytesSync()),
       pedantic: pedantic,
+      tableLimits: tableLimits,
     );
     final options = ListingOptions(
       date: date,

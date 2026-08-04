@@ -104,16 +104,22 @@ final class ParseResult {
 /// [ParseResult.parserDiagnostics] holds only the parser's rows either
 /// way. [pedantic] adds non-historical written-language-strictness
 /// diagnostics (decision D0.8, D11.4) without changing any parse
-/// result.
+/// result. [tableLimits] false is the non-historical `--no-table-limits`
+/// switch: the D9.7 section caps (msgs 149, 915) stay silent.
 ParseResult runParser(
   FrontEndResult frontEnd, {
   DiagnosticSink? sink,
   bool pedantic = false,
+  bool tableLimits = true,
 }) {
   final DiagnosticSink diagnostics = sink ?? DiagnosticSink();
   final int first = diagnostics.length;
   CompileCard? compileCard;
-  final procedureParser = ProcedureParser(diagnostics, pedantic: pedantic);
+  final procedureParser = ProcedureParser(
+    diagnostics,
+    pedantic: pedantic,
+    tableLimits: tableLimits,
+  );
   // The 63-file limit spans every environment group of the job
   // (J 90.01.04; D10.8).
   final fileTally = FileCardTally();
