@@ -44,7 +44,7 @@ Terms that appear without expansion:
 | M2 stage 1 — AST and fixed-form parsers | Merged 2026-08-03 (PR #15) | `lib/src/ast/`, `lib/src/parser/` |
 | M2 stage 2 — procedure division | Merged 2026-08-03 (PR #17) | `lib/src/parser/procedure_parser.dart` |
 | M2 stage 3 — job stream and --pedantic | Merged 2026-08-03 (PRs #47–#49) | `lib/src/driver/` |
-| M3 — Data Description semantics | **Open. This is the next task.** | — |
+| M3 — the semantic layer | **In progress.** Design note recorded 2026-08-04; stage 1 is the next task | `docs/design/m3-data.md` |
 | M4 to M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -65,17 +65,23 @@ artifact alone is an incomplete job and draws message 132. The compile prints
 the listing, numbered 1,00 to 229,00 exactly as the 1962 compile numbered it,
 with zero diagnostics. A golden test guards that listing byte for byte.
 
-## The next task — M3, Data Description semantics
+## The next task — M3 stage 1, the data mapper
 
-The roadmap's M3 bullet defines the scope: levels, pictorials, type codes,
-storage mapping (definition §3, corroborated by the 90.05 layout evidence),
-REDEF, and QUANTITY. No M3 design note exists yet; the first step is the
-decision walk into a new `docs/design/m3-data.md`. Two standing items to
-carry in:
+The M3 decision walk is recorded in `docs/design/m3-data.md` (2026-08-04).
+Jack's three calls are locked there: M3 is the full semantic layer in three
+staged PRs (M3-1); the listing gains GN)nnn names and the LOC column with a
+golden rewrite in stage 3 (M3-8); and the 1962 object listing's `*DATA`
+storage section (PDF pp. 199–200) is the stage-1 acceptance oracle (M3-14).
+
+The next task is stage 1: the data mapper in a new `lib/src/data/` —
+field typing, pictorial measurement, the storage allocator, initial images,
+the environment binder, the data diagnostics, and the M3-14 oracle fixture
+transcribed from the page scans. Two standing items to carry in:
 
 - The D4.1 deferral (MOVPAK round step) must be decided no later than M4.
 - D11.4 lists the --pedantic sites deferred to M3 and later (D4.12, D4.13,
-  D3.5 among them); each lands with its owning milestone.
+  D3.5 among them); each lands with its owning milestone. M3-13 names the
+  M3 set.
 
 ## Rules that bind future work
 
