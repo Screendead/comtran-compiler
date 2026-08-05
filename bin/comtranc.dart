@@ -31,18 +31,26 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
   --explain          after compiling, print each job's diagnostics to
                       stderr, one per line; the listing on stdout is
                       unchanged
-  --emit-cards=PATH  write the whole deck's card images to PATH, in the
-                      .deck mirror form (D0.5)
-  --emit-scan=PATH   write the front end's dump to PATH
-  --emit-parse=PATH  write the parse tree's dump to PATH
-  --emit-semantics=PATH
-                      write the semantic layer's dump to PATH
-  --emit-listing=PATH
-                      write the listing to PATH; stdout is unchanged
+  --emit-cards[=PATH]
+                      write the whole deck's card images, in the .deck
+                      mirror form (D0.5)
+  --emit-scan[=PATH]  write the front end's dump
+  --emit-parse[=PATH]
+                      write the parse tree's dump
+  --emit-semantics[=PATH]
+                      write the semantic layer's dump
+  --emit-listing[=PATH]
+                      write the listing; stdout is unchanged
+  -A, --emit-all      write every stage dump
+  -c -s -p -S -l      the short emit flags, one letter per stage above,
+                      bundleable: -cpsSl is the full set. A dump without
+                      PATH lands next to the deck, the deck's extension
+                      replaced by the stage name: `payroll.ctdeck -p`
+                      writes `payroll.parse`.
   --version          print the version and exit
 ''';
 
-/// The stage names `--emit-<stage>=<path>` accepts
+/// The stage names `--emit-<stage>[=<path>]` accepts
 /// (`docs/design/emit-stages.md`).
 const List<String> _emitStages = [
   'cards',
@@ -51,6 +59,16 @@ const List<String> _emitStages = [
   'semantics',
   'listing',
 ];
+
+/// The one-letter emit flags. A short flag always takes the default
+/// path; a custom path needs the long form.
+const Map<String, String> _emitLetters = {
+  'c': 'cards',
+  's': 'scan',
+  'p': 'parse',
+  'S': 'semantics',
+  'l': 'listing',
+};
 
 void main(List<String> arguments) {
   // Dart discards main's return value; the exit status must be set
@@ -72,7 +90,9 @@ int _run(List<String> arguments) {
   var pedantic = false;
   var tableLimits = true;
   var explain = false;
-  final emitPaths = <String, String>{};
+  // A null path means the default, resolved once the deck path is
+  // known.
+  final emitPaths = <String, String?>{};
   for (final argument in arguments) {
     if (argument.startsWith('--date=')) {
       date = argument.substring(7);
@@ -95,13 +115,19 @@ int _run(List<String> arguments) {
       tableLimits = false;
     } else if (argument == '--explain') {
       explain = true;
+    } else if (argument == '--emit-all') {
+      for (final String stage in _emitStages) {
+        emitPaths[stage] = null;
+      }
     } else if (argument.startsWith('--emit-')) {
       final int equals = argument.indexOf('=');
-      final String stage = equals < 0 ? '' : argument.substring(7, equals);
-      final String path = equals < 0 ? '' : argument.substring(equals + 1);
-      // An unknown stage, a missing `=`, and an empty path are all the
-      // same usage error.
-      if (!_emitStages.contains(stage) || path.isEmpty) {
+      final String stage = equals < 0
+          ? argument.substring(7)
+          : argument.substring(7, equals);
+      final String? path = equals < 0 ? null : argument.substring(equals + 1);
+      // An unknown stage and an explicit empty path are the same usage
+      // error; no `=` at all means the default path.
+      if (!_emitStages.contains(stage) || (path != null && path.isEmpty)) {
         stderr.write(_usage);
         return 2;
       }
@@ -109,6 +135,19 @@ int _run(List<String> arguments) {
     } else if (argument.startsWith('--')) {
       stderr.write(_usage);
       return 2;
+    } else if (argument.length > 1 && argument.startsWith('-')) {
+      for (final String letter in argument.substring(1).split('')) {
+        if (letter == 'A') {
+          for (final String stage in _emitStages) {
+            emitPaths[stage] = null;
+          }
+        } else if (_emitLetters.containsKey(letter)) {
+          emitPaths[_emitLetters[letter]!] = null;
+        } else {
+          stderr.write(_usage);
+          return 2;
+        }
+      }
     } else if (deckPath == null) {
       deckPath = argument;
     } else {
@@ -119,6 +158,9 @@ int _run(List<String> arguments) {
   if (deckPath == null) {
     stderr.write(_usage);
     return 2;
+  }
+  for (final String stage in emitPaths.keys.toList()) {
+    emitPaths[stage] ??= _defaultDumpPath(deckPath, stage);
   }
   final now = DateTime.now();
   date ??=
@@ -188,4 +230,14 @@ void _emit(String? path, String Function() render) {
   if (path != null) {
     File(path).writeAsStringSync(render());
   }
+}
+
+/// The default dump path (`docs/design/emit-stages.md`): the deck's
+/// path with its extension replaced by the stage name, next to the
+/// deck.
+String _defaultDumpPath(String deckPath, String stage) {
+  final int dot = deckPath.lastIndexOf('.');
+  final int slash = deckPath.lastIndexOf(RegExp(r'[/\\]'));
+  final String stem = dot > slash ? deckPath.substring(0, dot) : deckPath;
+  return '$stem.$stage';
 }

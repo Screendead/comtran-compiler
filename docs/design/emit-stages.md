@@ -60,15 +60,23 @@ dump prints the full tree.
 
 ### Flags
 
-Each flag takes a file path. The listing on stdout does not change.
+The path is optional on every flag. The listing on stdout does not change.
 
-| Flag | Stage | Status | Oracle |
-|---|---|---|---|
-| `--emit-cards=<path>` | card images | attested | byte-identical to the deck's mirror (D0.5) |
-| `--emit-scan=<path>` | front end | reconstruction | golden: `test/goldens/90.05-payroll.scan` |
-| `--emit-parse=<path>` | parse | reconstruction | golden: `test/goldens/90.05-payroll.parse` |
-| `--emit-semantics=<path>` | semantic layer | reconstruction | golden: `test/goldens/90.05-payroll.semantics`, plus the M3-14 fixture values |
-| `--emit-listing=<path>` | listing | attested | the golden listing |
+| Flag | Short | Stage | Status | Oracle |
+|---|---|---|---|---|
+| `--emit-cards[=<path>]` | `-c` | card images | attested | byte-identical to the deck's mirror (D0.5) |
+| `--emit-scan[=<path>]` | `-s` | front end | reconstruction | golden: `test/goldens/90.05-payroll.scan` |
+| `--emit-parse[=<path>]` | `-p` | parse | reconstruction | golden: `test/goldens/90.05-payroll.parse` |
+| `--emit-semantics[=<path>]` | `-S` | semantic layer | reconstruction | golden: `test/goldens/90.05-payroll.semantics`, plus the M3-14 fixture values |
+| `--emit-listing[=<path>]` | `-l` | listing | attested | the golden listing |
+
+Jack added the short surface 2026-08-05. The one-letter flags bundle:
+`-cpsSl` is the full set. `-A` and `--emit-all` request every stage. A
+flag without a path writes the default file: the deck's path with its
+extension replaced by the stage name, next to the deck. So
+`payroll.ctdeck -p` writes `payroll.parse`. A short flag always takes
+the default path; a custom path needs the long form. A repeated stage
+follows the driver's last-wins idiom.
 
 ### Conventions
 

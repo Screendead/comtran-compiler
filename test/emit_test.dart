@@ -119,11 +119,74 @@ void main() {
     });
   });
 
-  test('an empty emit path is a usage error', () {
-    final ProcessResult run = _compile(const ['--emit-parse=']);
-    expect(run.exitCode, 2);
-    expect(run.stdout, isEmpty);
-    expect(run.stderr, startsWith('Usage:'));
+  test('a malformed emit flag is a usage error', () {
+    for (final flag in ['--emit-parse=', '--emit-all=x', '-x', '-cx']) {
+      final ProcessResult run = _compile([flag]);
+      expect(run.exitCode, 2, reason: flag);
+      expect(run.stdout, isEmpty, reason: flag);
+      expect(run.stderr, startsWith('Usage:'), reason: flag);
+    }
+  });
+
+  group('the default dump paths', () {
+    // Each test gets its own copy of the job deck, so one test's
+    // default-named dumps cannot satisfy another's assertions.
+    late Directory dir;
+    late String deck;
+
+    setUp(() {
+      dir = Directory.systemTemp.createTempSync('comtran-emit-default');
+      deck = '${dir.path}/payroll.ctdeck';
+      File(jobDeckPath).copySync(deck);
+    });
+
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    ProcessResult compile(List<String> options) =>
+        Process.runSync(Platform.resolvedExecutable, [
+          'run',
+          'comtran:comtranc',
+          deck,
+          '--date=10/18/61',
+          '--time=2.45',
+          '--title=COMPILATION OF SAMPLE PROBLEM',
+          ...options,
+        ]);
+
+    test('the -cpsSl bundle writes all five dumps next to the deck', () {
+      final ProcessResult run = compile(const ['-cpsSl']);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      for (final stage in ['cards', 'scan', 'semantics', 'listing']) {
+        expect(File('${dir.path}/payroll.$stage').existsSync(), isTrue);
+      }
+      expect(
+        File('${dir.path}/payroll.parse').readAsStringSync(),
+        golden('parse'),
+      );
+    });
+
+    test('a bare long flag writes the default file', () {
+      final ProcessResult run = compile(const ['--emit-semantics']);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(
+        File('${dir.path}/payroll.semantics').readAsStringSync(),
+        golden('semantics'),
+      );
+    });
+
+    test('an explicit path after -A replaces that stage default', () {
+      final ProcessResult run = compile([
+        '-A',
+        '--emit-parse=${dir.path}/custom.tree',
+      ]);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(
+        File('${dir.path}/custom.tree').readAsStringSync(),
+        golden('parse'),
+      );
+      expect(File('${dir.path}/payroll.parse').existsSync(), isFalse);
+      expect(File('${dir.path}/payroll.listing').existsSync(), isTrue);
+    });
   });
 
   test('a stopped job prints the stopped line each stage calls for', () {
