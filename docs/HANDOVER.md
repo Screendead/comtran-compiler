@@ -58,7 +58,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline, measured 2026-08-05: 975 Dart tests pass, and 154 extension
+Test baseline, measured 2026-08-05: 976 Dart tests pass, and 154 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -121,31 +121,25 @@ binds work outside the definition.
 - §8.5 and Open Questions are living lists. Annotate an entry in place with the
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
-- The conversions stay read-only. Five erratum candidates wait for Jack's
-  explicit authorization:
-  1. The 90.05 transcription renders the `*CTEND` card's date as `10/18/61`.
-     The card prints `101861` (recorded in §8.5.8).
-  2. Statement 43,00's data name is punched `CNTRLCHARSECLIN` — 15 characters,
-     with level 02 abutting at columns 23–24 — not `CNTRLCHARSECLINE`.
-     Statement 203 prints `1.5 -20)`, not `1.5 - 20)`. Both readings come from
-     the page scans, measured during the deck re-keying.
-     `test/fixtures/90.05-payroll-deck-notes.md` holds the details and the minor
-     spacing normalizations.
-  3. On the transcription of PDF p. 197, the statement numbers of 218,00–221,00
-     and 228,00 sit one line low. A printer half-line stagger causes this.
-     `docs/design/m1-front-end.md` M1-14 records the scan-correct grouping,
-     and the M1 tests assert it.
-  4. The object-listing line at LOC 01612 (PDF p. 215) is transcribed
-     `CLA 4)NETPAY`. The print reads `CLA 5)NETPAY` — the octal address
-     00133 is transcribed correctly. Scan-measured 2026-08-05
-     (`docs/design/m4-codegen.md` M4-20 item b).
-  5. The PDF p. 208 page head is transcribed as two transposed lines. The
-     print is one line in the normal order; a one-degree scan tilt caused
-     the split. Scan-measured 2026-08-05 (M4-20 item e).
-  A further candidate — the [J 02.05.05] chart's Edited-row overpunch glyphs,
-  transcribed `8 or 9 or 8̅ or 9̅` where the scan marks all four — was
-  authorized and corrected 2026-08-04. §8.5.8-b records the reading and the
-  polarity order.
+- The conversions stay read-only. A change needs Jack's explicit
+  authorization. One candidate waits for it: the seven minor spacing
+  normalizations in `test/fixtures/90.05-payroll-deck-notes.md` item 3 —
+  single against double spaces in statements 182, 187, 198, 199 and 220. The
+  deck already follows the scans; only the conversion is unamended.
+  Seven candidates are authorized and applied. The [J 02.05.05] chart's
+  Edited-row overpunch glyphs, where the scan marks all four, were corrected
+  2026-08-04; §8.5.8-b records the reading and the polarity order. Six more
+  were corrected 2026-08-05: the `*CTEND` card's date (§8.5.8-j), statement
+  43,00's 15-character name and statement 203's `1.5 -20)` (deck notes items 1
+  and 2), the PDF p. 197 half-line stagger (`docs/design/m1-front-end.md`
+  M1-14), `CLA 5)NETPAY` at LOC 01612, the PDF p. 208 transposed page head
+  (`docs/design/m4-codegen.md` M4-20 items b and e), and the spacing of both
+  compiler-punched control-card lines, `*CTEXT` (PDF p. 198) and `*CTEND`
+  (PDF p. 216). That last one landed after Jack reviewed the measurement: the
+  print puts the time value at card column 45, `CT` at 55 and the sequence
+  number at 79, where the transcription had 43, 50 and 78, and column 55 is
+  where the manual's own layout for these two cards starts the secondary
+  identifier ([J 03.02.09]).
 - The page scans (`comtran-manuals/*/images/page-NNN.png`) are ground truth for
   any disputed reading.
 - For any claim about card columns, measure the page scan. Never trust the
@@ -290,6 +284,7 @@ M2 to M6.
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.05.05]: ../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card
+[J 03.02.09]: ../comtran-manuals/J28-6169/03-loader.md#j-start-card
 [J 90.01.05]: ../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.10]: ../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers

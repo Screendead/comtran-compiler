@@ -91,11 +91,13 @@ source citation. Amend by updating this file and `decisions.md` together.*
   ([J 02.02.01]); M1's reading — print it for any diagnostic on a card
   with no statement number — is our inference.
 - **M1-14. Page 197 number attribution.** The listing conversion
-  misattributes statements 218–221 and 228 by one line (printer
+  misattributed statements 218–221 and 228 by one line (printer
   half-line stagger); the page scan (`images/page-197.png`) is
-  authoritative and our tests assert the scan's grouping. The
-  transcription itself is an erratum candidate for Jack; the conversion
-  stays untouched.
+  authoritative and our tests assert the scan's grouping. *Corrected in
+  the conversion 2026-08-05 under Jack's authorization.* Sentence
+  structure confirms the scan independently: each number now heads a
+  line that opens a sentence, and every sentence carries exactly one
+  number.
 
 ## The listing
 
