@@ -117,6 +117,12 @@ source citation. Amend by updating this file and `decisions.md` together.*
   dictionary address, and M3 stage 3 fills it from the dictionary
   allocator, with the golden rewritten there. The M1 blank stands until
   that stage lands.*
+  *Amended 2026-08-05 (the 90.05 word-spacing errata): the golden's
+  statement-182 line lost one space. The fixture deck held that error, not
+  the conversion — card 191 punched two spaces after `SPECIFPAYFILE,` where
+  the print holds one, which put every field from `UNIT1` rightward one card
+  column late. `test/fixtures/90.05-payroll-deck-notes.md` item 3 holds the
+  measurement.*
 - **M1-16. Page head** template per the sample:
   `DATE mm/dd/yy   TIME  h.hh   ACCOUNT …ID. <identifier>  PAGE n`,
   the identifier from control-card columns 55–72 ([J 02.01.02]). The

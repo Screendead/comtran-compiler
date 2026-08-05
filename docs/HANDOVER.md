@@ -122,11 +122,14 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. One candidate waits for it: the seven minor spacing
-  normalizations in `test/fixtures/90.05-payroll-deck-notes.md` item 3 —
-  single against double spaces in statements 182, 187, 198, 199 and 220. The
-  deck already follows the scans; only the conversion is unamended.
-  Seven candidates are authorized and applied. The [J 02.05.05] chart's
+  authorization. No candidate is open. Eight are authorized and applied. The
+  most recent, on 2026-08-05, corrected word spacing at six sites in the 90.05
+  listing — statements 182, 187, 198, 199 and 220, recorded with the
+  measurements in `test/fixtures/90.05-payroll-deck-notes.md` item 3. A
+  seventh site in that item corrected the deck instead: the print holds one
+  space after `SPECIFPAYFILE,` in statement 182 and the deck held two, so the
+  card was one column out of true from `UNIT1` rightward, and
+  `test/goldens/90.05-payroll.listing` was regenerated. The [J 02.05.05] chart's
   Edited-row overpunch glyphs, where the scan marks all four, were corrected
   2026-08-04; §8.5.8-b records the reading and the polarity order. Six more
   were corrected 2026-08-05: the `*CTEND` card's date (§8.5.8-j), statement
