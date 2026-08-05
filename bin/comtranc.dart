@@ -31,8 +31,26 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
   --explain          after compiling, print each job's diagnostics to
                       stderr, one per line; the listing on stdout is
                       unchanged
+  --emit-cards=PATH  write the whole deck's card images to PATH, in the
+                      .deck mirror form (D0.5)
+  --emit-scan=PATH   write the front end's dump to PATH
+  --emit-parse=PATH  write the parse tree's dump to PATH
+  --emit-semantics=PATH
+                      write the semantic layer's dump to PATH
+  --emit-listing=PATH
+                      write the listing to PATH; stdout is unchanged
   --version          print the version and exit
 ''';
+
+/// The stage names `--emit-<stage>=<path>` accepts
+/// (`docs/design/emit-stages.md`).
+const List<String> _emitStages = [
+  'cards',
+  'scan',
+  'parse',
+  'semantics',
+  'listing',
+];
 
 void main(List<String> arguments) {
   // Dart discards main's return value; the exit status must be set
@@ -54,6 +72,7 @@ int _run(List<String> arguments) {
   var pedantic = false;
   var tableLimits = true;
   var explain = false;
+  final emitPaths = <String, String>{};
   for (final argument in arguments) {
     if (argument.startsWith('--date=')) {
       date = argument.substring(7);
@@ -76,6 +95,17 @@ int _run(List<String> arguments) {
       tableLimits = false;
     } else if (argument == '--explain') {
       explain = true;
+    } else if (argument.startsWith('--emit-')) {
+      final int equals = argument.indexOf('=');
+      final String stage = equals < 0 ? '' : argument.substring(7, equals);
+      final String path = equals < 0 ? '' : argument.substring(equals + 1);
+      // An unknown stage, a missing `=`, and an empty path are all the
+      // same usage error.
+      if (!_emitStages.contains(stage) || path.isEmpty) {
+        stderr.write(_usage);
+        return 2;
+      }
+      emitPaths[stage] = path;
     } else if (argument.startsWith('--')) {
       stderr.write(_usage);
       return 2;
@@ -100,8 +130,9 @@ int _run(List<String> arguments) {
     // The job loop (D11.1–D11.3): one sink, one parse, and one listing
     // per job; the exit code reflects the worst severity of the whole
     // deck (D11.2).
+    final List<CardImage> cards = decodeCanon(File(deckPath).readAsBytesSync());
     final DeckCompilation deck = compileDeck(
-      decodeCanon(File(deckPath).readAsBytesSync()),
+      cards,
       pedantic: pedantic,
       tableLimits: tableLimits,
     );
@@ -112,14 +143,26 @@ int _run(List<String> arguments) {
       title: title,
       linesPerPage: linesPerPage,
     );
+    final listing = StringBuffer();
     for (final JobCompilation job in deck.jobs) {
-      stdout.write(
-        writeListing(job.frontEnd, options, diagnostics: job.diagnostics),
+      final String page = writeListing(
+        job.frontEnd,
+        options,
+        diagnostics: job.diagnostics,
       );
+      listing.write(page);
+      stdout.write(page);
       if (explain) {
         job.diagnostics.forEach(stderr.writeln);
       }
     }
+    // A stopped job still dumps every stage it reached (D10.2): the
+    // renderers print the stopped line for the stages it did not.
+    _emit(emitPaths['cards'], () => deckToMirror(cards));
+    _emit(emitPaths['scan'], () => emitScan(deck));
+    _emit(emitPaths['parse'], () => emitParse(deck));
+    _emit(emitPaths['semantics'], () => emitSemantics(deck));
+    _emit(emitPaths['listing'], listing.toString);
     // Severity 5 stops a job (J 90.04.02); lower severities still
     // produce output.
     return deck.maxSeverity >= 5 ? 1 : 0;
@@ -134,5 +177,13 @@ int _run(List<String> arguments) {
   } on FileSystemException catch (e) {
     stderr.writeln('error: ${e.message}: ${e.path}');
     return 1;
+  }
+}
+
+/// Writes one `--emit` dump. [render] runs only for a requested dump, so
+/// an unasked-for stage costs nothing.
+void _emit(String? path, String Function() render) {
+  if (path != null) {
+    File(path).writeAsStringSync(render());
   }
 }

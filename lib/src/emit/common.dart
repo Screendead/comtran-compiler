@@ -1,0 +1,17 @@
+/// Shared text conventions for the `--emit` stage dumps
+/// (`docs/design/emit-stages.md`): the reconstruction label, the
+/// per-job header, and the stopped-stage line.
+library;
+
+/// The first line of every reconstruction dump. The attested dumps
+/// (cards, listing) never print it: their bytes must match the
+/// attested form.
+const String reconstructionLabel =
+    '* RECONSTRUCTION - NO 1962 ARTIFACT ATTESTS THIS FORM';
+
+/// The line that opens job [number]'s section of a dump.
+String jobHeader(int number) => '* JOB $number';
+
+/// The line a dump prints for a stage that an earlier stop kept from
+/// running (D10.2).
+const String stageNotReached = '* STOPPED BEFORE THIS STAGE';

@@ -1,0 +1,582 @@
+* RECONSTRUCTION - NO 1962 ARTIFACT ATTESTS THIS FORM
+* JOB 1
+compile-card *COMPILE identifier 'CT PUBLICATIONS'
+  option LIST
+data-group
+  1,00 data-item MASTER level 01 type RECORD justify L
+    2,00 data-item DAT level 02
+      3,00 data-item EMPLOYEE.NUMBER level 03
+        4,00 data-item DEPARTMENT level 04 pictorial AA
+        5,00 data-item EMPLOYEE level 04 pictorial AAAA
+      6,00 data-item NAME level 03 pictorial A(15)
+    7,00 data-item TRIGGERS level 02 pictorial AAA
+    8,00 data-item RATE level 02 mode I justify R pictorial 99V999
+    9,00 data-item DATE level 02
+      10,00 data-item MONTH level 03 pictorial AA
+      11,00 data-item DAY level 03 pictorial AA
+      12,00 data-item YEAR level 03 pictorial AA
+    13,00 data-item EXEMPTIONS level 02 mode I justify R pictorial 99
+    14,00 data-item TOTALS level 02
+      15,00 data-item GROSS level 03 mode I justify R pictorial 9(4)V99
+      16,00 data-item RETIREMENT level 03 mode I justify R pictorial 999V99
+      17,00 data-item INSURANCE level 03 mode I justify R pictorial 999V99
+    18,00 data-item FICA level 02 mode I justify R pictorial 999V99
+    19,00 data-item WHT level 02 mode I justify R pictorial 9(4)V99
+    20,00 data-item BONDEDUCTION level 02 mode I justify R pictorial 99V99
+    21,00 data-item BONDACCUMULATION level 02 mode I justify R pictorial 999V99
+    22,00 data-item BONDENOMINATION level 02 mode I justify R pictorial 999V99
+  23,00 data-item DETAIL level 01 type RECORD
+    24,00 data-item EMPLOYEE.NUMBER level 02
+      25,00 data-item DEPARTMENT level 03 pictorial AA
+      26,00 data-item EMPLOYEE level 03 pictorial AAAA
+    27,00 data-item DATE level 02
+      28,00 data-item MONTH level 03 pictorial AA
+      29,00 data-item DAY level 03 pictorial AA
+      30,00 data-item YEAR level 03 pictorial AA
+    31,00 data-item HOURS level 02 pictorial 99V9
+  32,00 data-item CHECK level 01 type RECORD
+    33,00 data-item CNTRLCHAR level 02 pictorial A constant '1'
+    34,00 data-item DATE level 02
+      35,00 data-item MONTH level 03 pictorial AA
+      36,00 data-item level 03 pictorial A constant '-'
+      37,00 data-item DAY level 03 pictorial AA
+      38,00 data-item level 03 pictorial A constant '-'
+      39,00 data-item YEAR level 03 pictorial AA
+      40,00 data-item level 03 pictorial A(30) constant ' '
+    41,00 data-item EMPLOYEE.NUMBER level 02 pictorial A(6)
+    42,00 data-item ENDFRSTLINE level 02 type RCDMRK pictorial A
+    43,00 data-item CNTRLCHARSECLIN level 02 pictorial A constant '2'
+    44,00 data-item NAME level 02 pictorial A(18)
+    45,00 data-item level 02 pictorial A(20) constant ' '
+    46,00 data-item AMOUNT level 02 pictorial $8889.99
+  47,00 data-item PAYRECORD level 01 type RECORD
+    48,00 data-item EMPLOYEE.NUMBER level 02
+      49,00 data-item DEPARTMENT level 03 pictorial AA
+      50,00 data-item level 03 pictorial A constant ' '
+      51,00 data-item EMPLOYEE level 03 pictorial AAAA
+      52,00 data-item level 03 pictorial A constant ' '
+    53,00 data-item NAME level 02 pictorial A(15)
+    54,00 data-item level 02 pictorial A constant ' '
+    55,00 data-item DATE level 02
+      56,00 data-item MONTH level 03 pictorial AA
+      57,00 data-item level 03 pictorial A constant '-'
+      58,00 data-item DAY level 03 pictorial AA
+      59,00 data-item level 03 pictorial A constant '-'
+      60,00 data-item YEAR level 03 pictorial AA
+    61,00 data-item level 02 pictorial AAA constant ' '
+    62,00 data-item HRS level 02 pictorial 8889.9
+    63,00 data-item level 02 pictorial AA constant ' '
+    64,00 data-item GROSS level 02 pictorial 88889.99
+    65,00 data-item level 02 pictorial AA constant ' '
+    66,00 data-item WHT level 02 pictorial 88889.99
+    67,00 data-item level 02 pictorial AA constant ' '
+    68,00 data-item FICA level 02 pictorial 8889.99
+    69,00 data-item level 02 pictorial AA constant ' '
+    70,00 data-item BONDEDUCTION level 02 pictorial 8889.99
+    71,00 data-item level 02 pictorial AA constant ' '
+    72,00 data-item INS.PREM level 02 pictorial 8889.99
+    73,00 data-item level 02 pictorial AA constant ' '
+    74,00 data-item RET.PREM level 02 pictorial 8889.99
+    75,00 data-item level 02 pictorial AAA constant ' '
+    76,00 data-item NETPAY level 02 pictorial 8889.99
+    77,00 data-item level 02 pictorial AA constant ' '
+    78,00 data-item BONDENOMINATION level 02 pictorial 88889.99
+  79,00 data-item DEPARTMENT.TOTAL level 01 type RECORD
+    80,00 data-item level 02 pictorial A(21) constant '          DEPARTMENT '
+    81,00 data-item CURRENT.DEPT level 02 pictorial AA
+    82,00 data-item level 02 pictorial A(12) constant ' TOTALS     '
+    83,00 data-item HOURS level 02 pictorial 8889.9
+    84,00 data-item level 02 pictorial AA constant ' '
+    85,00 data-item GROSS level 02 pictorial 88889.99
+    86,00 data-item level 02 pictorial AA constant ' '
+    87,00 data-item WHT level 02 pictorial 88889.99
+    88,00 data-item level 02 pictorial AA constant ' '
+    89,00 data-item FICA level 02 pictorial 8889.99
+    90,00 data-item level 02 pictorial AA constant ' '
+    91,00 data-item BONDEDUCTION level 02 pictorial 8889.99
+    92,00 data-item level 02 pictorial AA constant ' '
+    93,00 data-item INSURANCE level 02 pictorial 8889.99
+    94,00 data-item level 02 pictorial AA constant ' '
+    95,00 data-item RETIREMENT level 02 pictorial 8889.99
+    96,00 data-item level 02 pictorial AA constant ' '
+    97,00 data-item NETPAY level 02 pictorial 88889.99
+    98,00 data-item level 02 pictorial AA constant ' '
+    99,00 data-item BONDPURCHASES level 02 pictorial 88889.99
+  100,00 data-item BONDORDER level 01 type RECORD
+    101,00 data-item level 02 pictorial A constant ' '
+    102,00 data-item DAT level 02
+      103,00 data-item EMPLOYEE.NUMBER level 03 pictorial A(6)
+      104,00 data-item level 03 pictorial A constant ' '
+      105,00 data-item NAME level 03 pictorial A(15)
+      106,00 data-item level 03 pictorial A constant ' '
+    107,00 data-item BONDENOMINATION level 02 pictorial 899V99
+    108,00 data-item level 02 pictorial A constant ' '
+    109,00 data-item DATE level 02 pictorial A(6)
+  110,00 data-item ERROROUT level 01 type RECORD
+    111,00 data-item ERRORTYPE level 02 pictorial A
+    112,00 data-item INFO level 02 pictorial A(23)
+  113,00 data-item WORKING level 01
+    114,00 data-item GROSS level 02 mode I justify R pictorial 9(5)V99
+    115,00 data-item RETIREMENT level 02 mode I justify R pictorial 9(4)V99
+    116,00 data-item INSURANCE level 02 mode I justify R pictorial 9(4)V99
+    117,00 data-item FICA level 02 mode I justify R pictorial 9(4)V99
+    118,00 data-item WHT level 02 mode I justify R pictorial 9(5)V99
+    119,00 data-item NETPAY level 02 mode I justify R pictorial 9(5)V99
+    120,00 data-item HOURS level 02 mode I justify R pictorial 99V9
+    121,00 data-item INDEX level 02 mode I justify R pictorial 99
+    122,00 data-item POS level 02 mode I justify R pictorial 99
+  123,00 data-item INTERNAL.TOTALS level 01
+    124,00 data-item HOURS level 02 mode I justify R pictorial 9999V9
+    125,00 data-item GROSS level 02 mode I justify R pictorial 9(5)V99
+    126,00 data-item WHT level 02 mode I justify R pictorial 9(5)V99
+    127,00 data-item FICA level 02 mode I justify R pictorial 9(4)V99
+    128,00 data-item BONDEDUCTION level 02 mode I justify R pictorial 9(4)V99
+    129,00 data-item INSURANCE level 02 mode I justify R pictorial 9(4)V99
+    130,00 data-item RETIREMENT level 02 mode I justify R pictorial 9(4)V99
+    131,00 data-item NETPAY level 02 mode I justify R pictorial 9(5)V99
+    132,00 data-item BONDPURCHASES level 02 mode I justify R pictorial 9(5)V99
+  133,00 data-item GRAND.TOTALS level 01
+    134,00 data-item HOURS level 02 mode I justify R pictorial 9(4)V9
+    135,00 data-item GROSS level 02 mode I justify R pictorial 9(5)V99
+    136,00 data-item WHT level 02 mode I justify R pictorial 9(5)V99
+    137,00 data-item FICA level 02 mode I justify R pictorial 9(4)V99
+    138,00 data-item BONDEDUCTION level 02 mode I justify R pictorial 9(4)V99
+    139,00 data-item INSURANCE level 02 mode I justify R pictorial 9(4)V99
+    140,00 data-item RETIREMENT level 02 mode I justify R pictorial 9(4)V99
+    141,00 data-item NETPAY level 02 mode I justify R pictorial 9(5)V99
+    142,00 data-item BONDPURCHASES level 02 mode I justify R pictorial 9(5)V99
+  143,00 data-item TABLE level 01
+    144,00 data-item level 02 mode I justify R pictorial 9(5) constant '00999'
+    145,00 data-item level 02 constant '080060'
+    146,00 data-item level 02 mode I justify R pictorial 9(5) constant '01499'
+    147,00 data-item level 02 constant '100060'
+    148,00 data-item level 02 mode I justify R pictorial 9(5) constant '01999'
+    149,00 data-item level 02 constant '120090'
+    150,00 data-item level 02 mode I justify R pictorial 9(5) constant '02499'
+    151,00 data-item level 02 constant '150090'
+    152,00 data-item level 02 mode I justify R pictorial 9(5) constant '02999'
+    153,00 data-item level 02 constant '150120'
+    154,00 data-item level 02 mode I justify R pictorial 9(5) constant '03499'
+    155,00 data-item level 02 constant '200120'
+    156,00 data-item level 02 mode I justify R pictorial 9(5) constant '03999'
+    157,00 data-item level 02 constant '200150'
+    158,00 data-item level 02 mode I justify R pictorial 9(5) constant '04499'
+    159,00 data-item level 02 constant '250150'
+    160,00 data-item level 02 mode I justify R pictorial 9(5) constant '04999'
+    161,00 data-item level 02 constant '300180'
+    162,00 data-item level 02 mode I justify R pictorial 9(5) constant '06499'
+    163,00 data-item level 02 constant '300250'
+    164,00 data-item level 02 mode I justify R pictorial 9(5) constant '07999'
+    165,00 data-item level 02 constant '300350'
+    166,00 data-item level 02 mode I justify R pictorial 9(5) constant '99999'
+    167,00 data-item level 02 constant '300500'
+      168,00 data-item type REDEF target TABLE
+  169,00 data-item TABLE.ITEM level 01 quantity 12
+    170,00 data-item RATE level 02 mode I justify R pictorial 99V999
+    171,00 data-item INSPREM level 02 pictorial 9V99
+    172,00 data-item RETPREM level 02 pictorial 9V99
+environment-group
+  173,00 file-card INPUTMASTER INPUT binary blocksize 300
+    record MASTER
+  174,00 specif-card INPUTMASTER unit1 D1 openw close CLOSER
+  175,00 file-card OUTPUTMASTER OUTPUT binary blocksize 300
+    record MASTER
+  176,00 specif-card OUTPUTMASTER unit1 C1 openw close CLOSER
+  177,00 file-card DETAILFILE INPUT blocksize 3
+    record DETAIL
+  178,00 specif-card DETAILFILE unit1 C2 density LOW openw close CLOSER
+  179,00 file-card CHECKFILE OUTPUT blocksize 20
+    record CHECK
+  180,00 specif-card CHECKFILE unit1 D2 density LOW openw close CLOSER
+  181,00 file-card PAYFILE OUTPUT blocksize 20
+    record PAYRECORD
+    record DEPARTMENT.TOTAL
+  182,00 specif-card PAYFILE unit1 D3 density LOW openw close CLOSER
+  183,00 file-card BONDORDERFILE OUTPUT blocksize 6
+    record BONDORDER
+  184,00 specif-card BONDORDERFILE unit1 C3 density LOW openw close CLOSER
+  185,00 file-card ERRORFILE OUTPUT blocksize 6
+    record ERROROUT
+  186,00 specif-card ERRORFILE unit1 D4 density LOW openw close CLOSER
+procedure-group
+  187,00 sentence
+    call-clause
+      call-pair new M.EMP.NO
+        old name MASTER EMPLOYEE.NUMBER
+      call-pair new D.EMP.NO
+        old name DETAIL EMPLOYEE.NUMBER
+      call-pair new D.DEPT
+        old name DETAIL DEPARTMENT
+      call-pair new M.BND.DED
+        old name MASTER BONDEDUCTION
+      call-pair new M.BND.ACC
+        old name MASTER BONDACCUMULATION
+  188,00 sentence label START
+    open-clause all-files
+    move-clause
+      source figurative ZEROS
+      target name INTERNAL.TOTALS
+      target name GRAND.TOTALS
+    get-clause
+      record name MASTER
+      at-end-clause
+        do-clause
+          procedure name END.OF.MASTERS
+  189,00 sentence
+    move-clause
+      source name MASTER DEPARTMENT
+      target name CURRENT.DEPT
+    go-to-clause
+      target name GET.DETAIL
+  190,00 sentence label GET.MASTER
+    get-clause
+      record name MASTER
+      at-end-clause
+        do-clause
+          procedure name END.OF.MASTERS
+  191,00 sentence label GET.DETAIL
+    get-clause
+      record name DETAIL
+      at-end-clause
+        go-to-clause
+          target name END.OF.DETAILS
+  192,00 sentence label COMPARE.EMPLOYEE.NUMBERS
+    go-to-clause
+      target name CHECK.NEW.DEPT
+        when comparison EQUAL
+          name D.EMP.NO
+          name M.EMP.NO
+      target name LOW.DETAIL
+        when comparison LESS
+          name D.EMP.NO
+          name M.EMP.NO
+  193,00 sentence label HIGH.DETAIL
+    move-clause
+      source literal 'M'
+      target name ERRORTYPE
+    move-clause
+      source name MASTER DAT
+      target name ERROROUT INFO
+    file-clause
+      record name ERROROUT
+  194,00 sentence
+    get-clause
+      record name MASTER
+      at-end-clause
+        do-clause
+          procedure name END.OF.MASTERS
+  195,00 sentence
+    go-to-clause
+      target name COMPARE.EMPLOYEE.NUMBERS
+  196,00 sentence label LOW.DETAIL
+    move-clause
+      source name DETAIL
+      target name ERROROUT INFO
+    move-clause
+      source literal 'D'
+      target name ERRORTYPE
+    file-clause
+      record name ERROROUT
+    go-to-clause
+      target name GET.DETAIL
+  197,00 sentence label END.OF.MASTERS
+    if-clause
+      comparison EQUAL
+        name D.EMP.NO
+        figurative HIGH.VALUE
+      then go-to-clause
+        target name END.OF.RUN
+      otherwise set-clause
+        target name M.EMP.NO
+        value figurative HIGH.VALUE
+  198,00 sentence label END.OF.DETAILS
+    if-clause
+      comparison EQUAL
+        name M.EMP.NO
+        figurative HIGH.VALUE
+      then go-to-clause
+        target name END.OF.RUN
+      otherwise set-clause
+        target name D.EMP.NO
+        value figurative HIGH.VALUE
+      otherwise go-to-clause
+        target name HIGH.DETAIL
+  199,00 sentence label END.OF.RUN
+    do-clause
+      procedure name DEPARTMENT.END
+    move-clause corresponding
+      source name GRAND.TOTALS
+      target name PAYRECORD
+    move-clause
+      source name GRAND.TOTALS HOURS
+      target name PAYRECORD HRS
+    move-clause
+      source name GRAND.TOTALS INSURANCE
+      target name PAYRECORD INS.PREM
+    move-clause
+      source name GRAND.TOTALS RETIREMENT
+      target name PAYRECORD RET.PREM
+    move-clause
+      source literal 'GT'
+      target name PAYRECORD DEPARTMENT
+    move-clause
+      source figurative BLANKS
+      target name PAYRECORD NAME
+      target name PAYRECORD EMPLOYEE
+      target name PAYRECORD MONTH
+      target name PAYRECORD DAY
+      target name PAYRECORD YEAR
+    move-clause
+      source name GRAND.TOTALS BONDPURCHASES
+      target name PAYRECORD BONDENOMINATION
+    file-clause
+      record name PAYRECORD
+    close-clause all-files
+    stop-clause RUN
+  200,00 sentence label CHECK.NEW.DEPT
+    if-clause
+      comparison NOT EQUAL
+        name CURRENT.DEPT
+        name D.DEPT
+      then do-clause
+        procedure name DEPARTMENT.END
+      otherwise go-to-clause
+        target name COMPUTE.PAY
+  201,00 sentence
+    move-clause
+      source figurative ZEROS
+      target name INTERNAL.TOTALS
+    move-clause
+      source name D.DEPT
+      target name CURRENT.DEPT
+  202,00 sentence label COMPUTE.PAY
+    move-clause
+      source name DETAIL DATE
+      target name MASTER DATE
+    move-clause
+      source name DETAIL HOURS
+      target name WORKING HOURS
+      target name PAYRECORD HRS
+  203,00 sentence
+    if-clause
+      comparison GREATER
+        name WORKING HOURS
+        literal 40.0
+      then set-clause
+        target name WORKING GROSS
+        value binary *
+          binary -
+            binary *
+              name WORKING HOURS
+              literal 1.5
+            literal 20
+          name MASTER RATE
+      otherwise set-clause
+        target name WORKING GROSS
+        value binary *
+          name WORKING HOURS
+          name MASTER RATE
+  204,00 sentence
+    do-clause
+      procedure name FICA.ROUTINE
+    do-clause
+      procedure name WITHOLDING.TAX.ROUTINE
+  205,00 sentence
+    if-clause
+      comparison NOT EQUAL
+        name M.BND.DED
+        figurative ZERO
+      then do-clause
+        procedure name BOND.ROUTINE
+      otherwise move-clause
+        source figurative BLANKS
+        target name PAYRECORD BONDEDUCTION
+        target name PAYRECORD BONDENOMINATION
+  206,00 sentence
+    do-clause
+      procedure name SEARCH
+      for name INDEX
+        from literal 1
+        by literal 1
+        to literal 12
+  207,00 sentence label NET
+    set-clause
+      target name WORKING NETPAY
+      value binary -
+        binary -
+          binary -
+            binary -
+              binary -
+                name WORKING GROSS
+                name WORKING FICA
+              name WORKING WHT
+            name WORKING RETIREMENT
+          name WORKING INSURANCE
+        name M.BND.DED
+  208,00 sentence
+    add-clause corresponding
+      source name WORKING
+      target name MASTER TOTALS
+      target name INTERNAL.TOTALS
+    move-clause corresponding
+      source name DETAIL
+      target name PAYRECORD
+      target name CHECK
+    move-clause corresponding
+      source name WORKING
+      target name PAYRECORD
+    move-clause
+      source name MASTER NAME
+      target name PAYRECORD NAME
+      target name CHECK NAME
+    move-clause
+      source name WORKING NETPAY
+      target name CHECK AMOUNT
+    file-clause
+      record name CHECK
+    file-clause
+      record name PAYRECORD
+    file-clause
+      record name MASTER
+  209,00 sentence
+    go-to-clause
+      target name GET.MASTER
+  210,00 sentence label FICA.ROUTINE
+    begin-section-clause
+  211,00 sentence
+    set-clause
+      target name WORKING FICA
+      value binary *
+        literal .03
+        name WORKING GROSS
+    add-clause
+      source name WORKING FICA
+      target name MASTER FICA
+  212,00 sentence
+    if-clause
+      comparison GREATER
+        name MASTER FICA
+        literal 144.00
+      then set-clause
+        target name WORKING FICA
+        value binary -
+          name WORKING FICA
+          binary -
+            name MASTER FICA
+            literal 144.00
+      then set-clause
+        target name MASTER FICA
+        value literal 144.00
+  213,00 sentence
+    end-clause
+      name FICA.ROUTINE
+  214,00 sentence label WITHOLDING.TAX.ROUTINE
+    begin-section-clause
+  215,00 sentence
+    set-clause
+      target name WORKING WHT
+      value binary *
+        literal 0.18
+        binary -
+          name WORKING GROSS
+          binary *
+            literal 13
+            name MASTER EXEMPTIONS
+    set-clause
+      target name WORKING WHT
+      value binary *
+        name WORKING WHT
+        truth
+          comparison GREATER
+            name WORKING WHT
+            literal 0
+    add-clause
+      source name WORKING WHT
+      target name MASTER WHT
+  216,00 sentence
+    end-clause
+      name WITHOLDING.TAX.ROUTINE
+  217,00 sentence label BOND.ROUTINE
+    begin-section-clause
+  218,00 sentence
+    add-clause
+      source name M.BND.DED
+      target name M.BND.ACC
+      target name INTERNAL.TOTALS BONDEDUCTION
+  219,00 sentence
+    move-clause
+      source name M.BND.DED
+      target name PAYRECORD BONDEDUCTION
+  220,00 sentence
+    if-clause
+      comparison NOT GREATER
+        name MASTER BONDENOMINATION
+        name M.BND.ACC
+      then set-clause
+        target name M.BND.ACC
+        value binary -
+          name M.BND.ACC
+          name MASTER BONDENOMINATION
+      otherwise move-clause
+        source figurative BLANKS
+        target name PAYRECORD BONDENOMINATION
+      otherwise go-to-clause
+        target name BOND.END
+  221,00 sentence
+    move-clause corresponding
+      source name MASTER
+      target name BONDORDER
+    add-clause
+      source name BONDORDER BONDENOMINATION
+      target name INTERNAL.TOTALS BONDPURCHASES
+    move-clause
+      source name BONDORDER BONDENOMINATION
+      target name PAYRECORD BONDENOMINATION
+  222,00 sentence
+    file-clause
+      record name BONDORDER
+  223,00 sentence label BOND.END
+    end-clause
+      name BOND.ROUTINE
+  224,00 sentence label SEARCH
+    begin-section-clause
+  225,00 sentence
+    if-clause
+      comparison GREATER
+        name MASTER RATE
+        name TABLE.ITEM RATE
+          subscript name INDEX
+      then go-to-clause
+        target name SEARCH.END
+      otherwise move-clause
+        source name INDEX
+        target name POS
+      otherwise move-clause
+        source name INSPREM
+          subscript name POS
+        target name INS.PREM
+        target name WORKING INSURANCE
+      otherwise move-clause
+        source name RETPREM
+          subscript name POS
+        target name RET.PREM
+        target name WORKING RETIREMENT
+      otherwise go-to-clause
+        target name NET
+  226,00 sentence label SEARCH.END
+    end-clause
+      name SEARCH
+  227,00 sentence label DEPARTMENT.END
+    begin-section-clause
+  228,00 sentence
+    move-clause corresponding
+      source name INTERNAL.TOTALS
+      target name DEPARTMENT.TOTAL
+    file-clause
+      record name DEPARTMENT.TOTAL
+    add-clause corresponding
+      source name INTERNAL.TOTALS
+      target name GRAND.TOTALS
+  229,00 sentence
+    end-clause
+      name DEPARTMENT.END

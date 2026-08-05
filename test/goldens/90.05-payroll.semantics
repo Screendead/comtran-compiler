@@ -1,0 +1,423 @@
+* RECONSTRUCTION - NO 1962 ARTIFACT ATTESTS THIS FORM
+* JOB 1
+* STORAGE
+00000	oct	010000400000	CHECK
+00001	oct	400000606060
+00002	oct	606060606060
+00003	oct	606060606060
+00004	oct	606060606060
+00005	oct	606060606060
+00006	oct	606060000000
+00007	oct	000000720200
+00010	bss	2
+00012	oct	000000000060
+00013	oct	606060606060
+00014	oct	606060606060
+00015	oct	606060606060
+00016	oct	600000000000
+00017	oct	000000606060
+00020	oct	000060000000	PAYRECORD
+00021	oct	006000000000
+00022	bss	1
+00023	oct	000000000060
+00024	oct	000040000040
+00025	oct	000060606000
+00026	oct	000000000060
+00027	oct	600000000000
+00030	oct	000000606000
+00031	bss	1
+00032	oct	006060000000
+00033	oct	000000006060
+00034	bss	1
+00035	oct	006060000000
+00036	oct	000000006060
+00037	bss	1
+00040	oct	006060600000
+00041	oct	000000000060
+00042	oct	600000000000
+00043	oct	000000606060
+00044	oct	606060606060	DEPARTMENT.TOTAL
+00045	oct	606060602425
+00046	oct	472151634425
+00047	oct	456360000060
+00050	oct	634663214362
+00051	oct	606060606000
+00052	oct	000000000060
+00053	oct	600000000000
+00054	oct	000000606000
+00055	bss	1
+00056	oct	006060000000
+00057	oct	000000006060
+00060	bss	1
+00061	oct	006060000000
+00062	oct	000000006060
+00063	bss	1
+00064	oct	006060000000
+00065	oct	000000000060
+00066	oct	600000000000
+00067	oct	000000606060
+00070	oct	600000000000	BONDORDER
+00071	oct	006000000000
+00072	bss	1
+00073	oct	000000000060
+00074	oct	000000000060
+00075	bss	1
+00076	bss	4	ERROROUT
+00102	bss	9	WORKING
+00113	bss	9	INTERNAL.TOTALS
+00124	bss	9	GRAND.TOTALS
+00135	oct	000000001747	TABLE
+00136	oct	001000000600
+00137	oct	000000002733
+00140	oct	010000000600
+00141	oct	000000003717
+00142	oct	010200001100
+00143	oct	000000004703
+00144	oct	010500001100
+00145	oct	000000005667
+00146	oct	010500010200
+00147	oct	000000006653
+00150	oct	020000010200
+00151	oct	000000007637
+00152	oct	020000010500
+00153	oct	000000010623
+00154	oct	020500010500
+00155	oct	000000011607
+00156	oct	030000011000
+00157	oct	000000014543
+00160	oct	030000020500
+00161	oct	000000017477
+00162	oct	030000030500
+00163	oct	000000303237
+00164	oct	030000050000
+
+* DICTIONARY
+MASTER	kind=record	encounter=1	item=MASTER
+DAT	kind=data	encounter=1	item=MASTER DAT
+EMPLOYEE.NUMBER	kind=data	encounter=1	item=MASTER DAT EMPLOYEE.NUMBER
+DEPARTMENT	kind=data	encounter=1	item=MASTER DAT EMPLOYEE.NUMBER DEPARTMENT
+EMPLOYEE	kind=data	encounter=1	item=MASTER DAT EMPLOYEE.NUMBER EMPLOYEE
+NAME	kind=data	encounter=1	item=MASTER DAT NAME
+TRIGGERS	kind=data	encounter=1	item=MASTER TRIGGERS
+RATE	kind=data	encounter=1	item=MASTER RATE
+DATE	kind=data	encounter=1	item=MASTER DATE
+MONTH	kind=data	encounter=1	item=MASTER DATE MONTH
+DAY	kind=data	encounter=1	item=MASTER DATE DAY
+YEAR	kind=data	encounter=1	item=MASTER DATE YEAR
+EXEMPTIONS	kind=data	encounter=1	item=MASTER EXEMPTIONS
+TOTALS	kind=data	encounter=1	item=MASTER TOTALS
+GROSS	kind=data	encounter=1	item=MASTER TOTALS GROSS
+RETIREMENT	kind=data	encounter=1	item=MASTER TOTALS RETIREMENT
+INSURANCE	kind=data	encounter=1	item=MASTER TOTALS INSURANCE
+FICA	kind=data	encounter=1	item=MASTER FICA
+WHT	kind=data	encounter=1	item=MASTER WHT
+BONDEDUCTION	kind=data	encounter=1	item=MASTER BONDEDUCTION
+BONDACCUMULATION	kind=data	encounter=1	item=MASTER BONDACCUMULATION
+BONDENOMINATION	kind=data	encounter=1	item=MASTER BONDENOMINATION
+DETAIL	kind=record	encounter=1	item=DETAIL
+EMPLOYEE.NUMBER	kind=data	encounter=2	item=DETAIL EMPLOYEE.NUMBER
+DEPARTMENT	kind=data	encounter=2	item=DETAIL EMPLOYEE.NUMBER DEPARTMENT
+EMPLOYEE	kind=data	encounter=2	item=DETAIL EMPLOYEE.NUMBER EMPLOYEE
+DATE	kind=data	encounter=2	item=DETAIL DATE
+MONTH	kind=data	encounter=2	item=DETAIL DATE MONTH
+DAY	kind=data	encounter=2	item=DETAIL DATE DAY
+YEAR	kind=data	encounter=2	item=DETAIL DATE YEAR
+HOURS	kind=data	encounter=1	item=DETAIL HOURS
+CHECK	kind=record	encounter=1	item=CHECK
+CNTRLCHAR	kind=data	encounter=1	item=CHECK CNTRLCHAR
+DATE	kind=data	encounter=3	item=CHECK DATE
+MONTH	kind=data	encounter=3	item=CHECK DATE MONTH
+DAY	kind=data	encounter=3	item=CHECK DATE DAY
+YEAR	kind=data	encounter=3	item=CHECK DATE YEAR
+EMPLOYEE.NUMBER	kind=data	encounter=3	item=CHECK EMPLOYEE.NUMBER
+ENDFRSTLINE	kind=data	encounter=1	item=CHECK ENDFRSTLINE
+CNTRLCHARSECLIN	kind=data	encounter=1	item=CHECK CNTRLCHARSECLIN
+NAME	kind=data	encounter=2	item=CHECK NAME
+AMOUNT	kind=data	encounter=1	item=CHECK AMOUNT
+PAYRECORD	kind=record	encounter=1	item=PAYRECORD
+EMPLOYEE.NUMBER	kind=data	encounter=4	item=PAYRECORD EMPLOYEE.NUMBER
+DEPARTMENT	kind=data	encounter=3	item=PAYRECORD EMPLOYEE.NUMBER DEPARTMENT
+EMPLOYEE	kind=data	encounter=3	item=PAYRECORD EMPLOYEE.NUMBER EMPLOYEE
+NAME	kind=data	encounter=3	item=PAYRECORD NAME
+DATE	kind=data	encounter=4	item=PAYRECORD DATE
+MONTH	kind=data	encounter=4	item=PAYRECORD DATE MONTH
+DAY	kind=data	encounter=4	item=PAYRECORD DATE DAY
+YEAR	kind=data	encounter=4	item=PAYRECORD DATE YEAR
+HRS	kind=data	encounter=1	item=PAYRECORD HRS
+GROSS	kind=data	encounter=2	item=PAYRECORD GROSS
+WHT	kind=data	encounter=2	item=PAYRECORD WHT
+FICA	kind=data	encounter=2	item=PAYRECORD FICA
+BONDEDUCTION	kind=data	encounter=2	item=PAYRECORD BONDEDUCTION
+INS.PREM	kind=data	encounter=1	item=PAYRECORD INS.PREM
+RET.PREM	kind=data	encounter=1	item=PAYRECORD RET.PREM
+NETPAY	kind=data	encounter=1	item=PAYRECORD NETPAY
+BONDENOMINATION	kind=data	encounter=2	item=PAYRECORD BONDENOMINATION
+DEPARTMENT.TOTAL	kind=record	encounter=1	item=DEPARTMENT.TOTAL
+CURRENT.DEPT	kind=data	encounter=1	item=DEPARTMENT.TOTAL CURRENT.DEPT
+HOURS	kind=data	encounter=2	item=DEPARTMENT.TOTAL HOURS
+GROSS	kind=data	encounter=3	item=DEPARTMENT.TOTAL GROSS
+WHT	kind=data	encounter=3	item=DEPARTMENT.TOTAL WHT
+FICA	kind=data	encounter=3	item=DEPARTMENT.TOTAL FICA
+BONDEDUCTION	kind=data	encounter=3	item=DEPARTMENT.TOTAL BONDEDUCTION
+INSURANCE	kind=data	encounter=2	item=DEPARTMENT.TOTAL INSURANCE
+RETIREMENT	kind=data	encounter=2	item=DEPARTMENT.TOTAL RETIREMENT
+NETPAY	kind=data	encounter=2	item=DEPARTMENT.TOTAL NETPAY
+BONDPURCHASES	kind=data	encounter=1	item=DEPARTMENT.TOTAL BONDPURCHASES
+BONDORDER	kind=record	encounter=1	item=BONDORDER
+DAT	kind=data	encounter=2	item=BONDORDER DAT
+EMPLOYEE.NUMBER	kind=data	encounter=5	item=BONDORDER DAT EMPLOYEE.NUMBER
+NAME	kind=data	encounter=4	item=BONDORDER DAT NAME
+BONDENOMINATION	kind=data	encounter=3	item=BONDORDER BONDENOMINATION
+DATE	kind=data	encounter=5	item=BONDORDER DATE
+ERROROUT	kind=record	encounter=1	item=ERROROUT
+ERRORTYPE	kind=data	encounter=1	item=ERROROUT ERRORTYPE
+INFO	kind=data	encounter=1	item=ERROROUT INFO
+WORKING	kind=data	encounter=1	item=WORKING
+GROSS	kind=data	encounter=4	item=WORKING GROSS
+RETIREMENT	kind=data	encounter=3	item=WORKING RETIREMENT
+INSURANCE	kind=data	encounter=3	item=WORKING INSURANCE
+FICA	kind=data	encounter=4	item=WORKING FICA
+WHT	kind=data	encounter=4	item=WORKING WHT
+NETPAY	kind=data	encounter=3	item=WORKING NETPAY
+HOURS	kind=data	encounter=3	item=WORKING HOURS
+INDEX	kind=data	encounter=1	item=WORKING INDEX
+POS	kind=data	encounter=1	item=WORKING POS
+INTERNAL.TOTALS	kind=data	encounter=1	item=INTERNAL.TOTALS
+HOURS	kind=data	encounter=4	item=INTERNAL.TOTALS HOURS
+GROSS	kind=data	encounter=5	item=INTERNAL.TOTALS GROSS
+WHT	kind=data	encounter=5	item=INTERNAL.TOTALS WHT
+FICA	kind=data	encounter=5	item=INTERNAL.TOTALS FICA
+BONDEDUCTION	kind=data	encounter=4	item=INTERNAL.TOTALS BONDEDUCTION
+INSURANCE	kind=data	encounter=4	item=INTERNAL.TOTALS INSURANCE
+RETIREMENT	kind=data	encounter=4	item=INTERNAL.TOTALS RETIREMENT
+NETPAY	kind=data	encounter=4	item=INTERNAL.TOTALS NETPAY
+BONDPURCHASES	kind=data	encounter=2	item=INTERNAL.TOTALS BONDPURCHASES
+GRAND.TOTALS	kind=data	encounter=1	item=GRAND.TOTALS
+HOURS	kind=data	encounter=5	item=GRAND.TOTALS HOURS
+GROSS	kind=data	encounter=6	item=GRAND.TOTALS GROSS
+WHT	kind=data	encounter=6	item=GRAND.TOTALS WHT
+FICA	kind=data	encounter=6	item=GRAND.TOTALS FICA
+BONDEDUCTION	kind=data	encounter=5	item=GRAND.TOTALS BONDEDUCTION
+INSURANCE	kind=data	encounter=5	item=GRAND.TOTALS INSURANCE
+RETIREMENT	kind=data	encounter=5	item=GRAND.TOTALS RETIREMENT
+NETPAY	kind=data	encounter=5	item=GRAND.TOTALS NETPAY
+BONDPURCHASES	kind=data	encounter=3	item=GRAND.TOTALS BONDPURCHASES
+TABLE	kind=data	encounter=1	item=TABLE
+TABLE.ITEM	kind=data	encounter=1	item=TABLE.ITEM
+RATE	kind=data	encounter=2	item=TABLE.ITEM RATE
+INSPREM	kind=data	encounter=1	item=TABLE.ITEM INSPREM
+RETPREM	kind=data	encounter=1	item=TABLE.ITEM RETPREM
+INPUTMASTER	kind=environment	encounter=1
+OUTPUTMASTER	kind=environment	encounter=1
+DETAILFILE	kind=environment	encounter=1
+CHECKFILE	kind=environment	encounter=1
+PAYFILE	kind=environment	encounter=1
+BONDORDERFILE	kind=environment	encounter=1
+ERRORFILE	kind=environment	encounter=1
+START	kind=statement	encounter=1	statement=188,00
+GET.MASTER	kind=statement	encounter=1	statement=190,00
+GET.DETAIL	kind=statement	encounter=1	statement=191,00
+COMPARE.EMPLOYEE.NUMBERS	kind=statement	encounter=1	statement=192,00
+HIGH.DETAIL	kind=statement	encounter=1	statement=193,00
+LOW.DETAIL	kind=statement	encounter=1	statement=196,00
+END.OF.MASTERS	kind=statement	encounter=1	statement=197,00
+END.OF.DETAILS	kind=statement	encounter=1	statement=198,00
+END.OF.RUN	kind=statement	encounter=1	statement=199,00
+CHECK.NEW.DEPT	kind=statement	encounter=1	statement=200,00
+COMPUTE.PAY	kind=statement	encounter=1	statement=202,00
+NET	kind=statement	encounter=1	statement=207,00
+FICA.ROUTINE	kind=section	encounter=1	statement=210,00
+WITHOLDING.TAX.ROUTINE	kind=section	encounter=1	statement=214,00
+BOND.ROUTINE	kind=section	encounter=1	statement=217,00
+BOND.END	kind=statement	encounter=1	statement=223,00	section=BOND.ROUTINE
+SEARCH	kind=section	encounter=1	statement=224,00
+SEARCH.END	kind=statement	encounter=1	statement=226,00	section=SEARCH
+DEPARTMENT.END	kind=section	encounter=1	statement=227,00
+M.EMP.NO	kind=synonym	encounter=1	item=MASTER DAT EMPLOYEE.NUMBER
+D.EMP.NO	kind=synonym	encounter=1	item=DETAIL EMPLOYEE.NUMBER
+D.DEPT	kind=synonym	encounter=1	item=DETAIL EMPLOYEE.NUMBER DEPARTMENT
+M.BND.DED	kind=synonym	encounter=1	item=MASTER BONDEDUCTION
+M.BND.ACC	kind=synonym	encounter=1	item=MASTER BONDACCUMULATION
+
+* RECORDS
+MASTER	located=yes	variable=no	forced-transmit=no	input=INPUTMASTER	output=OUTPUTMASTER
+DETAIL	located=yes	variable=no	forced-transmit=no	input=DETAILFILE
+CHECK	located=no	variable=no	forced-transmit=no	output=CHECKFILE
+PAYRECORD	located=no	variable=no	forced-transmit=no	output=PAYFILE
+DEPARTMENT.TOTAL	located=no	variable=no	forced-transmit=no	output=PAYFILE
+BONDORDER	located=no	variable=no	forced-transmit=no	output=BONDORDERFILE
+ERROROUT	located=no	variable=no	forced-transmit=no	output=ERRORFILE
+
+* ITEMS
+MASTER	class=group	word=0	byte=0	chars=90	qty=1	stride=90	extent=90	digits=0	frac=0	just=left	root=MASTER
+MASTER DAT	class=group	word=0	byte=0	chars=21	qty=1	stride=21	extent=21	digits=0	frac=0	just=packed	root=MASTER
+MASTER DAT EMPLOYEE.NUMBER	class=group	word=0	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=MASTER
+MASTER DAT EMPLOYEE.NUMBER DEPARTMENT	class=alphameric	word=0	byte=0	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=MASTER
+MASTER DAT EMPLOYEE.NUMBER EMPLOYEE	class=alphameric	word=0	byte=2	chars=4	qty=1	stride=4	extent=4	digits=0	frac=0	just=packed	pic=AAAA	root=MASTER
+MASTER DAT NAME	class=alphameric	word=1	byte=0	chars=15	qty=1	stride=15	extent=15	digits=0	frac=0	just=packed	pic=A(15)	root=MASTER
+MASTER TRIGGERS	class=alphameric	word=3	byte=3	chars=3	qty=1	stride=3	extent=3	digits=0	frac=0	just=packed	pic=AAA	root=MASTER
+MASTER RATE	class=internalDecimal	word=4	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=3	just=right	pic=99V999	root=MASTER
+MASTER DATE	class=group	word=5	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=MASTER
+MASTER DATE MONTH	class=alphameric	word=5	byte=0	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=MASTER
+MASTER DATE DAY	class=alphameric	word=5	byte=2	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=MASTER
+MASTER DATE YEAR	class=alphameric	word=5	byte=4	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=MASTER
+MASTER EXEMPTIONS	class=internalDecimal	word=6	byte=0	chars=6	qty=1	stride=6	extent=6	digits=2	frac=0	just=right	pic=99	root=MASTER
+MASTER TOTALS	class=group	word=7	byte=0	chars=18	qty=1	stride=18	extent=18	digits=0	frac=0	just=packed	root=MASTER
+MASTER TOTALS GROSS	class=internalDecimal	word=7	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=MASTER
+MASTER TOTALS RETIREMENT	class=internalDecimal	word=8	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=2	just=right	pic=999V99	root=MASTER
+MASTER TOTALS INSURANCE	class=internalDecimal	word=9	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=2	just=right	pic=999V99	root=MASTER
+MASTER FICA	class=internalDecimal	word=10	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=2	just=right	pic=999V99	root=MASTER
+MASTER WHT	class=internalDecimal	word=11	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=MASTER
+MASTER BONDEDUCTION	class=internalDecimal	word=12	byte=0	chars=6	qty=1	stride=6	extent=6	digits=4	frac=2	just=right	pic=99V99	root=MASTER
+MASTER BONDACCUMULATION	class=internalDecimal	word=13	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=2	just=right	pic=999V99	root=MASTER
+MASTER BONDENOMINATION	class=internalDecimal	word=14	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=2	just=right	pic=999V99	root=MASTER
+DETAIL	class=group	word=0	byte=0	chars=15	qty=1	stride=15	extent=15	digits=0	frac=0	just=left	root=DETAIL
+DETAIL EMPLOYEE.NUMBER	class=group	word=0	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=DETAIL
+DETAIL EMPLOYEE.NUMBER DEPARTMENT	class=alphameric	word=0	byte=0	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DETAIL
+DETAIL EMPLOYEE.NUMBER EMPLOYEE	class=alphameric	word=0	byte=2	chars=4	qty=1	stride=4	extent=4	digits=0	frac=0	just=packed	pic=AAAA	root=DETAIL
+DETAIL DATE	class=group	word=1	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=DETAIL
+DETAIL DATE MONTH	class=alphameric	word=1	byte=0	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DETAIL
+DETAIL DATE DAY	class=alphameric	word=1	byte=2	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DETAIL
+DETAIL DATE YEAR	class=alphameric	word=1	byte=4	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DETAIL
+DETAIL HOURS	class=externalDecimal	word=2	byte=0	chars=3	qty=1	stride=3	extent=3	digits=3	frac=1	just=packed	pic=99V9	root=DETAIL
+CHECK	class=group	word=0	byte=0	chars=93	qty=1	stride=93	extent=93	digits=0	frac=0	just=left	root=CHECK
+CHECK CNTRLCHAR	class=alphameric	word=0	byte=0	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=CHECK
+CHECK DATE	class=group	word=0	byte=1	chars=38	qty=1	stride=38	extent=38	digits=0	frac=0	just=packed	root=CHECK
+CHECK DATE MONTH	class=alphameric	word=0	byte=1	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=CHECK
+CHECK DATE -	class=alphameric	word=0	byte=3	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=CHECK
+CHECK DATE DAY	class=alphameric	word=0	byte=4	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=CHECK
+CHECK DATE -	class=alphameric	word=1	byte=0	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=CHECK
+CHECK DATE YEAR	class=alphameric	word=1	byte=1	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=CHECK
+CHECK DATE -	class=alphameric	word=1	byte=3	chars=30	qty=1	stride=30	extent=30	digits=0	frac=0	just=packed	pic=A(30)	root=CHECK
+CHECK EMPLOYEE.NUMBER	class=alphameric	word=6	byte=3	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	pic=A(6)	root=CHECK
+CHECK ENDFRSTLINE	class=alphameric	word=7	byte=3	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=CHECK
+CHECK CNTRLCHARSECLIN	class=alphameric	word=7	byte=4	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=CHECK
+CHECK NAME	class=alphameric	word=7	byte=5	chars=18	qty=1	stride=18	extent=18	digits=0	frac=0	just=packed	pic=A(18)	root=CHECK
+CHECK -	class=alphameric	word=10	byte=5	chars=20	qty=1	stride=20	extent=20	digits=0	frac=0	just=packed	pic=A(20)	root=CHECK
+CHECK AMOUNT	class=edited	word=14	byte=1	chars=8	qty=1	stride=8	extent=8	digits=6	frac=2	just=packed	pic=$8889.99	root=CHECK
+PAYRECORD	class=group	word=0	byte=0	chars=117	qty=1	stride=117	extent=117	digits=0	frac=0	just=left	root=PAYRECORD
+PAYRECORD EMPLOYEE.NUMBER	class=group	word=0	byte=0	chars=8	qty=1	stride=8	extent=8	digits=0	frac=0	just=packed	root=PAYRECORD
+PAYRECORD EMPLOYEE.NUMBER DEPARTMENT	class=alphameric	word=0	byte=0	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD EMPLOYEE.NUMBER -	class=alphameric	word=0	byte=2	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=PAYRECORD
+PAYRECORD EMPLOYEE.NUMBER EMPLOYEE	class=alphameric	word=0	byte=3	chars=4	qty=1	stride=4	extent=4	digits=0	frac=0	just=packed	pic=AAAA	root=PAYRECORD
+PAYRECORD EMPLOYEE.NUMBER -	class=alphameric	word=1	byte=1	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=PAYRECORD
+PAYRECORD NAME	class=alphameric	word=1	byte=2	chars=15	qty=1	stride=15	extent=15	digits=0	frac=0	just=packed	pic=A(15)	root=PAYRECORD
+PAYRECORD -	class=alphameric	word=3	byte=5	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=PAYRECORD
+PAYRECORD DATE	class=group	word=4	byte=0	chars=8	qty=1	stride=8	extent=8	digits=0	frac=0	just=packed	root=PAYRECORD
+PAYRECORD DATE MONTH	class=alphameric	word=4	byte=0	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD DATE -	class=alphameric	word=4	byte=2	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=PAYRECORD
+PAYRECORD DATE DAY	class=alphameric	word=4	byte=3	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD DATE -	class=alphameric	word=4	byte=5	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=PAYRECORD
+PAYRECORD DATE YEAR	class=alphameric	word=5	byte=0	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD -	class=alphameric	word=5	byte=2	chars=3	qty=1	stride=3	extent=3	digits=0	frac=0	just=packed	pic=AAA	root=PAYRECORD
+PAYRECORD HRS	class=edited	word=5	byte=5	chars=6	qty=1	stride=6	extent=6	digits=5	frac=1	just=packed	pic=8889.9	root=PAYRECORD
+PAYRECORD -	class=alphameric	word=6	byte=5	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD GROSS	class=edited	word=7	byte=1	chars=8	qty=1	stride=8	extent=8	digits=7	frac=2	just=packed	pic=88889.99	root=PAYRECORD
+PAYRECORD -	class=alphameric	word=8	byte=3	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD WHT	class=edited	word=8	byte=5	chars=8	qty=1	stride=8	extent=8	digits=7	frac=2	just=packed	pic=88889.99	root=PAYRECORD
+PAYRECORD -	class=alphameric	word=10	byte=1	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD FICA	class=edited	word=10	byte=3	chars=7	qty=1	stride=7	extent=7	digits=6	frac=2	just=packed	pic=8889.99	root=PAYRECORD
+PAYRECORD -	class=alphameric	word=11	byte=4	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD BONDEDUCTION	class=edited	word=12	byte=0	chars=7	qty=1	stride=7	extent=7	digits=6	frac=2	just=packed	pic=8889.99	root=PAYRECORD
+PAYRECORD -	class=alphameric	word=13	byte=1	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD INS.PREM	class=edited	word=13	byte=3	chars=7	qty=1	stride=7	extent=7	digits=6	frac=2	just=packed	pic=8889.99	root=PAYRECORD
+PAYRECORD -	class=alphameric	word=14	byte=4	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD RET.PREM	class=edited	word=15	byte=0	chars=7	qty=1	stride=7	extent=7	digits=6	frac=2	just=packed	pic=8889.99	root=PAYRECORD
+PAYRECORD -	class=alphameric	word=16	byte=1	chars=3	qty=1	stride=3	extent=3	digits=0	frac=0	just=packed	pic=AAA	root=PAYRECORD
+PAYRECORD NETPAY	class=edited	word=16	byte=4	chars=7	qty=1	stride=7	extent=7	digits=6	frac=2	just=packed	pic=8889.99	root=PAYRECORD
+PAYRECORD -	class=alphameric	word=17	byte=5	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=PAYRECORD
+PAYRECORD BONDENOMINATION	class=edited	word=18	byte=1	chars=8	qty=1	stride=8	extent=8	digits=7	frac=2	just=packed	pic=88889.99	root=PAYRECORD
+DEPARTMENT.TOTAL	class=group	word=0	byte=0	chars=117	qty=1	stride=117	extent=117	digits=0	frac=0	just=left	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL -	class=alphameric	word=0	byte=0	chars=21	qty=1	stride=21	extent=21	digits=0	frac=0	just=packed	pic=A(21)	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL CURRENT.DEPT	class=alphameric	word=3	byte=3	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL -	class=alphameric	word=3	byte=5	chars=12	qty=1	stride=12	extent=12	digits=0	frac=0	just=packed	pic=A(12)	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL HOURS	class=edited	word=5	byte=5	chars=6	qty=1	stride=6	extent=6	digits=5	frac=1	just=packed	pic=8889.9	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL -	class=alphameric	word=6	byte=5	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL GROSS	class=edited	word=7	byte=1	chars=8	qty=1	stride=8	extent=8	digits=7	frac=2	just=packed	pic=88889.99	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL -	class=alphameric	word=8	byte=3	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL WHT	class=edited	word=8	byte=5	chars=8	qty=1	stride=8	extent=8	digits=7	frac=2	just=packed	pic=88889.99	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL -	class=alphameric	word=10	byte=1	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL FICA	class=edited	word=10	byte=3	chars=7	qty=1	stride=7	extent=7	digits=6	frac=2	just=packed	pic=8889.99	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL -	class=alphameric	word=11	byte=4	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL BONDEDUCTION	class=edited	word=12	byte=0	chars=7	qty=1	stride=7	extent=7	digits=6	frac=2	just=packed	pic=8889.99	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL -	class=alphameric	word=13	byte=1	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL INSURANCE	class=edited	word=13	byte=3	chars=7	qty=1	stride=7	extent=7	digits=6	frac=2	just=packed	pic=8889.99	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL -	class=alphameric	word=14	byte=4	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL RETIREMENT	class=edited	word=15	byte=0	chars=7	qty=1	stride=7	extent=7	digits=6	frac=2	just=packed	pic=8889.99	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL -	class=alphameric	word=16	byte=1	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL NETPAY	class=edited	word=16	byte=3	chars=8	qty=1	stride=8	extent=8	digits=7	frac=2	just=packed	pic=88889.99	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL -	class=alphameric	word=17	byte=5	chars=2	qty=1	stride=2	extent=2	digits=0	frac=0	just=packed	pic=AA	root=DEPARTMENT.TOTAL
+DEPARTMENT.TOTAL BONDPURCHASES	class=edited	word=18	byte=1	chars=8	qty=1	stride=8	extent=8	digits=7	frac=2	just=packed	pic=88889.99	root=DEPARTMENT.TOTAL
+BONDORDER	class=group	word=0	byte=0	chars=36	qty=1	stride=36	extent=36	digits=0	frac=0	just=left	root=BONDORDER
+BONDORDER -	class=alphameric	word=0	byte=0	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=BONDORDER
+BONDORDER DAT	class=group	word=0	byte=1	chars=23	qty=1	stride=23	extent=23	digits=0	frac=0	just=packed	root=BONDORDER
+BONDORDER DAT EMPLOYEE.NUMBER	class=alphameric	word=0	byte=1	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	pic=A(6)	root=BONDORDER
+BONDORDER DAT -	class=alphameric	word=1	byte=1	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=BONDORDER
+BONDORDER DAT NAME	class=alphameric	word=1	byte=2	chars=15	qty=1	stride=15	extent=15	digits=0	frac=0	just=packed	pic=A(15)	root=BONDORDER
+BONDORDER DAT -	class=alphameric	word=3	byte=5	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=BONDORDER
+BONDORDER BONDENOMINATION	class=edited	word=4	byte=0	chars=5	qty=1	stride=5	extent=5	digits=5	frac=2	just=packed	pic=899V99	root=BONDORDER
+BONDORDER -	class=alphameric	word=4	byte=5	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=BONDORDER
+BONDORDER DATE	class=alphameric	word=5	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	pic=A(6)	root=BONDORDER
+ERROROUT	class=group	word=0	byte=0	chars=24	qty=1	stride=24	extent=24	digits=0	frac=0	just=left	root=ERROROUT
+ERROROUT ERRORTYPE	class=alphameric	word=0	byte=0	chars=1	qty=1	stride=1	extent=1	digits=0	frac=0	just=packed	pic=A	root=ERROROUT
+ERROROUT INFO	class=alphameric	word=0	byte=1	chars=23	qty=1	stride=23	extent=23	digits=0	frac=0	just=packed	pic=A(23)	root=ERROROUT
+WORKING	class=group	word=0	byte=0	chars=54	qty=1	stride=54	extent=54	digits=0	frac=0	just=left	root=WORKING
+WORKING GROSS	class=internalDecimal	word=0	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=WORKING
+WORKING RETIREMENT	class=internalDecimal	word=1	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=WORKING
+WORKING INSURANCE	class=internalDecimal	word=2	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=WORKING
+WORKING FICA	class=internalDecimal	word=3	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=WORKING
+WORKING WHT	class=internalDecimal	word=4	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=WORKING
+WORKING NETPAY	class=internalDecimal	word=5	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=WORKING
+WORKING HOURS	class=internalDecimal	word=6	byte=0	chars=6	qty=1	stride=6	extent=6	digits=3	frac=1	just=right	pic=99V9	root=WORKING
+WORKING INDEX	class=internalDecimal	word=7	byte=0	chars=6	qty=1	stride=6	extent=6	digits=2	frac=0	just=right	pic=99	root=WORKING
+WORKING POS	class=internalDecimal	word=8	byte=0	chars=6	qty=1	stride=6	extent=6	digits=2	frac=0	just=right	pic=99	root=WORKING
+INTERNAL.TOTALS	class=group	word=0	byte=0	chars=54	qty=1	stride=54	extent=54	digits=0	frac=0	just=left	root=INTERNAL.TOTALS
+INTERNAL.TOTALS HOURS	class=internalDecimal	word=0	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=1	just=right	pic=9999V9	root=INTERNAL.TOTALS
+INTERNAL.TOTALS GROSS	class=internalDecimal	word=1	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=INTERNAL.TOTALS
+INTERNAL.TOTALS WHT	class=internalDecimal	word=2	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=INTERNAL.TOTALS
+INTERNAL.TOTALS FICA	class=internalDecimal	word=3	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=INTERNAL.TOTALS
+INTERNAL.TOTALS BONDEDUCTION	class=internalDecimal	word=4	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=INTERNAL.TOTALS
+INTERNAL.TOTALS INSURANCE	class=internalDecimal	word=5	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=INTERNAL.TOTALS
+INTERNAL.TOTALS RETIREMENT	class=internalDecimal	word=6	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=INTERNAL.TOTALS
+INTERNAL.TOTALS NETPAY	class=internalDecimal	word=7	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=INTERNAL.TOTALS
+INTERNAL.TOTALS BONDPURCHASES	class=internalDecimal	word=8	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=INTERNAL.TOTALS
+GRAND.TOTALS	class=group	word=0	byte=0	chars=54	qty=1	stride=54	extent=54	digits=0	frac=0	just=left	root=GRAND.TOTALS
+GRAND.TOTALS HOURS	class=internalDecimal	word=0	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=1	just=right	pic=9(4)V9	root=GRAND.TOTALS
+GRAND.TOTALS GROSS	class=internalDecimal	word=1	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=GRAND.TOTALS
+GRAND.TOTALS WHT	class=internalDecimal	word=2	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=GRAND.TOTALS
+GRAND.TOTALS FICA	class=internalDecimal	word=3	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=GRAND.TOTALS
+GRAND.TOTALS BONDEDUCTION	class=internalDecimal	word=4	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=GRAND.TOTALS
+GRAND.TOTALS INSURANCE	class=internalDecimal	word=5	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=GRAND.TOTALS
+GRAND.TOTALS RETIREMENT	class=internalDecimal	word=6	byte=0	chars=6	qty=1	stride=6	extent=6	digits=6	frac=2	just=right	pic=9(4)V99	root=GRAND.TOTALS
+GRAND.TOTALS NETPAY	class=internalDecimal	word=7	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=GRAND.TOTALS
+GRAND.TOTALS BONDPURCHASES	class=internalDecimal	word=8	byte=0	chars=6	qty=1	stride=6	extent=6	digits=7	frac=2	just=right	pic=9(5)V99	root=GRAND.TOTALS
+TABLE	class=group	word=0	byte=0	chars=144	qty=1	stride=144	extent=144	digits=0	frac=0	just=left	root=TABLE
+TABLE -	class=internalDecimal	word=0	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=1	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=2	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=3	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=4	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=5	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=6	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=7	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=8	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=9	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=10	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=11	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=12	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=13	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=14	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=15	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=16	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=17	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=18	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=19	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=20	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=21	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=internalDecimal	word=22	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=0	just=right	pic=9(5)	root=TABLE
+TABLE -	class=alphameric	word=23	byte=0	chars=6	qty=1	stride=6	extent=6	digits=0	frac=0	just=packed	root=TABLE
+TABLE -	class=redefinition	word=0	byte=0	chars=0	qty=1	stride=0	extent=0	digits=0	frac=0	just=packed
+TABLE.ITEM	class=group	word=0	byte=0	chars=12	qty=12	stride=12	extent=144	digits=0	frac=0	just=left	root=TABLE
+TABLE.ITEM RATE	class=internalDecimal	word=0	byte=0	chars=6	qty=1	stride=6	extent=6	digits=5	frac=3	just=right	pic=99V999	root=TABLE
+TABLE.ITEM INSPREM	class=externalDecimal	word=1	byte=0	chars=3	qty=1	stride=3	extent=3	digits=3	frac=2	just=packed	pic=9V99	root=TABLE
+TABLE.ITEM RETPREM	class=externalDecimal	word=1	byte=3	chars=3	qty=1	stride=3	extent=3	digits=3	frac=2	just=packed	pic=9V99	root=TABLE

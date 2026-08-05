@@ -56,7 +56,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline, measured 2026-08-04: 935 Dart tests pass, and 111 extension
+Test baseline, measured 2026-08-05: 950 Dart tests pass, and 111 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck` compiles the
@@ -97,10 +97,11 @@ column, with the golden rewrite (M3-8). Two standing items to carry in:
 
 - D11.4 lists the --pedantic sites deferred beyond M3 (D5.1, D5.7, D6.1
   among them); each lands with its owning milestone.
-- `docs/design/emit-stages.md` (2026-08-04) records Jack's requirement that
-  every compilation stage is dumpable behind a flag, with attested stages
-  oracled against their evidence. Land the flag plumbing before the stage-3
-  listing rewrite if practical.
+- The emit-flag plumbing landed 2026-08-05: five `--emit-<stage>=<path>`
+  flags on `comtranc`, three committed reconstruction goldens, and the
+  storage-value tie to the M3-14 fixture. The surface is recorded in
+  `docs/design/emit-stages.md` ("The implemented surface"). M4 adds its
+  own stages under the same conventions.
 
 ## Rules that bind future work
 
