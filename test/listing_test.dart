@@ -42,9 +42,9 @@ void main() {
     });
 
     test('page 197 statements group per the scan, not the transcription', () {
-      // The conversion misattributes the numbers of statements 218-221
-      // and 228 by one line (printer half-line stagger); the page scan
-      // is authoritative. Verified against images/page-197.png.
+      // A printer half-line stagger put the numbers of statements
+      // 218-221 and 228 one line low in the conversion until the
+      // 2026-08-05 erratum. Verified against images/page-197.png.
       final ProcedureGroupScan procedure = result.groupScans
           .whereType<ProcedureGroupScan>()
           .single;

@@ -58,7 +58,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline, measured 2026-08-05: 975 Dart tests pass, and 154 extension
+Test baseline, measured 2026-08-05: 976 Dart tests pass, and 154 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -126,11 +126,13 @@ binds work outside the definition.
   pass was applied, and neither yet applied:
   1. The two compiler-punched control-card lines — `*CTEXT` (PDF p. 198) and
      `*CTEND` (PDF p. 216) — carry the wrong spacing from the TIME value
-     rightward. The print puts the time value at column 39, `CT` at 49 and
-     the sequence number at 73; the transcription puts them at 37, 44 and 72.
-     Both pages were deskewed and measured at a 9.26-px character pitch, where
-     every field on both cards falls within 0.1 column of an integer and the
-     two cards agree within one pixel. §8.5.8-j records it.
+     rightward. In card columns the print puts the time value at 45, `CT` at
+     55 and the sequence number at 79; the transcription puts them at 43, 50
+     and 78. Column 55 is where the manual's own layout for these two cards
+     starts the secondary identifier ([J 03.02.09]), which corroborates the
+     measurement. Both pages were deskewed and measured at a 9.26-px character
+     pitch, where every field on both cards falls within 0.1 column of an
+     integer and the two cards agree within one pixel. §8.5.8-j records it.
   2. The seven minor spacing normalizations in
      `test/fixtures/90.05-payroll-deck-notes.md` item 3 — single against double
      spaces in statements 182, 187, 198, 199 and 220. The deck already follows
@@ -287,6 +289,7 @@ M2 to M6.
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.05.05]: ../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card
+[J 03.02.09]: ../comtran-manuals/J28-6169/03-loader.md#j-start-card
 [J 90.01.05]: ../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.10]: ../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
