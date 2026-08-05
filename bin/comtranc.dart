@@ -204,6 +204,7 @@ int _run(List<String> arguments) {
         job.frontEnd,
         options,
         diagnostics: job.diagnostics,
+        annotations: job.semantics?.allocation?.annotations,
       );
       listing?.write(page);
       stdout.write(page);

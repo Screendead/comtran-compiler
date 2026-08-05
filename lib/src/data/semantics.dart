@@ -8,6 +8,7 @@ import '../ast/environment_ast.dart';
 import '../ast/procedure_ast.dart';
 import '../lexer/diagnostic.dart';
 import '../parser/parser.dart';
+import 'allocator.dart';
 import 'binder.dart';
 import 'capacities.dart';
 import 'data_map.dart';
@@ -69,6 +70,7 @@ SemanticResult runSemantics(
   var records = const <RecordInfo>[];
   var areas = const <AreaInfo>[];
   var pairs = <Clause, List<(DataItem, DataItem)>>{};
+  DictionaryAllocation? allocation;
   var stopped = false;
   try {
     mapper.map(dataGroups);
@@ -98,6 +100,9 @@ SemanticResult runSemantics(
       binder,
       tableLimits: tableLimits,
     ).check(environmentCards, procedureGroups);
+    // The allocator runs last: a stopped phase prints blank LOC and GN
+    // columns, like M1 (M3-8; D10.2).
+    allocation = allocateDictionary(parse);
   } on StopCompilation {
     // A severity-5 diagnostic stops the phase at the point of
     // detection (D9.1); everything mapped and diagnosed so far stands.
@@ -110,6 +115,7 @@ SemanticResult runSemantics(
     areas: areas,
     records: records,
     dictionary: resolver.dictionary,
+    allocation: allocation,
     dataResolutions: resolver.dataResolutions,
     correspondingPairs: pairs,
     keysConditions: resolver.keysConditions,

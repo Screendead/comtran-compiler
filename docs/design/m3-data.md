@@ -1,6 +1,6 @@
 # M3 — Data semantics design and decisions
 
-*Updated 2026-08-04. This document records the M3-specific design decisions
+*Updated 2026-08-05. This document records the M3-specific design decisions
 the way `m2-parser.md` records M2's. The language facts come from
 `docs/comtran-language-definition.md` (cited by §), the manuals (cited as
 `(F p. N)` / `(J xx.xx.xx)`), and the locked decision slate
@@ -31,6 +31,7 @@ renumbered. Use the index below to find one.*
 | M3-19 | Functions and DO substitution under J |
 | M3-20 | Subscript reference checks |
 | M3-21 | Stage-2 message allocations and adopted opens |
+| M3-22, M3-23 | Stage-3 site readings — the generated labels and the page structure |
 
 ## Charter
 
@@ -307,6 +308,15 @@ starts from a fully resolved program and generates code only.
   - The golden listing is rewritten once, in stage 3, against
     scan-measured pages 192–197. The M1-15 geometry (field positions) is
     unchanged.
+  *Amended 2026-08-05 (stage 3): the fallback was not needed. A blind
+  transcription of the six scan pages (M3-22) confirmed every
+  data-division, environment, and CALL-line value as written above.
+  The procedure side needed one addition — the silent generated labels
+  of M3-23 interleave with the printed label words — after which every
+  transcribed reading matches the model (M3-22 holds the counts). The generated-name print
+  position is card column 7, the name field's start: GN)000 abuts CALL
+  on statement 187, and GN)077, GN)078, and GN)083 abut END on theirs,
+  the text starting at column 13 in each case.*
 - **M3-9. Resolution rules.** The dictionary holds every programmer name
   with its level, position, and kind. Rules:
   - Qualification follows level and position only, REDEF-blind
@@ -811,6 +821,47 @@ starts from a fully resolved program and generates code only.
   column geometry) stays M4's; the fixture holds values, not lines.
   Transcription follows the scan-measurement rule; the fixture cites the
   page images.
+
+## Stage-3 site readings — the generated labels and the page structure
+
+- **M3-22. The blind scan verification (2026-08-05).** Six readers
+  transcribed the LOC and generated-name columns of the source-listing
+  scans (PDF pp. 192–197), blind to the model's predictions. The
+  listing prints 200 column values — 139 LOC words and 61 generated
+  names. The pass captured 198 of them plus 78 blank cells swept as
+  negative evidence, and every reading matches the completed model;
+  the 19 initial procedure-side disagreements fell to M3-23's rule.
+  The two values the sweep missed sit on page-top lines — 71504 on
+  statement 197,00 and 71531 on 217,00; both were then read directly
+  from the scans and match. The same pass exposed the page-structure
+  error M1-16's amendment records: blank lines before the division
+  headers and the control-card echo, and the page breaks they shift.
+- **M3-23. The generated-label allocation rule (2026-08-05).** The
+  [J 90.05] symbolic listing names every generated procedure label; its
+  GN numbers and the printed label words pin the source-order
+  allocation exactly:
+  - An AT END phrase takes two labels, the exit and the resume point:
+    GN)058/059 for statement 188's GET, and likewise at 190, 191,
+    and 194.
+  - An IF takes its join label, and the OTHERWISE arm's label besides
+    when one is written — two with OTHERWISE (GN)066/067 at 197
+    through GN)081/082 at 225), one without (GN)076 at 212).
+  - An unlabelled END sentence takes the next generated name, prints
+    it in the name field, and never prints its word: GN)077, 078, 083
+    at 213, 216, 229, each labelling the section-return `TRA*`. A
+    labelled END sentence prints its own label's word instead
+    (BOND.END. 71534, SEARCH.END. 71540).
+  - DO-loop machinery and EQU'd symbols number in a later compiler
+    pass — GN)084 on; 085, 086, and 088 serve statement 206's loop —
+    and take no source-order word. Reproducing them is M4's, with the
+    rest of the symbolic listing.
+  - ON OVERFLOW survives nowhere in the sample. The slot mirrors AT
+    END structurally and takes the same pair — a non-historical
+    inference, recorded here; the first ON OVERFLOW evidence found
+    amends this entry.
+  Every word from the base 71175 through GN)083's word 71542 is
+  accounted for with no residue; the label words 71466 through 71541
+  print exactly as allocated.
 
 ## Open Question dispositions
 

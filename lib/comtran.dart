@@ -34,6 +34,7 @@ export 'src/cards/card_image.dart';
 export 'src/cards/deck_files.dart';
 export 'src/cards/text_codec.dart';
 export 'src/chars/char_code.dart';
+export 'src/data/allocator.dart';
 export 'src/data/binder.dart';
 export 'src/data/data_map.dart';
 export 'src/data/data_messages.dart';

@@ -7,12 +7,16 @@
 /// (J 05.06.01); source cards echoed verbatim with scan-anchored
 /// geometry (M1-15): with D = the page head's DATE column, the serial
 /// field sits at D+0..D+5, the statement number ends at D+14, and card
-/// column 7 prints at D+24. The
-/// five-octal-digit name-address column of the 1962 listing is
-/// undocumented and stays blank — a recorded M1 decision. Diagnostics
+/// column 7 prints at D+24. Diagnostics
 /// form a separate block after the source listing (J 02.02.01; J 90.04),
 /// cross-referenced by statement number; the message id itself is never
 /// printed (decision D9.5).
+///
+/// M3 stage 3 fills the two columns M1 left blank (M3-8): the
+/// five-octal-digit LOC field at D+18..D+22 and the GN)nnn generated
+/// names overlaid on blank name fields, both from [ListingAnnotations]
+/// built by the dictionary allocator. Without annotations — at M1/M2
+/// level, or when the semantic phase stopped — the columns stay blank.
 library;
 
 import '../lexer/diagnostic.dart';
@@ -53,19 +57,39 @@ final class ListingOptions {
   final int linesPerPage;
 }
 
+/// The semantic layer's additions to the listing (M3-8), keyed by card
+/// number. The dictionary allocator builds one per job.
+final class ListingAnnotations {
+  const ListingAnnotations({required this.locByCard, required this.nameByCard});
+
+  /// The printed LOC value per card: the five-octal-digit word of the
+  /// name that completes on that card's line.
+  final Map<int, String> locByCard;
+
+  /// A generated name overlaid on a card's blank name field:
+  /// card number → (1-based card column, text).
+  final Map<int, (int, String)> nameByCard;
+}
+
 /// Renders the listing for [result]. When [diagnostics] is given it
 /// replaces `result.diagnostics` as the printed block — the M2 driver
 /// passes the merged front-end-plus-parser list (`ParseResult`,
 /// design note M2-2); with `null` the front end's own list prints.
+/// [annotations] fills the LOC column and the generated names (M3-8).
 String writeListing(
   FrontEndResult result,
   ListingOptions options, {
   List<Diagnostic>? diagnostics,
-}) => _ListingWriter(result, options, diagnostics).write();
+  ListingAnnotations? annotations,
+}) => _ListingWriter(result, options, diagnostics, annotations).write();
 
 final class _ListingWriter {
-  _ListingWriter(this.result, this.options, List<Diagnostic>? diagnostics)
-    : diagnostics = diagnostics ?? result.diagnostics {
+  _ListingWriter(
+    this.result,
+    this.options,
+    List<Diagnostic>? diagnostics,
+    this.annotations,
+  ) : diagnostics = diagnostics ?? result.diagnostics {
     for (final Diagnostic d in this.diagnostics) {
       final SourceCard? card = d.card;
       if (d.message.number == '134,00' && d.column != null && card != null) {
@@ -76,6 +100,9 @@ final class _ListingWriter {
 
   final FrontEndResult result;
   final ListingOptions options;
+
+  /// The LOC values and generated names, or `null` for blank columns.
+  final ListingAnnotations? annotations;
 
   /// The diagnostics the listing prints.
   final List<Diagnostic> diagnostics;
@@ -100,7 +127,9 @@ final class _ListingWriter {
     final SourceCard? compileCard = result.program.compileCard;
     if (compileCard != null) {
       // The control card is echoed from card column 1 at the far-left
-      // margin, and the phase letters print under it (J 05.06.01).
+      // margin, under one blank content line, and the phase letters
+      // print under it (J 05.06.01; scan page 192).
+      _line('');
       _line('  ${_externalBody(compileCard, 1, 72).trimRight()}');
       _line('  CTC');
     }
@@ -109,6 +138,12 @@ final class _ListingWriter {
         for (final SourceCard card in group.cards)
           card.cardNumber: group.division,
     };
+    // One blank line precedes each division-header echo (scan pages
+    // 192 and 195); no other source line takes one.
+    final Set<int> headerCards = {
+      for (final DivisionGroup group in result.program.groups)
+        group.header.cardNumber,
+    };
     for (final SourceCard card in result.program.cards) {
       if (identical(card, compileCard)) {
         // The compile card is echoed above. The *FINISH card never
@@ -116,6 +151,9 @@ final class _ListingWriter {
         // the listing stops at the last source card, as the sample
         // listing does (D11.1).
         continue;
+      }
+      if (headerCards.contains(card.cardNumber)) {
+        _line('');
       }
       _line(_sourceLine(card, divisionOf[card.cardNumber]));
     }
@@ -138,16 +176,39 @@ final class _ListingWriter {
     // continuation character. Procedure text reads through column 72.
     final lastColumn =
         division == Division.data || division == Division.environment ? 71 : 72;
-    final String body = _externalBody(card, 7, lastColumn).trimRight();
+    String body = _externalBody(card, 7, lastColumn);
+    final (int, String)? name = annotations?.nameByCard[card.cardNumber];
+    if (name != null) {
+      body = _overlayName(body, name.$1, name.$2);
+    }
+    body = body.trimRight();
     // Scan-anchored geometry (see m1-front-end.md M1-15): with D = the
     // page head's DATE column, a statement number ends at D+14, the
-    // octal name-address field sits at D+18..D+22 (blank at M1), and
-    // card column 7 prints at D+24. The serial field's position is a
-    // reconstruction — every serial in the sample is blank.
+    // octal name-address field sits at D+18..D+22 (M3-8 fills it from
+    // the dictionary allocator), and card column 7 prints at D+24. The
+    // serial field's position is a reconstruction — every serial in
+    // the sample is blank.
+    final String? loc = annotations?.locByCard[card.cardNumber];
     final line =
         '${' ' * 8}${serial.padRight(6)}  ${number.padLeft(7)}'
-        '${' ' * 9}$body';
+        '${loc == null ? ' ' * 9 : '   $loc '}$body';
     return line.trimRight();
+  }
+
+  /// Prints a generated name into the blank name field at 1-based card
+  /// [column]. Any punched target column cancels the overlay — the
+  /// echo stays verbatim (an unattested corner; a generated name only
+  /// ever lands on blanks in the sample).
+  String _overlayName(String body, int column, String text) {
+    final int start = column - 7;
+    final int end = start + text.length;
+    if (start < 0 || end > body.length) {
+      return body;
+    }
+    if (body.substring(start, end).trim().isNotEmpty) {
+      return body;
+    }
+    return body.replaceRange(start, end, text);
   }
 
   /// The external text of [card] columns [from]..[to]: the Set H glyph,
