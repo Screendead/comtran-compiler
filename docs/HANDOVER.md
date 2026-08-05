@@ -93,7 +93,7 @@ The walk's collateral landed with it:
   by the first of these. The GET descriptor word prints `IOCTN*` in the
   listing against `IOCDN*` in the 90.02 typeset — a genuine divergence,
   and codegen follows the listing. Two transcription errors joined the
-  erratum list above (items 4 and 5).
+  erratum list below (items 4 and 5).
 
 Standing items for stage 1:
 
@@ -103,7 +103,7 @@ Standing items for stage 1:
   pins it instruction by instruction during the listing diff (M4-6).
 - Msg 942 widens to the eight generated-name classes with one combined
   tally (M4-5). Ids 946 and 947 are reserved for the D5.1 and D5.7
-  pedantic sites, both pedantic-only C1 (M4-18); D6.1 to D6.5 stay
+  pedantic sites, pedantic-only at C1 and C2 (M4-18); D6.1 to D6.5 stay
   deferred to M5 (D11.4).
 - The emit surface gains `--emit-code` (`-g`), `--emit-deck` (`-d`), and
   `--emit-loader` (`-L`) under `emit-stages.md`'s conventions, which

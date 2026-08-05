@@ -43,8 +43,9 @@ deck, and the loader cards. The oracle is the 90.05 compilation listing,
 PDF pp. 198–216 — the loader-card page, the storage map, and the symbolic
 listing — diffed byte for byte (D0.3). M4 also hardens the emulator into a
 machine: a loader places the deck in core, and a dispatch layer runs the
-SYS)/IOC) handlers the core verbs call. The 90.05 sample itself executes
-only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
+SYS)/IOC) handlers the core verbs call. The 90.05 sample itself first
+runs at M6, the acceptance milestone, after M5 lands the IOCS handlers;
+M4 executes I/O-free programs.
 
 ## Scope and stages
 
@@ -94,10 +95,12 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
 - **M4-3. The text model is the 1962 symbolic form (ours).** The
   intermediate form is a typed list of assembly units: label(s), operation,
   tag, and an address expression over the program's symbols, one unit per
-  object word or pseudo-operation. The vocabulary is exactly the listing's
+  object word or pseudo-operation. The vocabulary is the listing's
   SYMBOLIC column ([J 90.02.02]: "a 'SAP'-like listing with a few
-  modifications"): the harvested instruction mnemonics, and the
-  pseudo-operations BSS, OCT, ORG, USE, EQU, BGN, PZE, MZE, MON, IOST, and
+  modifications") plus two forms only the [J 90.02] calling sequences
+  attest (MZE, [J 90.02.06]; MON, [J 90.02.15]): the harvested
+  instruction mnemonics, the pseudo-operations BSS, OCT, ORG, USE, EQU,
+  BGN, PZE, MZE, MON, IOST, and
   the GET descriptor word `IOCTN*` (the listing's spelling; M4-20
   item f). No modern
   intermediate form is invented; `emit-stages.md` bars one without a design
@@ -129,7 +132,8 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
     pointer block and the pre-determined constants (the sample: `ORG BL)1`,
     then `PZE IOC)29 / PZE 0 / PZE 0`).
   Block sizing rules: `RS)` is the sum over sections of the maximum result
-  storage each section uses, cells two words each ([J 90.02.03]; D4.8);
+  storage each section uses ([J 90.02.03]) — cells two words each, D4.8's
+  inference from the listing's LOC values, not stated by J;
   `BL)` is one word per base locator — BL)1 for the IOCS label area, one
   per located-record buffer pointer (M3-11); `PI)` is one word per
   positional indicator (M3-20's counter). The `TS)` sizing rule is
@@ -137,9 +141,14 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
   Stage 1 carries `TS) BSS 7` as a recorded constant; the listing diff
   either reveals the rule or this sentence stands as the decision.
   The constant pool allocates in first-need order during generation, one
-  entry per distinct word value, references printed `CP)+NN` (D8.8). The
-  attested pool (62 entries, LOC 01674–01771) is the conformance check:
-  D4.1 already pins CP)+24, CP)+31 to CP)+34 by index.
+  entry per distinct constant as written — a literal keys on its OCT
+  word, a pointer or descriptor word on its symbolic operand, never on
+  the assembled bits — references printed `CP)+NN` (D8.8). The attested
+  pool (62 entries, LOC 01674–01771) is the conformance check:
+  statements 203 and 215 share the literal CP)+31, while the
+  bit-identical pointer pair CP)+38/CP)+39 and the four zero-valued
+  pointer words CP)+43 to CP)+46 stay separate entries; D4.1 already
+  pins CP)+24, CP)+31 to CP)+34 by index.
   **The dictionary LOC column and the object LOC column are different
   address spaces.** The listing's source-page column prints compile-time
   dictionary addresses (base 71175, M3-8); the object pages print object
@@ -222,20 +231,28 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
     `OOOO FF T AAAAA` for type-B instructions; `P DDDDD T AAAAA` for
     prefix-type words (PZE, MZE, TXI, TXH, TXL, IOST, BSS, USE, ORG).
   - The CNTRL column prints the word's 5-bit object-deck control group
-    (M4-16); `USE`, `BSS`, `ORG`, and `BGN` lines print the
-    location-counter-control group 00001 and no word; the transfer card
+    (M4-16). `USE`, `BSS`, and `ORG` lines print CNTRL 00001 with their
+    control word in the OCTAL column (the `OP A` form of [J 90.03.03]);
+    `BGN` prints its LOC only — no OCTAL, no CNTRL; the end-of-text line
     prints 01111.
-  - A name over 15 characters prints alone and pushes the instruction to
-    the next line ([J 90.02.02]). Two labels on one word print one label per
+  - A name of 15 or more characters prints alone and pushes the
+    instruction to the next line: the 15-character INTERNAL.TOTALS
+    breaks while 14-character names print inline, matching the
+    15-column label field. [J 90.02.02] says "exceeds 15" of statement
+    names; the attested break is at 15 exactly, and the print governs.
+    Two labels on one word print one label per
     line, the word on the last (six attested sites).
   - An `EQU` line prints where the assembler first needs the symbol — out
     of location order — with the equated value in the LOC column, no
-    OCTAL, no CNTRL. The `+n` offset counter resets at every label line,
-    `EQU` lines included; `+n` is a listing artifact, not an address
+    OCTAL, no CNTRL. The `+n` offset counter resets at every line that
+    itself prints no `+n`: label lines, `EQU` lines, and the unlabeled
+    pseudo-operation lines (`BSS`, `USE`, `ORG`, `BGN`) — the word after
+    an unlabeled `BSS 2` prints `+1` (LOC 00010/00012); `+n` is a
+    listing artifact, not an address
     offset (M4-20 item d).
   - A duplicate data name prints with its encounter ordinal, `n)NAME`,
     numbering declarations of that spelling in data-division source order
-    ([J 90.02.02]); a unique name prints bare. `Dictionary.encounter`
+    ([J 90.02.02]); a unique name prints bare. `DictionaryEntry.encounter`
     already carries the ordinal.
   - `SYS)n` and `IOC)n` print the decimal n in the address field, flagged
     external in CNTRL. A file name prints as 04000 plus its loader-card
@@ -246,8 +263,8 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
     item (e) measurement resolves two blank lines on PDF p. 208, so the
     per-page blank counts are taken from the scans during the stage-2
     verification pass. No blank line separates routines, the storage map
-    from the code, or the pool from the transfer card. The
-    listing closes with the transfer card, one blank line,
+    from the code, or the pool from the end-of-text line. The
+    listing closes with that line, one blank line,
     `THE LAST LOADER CONTROL CARD PUNCHED IS`, the `*CTEND` card, and
     `DONE`.
 
@@ -259,7 +276,10 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
   1. **Figurative constant** (D4.11, chart column by column): build the
      target descriptor, call `TSX SYS)182,4`, then the fill word —
      `TXI SYS)243,1,n` for the blanks classes, `TXI SYS)244,1,n` for the
-     zeros classes, `TXI SYS)245,1,n` plus an in-line `OCT` word of six
+     plain-zeros classes — the chart's two "0's Edited" cells (edited
+     and scientific-decimal targets) instead store an edited zero image
+     through the numeric route (ours, no sample site) — and
+     `TXI SYS)245,1,n` plus an in-line `OCT` word of six
      fill characters for HIGH.VALUE and LOW.VALUE — n the target's full
      character count. Attested: the three SYS)243 statements and the
      SYS)244 zero-fills of statement 188; the SYS)245 HIGH.VALUE store of
@@ -284,12 +304,17 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
      word. A MOVE emits no round step (D4.1(d)); the digit-count split
      divide precedes an edited store when the value's digits exceed the
      target's (D4.1(c)); the attested edited-store shape is
-     `CLA source / TSX SYS)180,4 / PZE target,,pos / TXI SYS)267,1,digits /
-     OCT control / AXT n,1` (statement 218).
+     `CLA source / TSX SYS)180,4 / PZE target,,pos / TXI SYS)267,1,edit /
+     OCT control / AXT digits,1` (statement 218) — `edit` the
+     target-edit-control bits and `control` the control-word bits, both
+     per the SYS)185 feature table; the digit count rides in the `AXT`
+     (the sample varies `edit` between 4 and 12 while the `AXT`
+     holds 6).
   4. **CORRESPONDING**: expand `correspondingPairs` in data-description
      order, one ordinary move per pair, the written subscript appended on
-     its side (D4.12). Attested: statements 199, 208, 220, 227; the
-     END.OF.RUN expansion runs 91 words.
+     its side (D4.12). Attested: statements 199, 208, 220, 227;
+     statement 199's expansion inside END.OF.RUN runs 32 words
+     (LOC 00373–00432).
   5. **Multiple targets**: one independent sequence per target, no shared
      setup (attested at statement 188's two receivers; D4.8's store
      independence is the same rule on SET).
@@ -297,8 +322,11 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
   CP)+nn / STI SYS)132|133` pair; a located-record field builds its
   descriptor at run time, `CAL BL)n / ACL CP)+nn / SLW SYS)132|133`
   ([J 90.02.11]'s case 2; case 3 with `PDX` for a byte-carrying base). Every
-  located-record reference is preceded by the guard pair
-  `LAC BL)n,i / TXL SYS)294,i,0` (attested 24 times, unconditional).
+  load of a base locator or positional indicator into an index register
+  takes the guard `TXL SYS)294,i,0` on that register — attested 20
+  times: 19 `LAC BL)n,i` pairs and one `LAC PI)1,2` pair (LOC 01410). A
+  word reference that reads the locator into the accumulator
+  (`CAL BL)n`, the run-time descriptor build) carries no guard.
   Register use (ours, pinned at the diff): XR1 for the first buffer
   operand of a statement, XR2 for the second; XR4 stays the linkage
   register ([J 02.08.03] destroys it on located references).
@@ -318,7 +346,9 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
     folded constant (attested: the literal 20 scales by
     `LDQ CP)+7 / MPY CP)+31` at statement 203).
   - Products accumulate scale and are never downscaled mid-expression
-    (attested: `1.5 × HOURS` parks at scale 10^5 in `RS)1`).
+    (attested: `1.5 × HOURS` parks in `RS)1` at scale 10^2, and the
+    expression's scale reaches 10^5 in the AC-MQ after `MPY 1)RATE,2`,
+    never stored).
   - The single downscale is at the store: `XCA / ACL CP)+h / LRS 35 /
     DVP CP)+d / STQ target`, `d` the excess power of ten and `h` half of
     `d` — the rounding half-adjust (D4.1(a)). `TRUNCATED` suppresses the
@@ -340,9 +370,13 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
     (D4.8).
   - A SET whose target is a subscript variable updates the affected
     positional indicators eagerly at the store site ([J 02.04.07.01];
-    [J 90.01.02]), the `CLA CP)+n / ADD PI)n / STO PI)n` shape of
-    [J 90.02.05]; the update indexes by the raw stored digits, no scaling
-    step (M3-20). The exact in-line lookup and update shapes are pinned
+    [J 90.01.02]). A constant increment adds the known stride — the
+    `CLA CP)+n / ADD PI)n / STO PI)n` shape of [J 90.02.05]. A general
+    store recomputes from the stored value — the attested
+    `LDQ var / MPY CP)+stride / XCA / ADD base / STO PI)n` sequence
+    (statement 225, LOC 01421–01432) — indexing by the raw stored
+    digits, no scaling step (M3-20). The exact in-line lookup and update
+    shapes are pinned
     against the sample's subscript sites during the diff.
   - `SET condition.name` stores the COND entry's constant into the
     conditional variable under the variable's own format (D5.6) — an
@@ -350,9 +384,11 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
   - **ON OVERFLOW (ours, unattested).** No manual and no sample line shows
     the generated form; the clause survives nowhere in 90.05. The design:
     when the clause is written, codegen emits an object-time magnitude
-    test immediately before the store — compare the scaled result against
-    10^(target digit count) from the pool; on overflow, skip the store and
-    run the clause; otherwise store. SYS)130 is not used for this: nothing
+    test ahead of the store tail — compare the full-scale result against
+    10^(target digit count) upscaled by the excess power of ten, from
+    the pool, before the `ACL` half-adjust, so rounding can never raise
+    the condition (D4.1(f)); on overflow, skip the tail and the store
+    and run the clause; otherwise store. SYS)130 is not used for this: nothing
     may clear it (D4.2), so a sticky cell cannot carry a per-statement
     test. Without the clause, no test is emitted and the truncated store
     proceeds silently — that silence is attested (D4.2). Non-historical,
@@ -368,11 +404,16 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
     three-way skip (statements 192, 197, 200). A sub-word field is
     extracted first: shift and mask into a scratch cell (`CAL / LGL n /
     ANA CP)+mask / SLW RS)n`, statement 200's two-character departments).
-  - **The skip vector (ours, from the five attested sites):** after the
-    compare, emit one `TRA` slot per outcome in the order greater, equal,
-    less, each targeting that outcome's continuation; then elide trailing
-    slots whose target is the word immediately after the vector. GT with
-    both arms: three slots (`TRA *+3 / TRA join / TRA join`). NOT EQUAL:
+  - **The skip vector (ours, from the eleven attested sites — six `CAS`,
+    five `LAS`):** after the compare, emit one `TRA` slot per outcome in
+    the order greater, equal, less, each targeting that outcome's
+    continuation. Elide the trailing slot — at most one — when its
+    target is the word immediately after the vector; an interior slot
+    with that target prints the relative form instead (`TRA *+1` at
+    statement 219, LOC 01306; `TRA *+3` at statement 203). GT with both
+    arms: three slots (`TRA *+3 / TRA otherwise / TRA otherwise` — the
+    false outcomes transfer to the OTHERWISE arm's own label, GN)072 at
+    statement 203, not to the join). NOT EQUAL:
     two slots, the less outcome falling through. A WHEN `=` clause: two
     slots, less falling into the next clause.
   - **Arms and labels**: the THEN arm follows the vector; with OTHERWISE,
@@ -387,7 +428,8 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
     says remaining expressions go unevaluated). No diagnostic is attested
     for either fold; none is emitted (ours).
   - **Magnitude compares of unequal length** equalize by right truncation
-    of the longer field (D5.3), in the emitted length parameters.
+    of the longer field (D5.3) — by the emitted mask in-line, or by the
+    length parameters on the SYS)162 path.
   - **The subroutine boundary (ours, pinned at the diff):** fields the
     compiler can compare in one word compile in-line (every sample
     compare); anything longer calls SYS)162 with its collate-table OP word
@@ -397,9 +439,16 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
   - **Condition tests**: a data condition compares the conditional
     variable against the COND constant, an equality compare as above. A
     keys condition (Environment COND) is the console-keys test
-    ([J 02.06.17]); the sample's lone SIR/RIR/RFT triple (PDF p. 211) is the
-    candidate attested shape, and stage 2 pins its construct binding
-    during the diff before this entry commits to it.
+    ([J 02.06.17]); no COND card appears in the sample, so no shape is
+    attested — the generated form is ours, defined at stage 2 and
+    marked so.
+  - **Truth functions `TR( )`** run the same compare machinery gated
+    onto a sense indicator — the attested shape (statement 215,
+    LOC 01240–01252): `RIR` clears the indicator, the compare's skip
+    vector routes the true outcome to `SIR 000001`, then
+    `PXA 0,0 / RFT 000001 / CLA CP)+1` yields 1 or 0 as the arithmetic
+    factor. Only this site is attested; the general shape is pinned at
+    the diff.
   - **AND, OR, NOT** compile as short-circuit chains of compare-and-branch
     to the arm labels; no boolean value is materialized. Unexercised in
     the sample; ours.
@@ -445,14 +494,16 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
     r − i and branches on sign, exactly the shape D5.1 named as the
     magnitude exit ("an equality exit would branch on zero"). The loop
     runs while i ≤ r after each increment; a +0 result (i = r) transfers,
-    so the body runs for i = r; normal exit leaves i = r + q. D5.1's
+    so the body runs for i = r; normal exit leaves i at the first value
+    past r — r + q when q divides r − p exactly. D5.1's
     pre-committed amendment is applied in `decisions.md` with this
     citation, and the codegen switch keeps the equality alternative one
     line away. Consequences: the at-least-once rule holds (entry precedes
     any test, [J 90.01.02]); an overshooting step terminates (first i > r
     exits), so the equality reading's non-termination hazard is gone; a
-    zero or wrong-signed q still never terminates, and the emulator
-    reproduces that faithfully.
+    zero or wrong-signed q with p ≤ r still never terminates (with
+    p > r the first test already exits), and the emulator reproduces
+    both faithfully.
   - Literal p, q, r bake into pool constants; a named parameter is read
     from its field where the expansion reads it (initialization reads p at
     entry; the increment block reads q and r each pass — F's expansion
@@ -475,11 +526,14 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
 
 ## STOP and the statement stamps
 
-- **M4-14. STOP and the number stamps.** STOP RUN emits the D2.7 shape:
-  the close-all pair `TSX SYS)177,4 / PZE IOC)1`, the message call
-  `TSX SYS)178,4` with two `PZE CP)+a,,CP)+b` words carrying the BCD
-  statement number and the words ` STOP ` / ` RUN  `, a second close-all
-  pair, then `TXI IOC)40,0` — no halt instruction. STOP n emits the
+- **M4-14. STOP and the number stamps.** STOP RUN emits the D2.7 shape,
+  three parts in order: the message call `TSX SYS)178,4` with two
+  `PZE CP)+a,,CP)+b` words carrying the BCD statement number and the
+  words ` STOP ` / ` RUN  `; the implicit close-all pair
+  `TSX SYS)177,4 / PZE IOC)1`; then `TXI IOC)40,0` — no halt
+  instruction. The sample's leading SYS)177 pair at LOC 00517/00520
+  belongs to the source's separate `CLOSE ALL FILES` clause (M4-15's
+  shape), not to STOP RUN (D2.7). STOP n emits the
   SYS)178 call with type NNN and no close-all and no monitor transfer;
   the halt lives in the SYS)178 handler (D2.7). The statement-number
   stamps: each GET sequence opens with a `TXH CP)+a,0,CP)+b` word — a
@@ -533,7 +587,8 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
   end-of-file card are not the compiler's ([J 03.00]). Our loader (D0.3)
   reads the symbolic cards and the text section, resolves the control
   groups, places the program at a chosen origin, maps SYS)/IOC) references
-  to dispatch addresses, and enters at the transfer-card address; the
+  to dispatch addresses, and enters at the entry point the 01111
+  end-of-text word carries in its address (D2.1); the
   round trip — emit, load, compare memory against the listing's word
   image — is the stage-3 oracle. `--emit-deck` writes the punch-level
   card file; `--emit-loader` writes the symbolic card text.
@@ -543,15 +598,20 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
 - **M4-17. The dispatch layer and the compute handlers.** The machine
   assembly wraps the CPU core: before each step at an address registered
   as a SYS)/IOC) entry, the dispatcher runs the Dart handler instead of
-  the CPU (docs/design/emulator.md §1); the handler reads its calling
-  sequence through XR4, honors the resume convention (parameter-word
-  count plus one), and returns control. M4 lands the compute set — the
-  cells and flags SYS)128–134, the scaling, exponent, and comparison
-  routines SYS)155–173, MOVPAK entire (SYS)179–258, 267–282), the
-  base-locator guard SYS)294 — plus the run-frame stubs SYS)175, 176,
-  177, 178 and IOC)1, IOC)40, enough to run an I/O-free program end to
-  end and to execute STOP. M5 lands IOCS: IOC)2–17, 29, 46, 53, 54 and
-  SYS)260–266, 283, 286–296. Each handler implements its [J 90.02]
+  the CPU (docs/design/emulator.md §1); a TSX-linked handler reads its
+  calling sequence through XR4, honors the resume convention
+  (parameter-word count plus one), and returns control — SYS)294 alone
+  breaks the pattern: the guard's conditional `TXL` reaches it with no
+  calling sequence, and it exits to the monitor instead of returning.
+  M4 lands the compute set — the cells and flags SYS)128–134, the
+  scaling, exponent, and comparison routines SYS)155–173 (SYS)161 among
+  them is the 709-to-705 collating table the compare path reads — data,
+  not code), MOVPAK entire (SYS)179–258, 267–282), the base-locator
+  guard SYS)294 — plus the run-frame stubs SYS)174–178 (open and close,
+  one file and all, and the display routine) and IOC)1, IOC)40, enough
+  to run an I/O-free program end to end and to execute STOP. M5 lands
+  IOCS: IOC)2–17, 29, 46, 53, 54 and SYS)260–266, 283, and 286–296
+  less the already-landed 294. Each handler implements its [J 90.02]
   contract and is unit-tested against it (D0.3). Handlers keep the
   documented printed inconsistencies as recorded defects, not silent
   fixes: SYS)231–234 follow their own entries (overpunch test), not the
@@ -574,12 +634,13 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
     D9.7 class.
   - **Msg 942** widens to the eight-class tally (M4-5).
   - **New non-historical ids**, continuing M3's sequence from 946
-    (M3-21; D9.7's pattern), both `--pedantic`-only, both C1 under
-    D11.4's invariant (a pedantic diagnostic may not change the exit
-    code, so no pedantic id takes a gating severity — D5.7's word
-    "error" yields to the invariant, recorded here): **946** the D5.1
-    constant-parameter note (q zero, wrong-signed, or (r − p) not a whole
-    multiple of q); **947** the D5.7 DO-call-graph cycle note.
+    (M3-21; D9.7's pattern), both `--pedantic`-only under D11.4's
+    invariant — the mode adds diagnostics and changes nothing else, and
+    the 921/922 precedent shows a pedantic-only id may carry an error
+    class: **946** (C1) the D5.1 constant-parameter note (q zero,
+    wrong-signed, or (r − p) not a whole multiple of q); **947** (C2;
+    the class is ours) the D5.7 DO-call-graph cycle, an error by that
+    record's own word.
   No diagnostic attaches to rounding, to the compile-time comparison
   folds, or to the assigned GO TO's range fall-through (attested
   silences).
@@ -667,7 +728,8 @@ only at M5, when the IOCS handlers exist; M4 executes I/O-free programs.
 - **M4-21.** Decided by this walk and annotated in place in the
   definition's list:
   - **Q37** (the index after a completed loop): the M4-13 decode gives
-    the generated answer — normal exit leaves i = r + q; a GO TO out
+    the generated answer — normal exit leaves i at the first value past
+    r (r + q when q divides r − p exactly); a GO TO out
     leaves whatever the last increment stored. Annotated with the decode
     citation; §8.5.5-a takes the matching dated annotation (the compiled
     exit is a magnitude test; F's printed expansion stays the manual's
@@ -708,8 +770,9 @@ handlers.
   scan-checked before commit.
 - Stage 2: the full listing diff, PDF pp. 198–216, byte for byte, after
   the M3-22-pattern blind scan verification; the 90.05 job deck compiles
-  clean in default mode, and `--pedantic` adds only the attested three
-  943 notes plus any new 946/947 sites the deck triggers (it triggers
+  clean in default mode, and `--pedantic` adds only the three 943 notes
+  (ours, non-historical — the sample's own doubtful blank-moves, D11.4
+  as amended) plus any new 946/947 sites the deck triggers (it triggers
   none: statement 206's parameters divide evenly, and the DO graph is
   acyclic).
 - Stage 3: the loader-card page inside the listing diff; 90.03
@@ -741,6 +804,7 @@ handlers.
 [J 90.02.03]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.04]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.05]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.06]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.11]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.12]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
