@@ -145,6 +145,69 @@ final class AreaInfo {
   int get extentWords => words.length;
 }
 
+/// One printed line of the transmitted-data region: an initialized
+/// word, or a run of uninitialized words collapsed into one
+/// reservation (M4-7).
+final class StorageRun {
+  const StorageRun({
+    required this.location,
+    required this.word,
+    required this.words,
+    required this.symbol,
+  });
+
+  /// Words from the first word of the object program.
+  final int location;
+
+  /// The initialized word, `null` for a reservation.
+  final int? word;
+
+  /// Words covered: one for an initialized word.
+  final int words;
+
+  /// The area's name on the area's first run, empty on the rest.
+  final String symbol;
+}
+
+/// The transmitted-data region as printed runs, program order.
+///
+/// The 90.05 storage map (PDF pp. 199–200, LOC 00000–00164) is this
+/// sequence: `OCT` per initialized word, one `BSS n` per uninitialized
+/// run.
+Iterable<StorageRun> storageRuns(List<AreaInfo> areas) sync* {
+  var location = 0;
+  for (final area in areas) {
+    String symbol = area.name;
+    var i = 0;
+    while (i < area.words.length) {
+      final int? word = area.words[i];
+      if (word != null) {
+        yield StorageRun(
+          location: location + i,
+          word: word,
+          words: 1,
+          symbol: symbol,
+        );
+        i++;
+      } else {
+        var run = 0;
+        while (i + run < area.words.length && area.words[i + run] == null) {
+          run++;
+        }
+        yield StorageRun(
+          location: location + i,
+          word: null,
+          words: run,
+          symbol: symbol,
+        );
+        i += run;
+      }
+      symbol = '';
+    }
+    location += area.extentWords;
+  }
+}
+
 /// A record's binding, from the environment binder (M3-11).
 final class RecordInfo {
   RecordInfo(this.item, this.name);

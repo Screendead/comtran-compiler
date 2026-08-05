@@ -1,0 +1,102 @@
+/// The object listing's symbolic pages (M4-8).
+///
+/// The geometry is the one the page scans carry: M4-20 item (g) records
+/// it, and a second pass confirmed every column 2026-08-05 against the
+/// character grid of PDF pp. 199–200. The 90.05 transcription renders
+/// these pages in two other column conventions, and both are artifacts
+/// of the transcription passes. The transcription therefore supplies
+/// content here and never geometry.
+library;
+
+import 'text_model.dart';
+
+/// Print columns, counted from the LOC column's first digit as zero.
+const int _loc = 0;
+const int _octal = 7;
+const int _control = 25;
+const int _label = 34;
+const int _operation = 49;
+const int _operand = 56;
+
+/// The `+n` offset is right-aligned, its last character here.
+const int _offsetEnd = 42;
+
+/// The label field spans [_label] through [_offsetEnd] and on to the
+/// column before [_operation]. A name that fills it leaves no space
+/// before the operation, and so prints alone (M4-8).
+const int _labelWidth = _operation - _label;
+
+/// [value] as the five octal digits a LOC or address column prints.
+String octal5(int value) => value.toRadixString(8).padLeft(5, '0');
+
+/// One line with each text placed at its column. A field that has
+/// already run past the next column is separated from it by one space.
+String _line(List<(int, String)> fields) {
+  final out = StringBuffer();
+  for (final (int column, String text) in fields) {
+    if (text.isEmpty) {
+      continue;
+    }
+    out
+      ..write(out.length > column ? ' ' : ' ' * (column - out.length))
+      ..write(text);
+  }
+  return out.toString();
+}
+
+/// Renders [units] as object-listing lines.
+///
+/// The `+n` offset counts units since the last unit that prints none,
+/// so it is a listing artifact and never an address offset (M4-20 item
+/// d): the word after an unlabelled `BSS 2` prints `+1`.
+List<String> renderObjectLines(Iterable<AssemblyUnit> units) {
+  final out = <String>[];
+  var offset = 0;
+  for (final unit in units) {
+    final bool resets =
+        unit.labels.isNotEmpty || resettingOperations.contains(unit.operation);
+    if (resets) {
+      offset = 0;
+    } else {
+      offset++;
+    }
+    out.addAll(_unit(unit, resets ? '' : '+$offset'));
+  }
+  return out;
+}
+
+List<String> _unit(AssemblyUnit unit, String offset) {
+  final int? location = unit.location;
+  final int? word = unit.word;
+  final int? control = unit.control;
+  final String loc = location == null ? '' : octal5(location);
+  final String octal = word == null ? '' : octalColumn(word, unit.form);
+  final String cntrl = control == null ? '' : controlColumn(control);
+
+  final out = <String>[];
+  // Every label but the last prints alone against the LOC, the word
+  // falling to the last (M4-8; the attested GN)000 over START).
+  for (var i = 0; i + 1 < unit.labels.length; i++) {
+    out.add(_line([(_loc, loc), (_label, unit.labels[i])]).trimRight());
+  }
+  final String label = unit.labels.isEmpty ? '' : unit.labels.last;
+  final List<(int, String)> head = [
+    (_loc, loc),
+    (_octal, octal),
+    (_control, cntrl),
+    (_label, label),
+    (_offsetEnd - offset.length + 1, offset),
+  ];
+  final List<(int, String)> tail = [
+    (_operation, unit.operation),
+    (_operand, unit.operand),
+  ];
+  if (label.length >= _labelWidth) {
+    out
+      ..add(_line(head).trimRight())
+      ..add(_line(tail).trimRight());
+  } else {
+    out.add(_line([...head, ...tail]).trimRight());
+  }
+  return out;
+}

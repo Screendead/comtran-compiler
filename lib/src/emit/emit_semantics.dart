@@ -68,28 +68,18 @@ String emitSemantics(DeckCompilation deck) {
 /// name as the symbol.
 void _storage(StringBuffer out, SemanticResult semantics) {
   out.writeln('* STORAGE');
-  var loc = 0;
-  for (final AreaInfo area in semantics.areas) {
-    String symbol = area.name;
-    var i = 0;
-    while (i < area.words.length) {
-      final int? word = area.words[i];
-      if (word != null) {
-        out.writeln(
-          _row(loc + i, 'oct', word.toRadixString(8).padLeft(12, '0'), symbol),
-        );
-        i++;
-      } else {
-        var run = 0;
-        while (i + run < area.words.length && area.words[i + run] == null) {
-          run++;
-        }
-        out.writeln(_row(loc + i, 'bss', '$run', symbol));
-        i += run;
-      }
-      symbol = '';
-    }
-    loc += area.extentWords;
+  for (final StorageRun run in storageRuns(semantics.areas)) {
+    final int? word = run.word;
+    out.writeln(
+      word != null
+          ? _row(
+              run.location,
+              'oct',
+              word.toRadixString(8).padLeft(12, '0'),
+              run.symbol,
+            )
+          : _row(run.location, 'bss', '${run.words}', run.symbol),
+    );
   }
 }
 

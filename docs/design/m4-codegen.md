@@ -140,6 +140,17 @@ M4 executes I/O-free programs.
   unrecovered: the sample reserves 7 words and references none of them.
   Stage 1 carries `TS) BSS 7` as a recorded constant; the listing diff
   either reveals the rule or this sentence stands as the decision.
+  **Amended 2026-08-05, stage 1.** Stage 1 does not carry `TS) BSS 7`.
+  Jack's call: build the layout rule, and leave each size to the stage
+  that can derive it. The verb generators size result storage, temporary
+  storage, the positional indicators, and the constant pool, so stage 1
+  leaves all four empty and stage 2 fills them. Stage 1 derives `BL)`
+  alone, and gets the sample's attested 3.
+  Arithmetic confirms the block order against three attested addresses.
+  Location Counter 1 starts at 01621. RS 30 words and TS 7 words put
+  `BL)1` at 01666, which the `ORG BL)1` line prints. BL 3 words put
+  `PI)1` at 01671, which the `BGN 2,PI)1` line prints. PI 3 words put
+  the pool at 01674, where the listing shows it.
   The constant pool allocates in first-need order during generation, one
   entry per distinct constant as written — a literal keys on its OCT
   word, a pointer or descriptor word on its symbolic operand, never on
@@ -203,6 +214,16 @@ M4 executes I/O-free programs.
   entry records the principles, and the golden records the answer. The
   region golden is transcription-checked against the page scans before it
   is committed (the M3-22 discipline, two pages).
+- **M4-7.1. The stage-1 golden holds 91 rows** (Jack's call,
+  2026-08-05). The golden runs from `USE 0` through LOC 00164. It does
+  not hold `USE 1` or `BGN 2,PI)1`. Both carry Location Counter 1's
+  origin, which follows the procedure text, so no stage without verb
+  generation can compute them. Stage 2 prepends the two rows.
+  Before the golden was committed, the 89 body rows were diffed against
+  the 90.05 transcription. The M3 storage output already reproduces
+  every LOC value, every `OCT` and `BSS` row, and every label, with no
+  mismatch. The storage map is therefore a print problem at M4, not a
+  derivation problem.
 
 ## The symbolic listing pages
 
@@ -257,6 +278,26 @@ M4 executes I/O-free programs.
   - `SYS)n` and `IOC)n` print the decimal n in the address field, flagged
     external in CNTRL. A file name prints as 04000 plus its loader-card
     file number.
+  **Amended 2026-08-05, stage 1.** A second scan pass measured the
+  character grid of PDF pp. 199–200 and confirmed every column above.
+  It confirmed on ink one reading this entry already recorded, and
+  settled the two it left open:
+  - The `+n` offset is right-aligned, as recorded above. Page 200 holds
+    the only discriminating evidence, the two-digit offsets `+10` to `+23`.
+    Each starts one column to the left of a single-digit offset. The
+    transcription prints them left-aligned, which is an artifact.
+  - A broken long-label line prints its instruction at the normal
+    columns, the mnemonic at 49 and the operand at 56. The LOC, OCTAL,
+    CNTRL, and label fields stay blank. Both attested sites give the
+    same result: DEPARTMENT.TOTAL on p. 199 and INTERNAL.TOTALS on
+    p. 200. The transcription indents the second line two columns,
+    which is an artifact.
+  - The column header centers each of its first three names over its
+    field: `LOC` at 1, `OCTAL` at 12, `CNTRL` at 25. `SYMBOLIC` prints
+    at 58. This measurement holds to one column, not to the byte, so
+    the stage-1 golden excludes the header and stage 2 pins it.
+  The two page scans differ in horizontal registration. Measure each
+  page against its own LOC column, never against the other page.
   - Page furniture: the `LOC OCTAL CNTRL SYMBOLIC` column header prints
     once, on the first object page. The transcription records one blank
     line after each page head and one after the column header; the M4-20
