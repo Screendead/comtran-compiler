@@ -32,18 +32,18 @@ working compiler for it.
 `docs/HANDOVER.md` holds the live project state, the roadmap, and the next task.
 In brief: the language definition is complete and verified; the compiler's front
 end, its parsers for all three divisions, and the job-stream driver work; code
-generation does not exist yet.
+generation prints the storage map and generates no procedure text yet.
 
 ## What is here
 
 | Path | What it is |
 |---|---|
-| `lib/` | The compiler source. `lib/src/` holds `cards`, `chars`, `lexer`, `parser`, `ast`, `driver`, `listing`, `emulator`, and `mcp`. |
+| `lib/` | The compiler source. `lib/src/` holds `cards`, `chars`, `lexer`, `parser`, `ast`, `data`, `codegen`, `driver`, `listing`, `emit`, `emulator`, and `mcp`. |
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), and `deckmcp.dart` (the MCP deck server). |
 | `test/` | The Dart test suite, with `test/goldens/` (the 1962 listing oracle), `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its text mirror, and the keying notes). |
 | `tool/` | Dart generators for this package. |
 | `editors/vscode-punchcard/` | A VS Code extension: a punch-level editor for `*.ctd` decks, and highlighting for `.ct` mirrors. |
-| `docs/design/` | The design records: the D0–D9 decision log (`decisions.md`), one document per milestone (`m1-front-end.md`, `m2-parser.md`), plus `deck-format.md`, `emulator.md`, and `severity-notes.md`. |
+| `docs/design/` | The design records: the D0–D11 decision log (`decisions.md`), one document per milestone (`m1-front-end.md`, `m2-parser.md`, `m3-data.md`, `m4-codegen.md`), plus `deck-format.md`, `emit-stages.md`, `emulator.md`, and `severity-notes.md`. |
 | `docs/comtran-language-definition.md` | The working language reference (~4,250 lines): a structured, fully cited definition of COMTRAN extracted from the manuals. §8.3 catalogs the F/J divergences and §8.5 every ambiguity with a plausible resolution. The end-of-file **Open Questions** list tracks what the sources cannot settle, and states its own item count. |
 | `docs/HANDOVER.md` | Project state, the roadmap, and the next task. |
 | `comtran-manuals/` | Faithful Markdown conversions of both manuals, with a 150-dpi scan of every page as ground truth. **Read-only.** Citation and fidelity conventions in `comtran-manuals/README.md`. |

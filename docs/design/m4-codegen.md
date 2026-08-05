@@ -83,7 +83,19 @@ M4 executes I/O-free programs.
   → `runSemantics` → `runCodegen` → `writeListing`, per job. `runCodegen`
   follows D10.2 exactly: it catches `StopCompilation` itself, returns a
   partial result with a `stopped` flag, and the driver skips it when an
-  earlier phase stopped. The phase re-resolves nothing: data references
+  earlier phase stopped.
+  **Amended 2026-08-05, stage 1.** Stage 1 builds the storage map from
+  facts the semantic layer already validated, so it detects no error and
+  reports no diagnostic. Its stop shape was therefore unreachable: no
+  input could enter the `catch`, the `stopped` flag was always false, and
+  the diagnostic list was always empty. CLAUDE.md section 11 bans code
+  that is neither exercised nor tested, and it outranks this record, so
+  stage 1 ships without the shape. `runCodegen(SemanticResult) →
+  CodegenResult` takes no diagnostic sink. The stop shape above binds
+  stage 2, whose verb generators are the first code here that can detect
+  an error; it arrives with them, sink and all. The driver's skip of a
+  stopped earlier phase is unaffected and still holds.
+  The phase re-resolves nothing: data references
   come from `dataResolutions`, CORRESPONDING pairs from
   `correspondingPairs`, storage facts from `ItemSemantics`, initial words
   from `AreaInfo.words`, and label words from the M3 allocator. It
@@ -140,6 +152,28 @@ M4 executes I/O-free programs.
   unrecovered: the sample reserves 7 words and references none of them.
   Stage 1 carries `TS) BSS 7` as a recorded constant; the listing diff
   either reveals the rule or this sentence stands as the decision.
+  **Amended 2026-08-05, stage 1.** Stage 1 does not carry `TS) BSS 7`.
+  Jack's call: build the layout rule, and leave each size to the stage
+  that can derive it. The verb generators size result storage, temporary
+  storage, the positional indicators, and the constant pool, so stage 1
+  leaves all four empty and stage 2 fills them. Stage 1 derives `BL)`
+  alone, and gets the sample's attested 3.
+  Arithmetic confirms the block order against three attested addresses.
+  Location Counter 1 starts at 01621. RS 30 words and TS 7 words put
+  `BL)1` at 01666, which the `ORG BL)1` line prints. BL 3 words put
+  `PI)1` at 01671, which the `BGN 2,PI)1` line prints. PI 3 words put
+  the pool at 01674, where the listing shows it.
+  **Amended 2026-08-05, the block order is frozen.** Jack's call: the
+  order is load-bearing, so the `StorageBlock` declaration is frozen.
+  Two facts support it. First, the three addresses above do not in fact
+  pin the order. `originOf` sums every block declared before the one it
+  is asked for, and addition hides a swap among them, so `BL)1` lands at
+  01666 whether `RS)` or `TS)` is declared first. Second, the storage map
+  does pin every block, because it prints a LOC against each
+  reservation: `RS)` at 01621, `TS)` at 01657, `BL)` at 01666, `PI)` at
+  01671, and the pool at 01674. `test/codegen_test.dart` asserts all
+  five origins, so a reordering fails a test instead of silently moving
+  addresses. Add a block only at a position the listing attests.
   The constant pool allocates in first-need order during generation, one
   entry per distinct constant as written — a literal keys on its OCT
   word, a pointer or descriptor word on its symbolic operand, never on
@@ -203,6 +237,16 @@ M4 executes I/O-free programs.
   entry records the principles, and the golden records the answer. The
   region golden is transcription-checked against the page scans before it
   is committed (the M3-22 discipline, two pages).
+- **M4-7.1. The stage-1 golden holds 91 rows** (Jack's call,
+  2026-08-05). The golden runs from `USE 0` through LOC 00164. It does
+  not hold `USE 1` or `BGN 2,PI)1`. Both carry Location Counter 1's
+  origin, which follows the procedure text, so no stage without verb
+  generation can compute them. Stage 2 prepends the two rows.
+  Before the golden was committed, the 89 body rows were diffed against
+  the 90.05 transcription. The M3 storage output already reproduces
+  every LOC value, every `OCT` and `BSS` row, and every label, with no
+  mismatch. The storage map is therefore a print problem at M4, not a
+  derivation problem.
 
 ## The symbolic listing pages
 
@@ -257,6 +301,26 @@ M4 executes I/O-free programs.
   - `SYS)n` and `IOC)n` print the decimal n in the address field, flagged
     external in CNTRL. A file name prints as 04000 plus its loader-card
     file number.
+  **Amended 2026-08-05, stage 1.** A second scan pass measured the
+  character grid of PDF pp. 199–200 and confirmed every column above.
+  It confirmed on ink one reading this entry already recorded, and
+  settled the two it left open:
+  - The `+n` offset is right-aligned, as recorded above. Page 200 holds
+    the only discriminating evidence, the two-digit offsets `+10` to `+23`.
+    Each starts one column to the left of a single-digit offset. The
+    transcription prints them left-aligned, which is an artifact.
+  - A broken long-label line prints its instruction at the normal
+    columns, the mnemonic at 49 and the operand at 56. The LOC, OCTAL,
+    CNTRL, and label fields stay blank. Both attested sites give the
+    same result: DEPARTMENT.TOTAL on p. 199 and INTERNAL.TOTALS on
+    p. 200. The transcription indents the second line two columns,
+    which is an artifact.
+  - The column header centers each of its first three names over its
+    field: `LOC` at 1, `OCTAL` at 12, `CNTRL` at 25. `SYMBOLIC` prints
+    at 58. This measurement holds to one column, not to the byte, so
+    the stage-1 golden excludes the header and stage 2 pins it.
+  The two page scans differ in horizontal registration. Measure each
+  page against its own LOC column, never against the other page.
   - Page furniture: the `LOC OCTAL CNTRL SYMBOLIC` column header prints
     once, on the first object page. The transcription records one blank
     line after each page head and one after the column header; the M4-20

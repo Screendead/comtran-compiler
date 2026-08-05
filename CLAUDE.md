@@ -13,15 +13,15 @@ This project builds a compiler for COMTRAN (IBM Commercial Translator, 1959 to
 from its two surviving IBM manuals; the compiler is written from that recovery.
 
 State, in one line: the card reader, the three division scanners, the listing,
-the parsers for all three divisions, and the job-stream driver work; no code
-generation exists yet. Read `docs/HANDOVER.md` for the live state and the next
-task.
+the parsers for all three divisions, and the job-stream driver work; code
+generation prints the storage map, but generates no procedure text yet. Read
+`docs/HANDOVER.md` for the live state and the next task.
 
 ## 3. Repository map
 
 | Path | What it holds |
 |---|---|
-| `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `driver`, `listing`, `emulator`, and `mcp` |
+| `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `data`, `codegen`, `driver`, `listing`, `emit`, `emulator`, and `mcp` |
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), `deckmcp.dart` (the MCP server) |
 | `test/` | The Dart tests, plus `test/goldens/`, `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its mirror, and the keying notes) |
 | `tool/` | Dart generators for this package |
@@ -105,6 +105,43 @@ Two rules keep these apart:
 
 Amend a decision by an explicit edit to its record, never silently. Cite the
 manual evidence in the amendment.
+
+### Collisions
+
+A collision is any case where two authorities in this repository require
+different things, and satisfying one breaks the other.
+
+Most collisions are already settled, because this repository ranks its
+sources. Where a rank applies, obey it and do not ask:
+
+| Higher | Lower | Stated in |
+|---|---|---|
+| the page scan | a manual conversion | sections 8 and 9 |
+| J28-6169 | F28-8043 | section 8 |
+| the manuals | the language definition | section 7 |
+| `docs/HANDOVER.md` | this file, on project state | section 1 |
+| a design record | the code | section 6 |
+
+Amend the lower source to match the higher one, and cite the rank in the
+amendment. A change to a manual conversion is the exception: it needs
+Jack's authorization first (section 9).
+
+**Where no rank covers the two sources, they are peers. Stop and bring a
+peer collision to Jack. Never settle one alone.** Present it this way, in
+plain English, with no jargon and no internal shorthand:
+
+1. Name the two things that collide, and quote the text of each.
+2. State what each one would have you do.
+3. Give every option, including the option to change one of the two
+   documents. For each, state the concrete consequence: what breaks, what
+   is left unbuilt, what a later reader is misled about, and what it costs
+   to reverse.
+4. Recommend one, and say why.
+
+Then wait. This holds even when one option is obviously better, and even
+when the work is already done — if a collision surfaces after the fact,
+flag it with the same four parts and say plainly that it is already
+committed.
 
 ## 7. The language definition
 
@@ -191,7 +228,41 @@ its plain form, `J 02.03.02` or `F p. 42`, and run the linkifier. It adds the
 brackets and rewrites the block. It never touches a citation inside a code
 span, a code block, a blockquote or a quotation.
 
-## 11. Workflow
+## 11. Code standards
+
+### No untested and unexercised code
+
+Code that no test asserts on **and** that no program run reaches must not
+enter the repository. Delete it. This is a hard rule, not a preference.
+
+Two words carry the rule, and they are not the same test:
+
+- **Exercised** — a normal run of the compiler or a tool reaches the code.
+- **Tested** — a test asserts on what the code does.
+
+Four cases follow. Only the last one is banned:
+
+| Exercised | Tested | Verdict |
+|---|---|---|
+| yes | yes | Good. Nothing to do. |
+| yes | no | Permitted, with caution. The code has a caller, so a change to it can break the program silently. Prefer to add the test. |
+| no | yes | Permitted. Keep watch: the code needs a concrete plan to get a caller. Record the plan in the design record that asks for the code. |
+| no | no | **Banned. Delete it.** |
+
+The rule binds a whole symbol and each of its parts: an unread field, an
+unused parameter, an unreachable branch, and a constant with no reader are
+each dead on their own, inside a class that is otherwise alive.
+
+Two consequences to expect:
+
+- **Do not write scaffolding for a later milestone.** Where nothing yet
+  asks for the shape, do not write it, and say so in the pull request.
+- **A design record that requires banned code is a peer collision.** No
+  rank in section 6 covers this file against a design record. Do not
+  delete the code, and do not amend the record. Stop and bring it to Jack
+  under the section 6 collision rule.
+
+## 12. Workflow
 
 - Branch off master with a topic slug, for example `m2-procedure`. Do not commit
   to master.
@@ -213,7 +284,7 @@ span, a code block, a blockquote or a quotation.
   repository, never the author's plan or rationale. Every finding must cite
   file:line and quote the text.
 
-## 12. Prose style: ASD-STE100 Simplified Technical English (Issue 9)
+## 13. Prose style: ASD-STE100 Simplified Technical English (Issue 9)
 
 **Scope.** STE governs repo prose documents only. It does not govern assistant
 responses; those follow the Density rules below. Exempt: verbatim manual quotes

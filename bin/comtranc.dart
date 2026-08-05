@@ -41,9 +41,11 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
                       write the semantic layer's dump
   --emit-listing[=PATH]
                       write the listing; stdout is unchanged
+  --emit-code[=PATH]
+                      write the assembly text model's dump
   -A, --emit-all      write every stage dump
-  -c -s -p -S -l      the short emit flags, one letter per stage above,
-                      bundleable: -cpsSl is the full set. A dump without
+  -c -s -p -S -l -g   the short emit flags, one letter per stage above,
+                      bundleable: -cpsSlg is the full set. A dump without
                       PATH lands next to the deck, the deck's extension
                       replaced by the stage name: `payroll.ctd -p`
                       writes `payroll.parse`.
@@ -58,6 +60,7 @@ const List<String> _emitStages = [
   'parse',
   'semantics',
   'listing',
+  'code',
 ];
 
 /// The one-letter emit flags. A short flag always takes the default
@@ -68,6 +71,7 @@ const Map<String, String> _emitLetters = {
   'p': 'parse',
   'S': 'semantics',
   'l': 'listing',
+  'g': 'code',
 };
 
 void main(List<String> arguments) {
@@ -219,6 +223,7 @@ int _run(List<String> arguments) {
     _emit(emitPaths['parse'], () => emitParse(deck));
     _emit(emitPaths['semantics'], () => emitSemantics(deck));
     _emit(emitPaths['listing'], () => listing!.toString());
+    _emit(emitPaths['code'], () => emitCode(deck));
     // Severity 5 stops a job (J 90.04.02); lower severities still
     // produce output.
     return deck.maxSeverity >= 5 ? 1 : 0;

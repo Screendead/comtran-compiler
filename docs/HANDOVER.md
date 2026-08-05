@@ -46,7 +46,8 @@ Terms that appear without expansion:
 | M2 stage 3 — job stream and --pedantic | Merged 2026-08-03 (PRs #47–#49) | `lib/src/driver/` |
 | M3 — the semantic layer | Done 2026-08-05 (stages 1–2 2026-08-04; stage 3, the listing extension, 2026-08-05) | `docs/design/m3-data.md`, `lib/src/data/` |
 | M4 decision walk (M4-1 to M4-21) | Done 2026-08-05 | `docs/design/m4-codegen.md` |
-| M4 stages 1–4, M5, M6 | Not started | — |
+| M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
+| M4 stages 2–4, M5, M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); hardens in M4 stage 4 | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -57,7 +58,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline, measured 2026-08-05: 965 Dart tests pass, and 154 extension
+Test baseline, measured 2026-08-05: 975 Dart tests pass, and 154 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -70,44 +71,43 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — M4 stage 1
+## The next task — M4 stage 2
 
-M3 closed 2026-08-05, and the M4 decision walk is recorded the same day:
-`docs/design/m4-codegen.md`, entries M4-1 to M4-21. M4 runs as four pull
-requests (M4-1): the assembly model with the storage-map print; the verb
-generators with the full symbolic listing; the object deck, loader
-cards, and our loader; the machine assembly with the compute handlers.
-The walk's collateral landed with it:
+M4 stage 1 closed 2026-08-05. `lib/src/codegen/` holds the text model
+(M4-3), the program image (M4-4), the storage-map print (M4-7), and the
+`--emit-code` dump (M4-19). The golden
+`test/goldens/90.05-payroll.storage-map` holds the 91 rows stage 1 can
+derive, `USE 0` through LOC 00164. It reproduces the 1962 listing.
 
-- D5.1 is amended: the walk performed the pre-committed decode of
-  statement 206's increment block, and the DO … FOR exit is a magnitude
-  test — normal exit leaves the index at r + q, and overshoot
-  terminates. Open Questions 24, 33, 34, 36, and 37 are annotated in
-  place; Q27, Q28, and Q31 carry implementation dispositions pointing at
-  the walk.
-- Seven page-scan checks (M4-20) settled the doubtful oracle readings.
-  The printed listing has one column geometry — the transcription's two
-  conventions are scan artifacts. The CP)+38/CP)+39 zero decrements and
-  the LOC 01327 `TRA SYS)267,0,0` word are genuine 1962 ink to
-  reproduce; the RETPREM pointer anomaly on the review backlog is closed
-  by the first of these. The GET descriptor word prints `IOCTN*` in the
-  listing against `IOCDN*` in the 90.02 typeset — a genuine divergence,
-  and codegen follows the listing. Two transcription errors joined the
-  erratum list below (items 4 and 5).
+Stage 2 generates the core-verb text and the full symbolic listing. Its
+oracle is the full listing diff, PDF pp. 198–216, byte for byte, after a
+blind scan verification pass over about nineteen pages (M4-8; the M3-22
+pattern). Plan for the cost: this pass is the most token-hungry task on
+the roadmap.
 
-Standing items for stage 1:
+What stage 2 must add, beyond the verb generators:
 
-- The `TS)` block's sizing rule is unrecovered; stage 1 carries the
-  sample's `TS) BSS 7` as a recorded constant (M4-4).
-- The later-pass GN allocation rule (GN)084 on) is provisional; stage 2
-  pins it instruction by instruction during the listing diff (M4-6).
+- The two head rows stage 1 could not compute, `USE 1` and
+  `BGN 2,PI)1`. Both carry Location Counter 1's origin, which follows
+  the procedure text (M4-7.1).
+- The four block sizes stage 1 leaves empty: result storage, temporary
+  storage, the positional indicators, and the constant pool. The verb
+  generators size all four. Stage 1 derives `BL)` alone, and gets the
+  sample's attested 3 (M4-4 as amended). `TS)` still has no recovered
+  sizing rule; the sample reserves 7 words and references none of them.
+- The page furniture: the page head, the `LOC OCTAL CNTRL SYMBOLIC`
+  column header, and the per-page blank counts. The header's columns are
+  measured to one column, not to the byte (M4-8 as amended).
+- The later-pass GN allocation rule (GN)084 on). Stage 2 pins it
+  instruction by instruction during the listing diff (M4-6). A design
+  that assumes a dense counter is wrong by construction.
 - Msg 942 widens to the eight generated-name classes with one combined
   tally (M4-5). Ids 946 and 947 are reserved for the D5.1 and D5.7
   pedantic sites, pedantic-only at C1 and C2 (M4-18); D6.1 to D6.5 stay
   deferred to M5 (D11.4).
-- The emit surface gains `--emit-code` (`-g`), `--emit-deck` (`-d`), and
-  `--emit-loader` (`-L`) under `emit-stages.md`'s conventions, which
-  M4-19 adopts unamended.
+- The emit surface gains `--emit-deck` (`-d`) and `--emit-loader` (`-L`)
+  at stage 3, under `emit-stages.md`'s conventions, which M4-19 adopts
+  unamended.
 
 ## Rules that bind future work
 
@@ -217,7 +217,8 @@ PDF p. 217. It makes every milestone below testable at once.
   evidence), REDEF, QUANTITY, the dictionary and name resolution, and the
   listing's GN)nnn and LOC columns. M3's own decisions:
   `docs/design/m3-data.md`.
-- **M4 — Core-verb code generation**: MOVE, SET, IF, WHEN, GO TO, and DO. DO
+- **M4 — Core-verb code generation** (stage 1 done 2026-08-05, the
+  assembly model and the storage-map print): MOVE, SET, IF, WHEN, GO TO, and DO. DO
   follows the verified Q40 return-cell semantics, non-reentrancy included.
   Arithmetic follows §4.3 and the Q26–Q28 annotations. The emulator core
   (`docs/design/emulator.md`) hardens here. The msg 942 dictionary counter

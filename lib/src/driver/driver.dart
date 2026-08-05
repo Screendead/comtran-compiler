@@ -9,6 +9,7 @@
 library;
 
 import '../cards/card_image.dart';
+import '../codegen/codegen.dart';
 import '../data/data_map.dart';
 import '../data/semantics.dart';
 import '../lexer/diagnostic.dart';
@@ -24,6 +25,7 @@ final class JobCompilation {
     this.frontEnd,
     this.parse,
     this.semantics,
+    this.codegen,
     this.sink,
     this.diagnostics,
   );
@@ -37,6 +39,10 @@ final class JobCompilation {
   /// The semantic layer's result, or `null` when an earlier phase
   /// stopped (D10.2: the driver skips the phase).
   final SemanticResult? semantics;
+
+  /// The generated object text, or `null` when an earlier phase
+  /// stopped (M4-2; D10.2).
+  final CodegenResult? codegen;
 
   /// The job's diagnostic sink (D11.2): its `maxSeverity` decides the
   /// job's severity.
@@ -109,6 +115,10 @@ DeckCompilation compileDeck(
             pedantic: pedantic,
             tableLimits: tableLimits,
           );
+    // A semantic stop skips code generation the same way (M4-2; D10.2).
+    final CodegenResult? codegen = semantics == null || semantics.stopped
+        ? null
+        : runCodegen(semantics);
     final diagnostics = <Diagnostic>[
       ...semantics?.diagnostics ?? parse?.diagnostics ?? frontEnd.diagnostics,
     ];
@@ -150,6 +160,7 @@ DeckCompilation compileDeck(
         frontEnd,
         parse,
         semantics,
+        codegen,
         sink,
         List.unmodifiable(diagnostics),
       ),
