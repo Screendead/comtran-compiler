@@ -66,7 +66,15 @@ void main() {
 
   group('the listing', () {
     test('reproduces the committed golden byte for byte', () {
-      final String listing = writeListing(_payroll(), _sampleOptions);
+      // The golden carries the M3-8 columns, so the fixture compiles
+      // through the semantic layer for the annotations.
+      final FrontEndResult result = _payroll();
+      final SemanticResult semantics = runSemantics(runParser(result));
+      final String listing = writeListing(
+        result,
+        _sampleOptions,
+        annotations: semantics.allocation!.annotations,
+      );
       expect(
         listing,
         File('test/goldens/90.05-payroll.listing').readAsStringSync(),
@@ -75,8 +83,7 @@ void main() {
 
     test('comtranc prints the golden and exits 0', () {
       // The complete job deck (D11.3): the artifact plus the
-      // reconstructed *FINISH, which the splitter consumes — the
-      // listing bytes are identical to the raw front-end golden.
+      // reconstructed *FINISH, which the splitter consumes.
       final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
         'run',
         'comtran:comtranc',
@@ -138,7 +145,7 @@ void main() {
         // first, inside the word AXB, is gated (134,00) and prints as the
         // character-gate repair mark; the second, inside the literal 'CXD',
         // is legal and prints as any other unreadable machine character
-        // (lib/src/listing/listing.dart:151-170).
+        // (_externalBody in lib/src/listing/listing.dart).
         final List<int> columns = blankColumns();
         punchGlyphs(columns, 13, "MOVE AXB TO 'CXD'.");
         columns[18] = punchesFromBcd(0x3A)!; // record mark, column 19

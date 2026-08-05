@@ -6,6 +6,7 @@ import '../ast/data_ast.dart';
 import '../ast/procedure_ast.dart';
 import '../lexer/diagnostic.dart';
 import '../parser/parser.dart';
+import 'allocator.dart';
 import 'dictionary.dart';
 import 'pictorial.dart';
 
@@ -177,6 +178,7 @@ final class SemanticResult {
     required this.areas,
     required this.records,
     required this.dictionary,
+    required this.allocation,
     required this.dataResolutions,
     required this.correspondingPairs,
     required this.keysConditions,
@@ -199,6 +201,11 @@ final class SemanticResult {
 
   /// The program dictionary (M3-8; M3-17).
   final Dictionary dictionary;
+
+  /// The dictionary allocator's words and generated names (M3-8), or
+  /// `null` when the phase stopped before allocation (D10.2) — the
+  /// listing's LOC and GN columns then stay blank.
+  final DictionaryAllocation? allocation;
 
   /// Every resolved data reference, identity-keyed (M3-17).
   final Map<NameReference, DataItem> dataResolutions;

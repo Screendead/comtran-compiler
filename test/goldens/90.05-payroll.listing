@@ -2,192 +2,195 @@
 
         DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   1
 
+
         *COMPILE LIST                                   CT PUBLICATIONS
   CTC
+
                                 *DATA
-                   1,00         MASTER           1RECORD      L
-                   2,00           DAT            2
+                   1,00   71175 MASTER           1RECORD      L
+                   2,00   71177   DAT            2
                    3,00             EMPLOYEE.NUM 3
-                                             BER
-                   4,00               DEPARTMENT 4             AA
-                   5,00               EMPLOYEE   4             AAAA
-                   6,00             NAME         3             A(15)
-                   7,00           TRIGGERS       2             AAA
-                   8,00           RATE           2           IR99V999
-                   9,00           DATE           2
-                  10,00             MONTH        3             AA
-                  11,00             DAY          3             AA
-                  12,00             YEAR         3             AA
-                  13,00           EXEMPTIONS     2           IR99
-                  14,00           TOTALS         2
-                  15,00             GROSS        3           IR9(4)V99
-                  16,00             RETIREMENT   3           IR999V99
-                  17,00             INSURANCE    3           IR999V99
-                  18,00           FICA           2           IR999V99
-                  19,00           WHT            2           IR9(4)V99
-                  20,00           BONDEDUCTION   2           IR99V99
+                          71200              BER
+                   4,00   71201       DEPARTMENT 4             AA
+                   5,00   71202       EMPLOYEE   4             AAAA
+                   6,00   71203     NAME         3             A(15)
+                   7,00   71204   TRIGGERS       2             AAA
+                   8,00   71205   RATE           2           IR99V999
+                   9,00   71206   DATE           2
+                  10,00   71207     MONTH        3             AA
+                  11,00   71210     DAY          3             AA
+                  12,00   71211     YEAR         3             AA
+                  13,00   71212   EXEMPTIONS     2           IR99
+                  14,00   71213   TOTALS         2
+                  15,00   71214     GROSS        3           IR9(4)V99
+                  16,00   71215     RETIREMENT   3           IR999V99
+                  17,00   71216     INSURANCE    3           IR999V99
+                  18,00   71217   FICA           2           IR999V99
+                  19,00   71220   WHT            2           IR9(4)V99
+                  20,00   71221   BONDEDUCTION   2           IR99V99
                   21,00           BONDACCUMULATI 2           IR999V99
-                                              ON
+                          71222               ON
                   22,00           BONDENOMINATIO 2           IR999V99
-                                               N
-                  23,00         DETAIL          01RECORD
-                  24,00          EMPLOYEE.NUMBER02
-                  25,00           DEPARTMENT    03             AA
-                  26,00           EMPLOYEE      03             AAAA
-                  27,00          DATE           02
-                  28,00           MONTH         03             AA
-                  29,00           DAY           03             AA
-                  30,00           YEAR          03             AA
-                  31,00          HOURS          02             99V9
-                  32,00         CHECK           01RECORD
-                  33,00          CNTRLCHAR      02             A '1'
-                  34,00          DATE           02
-                  35,00           MONTH         03             AA
-                  36,00                         03             A '-'
-                  37,00           DAY           03             AA
-                  38,00                         03             A '-'
-                  39,00           YEAR          03             AA
-                  40,00                         03             A(30) ' '
-                  41,00          EMPLOYEE.NUMBER02             A(6)
-                  42,00          ENDFRSTLINE    02RCDMRK       A
-                  43,00          CNTRLCHARSECLIN02             A '2'
-                  44,00          NAME           02             A(18)
-                  45,00                         02             A(20) ' '
-                  46,00          AMOUNT         02             $8889.99
-                  47,00         PAYRECORD        1RECORD
-                  48,00          EMPLOYEE.NUMBER 2
-                  49,00           DEPARTMENT     3             AA
+                          71223                N
+                  23,00   71224 DETAIL          01RECORD
+                  24,00   71226  EMPLOYEE.NUMBER02
+                  25,00   71227   DEPARTMENT    03             AA
+                  26,00   71230   EMPLOYEE      03             AAAA
+                  27,00   71231  DATE           02
+                  28,00   71232   MONTH         03             AA
+                  29,00   71233   DAY           03             AA
+                  30,00   71234   YEAR          03             AA
+                  31,00   71235  HOURS          02             99V9
+                  32,00   71236 CHECK           01RECORD
+                  33,00   71240  CNTRLCHAR      02             A '1'
+                  34,00   71241  DATE           02
+                  35,00   71242   MONTH         03             AA
+                  36,00         GN)001          03             A '-'
+                  37,00   71244   DAY           03             AA
+                  38,00         GN)002          03             A '-'
+                  39,00   71246   YEAR          03             AA
+                  40,00         GN)003          03             A(30) ' '
+                  41,00   71250  EMPLOYEE.NUMBER02             A(6)
+                  42,00   71251  ENDFRSTLINE    02RCDMRK       A
+                  43,00   71252  CNTRLCHARSECLIN02             A '2'
+                  44,00   71253  NAME           02             A(18)
+                  45,00         GN)004          02             A(20) ' '
+                  46,00   71255  AMOUNT         02             $8889.99
+                  47,00   71256 PAYRECORD        1RECORD
         DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   2
 
-                  50,00                          3             A ' '
-                  51,00           EMPLOYEE       3             AAAA
-                  52,00                          3             A ' '
-                  53,00          NAME            2             A(15)
-                  54,00                          2             A ' '
-                  55,00          DATE            2
-                  56,00           MONTH          3             AA
-                  57,00                          3             A '-'
-                  58,00           DAY            3             AA
-                  59,00                          3             A '-'
-                  60,00           YEAR           3             AA
-                  61,00                          2             AAA ' '
-                  62,00          HRS             2             8889.9
-                  63,00                          2             AA ' '
-                  64,00          GROSS           2             88889.99
-                  65,00                          2             AA ' '
-                  66,00          WHT             2             88889.99
-                  67,00                          2             AA ' '
-                  68,00          FICA            2             8889.99
-                  69,00                          2             AA ' '
-                  70,00          BONDEDUCTION    2             8889.99
-                  71,00                          2             AA ' '
-                  72,00          INS.PREM        2             8889.99
-                  73,00                          2             AA ' '
-                  74,00          RET.PREM        2             8889.99
-                  75,00                          2             AAA ' '
-                  76,00          NETPAY          2             8889.99
-                  77,00                          2             AA ' '
-                  78,00          BONDENOMINATION 2             88889.99
-                  79,00         DEPARTMENT.TOTAL 1RECORD
-                  80,00                          2             A(21) '          DEPARTMENT '
-                  81,00          CURRENT.DEPT    2             AA
-                  82,00                          2             A(12) ' TOTALS     '
-                  83,00          HOURS           2             8889.9
-                  84,00                          2             AA ' '
-                  85,00          GROSS           2             88889.99
-                  86,00                          2             AA ' '
-                  87,00          WHT             2             88889.99
-                  88,00                          2             AA ' '
-                  89,00          FICA            2             8889.99
-                  90,00                          2             AA ' '
-                  91,00          BONDEDUCTION    2             8889.99
-                  92,00                          2             AA ' '
-                  93,00          INSURANCE       2             8889.99
-                  94,00                          2             AA ' '
-                  95,00          RETIREMENT      2             8889.99
-                  96,00                          2             AA ' '
-                  97,00          NETPAY          2             88889.99
-                  98,00                          2             AA ' '
-                  99,00          BONDPURCHASES   2             88889.99
-                 100,00         BONDORDER        1RECORD
-                 101,00                          2             A ' '
-                 102,00           DAT            2
-                 103,00             EMPLOYEE.NUM 3             A(6)
-                                             BER
+                  48,00   71260  EMPLOYEE.NUMBER 2
+                  49,00   71261   DEPARTMENT     3             AA
+                  50,00         GN)005           3             A ' '
+                  51,00   71263   EMPLOYEE       3             AAAA
+                  52,00         GN)006           3             A ' '
+                  53,00   71265  NAME            2             A(15)
+                  54,00         GN)007           2             A ' '
+                  55,00   71267  DATE            2
+                  56,00   71270   MONTH          3             AA
+                  57,00         GN)008           3             A '-'
+                  58,00   71272   DAY            3             AA
+                  59,00         GN)009           3             A '-'
+                  60,00   71274   YEAR           3             AA
+                  61,00         GN)010           2             AAA ' '
+                  62,00   71276  HRS             2             8889.9
+                  63,00         GN)011           2             AA ' '
+                  64,00   71300  GROSS           2             88889.99
+                  65,00         GN)012           2             AA ' '
+                  66,00   71302  WHT             2             88889.99
+                  67,00         GN)013           2             AA ' '
+                  68,00   71304  FICA            2             8889.99
+                  69,00         GN)014           2             AA ' '
+                  70,00   71306  BONDEDUCTION    2             8889.99
+                  71,00         GN)015           2             AA ' '
+                  72,00   71310  INS.PREM        2             8889.99
+                  73,00         GN)016           2             AA ' '
+                  74,00   71312  RET.PREM        2             8889.99
+                  75,00         GN)017           2             AAA ' '
+                  76,00   71314  NETPAY          2             8889.99
+                  77,00         GN)018           2             AA ' '
+                  78,00   71316  BONDENOMINATION 2             88889.99
+                  79,00   71317 DEPARTMENT.TOTAL 1RECORD
+                  80,00         GN)019           2             A(21) '          DEPARTMENT '
+                  81,00   71322  CURRENT.DEPT    2             AA
+                  82,00         GN)020           2             A(12) ' TOTALS     '
+                  83,00   71324  HOURS           2             8889.9
+                  84,00         GN)021           2             AA ' '
+                  85,00   71326  GROSS           2             88889.99
+                  86,00         GN)022           2             AA ' '
+                  87,00   71330  WHT             2             88889.99
+                  88,00         GN)023           2             AA ' '
+                  89,00   71332  FICA            2             8889.99
+                  90,00         GN)024           2             AA ' '
+                  91,00   71334  BONDEDUCTION    2             8889.99
+                  92,00         GN)025           2             AA ' '
+                  93,00   71336  INSURANCE       2             8889.99
+                  94,00         GN)026           2             AA ' '
+                  95,00   71340  RETIREMENT      2             8889.99
+                  96,00         GN)027           2             AA ' '
+                  97,00   71342  NETPAY          2             88889.99
+                  98,00         GN)028           2             AA ' '
+                  99,00   71344  BONDPURCHASES   2             88889.99
+                 100,00   71345 BONDORDER        1RECORD
+                 101,00         GN)029           2             A ' '
+                 102,00   71350   DAT            2
         DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   3
 
-                 104,00                          3             A ' '
-                 105,00             NAME         3             A(15)
-                 106,00                          3             A ' '
+                 103,00             EMPLOYEE.NUM 3             A(6)
+                          71351              BER
+                 104,00         GN)030           3             A ' '
+                 105,00   71353     NAME         3             A(15)
+                 106,00         GN)031           3             A ' '
                  107,00           BONDENOMINATIO 2             899V99
-                                               N
-                 108,00                          2             A ' '
-                 109,00           DATE           2             A(6)
-                 110,00         ERROROUT         1RECORD
-                 111,00           ERRORTYPE      2             A
-                 112,00           INFO           2             A(23)
-                 113,00         WORKING          1
-                 114,00           GROSS          2           IR9(5)V99
-                 115,00           RETIREMENT     2           IR9(4)V99
-                 116,00           INSURANCE      2           IR9(4)V99
-                 117,00           FICA           2           IR9(4)V99
-                 118,00           WHT            2           IR9(5)V99
-                 119,00           NETPAY         2           IR9(5)V99
-                 120,00           HOURS          2           IR99V9
-                 121,00           INDEX          2           IR99
-                 122,00           POS            2           IR99
-                 123,00         INTERNAL.TOTALS  1
-                 124,00          HOURS           2           IR9999V9
-                 125,00          GROSS           2           IR9(5)V99
-                 126,00          WHT             2           IR9(5)V99
-                 127,00          FICA            2           IR9(4)V99
-                 128,00          BONDEDUCTION    2           IR9(4)V99
-                 129,00          INSURANCE       2           IR9(4)V99
-                 130,00          RETIREMENT      2           IR9(4)V99
-                 131,00          NETPAY          2           IR9(5)V99
-                 132,00          BONDPURCHASES   2           IR9(5)V99
-                 133,00         GRAND.TOTALS     1
-                 134,00          HOURS           2           IR9(4)V9
-                 135,00          GROSS           2           IR9(5)V99
-                 136,00          WHT             2           IR9(5)V99
-                 137,00          FICA            2           IR9(4)V99
-                 138,00          BONDEDUCTION    2           IR9(4)V99
-                 139,00          INSURANCE       2           IR9(4)V99
-                 140,00          RETIREMENT      2           IR9(4)V99
-                 141,00          NETPAY          2           IR9(5)V99
-                 142,00          BONDPURCHASES   2           IR9(5)V99
-                 143,00         TABLE            1
-                 144,00                          2           IR9(5) '00999'
-                 145,00                          2             '080060'
-                 146,00                          2           IR9(5) '01499'
-                 147,00                          2             '100060'
-                 148,00                          2           IR9(5) '01999'
-                 149,00                          2             '120090'
-                 150,00                          2           IR9(5) '02499'
-                 151,00                          2             '150090'
-                 152,00                          2           IR9(5) '02999'
-                 153,00                          2             '150120'
-                 154,00                          2           IR9(5) '03499'
-                 155,00                          2             '200120'
-                 156,00                          2           IR9(5) '03999'
-                 157,00                          2             '200150'
+                          71355                N
+                 108,00         GN)032           2             A ' '
+                 109,00   71357   DATE           2             A(6)
+                 110,00   71360 ERROROUT         1RECORD
+                 111,00   71362   ERRORTYPE      2             A
+                 112,00   71363   INFO           2             A(23)
+                 113,00   71364 WORKING          1
+                 114,00   71365   GROSS          2           IR9(5)V99
+                 115,00   71366   RETIREMENT     2           IR9(4)V99
+                 116,00   71367   INSURANCE      2           IR9(4)V99
+                 117,00   71370   FICA           2           IR9(4)V99
+                 118,00   71371   WHT            2           IR9(5)V99
+                 119,00   71372   NETPAY         2           IR9(5)V99
+                 120,00   71373   HOURS          2           IR99V9
+                 121,00   71374   INDEX          2           IR99
+                 122,00   71375   POS            2           IR99
+                 123,00   71376 INTERNAL.TOTALS  1
+                 124,00   71377  HOURS           2           IR9999V9
+                 125,00   71400  GROSS           2           IR9(5)V99
+                 126,00   71401  WHT             2           IR9(5)V99
+                 127,00   71402  FICA            2           IR9(4)V99
+                 128,00   71403  BONDEDUCTION    2           IR9(4)V99
+                 129,00   71404  INSURANCE       2           IR9(4)V99
+                 130,00   71405  RETIREMENT      2           IR9(4)V99
+                 131,00   71406  NETPAY          2           IR9(5)V99
+                 132,00   71407  BONDPURCHASES   2           IR9(5)V99
+                 133,00   71410 GRAND.TOTALS     1
+                 134,00   71411  HOURS           2           IR9(4)V9
+                 135,00   71412  GROSS           2           IR9(5)V99
+                 136,00   71413  WHT             2           IR9(5)V99
+                 137,00   71414  FICA            2           IR9(4)V99
+                 138,00   71415  BONDEDUCTION    2           IR9(4)V99
+                 139,00   71416  INSURANCE       2           IR9(4)V99
+                 140,00   71417  RETIREMENT      2           IR9(4)V99
+                 141,00   71420  NETPAY          2           IR9(5)V99
+                 142,00   71421  BONDPURCHASES   2           IR9(5)V99
+                 143,00   71422 TABLE            1
+                 144,00         GN)033           2           IR9(5) '00999'
+                 145,00         GN)034           2             '080060'
+                 146,00         GN)035           2           IR9(5) '01499'
+                 147,00         GN)036           2             '100060'
+                 148,00         GN)037           2           IR9(5) '01999'
+                 149,00         GN)038           2             '120090'
+                 150,00         GN)039           2           IR9(5) '02499'
+                 151,00         GN)040           2             '150090'
+                 152,00         GN)041           2           IR9(5) '02999'
+                 153,00         GN)042           2             '150120'
+                 154,00         GN)043           2           IR9(5) '03499'
+                 155,00         GN)044           2             '200120'
         DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   4
 
-                 158,00                          2           IR9(5) '04499'
-                 159,00                          2             '250150'
-                 160,00                          2           IR9(5) '04999'
-                 161,00                          2             '300180'
-                 162,00                          2           IR9(5) '06499'
-                 163,00                          2             '300250'
-                 164,00                          2           IR9(5) '07999'
-                 165,00                          2             '300350'
-                 166,00                          2           IR9(5) '99999'
-                 167,00                          2             '300500'
-                 168,00                           REDEF        TABLE
-                 169,00         TABLE.ITEM       1         12
-                 170,00         RATE             2           IR99V999
-                 171,00         INSPREM          2             9V99
-                 172,00         RETPREM          2             9V99
+                 156,00         GN)045           2           IR9(5) '03999'
+                 157,00         GN)046           2             '200150'
+                 158,00         GN)047           2           IR9(5) '04499'
+                 159,00         GN)048           2             '250150'
+                 160,00         GN)049           2           IR9(5) '04999'
+                 161,00         GN)050           2             '300180'
+                 162,00         GN)051           2           IR9(5) '06499'
+                 163,00         GN)052           2             '300250'
+                 164,00         GN)053           2           IR9(5) '07999'
+                 165,00         GN)054           2             '300350'
+                 166,00         GN)055           2           IR9(5) '99999'
+                 167,00         GN)056           2             '300500'
+                 168,00         GN)057            REDEF        TABLE
+                 169,00   71454 TABLE.ITEM       1         12
+                 170,00   71455 RATE             2           IR99V999
+                 171,00   71456 INSPREM          2             9V99
+                 172,00   71457 RETPREM          2             9V99
+
                                 *ENVIRONMENT
                  173,00         INPUTMASTER       FILE  INPUT,BINARY,TAPE,MASTER,BLOCKSIZE 300
                  174,00                           SPECIFINPUTMASTER, UNIT1 'D1',OPENW,CLOSER
@@ -204,35 +207,36 @@
                  184,00                           SPECIFBONDORDERFILE,UNIT1 'C3',OPENW,CLOSER,LOW
                  185,00         ERRORFILE         FILE  OUTPUT,BCD,TAPE,ERROROUT,BLOCKSIZE 6
                  186,00                           SPECIFERRORFILE,UNIT1 'D4',OPENW,CLOSER,LOW
+
                                 *PROCEDURE
-                 187,00               CALL (MASTER EMPLOYEE.NUMBER)   M.EMP.NO,
-                                           (DETAIL EMPLOYEE.NUMBER)   D.EMP.NO,
-                                           (DETAIL DEPARTMENT)        D.DEPT,
-                                           (MASTER BONDEDUCTION)      M.BND.DED,
-                                           (MASTER BONDACCUMULATION)  M.BND.ACC.
-                 188,00         START.          OPEN ALL FILES,
+                 187,00   71461 GN)000CALL (MASTER EMPLOYEE.NUMBER)   M.EMP.NO,
+                          71462            (DETAIL EMPLOYEE.NUMBER)   D.EMP.NO,
+                          71463            (DETAIL DEPARTMENT)        D.DEPT,
+                          71464            (MASTER BONDEDUCTION)      M.BND.DED,
+                          71465            (MASTER BONDACCUMULATION)  M.BND.ACC.
+                 188,00   71466 START.          OPEN ALL FILES,
                                       MOVE ZEROS TO INTERNAL.TOTALS, GRAND.TOTALS,
                                       GET MASTER, AT END DO END.OF.MASTERS.
                  189,00               MOVE MASTER DEPARTMENT TO CURRENT.DEPT,  GO TO GET.DETAIL.
-                 190,00         GET.MASTER.  GET MASTER, AT END DO END.OF.MASTERS.
-                 191,00         GET.DETAIL.  GET DETAIL, AT END GO TO END.OF.DETAILS.
-                 192,00         COMPARE.EMPLOYEE.NUMBERS.  GO TO CHECK.NEW.DEPT WHEN D.EMP.NO =
+                 190,00   71471 GET.MASTER.  GET MASTER, AT END DO END.OF.MASTERS.
+                 191,00   71474 GET.DETAIL.  GET DETAIL, AT END GO TO END.OF.DETAILS.
+                 192,00   71477 COMPARE.EMPLOYEE.NUMBERS.  GO TO CHECK.NEW.DEPT WHEN D.EMP.NO =
                                       M.EMP.NO,  LOW.DETAIL WHEN D.EMP.NO LT M.EMP.NO.
-                 193,00         HIGH.DETAIL.  MOVE 'M' TO ERRORTYPE,  MOVE MASTER DAT  TO
+                 193,00   71500 HIGH.DETAIL.  MOVE 'M' TO ERRORTYPE,  MOVE MASTER DAT  TO
                                       ERROROUT INFO,
                                       FILE ERROROUT.
                  194,00               GET MASTER, AT END DO END.OF.MASTERS.
                  195,00               GO TO COMPARE.EMPLOYEE.NUMBERS.
-                 196,00         LOW.DETAIL. MOVE DETAIL TO ERROROUT INFO, MOVE 'D' TO ERRORTYPE,
-                                      FILE ERROROUT,
-                                      GO TO GET.DETAIL.
-                 197,00         END.OF.MASTERS.  IF D.EMP.NO = HIGH.VALUE THEN GO TO END.OF.RUN
-                                      OTHERWISE SET M.EMP.NO = HIGH.VALUE.
+                 196,00   71503 LOW.DETAIL. MOVE DETAIL TO ERROROUT INFO, MOVE 'D' TO ERRORTYPE,
         DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   5
 
-                 198,00         END.OF.DETAILS.  IF M.EMP.NO = HIGH.VALUE THEN GO TO END.OF.RUN
+                                      FILE ERROROUT,
+                                      GO TO GET.DETAIL.
+                 197,00   71504 END.OF.MASTERS.  IF D.EMP.NO = HIGH.VALUE THEN GO TO END.OF.RUN
+                                      OTHERWISE SET M.EMP.NO = HIGH.VALUE.
+                 198,00   71507 END.OF.DETAILS.  IF M.EMP.NO = HIGH.VALUE THEN GO TO END.OF.RUN
                                       OTHERWISE SET D.EMP.NO = HIGH.VALUE,  GO TO HIGH.DETAIL.
-                 199,00         END.OF.RUN.  DO DEPARTMENT.END,
+                 199,00   71512 END.OF.RUN.  DO DEPARTMENT.END,
                                       MOVE CORRESPONDING GRAND.TOTALS TO PAYRECORD,
                                       MOVE GRAND.TOTALS HOURS TO PAYRECORD HRS,
                                       MOVE GRAND.TOTALS INSURANCE TO PAYRECORD INS.PREM,
@@ -243,11 +247,11 @@
                                       MOVE GRAND.TOTALS BONDPURCHASES TO PAYRECORD
                                       BONDENOMINATION,  FILE PAYRECORD,
                                       CLOSE ALL FILES,  STOP RUN.
-                 200,00         CHECK.NEW.DEPT.  IF CURRENT.DEPT IS NOT EQUAL TO D.DEPT THEN
+                 200,00   71513 CHECK.NEW.DEPT.  IF CURRENT.DEPT IS NOT EQUAL TO D.DEPT THEN
                                       DO DEPARTMENT.END OTHERWISE GO TO COMPUTE.PAY.
                  201,00               MOVE ZEROS TO INTERNAL.TOTALS,
                                       MOVE D.DEPT TO CURRENT.DEPT.
-                 202,00         COMPUTE.PAY.  MOVE DETAIL DATE TO MASTER DATE,  MOVE DETAIL
+                 202,00   71516 COMPUTE.PAY.  MOVE DETAIL DATE TO MASTER DATE,  MOVE DETAIL
                                       HOURS TO WORKING HOURS, PAYRECORD HRS.
                  203,00               IF WORKING HOURS GT 40.0 THEN SET WORKING GROSS = (WORKING
                                       HOURS * 1.5 -20) * MASTER RATE OTHERWISE SET WORKING
@@ -258,7 +262,7 @@
                                       OTHERWISE MOVE BLANKS TO PAYRECORD BONDEDUCTION,PAYRECORD
                                       BONDENOMINATION.
                  206,00               DO SEARCH FOR INDEX = 1(1)12.
-                 207,00         NET.  SET WORKING NETPAY = WORKING GROSS - WORKING FICA - WORKING
+                 207,00   71523 NET.  SET WORKING NETPAY = WORKING GROSS - WORKING FICA - WORKING
                                       WHT - WORKING RETIREMENT - WORKING INSURANCE - M.BND.DED.
                  208,00               ADD CORRESPONDING WORKING TO MASTER TOTALS, INTERNAL.TOTALS,
                                       MOVE CORRESPONDING DETAIL TO PAYRECORD, CHECK,
@@ -269,43 +273,43 @@
                                       FILE PAYRECORD,
                                       FILE MASTER.
                  209,00               GO TO GET.MASTER.
-                 210,00         FICA.ROUTINE.  BEGIN SECTION.
+                 210,00   71524 FICA.ROUTINE.  BEGIN SECTION.
                  211,00               SET WORKING FICA = .03 * WORKING GROSS,
                                       ADD WORKING FICA TO MASTER FICA.
                  212,00               IF MASTER FICA GT 144.00 THEN SET WORKING FICA = WORKING
                                       FICA - (MASTER FICA - 144.00), SET MASTER FICA = 144.00.
-                 213,00               END FICA.ROUTINE.
-                 214,00         WITHOLDING.TAX.ROUTINE.  BEGIN SECTION.
+                 213,00         GN)077END FICA.ROUTINE.
+                 214,00   71527 WITHOLDING.TAX.ROUTINE.  BEGIN SECTION.
                  215,00               SET WORKING WHT = 0.18 * (WORKING GROSS - 13 * MASTER
                                       EXEMPTIONS),
                                       SET WORKING WHT = WORKING WHT * TR(WORKING WHT GT 0),
                                       ADD WORKING WHT TO MASTER WHT.
-                 216,00               END WITHOLDING.TAX.ROUTINE.
-                 217,00         BOND.ROUTINE.  BEGIN SECTION.
+                 216,00         GN)078END WITHOLDING.TAX.ROUTINE.
+        DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   6
+
+                 217,00   71531 BOND.ROUTINE.  BEGIN SECTION.
                  218,00               ADD M.BND.DED TO M.BND.ACC,INTERNAL.TOTALS BONDEDUCTION.
                  219,00               MOVE M.BND.DED TO PAYRECORD BONDEDUCTION.
                  220,00               IF MASTER BONDENOMINATION NOT GT M.BND.ACC THEN SET
-        DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   6
-
                                       M.BND.ACC = M.BND.ACC - MASTER BONDENOMINATION OTHERWISE
                                       MOVE BLANKS TO PAYRECORD BONDENOMINATION,  GO TO BOND.END.
                  221,00               MOVE CORRESPONDING MASTER TO BONDORDER,  ADD BONDORDER
                                       BONDENOMINATION TO INTERNAL.TOTALS BONDPURCHASES,MOVE
                                       BONDORDER BONDENOMINATION TO PAYRECORD BONDENOMINATION.
                  222,00               FILE BONDORDER.
-                 223,00         BOND.END.  END BOND.ROUTINE.
-                 224,00         SEARCH.  BEGIN SECTION.
+                 223,00   71534 BOND.END.  END BOND.ROUTINE.
+                 224,00   71535 SEARCH.  BEGIN SECTION.
                  225,00               IF MASTER RATE GT TABLE.ITEM RATE (INDEX) THEN GO TO
                                       SEARCH.END OTHERWISE MOVE INDEX TO POS,
                                       MOVE INSPREM (POS) TO INS.PREM, WORKING INSURANCE,
                                       MOVE RETPREM (POS) TO RET.PREM, WORKING RETIREMENT,
                                       GO TO NET.
-                 226,00         SEARCH.END.  END SEARCH.
-                 227,00         DEPARTMENT.END. BEGIN SECTION.
+                 226,00   71540 SEARCH.END.  END SEARCH.
+                 227,00   71541 DEPARTMENT.END. BEGIN SECTION.
                  228,00               MOVE CORRESPONDING INTERNAL.TOTALS TO DEPARTMENT.TOTAL,
                                       FILE DEPARTMENT.TOTAL,
                                       ADD CORRESPONDING INTERNAL.TOTALS TO GRAND.TOTALS.
-                 229,00               END DEPARTMENT.END.
+                 229,00         GN)083END DEPARTMENT.END.
 
   CTD
   CTE
