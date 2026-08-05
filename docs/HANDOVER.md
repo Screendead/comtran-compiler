@@ -122,8 +122,15 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. No candidate is open. Eight are authorized and applied. The
-  most recent, on 2026-08-05, corrected word spacing at six sites in the 90.05
+  authorization. No candidate is open. Nine are authorized and applied. The
+  most recent, on 2026-08-05, corrected word spacing at two sites in statement
+  193, after `ERRORTYPE,` and after `DAT`, where the print and the deck both
+  hold two spaces and the conversion held one. A card-by-card comparison of the
+  deck against the conversion found them, and
+  `test/fixtures/90.05-payroll-deck-notes.md` item 4 holds the measurements and
+  the scope of that comparison. It changed no golden and no test, because the
+  deck was already right. The eighth, also on 2026-08-05, corrected word
+  spacing at six sites in the 90.05
   listing — statements 182, 187, 198, 199 and 220, recorded with the
   measurements in `test/fixtures/90.05-payroll-deck-notes.md` item 3. A
   seventh site in that item corrected the deck instead: the print holds one
