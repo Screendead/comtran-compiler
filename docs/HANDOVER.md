@@ -122,29 +122,24 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. Two candidates wait for it, both found while the 2026-08-05
-  pass was applied, and neither yet applied:
-  1. The two compiler-punched control-card lines — `*CTEXT` (PDF p. 198) and
-     `*CTEND` (PDF p. 216) — carry the wrong spacing from the TIME value
-     rightward. In card columns the print puts the time value at 45, `CT` at
-     55 and the sequence number at 79; the transcription puts them at 43, 50
-     and 78. Column 55 is where the manual's own layout for these two cards
-     starts the secondary identifier ([J 03.02.09]), which corroborates the
-     measurement. Both pages were deskewed and measured at a 9.26-px character
-     pitch, where every field on both cards falls within 0.1 column of an
-     integer and the two cards agree within one pixel. §8.5.8-j records it.
-  2. The seven minor spacing normalizations in
-     `test/fixtures/90.05-payroll-deck-notes.md` item 3 — single against double
-     spaces in statements 182, 187, 198, 199 and 220. The deck already follows
-     the scans; only the conversion is unamended.
-  Six candidates are authorized and applied. The [J 02.05.05] chart's
+  authorization. One candidate waits for it: the seven minor spacing
+  normalizations in `test/fixtures/90.05-payroll-deck-notes.md` item 3 —
+  single against double spaces in statements 182, 187, 198, 199 and 220. The
+  deck already follows the scans; only the conversion is unamended.
+  Seven candidates are authorized and applied. The [J 02.05.05] chart's
   Edited-row overpunch glyphs, where the scan marks all four, were corrected
-  2026-08-04; §8.5.8-b records the reading and the polarity order. Five more
+  2026-08-04; §8.5.8-b records the reading and the polarity order. Six more
   were corrected 2026-08-05: the `*CTEND` card's date (§8.5.8-j), statement
   43,00's 15-character name and statement 203's `1.5 -20)` (deck notes items 1
   and 2), the PDF p. 197 half-line stagger (`docs/design/m1-front-end.md`
-  M1-14), `CLA 5)NETPAY` at LOC 01612, and the PDF p. 208 transposed page head
-  (`docs/design/m4-codegen.md` M4-20 items b and e).
+  M1-14), `CLA 5)NETPAY` at LOC 01612, the PDF p. 208 transposed page head
+  (`docs/design/m4-codegen.md` M4-20 items b and e), and the spacing of both
+  compiler-punched control-card lines, `*CTEXT` (PDF p. 198) and `*CTEND`
+  (PDF p. 216). That last one landed after Jack reviewed the measurement: the
+  print puts the time value at card column 45, `CT` at 55 and the sequence
+  number at 79, where the transcription had 43, 50 and 78, and column 55 is
+  where the manual's own layout for these two cards starts the secondary
+  identifier ([J 03.02.09]).
 - The page scans (`comtran-manuals/*/images/page-NNN.png`) are ground truth for
   any disputed reading.
 - For any claim about card columns, measure the page scan. Never trust the
