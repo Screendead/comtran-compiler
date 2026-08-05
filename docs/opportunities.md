@@ -36,8 +36,9 @@ Two sources so far:
 
 | Source | Date | What it gave |
 |---|---|---|
-| An external language-model review of the public repository | 2026-08-05 | O3, O4, O5, O6, O7, O8, O9, and the four rejections |
-| This project's own work | 2026-08-05 | O1 and O2 |
+| An external language-model review of the public repository | 2026-08-05 | O3 to O9, and R1 to R4 |
+| This project's own work | 2026-08-05 | O1, O2, and R5 |
+| A second pass by the same external reviewer | 2026-08-05 | O10, O11, and the amendment to R2 |
 
 The external review had no access to the working history. It graded the project
 8.5 out of 10 as a research reconstruction. Its central claim is sound: nearly
@@ -59,6 +60,8 @@ Rank is by research value divided by cost, with readiness as the tie-break.
 | O7 | Get an independent domain expert to review the reconstruction | Unbounded | No — needs O9 or a public write-up |
 | O8 | Link a generated instruction back to its page scan | Medium | No — needs O3 |
 | O9 | Write a citable technical report | Large | No — needs M6 |
+| O10 | State the reconstruction method as a method | Medium | Yes |
+| O11 | Keep a first-class record of refuted readings | Small | Yes |
 
 ## 5. The entries
 
@@ -81,6 +84,13 @@ Two exclusions are necessary, and both are already settled:
 human judgment into a reproducible check. Two independent transcriptions of one
 source, cross-checked on every commit, is a much better sentence in a paper than
 "the transcription was checked carefully".
+
+**What it does not buy, and say so in print.** The two transcriptions came from
+one person. They are independent passes, not independent authors: the deck was
+keyed column by column, the conversion was transcribed as text, and the two were
+made at different times. That difference catches a slip in either one. It cannot
+catch a misreading of the print that the same reader would make twice. O2 and
+O7 attack that residue; this check does not.
 
 **Cost.** Small. One helper and one test. The method already exists as a
 throwaway script and needs a proper home.
@@ -227,6 +237,57 @@ recovered, and what was decided.
 **What blocks it.** M6. Write it when the compiler reproduces the sample
 program's printed output.
 
+### O10 — State the reconstruction method as a method
+
+**What.** One document that says how this project decides things, written so
+that someone reconstructing a different extinct language could follow it. It
+must answer at least these:
+
+- How does a conflict between two manuals get resolved?
+- What counts as enough evidence to state a rule?
+- When is inference allowed, and how is it marked?
+- How is uncertainty carried into the code?
+- How does doubt about a scanned character reach a design decision?
+- Why was one reading preferred over another?
+
+**What it buys.** The method may outlast the subject. COMTRAN is one extinct
+language; the procedure for recovering one from its manuals is reusable, and
+that is a larger contribution than the compiler. It also answers the question a
+reviewer asks first, which is not "what did you build" but "why should I believe
+it".
+
+The parts are already written and scattered. `CLAUDE.md` section 6 ranks the
+authorities and section 9 states the evidence rules. The language definition's
+"Sources and authority" section holds the F and J rule and the fidelity
+conventions. What is missing is one document that states them as a general
+method rather than as house rules.
+
+**Cost.** Medium. Mostly assembly and generalisation, not new thinking.
+
+**What blocks it.** Nothing. It does not wait for M6, unlike O9.
+
+### O11 — Keep a first-class record of refuted readings
+
+**What.** Record the readings this project considered and rejected, with the
+evidence that killed each one. For example: a reading was held on the strength
+of one page, later evidence contradicted it, and a decision record changed as a
+result.
+
+**What it buys.** It shows the reasoning, not just the destination. A historian
+reading only conclusions cannot tell whether alternatives were weighed. A record
+of discarded readings proves they were, and it stops a later reader from
+re-proposing a reading that the evidence already killed.
+
+Some of this exists as policy. §8.5 and the Open Questions list are annotated in
+place and never deleted, and this file's section 6 does the same for
+opportunities. What is missing is the same treatment for readings that were once
+believed and then refuted — those currently survive only in commit messages.
+
+**Cost.** Small to start, then continuous. The habit matters more than the
+backfill.
+
+**What blocks it.** Nothing.
+
 ## 6. Rejected, with reasons
 
 Do not re-open these without new evidence.
@@ -242,6 +303,14 @@ separate work that cites this one.
 
 This is the roadmap, not an opportunity. M4 stage 4 hardens the emulator, and
 `docs/design/emulator.md` holds its decisions.
+
+*Amended 2026-08-05.* Hold two goals apart, because they are not the same goal.
+The research objective is to reproduce what IBM's compiler produced: the same
+listing, the same object deck, the same diagnostics. The emulator is a means to
+test that, and nothing more. Cycle-accurate 7090 emulation is a fine thing, but
+it belongs to a different project and it does not make this reconstruction more
+believable. Spend on emulator work only where it decides a question about the
+compiler's output.
 
 ### R3 — Product-readiness and adoption metrics
 
