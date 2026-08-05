@@ -160,7 +160,18 @@ int _run(List<String> arguments) {
     return 2;
   }
   for (final String stage in emitPaths.keys.toList()) {
-    emitPaths[stage] ??= _defaultDumpPath(deckPath, stage);
+    final String path = emitPaths[stage] ?? _defaultDumpPath(deckPath, stage);
+    // A deck named like a stage dump (`oops.cards`) derives a default
+    // that is the deck itself; refuse rather than overwrite the canon
+    // (D0.5). An explicit path stays the user's instruction.
+    if (emitPaths[stage] == null && path == deckPath) {
+      stderr.writeln(
+        'error: the default --emit-$stage path is the deck itself; '
+        'give --emit-$stage=PATH',
+      );
+      return 2;
+    }
+    emitPaths[stage] = path;
   }
   final now = DateTime.now();
   date ??=

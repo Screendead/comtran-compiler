@@ -174,6 +174,20 @@ void main() {
       );
     });
 
+    test('a default that equals the deck path is refused', () {
+      final trap = '${dir.path}/oops.cards';
+      File(jobDeckPath).copySync(trap);
+      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
+        'run',
+        'comtran:comtranc',
+        trap,
+        '-c',
+      ]);
+      expect(run.exitCode, 2);
+      expect(run.stderr, contains('the deck itself'));
+      expect(File(trap).readAsBytesSync(), File(jobDeckPath).readAsBytesSync());
+    });
+
     test('an explicit path after -A replaces that stage default', () {
       final ProcessResult run = compile([
         '-A',

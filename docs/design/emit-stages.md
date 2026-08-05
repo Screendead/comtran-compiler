@@ -76,7 +76,8 @@ flag without a path writes the default file: the deck's path with its
 extension replaced by the stage name, next to the deck. So
 `payroll.ctdeck -p` writes `payroll.parse`. A short flag always takes
 the default path; a custom path needs the long form. A repeated stage
-follows the driver's last-wins idiom.
+follows the argument parser's last-wins idiom. A derived default that
+equals the deck path is refused: the dump would overwrite the canon.
 
 ### Conventions
 
