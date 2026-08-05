@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: COMTRAN Compiler
+message: >-
+  If you refer to this work, please cite it with the metadata in this file.
+type: software
+abstract: >-
+  A compiler for COMTRAN (IBM Commercial Translator, 1959 to 1962), the
+  pre-COBOL business programming language. No compiler and no machine-readable
+  source survive, so the language is recovered from its two surviving IBM
+  manuals and their page scans, and the compiler is written from that recovery.
+  The 1962 manual's own compiled sample program is the acceptance oracle.
+authors:
+  - given-names: Jack
+    family-names: Lusher
+    orcid: https://orcid.org/0009-0000-5395-2345
+repository-code: https://github.com/Screendead/comtran-compiler
+license: GPL-3.0-only
+keywords:
+  - COMTRAN
+  - Commercial Translator
+  - COBOL
+  - IBM 7090
+  - compiler
+  - software preservation
+  - historical reconstruction
+  - digital humanities
