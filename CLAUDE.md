@@ -268,6 +268,8 @@ Two consequences to expect:
   to master.
 - One pull request per topic. The remote is `Screendead/comtran-compiler`.
 - CI must pass before a merge. Run the section 4 gate before you push.
+- Do not ask permission to make a branch, to commit to it, or to push it. Do
+  ask before you open a pull request, and never merge one: both are Jack's.
 - Write short, imperative, jargonless commit messages.
 - Make atomic commits. Each component must work in each commit. Never split a
   working component across two commits.
