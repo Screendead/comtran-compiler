@@ -109,15 +109,26 @@ manual evidence in the amendment.
 ### Collisions
 
 A collision is any case where two authorities in this repository require
-different things, and satisfying one breaks the other. Examples: a design
-record asks for code that section 11 bans; HANDOVER states a fact the code
-contradicts; the language definition and a design record disagree.
+different things, and satisfying one breaks the other.
 
-**Always stop and bring a collision to Jack. Never resolve one alone, and
-never pick the winner because one document claims to rank above the other.**
+Most collisions are already settled, because this repository ranks its
+sources. Where a rank applies, obey it and do not ask:
 
-Present it this way, in plain English, with no jargon and no internal
-shorthand:
+| Higher | Lower | Stated in |
+|---|---|---|
+| the page scan | a manual conversion | sections 8 and 9 |
+| J28-6169 | F28-8043 | section 8 |
+| the manuals | the language definition | section 7 |
+| `docs/HANDOVER.md` | this file, on project state | section 1 |
+| a design record | the code | section 6 |
+
+Amend the lower source to match the higher one, and cite the rank in the
+amendment. A change to a manual conversion is the exception: it needs
+Jack's authorization first (section 9).
+
+**Where no rank covers the two sources, they are peers. Stop and bring a
+peer collision to Jack. Never settle one alone.** Present it this way, in
+plain English, with no jargon and no internal shorthand:
 
 1. Name the two things that collide, and quote the text of each.
 2. State what each one would have you do.
@@ -244,11 +255,10 @@ each dead on their own, inside a class that is otherwise alive.
 
 Two consequences to expect:
 
-- **Do not write scaffolding for a later milestone.** A design record that
-  asks for a shape does not license the shape before something can use it.
-  Amend the record to say which milestone the shape arrives with, then
-  write it then.
-- **A design record that requires banned code is a collision.** Do not
+- **Do not write scaffolding for a later milestone.** Where nothing yet
+  asks for the shape, do not write it, and say so in the pull request.
+- **A design record that requires banned code is a peer collision.** No
+  rank in section 6 covers this file against a design record. Do not
   delete the code, and do not amend the record. Stop and bring it to Jack
   under the section 6 collision rule.
 
