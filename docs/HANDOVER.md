@@ -121,31 +121,28 @@ binds work outside the definition.
 - §8.5 and Open Questions are living lists. Annotate an entry in place with the
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
-- The conversions stay read-only. Five erratum candidates wait for Jack's
-  explicit authorization:
-  1. The 90.05 transcription renders the `*CTEND` card's date as `10/18/61`.
-     The card prints `101861` (recorded in §8.5.8).
-  2. Statement 43,00's data name is punched `CNTRLCHARSECLIN` — 15 characters,
-     with level 02 abutting at columns 23–24 — not `CNTRLCHARSECLINE`.
-     Statement 203 prints `1.5 -20)`, not `1.5 - 20)`. Both readings come from
-     the page scans, measured during the deck re-keying.
-     `test/fixtures/90.05-payroll-deck-notes.md` holds the details and the minor
-     spacing normalizations.
-  3. On the transcription of PDF p. 197, the statement numbers of 218,00–221,00
-     and 228,00 sit one line low. A printer half-line stagger causes this.
-     `docs/design/m1-front-end.md` M1-14 records the scan-correct grouping,
-     and the M1 tests assert it.
-  4. The object-listing line at LOC 01612 (PDF p. 215) is transcribed
-     `CLA 4)NETPAY`. The print reads `CLA 5)NETPAY` — the octal address
-     00133 is transcribed correctly. Scan-measured 2026-08-05
-     (`docs/design/m4-codegen.md` M4-20 item b).
-  5. The PDF p. 208 page head is transcribed as two transposed lines. The
-     print is one line in the normal order; a one-degree scan tilt caused
-     the split. Scan-measured 2026-08-05 (M4-20 item e).
-  A further candidate — the [J 02.05.05] chart's Edited-row overpunch glyphs,
-  transcribed `8 or 9 or 8̅ or 9̅` where the scan marks all four — was
-  authorized and corrected 2026-08-04. §8.5.8-b records the reading and the
-  polarity order.
+- The conversions stay read-only. A change needs Jack's explicit
+  authorization. Two candidates wait for it, both found while the 2026-08-05
+  pass was applied, and neither yet applied:
+  1. The two compiler-punched control-card lines — `*CTEXT` (PDF p. 198) and
+     `*CTEND` (PDF p. 216) — carry the wrong spacing from the TIME value
+     rightward. The print puts the time value at column 39, `CT` at 49 and
+     the sequence number at 73; the transcription puts them at 37, 44 and 72.
+     Both pages were deskewed and measured at a 9.26-px character pitch, where
+     every field on both cards falls within 0.1 column of an integer and the
+     two cards agree within one pixel. §8.5.8-j records it.
+  2. The seven minor spacing normalizations in
+     `test/fixtures/90.05-payroll-deck-notes.md` item 3 — single against double
+     spaces in statements 182, 187, 198, 199 and 220. The deck already follows
+     the scans; only the conversion is unamended.
+  Six candidates are authorized and applied. The [J 02.05.05] chart's
+  Edited-row overpunch glyphs, where the scan marks all four, were corrected
+  2026-08-04; §8.5.8-b records the reading and the polarity order. Five more
+  were corrected 2026-08-05: the `*CTEND` card's date (§8.5.8-j), statement
+  43,00's 15-character name and statement 203's `1.5 -20)` (deck notes items 1
+  and 2), the PDF p. 197 half-line stagger (`docs/design/m1-front-end.md`
+  M1-14), `CLA 5)NETPAY` at LOC 01612, and the PDF p. 208 transposed page head
+  (`docs/design/m4-codegen.md` M4-20 items b and e).
 - The page scans (`comtran-manuals/*/images/page-NNN.png`) are ground truth for
   any disputed reading.
 - For any claim about card columns, measure the page scan. Never trust the

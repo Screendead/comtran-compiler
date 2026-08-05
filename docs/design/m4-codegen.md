@@ -324,9 +324,10 @@ M4 executes I/O-free programs.
   - Page furniture: the `LOC OCTAL CNTRL SYMBOLIC` column header prints
     once, on the first object page. The transcription records one blank
     line after each page head and one after the column header; the M4-20
-    item (e) measurement resolves two blank lines on PDF p. 208, so the
-    per-page blank counts are taken from the scans during the stage-2
-    verification pass. No blank line separates routines, the storage map
+    item (e) measurement resolves two blank lines on PDF p. 208, and the
+    2026-08-05 erratum wrote that count into the conversion for that page
+    alone, so the per-page blank counts are still taken from the scans
+    during the stage-2 verification pass. No blank line separates routines, the storage map
     from the code, or the pool from the end-of-text line. The
     listing closes with that line, one blank line,
     `THE LAST LOADER CONTROL CARD PUNCHED IS`, the `*CTEND` card, and
@@ -746,11 +747,13 @@ M4 executes I/O-free programs.
     lookup code, not in the base word — and the reproduced pool prints
     the two identical words. This closes the review backlog's RETPREM
     pointer anomaly: nothing is mis-transcribed.
-  - **(b) LOC 01612 (PDF p. 215) — a transcription error, erratum
-    candidate.** The print reads `CLA 5)NETPAY`; the transcription's
-    `4)NETPAY` misread the 5. The octal address 00133 is transcribed
-    correctly, and the line is the regular grand-total accumulation
-    shape. The golden prints `5)NETPAY`.
+  - **(b) LOC 01612 (PDF p. 215) — a transcription error, corrected
+    2026-08-05 under Jack's authorization.** The print reads
+    `CLA 5)NETPAY`; the transcription's `4)NETPAY` misread the 5. The
+    octal address 00133 is transcribed correctly, and the line is the
+    regular grand-total accumulation shape. The listing corroborates the
+    scan on its own: 00133 pairs with `5)NETPAY` at the three other
+    sites that reference it. The golden prints `5)NETPAY`.
   - **(c) LOC 01327 (PDF p. 212) — confirmed as printed.** The word is
     `TRA SYS)267,0,0`, octal `0020 00 0 00413`, inside a SYS)180
     sequence where every parallel site prints `TXI SYS)267,1,n`. The
@@ -765,13 +768,16 @@ M4 executes I/O-free programs.
     `+1`: all as transcribed. The EQU-resets-the-offset-counter rule
     (M4-8) is attested ink, and the first word after a reset prints
     `+1`.
-  - **(e) The PDF p. 208 page head — a transcription error, erratum
-    candidate.** The print is one head line in the normal order
-    (`DATE … ID. CT PUBLICATIONS … PAGE 17`), followed by two blank
-    lines; the page is scanned with a one-degree tilt that drops the
-    right half of the line by two thirds of a line pitch, and the
-    transcription split it into two transposed lines. The golden prints
-    one line.
+  - **(e) The PDF p. 208 page head — a transcription error, corrected
+    2026-08-05 under Jack's authorization.** The print is one head line
+    in the normal order (`DATE … ID. CT PUBLICATIONS … PAGE 17`),
+    followed by two blank lines; the page is scanned with a one-degree
+    tilt that drops the right half of the line by two thirds of a line
+    pitch, and the transcription split it into two transposed lines. The
+    golden prints one line. The correction gives the line PDF p. 209's
+    field grid, per item (g)'s one-geometry finding. Its two blank lines
+    are measured for this page only and settle nothing about any other
+    page's blank count.
   - **(f) The GET descriptor mnemonic — the two artifacts genuinely
     differ.** The listing prints `IOCTN*` (read at three sites on PDF
     p. 201; the fourth glyph is a T at 40×, against a D control glyph
