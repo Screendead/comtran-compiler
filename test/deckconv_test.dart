@@ -18,8 +18,8 @@ void main() {
 
   setUp(() {
     dir = Directory.systemTemp.createTempSync('deckconv_test');
-    canonPath = '${dir.path}/a.ctdeck';
-    mirrorPath = '${dir.path}/a.deck';
+    canonPath = '${dir.path}/a.ctd';
+    mirrorPath = '${dir.path}/a.ct';
     final List<CardImage> deck = deckOf('HELLO\nWORLD 99.\n');
     File(canonPath).writeAsBytesSync(encodeCanon(deck));
     File(mirrorPath).writeAsStringSync(deckToMirror(deck));
@@ -90,12 +90,12 @@ void main() {
 
   test('check aggregates several files: ok, stale, and orphan mirror '
       '(TSTT-1)', () {
-    final bCanon = '${dir.path}/b.ctdeck';
-    final bMirror = '${dir.path}/b.deck';
+    final bCanon = '${dir.path}/b.ctd';
+    final bMirror = '${dir.path}/b.ct';
     final List<CardImage> bDeck = deckOf('STALE\n');
     File(bCanon).writeAsBytesSync(encodeCanon(bDeck));
     File(bMirror).writeAsStringSync('TAMPERED\n');
-    final orphanMirror = '${dir.path}/c.deck';
+    final orphanMirror = '${dir.path}/c.ct';
     File(orphanMirror).writeAsStringSync('ORPHAN\n');
 
     final ProcessResult r = _deckconv(['check', dir.path]);
@@ -108,23 +108,23 @@ void main() {
   test('check finds a deck named directly under a dot-prefixed directory', () {
     final hidden = Directory('${dir.path}/.hidden/decks')
       ..createSync(recursive: true);
-    final hiddenCanon = '${hidden.path}/h.ctdeck';
-    final hiddenMirror = '${hidden.path}/h.deck';
+    final hiddenCanon = '${hidden.path}/h.ctd';
+    final hiddenMirror = '${hidden.path}/h.ct';
     final List<CardImage> deck = deckOf('HIDDEN\n');
     File(hiddenCanon).writeAsBytesSync(encodeCanon(deck));
     File(hiddenMirror).writeAsStringSync(deckToMirror(deck));
     final ProcessResult r = _deckconv(['check', hidden.path]);
     expect(r.exitCode, 0, reason: '${r.stderr}');
-    expect(r.stdout, contains('h.ctdeck'));
+    expect(r.stdout, contains('h.ctd'));
   });
 
   test('check skips a hidden directory discovered below a normal root', () {
     final nested = Directory('${dir.path}/.git/objects')
       ..createSync(recursive: true);
-    File('${nested.path}/x.ctdeck').writeAsBytesSync([1, 2, 3]);
+    File('${nested.path}/x.ctd').writeAsBytesSync([1, 2, 3]);
     final ProcessResult r = _deckconv(['check', dir.path]);
     expect(r.exitCode, 0, reason: '${r.stderr}');
-    expect(r.stdout, isNot(contains('x.ctdeck')));
+    expect(r.stdout, isNot(contains('x.ctd')));
   });
 
   test('writeAtomic leaves the original file untouched when write throws', () {
@@ -157,8 +157,8 @@ void main() {
   });
 
   test('to-canon and to-text round-trip through files', () {
-    final canon2 = '${dir.path}/b.ctdeck';
-    final mirror2 = '${dir.path}/b.deck';
+    final canon2 = '${dir.path}/b.ctd';
+    final mirror2 = '${dir.path}/b.ct';
     expect(_deckconv(['to-canon', mirrorPath, canon2]).exitCode, 0);
     expect(File(canon2).readAsBytesSync(), File(canonPath).readAsBytesSync());
     // to-canon also writes the sibling mirror, so the pair stays complete
@@ -177,7 +177,7 @@ void main() {
   });
 
   test('to-canon reads the mirror from standard input', () async {
-    final canon2 = '${dir.path}/b.ctdeck';
+    final canon2 = '${dir.path}/b.ctd';
     final Process process = await Process.start(Platform.resolvedExecutable, [
       'run',
       'comtran:deckconv',
@@ -206,38 +206,38 @@ void main() {
   });
 
   test('to-canon reports the CLI error path for malformed mirror text', () {
-    final badMirror = '${dir.path}/bad.deck';
+    final badMirror = '${dir.path}/bad.ct';
     File(badMirror).writeAsStringSync('TRAILING SPACE \n');
     final ProcessResult r = _deckconv([
       'to-canon',
       badMirror,
-      '${dir.path}/bad.ctdeck',
+      '${dir.path}/bad.ctd',
     ]);
     expect(r.exitCode, 1);
     expect(r.stderr, contains('error:'));
     expect(r.stderr, contains('normal form'));
-    expect(File('${dir.path}/bad.ctdeck').existsSync(), isFalse);
+    expect(File('${dir.path}/bad.ctd').existsSync(), isFalse);
   });
 
   test('to-canon rejects mirror text with no final newline', () {
-    final badMirror = '${dir.path}/bad.deck';
+    final badMirror = '${dir.path}/bad.ct';
     File(badMirror).writeAsStringSync('HELLO');
     final ProcessResult r = _deckconv([
       'to-canon',
       badMirror,
-      '${dir.path}/bad.ctdeck',
+      '${dir.path}/bad.ctd',
     ]);
     expect(r.exitCode, 1);
     expect(r.stderr, contains('newline'));
   });
 
   test('to-canon rejects a glyph outside the source set', () {
-    final badMirror = '${dir.path}/bad.deck';
+    final badMirror = '${dir.path}/bad.ct';
     File(badMirror).writeAsStringSync('A%B\n');
     final ProcessResult r = _deckconv([
       'to-canon',
       badMirror,
-      '${dir.path}/bad.ctdeck',
+      '${dir.path}/bad.ctd',
     ]);
     expect(r.exitCode, 1);
     expect(r.stderr, contains('column 2'));
@@ -246,22 +246,19 @@ void main() {
   test('to-canon reports the CLI error path for a missing input file', () {
     final ProcessResult r = _deckconv([
       'to-canon',
-      '${dir.path}/no-such.deck',
-      '${dir.path}/bad.ctdeck',
+      '${dir.path}/no-such.ct',
+      '${dir.path}/bad.ctd',
     ]);
     expect(r.exitCode, 1);
     expect(r.stderr, contains('error:'));
-    expect(r.stderr, contains('no-such.deck'));
+    expect(r.stderr, contains('no-such.ct'));
   });
 
   test('to-text reports the CLI error path for a missing input file', () {
-    final ProcessResult r = _deckconv([
-      'to-text',
-      '${dir.path}/no-such.ctdeck',
-    ]);
+    final ProcessResult r = _deckconv(['to-text', '${dir.path}/no-such.ctd']);
     expect(r.exitCode, 1);
     expect(r.stderr, contains('error:'));
-    expect(r.stderr, contains('no-such.ctdeck'));
+    expect(r.stderr, contains('no-such.ctd'));
   });
 
   test('regen rewrites a stale mirror', () {

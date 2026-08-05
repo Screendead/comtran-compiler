@@ -40,7 +40,7 @@ Three existing rules bind any implementation of this record:
 
 1. A committed dump follows the mirror pattern. A generator writes it, a
    golden or freshness test slaves it to CI, and hand edits are forbidden.
-   The `.deck` mirrors (D0.5, D0.6) are the precedent.
+   The `.ct` mirrors (D0.5, D0.6) are the precedent.
 2. An invented intermediate form is design, not language. Its record lives in
    this directory, never in the language definition.
 3. This record settles no codegen shape and no part of D4.1.
@@ -74,7 +74,7 @@ Jack added the short surface 2026-08-05. The one-letter flags bundle:
 `-cpsSl` is the full set. `-A` and `--emit-all` request every stage. A
 flag without a path writes the default file: the deck's path with its
 extension replaced by the stage name, next to the deck. So
-`payroll.ctdeck -p` writes `payroll.parse`. A short flag always takes
+`payroll.ctd -p` writes `payroll.parse`. A short flag always takes
 the default path; a custom path needs the long form. A repeated stage
 follows the argument parser's last-wins idiom. A derived default that
 equals the deck path is refused: the dump would overwrite the canon.

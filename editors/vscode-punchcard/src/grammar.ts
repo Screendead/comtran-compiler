@@ -1,5 +1,5 @@
 /**
- * Builds the TextMate grammar for `.deck` mirror files from the shared column
+ * Builds the TextMate grammar for `.ct` mirror files from the shared column
  * tables in `columns.ts`. `generateGrammar.ts` writes the result to
  * `syntaxes/comtran-deck.tmLanguage.json`; the committed file must match the
  * builder (`npm run grammar` regenerates it, `test/grammar.test.js` checks).
@@ -150,7 +150,7 @@ export function buildGrammar(): Rule {
   return {
     name: 'COMTRAN Deck Mirror',
     scopeName: 'source.comtran-deck',
-    fileTypes: ['deck'],
+    fileTypes: ['ct'],
     patterns: [
       { include: '#punch-line' },
       { include: '#data-division' },

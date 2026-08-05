@@ -12,7 +12,7 @@ import 'package:comtran/comtran.dart';
 
 /// Path to the 90.05 canon deck fixture (J Appendix 90.05's compiled
 /// payroll sample program), relative to the repository root.
-const String payrollDeckPath = 'test/fixtures/90.05-payroll.ctdeck';
+const String payrollDeckPath = 'test/fixtures/90.05-payroll.ctd';
 
 /// Decodes the 90.05 canon deck fixture into its punch-level card images.
 List<CardImage> loadPayrollDeck() =>
@@ -21,7 +21,7 @@ List<CardImage> loadPayrollDeck() =>
 /// The generated complete job deck: the 293 artifact cards plus one
 /// reconstructed *FINISH card (D11.3; the separate generated file
 /// D9.14 provides for).
-const String jobDeckPath = 'test/fixtures/90.05-payroll-job.ctdeck';
+const String jobDeckPath = 'test/fixtures/90.05-payroll-job.ctd';
 
 /// Loads the canon 90.05 job deck (294 cards).
 List<CardImage> loadJobDeck() =>

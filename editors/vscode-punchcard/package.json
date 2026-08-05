@@ -1,7 +1,7 @@
 {
   "name": "comtran-punchcard",
   "displayName": "COMTRAN Punchcard Editor",
-  "description": "Punch-level editor for COMTRAN canon card decks (*.ctdeck) and syntax highlighting for their .deck text mirrors.",
+  "description": "Punch-level editor for COMTRAN canon card decks (*.ctd) and syntax highlighting for their .ct text mirrors.",
   "version": "0.2.0",
   "publisher": "comtran-compiler",
   "private": true,
@@ -35,7 +35,7 @@
         "displayName": "COMTRAN Punchcard",
         "selector": [
           {
-            "filenamePattern": "*.ctdeck"
+            "filenamePattern": "*.ctd"
           }
         ],
         "priority": "default"
@@ -48,7 +48,7 @@
           "COMTRAN Deck Mirror"
         ],
         "extensions": [
-          ".deck"
+          ".ct"
         ],
         "configuration": "./language-configuration.json"
       }

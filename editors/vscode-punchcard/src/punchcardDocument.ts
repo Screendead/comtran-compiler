@@ -41,7 +41,7 @@ interface TypingRun {
 }
 
 /**
- * An open `.ctdeck` file: the deck in memory, plus the edit and change events
+ * An open `.ctd` file: the deck in memory, plus the edit and change events
  * that drive VS Code's undo stack and the webviews.
  */
 export class PunchcardDocument implements vscode.CustomDocument {

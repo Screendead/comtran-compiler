@@ -42,7 +42,7 @@ generation does not exist yet.
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), and `deckmcp.dart` (the MCP deck server). |
 | `test/` | The Dart test suite, with `test/goldens/` (the 1962 listing oracle), `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its text mirror, and the keying notes). |
 | `tool/` | Dart generators for this package. |
-| `editors/vscode-punchcard/` | A VS Code extension: a punch-level editor for `*.ctdeck` decks, and highlighting for `.deck` mirrors. |
+| `editors/vscode-punchcard/` | A VS Code extension: a punch-level editor for `*.ctd` decks, and highlighting for `.ct` mirrors. |
 | `docs/design/` | The design records: the D0–D9 decision log (`decisions.md`), one document per milestone (`m1-front-end.md`, `m2-parser.md`), plus `deck-format.md`, `emulator.md`, and `severity-notes.md`. |
 | `docs/comtran-language-definition.md` | The working language reference (~4,250 lines): a structured, fully cited definition of COMTRAN extracted from the manuals. §8.3 catalogs the F/J divergences and §8.5 every ambiguity with a plausible resolution. The end-of-file **Open Questions** list tracks what the sources cannot settle, and states its own item count. |
 | `docs/HANDOVER.md` | Project state, the roadmap, and the next task. |
@@ -69,7 +69,7 @@ To compile the manual's own payroll sample through the front end and the parser,
 and print its listing:
 
 ```sh
-dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck
+dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd
 ```
 
 The job deck is the 293-card artifact plus one reconstructed *FINISH card. The
@@ -81,8 +81,8 @@ and `npm test` in `editors/vscode-punchcard/`.
 
 ## Working with card decks
 
-Program sources are punch-level card-image files (`*.ctdeck`, binary). Each one
-has a generated text mirror (`*.deck`) committed beside it for review and diffs.
+Program sources are punch-level card-image files (`*.ctd`, binary). Each one
+has a generated text mirror (`*.ct`) committed beside it for review and diffs.
 The compiler and all tools read canon only. Never hand-edit a mirror; CI rejects
 a stale pair. `dart run comtran:deckconv` prints the usage.
 

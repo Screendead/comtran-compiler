@@ -9,7 +9,7 @@ style point.
   invariant, a test that cannot fail, a diff that touches
   `comtran-manuals/` without a quoted authorization from Jack, a hand
   edit to a generated file (CLAUDE.md section 10), a hand edit to a
-  `.deck` mirror.
+  `.ct` mirror.
 - **Advisory:** a humanness finding from the list below, a style point, a
   nit. Cap nits at five per review; keep the most useful ones.
 
@@ -46,7 +46,7 @@ blocking.
   Jack's authorization.
 - Never ask for a fix to 1960s spelling or to a genuine typo in manual
   text. Fidelity is by design.
-- A `.deck` file is the generated mirror of its `.ctdeck` canon. A diff
+- A `.ct` file is the generated mirror of its `.ctd` canon. A diff
   that edits one without the other is a blocker.
 - The golden listing, `test/goldens/90.05-payroll.listing`, is the
   acceptance oracle of the front end. A change to it needs an explanation

@@ -256,7 +256,7 @@ starts from a fully resolved program and generates code only.
     admits "an overpunch with the rightmost digit" ([J 02.05.05]) and zero is a
     digit, so `120̅` is a legal constant for `999̅`. Plus zero punches 12-0 and
     minus zero 11-0; neither has a Set H glyph, so no listing line and no
-    `.deck` mirror can print one, and a test for one punches the column
+    `.ct` mirror can print one, and a test for one punches the column
     directly.*
   - Internal decimal: right-justify into the pictorial's capacity; a larger
     constant is left-truncated, converted, stored, and diagnosed with

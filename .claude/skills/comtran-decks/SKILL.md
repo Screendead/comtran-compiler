@@ -1,6 +1,6 @@
 ---
 name: comtran-decks
-description: Read, write, and check COMTRAN card decks (.ctdeck canon files and their .deck text mirrors) with deckconv and the comtran-decks MCP server.
+description: Read, write, and check COMTRAN card decks (.ctd canon files and their .ct text mirrors) with deckconv and the comtran-decks MCP server.
 ---
 
 # COMTRAN card decks
@@ -10,8 +10,8 @@ in two files:
 
 | File | Role |
 |---|---|
-| `X.ctdeck` | **Canon.** A binary punch-level card image. Authoritative. |
-| `X.deck` | **Mirror.** Generated text, one line per card. For review and diffs. |
+| `X.ctd` | **Canon.** A binary punch-level card image. Authoritative. |
+| `X.ct` | **Mirror.** Generated text, one line per card. For review and diffs. |
 
 The format is frozen. Read `docs/design/deck-format.md` before you change any
 deck. Decisions D0.5 and D0.6 govern it.
@@ -19,9 +19,9 @@ deck. Decisions D0.5 and D0.6 govern it.
 ## The rules
 
 1. **The canon file is the authority.** The compiler and every tool read canon
-   only. Address a deck by its `.ctdeck` path. The MCP server rejects a path
+   only. Address a deck by its `.ctd` path. The MCP server rejects a path
    outside your declared workspace root.
-2. **Never hand-edit a `.deck` mirror.** A mirror is a generated artifact. An
+2. **Never hand-edit a `.ct` mirror.** A mirror is a generated artifact. An
    edited mirror is lost at the next regeneration, and CI fails it.
 3. **Change a deck through the tools.** `deckconv`, `deck_write`, and
    `deck_edit_cards` rewrite the canon file and regenerate the mirror
@@ -50,10 +50,10 @@ The tools reject text that is not in normal form and name the offending card.
 ## The `deckconv` CLI
 
 ```
-dart run comtran:deckconv to-canon <in.deck> <out.ctdeck>   # text to canon
-dart run comtran:deckconv to-text  <in.ctdeck> [<out.deck>] # canon to text
-dart run comtran:deckconv regen    <path>...                # rewrite mirrors
-dart run comtran:deckconv check    <path>...                # verify freshness
+dart run comtran:deckconv to-canon <in.ct> <out.ctd>   # text to canon
+dart run comtran:deckconv to-text  <in.ctd> [<out.ct>] # canon to text
+dart run comtran:deckconv regen    <path>...           # rewrite mirrors
+dart run comtran:deckconv check    <path>...           # verify freshness
 ```
 
 A path may name a file or a directory. A directory is searched. `check` exits
@@ -105,5 +105,5 @@ in scripts, hooks, and CI.
   64-code table.
 - `docs/design/decisions.md` — D0.5 (deck format and authority) and D0.6 (the
   character code).
-- `test/fixtures/90.05-payroll.ctdeck` — the reference deck, from J28-6169 Appendix
+- `test/fixtures/90.05-payroll.ctd` — the reference deck, from J28-6169 Appendix
   90.05.

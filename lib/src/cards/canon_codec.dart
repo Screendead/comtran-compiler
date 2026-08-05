@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'card_image.dart';
 
-/// The canon container format (`.ctdeck`).
+/// The canon container format (`.ctd`).
 ///
 /// Implements §2 of `docs/design/deck-format.md` (decision D0.5): a 12-byte
 /// header (magic `CTDECK`, version, flags, big-endian card count) followed by

@@ -32,7 +32,7 @@ interface Classification {
   kinds: CardKind[];
 }
 
-/** The punch-level editor for `.ctdeck` files. */
+/** The punch-level editor for `.ctd` files. */
 export class PunchcardEditorProvider
   implements vscode.CustomEditorProvider<PunchcardDocument>
 {

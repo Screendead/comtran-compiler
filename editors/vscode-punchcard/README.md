@@ -1,9 +1,9 @@
 # COMTRAN Punchcard Editor
 
-A VS Code custom editor for canon card decks (`*.ctdeck`). It shows each card as
+A VS Code custom editor for canon card decks (`*.ctd`). It shows each card as
 a 12-row by 80-column punch grid, reads every column with the COMTRAN character
 code, and writes the deck back in the frozen binary format. The extension also
-gives `.deck` text mirrors syntax highlighting by card column.
+gives `.ct` text mirrors syntax highlighting by card column.
 
 The format is `docs/design/deck-format.md`. Read it first: §2 defines the binary
 container, §4 defines the character code. This extension is a port of the Dart
@@ -54,13 +54,13 @@ the file format and `npm run vectors` to regenerate them after a change to
   writes a whole canon file: the 12-byte header and 120 bytes per card. Typed
   characters in one run coalesce into a single undo step.
 - Run **COMTRAN: New Punch Card Deck** from the Command Palette to start a
-  fresh `.ctdeck` file. Opening an existing but empty (0-byte) `.ctdeck` also
+  fresh `.ctd` file. Opening an existing but empty (0-byte) `.ctd` also
   works: it opens as a deck with no cards, and the first save writes the
   header.
 
-## Syntax highlighting for `.deck` mirrors
+## Syntax highlighting for `.ct` mirrors
 
-The extension contributes a `comtran-deck` language for `.deck` files with a
+The extension contributes a `comtran-deck` language for `.ct` files with a
 TextMate grammar (`syntaxes/comtran-deck.tmLanguage.json`). The grammar colors
 by card column: serial, the division-specific fields above, literals and the
 period-blank sentence terminator (commentary after it is scoped as a comment),
@@ -72,7 +72,7 @@ The grammar file is **generated**. One table in `src/columns.ts` holds the
 column boundaries for the grammar, the card list, and the field ruler, so the
 views cannot drift. The same table drives the `[comtran-deck]` editor
 defaults in `package.json` (`editor.rulers` at the field boundaries,
-`editor.wordWrap` off, a monospace font), so a `.deck` file opens with its
+`editor.wordWrap` off, a monospace font), so a `.ct` file opens with its
 columns already lined up and never soft-wraps mid-card. After a change to
 `src/columns.ts` or `src/grammar.ts`, regenerate both with:
 
@@ -85,10 +85,10 @@ committed `configurationDefaults` is stale. One known limit: a literal that
 continues across cards is highlighted per line, so its continuation card
 shows plain text.
 
-A `.deck` file is a read-only mirror: `deckconv` generates it from the
-matching `.ctdeck` file, and this extension never writes it. Editing a
-`.deck` file in VS Code looks like a normal edit, but the next regeneration
-discards it. The extension shows a one-time notice the first time a `.deck`
+A `.ct` file is a read-only mirror: `deckconv` generates it from the
+matching `.ctd` file, and this extension never writes it. Editing a
+`.ct` file in VS Code looks like a normal edit, but the next regeneration
+discards it. The extension shows a one-time notice the first time a `.ct`
 file is opened in a session.
 
 ## Manual citations in Dart files
@@ -130,7 +130,7 @@ npm test
 
 To try the editor, open **this folder** (`editors/vscode-punchcard`) in VS Code and
 press <kbd>F5</kbd>. VS Code compiles the extension and starts an Extension
-Development Host on the repository root. Open `test/fixtures/90.05-payroll.ctdeck` there.
+Development Host on the repository root. Open `test/fixtures/90.05-payroll.ctd` there.
 
 `npm test` compiles first, then runs the unit tests with `node --test`. The
 tests cover the header, the two-columns-per-three-bytes packing, the read rules,
@@ -166,7 +166,7 @@ outside this extension's scope. Install a packaged build with
 
 ## Limits
 
-- The editor reads and writes canon files only. It never touches the `.deck`
+- The editor reads and writes canon files only. It never touches the `.ct`
   mirrors; `deckconv` generates those.
 - The webview has no dependencies. All CSS and JavaScript is inlined under a
   nonce with a strict Content Security Policy.

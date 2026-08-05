@@ -4,7 +4,7 @@
 ///
 /// Regenerate the goldens with one command, from the repository root:
 ///
-///     dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck \
+///     dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd \
 ///       --date=10/18/61 --time=2.45 \
 ///       '--title=COMPILATION OF SAMPLE PROBLEM' \
 ///       --emit-scan=test/goldens/90.05-payroll.scan \
@@ -82,7 +82,7 @@ void main() {
     test('the attested dumps reproduce the mirror and the listing', () {
       expect(
         dump('cards'),
-        File('test/fixtures/90.05-payroll-job.deck').readAsStringSync(),
+        File('test/fixtures/90.05-payroll-job.ct').readAsStringSync(),
       );
       expect(dump('listing'), golden('listing'));
       expect(run.stdout, golden('listing'));
@@ -136,7 +136,7 @@ void main() {
 
     setUp(() {
       dir = Directory.systemTemp.createTempSync('comtran-emit-default');
-      deck = '${dir.path}/payroll.ctdeck';
+      deck = '${dir.path}/payroll.ctd';
       File(jobDeckPath).copySync(deck);
     });
 

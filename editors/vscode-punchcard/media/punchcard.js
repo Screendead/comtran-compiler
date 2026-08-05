@@ -396,7 +396,7 @@
   /**
    * Splits `text` (the card read-out) into colored field spans. The column
    * boundaries come from the extension host's shared table, so this pane
-   * cannot drift from the ruler or the `.deck` grammar.
+   * cannot drift from the ruler or the `.ct` grammar.
    * @param {HTMLElement} txt
    * @param {string} text
    * @param {string} kind

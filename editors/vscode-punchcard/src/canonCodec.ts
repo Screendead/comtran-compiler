@@ -1,5 +1,5 @@
 /**
- * The canon container format (`.ctdeck`).
+ * The canon container format (`.ctd`).
  *
  * A direct port of `lib/src/cards/canon_codec.dart` and `card_image.dart`,
  * which implement §2 of `docs/design/deck-format.md` (decision D0.5): a 12-byte

@@ -1,7 +1,7 @@
 import '../chars/char_code.dart';
 import 'card_image.dart';
 
-/// The text-mirror format (`.deck`).
+/// The text-mirror format (`.ct`).
 ///
 /// Implements §3 of `docs/design/deck-format.md` (decision D0.5): one line
 /// per card — a Set H glyph line when every column carries a source-set

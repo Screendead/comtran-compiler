@@ -146,8 +146,8 @@ void main() {
 
   setUp(() {
     dir = Directory.systemTemp.createTempSync('deckmcp_test');
-    canonPath = '${dir.path}/a.ctdeck';
-    mirrorPath = '${dir.path}/a.deck';
+    canonPath = '${dir.path}/a.ctd';
+    mirrorPath = '${dir.path}/a.ct';
     final List<CardImage> deck = mirrorToDeck(sample);
     File(canonPath).writeAsBytesSync(encodeCanon(deck));
     File(mirrorPath).writeAsStringSync(deckToMirror(deck));
@@ -316,8 +316,7 @@ void main() {
         const defaultPage = 25;
         final Map<String, Object?> json = _content(
           await client.call('deck_read', {
-            'path':
-                '${Directory.current.path}/test/fixtures/90.05-payroll.ctdeck',
+            'path': '${Directory.current.path}/test/fixtures/90.05-payroll.ctd',
             'include_cards': true,
           }),
         );
@@ -364,7 +363,7 @@ void main() {
     test(
       'include_cards on an empty deck returns no cards, not an error',
       () async {
-        final emptyPath = '${dir.path}/empty.ctdeck';
+        final emptyPath = '${dir.path}/empty.ctd';
         await client.call('deck_write', {'path': emptyPath, 'mirror': ''});
         final Map<String, Object?> json = _content(
           await client.call('deck_read', {
@@ -407,10 +406,10 @@ void main() {
 
     test('rejects a missing file', () async {
       final Map<String, Object?> error = _errorOf(
-        await client.call('deck_read', {'path': '${dir.path}/none.ctdeck'}),
+        await client.call('deck_read', {'path': '${dir.path}/none.ctd'}),
       );
       expect(error['kind'], 'not_found');
-      expect(error['message'], contains('none.ctdeck'));
+      expect(error['message'], contains('none.ctd'));
     });
 
     test('rejects a path that is not a canon file', () async {
@@ -421,7 +420,7 @@ void main() {
     });
 
     test('rejects a file that is not canon', () async {
-      final bad = '${dir.path}/bad.ctdeck';
+      final bad = '${dir.path}/bad.ctd';
       File(bad).writeAsBytesSync([1, 2, 3]);
       final Map<String, Object?> error = _errorOf(
         await client.call('deck_read', {'path': bad}),
@@ -438,7 +437,7 @@ void main() {
 
   group('deck_write', () {
     test('writes the canon file and regenerates the mirror', () async {
-      final path = '${dir.path}/b.ctdeck';
+      final path = '${dir.path}/b.ctd';
       const text = 'MOVE A TO B.\n! 5:0-2-8\n';
       final Map<String, Object?> json = _content(
         await client.call('deck_write', {'path': path, 'mirror': text}),
@@ -446,7 +445,7 @@ void main() {
       expect(json['card_count'], 2);
       expect(json['canon_bytes'], 12 + 120 * 2);
       expect(json['mirror'], text);
-      expect(File('${dir.path}/b.deck').readAsStringSync(), text);
+      expect(File('${dir.path}/b.ct').readAsStringSync(), text);
       expect(decodeCanon(File(path).readAsBytesSync()), mirrorToDeck(text));
 
       final Map<String, Object?> check = _content(
@@ -466,7 +465,7 @@ void main() {
     test(
       'rejects text that is not in normal form and writes nothing',
       () async {
-        final path = '${dir.path}/c.ctdeck';
+        final path = '${dir.path}/c.ctd';
         final Map<String, Object?> error = _errorOf(
           await client.call('deck_write', {
             'path': path,
@@ -477,26 +476,26 @@ void main() {
         expect(error['message'], contains('card 1'));
         expect(error['message'], contains('normal form'));
         expect(File(path).existsSync(), isFalse);
-        expect(File('${dir.path}/c.deck').existsSync(), isFalse);
+        expect(File('${dir.path}/c.ct').existsSync(), isFalse);
       },
     );
 
     test('rejects a glyph outside the source set', () async {
       final Map<String, Object?> error = _errorOf(
         await client.call('deck_write', {
-          'path': '${dir.path}/d.ctdeck',
+          'path': '${dir.path}/d.ctd',
           'mirror': 'A%B\n',
         }),
       );
       expect(error['kind'], 'format');
       expect(error['message'], contains('column 2'));
-      expect(File('${dir.path}/d.ctdeck').existsSync(), isFalse);
+      expect(File('${dir.path}/d.ctd').existsSync(), isFalse);
     });
 
     test('rejects text with no final newline', () async {
       final Map<String, Object?> error = _errorOf(
         await client.call('deck_write', {
-          'path': '${dir.path}/e.ctdeck',
+          'path': '${dir.path}/e.ctd',
           'mirror': 'HELLO',
         }),
       );
@@ -507,18 +506,18 @@ void main() {
     test('rejects a target that is not a canon path', () async {
       final Map<String, Object?> error = _errorOf(
         await client.call('deck_write', {
-          'path': '${dir.path}/f.deck',
+          'path': '${dir.path}/f.ct',
           'mirror': 'HELLO\n',
         }),
       );
       expect(error['kind'], 'bad_extension');
-      expect(File('${dir.path}/f.deck').existsSync(), isFalse);
+      expect(File('${dir.path}/f.ct').existsSync(), isFalse);
     });
 
     test('rejects a missing directory', () async {
       final Map<String, Object?> error = _errorOf(
         await client.call('deck_write', {
-          'path': '${dir.path}/nowhere/g.ctdeck',
+          'path': '${dir.path}/nowhere/g.ctd',
           'mirror': 'HELLO\n',
         }),
       );
@@ -870,12 +869,12 @@ void main() {
 
     test('aggregates several files: ok, stale, and orphan mirror, canon '
         'files first (TSTT-1)', () async {
-      final bCanon = '${dir.path}/b.ctdeck';
-      final bMirror = '${dir.path}/b.deck';
+      final bCanon = '${dir.path}/b.ctd';
+      final bMirror = '${dir.path}/b.ct';
       final List<CardImage> bDeck = mirrorToDeck('STALE\n');
       File(bCanon).writeAsBytesSync(encodeCanon(bDeck));
       File(bMirror).writeAsStringSync('TAMPERED\n');
-      final orphanMirror = '${dir.path}/c.deck';
+      final orphanMirror = '${dir.path}/c.ct';
       File(orphanMirror).writeAsStringSync('ORPHAN\n');
 
       final Map<String, Object?> json = _content(
@@ -892,8 +891,8 @@ void main() {
           (r! as Map<String, Object?>)['status'] as String?,
       ];
       // Canon files sort before the orphan mirror (deck_files.dart's
-      // documented ordering), and within the canon files, a.ctdeck sorts
-      // before b.ctdeck.
+      // documented ordering), and within the canon files, a.ctd sorts
+      // before b.ctd.
       expect(statuses, ['ok', 'mirror_stale', 'orphan_mirror']);
       expect((results[0]! as Map<String, Object?>)['path'], canonPath);
       expect((results[1]! as Map<String, Object?>)['path'], bCanon);
@@ -988,7 +987,7 @@ void main() {
     test('rejects a path outside every declared root', () async {
       final Map<String, Object?> error = _errorOf(
         await client.call('deck_read', {
-          'path': '/mcp-confinement-test-should-not-exist.ctdeck',
+          'path': '/mcp-confinement-test-should-not-exist.ctd',
         }),
       );
       expect(error['kind'], 'forbidden_path');
@@ -1016,7 +1015,7 @@ void main() {
           // is the server's working directory when no roots are declared.
           final Map<String, Object?> ok = _content(
             await plain.call('deck_read', {
-              'path': 'test/fixtures/90.05-payroll.ctdeck',
+              'path': 'test/fixtures/90.05-payroll.ctd',
             }),
           );
           expect(ok['card_count'], 293);

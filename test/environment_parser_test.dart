@@ -45,7 +45,7 @@ void main() {
       );
       expect(diagnostics, isEmpty);
       // 7 FILE + 7 SPECIF, per the mirror
-      // (test/fixtures/90.05-payroll.deck:181-195).
+      // (test/fixtures/90.05-payroll.ct:181-195).
       expect(cards, hasLength(14));
       expect(cards.whereType<FileCard>(), hasLength(7));
       expect(cards.whereType<SpecifCard>(), hasLength(7));

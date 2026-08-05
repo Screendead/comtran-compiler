@@ -2,7 +2,7 @@
 
 // Exercises `activate()` against a stub of the `vscode` module: the
 // `comtran.newDeck` command it registers, and the one-time notice that a
-// `.deck` file is a generated mirror.
+// `.ct` file is a generated mirror.
 
 const assert = require('node:assert/strict');
 const Module = require('node:module');
@@ -115,7 +115,7 @@ test('activate registers the new-deck command', () => {
 
 test('the new-deck command writes a valid one-card deck and opens it', async () => {
   activate(fakeContext());
-  const target = vscodeStub.Uri.file('/new.ctdeck');
+  const target = vscodeStub.Uri.file('/new.ctd');
   savedDialogUri = target;
   executed = [];
   await registeredCommands.get('comtran.newDeck')();
@@ -140,7 +140,7 @@ test('the new-deck command does nothing when the user cancels the dialog', async
   assert.equal(executed.length, 0);
 });
 
-test('opening a .deck file shows the mirror notice once per session', () => {
+test('opening a .ct file shows the mirror notice once per session', () => {
   documentOpenListeners.length = 0;
   const messages = [];
   vscodeStub.window.showInformationMessage = async (text) => {

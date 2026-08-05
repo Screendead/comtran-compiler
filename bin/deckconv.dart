@@ -1,7 +1,7 @@
 /// Deck converter — the T1 tool of `docs/HANDOVER.md`.
 ///
-/// Converts between canon card-image files (`.ctdeck`) and their text
-/// mirrors (`.deck`), regenerates mirrors, and checks that committed mirrors
+/// Converts between canon card-image files (`.ctd`) and their text
+/// mirrors (`.ct`), regenerates mirrors, and checks that committed mirrors
 /// are fresh. Formats: `docs/design/deck-format.md`; authority rules: D0.5.
 library;
 
@@ -13,15 +13,15 @@ import 'package:comtran/comtran.dart';
 const String _usage = '''
 Usage: dart run comtran:deckconv <command> ...
 
-  to-canon <in.deck> <out.ctdeck>   convert a mirror to a canon file, and
-                                    write its sibling .deck mirror too
-                                    (- reads the mirror from standard input)
-  to-text <in.ctdeck> [<out.deck>]  convert a canon file to mirror text
-                                    (- or no path given: standard output)
-  regen <path>...                   regenerate the .deck mirror next to each
-                                    .ctdeck file (directories are searched)
-  check <path>...                   verify that each canon file round-trips
-                                    and that its committed mirror is fresh
+  to-canon <in.ct> <out.ctd>   convert a mirror to a canon file, and
+                               write its sibling .ct mirror too
+                               (- reads the mirror from standard input)
+  to-text <in.ctd> [<out.ct>]  convert a canon file to mirror text
+                               (- or no path given: standard output)
+  regen <path>...              regenerate the .ct mirror next to each
+                               .ctd file (directories are searched)
+  check <path>...              verify that each canon file round-trips
+                               and that its committed mirror is fresh
 ''';
 
 void main(List<String> arguments) {

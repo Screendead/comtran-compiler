@@ -15,7 +15,7 @@ void main() {
 
   test('the re-keyed 90.05 deck is present and card-shaped', () {
     final List<String> lines = File(
-      'test/fixtures/90.05-payroll.deck',
+      'test/fixtures/90.05-payroll.ct',
     ).readAsLinesSync();
     expect(lines, hasLength(293));
     for (final line in lines) {
