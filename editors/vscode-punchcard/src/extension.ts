@@ -125,7 +125,8 @@ async function applyMirror(
   if (pairBusy(canonPath)) {
     void vscode.window.showWarningMessage(
       `A deckconv run on ${path.basename(canonPath)} is in progress; the ` +
-        'mirror save was not applied. Save the mirror again.',
+        'mirror save was not applied, and the run may rewrite the saved ' +
+        'text. Re-apply the edit (undo history holds it), then save again.',
     );
     return;
   }

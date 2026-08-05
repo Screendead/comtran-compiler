@@ -46,7 +46,9 @@ spaces. Each line has one of two forms:
   in ascending column order, e.g. `! 1:12-5-8 72:9`. Used for every other card:
   machine specials, object decks, and illegal punch patterns.
 
-The tools reject text that is not in normal form and name the offending card.
+The tools reject text that is not in normal form. The error names the
+offending card when one exists; a file-level fault (a CR character, no final
+newline) has no card to name.
 
 ## The `deckconv` CLI
 
