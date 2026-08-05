@@ -38,7 +38,8 @@ Two sources so far:
 |---|---|---|
 | An external language-model review of the public repository | 2026-08-05 | O3 to O9, and R1 to R4 |
 | This project's own work | 2026-08-05 | O1, O2, and R5 |
-| A second pass by the same external reviewer | 2026-08-05 | O10, O11, and the amendment to R2 |
+| A second pass by the same external reviewer | 2026-08-05 | O10, O11, and the first amendment to R2 |
+| Jack, refusing O1's original claim | 2026-08-05 | O12, the demotion of O1, and the second amendment to R2 |
 
 The external review had no access to the working history. It graded the project
 8.5 out of 10 as a research reconstruction. Its central claim is sound: nearly
@@ -49,29 +50,40 @@ Its weaker claims are recorded in section 6.
 
 Rank is by research value divided by cost, with readiness as the tie-break.
 
+Ids are permanent. Rank is the row order, and a row may move.
+
 | Id | Opportunity | Cost | Ready? |
 |---|---|---|---|
-| O1 | Machine-check the canon deck against the manual conversion | Small | Yes |
-| O2 | Re-read the scans with a second tool and diff the result | Medium | Yes |
-| O3 | Tag every semantic rule with its evidence tier | Large | No — needs a unit of account |
+| O12 | Find a second scan of each manual, or record that none exists | Small to attempt | Yes |
+| O2 | Read the scans again with a different reader | Medium | Yes |
+| O10 | State the reconstruction method as a method | Medium | Yes |
+| O11 | Keep a first-class record of refuted readings | Small | Yes |
+| O1 | Hold the deck and the conversion consistent, mechanically | Small | Yes |
 | O4 | Give the project one reproducibility entry point | Small | Yes |
-| O5 | Add citation and preservation metadata | Small | No — needs Jack's ORCID |
+| O5 | Add citation and preservation metadata | Small | Part done |
+| O3 | Tag every semantic rule with its evidence tier | Large | No — needs a unit of account |
 | O6 | Find more surviving COMTRAN artifacts | Unbounded | Yes |
 | O7 | Get an independent domain expert to review the reconstruction | Unbounded | No — needs O9 or a public write-up |
 | O8 | Link a generated instruction back to its page scan | Medium | No — needs O3 |
 | O9 | Write a citable technical report | Large | No — needs M6 |
-| O10 | State the reconstruction method as a method | Medium | Yes |
-| O11 | Keep a first-class record of refuted readings | Small | Yes |
 
 ## 5. The entries
 
-### O1 — Machine-check the canon deck against the manual conversion
+### O1 — Hold the deck and the conversion consistent, mechanically
+
+**Read this first.** An earlier form of this entry called the two artifacts
+independent transcriptions and claimed the check was a form of validation. Jack
+refused that claim on 2026-08-05, and he was right. Both artifacts derive from
+one scanned copy of one manual, and the same reader settled the text in each.
+Two derivations from one source can show that they agree. They cannot show that
+either is correct. **This entry is a regression gate. It is not evidence.** O12
+and O2 are the entries that attack the underlying problem.
 
 **What.** `test/fixtures/90.05-payroll.ctd` and
-`comtran-manuals/J28-6169/90.05-sample-program.md` transcribe the same printed
-program twice, independently. A test can compare them card by card and fail on
-any divergence in word spacing. Match a deck card to the conversion line whose
-trailing words are identical. Then compare the blank runs between the words.
+`comtran-manuals/J28-6169/90.05-sample-program.md` hold the same printed program
+twice. A test can compare them card by card and fail on any divergence in word
+spacing. Match a deck card to the conversion line whose trailing words are
+identical. Then compare the blank runs between the words.
 
 Two exclusions are necessary, and both are already settled:
 
@@ -80,26 +92,33 @@ Two exclusions are necessary, and both are already settled:
 - Skip the Data Division. The listing prints those entries in its own fixed
   columns, so a difference there is not a spacing claim.
 
-**What it buys.** It turns the project's strongest correctness claim from a
-human judgment into a reproducible check. Two independent transcriptions of one
-source, cross-checked on every commit, is a much better sentence in a paper than
-"the transcription was checked carefully".
+**What it buys.** Two things, both modest.
 
-**What it does not buy, and say so in print.** The two transcriptions came from
-one person. They are independent passes, not independent authors: the deck was
-keyed column by column, the conversion was transcribed as text, and the two were
-made at different times. That difference catches a slip in either one. It cannot
-catch a misreading of the print that the same reader would make twice. O2 and
-O7 attack that residue; this check does not.
+It stops drift. Every future correction touches one artifact and may not touch
+the other. The 2026-08-05 pass corrected six sites in the conversion and one in
+the deck, and nothing structurally stopped the two from parting company. A
+standing check makes that class of divergence impossible to merge.
+
+It catches a slip in one artifact but not the other, because the two derivations
+put different pressure on the reader. Keying a card forces a decision about
+every column. Transcribing a line of text does not, because gap width carries no
+meaning. That asymmetry is why the check found the statement 193 errors.
+
+**What it does not buy.** It cannot corroborate a reading. If the print is
+faint or ambiguous and the reader gets it wrong, the same reader gets it wrong
+in both artifacts, and the check passes. State this plainly wherever the check
+is described. A consistency gate presented as evidence is worse than no gate.
+
+**Evidence it works, and the size of that evidence.** On 2026-08-05 the
+comparison found two errors in statement 193 that a scan-measurement pass had
+declared complete. See `test/fixtures/90.05-payroll-deck-notes.md` item 4. That
+is one divergence in 112 cards: a real catch, and a small sample. Do not build a
+claim on it.
 
 **Cost.** Small. One helper and one test. The method already exists as a
 throwaway script and needs a proper home.
 
 **What blocks it.** Nothing.
-
-**Evidence it works.** On 2026-08-05 this comparison found two errors in
-statement 193 that a scan-measurement pass had already declared complete. See
-`test/fixtures/90.05-payroll-deck-notes.md` item 4.
 
 ### O2 — Re-read the scans with a second tool and diff the result
 
@@ -288,6 +307,40 @@ backfill.
 
 **What blocks it.** Nothing.
 
+### O12 — Find a second scan of each manual, or record that none exists
+
+**What.** Search for a second, physically separate scan of F28-8043 and of
+J28-6169-1. A different copy of the book, scanned by different people at a
+different time. Then diff the conversion against it.
+
+`comtran-manuals/README.md` records the current position: one 400-dpi PDF per
+manual, with no text layer, OCRed and then corrected page by page against the
+page images. Every claim this project makes about the source text passes through
+that single copy.
+
+**What it buys.** The only true corroboration available for the transcription.
+Two readers of one scan can only agree about that scan. Two scans of two
+physical copies are independent witnesses to the printing, and where they agree
+on a character, that character is settled. Where they disagree, the project
+learns something it cannot learn any other way — a copy defect, a print-run
+difference, or a scanning artifact.
+
+**The second outcome is also worth having.** If no second copy can be found,
+say so in print. "The reconstruction rests on a single scanned copy of each
+manual, and no second copy was located" is an honest statement of the project's
+outer limit, and a reader needs it in order to weigh everything else. A search
+that returns nothing is still a result; record where you looked.
+
+**Where to look.** bitsavers and its mirrors, the Internet Archive, the Computer
+History Museum, university libraries that held IBM systems documentation, the
+IBM corporate archive, and collectors through the classic-computing lists. A
+microfiche or microfilm copy counts, and so does a photographed original.
+
+**Cost.** Small to attempt. Unbounded to exhaust. Bound the search and record
+what it covered.
+
+**What blocks it.** Nothing.
+
 ## 6. Rejected, with reasons
 
 Do not re-open these without new evidence.
@@ -305,12 +358,28 @@ This is the roadmap, not an opportunity. M4 stage 4 hardens the emulator, and
 `docs/design/emulator.md` holds its decisions.
 
 *Amended 2026-08-05.* Hold two goals apart, because they are not the same goal.
-The research objective is to reproduce what IBM's compiler produced: the same
-listing, the same object deck, the same diagnostics. The emulator is a means to
-test that, and nothing more. Cycle-accurate 7090 emulation is a fine thing, but
-it belongs to a different project and it does not make this reconstruction more
-believable. Spend on emulator work only where it decides a question about the
-compiler's output.
+This project reproduces what IBM's compiler produced: the same listing, the same
+object deck, the same diagnostics. The emulator is a means to test that, and
+nothing more. Cycle-accurate 7090 emulation is a fine thing, but it belongs to a
+different project and it does not make this reconstruction more believable.
+Spend on emulator work only where it decides a question about the compiler's
+output.
+
+*Amended again 2026-08-05, on Jack's instruction.* **This project does not build
+a historically accurate 7090 emulator, and no wording here may be read as asking
+for one.** D0.3 does not ask for one either: it commits to running the object
+code the compiler emits, with the SYS) and IOC) runtime library emulated at a
+high level rather than instruction by instruction. `lib/src/emulator/` holds 43
+opcodes harvested from the sample listing, and it grows only when generated code
+needs an opcode it does not have.
+
+Jack named a second option on 2026-08-05: use an emulator someone else wrote,
+such as the SIMH 7090 simulator, and say plainly that it is not ours. That is a
+real change to D0.3 and it is not free. Several decision records read the
+emulator's behaviour as their own decision — D4.1 on the ACL sign path, the DO
+record on non-termination, the MOVPAK communication cells — and each would have
+to become an observation of somebody else's simulator instead. **Do not amend
+D0.3 without Jack's explicit instruction.**
 
 ### R3 — Product-readiness and adoption metrics
 
