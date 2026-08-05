@@ -39,7 +39,7 @@ Terms that appear without expansion:
 | Language definition | Complete and verified | `docs/comtran-language-definition.md` |
 | M0 design decisions (84 records) | Locked 2026-08-02 | `docs/design/decisions.md` |
 | Punch-level deck format | Frozen | `docs/design/deck-format.md` |
-| 90.05 canon deck (293 cards) | Authoritative; its mirror is CI-slaved | `test/fixtures/90.05-payroll.ctdeck` |
+| 90.05 canon deck (293 cards) | Authoritative; its mirror is CI-slaved | `test/fixtures/90.05-payroll.ctd` |
 | M1 front end | Done 2026-08-03 | `lib/src/lexer/`, `lib/src/listing/` |
 | M2 stage 1 — AST and fixed-form parsers | Merged 2026-08-03 (PR #15) | `lib/src/ast/`, `lib/src/parser/` |
 | M2 stage 2 — procedure division | Merged 2026-08-03 (PR #17) | `lib/src/parser/procedure_parser.dart` |
@@ -56,10 +56,10 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline, measured 2026-08-05: 955 Dart tests pass, and 111 extension
+Test baseline, measured 2026-08-05: 955 Dart tests pass, and 135 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
-`dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck` compiles the
+`dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
 manual's own payroll sample through the front end, the parser, and the
 semantic layer. The job deck is the 293-card artifact plus one reconstructed
 *FINISH card (D11.3); the raw artifact alone is an incomplete job and draws
@@ -156,7 +156,7 @@ binds work outside the definition.
 ## The mission: the compiler — roadmap
 
 The first concrete task is done. The 90.05 sample deck is re-keyed as
-`test/fixtures/90.05-payroll.deck` (2026-08-02): 293 cards, program lines only, with
+`test/fixtures/90.05-payroll.ct` (2026-08-02): 293 cards, program lines only, with
 every column layout measured from the page scans line by line.
 `test/fixtures/90.05-payroll-deck-notes.md` holds the provenance, the layout facts, the
 reconstruction decisions, and the residual one-space caveats. This deck is the
@@ -227,7 +227,7 @@ M2 to M6.
   as the pre-commit hook (`.githooks/`), the CI freshness step, and the git
   textconv driver. `docs/design/deck-format.md` holds the setup.
 - **T2 — VS Code punchcard editor** — **DONE 2026-08-03** (PR #9). A custom
-  binary editor for `*.ctdeck` in `editors/vscode-punchcard/`: punch grid,
+  binary editor for `*.ctd` in `editors/vscode-punchcard/`: punch grid,
   interpreted Set H row, field rulers, and click- or type-to-punch editing.
   To install it, package the `.vsix` and run
   `code --profile <name> --install-extension`. The profile matters.
@@ -237,7 +237,7 @@ M2 to M6.
 - **T4 — Deck syntax highlighting** — **DONE 2026-08-03** (PR #14). Both deck
   views color the card fields from one shared column table
   (`editors/vscode-punchcard/src/columns.ts`).
-  - A `comtran-deck` language contribution colors `.deck` mirrors from a
+  - A `comtran-deck` language contribution colors `.ct` mirrors from a
     **generated** TextMate grammar (`npm run grammar`; a freshness test guards
     the committed file): column fields, literals, the period-blank terminator
     with its commentary scoped as comment, `!` punch lines, and header and

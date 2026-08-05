@@ -7,23 +7,23 @@ command -v dart >/dev/null || { echo "pre-commit: dart not found on PATH" >&2; e
 
 staged=()
 while IFS= read -r -d '' f; do staged+=("$f"); done \
-  < <(git diff --cached --name-only -z --diff-filter=ACM -- '*.ctdeck')
+  < <(git diff --cached --name-only -z --diff-filter=ACM -- '*.ctd')
 
 # Handle renames: remove old mirror, regenerate at new path
 while IFS= read -r -d '' _status && IFS= read -r -d '' old_file && IFS= read -r -d '' new_file; do
-  old_mirror="${old_file%.ctdeck}.deck"
+  old_mirror="${old_file%.ctd}.ct"
   git rm -q --cached --ignore-unmatch -- "$old_mirror"
   rm -f -- "$old_mirror"
   staged+=("$new_file")
-done < <(git diff --cached --name-status -z --diff-filter=R -- '*.ctdeck')
+done < <(git diff --cached --name-status -z --diff-filter=R -- '*.ctd')
 
 deleted=()
 while IFS= read -r -d '' f; do deleted+=("$f"); done \
-  < <(git diff --cached --name-only -z --diff-filter=D -- '*.ctdeck')
+  < <(git diff --cached --name-only -z --diff-filter=D -- '*.ctd')
 
 # A deleted canon deck takes its mirror with it.
 for f in ${deleted[@]+"${deleted[@]}"}; do
-  m="${f%.ctdeck}.deck"
+  m="${f%.ctd}.ct"
   git rm -q --cached --ignore-unmatch -- "$m"
   rm -f -- "$m"
 done
@@ -41,7 +41,7 @@ done
 
 dart run comtran:deckconv regen "${staged[@]}"
 for f in "${staged[@]}"; do
-  git add -- "${f%.ctdeck}.deck"
+  git add -- "${f%.ctd}.ct"
 done
 
 dart run comtran:deckconv check .

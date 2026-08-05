@@ -8,15 +8,15 @@ import 'text_codec.dart';
 /// Deck files on disk: the canon–mirror pairing rules of
 /// `docs/design/deck-format.md` §6 (decision D0.5).
 ///
-/// Canon files are authoritative. Each `X.ctdeck` has a generated mirror
-/// `X.deck`. [checkDeckPaths] is the one implementation of the freshness and
+/// Canon files are authoritative. Each `X.ctd` has a generated mirror
+/// `X.ct`. [checkDeckPaths] is the one implementation of the freshness and
 /// round-trip rules; `deckconv check` and the MCP server both use it.
 
 /// The extension of a canon file.
-const String canonExtension = '.ctdeck';
+const String canonExtension = '.ctd';
 
 /// The extension of a mirror file.
-const String mirrorExtension = '.deck';
+const String mirrorExtension = '.ct';
 
 /// The mirror path that belongs to canon file [canonPath].
 ///

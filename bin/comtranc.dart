@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:comtran/comtran.dart';
 
 const String _usage = r'''
-Usage: dart run comtran:comtranc <deck.ctdeck> [options]
+Usage: dart run comtran:comtranc <deck.ctd> [options]
 
   Compiles every job on the deck ($CMPLE ... *FINISH) and prints one
   compilation listing per job.
@@ -32,7 +32,7 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
                       stderr, one per line; the listing on stdout is
                       unchanged
   --emit-cards[=PATH]
-                      write the whole deck's card images, in the .deck
+                      write the whole deck's card images, in the .ct
                       mirror form (D0.5)
   --emit-scan[=PATH]  write the front end's dump
   --emit-parse[=PATH]
@@ -45,7 +45,7 @@ Usage: dart run comtran:comtranc <deck.ctdeck> [options]
   -c -s -p -S -l      the short emit flags, one letter per stage above,
                       bundleable: -cpsSl is the full set. A dump without
                       PATH lands next to the deck, the deck's extension
-                      replaced by the stage name: `payroll.ctdeck -p`
+                      replaced by the stage name: `payroll.ctd -p`
                       writes `payroll.parse`.
   --version          print the version and exit
 ''';

@@ -39,7 +39,7 @@ dart format --output=none --set-exit-if-changed lib bin test tool
 dart analyze --fatal-infos
 dart test
 dart run comtran:deckconv check .
-dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctdeck   # compile the sample
+dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd   # compile the sample
 ```
 
 CI runs the same gate on every pull request. `.github/workflows/` is the
@@ -65,15 +65,15 @@ node --test "test/**/*.test.js"
 
 A COMTRAN program is a deck of punched cards. Each deck is a pair of files:
 
-- `X.ctdeck` — **canon**, a binary punch-level card image. It is authoritative.
-- `X.deck` — **mirror**, generated text, one line per card, for review and
+- `X.ctd` — **canon**, a binary punch-level card image. It is authoritative.
+- `X.ct` — **mirror**, generated text, one line per card, for review and
   diffs.
 
 The rules:
 
-1. The compiler and every tool read canon only. Address a deck by its `.ctdeck`
+1. The compiler and every tool read canon only. Address a deck by its `.ctd`
    path.
-2. **Never hand-edit a `.deck` mirror.** The next regeneration discards the
+2. **Never hand-edit a `.ct` mirror.** The next regeneration discards the
    edit, and CI rejects a stale pair.
 3. Change a deck through `deckconv` or the MCP deck tools. They rewrite the
    canon file and regenerate the mirror together.
@@ -177,7 +177,7 @@ Do not edit these by hand:
 | `lib/src/lexer/message_catalog.dart` | `dart run tool/generate_message_catalog.dart` |
 | `editors/vscode-punchcard/manual-map.json` | `dart run tool/generate_manual_map.dart` |
 | `editors/vscode-punchcard/syntaxes/comtran-deck.tmLanguage.json` | `npm run grammar` |
-| every `*.deck` mirror | `dart run comtran:deckconv regen <path>` |
+| every `*.ct` mirror | `dart run comtran:deckconv regen <path>` |
 | the manual-link block at the end of a markdown file | `dart run tool/linkify_manual_refs.dart` |
 
 A golden test guards each one. A hand edit fails that test with no obvious

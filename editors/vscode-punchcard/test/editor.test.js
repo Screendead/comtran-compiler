@@ -93,7 +93,7 @@ function deckOf(cards) {
 }
 
 async function openDeck(name, cards) {
-  const uri = vscodeStub.Uri.file(`/${name}.ctdeck`);
+  const uri = vscodeStub.Uri.file(`/${name}.ctd`);
   memory.set(uri.toString(), deckOf(cards));
   return { uri, document: await PunchcardDocument.create(uri, undefined) };
 }
@@ -109,21 +109,21 @@ test('a document loads the deck from its file', async () => {
 });
 
 test('an untitled document starts with one blank card', async () => {
-  const uri = makeUri('untitled', '/new.ctdeck');
+  const uri = makeUri('untitled', '/new.ctd');
   const document = await PunchcardDocument.create(uri, undefined);
   assert.equal(document.cardCount, 1);
   assert.equal(document.card(0).every((c) => c === 0), true);
 });
 
 test('a document tolerates a 0-byte canon file as an empty deck', async () => {
-  const uri = vscodeStub.Uri.file('/zero-byte.ctdeck');
+  const uri = vscodeStub.Uri.file('/zero-byte.ctd');
   memory.set(uri.toString(), new Uint8Array(0));
   const document = await PunchcardDocument.create(uri, undefined);
   assert.equal(document.cardCount, 0);
 });
 
 test('saving a deck that started at 0 bytes writes a valid empty-deck header', async () => {
-  const uri = vscodeStub.Uri.file('/zero-byte-save.ctdeck');
+  const uri = vscodeStub.Uri.file('/zero-byte-save.ctd');
   memory.set(uri.toString(), new Uint8Array(0));
   const document = await PunchcardDocument.create(uri, undefined);
   await document.save(NO_CANCEL);
@@ -220,10 +220,10 @@ test('a revert reloads the file and drops the edits', async () => {
 test('a backup writes a file that reopens', async () => {
   const { document } = await openDeck('backup', [blankCard()]);
   document.togglePunch(0, 3, 5);
-  const destination = vscodeStub.Uri.file('/backup.ctdeck');
+  const destination = vscodeStub.Uri.file('/backup.ctd');
   const backup = await document.backup(destination, NO_CANCEL);
   const restored = await PunchcardDocument.create(
-    vscodeStub.Uri.file('/backup-target.ctdeck'),
+    vscodeStub.Uri.file('/backup-target.ctd'),
     backup.id,
   );
   assert.equal(restored.card(0)[2], document.card(0)[2]);
@@ -237,7 +237,7 @@ test('an untitled document restores from its hot-exit backup', async () => {
   const destination = vscodeStub.Uri.file('/untitled-backup.bak');
   const backup = await document.backup(destination, NO_CANCEL);
 
-  const untitledUri = makeUri('untitled', '/Untitled-1.ctdeck');
+  const untitledUri = makeUri('untitled', '/Untitled-1.ctd');
   const restored = await PunchcardDocument.create(untitledUri, backup.id);
   assert.equal(restored.cardCount, 1);
   assert.equal(restored.card(0)[6], document.card(0)[6]);
@@ -282,7 +282,7 @@ function fakePanel() {
 }
 
 async function openEditor(name, cards) {
-  const uri = vscodeStub.Uri.file(`/${name}.ctdeck`);
+  const uri = vscodeStub.Uri.file(`/${name}.ctd`);
   memory.set(uri.toString(), deckOf(cards));
   const provider = new PunchcardEditorProvider({
     extensionUri: vscodeStub.Uri.file(path.join(__dirname, '..')),

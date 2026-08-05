@@ -1,2 +1,2 @@
-*.ctdeck -text -merge diff=ctdeck
-*.deck text eol=lf -merge
+*.ctd -text -merge diff=ctdeck
+*.ct text eol=lf -merge

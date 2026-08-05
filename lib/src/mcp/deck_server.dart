@@ -13,9 +13,9 @@ import 'deck_tools.dart';
 /// Gives an agent structured read and write access to card decks:
 /// `deck_read`, `deck_write`, `deck_edit_cards`, `deck_card`,
 /// `card_code_info`, and `deck_check`. The formats are in
-/// `docs/design/deck-format.md`. Canon files (`.ctdeck`) are authoritative;
+/// `docs/design/deck-format.md`. Canon files (`.ctd`) are authoritative;
 /// `deck_write` and `deck_edit_cards` regenerate the sibling mirror
-/// (`.deck`) on every write, so no tool ever hand-edits a mirror.
+/// (`.ct`) on every write, so no tool ever hand-edits a mirror.
 ///
 /// Every path argument must resolve inside a workspace root the client
 /// declares (the `RootsTrackingSupport` mixin); with no client-declared
@@ -24,15 +24,15 @@ import 'deck_tools.dart';
 const String _instructions = '''
 Read and write COMTRAN card decks at punch level.
 
-A deck has two files. The canon file (.ctdeck) is a binary punch-level card
-image and is authoritative. The mirror file (.deck) is generated text, one
+A deck has two files. The canon file (.ctd) is a binary punch-level card
+image and is authoritative. The mirror file (.ct) is generated text, one
 line per card, committed for review and diffs.
 
 Rules:
-- Never hand-edit a .deck mirror. Write the deck with deck_write or
+- Never hand-edit a .ct mirror. Write the deck with deck_write or
   deck_edit_cards, which rewrite the canon file and regenerate the mirror
   together.
-- Address every deck by its .ctdeck path, inside a declared workspace root.
+- Address every deck by its .ctd path, inside a declared workspace root.
 - Mirror text must be in normal form: one line per card, LF endings, no
   trailing spaces, a final LF. A glyph line gives the Set H characters of the
   card. A card that punches anything else uses a punch line, "!" followed by
@@ -73,8 +73,8 @@ base class DeckMcpServer extends MCPServer
   static final Tool readTool = Tool(
     name: 'deck_read',
     description:
-        'Read a COMTRAN canon deck (.ctdeck). Reports the card count, the '
-        'mirror text of the deck, and whether the committed .deck mirror is '
+        'Read a COMTRAN canon deck (.ctd). Reports the card count, the '
+        'mirror text of the deck, and whether the committed .ct mirror is '
         'fresh. Set include_cards for the per-card structured form; the '
         'response then omits the full mirror text and reports '
         'cards_returned and next_start_card instead, so page with '
@@ -82,7 +82,7 @@ base class DeckMcpServer extends MCPServer
     inputSchema: Schema.object(
       properties: {
         'path': Schema.string(
-          description: 'Path to the canon file. Must end with .ctdeck.',
+          description: 'Path to the canon file. Must end with .ctd.',
         ),
         'include_cards': Schema.bool(
           description:
@@ -127,8 +127,8 @@ base class DeckMcpServer extends MCPServer
   static final Tool writeTool = Tool(
     name: 'deck_write',
     description:
-        'Write mirror text to a COMTRAN canon deck (.ctdeck) and regenerate '
-        'the sibling .deck mirror, so the pair stays fresh. The text must be '
+        'Write mirror text to a COMTRAN canon deck (.ctd) and regenerate '
+        'the sibling .ct mirror, so the pair stays fresh. The text must be '
         'in normal form; bad text is rejected and no file changes. Give '
         'expected_mirror (from an earlier deck_read) to fail with a '
         'conflict instead of overwriting a change made since you last read '
@@ -136,8 +136,7 @@ base class DeckMcpServer extends MCPServer
     inputSchema: Schema.object(
       properties: {
         'path': Schema.string(
-          description:
-              'Path to the canon file to write. Must end with .ctdeck.',
+          description: 'Path to the canon file to write. Must end with .ctd.',
         ),
         'mirror': Schema.string(
           description:
@@ -181,7 +180,7 @@ base class DeckMcpServer extends MCPServer
     inputSchema: Schema.object(
       properties: {
         'path': Schema.string(
-          description: 'Path to the canon file. Must end with .ctdeck.',
+          description: 'Path to the canon file. Must end with .ctd.',
         ),
         'start_card': Schema.int(
           description:
@@ -244,7 +243,7 @@ base class DeckMcpServer extends MCPServer
     inputSchema: Schema.object(
       properties: {
         'path': Schema.string(
-          description: 'Path to the canon file. Must end with .ctdeck.',
+          description: 'Path to the canon file. Must end with .ctd.',
         ),
         'card_index': Schema.int(
           description: 'Which card to describe, 1-based.',

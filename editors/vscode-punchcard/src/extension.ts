@@ -4,7 +4,7 @@ import { blankCard, encodeCanon } from './canonCodec';
 import { registerManualCitationProviders } from './manualLinks';
 import { PunchcardEditorProvider } from './punchcardEditor';
 
-/** Registers the punchcard editor when VS Code opens a `.ctdeck` file, and
+/** Registers the punchcard editor when VS Code opens a `.ctd` file, and
  * the manual-citation link and hover providers for `dart` files. */
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(PunchcardEditorProvider.register(context));
@@ -26,7 +26,7 @@ export function deactivate(): void {
  */
 async function newDeck(): Promise<void> {
   const uri = await vscode.window.showSaveDialog({
-    filters: { 'COMTRAN deck': ['ctdeck'] },
+    filters: { 'COMTRAN deck': ['ctd'] },
     saveLabel: 'Create Deck',
   });
   if (uri === undefined) {
@@ -41,8 +41,8 @@ async function newDeck(): Promise<void> {
 }
 
 /**
- * Tells the user, once per session, that a `.deck` file is a generated
- * mirror: `deckconv` writes it from the matching `.ctdeck` file, and the
+ * Tells the user, once per session, that a `.ct` file is a generated
+ * mirror: `deckconv` writes it from the matching `.ctd` file, and the
  * punchcard editor never writes it back.
  */
 function warnOnDeckMirror(context: vscode.ExtensionContext): void {
@@ -54,7 +54,7 @@ function warnOnDeckMirror(context: vscode.ExtensionContext): void {
       }
       warned = true;
       void vscode.window.showInformationMessage(
-        'This .deck file is a generated mirror of the matching .ctdeck ' +
+        'This .ct file is a generated mirror of the matching .ctd ' +
           'file. deckconv writes it; edits here are not saved back to the ' +
           'deck.',
       );

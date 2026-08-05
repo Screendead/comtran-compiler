@@ -20,7 +20,7 @@ const {
 } = require('../out/columns.js');
 
 const REPO = path.join(__dirname, '..', '..', '..');
-const CANON = path.join(REPO, 'test', 'fixtures', '90.05-payroll.ctdeck');
+const CANON = path.join(REPO, 'test', 'fixtures', '90.05-payroll.ctd');
 
 function cardFromText(text) {
   const card = new Uint16Array(80);

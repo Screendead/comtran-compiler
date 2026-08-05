@@ -2,7 +2,7 @@
  * The single source of the card column boundaries, shared by every view: the
  * field ruler and the card list of the punchcard editor (`cardView.ts` and
  * `media/punchcard.js`, via the state message) and the generated TextMate
- * grammar for `.deck` mirror files (`grammar.ts`). Change boundaries here
+ * grammar for `.ct` mirror files (`grammar.ts`). Change boundaries here
  * only; no view holds its own copy, so the views cannot drift.
  *
  * Column sources: serial 1-6, name margin 7-12, text 13-72, identification
@@ -22,7 +22,7 @@ export interface DeckField {
   name: string;
   /** CSS class suffix the card-list pane uses (`f-<css>`). */
   css: string;
-  /** TextMate scope the generated `.deck` grammar uses; null = unscoped. */
+  /** TextMate scope the generated `.ct` grammar uses; null = unscoped. */
   scope: string | null;
   /** Whether the field's text carries tokens (literals, numbers). */
   tokens?: boolean;

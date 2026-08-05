@@ -1,6 +1,6 @@
 'use strict';
 
-// The generated `.deck` grammar: the committed file must match the builder,
+// The generated `.ct` grammar: the committed file must match the builder,
 // and the column-anchored regexes must slice mirror lines at the shared
 // field boundaries.
 
