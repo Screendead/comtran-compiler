@@ -46,23 +46,37 @@ void main() {
   });
 
   group('the program image (M4-4)', () {
-    test("the block order places the sample's attested addresses", () {
-      // Location Counter 1 begins at 01621 and reserves RS, TS, BL, PI,
-      // then the pool. The listing attests all three results: `ORG
-      // BL)1` at 01666, `BGN 2,PI)1` at 01671, and the pool at 01674.
-      final image = ProgramImage(
-        inlineWords: _octal('1621'),
-        blockWords: const <StorageBlock, int>{
-          StorageBlock.rs: 30,
-          StorageBlock.ts: 7,
-          StorageBlock.bl: 3,
-          StorageBlock.pi: 3,
-        },
-      );
-      expect(image.symbolAddress(StorageBlock.bl, 1), _octal('1666'));
-      expect(image.symbolAddress(StorageBlock.pi, 1), _octal('1671'));
+    ProgramImage sampleImage() => ProgramImage(
+      inlineWords: _octal('1621'),
+      blockWords: const <StorageBlock, int>{
+        StorageBlock.rs: 30,
+        StorageBlock.ts: 7,
+        StorageBlock.bl: 3,
+        StorageBlock.pi: 3,
+      },
+    );
+
+    test('every block origin matches the listing, which freezes the order', () {
+      // The storage map prints a LOC against each reservation: RS) 30
+      // words at 01621, TS) 7 at 01657, BL) 3 at 01666, PI) 3 at 01671.
+      // The pool follows at 01674. Asserting all five is what catches a
+      // reordering of StorageBlock — asserting only the last two cannot,
+      // because summing the blocks above them hides a swap between them.
+      final ProgramImage image = sampleImage();
+      expect(image.originOf(StorageBlock.rs), _octal('1621'));
+      expect(image.originOf(StorageBlock.ts), _octal('1657'));
+      expect(image.originOf(StorageBlock.bl), _octal('1666'));
+      expect(image.originOf(StorageBlock.pi), _octal('1671'));
       expect(image.originOf(StorageBlock.cp), _octal('1674'));
-      expect(image.poolAddress(0), _octal('1674'));
+    });
+
+    test('a generated name counts from one, the pool from zero', () {
+      // Attested twice over: `CAL BL)3` assembles 01670, three words
+      // into a block whose first word is 01666; `ANA CP)+3` assembles
+      // 01677, three past the pool's own first word (D8.8).
+      final ProgramImage image = sampleImage();
+      expect(image.symbolAddress(StorageBlock.bl, 3), _octal('1670'));
+      expect(image.poolAddress(3), _octal('1677'));
     });
 
     test('the sample needs three base locators', () {

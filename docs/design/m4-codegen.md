@@ -163,6 +163,17 @@ M4 executes I/O-free programs.
   `BL)1` at 01666, which the `ORG BL)1` line prints. BL 3 words put
   `PI)1` at 01671, which the `BGN 2,PI)1` line prints. PI 3 words put
   the pool at 01674, where the listing shows it.
+  **Amended 2026-08-05, the block order is frozen.** Jack's call: the
+  order is load-bearing, so the `StorageBlock` declaration is frozen.
+  Two facts support it. First, the three addresses above do not in fact
+  pin the order. `originOf` sums every block declared before the one it
+  is asked for, and addition hides a swap among them, so `BL)1` lands at
+  01666 whether `RS)` or `TS)` is declared first. Second, the storage map
+  does pin every block, because it prints a LOC against each
+  reservation: `RS)` at 01621, `TS)` at 01657, `BL)` at 01666, `PI)` at
+  01671, and the pool at 01674. `test/codegen_test.dart` asserts all
+  five origins, so a reordering fails a test instead of silently moving
+  addresses. Add a block only at a position the listing attests.
   The constant pool allocates in first-need order during generation, one
   entry per distinct constant as written — a literal keys on its OCT
   word, a pointer or descriptor word on its symbolic operand, never on

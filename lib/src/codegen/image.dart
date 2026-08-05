@@ -10,6 +10,15 @@ import '../data/data_map.dart';
 
 /// The out-of-line blocks of Location Counter 1, in the reservation
 /// order [J 90.02.03]–06 attests (M4-4).
+///
+/// **The declaration order is frozen.** [ProgramImage.originOf] sums
+/// every block declared before its argument, so this order *is* the
+/// object program's layout, and a reordering moves addresses with
+/// nothing at the edit site to show it. The 90.05 storage map attests
+/// all five origins — `RS)` 01621, `TS)` 01657, `BL)` 01666, `PI)`
+/// 01671, and the pool at 01674 — and `codegen_test.dart` asserts each
+/// one, so a reordering fails there. Add a block only at a position the
+/// listing attests.
 enum StorageBlock {
   /// Result storage: the sum over sections of the maximum each section
   /// uses ([J 90.02.03]), two words per cell (D4.8, inferred from the
