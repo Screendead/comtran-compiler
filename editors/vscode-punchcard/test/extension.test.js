@@ -1,8 +1,9 @@
 'use strict';
 
 // Exercises `activate()` against a stub of the `vscode` module: the
-// `comtran.newDeck` command it registers, and the one-time notice that a
-// `.ct` file is a generated mirror.
+// `comtran.newDeck` command it registers, the one-time notice on opening a
+// `.ct` mirror, and the save sync that keeps a deck and its mirror fresh
+// together (`node:child_process` is stubbed — CI has no Dart SDK).
 
 const assert = require('node:assert/strict');
 const Module = require('node:module');
@@ -44,8 +45,13 @@ const memory = new Map();
 const registeredCommands = new Map();
 /** @type {Array<(document: { languageId: string }) => void>} */
 const documentOpenListeners = [];
+/** @type {Array<(document: object) => void>} */
+const documentSaveListeners = [];
+let registeredProvider;
 let savedDialogUri;
 let executed = [];
+let warnings = [];
+let errors = [];
 
 const vscodeStub = {
   EventEmitter,
@@ -62,20 +68,38 @@ const vscodeStub = {
     },
   },
   window: {
-    registerCustomEditorProvider: () => ({ dispose: () => {} }),
+    registerCustomEditorProvider: (_viewType, provider) => {
+      registeredProvider = provider;
+      return { dispose: () => {} };
+    },
     showSaveDialog: async () => savedDialogUri,
     showInformationMessage: async () => undefined,
+    showWarningMessage: async (text) => {
+      warnings.push(text);
+      return undefined;
+    },
+    showErrorMessage: async (text) => {
+      errors.push(text);
+      return undefined;
+    },
+    tabGroups: { all: [] },
   },
   workspace: {
     fs: {
       writeFile: async (uri, data) => {
         memory.set(uri.toString(), Uint8Array.from(data));
       },
+      readFile: async (uri) => memory.get(uri.toString()) ?? Uint8Array.of(),
     },
     onDidOpenTextDocument: (listener) => {
       documentOpenListeners.push(listener);
       return { dispose: () => {} };
     },
+    onDidSaveTextDocument: (listener) => {
+      documentSaveListeners.push(listener);
+      return { dispose: () => {} };
+    },
+    textDocuments: [],
     workspaceFolders: undefined,
   },
   languages: {
@@ -84,16 +108,35 @@ const vscodeStub = {
   },
 };
 
+let execCalls = [];
+let execResult = { error: null, stdout: '', stderr: '' };
+
 const load = Module._load;
 Module._load = function (request, parent, isMain) {
   if (request === 'vscode') {
     return vscodeStub;
+  }
+  if (request === 'node:child_process') {
+    return {
+      execFile: (command, args, options, callback) => {
+        execCalls.push({ command, args, options });
+        process.nextTick(() =>
+          callback(execResult.error, execResult.stdout, execResult.stderr),
+        );
+      },
+    };
   }
   return load.call(this, request, parent, isMain);
 };
 
 const { activate } = require('../out/extension.js');
 const { decodeCanon } = require('../out/canonCodec.js');
+
+// A pair inside the real repository, so the repo-root walk finds the
+// pubspec.yaml. The files never exist; every read and write is stubbed.
+const repoRoot = path.resolve(__dirname, '..', '..', '..');
+const mirrorPath = path.join(__dirname, 'fixtures', 'sample.ct');
+const canonPath = path.join(__dirname, 'fixtures', 'sample.ctd');
 
 function fakeContext() {
   return {
@@ -102,23 +145,47 @@ function fakeContext() {
   };
 }
 
+function freshActivate() {
+  documentOpenListeners.length = 0;
+  documentSaveListeners.length = 0;
+  executed = [];
+  warnings = [];
+  errors = [];
+  execCalls = [];
+  execResult = { error: null, stdout: '', stderr: '' };
+  vscodeStub.window.tabGroups.all = [];
+  vscodeStub.workspace.textDocuments = [];
+  activate(fakeContext());
+}
+
 function fireOpen(languageId) {
   for (const listener of documentOpenListeners) {
     listener({ languageId });
   }
 }
 
+function fireSave(document) {
+  for (const listener of documentSaveListeners) {
+    listener(document);
+  }
+}
+
+async function flush() {
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+}
+
 test('activate registers the new-deck command', () => {
-  activate(fakeContext());
+  freshActivate();
   assert.ok(registeredCommands.has('comtran.newDeck'));
 });
 
 test('the new-deck command writes a valid one-card deck and opens it', async () => {
-  activate(fakeContext());
-  const target = vscodeStub.Uri.file('/new.ctd');
+  freshActivate();
+  const target = vscodeStub.Uri.file(path.join(__dirname, 'fixtures', 'new.ctd'));
   savedDialogUri = target;
-  executed = [];
   await registeredCommands.get('comtran.newDeck')();
+  await flush();
 
   const written = memory.get(target.toString());
   assert.ok(written);
@@ -130,24 +197,30 @@ test('the new-deck command writes a valid one-card deck and opens it', async () 
   assert.equal(executed[0].id, 'vscode.openWith');
   assert.equal(executed[0].args[0], target);
   assert.equal(executed[0].args[1], 'comtran.punchcard');
+
+  assert.equal(execCalls.length, 1, 'the new deck gets its mirror');
+  assert.deepEqual(execCalls[0].args.slice(0, 3), [
+    'run',
+    'comtran:deckconv',
+    'regen',
+  ]);
 });
 
 test('the new-deck command does nothing when the user cancels the dialog', async () => {
-  activate(fakeContext());
+  freshActivate();
   savedDialogUri = undefined;
-  executed = [];
   await registeredCommands.get('comtran.newDeck')();
   assert.equal(executed.length, 0);
+  assert.equal(execCalls.length, 0);
 });
 
-test('opening a .ct file shows the mirror notice once per session', () => {
-  documentOpenListeners.length = 0;
+test('opening a .ct file shows the save-sync notice once per session', () => {
+  freshActivate();
   const messages = [];
   vscodeStub.window.showInformationMessage = async (text) => {
     messages.push(text);
     return undefined;
   };
-  activate(fakeContext());
 
   fireOpen('plaintext');
   assert.equal(messages.length, 0);
@@ -155,7 +228,132 @@ test('opening a .ct file shows the mirror notice once per session', () => {
   fireOpen('comtran-deck');
   assert.equal(messages.length, 1);
   assert.match(messages[0], /generated mirror/);
+  assert.match(messages[0], /rewrites the deck/);
 
   fireOpen('comtran-deck');
   assert.equal(messages.length, 1, 'the notice does not repeat');
+});
+
+test('saving a deck regenerates its mirror from the repository root', async () => {
+  freshActivate();
+  const uri = vscodeStub.Uri.file(canonPath);
+  await registeredProvider.saveCustomDocument(
+    { uri, save: async () => {} },
+    { isCancellationRequested: false },
+  );
+  await flush();
+  assert.equal(execCalls.length, 1);
+  assert.deepEqual(execCalls[0].args, [
+    'run',
+    'comtran:deckconv',
+    'regen',
+    canonPath,
+  ]);
+  assert.equal(execCalls[0].options.cwd, repoRoot);
+  assert.deepEqual(warnings, []);
+  assert.deepEqual(errors, []);
+});
+
+test('a deck save warns when the open mirror buffer is dirty', async () => {
+  freshActivate();
+  vscodeStub.workspace.textDocuments = [
+    { uri: makeUri('file', mirrorPath), isDirty: true },
+  ];
+  await registeredProvider.saveCustomDocument(
+    { uri: vscodeStub.Uri.file(canonPath), save: async () => {} },
+    { isCancellationRequested: false },
+  );
+  await flush();
+  assert.equal(execCalls.length, 1, 'the canon is authoritative: regen runs');
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /now stale/);
+});
+
+test('a failed regen surfaces the deckconv stderr', async () => {
+  freshActivate();
+  execResult = { error: new Error('exit 1'), stdout: '', stderr: 'error: boom' };
+  await registeredProvider.saveCustomDocument(
+    { uri: vscodeStub.Uri.file(canonPath), save: async () => {} },
+    { isCancellationRequested: false },
+  );
+  await flush();
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /regen failed: error: boom/);
+});
+
+test('saving a mirror rewrites the deck through to-canon', async () => {
+  freshActivate();
+  fireSave({
+    languageId: 'comtran-deck',
+    uri: makeUri('file', mirrorPath),
+  });
+  await flush();
+  assert.equal(execCalls.length, 1);
+  assert.deepEqual(execCalls[0].args, [
+    'run',
+    'comtran:deckconv',
+    'to-canon',
+    mirrorPath,
+    canonPath,
+  ]);
+  assert.equal(execCalls[0].options.cwd, repoRoot);
+  assert.deepEqual(errors, []);
+});
+
+test('a save of another language or scheme runs nothing', async () => {
+  freshActivate();
+  fireSave({ languageId: 'plaintext', uri: makeUri('file', mirrorPath) });
+  fireSave({ languageId: 'comtran-deck', uri: makeUri('untitled', mirrorPath) });
+  await flush();
+  assert.equal(execCalls.length, 0);
+});
+
+test('a failed to-canon surfaces the stderr, which names the card', async () => {
+  freshActivate();
+  execResult = {
+    error: new Error('exit 1'),
+    stdout: '',
+    stderr: 'error: card 2 is not in normal form (re-rendering gives "A")',
+  };
+  fireSave({ languageId: 'comtran-deck', uri: makeUri('file', mirrorPath) });
+  await flush();
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /to-canon failed: .*card 2/);
+});
+
+test('a mirror save is skipped while the deck has unsaved punch edits', async () => {
+  freshActivate();
+  vscodeStub.window.tabGroups.all = [
+    {
+      tabs: [
+        {
+          isDirty: true,
+          input: {
+            viewType: 'comtran.punchcard',
+            uri: makeUri('file', canonPath),
+          },
+        },
+      ],
+    },
+  ];
+  fireSave({ languageId: 'comtran-deck', uri: makeUri('file', mirrorPath) });
+  await flush();
+  assert.equal(execCalls.length, 0);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /unsaved punch edits/);
+});
+
+test('a successful mirror save reloads the open punchcard editor', async () => {
+  freshActivate();
+  const canonUri = vscodeStub.Uri.file(canonPath);
+  const document = await registeredProvider.openCustomDocument(
+    canonUri,
+    {},
+    { isCancellationRequested: false },
+  );
+  let reloads = 0;
+  document.onDidChangeContent(() => reloads++);
+  fireSave({ languageId: 'comtran-deck', uri: makeUri('file', mirrorPath) });
+  await flush();
+  assert.equal(reloads, 1);
 });

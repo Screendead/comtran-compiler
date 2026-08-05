@@ -21,14 +21,14 @@ deck. Decisions D0.5 and D0.6 govern it.
 1. **The canon file is the authority.** The compiler and every tool read canon
    only. Address a deck by its `.ctd` path. The MCP server rejects a path
    outside your declared workspace root.
-2. **Never hand-edit a `.ct` mirror.** A mirror is a generated artifact. An
-   edited mirror is lost at the next regeneration, and CI fails it.
-3. **Change a deck through the tools.** `deckconv`, `deck_write`, and
-   `deck_edit_cards` rewrite the canon file and regenerate the mirror
-   together, so the pair stays fresh. **Exception:** the VS Code punchcard
-   editor writes only the canon file. Run `deckconv regen` after an editor
-   save, or use the opt-in pre-commit hook below, before you trust the
-   mirror.
+2. **Never hand-edit a `.ct` mirror outside VS Code.** A mirror is a generated
+   artifact. An edit outside VS Code is lost at the next regeneration, and CI
+   fails it. In VS Code, saving a mirror runs `deckconv to-canon`: the edit
+   becomes the deck, or the save is rejected with the card named.
+3. **Change a deck through the tools.** `deckconv`, `deck_write`,
+   `deck_edit_cards`, and a VS Code save of either file of a pair rewrite
+   the canon file and regenerate the mirror together, so the pair stays
+   fresh.
 4. **Keep pairs complete.** A canon file with no mirror, a mirror with no canon
    file, or a stale mirror all fail `deckconv check`.
 

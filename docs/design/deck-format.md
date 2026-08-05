@@ -267,6 +267,13 @@ this document uses core codes.
   `deckconv`. A stale or hand-edited mirror fails CI (`deckconv check`).
 - The pre-commit hook regenerates mirrors for staged canon files
   (`.githooks/`; enable with `git config core.hooksPath .githooks`).
+- The VS Code punchcard extension keeps a pair fresh on save (amended
+  2026-08-05, Jack's call). A deck save runs `deckconv regen`. A mirror
+  save runs `deckconv to-canon` on the saved text. A mirror edit is
+  provisional until that round trip accepts it; `to-canon` rejects text
+  that is not in normal form (§3.3) and names the card. A committed
+  mirror stays a generated artifact. The extension holds no second
+  format implementation: it invokes `deckconv`.
 - Local binary diffs: `.gitattributes` marks `*.ctd` with `diff=ctd`;
   configure `git config diff.ctd.textconv 'dart run comtran:deckconv to-text'`
   to see mirror text in `git diff` / `git log -p`.

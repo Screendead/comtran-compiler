@@ -56,7 +56,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline, measured 2026-08-05: 955 Dart tests pass, and 135 extension
+Test baseline, measured 2026-08-05: 955 Dart tests pass, and 150 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -231,6 +231,9 @@ M2 to M6.
   interpreted Set H row, field rulers, and click- or type-to-punch editing.
   To install it, package the `.vsix` and run
   `code --profile <name> --install-extension`. The profile matters.
+  Amended 2026-08-05: saving either file of a pair keeps both fresh — a
+  deck save runs `deckconv regen`, a mirror save runs `deckconv to-canon`
+  (D0.5 as amended; `docs/design/deck-format.md` §6).
 - **T3 — MCP server and skill** — **DONE 2026-08-03** (PR #8).
   `bin/deckmcp.dart` serves five deck tools on the official Dart MCP SDK. The
   `.claude/skills/comtran-decks` skill documents the deck workflow.

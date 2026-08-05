@@ -67,6 +67,11 @@ export class PunchcardDocument implements vscode.CustomDocument {
   /** Fires whenever the deck contents change, undo and revert included. */
   public readonly onDidChangeContent = this._onDidChangeContent.event;
 
+  private readonly _onDidDispose = new vscode.EventEmitter<void>();
+
+  /** Fires once, when VS Code disposes the document (last editor closed). */
+  public readonly onDidDispose = this._onDidDispose.event;
+
   /** Opens `uri`, or `backupId` when VS Code restores a hot exit backup. */
   public static async create(
     uri: vscode.Uri,
@@ -329,6 +334,8 @@ export class PunchcardDocument implements vscode.CustomDocument {
       return;
     }
     this._disposed = true;
+    this._onDidDispose.fire();
+    this._onDidDispose.dispose();
     this._onDidChange.dispose();
     this._onDidChangeContent.dispose();
   }

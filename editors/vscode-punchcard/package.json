@@ -1,8 +1,8 @@
 {
   "name": "comtran-punchcard",
   "displayName": "COMTRAN Punchcard Editor",
-  "description": "Punch-level editor for COMTRAN canon card decks (*.ctd) and syntax highlighting for their .ct text mirrors.",
-  "version": "0.2.0",
+  "description": "Punch-level editor for COMTRAN canon card decks (*.ctd) and syntax highlighting for their .ct text mirrors. Saving either file of a pair keeps both fresh through deckconv.",
+  "version": "0.3.0",
   "publisher": "comtran-compiler",
   "private": true,
   "repository": {
@@ -18,7 +18,8 @@
     "Visualization"
   ],
   "activationEvents": [
-    "onLanguage:dart"
+    "onLanguage:dart",
+    "onLanguage:comtran-deck"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -69,7 +70,10 @@
           80
         ],
         "editor.wordWrap": "off",
-        "editor.fontFamily": "monospace"
+        "editor.fontFamily": "monospace",
+        "files.eol": "\n",
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true
       }
     }
   },

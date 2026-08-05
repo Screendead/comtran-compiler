@@ -240,6 +240,12 @@ export function configurationDefaults(): Record<string, unknown> {
       'editor.rulers': rulerColumns(),
       'editor.wordWrap': 'off',
       'editor.fontFamily': 'monospace',
+      // Keep a saved mirror in normal form (deck-format.md §3.3): LF
+      // endings, a final newline, and no trailing spaces — the save sync's
+      // to-canon rejects anything else.
+      'files.eol': '\n',
+      'files.insertFinalNewline': true,
+      'files.trimTrailingWhitespace': true,
     },
   };
 }
