@@ -269,7 +269,8 @@ String _clauseNumber(FrontEndResult frontEnd, Clause clause) {
 }
 
 /// The card's statement number, or `9999,99` when the front end
-/// numbered no card of its unit — a stopped scan (J 02.02.01; D9.5).
+/// numbered no card of its unit (J 02.02.01; D9.5), the fallback the
+/// listing's own diagnostic rows print.
 String _number(FrontEndResult frontEnd, int card) =>
     frontEnd.statementNumberByCard[card] ?? '9999,99';
 

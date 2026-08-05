@@ -185,4 +185,23 @@ void main() {
       '* DELETED',
     ]);
   });
+
+  test('a mid-semantics stop closes the section with the stopped line', () {
+    // The 24th hierarchy level draws 201,00 at severity 5 (D9.7), a
+    // stop inside the semantic layer itself: the phase returns its
+    // partial result, so the dump is truncated, not absent.
+    final List<String> lines = [
+      r'$CMPLE DEEP',
+      '      *DATA',
+      for (var level = 1; level < 24; level++)
+        dataCard(name: 'G$level', level: '$level'),
+      dataCard(name: 'FOOT', level: '24', description: 'A'),
+      '      *FINISH',
+    ];
+    final DeckCompilation deck = compileDeck(
+      mirrorToDeck('${lines.join('\n')}\n'),
+    );
+    expect(deck.jobs.single.semantics!.stopped, isTrue);
+    expect(_jobSection(emitSemantics(deck), 1).last, stageStopped);
+  });
 }
