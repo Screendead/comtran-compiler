@@ -202,7 +202,7 @@
                  180,00                           SPECIFCHECKFILE,UNIT1 'D2',OPENW,CLOSER,LOW
                  181,00         PAYFILE           FILE  OUTPUT,BCD,TAPE,PAYRECORD,
                                                         DEPARTMENT.TOTAL,BLOCKSIZE 20
-                 182,00                           SPECIFPAYFILE,  UNIT1 'D3',OPENW, CLOSER,LOW
+                 182,00                           SPECIFPAYFILE, UNIT1 'D3',OPENW, CLOSER,LOW
                  183,00         BONDORDERFILE     FILE  OUTPUT,BCD,TAPE,BONDORDER,BLOCKSIZE 6
                  184,00                           SPECIFBONDORDERFILE,UNIT1 'C3',OPENW,CLOSER,LOW
                  185,00         ERRORFILE         FILE  OUTPUT,BCD,TAPE,ERROROUT,BLOCKSIZE 6

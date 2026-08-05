@@ -4120,7 +4120,7 @@ The complete environment division is fourteen entries ([J 90.05] listing, PDF p.
 ...
 181,00           PAYFILE          FILE   OUTPUT,BCD,TAPE,PAYRECORD,
                                            DEPARTMENT.TOTAL,BLOCKSIZE 20
-182,00                            SPECIFPAYFILE, UNIT1 'D3',OPENW,CLOSER,LOW
+182,00                            SPECIFPAYFILE, UNIT1 'D3',OPENW, CLOSER,LOW
 ```
 
 - **Option order is looser than the general form.** The published FILE-card form places `,BLOCKSIZE nn` *before* `,record.name.1` ([J 02.06.03]); every sample FILE card writes it *after* the record names. The stated ordering constraint is only that per-record options follow their record name (J 02.06.04.a) — the sample is the proof that file-level options may trail.
