@@ -225,6 +225,12 @@ fact. Modern convenience must not leak into observable behavior.
   driver follows them as `ctd`. Naming only: the format bytes and every
   rule above are unchanged. `docs/design/deck-format.md` §7 records the
   boundaries.
+- Amended 2026-08-05 (Jack's call): the VS Code punchcard extension is a
+  `deckconv` front end. A deck save runs `regen`; a mirror save runs
+  `to-canon`, so a mirror edit in VS Code is legitimate once the round
+  trip accepts it. The extension holds no second format implementation,
+  and a committed mirror stays a generated artifact.
+  `docs/design/deck-format.md` §6 records the workflow.
 
 **D0.6 Character set and collating.** The internal character is a 6-bit BCD
 code. Both [J 02.06.16] collating sequences are implemented as tables; the

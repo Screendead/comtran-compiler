@@ -14,6 +14,7 @@ import {
 } from './cardView';
 import { DIVISION_FIELDS, GENERIC_FIELDS } from './columns';
 import { bcdFromGlyph, punchesFromBcd } from './charCode';
+import { withPair } from './deckSync';
 import { DeckChange, PunchcardDocument } from './punchcardDocument';
 
 interface PanelState {
@@ -38,10 +39,10 @@ export class PunchcardEditorProvider
 {
   public static readonly viewType = 'comtran.punchcard';
 
-  public static register(context: vscode.ExtensionContext): vscode.Disposable {
+  public register(): vscode.Disposable {
     return vscode.window.registerCustomEditorProvider(
       PunchcardEditorProvider.viewType,
-      new PunchcardEditorProvider(context),
+      this,
       {
         webviewOptions: { retainContextWhenHidden: true },
         supportsMultipleEditorsPerDocument: false,
@@ -51,6 +52,7 @@ export class PunchcardEditorProvider
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
+  private readonly documents = new Map<string, PunchcardDocument>();
   private readonly panels = new Map<vscode.WebviewPanel, PanelState>();
   private readonly panelsByDocument = new Map<
     PunchcardDocument,
@@ -68,12 +70,25 @@ export class PunchcardEditorProvider
   public readonly onDidChangeCustomDocument =
     this._onDidChangeCustomDocument.event;
 
+  private readonly _onDidSaveDeck = new vscode.EventEmitter<vscode.Uri>();
+
+  /** Fires after an explicit save writes a deck to a uri — never for a
+   * hot exit backup. */
+  public readonly onDidSaveDeck = this._onDidSaveDeck.event;
+
+  /** The open document at `uri`, if any. */
+  public documentFor(uri: vscode.Uri): PunchcardDocument | undefined {
+    return this.documents.get(uri.toString());
+  }
+
   public async openCustomDocument(
     uri: vscode.Uri,
     openContext: vscode.CustomDocumentOpenContext,
     _token: vscode.CancellationToken,
   ): Promise<PunchcardDocument> {
     const document = await PunchcardDocument.create(uri, openContext.backupId);
+    this.documents.set(uri.toString(), document);
+    document.onDidDispose(() => this.documents.delete(uri.toString()));
     document.onDidChange((edit) => {
       this._onDidChangeCustomDocument.fire({
         document,
@@ -123,19 +138,41 @@ export class PunchcardEditorProvider
     });
   }
 
-  public saveCustomDocument(
+  public async saveCustomDocument(
     document: PunchcardDocument,
     cancellation: vscode.CancellationToken,
-  ): Thenable<void> {
-    return document.save(cancellation);
+  ): Promise<void> {
+    const written = await this.lockedWrite(document.uri, () =>
+      document.save(cancellation),
+    );
+    if (written) {
+      this._onDidSaveDeck.fire(document.uri);
+    }
   }
 
-  public saveCustomDocumentAs(
+  public async saveCustomDocumentAs(
     document: PunchcardDocument,
     destination: vscode.Uri,
     cancellation: vscode.CancellationToken,
-  ): Thenable<void> {
-    return document.saveAs(destination, cancellation);
+  ): Promise<void> {
+    const written = await this.lockedWrite(destination, () =>
+      document.saveAs(destination, cancellation),
+    );
+    if (written) {
+      this._onDidSaveDeck.fire(destination);
+    }
+  }
+
+  /** A canon write waits its turn on the pair (`deckSync.withPair`), so a
+   * save can never interleave with a running mirror apply or regen. */
+  private lockedWrite(
+    target: vscode.Uri,
+    write: () => Promise<boolean>,
+  ): Promise<boolean> {
+    if (target.scheme !== 'file') {
+      return write();
+    }
+    return withPair(target.fsPath, write);
   }
 
   public revertCustomDocument(document: PunchcardDocument): Thenable<void> {

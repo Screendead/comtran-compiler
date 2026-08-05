@@ -57,6 +57,10 @@ export class PunchcardDocument implements vscode.CustomDocument {
   private _disposed = false;
   private _typingRun: TypingRun | null = null;
 
+  /** Bumped by `revert`. An undo or redo closure from before a reload
+   * must not replay onto the reloaded deck; the guard makes it a no-op. */
+  private _reloadGeneration = 0;
+
   private readonly _onDidChange = new vscode.EventEmitter<DeckEdit>();
 
   /** Fires for every user edit; the provider forwards it to VS Code. */
@@ -66,6 +70,11 @@ export class PunchcardDocument implements vscode.CustomDocument {
 
   /** Fires whenever the deck contents change, undo and revert included. */
   public readonly onDidChangeContent = this._onDidChangeContent.event;
+
+  private readonly _onDidDispose = new vscode.EventEmitter<void>();
+
+  /** Fires once, when VS Code disposes the document (last editor closed). */
+  public readonly onDidDispose = this._onDidDispose.event;
 
   /** Opens `uri`, or `backupId` when VS Code restores a hot exit backup. */
   public static async create(
@@ -125,15 +134,22 @@ export class PunchcardDocument implements vscode.CustomDocument {
     redo: () => void,
     undo: () => void,
   ): void {
+    const generation = this._reloadGeneration;
     redo();
     this._onDidChangeContent.fire(change);
     this._onDidChange.fire({
       label,
       undo: () => {
+        if (this._reloadGeneration !== generation) {
+          return;
+        }
         undo();
         this._onDidChangeContent.fire(change);
       },
       redo: () => {
+        if (this._reloadGeneration !== generation) {
+          return;
+        }
         redo();
         this._onDidChangeContent.fire(change);
       },
@@ -276,26 +292,29 @@ export class PunchcardDocument implements vscode.CustomDocument {
   }
 
   /** Writes the deck to its own file. */
-  public async save(cancellation: vscode.CancellationToken): Promise<void> {
-    await this.saveAs(this.uri, cancellation);
+  public save(cancellation: vscode.CancellationToken): Promise<boolean> {
+    return this.saveAs(this.uri, cancellation);
   }
 
-  /** Writes the deck to `target`. */
+  /** Writes the deck to `target`. Returns false when the cancellation
+   * arrived before the write, true once the bytes are on disk. */
   public async saveAs(
     target: vscode.Uri,
     cancellation: vscode.CancellationToken,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const data = this.bytes();
     if (cancellation.isCancellationRequested) {
-      return;
+      return false;
     }
     await vscode.workspace.fs.writeFile(target, data);
+    return true;
   }
 
   /** Reloads the deck from disk. */
   public async revert(): Promise<void> {
     this._deck = await PunchcardDocument.readDeck(this.uri, this.uri.scheme);
     this._structureRevision++;
+    this._reloadGeneration++;
     this._typingRun = null;
     this._onDidChangeContent.fire({ structural: true, cardIndex: null });
   }
@@ -329,6 +348,8 @@ export class PunchcardDocument implements vscode.CustomDocument {
       return;
     }
     this._disposed = true;
+    this._onDidDispose.fire();
+    this._onDidDispose.dispose();
     this._onDidChange.dispose();
     this._onDidChangeContent.dispose();
   }

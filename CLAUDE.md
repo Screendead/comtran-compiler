@@ -73,10 +73,13 @@ The rules:
 
 1. The compiler and every tool read canon only. Address a deck by its `.ctd`
    path.
-2. **Never hand-edit a `.ct` mirror.** The next regeneration discards the
-   edit, and CI rejects a stale pair.
-3. Change a deck through `deckconv` or the MCP deck tools. They rewrite the
-   canon file and regenerate the mirror together.
+2. **Never hand-edit a `.ct` mirror outside VS Code.** The next regeneration
+   discards the edit, and CI rejects a stale pair. In VS Code, a mirror save
+   runs `deckconv to-canon`: the edit becomes the deck, or the tool rejects
+   the text and the pair stays stale until you fix it.
+3. Change a deck through `deckconv`, the MCP deck tools, or a VS Code save
+   of either file. Each rewrites the canon file and regenerates the mirror
+   together.
 4. Read `.claude/skills/comtran-decks/SKILL.md` before you touch a deck.
 
 The format is frozen. An amendment needs a new format version byte.
