@@ -106,6 +106,32 @@ Two rules keep these apart:
 Amend a decision by an explicit edit to its record, never silently. Cite the
 manual evidence in the amendment.
 
+### Collisions
+
+A collision is any case where two authorities in this repository require
+different things, and satisfying one breaks the other. Examples: a design
+record asks for code that section 11 bans; HANDOVER states a fact the code
+contradicts; the language definition and a design record disagree.
+
+**Always stop and bring a collision to Jack. Never resolve one alone, and
+never pick the winner because one document claims to rank above the other.**
+
+Present it this way, in plain English, with no jargon and no internal
+shorthand:
+
+1. Name the two things that collide, and quote the text of each.
+2. State what each one would have you do.
+3. Give every option, including the option to change one of the two
+   documents. For each, state the concrete consequence: what breaks, what
+   is left unbuilt, what a later reader is misled about, and what it costs
+   to reverse.
+4. Recommend one, and say why.
+
+Then wait. This holds even when one option is obviously better, and even
+when the work is already done — if a collision surfaces after the fact,
+flag it with the same four parts and say plainly that it is already
+committed.
+
 ## 7. The language definition
 
 `docs/comtran-language-definition.md` is the working language reference for all
@@ -222,9 +248,9 @@ Two consequences to expect:
   asks for a shape does not license the shape before something can use it.
   Amend the record to say which milestone the shape arrives with, then
   write it then.
-- **A design record never outranks this rule.** Where a record requires
-  code this rule bans, the record is wrong for now. Amend it and cite this
-  section.
+- **A design record that requires banned code is a collision.** Do not
+  delete the code, and do not amend the record. Stop and bring it to Jack
+  under the section 6 collision rule.
 
 ## 12. Workflow
 
