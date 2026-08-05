@@ -267,8 +267,8 @@ this document uses core codes.
   `deckconv`. A stale or hand-edited mirror fails CI (`deckconv check`).
 - The pre-commit hook regenerates mirrors for staged canon files
   (`.githooks/`; enable with `git config core.hooksPath .githooks`).
-- Local binary diffs: `.gitattributes` marks `*.ctd` with `diff=ctdeck`;
-  configure `git config diff.ctdeck.textconv 'dart run comtran:deckconv to-text'`
+- Local binary diffs: `.gitattributes` marks `*.ctd` with `diff=ctd`;
+  configure `git config diff.ctd.textconv 'dart run comtran:deckconv to-text'`
   to see mirror text in `git diff` / `git log -p`.
 - Sequencing, per D0.5: `test/fixtures/90.05-payroll.ct` was the working authority
   until this format froze. At M1 the canon `test/fixtures/90.05-payroll.ctd` is
@@ -284,9 +284,9 @@ This is a file-naming change only. Three boundaries hold:
 - The byte format is unchanged. The magic bytes still spell `CTDECK`
   (§2.1). A filename is not part of the frozen format, so the format
   version byte does not change and no canon file is regenerated.
-- The git diff driver keeps its name, `ctdeck`. Only the `.gitattributes`
-  patterns changed. An existing clone's one-time `diff.ctdeck.textconv`
-  setting keeps working.
+- The git diff driver is renamed with the extensions: `diff=ctd`,
+  configured by the §6 one-time setting. Jack's call: no clone exists
+  beyond his own, so nothing holds the old name.
 - The VS Code language id stays `comtran-deck`. The id names the concept,
   not the extension.
 

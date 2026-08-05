@@ -221,9 +221,10 @@ fact. Modern convenience must not leak into observable behavior.
   editor; holes are bits); MCP/CLI tools give agents structured read/write of
   the same files. Post-M1 side track; does not block the compiler.
 - Amended 2026-08-05 (Jack's call): the file extensions are `.ctd` (canon)
-  and `.ct` (mirror), renamed from `.ctdeck` and `.deck`. Naming only: the
-  format bytes, the `ctdeck` diff-driver name, and every rule above are
-  unchanged. `docs/design/deck-format.md` §7 records the boundaries.
+  and `.ct` (mirror), renamed from `.ctdeck` and `.deck`, and the git diff
+  driver follows them as `ctd`. Naming only: the format bytes and every
+  rule above are unchanged. `docs/design/deck-format.md` §7 records the
+  boundaries.
 
 **D0.6 Character set and collating.** The internal character is a 6-bit BCD
 code. Both [J 02.06.16] collating sequences are implemented as tables; the
