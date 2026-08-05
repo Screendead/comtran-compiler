@@ -45,8 +45,9 @@ Terms that appear without expansion:
 | M2 stage 2 — procedure division | Merged 2026-08-03 (PR #17) | `lib/src/parser/procedure_parser.dart` |
 | M2 stage 3 — job stream and --pedantic | Merged 2026-08-03 (PRs #47–#49) | `lib/src/driver/` |
 | M3 — the semantic layer | Done 2026-08-05 (stages 1–2 2026-08-04; stage 3, the listing extension, 2026-08-05) | `docs/design/m3-data.md`, `lib/src/data/` |
-| M4 to M6 | Not started | — |
-| M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10) | `lib/src/emulator/` |
+| M4 decision walk (M4-1 to M4-21) | Done 2026-08-05 | `docs/design/m4-codegen.md` |
+| M4 stages 1–4, M5, M6 | Not started | — |
+| M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); hardens in M4 stage 4 | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
 | T3 MCP server and skill | Done 2026-08-03 (PR #8) | `bin/deckmcp.dart`, `.claude/skills/comtran-decks/` |
@@ -69,41 +70,44 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — the M4 decision walk
+## The next task — M4 stage 1
 
-M3 closed 2026-08-05. The decision walk is `docs/design/m3-data.md`;
-stages 1 and 2 landed 2026-08-04. Stage 3 landed 2026-08-05: the GN)nnn
-names, the LOC column from the dictionary allocator, and the golden
-rewrite (M3-8 as amended). The listing now reproduces the six 1962
-source pages in full. Three verification results from the stage:
+M3 closed 2026-08-05, and the M4 decision walk is recorded the same day:
+`docs/design/m4-codegen.md`, entries M4-1 to M4-21. M4 runs as four pull
+requests (M4-1): the assembly model with the storage-map print; the verb
+generators with the full symbolic listing; the object deck, loader
+cards, and our loader; the machine assembly with the compute handlers.
+The walk's collateral landed with it:
 
-- A blind transcription of the six page scans confirmed the two
-  printed columns — 200 values — against the allocator (M3-22).
-- The procedure side needed the generated-label rule: AT END and IF
-  allocate silent labels between the printed words, and an unlabelled
-  END sentence prints the next generated name (M3-23, from the [J 90.05]
-  symbolic listing).
-- The same pass exposed and fixed an M1 pagination fault: the print
-  carries blank lines before the division headers and the control-card
-  echo, so the old golden packed more statements per page and its
-  breaks sat up to four statements late (M1-16 and M1-17, amended).
+- D5.1 is amended: the walk performed the pre-committed decode of
+  statement 206's increment block, and the DO … FOR exit is a magnitude
+  test — normal exit leaves the index at r + q, and overshoot
+  terminates. Open Questions 24, 33, 34, 36, and 37 are annotated in
+  place; Q27, Q28, and Q31 carry implementation dispositions pointing at
+  the walk.
+- Seven page-scan checks (M4-20) settled the doubtful oracle readings.
+  The printed listing has one column geometry — the transcription's two
+  conventions are scan artifacts. The CP)+38/CP)+39 zero decrements and
+  the LOC 01327 `TRA SYS)267,0,0` word are genuine 1962 ink to
+  reproduce; the RETPREM pointer anomaly on the review backlog is closed
+  by the first of these. The GET descriptor word prints `IOCTN*` in the
+  listing against `IOCDN*` in the 90.02 typeset — a genuine divergence,
+  and codegen follows the listing. Two transcription errors joined the
+  erratum list below (items 4 and 5).
 
-The next task is the M4 decision walk — the design record for
-core-verb code generation (the roadmap entry below), then its staged
-implementation. Standing items to carry in:
+Standing items for stage 1:
 
-- D11.4 lists the --pedantic sites deferred beyond M3 (D5.1, D5.7, D6.1
-  among them); each lands with its owning milestone.
-- The msg 942 counter starts counting compiler-generated names at M4
-  ([J 90.01.05] item a; M3-21). M3-23's post-pass labels — GN)084 on,
-  the DO-loop machinery and EQU'd symbols — are M4's to reproduce,
-  with the rest of the symbolic listing.
-- The emit-flag plumbing landed 2026-08-05: five `--emit-<stage>[=<path>]`
-  flags on `comtranc` with bundleable one-letter forms (`-cpsSl`, `-A`
-  for all) and default dump paths, three committed reconstruction
-  goldens, and the storage-value tie to the M3-14 fixture. The surface
-  is recorded in `docs/design/emit-stages.md` ("The implemented
-  surface"). M4 adds its own stages under the same conventions.
+- The `TS)` block's sizing rule is unrecovered; stage 1 carries the
+  sample's `TS) BSS 7` as a recorded constant (M4-4).
+- The later-pass GN allocation rule (GN)084 on) is provisional; stage 2
+  pins it instruction by instruction during the listing diff (M4-6).
+- Msg 942 widens to the eight generated-name classes with one combined
+  tally (M4-5). Ids 946 and 947 are reserved for the D5.1 and D5.7
+  pedantic sites, pedantic-only at C1 and C2 (M4-18); D6.1 to D6.5 stay
+  deferred to M5 (D11.4).
+- The emit surface gains `--emit-code` (`-g`), `--emit-deck` (`-d`), and
+  `--emit-loader` (`-L`) under `emit-stages.md`'s conventions, which
+  M4-19 adopts unamended.
 
 ## Rules that bind future work
 
@@ -117,7 +121,7 @@ binds work outside the definition.
 - §8.5 and Open Questions are living lists. Annotate an entry in place with the
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
-- The conversions stay read-only. Three erratum candidates wait for Jack's
+- The conversions stay read-only. Five erratum candidates wait for Jack's
   explicit authorization:
   1. The 90.05 transcription renders the `*CTEND` card's date as `10/18/61`.
      The card prints `101861` (recorded in §8.5.8).
@@ -131,7 +135,14 @@ binds work outside the definition.
      and 228,00 sit one line low. A printer half-line stagger causes this.
      `docs/design/m1-front-end.md` M1-14 records the scan-correct grouping,
      and the M1 tests assert it.
-  A fourth candidate — the [J 02.05.05] chart's Edited-row overpunch glyphs,
+  4. The object-listing line at LOC 01612 (PDF p. 215) is transcribed
+     `CLA 4)NETPAY`. The print reads `CLA 5)NETPAY` — the octal address
+     00133 is transcribed correctly. Scan-measured 2026-08-05
+     (`docs/design/m4-codegen.md` M4-20 item b).
+  5. The PDF p. 208 page head is transcribed as two transposed lines. The
+     print is one line in the normal order; a one-degree scan tilt caused
+     the split. Scan-measured 2026-08-05 (M4-20 item e).
+  A further candidate — the [J 02.05.05] chart's Edited-row overpunch glyphs,
   transcribed `8 or 9 or 8̅ or 9̅` where the scan marks all four — was
   authorized and corrected 2026-08-04. §8.5.8-b records the reading and the
   polarity order.
@@ -281,4 +292,3 @@ M2 to M6.
 [J 90.01.05]: ../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.10]: ../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
-[J 90.05]: ../comtran-manuals/J28-6169/90.05-sample-program.md#appendix-9005
