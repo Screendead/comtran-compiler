@@ -7,9 +7,10 @@
 /// sentence) — no tree, one line per unit. A unit's line carries its
 /// statement number in the `n,00` form the front end assigns (D7.13),
 /// the unit kind, and the text the scanner assembled for it. The front
-/// end stops at a severity-5 diagnostic (D9.1) but is never itself
-/// absent, so a job's section always renders whatever was scanned before
-/// any stop; the diagnostics tell that story elsewhere.
+/// end stops at a severity-5 diagnostic (D9.1) by discarding the whole
+/// group it was scanning when the stop hit (`front_end.dart`), so a
+/// stopped job's section renders only the groups completed before that
+/// group and ends with the shared `stageStopped` line (D10.2).
 library;
 
 import '../driver/driver.dart';
@@ -75,6 +76,9 @@ void _writeJob(StringBuffer buffer, FrontEndResult frontEnd) {
         }
     }
   }
+  if (frontEnd.stopped) {
+    buffer.writeln(stageStopped);
+  }
 }
 
 void _writeUnit(
@@ -84,7 +88,8 @@ void _writeUnit(
   String kind,
   String text,
 ) {
-  final String number = frontEnd.statementNumberByCard[firstCard.cardNumber]!;
+  final String number =
+      frontEnd.statementNumberByCard[firstCard.cardNumber] ?? '9999,99';
   buffer.writeln('$number  $kind  $text');
 }
 

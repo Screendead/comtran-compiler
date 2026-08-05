@@ -31,6 +31,16 @@ ProcessResult _compile(List<String> options) =>
       ...options,
     ]);
 
+/// The lines under job [number]'s `* JOB n` header in [dump], less the
+/// blank line that separates the section from the next job and less the
+/// empty tail the dump's closing newline leaves.
+List<String> _jobSection(String dump, int number) {
+  final List<String> lines = dump.split('\n')..removeLast();
+  final int start = lines.indexOf(jobHeader(number)) + 1;
+  final int next = lines.indexOf(jobHeader(number + 1));
+  return lines.sublist(start, next < 0 ? lines.length : next - 1);
+}
+
 /// The rows of the semantics dump's STORAGE section, split on tabs: every
 /// line between the section header and the blank line that ends it.
 List<List<String>> _storageRows(List<String> dump) {
@@ -116,9 +126,10 @@ void main() {
     expect(run.stderr, startsWith('Usage:'));
   });
 
-  test('a stopped job prints the stopped line in place of its parse', () {
+  test('a stopped job prints the stopped line each stage calls for', () {
     // A Data Description constant over 120 characters stops the first
-    // job in the front end (D7.9; D10.2), so it never parses.
+    // job in the front end (D7.9; D10.2), so neither the parser nor the
+    // semantic layer runs over it.
     final List<String> lines = [
       r'$CMPLE BAD',
       '      *DATA',
@@ -136,12 +147,42 @@ void main() {
       mirrorToDeck('${lines.join('\n')}\n'),
     );
     expect(deck.jobs.first.parse, isNull);
-    expect(emitParse(deck).split('\n').take(5), [
-      reconstructionLabel,
-      jobHeader(1),
-      stageNotReached,
-      '',
-      jobHeader(2),
+    expect(deck.jobs.first.semantics, isNull);
+    final String scan = emitScan(deck);
+    final String parse = emitParse(deck);
+    final String semantics = emitSemantics(deck);
+    for (final dump in [scan, parse, semantics]) {
+      expect(dump, startsWith('$reconstructionLabel\n${jobHeader(1)}\n'));
+    }
+
+    // The front end discards the group it was scanning when the stop
+    // hit, so job 1's scan keeps its compile card and nothing else.
+    expect(_jobSection(scan, 1), [r'COMPILE  $CMPLE BAD', stageStopped]);
+    expect(_jobSection(parse, 1), [stageNotReached]);
+    expect(_jobSection(semantics, 1), [stageNotReached]);
+
+    expect(_jobSection(scan, 2), [
+      r'COMPILE  $CMPLE GOOD',
+      '*PROCEDURE',
+      '1,00  SENTENCE  STOP RUN',
+    ]);
+    expect(_jobSection(parse, 2), [
+      r'compile-card $CMPLE deck GOOD',
+      'procedure-group',
+      '  1,00 sentence',
+      '    1,01 stop-clause RUN',
+    ]);
+    // Job 2 declares no data, so each semantics section prints its
+    // header alone, and no stopped line closes the section.
+    expect(_jobSection(semantics, 2).where((String line) => line.isNotEmpty), [
+      '* STORAGE',
+      '* DICTIONARY',
+      '* RECORDS',
+      '* ITEMS',
+      '* RESOLUTIONS',
+      '* CORRESPONDING',
+      '* KEYS',
+      '* DELETED',
     ]);
   });
 }

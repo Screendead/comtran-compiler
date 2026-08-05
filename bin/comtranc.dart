@@ -143,14 +143,16 @@ int _run(List<String> arguments) {
       title: title,
       linesPerPage: linesPerPage,
     );
-    final listing = StringBuffer();
+    final StringBuffer? listing = emitPaths.containsKey('listing')
+        ? StringBuffer()
+        : null;
     for (final JobCompilation job in deck.jobs) {
       final String page = writeListing(
         job.frontEnd,
         options,
         diagnostics: job.diagnostics,
       );
-      listing.write(page);
+      listing?.write(page);
       stdout.write(page);
       if (explain) {
         job.diagnostics.forEach(stderr.writeln);
@@ -162,7 +164,7 @@ int _run(List<String> arguments) {
     _emit(emitPaths['scan'], () => emitScan(deck));
     _emit(emitPaths['parse'], () => emitParse(deck));
     _emit(emitPaths['semantics'], () => emitSemantics(deck));
-    _emit(emitPaths['listing'], listing.toString);
+    _emit(emitPaths['listing'], () => listing!.toString());
     // Severity 5 stops a job (J 90.04.02); lower severities still
     // produce output.
     return deck.maxSeverity >= 5 ? 1 : 0;

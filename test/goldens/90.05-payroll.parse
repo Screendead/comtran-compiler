@@ -200,7 +200,7 @@ environment-group
   186,00 specif-card ERRORFILE unit1 D4 density LOW openw close CLOSER
 procedure-group
   187,00 sentence
-    call-clause
+    187,01 call-clause
       call-pair new M.EMP.NO
         old name MASTER EMPLOYEE.NUMBER
       call-pair new D.EMP.NO
@@ -212,36 +212,36 @@ procedure-group
       call-pair new M.BND.ACC
         old name MASTER BONDACCUMULATION
   188,00 sentence label START
-    open-clause all-files
-    move-clause
+    188,01 open-clause all-files
+    188,02 move-clause
       source figurative ZEROS
       target name INTERNAL.TOTALS
       target name GRAND.TOTALS
-    get-clause
+    188,03 get-clause
       record name MASTER
       at-end-clause
-        do-clause
+        188,04 do-clause
           procedure name END.OF.MASTERS
   189,00 sentence
-    move-clause
+    189,01 move-clause
       source name MASTER DEPARTMENT
       target name CURRENT.DEPT
-    go-to-clause
+    189,02 go-to-clause
       target name GET.DETAIL
   190,00 sentence label GET.MASTER
-    get-clause
+    190,01 get-clause
       record name MASTER
       at-end-clause
-        do-clause
+        190,02 do-clause
           procedure name END.OF.MASTERS
   191,00 sentence label GET.DETAIL
-    get-clause
+    191,01 get-clause
       record name DETAIL
       at-end-clause
-        go-to-clause
+        191,02 go-to-clause
           target name END.OF.DETAILS
   192,00 sentence label COMPARE.EMPLOYEE.NUMBERS
-    go-to-clause
+    192,01 go-to-clause
       target name CHECK.NEW.DEPT
         when comparison EQUAL
           name D.EMP.NO
@@ -251,118 +251,118 @@ procedure-group
           name D.EMP.NO
           name M.EMP.NO
   193,00 sentence label HIGH.DETAIL
-    move-clause
+    193,01 move-clause
       source literal 'M'
       target name ERRORTYPE
-    move-clause
+    193,02 move-clause
       source name MASTER DAT
       target name ERROROUT INFO
-    file-clause
+    193,03 file-clause
       record name ERROROUT
   194,00 sentence
-    get-clause
+    194,01 get-clause
       record name MASTER
       at-end-clause
-        do-clause
+        194,02 do-clause
           procedure name END.OF.MASTERS
   195,00 sentence
-    go-to-clause
+    195,01 go-to-clause
       target name COMPARE.EMPLOYEE.NUMBERS
   196,00 sentence label LOW.DETAIL
-    move-clause
+    196,01 move-clause
       source name DETAIL
       target name ERROROUT INFO
-    move-clause
+    196,02 move-clause
       source literal 'D'
       target name ERRORTYPE
-    file-clause
+    196,03 file-clause
       record name ERROROUT
-    go-to-clause
+    196,04 go-to-clause
       target name GET.DETAIL
   197,00 sentence label END.OF.MASTERS
-    if-clause
+    197,01 if-clause
       comparison EQUAL
         name D.EMP.NO
         figurative HIGH.VALUE
-      then go-to-clause
+      197,02 then go-to-clause
         target name END.OF.RUN
-      otherwise set-clause
+      197,03 otherwise set-clause
         target name M.EMP.NO
         value figurative HIGH.VALUE
   198,00 sentence label END.OF.DETAILS
-    if-clause
+    198,01 if-clause
       comparison EQUAL
         name M.EMP.NO
         figurative HIGH.VALUE
-      then go-to-clause
+      198,02 then go-to-clause
         target name END.OF.RUN
-      otherwise set-clause
+      198,03 otherwise set-clause
         target name D.EMP.NO
         value figurative HIGH.VALUE
-      otherwise go-to-clause
+      198,04 otherwise go-to-clause
         target name HIGH.DETAIL
   199,00 sentence label END.OF.RUN
-    do-clause
+    199,01 do-clause
       procedure name DEPARTMENT.END
-    move-clause corresponding
+    199,02 move-clause corresponding
       source name GRAND.TOTALS
       target name PAYRECORD
-    move-clause
+    199,03 move-clause
       source name GRAND.TOTALS HOURS
       target name PAYRECORD HRS
-    move-clause
+    199,04 move-clause
       source name GRAND.TOTALS INSURANCE
       target name PAYRECORD INS.PREM
-    move-clause
+    199,05 move-clause
       source name GRAND.TOTALS RETIREMENT
       target name PAYRECORD RET.PREM
-    move-clause
+    199,06 move-clause
       source literal 'GT'
       target name PAYRECORD DEPARTMENT
-    move-clause
+    199,07 move-clause
       source figurative BLANKS
       target name PAYRECORD NAME
       target name PAYRECORD EMPLOYEE
       target name PAYRECORD MONTH
       target name PAYRECORD DAY
       target name PAYRECORD YEAR
-    move-clause
+    199,08 move-clause
       source name GRAND.TOTALS BONDPURCHASES
       target name PAYRECORD BONDENOMINATION
-    file-clause
+    199,09 file-clause
       record name PAYRECORD
-    close-clause all-files
-    stop-clause RUN
+    199,10 close-clause all-files
+    199,11 stop-clause RUN
   200,00 sentence label CHECK.NEW.DEPT
-    if-clause
+    200,01 if-clause
       comparison NOT EQUAL
         name CURRENT.DEPT
         name D.DEPT
-      then do-clause
+      200,02 then do-clause
         procedure name DEPARTMENT.END
-      otherwise go-to-clause
+      200,03 otherwise go-to-clause
         target name COMPUTE.PAY
   201,00 sentence
-    move-clause
+    201,01 move-clause
       source figurative ZEROS
       target name INTERNAL.TOTALS
-    move-clause
+    201,02 move-clause
       source name D.DEPT
       target name CURRENT.DEPT
   202,00 sentence label COMPUTE.PAY
-    move-clause
+    202,01 move-clause
       source name DETAIL DATE
       target name MASTER DATE
-    move-clause
+    202,02 move-clause
       source name DETAIL HOURS
       target name WORKING HOURS
       target name PAYRECORD HRS
   203,00 sentence
-    if-clause
+    203,01 if-clause
       comparison GREATER
         name WORKING HOURS
         literal 40.0
-      then set-clause
+      203,02 then set-clause
         target name WORKING GROSS
         value binary *
           binary -
@@ -371,36 +371,36 @@ procedure-group
               literal 1.5
             literal 20
           name MASTER RATE
-      otherwise set-clause
+      203,03 otherwise set-clause
         target name WORKING GROSS
         value binary *
           name WORKING HOURS
           name MASTER RATE
   204,00 sentence
-    do-clause
+    204,01 do-clause
       procedure name FICA.ROUTINE
-    do-clause
+    204,02 do-clause
       procedure name WITHOLDING.TAX.ROUTINE
   205,00 sentence
-    if-clause
+    205,01 if-clause
       comparison NOT EQUAL
         name M.BND.DED
         figurative ZERO
-      then do-clause
+      205,02 then do-clause
         procedure name BOND.ROUTINE
-      otherwise move-clause
+      205,03 otherwise move-clause
         source figurative BLANKS
         target name PAYRECORD BONDEDUCTION
         target name PAYRECORD BONDENOMINATION
   206,00 sentence
-    do-clause
+    206,01 do-clause
       procedure name SEARCH
       for name INDEX
         from literal 1
         by literal 1
         to literal 12
   207,00 sentence label NET
-    set-clause
+    207,01 set-clause
       target name WORKING NETPAY
       value binary -
         binary -
@@ -414,66 +414,66 @@ procedure-group
           name WORKING INSURANCE
         name M.BND.DED
   208,00 sentence
-    add-clause corresponding
+    208,01 add-clause corresponding
       source name WORKING
       target name MASTER TOTALS
       target name INTERNAL.TOTALS
-    move-clause corresponding
+    208,02 move-clause corresponding
       source name DETAIL
       target name PAYRECORD
       target name CHECK
-    move-clause corresponding
+    208,03 move-clause corresponding
       source name WORKING
       target name PAYRECORD
-    move-clause
+    208,04 move-clause
       source name MASTER NAME
       target name PAYRECORD NAME
       target name CHECK NAME
-    move-clause
+    208,05 move-clause
       source name WORKING NETPAY
       target name CHECK AMOUNT
-    file-clause
+    208,06 file-clause
       record name CHECK
-    file-clause
+    208,07 file-clause
       record name PAYRECORD
-    file-clause
+    208,08 file-clause
       record name MASTER
   209,00 sentence
-    go-to-clause
+    209,01 go-to-clause
       target name GET.MASTER
   210,00 sentence label FICA.ROUTINE
-    begin-section-clause
+    210,01 begin-section-clause
   211,00 sentence
-    set-clause
+    211,01 set-clause
       target name WORKING FICA
       value binary *
         literal .03
         name WORKING GROSS
-    add-clause
+    211,02 add-clause
       source name WORKING FICA
       target name MASTER FICA
   212,00 sentence
-    if-clause
+    212,01 if-clause
       comparison GREATER
         name MASTER FICA
         literal 144.00
-      then set-clause
+      212,02 then set-clause
         target name WORKING FICA
         value binary -
           name WORKING FICA
           binary -
             name MASTER FICA
             literal 144.00
-      then set-clause
+      212,03 then set-clause
         target name MASTER FICA
         value literal 144.00
   213,00 sentence
-    end-clause
+    213,01 end-clause
       name FICA.ROUTINE
   214,00 sentence label WITHOLDING.TAX.ROUTINE
-    begin-section-clause
+    214,01 begin-section-clause
   215,00 sentence
-    set-clause
+    215,01 set-clause
       target name WORKING WHT
       value binary *
         literal 0.18
@@ -482,7 +482,7 @@ procedure-group
           binary *
             literal 13
             name MASTER EXEMPTIONS
-    set-clause
+    215,02 set-clause
       target name WORKING WHT
       value binary *
         name WORKING WHT
@@ -490,93 +490,93 @@ procedure-group
           comparison GREATER
             name WORKING WHT
             literal 0
-    add-clause
+    215,03 add-clause
       source name WORKING WHT
       target name MASTER WHT
   216,00 sentence
-    end-clause
+    216,01 end-clause
       name WITHOLDING.TAX.ROUTINE
   217,00 sentence label BOND.ROUTINE
-    begin-section-clause
+    217,01 begin-section-clause
   218,00 sentence
-    add-clause
+    218,01 add-clause
       source name M.BND.DED
       target name M.BND.ACC
       target name INTERNAL.TOTALS BONDEDUCTION
   219,00 sentence
-    move-clause
+    219,01 move-clause
       source name M.BND.DED
       target name PAYRECORD BONDEDUCTION
   220,00 sentence
-    if-clause
+    220,01 if-clause
       comparison NOT GREATER
         name MASTER BONDENOMINATION
         name M.BND.ACC
-      then set-clause
+      220,02 then set-clause
         target name M.BND.ACC
         value binary -
           name M.BND.ACC
           name MASTER BONDENOMINATION
-      otherwise move-clause
+      220,03 otherwise move-clause
         source figurative BLANKS
         target name PAYRECORD BONDENOMINATION
-      otherwise go-to-clause
+      220,04 otherwise go-to-clause
         target name BOND.END
   221,00 sentence
-    move-clause corresponding
+    221,01 move-clause corresponding
       source name MASTER
       target name BONDORDER
-    add-clause
+    221,02 add-clause
       source name BONDORDER BONDENOMINATION
       target name INTERNAL.TOTALS BONDPURCHASES
-    move-clause
+    221,03 move-clause
       source name BONDORDER BONDENOMINATION
       target name PAYRECORD BONDENOMINATION
   222,00 sentence
-    file-clause
+    222,01 file-clause
       record name BONDORDER
   223,00 sentence label BOND.END
-    end-clause
+    223,01 end-clause
       name BOND.ROUTINE
   224,00 sentence label SEARCH
-    begin-section-clause
+    224,01 begin-section-clause
   225,00 sentence
-    if-clause
+    225,01 if-clause
       comparison GREATER
         name MASTER RATE
         name TABLE.ITEM RATE
           subscript name INDEX
-      then go-to-clause
+      225,02 then go-to-clause
         target name SEARCH.END
-      otherwise move-clause
+      225,03 otherwise move-clause
         source name INDEX
         target name POS
-      otherwise move-clause
+      225,04 otherwise move-clause
         source name INSPREM
           subscript name POS
         target name INS.PREM
         target name WORKING INSURANCE
-      otherwise move-clause
+      225,05 otherwise move-clause
         source name RETPREM
           subscript name POS
         target name RET.PREM
         target name WORKING RETIREMENT
-      otherwise go-to-clause
+      225,06 otherwise go-to-clause
         target name NET
   226,00 sentence label SEARCH.END
-    end-clause
+    226,01 end-clause
       name SEARCH
   227,00 sentence label DEPARTMENT.END
-    begin-section-clause
+    227,01 begin-section-clause
   228,00 sentence
-    move-clause corresponding
+    228,01 move-clause corresponding
       source name INTERNAL.TOTALS
       target name DEPARTMENT.TOTAL
-    file-clause
+    228,02 file-clause
       record name DEPARTMENT.TOTAL
-    add-clause corresponding
+    228,03 add-clause corresponding
       source name INTERNAL.TOTALS
       target name GRAND.TOTALS
   229,00 sentence
-    end-clause
+    229,01 end-clause
       name DEPARTMENT.END

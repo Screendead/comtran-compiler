@@ -53,10 +53,10 @@ M3 stage-3 listing rewrite if practical; the rewrite is cheaper on top of it.
 ## The implemented surface (2026-08-05)
 
 The flag plumbing landed before the stage-3 listing rewrite. This section
-records the surface and its conventions. Jack's calls: each flag takes a
-file path, so one compile builds each stage once and serves every requested
-dump; the reconstruction dumps get committed goldens; the parse dump prints
-the full tree.
+records the surface and its conventions. Jack made three calls. Each flag
+takes a file path, so one compile builds each stage once and serves every
+requested dump. The reconstruction dumps get committed goldens. The parse
+dump prints the full tree.
 
 ### Flags
 
@@ -79,10 +79,13 @@ Each flag takes a file path. The listing on stdout does not change.
   section. The cards dump is the whole deck's mirror and has no job
   sections.
 - A stage that an earlier stop kept from running prints
-  `* STOPPED BEFORE THIS STAGE` (D10.2).
-- The parse dump prints the full tree: one line per node, a two-space
-  indent per depth, and the statement number on each sentence, entry, and
-  environment card line. The compile card has no statement number.
+  `* STOPPED BEFORE THIS STAGE` as its whole section (D10.2).
+- A stage that stopped mid-run prints `* STOPPED IN THIS STAGE` as the
+  last line of its job section: the section above it is truncated.
+- The parse dump prints the full tree: one line per node, with a
+  two-space indent per depth. A statement number opens each sentence,
+  entry, and environment card line. Each clause line opens with its
+  `n,cc` number. The compile card has no statement number.
 - The storage section of the semantics dump prints the M3-14 fixture
   columns: octal LOC, `oct` or `bss`, the value or count, and the symbol.
 - Each golden follows the mirror pattern (binding rule 1): the compiler

@@ -15,3 +15,7 @@ String jobHeader(int number) => '* JOB $number';
 /// The line a dump prints for a stage that an earlier stop kept from
 /// running (D10.2).
 const String stageNotReached = '* STOPPED BEFORE THIS STAGE';
+
+/// The last line of a job's section when the stage itself stopped
+/// mid-run (D10.2): the section above it is truncated, not complete.
+const String stageStopped = '* STOPPED IN THIS STAGE';

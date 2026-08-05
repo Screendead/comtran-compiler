@@ -7,9 +7,11 @@
 /// owner's line; a node field and a list field print one child line
 /// each, prefixed by the field's role where the position alone would
 /// not tell. A unit root — sentence, data item, environment card —
-/// carries the front end's `n,cc` statement number (J 02.02.01; D7.13),
-/// the number the listing prints against the same unit. Card numbers
-/// and columns stay out: they are the scan dump's material.
+/// opens with the front end's `n,00` statement number (J 02.02.01;
+/// D7.13), and a clause line opens with its own `n,cc` number (design
+/// note M2-6); the listing prints both forms against the same units.
+/// Card numbers and columns stay out: the statement number is the only
+/// provenance a line carries.
 library;
 
 import '../ast/control_ast.dart';
@@ -57,8 +59,7 @@ final class _ParseDump {
     }
     parse.groups.forEach(_group);
     if (parse.stopped) {
-      // Every group after this point went unparsed (D9.1; D10.2).
-      _line(0, const ['parse-stopped']);
+      _out.writeln(stageStopped);
     }
   }
 
@@ -268,30 +269,46 @@ final class _ParseDump {
 
   void _sentence(Sentence sentence, int depth) {
     final String? label = sentence.scan.label;
+    final String number = _number(sentence.scan.cards.first);
     _line(depth, [
-      _number(sentence.scan.cards.first),
+      number,
       'sentence',
       if (label != null) 'label $label',
       if (sentence.deleted) 'deleted',
     ]);
+    final String stem = number.split(',').first;
     for (final Clause clause in sentence.clauses) {
-      _clause(clause, depth + 1);
+      _clause(clause, depth + 1, stem);
     }
   }
 
-  void _clause(Clause clause, int depth, {String role = ''}) {
+  /// The clause's `n,cc` number, built from the sentence number's [stem]
+  /// — everything before the comma — and [Clause.clause], which the
+  /// listing pads to two digits (design note M2-6). An unnumbered clause
+  /// prints no number.
+  String _clauseNumber(String stem, Clause clause) => clause.clause == 0
+      ? ''
+      : '$stem,${clause.clause.toString().padLeft(2, '0')}';
+
+  void _clause(Clause clause, int depth, String stem, {String role = ''}) {
+    final String number = _clauseNumber(stem, clause);
     switch (clause) {
       case IfClause(:final condition, :final thenArm, :final otherwiseArm):
-        _line(depth, [role, 'if-clause']);
+        _line(depth, [number, role, 'if-clause']);
         _cond(condition, depth + 1);
         for (final arm in thenArm) {
-          _clause(arm, depth + 1, role: 'then');
+          _clause(arm, depth + 1, stem, role: 'then');
         }
         for (final arm in otherwiseArm) {
-          _clause(arm, depth + 1, role: 'otherwise');
+          _clause(arm, depth + 1, stem, role: 'otherwise');
         }
       case MoveClause(:final corresponding, :final source, :final targets):
-        _line(depth, [role, 'move-clause', if (corresponding) 'corresponding']);
+        _line(depth, [
+          number,
+          role,
+          'move-clause',
+          if (corresponding) 'corresponding',
+        ]);
         _arith(source, depth + 1, role: 'source');
         for (final target in targets) {
           _name(target, depth + 1, role: 'target');
@@ -302,16 +319,16 @@ final class _ParseDump {
         :final truncated,
         :final onOverflow,
       ):
-        _line(depth, [role, 'set-clause', if (truncated) 'truncated']);
+        _line(depth, [number, role, 'set-clause', if (truncated) 'truncated']);
         for (final target in targets) {
           _name(target, depth + 1, role: 'target');
         }
         _arith(value, depth + 1, role: 'value');
         if (onOverflow != null) {
-          _clause(onOverflow, depth + 1, role: 'on-overflow');
+          _clause(onOverflow, depth + 1, stem, role: 'on-overflow');
         }
       case SetConditionClause(:final conditionName):
-        _line(depth, [role, 'set-condition-clause']);
+        _line(depth, [number, role, 'set-condition-clause']);
         _name(conditionName, depth + 1, kind: 'condition-name');
       case AddClause(
         :final corresponding,
@@ -321,6 +338,7 @@ final class _ParseDump {
         :final onOverflow,
       ):
         _line(depth, [
+          number,
           role,
           'add-clause',
           if (corresponding) 'corresponding',
@@ -331,10 +349,10 @@ final class _ParseDump {
           _name(target, depth + 1, role: 'target');
         }
         if (onOverflow != null) {
-          _clause(onOverflow, depth + 1, role: 'on-overflow');
+          _clause(onOverflow, depth + 1, stem, role: 'on-overflow');
         }
       case GoToClause(:final targets, :final index):
-        _line(depth, [role, 'go-to-clause']);
+        _line(depth, [number, role, 'go-to-clause']);
         for (final target in targets) {
           _name(target.name, depth + 1, role: 'target');
           final CondExpr? when = target.when;
@@ -352,7 +370,7 @@ final class _ParseDump {
         :final usingArguments,
         :final givingResults,
       ):
-        _line(depth, [role, 'do-clause']);
+        _line(depth, [number, role, 'do-clause']);
         _name(procedure, depth + 1, role: 'procedure');
         if (exactlyTimes != null) {
           _arith(exactlyTimes, depth + 1, role: 'exactly');
@@ -369,61 +387,68 @@ final class _ParseDump {
         for (final result in givingResults) {
           _name(result, depth + 1, role: 'giving');
         }
-      case StopClause(:final run, :final number):
+      case StopClause(:final run, number: final stopNumber):
         _line(depth, [
+          number,
           role,
           'stop-clause',
           if (run) 'RUN',
-          if (number != null) number.text,
+          if (stopNumber != null) stopNumber.text,
         ]);
       case OpenClause(:final allFiles, :final files):
-        _line(depth, [role, 'open-clause', if (allFiles) 'all-files']);
+        _line(depth, [number, role, 'open-clause', if (allFiles) 'all-files']);
         for (final file in files) {
           _name(file, depth + 1, role: 'file');
         }
       case CloseClause(:final allFiles, :final files):
-        _line(depth, [role, 'close-clause', if (allFiles) 'all-files']);
+        _line(depth, [number, role, 'close-clause', if (allFiles) 'all-files']);
         for (final file in files) {
           _name(file, depth + 1, role: 'file');
         }
       case GetClause(:final recordFrom, :final name, :final atEnd):
-        _line(depth, [role, 'get-clause', if (recordFrom) 'record-from']);
+        _line(depth, [
+          number,
+          role,
+          'get-clause',
+          if (recordFrom) 'record-from',
+        ]);
         _name(name, depth + 1, role: recordFrom ? 'file' : 'record');
         if (atEnd != null) {
-          _atEnd(atEnd, depth + 1);
+          _atEnd(atEnd, depth + 1, stem);
         }
       case FileClause(:final record, :final inFile):
-        _line(depth, [role, 'file-clause']);
+        _line(depth, [number, role, 'file-clause']);
         _name(record, depth + 1, role: 'record');
         if (inFile != null) {
           _name(inFile, depth + 1, role: 'in');
         }
       case DisplayClause(:final items):
-        _line(depth, [role, 'display-clause']);
+        _line(depth, [number, role, 'display-clause']);
         for (final item in items) {
           _arith(item, depth + 1);
         }
       case CallClause(:final pairs):
-        _line(depth, [role, 'call-clause']);
+        _line(depth, [number, role, 'call-clause']);
         for (final pair in pairs) {
           _line(depth + 1, ['call-pair', 'new ${pair.newName.text}']);
           _name(pair.oldName, depth + 2, role: 'old');
         }
       case EnterClause(:final crypt):
         _line(depth, [
+          number,
           role,
           'enter-clause',
           if (crypt) 'CRYPT' else 'COMMERCIAL TRANSLATOR',
         ]);
       case NoteClause(:final text):
-        _line(depth, [role, 'note-clause']);
+        _line(depth, [number, role, 'note-clause']);
         for (final fragment in text) {
           // One fragment per card, kept apart: the free text is not
           // tokenized, so a joined line would hide the card break.
           _line(depth + 1, ['text ${fragment.text}']);
         }
       case BeginSectionClause(:final usingParameters, :final givingFunctions):
-        _line(depth, [role, 'begin-section-clause']);
+        _line(depth, [number, role, 'begin-section-clause']);
         for (final parameter in usingParameters) {
           _name(parameter, depth + 1, role: 'using');
         }
@@ -431,23 +456,23 @@ final class _ParseDump {
           _name(function, depth + 1, role: 'giving');
         }
       case EndClause(:final sectionName):
-        _line(depth, [role, 'end-clause']);
+        _line(depth, [number, role, 'end-clause']);
         if (sectionName != null) {
           _name(sectionName, depth + 1);
         }
       case DeferredVerbClause(:final verb, :final operands):
-        _line(depth, [role, 'deferred-verb-clause', verb.text]);
+        _line(depth, [number, role, 'deferred-verb-clause', verb.text]);
         for (final operand in operands) {
           _line(depth + 1, ['operand ${operand.text}']);
         }
     }
   }
 
-  void _atEnd(AtEndClause atEnd, int depth) {
+  void _atEnd(AtEndClause atEnd, int depth, String stem) {
     _line(depth, const ['at-end-clause']);
     final Clause? statement = atEnd.statement;
     if (statement != null) {
-      _clause(statement, depth + 1);
+      _clause(statement, depth + 1, stem);
     }
     final NameReference? bareName = atEnd.bareName;
     if (bareName != null) {
@@ -531,7 +556,8 @@ final class _ParseDump {
   }
 
   /// The unit's statement number, or `9999,99` when the front end
-  /// numbered no card of it — a stopped scan (J 02.02.01; D9.5).
+  /// numbered no card of it (J 02.02.01; D9.5), the fallback the
+  /// listing's own diagnostic rows print.
   String _number(SourceCard card) => _numbers[card.cardNumber] ?? '9999,99';
 
   void _line(int depth, List<String> atoms) {

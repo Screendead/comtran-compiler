@@ -1,14 +1,18 @@
 /// The `--emit-semantics` dump (`docs/design/emit-stages.md`): the
 /// semantic layer of every job, as a labeled reconstruction.
 ///
-/// Four sections per job. STORAGE prints the M3-14 fixture columns —
+/// Eight sections per job. STORAGE prints the M3-14 fixture columns —
 /// octal LOC, `oct` or `bss`, the word value or the reservation count,
 /// and the symbol — whose values the 1962 object listing attests
-/// (J 90.05, PDF pp. 199–200); DICTIONARY, RECORDS, and ITEMS have no
-/// attested form at all.
+/// (J 90.05, PDF pp. 199–200); DICTIONARY, RECORDS, ITEMS, and the
+/// resolver's four — RESOLUTIONS, CORRESPONDING, KEYS, DELETED — have
+/// no attested form at all. Every section prints its header line even
+/// with no row under it: a debugger must read "none" apart from "not
+/// dumped".
 library;
 
 import '../ast/data_ast.dart';
+import '../ast/procedure_ast.dart';
 import '../data/data_map.dart';
 import '../data/dictionary.dart';
 import '../data/pictorial.dart';
@@ -20,7 +24,9 @@ import 'common.dart';
 /// Renders the semantic layer of every job on [deck], in deck order.
 ///
 /// A job whose semantic pass an earlier stop kept from running prints
-/// [stageNotReached] as its whole section (D10.2).
+/// [stageNotReached] as its whole section; a pass that stopped mid-run
+/// ends its section with [stageStopped], the sections above it holding
+/// only what the phase built before the stop (D10.2).
 String emitSemantics(DeckCompilation deck) {
   final out = StringBuffer()..writeln(reconstructionLabel);
   for (final (int index, JobCompilation job) in deck.jobs.indexed) {
@@ -40,6 +46,17 @@ String emitSemantics(DeckCompilation deck) {
     _records(out, semantics);
     out.writeln();
     _items(out, semantics);
+    out.writeln();
+    _resolutions(out, semantics, job.frontEnd);
+    out.writeln();
+    _corresponding(out, semantics, job.frontEnd);
+    out.writeln();
+    _keys(out, semantics, job.frontEnd);
+    out.writeln();
+    _deleted(out, semantics, job.frontEnd);
+    if (semantics.stopped) {
+      out.writeln(stageStopped);
+    }
   }
   return out.toString();
 }
@@ -166,6 +183,95 @@ void _items(StringBuffer out, SemanticResult semantics) {
     );
   }
 }
+
+/// Every resolved data reference (M3-17), map order: where the
+/// reference stands, the name as punched, and the item it binds to.
+void _resolutions(
+  StringBuffer out,
+  SemanticResult semantics,
+  FrontEndResult frontEnd,
+) {
+  out.writeln('* RESOLUTIONS');
+  for (final MapEntry<NameReference, DataItem> entry
+      in semantics.dataResolutions.entries) {
+    final NameReference reference = entry.key;
+    out.writeln(
+      <String>[
+        _number(frontEnd, reference.anchor.card.cardNumber),
+        '${reference.text} -> ${_qualifiedName(entry.value)}',
+      ].join('\t'),
+    );
+  }
+}
+
+/// The matched pairs of every MOVE or ADD CORRESPONDING clause (D4.12),
+/// source first: a header row per clause, then one indented row per
+/// pair. A clause whose search matched nothing prints its header row
+/// alone.
+void _corresponding(
+  StringBuffer out,
+  SemanticResult semantics,
+  FrontEndResult frontEnd,
+) {
+  out.writeln('* CORRESPONDING');
+  for (final MapEntry<Clause, List<(DataItem, DataItem)>> entry
+      in semantics.correspondingPairs.entries) {
+    out.writeln(_clauseNumber(frontEnd, entry.key));
+    for (final (DataItem source, DataItem target) in entry.value) {
+      out.writeln('  ${_qualifiedName(source)} -> ${_qualifiedName(target)}');
+    }
+  }
+}
+
+/// The condition references that resolve to an Environment COND card —
+/// the console-key test (J 02.06.17). They resolve to no data item, so
+/// the RESOLUTIONS section above holds none of them.
+void _keys(
+  StringBuffer out,
+  SemanticResult semantics,
+  FrontEndResult frontEnd,
+) {
+  out.writeln('* KEYS');
+  for (final NameReference reference in semantics.keysConditions) {
+    out.writeln(
+      <String>[
+        _number(frontEnd, reference.anchor.card.cardNumber),
+        reference.text,
+      ].join('\t'),
+    );
+  }
+}
+
+/// The sentences msg 177 deleted from the text (M3-20). Each keeps its
+/// statement number, which is all the deletion leaves to print.
+void _deleted(
+  StringBuffer out,
+  SemanticResult semantics,
+  FrontEndResult frontEnd,
+) {
+  out.writeln('* DELETED');
+  for (final Sentence sentence in semantics.capacityDeletedSentences) {
+    out.writeln(_number(frontEnd, sentence.scan.cards.first.cardNumber));
+  }
+}
+
+/// The clause's `n,cc` number: its statement number with the clause
+/// digits in place of `00`, the substitution the listing makes for a
+/// clause-confined diagnostic (M2-6). A clause the parser never
+/// numbered keeps `n,00`.
+String _clauseNumber(FrontEndResult frontEnd, Clause clause) {
+  final String statement = _number(frontEnd, clause.anchor.card.cardNumber);
+  if (clause.clause == 0 || !statement.endsWith(',00')) {
+    return statement;
+  }
+  final String digits = clause.clause.toString().padLeft(2, '0');
+  return statement.substring(0, statement.length - 2) + digits;
+}
+
+/// The card's statement number, or `9999,99` when the front end
+/// numbered no card of its unit — a stopped scan (J 02.02.01; D9.5).
+String _number(FrontEndResult frontEnd, int card) =>
+    frontEnd.statementNumberByCard[card] ?? '9999,99';
 
 String _yesNo(bool value) => value ? 'yes' : 'no';
 
