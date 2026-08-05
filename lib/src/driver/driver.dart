@@ -118,10 +118,9 @@ DeckCompilation compileDeck(
     // A semantic stop skips code generation the same way (M4-2; D10.2).
     final CodegenResult? codegen = semantics == null || semantics.stopped
         ? null
-        : runCodegen(semantics, sink: sink);
+        : runCodegen(semantics);
     final diagnostics = <Diagnostic>[
       ...semantics?.diagnostics ?? parse?.diagnostics ?? frontEnd.diagnostics,
-      ...?codegen?.codegenDiagnostics,
     ];
     for (var j = 0; j < slice.ignoredTail.length; j++) {
       // The single-job tail (D11.1 rule d). Card numbers continue past

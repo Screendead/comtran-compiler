@@ -130,9 +130,7 @@ void main() {
       );
     });
 
-    test('the phase generates the whole data region and stops for none', () {
-      expect(result.stopped, isFalse);
-      expect(result.codegenDiagnostics, isEmpty);
+    test('the phase generates the whole data region', () {
       // 117 words: LOC 00000 through 00164.
       expect(result.image.inlineWords, _octal('165'));
     });

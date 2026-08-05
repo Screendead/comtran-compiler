@@ -6,10 +6,10 @@ style point.
 ## Severity
 
 - **Blocker:** a real defect. Examples: wrong behavior, a broken
-  invariant, a test that cannot fail, a diff that touches
-  `comtran-manuals/` without a quoted authorization from Jack, a hand
-  edit to a generated file (CLAUDE.md section 10), a hand edit to a
-  `.ct` mirror.
+  invariant, a test that cannot fail, code that is neither exercised nor
+  tested (CLAUDE.md section 11), a diff that touches `comtran-manuals/`
+  without a quoted authorization from Jack, a hand edit to a generated
+  file (CLAUDE.md section 10), a hand edit to a `.ct` mirror.
 - **Advisory:** a humanness finding from the list below, a style point, a
   nit. Cap nits at five per review; keep the most useful ones.
 
@@ -26,8 +26,8 @@ blocking.
    likely second caller.
 2. A comment or doc comment that restates the symbol's name or the next
    line.
-3. Dead weight: unreferenced code, an unused parameter, commented-out
-   code.
+3. Dead weight that the section 11 blocker does not already catch: code a
+   test asserts on but no run reaches, or commented-out code.
 4. Repeated ceremony: the same multi-line pattern at many sites that one
    local helper would remove.
 5. Document weight: a markdown file larger than its audience or its
@@ -54,4 +54,4 @@ blocking.
 - Cite the manuals as `J 02.03.02` (an IBM section code) or `F p. 42` (a
   printed page). J28-6169 outranks F28-8043 where they diverge.
 - Repository prose follows ASD-STE100 Simplified Technical English
-  (CLAUDE.md section 12). Verbatim manual quotes are exempt.
+  (CLAUDE.md section 13). Verbatim manual quotes are exempt.

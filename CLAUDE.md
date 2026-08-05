@@ -191,7 +191,42 @@ its plain form, `J 02.03.02` or `F p. 42`, and run the linkifier. It adds the
 brackets and rewrites the block. It never touches a citation inside a code
 span, a code block, a blockquote or a quotation.
 
-## 11. Workflow
+## 11. Code standards
+
+### No untested and unexercised code
+
+Code that no test asserts on **and** that no program run reaches must not
+enter the repository. Delete it. This is a hard rule, not a preference.
+
+Two words carry the rule, and they are not the same test:
+
+- **Exercised** — a normal run of the compiler or a tool reaches the code.
+- **Tested** — a test asserts on what the code does.
+
+Four cases follow. Only the last one is banned:
+
+| Exercised | Tested | Verdict |
+|---|---|---|
+| yes | yes | Good. Nothing to do. |
+| yes | no | Permitted, with caution. The code has a caller, so a change to it can break the program silently. Prefer to add the test. |
+| no | yes | Permitted. Keep watch: the code needs a concrete plan to get a caller. Record the plan in the design record that asks for the code. |
+| no | no | **Banned. Delete it.** |
+
+The rule binds a whole symbol and each of its parts: an unread field, an
+unused parameter, an unreachable branch, and a constant with no reader are
+each dead on their own, inside a class that is otherwise alive.
+
+Two consequences to expect:
+
+- **Do not write scaffolding for a later milestone.** A design record that
+  asks for a shape does not license the shape before something can use it.
+  Amend the record to say which milestone the shape arrives with, then
+  write it then.
+- **A design record never outranks this rule.** Where a record requires
+  code this rule bans, the record is wrong for now. Amend it and cite this
+  section.
+
+## 12. Workflow
 
 - Branch off master with a topic slug, for example `m2-procedure`. Do not commit
   to master.
@@ -213,7 +248,7 @@ span, a code block, a blockquote or a quotation.
   repository, never the author's plan or rationale. Every finding must cite
   file:line and quote the text.
 
-## 12. Prose style: ASD-STE100 Simplified Technical English (Issue 9)
+## 13. Prose style: ASD-STE100 Simplified Technical English (Issue 9)
 
 **Scope.** STE governs repo prose documents only. It does not govern assistant
 responses; those follow the Density rules below. Exempt: verbatim manual quotes

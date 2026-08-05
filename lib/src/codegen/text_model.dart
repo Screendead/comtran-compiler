@@ -33,25 +33,17 @@ abstract final class ControlGroup {
   /// A location counter control entry, whose word reads `OP A`; the
   /// CNTRL column prints `00001`.
   static const int locationCounter = 0x01;
-
-  /// End of text, whose word's address holds the relative program entry
-  /// point; the CNTRL column prints `01111`.
-  static const int endOfText = 0x0F;
 }
 
 /// The `OP` of a location counter control entry ([J 90.03.04]), named by
 /// the prefix digit the OCTAL column prints.
+///
+/// [J 90.03.04] defines four: `PZE` 0 an absolute origin, `PTW` 2, `PTH`
+/// 3 a variable-length reservation, and `MON` 5. Only the two the
+/// storage map emits are declared here.
 abstract final class CounterOp {
-  /// `PZE`: the address is an absolute origin.
-  static const int absoluteOrigin = 0;
-
   /// `PTW`: a fixed-length reservation whose address holds the length.
   static const int fixedReservation = 2;
-
-  /// `PTH`: a variable-length reservation; the length follows as a
-  /// complex expression, and the address holds the length assumed for
-  /// assembly.
-  static const int variableReservation = 3;
 
   /// `MON`: the address is a relative origin — what `USE` and `ORG`
   /// emit.

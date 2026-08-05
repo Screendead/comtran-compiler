@@ -83,7 +83,19 @@ M4 executes I/O-free programs.
   → `runSemantics` → `runCodegen` → `writeListing`, per job. `runCodegen`
   follows D10.2 exactly: it catches `StopCompilation` itself, returns a
   partial result with a `stopped` flag, and the driver skips it when an
-  earlier phase stopped. The phase re-resolves nothing: data references
+  earlier phase stopped.
+  **Amended 2026-08-05, stage 1.** Stage 1 builds the storage map from
+  facts the semantic layer already validated, so it detects no error and
+  reports no diagnostic. Its stop shape was therefore unreachable: no
+  input could enter the `catch`, the `stopped` flag was always false, and
+  the diagnostic list was always empty. CLAUDE.md section 11 bans code
+  that is neither exercised nor tested, and it outranks this record, so
+  stage 1 ships without the shape. `runCodegen(SemanticResult) →
+  CodegenResult` takes no diagnostic sink. The stop shape above binds
+  stage 2, whose verb generators are the first code here that can detect
+  an error; it arrives with them, sink and all. The driver's skip of a
+  stopped earlier phase is unaffected and still holds.
+  The phase re-resolves nothing: data references
   come from `dataResolutions`, CORRESPONDING pairs from
   `correspondingPairs`, storage facts from `ItemSemantics`, initial words
   from `AreaInfo.words`, and label words from the M3 allocator. It

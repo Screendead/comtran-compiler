@@ -14,52 +14,30 @@
 library;
 
 import '../data/data_map.dart';
-import '../lexer/diagnostic.dart';
 import 'image.dart';
 import 'storage_map.dart';
 import 'text_model.dart';
 
 /// The code generator's result over one job.
 final class CodegenResult {
-  CodegenResult({
-    required this.semantics,
-    required this.units,
-    required this.image,
-    required this.codegenDiagnostics,
-    required this.stopped,
-  });
-
-  /// The semantics the text was generated over.
-  final SemanticResult semantics;
+  CodegenResult({required this.units, required this.image});
 
   /// The assembly text, program order.
   final List<AssemblyUnit> units;
 
   /// The address layout the text is bound against.
   final ProgramImage image;
-
-  /// The generator's own diagnostics, in detection order.
-  final List<Diagnostic> codegenDiagnostics;
-
-  /// Whether a severity-5 diagnostic stopped the phase (D10.2).
-  final bool stopped;
 }
 
 /// Generates the object text of [semantics].
 ///
-/// Like the semantic layer, the function catches `StopCompilation`
-/// itself and returns the partial result with its [CodegenResult.stopped]
-/// flag set (D10.2).
-CodegenResult runCodegen(SemanticResult semantics, {DiagnosticSink? sink}) {
-  final DiagnosticSink diagnostics = sink ?? DiagnosticSink();
-  final int first = diagnostics.length;
-  var units = const <AssemblyUnit>[];
-  var stopped = false;
-  try {
-    units = storageMapUnits(semantics);
-  } on StopCompilation {
-    stopped = true;
-  }
+/// Stage 1 reports no diagnostic of its own, so the phase takes no
+/// diagnostic sink and cannot stop. D10.2's stop shape — catch
+/// `StopCompilation`, return the partial text with a `stopped` flag —
+/// arrives with the stage-2 verb generators, which are the first code
+/// here that can detect an error (M4-2, amended; CLAUDE.md section 11).
+CodegenResult runCodegen(SemanticResult semantics) {
+  final List<AssemblyUnit> units = storageMapUnits(semantics);
   // Result storage, temporary storage, the positional indicators, and
   // the constant pool are all sized by the verb generators, so they
   // stay empty until stage 2.
@@ -72,11 +50,5 @@ CodegenResult runCodegen(SemanticResult semantics, {DiagnosticSink? sink}) {
       StorageBlock.bl: baseLocatorWords(semantics),
     },
   );
-  return CodegenResult(
-    semantics: semantics,
-    units: units,
-    image: image,
-    codegenDiagnostics: List.unmodifiable(diagnostics.sublist(first)),
-    stopped: stopped,
-  );
+  return CodegenResult(units: units, image: image);
 }
