@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-08-04. Audience: the next agent, or Jack. This file is the
+*Updated 2026-08-05. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -44,7 +44,7 @@ Terms that appear without expansion:
 | M2 stage 1 — AST and fixed-form parsers | Merged 2026-08-03 (PR #15) | `lib/src/ast/`, `lib/src/parser/` |
 | M2 stage 2 — procedure division | Merged 2026-08-03 (PR #17) | `lib/src/parser/procedure_parser.dart` |
 | M2 stage 3 — job stream and --pedantic | Merged 2026-08-03 (PRs #47–#49) | `lib/src/driver/` |
-| M3 — the semantic layer | **In progress.** Stages 1 and 2 built 2026-08-04; stage 3 is the next task | `docs/design/m3-data.md`, `lib/src/data/` |
+| M3 — the semantic layer | Done 2026-08-05 (stages 1–2 2026-08-04; stage 3, the listing extension, 2026-08-05) | `docs/design/m3-data.md`, `lib/src/data/` |
 | M4 to M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -56,7 +56,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline, measured 2026-08-05: 955 Dart tests pass, and 154 extension
+Test baseline, measured 2026-08-05: 965 Dart tests pass, and 154 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -69,34 +69,35 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — M3 stage 3, the listing extension
+## The next task — the M4 decision walk
 
-The M3 decision walk is recorded in `docs/design/m3-data.md` (2026-08-04).
-Jack's three calls are locked there: M3 is the full semantic layer in three
-staged PRs (M3-1); the listing gains GN)nnn names and the LOC column with a
-golden rewrite in stage 3 (M3-8); and the 1962 object listing's `*DATA`
-storage section (PDF pp. 199–200) is the stage-1 acceptance oracle (M3-14).
+M3 closed 2026-08-05. The decision walk is `docs/design/m3-data.md`;
+stages 1 and 2 landed 2026-08-04. Stage 3 landed 2026-08-05: the GN)nnn
+names, the LOC column from the dictionary allocator, and the golden
+rewrite (M3-8 as amended). The listing now reproduces the six 1962
+source pages in full. Three verification results from the stage:
 
-Stage 1 landed 2026-08-04: `lib/src/data/` holds the field classifier, the
-pictorial measurement, the storage allocator, the initial images, the
-environment binder, and the stage-1 diagnostics, wired into the driver as
-`runSemantics`. The M3-14 oracle passes — the mapper reproduces the 1962
-`*DATA` storage section exactly. M3-16 records the stage-1 message choices
-and the deferrals.
+- A blind transcription of the six page scans confirmed the two
+  printed columns — 200 values — against the allocator (M3-22).
+- The procedure side needed the generated-label rule: AT END and IF
+  allocate silent labels between the printed words, and an unlabelled
+  END sentence prints the next generated name (M3-23, from the [J 90.05]
+  symbolic listing).
+- The same pass exposed and fixed an M1 pagination fault: the print
+  carries blank lines before the division headers and the control-card
+  echo, so the old golden packed more statements per page and its
+  breaks sat up to four statements late (M1-16 and M1-17, amended).
 
-Stage 2 landed 2026-08-04: the dictionary, procedure and environment name
-resolution, CALL synonyms, reference legality, CORRESPONDING pairing, the
-I/O verb binding map, the subscript and transfer checks, and the capacity
-counters. The checklist's M3 rows are enforced — msgs 17 and 205 stay
-reserved with notes — and ten non-historical ids were added (936 to 945).
-M3-17 to M3-21 record the site readings. The `--no-table-limits` switch
-lifts the D9.7 counters.
-
-The next task is stage 3: the listing extension — GN)nnn names and the LOC
-column, with the golden rewrite (M3-8). Two standing items to carry in:
+The next task is the M4 decision walk — the design record for
+core-verb code generation (the roadmap entry below), then its staged
+implementation. Standing items to carry in:
 
 - D11.4 lists the --pedantic sites deferred beyond M3 (D5.1, D5.7, D6.1
   among them); each lands with its owning milestone.
+- The msg 942 counter starts counting compiler-generated names at M4
+  ([J 90.01.05] item a; M3-21). M3-23's post-pass labels — GN)084 on,
+  the DO-loop machinery and EQU'd symbols — are M4's to reproduce,
+  with the rest of the symbolic listing.
 - The emit-flag plumbing landed 2026-08-05: five `--emit-<stage>[=<path>]`
   flags on `comtranc` with bundleable one-letter forms (`-cpsSl`, `-A`
   for all) and default dump paths, three committed reconstruction
@@ -200,9 +201,11 @@ PDF p. 217. It makes every milestone below testable at once.
   message 132, the D11 records — and the `--pedantic` flag with its eleven
   M2 sites (D11.4). M2's own decisions: `docs/design/m2-parser.md` and the
   D11 section of `docs/design/decisions.md`.
-- **M3 — Data Description semantics**: levels, pictorials, type codes, storage
-  mapping (definition §3, corroborated by the 90.05 layout evidence), REDEF, and
-  QUANTITY.
+- **M3 — Data Description semantics — DONE 2026-08-05**: levels, pictorials,
+  type codes, storage mapping (definition §3, corroborated by the 90.05 layout
+  evidence), REDEF, QUANTITY, the dictionary and name resolution, and the
+  listing's GN)nnn and LOC columns. M3's own decisions:
+  `docs/design/m3-data.md`.
 - **M4 — Core-verb code generation**: MOVE, SET, IF, WHEN, GO TO, and DO. DO
   follows the verified Q40 return-cell semantics, non-reentrancy included.
   Arithmetic follows §4.3 and the Q26–Q28 annotations. The emulator core
@@ -278,3 +281,4 @@ M2 to M6.
 [J 90.01.05]: ../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.10]: ../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
+[J 90.05]: ../comtran-manuals/J28-6169/90.05-sample-program.md#appendix-9005

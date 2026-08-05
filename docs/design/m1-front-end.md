@@ -123,12 +123,25 @@ source citation. Amend by updating this file and `decisions.md` together.*
   stable. 55 content lines per page — every page of the 1962 listing
   carries 55 content lines after its head, counted across all 25
   printer pages of the sample.
+  *Amended 2026-08-05 (M3 stage 3, `m3-data.md` M3-22): the 55-line
+  count stands, but blank lines are content. The print carries one
+  blank line before each division-header echo and one before the
+  control-card echo; the M1 golden omitted them, so more statements
+  fit its pages and its breaks sat up to four statements late against
+  the sheets. The sheet scans fix the true breaks: pages end at
+  statements 47, 102, 155, 196 (first line), 216, and 229. The stage-3 golden rewrite carries
+  the correction; the M1 model was verified against the flattened
+  transcription, which drops blank lines — the scan is the
+  authority.*
 - **M1-17. Control-card echo** prints card columns 1–72 at the far-left
   margin (two columns in from position 1), with the phase letters CTC
   under it and CTD/CTE before the diagnostic block ([J 05.06.01]; the
   letters print in the listing at the left margin per the page scans).
   The `*FINISH` card is not echoed (the sample stops at the last source
   card).
+  *Amended 2026-08-05 (M3 stage 3): one blank content line precedes
+  the echo — page 1 opens blank, echo, CTC, blank, `*DATA` (scan page
+  192; the M1-16 amendment records the page-break consequence).*
 - **M1-18. The diagnostic block** follows the source listing
   ([J 02.02.01]: source, then error messages). Clean: the attested
   `NO ERRORS WERE DETECTED DURING COMPILATION` line, printed at the
