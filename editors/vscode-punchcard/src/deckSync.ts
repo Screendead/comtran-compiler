@@ -47,6 +47,33 @@ export function repoRootFor(fsPath: string): string | null {
   }
 }
 
+const pairRuns = new Map<string, Promise<unknown>>();
+
+/** True while `withPair` work for `key` is queued or in flight. */
+export function pairBusy(key: string): boolean {
+  return pairRuns.has(key);
+}
+
+/** Serializes `run` against all other work on the same deck pair, keyed
+ * by the canon path. The two save directions and the canon write itself
+ * must never interleave: two `deckconv` processes racing on one pair can
+ * leave it stale or overwrite one side's edits. */
+export function withPair<T>(key: string, run: () => Promise<T>): Promise<T> {
+  const previous = pairRuns.get(key) ?? Promise.resolve();
+  const next = previous.then(run, run);
+  const tail = next.then(
+    () => undefined,
+    () => undefined,
+  );
+  pairRuns.set(key, tail);
+  void tail.then(() => {
+    if (pairRuns.get(key) === tail) {
+      pairRuns.delete(key);
+    }
+  });
+  return next;
+}
+
 /** Runs `dart run comtran:deckconv <args>` from `root`. Never rejects: a
  * non-zero exit, a missing Dart SDK, and a 60-second hang all come back
  * as `ok: false`. */

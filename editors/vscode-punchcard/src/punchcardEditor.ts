@@ -14,6 +14,7 @@ import {
 } from './cardView';
 import { DIVISION_FIELDS, GENERIC_FIELDS } from './columns';
 import { bcdFromGlyph, punchesFromBcd } from './charCode';
+import { withPair } from './deckSync';
 import { DeckChange, PunchcardDocument } from './punchcardDocument';
 
 interface PanelState {
@@ -141,8 +142,10 @@ export class PunchcardEditorProvider
     document: PunchcardDocument,
     cancellation: vscode.CancellationToken,
   ): Promise<void> {
-    await document.save(cancellation);
-    if (!cancellation.isCancellationRequested) {
+    const written = await this.lockedWrite(document.uri, () =>
+      document.save(cancellation),
+    );
+    if (written) {
       this._onDidSaveDeck.fire(document.uri);
     }
   }
@@ -152,10 +155,24 @@ export class PunchcardEditorProvider
     destination: vscode.Uri,
     cancellation: vscode.CancellationToken,
   ): Promise<void> {
-    await document.saveAs(destination, cancellation);
-    if (!cancellation.isCancellationRequested) {
+    const written = await this.lockedWrite(destination, () =>
+      document.saveAs(destination, cancellation),
+    );
+    if (written) {
       this._onDidSaveDeck.fire(destination);
     }
+  }
+
+  /** A canon write waits its turn on the pair (`deckSync.withPair`), so a
+   * save can never interleave with a running mirror apply or regen. */
+  private lockedWrite(
+    target: vscode.Uri,
+    write: () => Promise<boolean>,
+  ): Promise<boolean> {
+    if (target.scheme !== 'file') {
+      return write();
+    }
+    return withPair(target.fsPath, write);
   }
 
   public revertCustomDocument(document: PunchcardDocument): Thenable<void> {

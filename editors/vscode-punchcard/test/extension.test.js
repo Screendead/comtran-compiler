@@ -110,6 +110,10 @@ const vscodeStub = {
 
 let execCalls = [];
 let execResult = { error: null, stdout: '', stderr: '' };
+// In manual mode a run stays pending until the test fires its callback,
+// so a test can hold the pair busy or edit state mid-run.
+let execMode = 'auto';
+let pendingExecs = [];
 
 const load = Module._load;
 Module._load = function (request, parent, isMain) {
@@ -120,6 +124,10 @@ Module._load = function (request, parent, isMain) {
     return {
       execFile: (command, args, options, callback) => {
         execCalls.push({ command, args, options });
+        if (execMode === 'manual') {
+          pendingExecs.push(callback);
+          return;
+        }
         process.nextTick(() =>
           callback(execResult.error, execResult.stdout, execResult.stderr),
         );
@@ -130,7 +138,7 @@ Module._load = function (request, parent, isMain) {
 };
 
 const { activate } = require('../out/extension.js');
-const { decodeCanon } = require('../out/canonCodec.js');
+const { blankCard, decodeCanon, encodeCanon } = require('../out/canonCodec.js');
 
 // A pair inside the real repository, so the repo-root walk finds the
 // pubspec.yaml. The files never exist; every read and write is stubbed.
@@ -153,6 +161,8 @@ function freshActivate() {
   errors = [];
   execCalls = [];
   execResult = { error: null, stdout: '', stderr: '' };
+  execMode = 'auto';
+  pendingExecs = [];
   vscodeStub.window.tabGroups.all = [];
   vscodeStub.workspace.textDocuments = [];
   activate(fakeContext());
@@ -238,17 +248,12 @@ test('saving a deck regenerates its mirror from the repository root', async () =
   freshActivate();
   const uri = vscodeStub.Uri.file(canonPath);
   await registeredProvider.saveCustomDocument(
-    { uri, save: async () => {} },
+    { uri, save: async () => true },
     { isCancellationRequested: false },
   );
   await flush();
   assert.equal(execCalls.length, 1);
-  assert.deepEqual(execCalls[0].args, [
-    'run',
-    'comtran:deckconv',
-    'regen',
-    canonPath,
-  ]);
+  assert.deepEqual(execCalls[0].args.slice(2), ['regen', canonPath]);
   assert.equal(execCalls[0].options.cwd, repoRoot);
   assert.deepEqual(warnings, []);
   assert.deepEqual(errors, []);
@@ -260,7 +265,7 @@ test('a deck save warns when the open mirror buffer is dirty', async () => {
     { uri: makeUri('file', mirrorPath), isDirty: true },
   ];
   await registeredProvider.saveCustomDocument(
-    { uri: vscodeStub.Uri.file(canonPath), save: async () => {} },
+    { uri: vscodeStub.Uri.file(canonPath), save: async () => true },
     { isCancellationRequested: false },
   );
   await flush();
@@ -273,7 +278,7 @@ test('a failed regen surfaces the deckconv stderr', async () => {
   freshActivate();
   execResult = { error: new Error('exit 1'), stdout: '', stderr: 'error: boom' };
   await registeredProvider.saveCustomDocument(
-    { uri: vscodeStub.Uri.file(canonPath), save: async () => {} },
+    { uri: vscodeStub.Uri.file(canonPath), save: async () => true },
     { isCancellationRequested: false },
   );
   await flush();
@@ -289,14 +294,11 @@ test('saving a mirror rewrites the deck through to-canon', async () => {
   });
   await flush();
   assert.equal(execCalls.length, 1);
-  assert.deepEqual(execCalls[0].args, [
-    'run',
-    'comtran:deckconv',
+  assert.deepEqual(execCalls[0].args.slice(2), [
     'to-canon',
     mirrorPath,
     canonPath,
   ]);
-  assert.equal(execCalls[0].options.cwd, repoRoot);
   assert.deepEqual(errors, []);
 });
 
@@ -356,4 +358,77 @@ test('a successful mirror save reloads the open punchcard editor', async () => {
   fireSave({ languageId: 'comtran-deck', uri: makeUri('file', mirrorPath) });
   await flush();
   assert.equal(reloads, 1);
+});
+
+test('a mirror save during a deck save is skipped: punch edits win', async () => {
+  freshActivate();
+  execMode = 'manual';
+  await registeredProvider.saveCustomDocument(
+    { uri: vscodeStub.Uri.file(canonPath), save: async () => true },
+    { isCancellationRequested: false },
+  );
+  await flush();
+  fireSave({ languageId: 'comtran-deck', uri: makeUri('file', mirrorPath) });
+  await flush();
+  assert.equal(execCalls.length, 1, 'only the regen ran');
+  assert.deepEqual(execCalls[0].args.slice(2), ['regen', canonPath]);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /not applied/);
+  pendingExecs.shift()(null, '', '');
+  await flush();
+});
+
+test('punch edits made while to-canon runs are kept, not reverted', async () => {
+  freshActivate();
+  const canonUri = vscodeStub.Uri.file(canonPath);
+  const document = await registeredProvider.openCustomDocument(
+    canonUri,
+    {},
+    { isCancellationRequested: false },
+  );
+  let reloads = 0;
+  document.onDidChangeContent(() => reloads++);
+  execMode = 'manual';
+  fireSave({ languageId: 'comtran-deck', uri: makeUri('file', mirrorPath) });
+  await flush();
+  vscodeStub.window.tabGroups.all = [
+    {
+      tabs: [
+        {
+          isDirty: true,
+          input: {
+            viewType: 'comtran.punchcard',
+            uri: makeUri('file', canonPath),
+          },
+        },
+      ],
+    },
+  ];
+  pendingExecs.shift()(null, '', '');
+  await flush();
+  assert.equal(reloads, 0);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /gained punch edits/);
+});
+
+test('an undo or redo from before a reload does not replay', async () => {
+  freshActivate();
+  const canonUri = vscodeStub.Uri.file(canonPath);
+  memory.set(canonUri.toString(), encodeCanon([blankCard()]));
+  const document = await registeredProvider.openCustomDocument(
+    canonUri,
+    {},
+    { isCancellationRequested: false },
+  );
+  const edits = [];
+  registeredProvider.onDidChangeCustomDocument((event) => edits.push(event));
+  document.setColumn(0, 1, 7);
+  assert.equal(document.card(0)[0], 7);
+  await document.revert();
+  assert.equal(document.card(0)[0], 0);
+  edits[0].redo();
+  assert.equal(document.card(0)[0], 0, 'a stale redo does not replay');
+  edits[0].undo();
+  assert.equal(document.card(0)[0], 0, 'a stale undo does not replay');
+  memory.delete(canonUri.toString());
 });

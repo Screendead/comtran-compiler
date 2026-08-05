@@ -32,8 +32,10 @@ Module._load = function (request, parent, isMain) {
 const {
   canonPathFor,
   mirrorPathFor,
+  pairBusy,
   repoRootFor,
   runDeckconv,
+  withPair,
 } = require('../out/deckSync.js');
 
 test('mirrorPathFor swaps .ctd for .ct and rejects anything else', () => {
@@ -96,4 +98,31 @@ test('a spawn failure with no stderr reports the error message', async () => {
   execResult = { error: new Error('spawn dart ENOENT'), stdout: '', stderr: '' };
   const result = await runDeckconv('/repo', ['regen', 'x.ctd']);
   assert.deepEqual(result, { ok: false, detail: 'spawn dart ENOENT' });
+});
+
+test('withPair serializes runs on one pair and pairBusy tracks them', async () => {
+  const order = [];
+  let releaseFirst;
+  const first = withPair('/a.ctd', () => {
+    order.push('first-start');
+    return new Promise((resolve) => {
+      releaseFirst = () => {
+        order.push('first-end');
+        resolve('one');
+      };
+    });
+  });
+  const second = withPair('/a.ctd', async () => {
+    order.push('second');
+    return 'two';
+  });
+  assert.equal(pairBusy('/a.ctd'), true);
+  assert.equal(pairBusy('/b.ctd'), false);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(order, ['first-start'], 'the second run waits');
+  releaseFirst();
+  assert.deepEqual([await first, await second], ['one', 'two']);
+  assert.deepEqual(order, ['first-start', 'first-end', 'second']);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(pairBusy('/a.ctd'), false);
 });

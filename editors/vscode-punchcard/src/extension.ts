@@ -5,8 +5,10 @@ import { blankCard, encodeCanon } from './canonCodec';
 import {
   canonPathFor,
   mirrorPathFor,
+  pairBusy,
   repoRootFor,
   runDeckconv,
+  withPair,
 } from './deckSync';
 import { registerManualCitationProviders } from './manualLinks';
 import { PunchcardEditorProvider } from './punchcardEditor';
@@ -88,7 +90,9 @@ async function regenMirror(uri: vscode.Uri): Promise<void> {
     );
     return;
   }
-  const result = await runDeckconv(root, ['regen', uri.fsPath]);
+  const result = await withPair(uri.fsPath, () =>
+    runDeckconv(root, ['regen', uri.fsPath]),
+  );
   if (!result.ok) {
     void vscode.window.showErrorMessage(
       `deckconv regen failed: ${result.detail}`,
@@ -107,14 +111,22 @@ async function regenMirror(uri: vscode.Uri): Promise<void> {
 }
 
 /** Rewrites the deck from the mirror at `uri` through `deckconv to-canon`,
- * then refreshes the open punchcard editor, if any. A deck with unsaved
- * punch edits outranks the mirror text: the apply is skipped. */
+ * then reloads the open punchcard editor, if any. Punch edits outrank the
+ * mirror text: a dirty or concurrently saved deck skips the apply, and
+ * punch edits made while `to-canon` runs are kept, not reverted. */
 async function applyMirror(
   uri: vscode.Uri,
   provider: PunchcardEditorProvider,
 ): Promise<void> {
   const canonPath = canonPathFor(uri.fsPath);
   if (canonPath === null) {
+    return;
+  }
+  if (pairBusy(canonPath)) {
+    void vscode.window.showWarningMessage(
+      `A deckconv run on ${path.basename(canonPath)} is in progress; the ` +
+        'mirror save was not applied. Save the mirror again.',
+    );
     return;
   }
   if (deckEditorIsDirty(canonPath)) {
@@ -133,14 +145,24 @@ async function applyMirror(
     );
     return;
   }
-  const result = await runDeckconv(root, ['to-canon', uri.fsPath, canonPath]);
-  if (!result.ok) {
-    void vscode.window.showErrorMessage(
-      `deckconv to-canon failed: ${result.detail}`,
-    );
-    return;
-  }
-  await provider.documentFor(vscode.Uri.file(canonPath))?.revert();
+  await withPair(canonPath, async () => {
+    const result = await runDeckconv(root, ['to-canon', uri.fsPath, canonPath]);
+    if (!result.ok) {
+      void vscode.window.showErrorMessage(
+        `deckconv to-canon failed: ${result.detail}`,
+      );
+      return;
+    }
+    if (deckEditorIsDirty(canonPath)) {
+      void vscode.window.showWarningMessage(
+        `${path.basename(canonPath)} gained punch edits while the mirror ` +
+          'save was applied; the editor keeps them. Saving the deck will ' +
+          'overwrite the mirror edit.',
+      );
+      return;
+    }
+    await provider.documentFor(vscode.Uri.file(canonPath))?.revert();
+  });
 }
 
 /** True when a punchcard editor tab on `fsPath` has unsaved edits. */
@@ -179,8 +201,8 @@ function noticeOnDeckMirror(context: vscode.ExtensionContext): void {
       void vscode.window.showInformationMessage(
         'This .ct file is a generated mirror of the matching .ctd deck. ' +
           'Saving it rewrites the deck through deckconv to-canon; text ' +
-          'that is not normal-form mirror text is rejected with the card ' +
-          'named.',
+          'that is not normal-form mirror text is rejected, and the deck ' +
+          'stays unchanged.',
       );
     }),
   );

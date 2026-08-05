@@ -75,8 +75,8 @@ The rules:
    path.
 2. **Never hand-edit a `.ct` mirror outside VS Code.** The next regeneration
    discards the edit, and CI rejects a stale pair. In VS Code, a mirror save
-   runs `deckconv to-canon`: the edit becomes the deck, or the save is
-   rejected with the card named.
+   runs `deckconv to-canon`: the edit becomes the deck, or the tool rejects
+   the text and the pair stays stale until you fix it.
 3. Change a deck through `deckconv`, the MCP deck tools, or a VS Code save
    of either file. Each rewrites the canon file and regenerates the mirror
    together.

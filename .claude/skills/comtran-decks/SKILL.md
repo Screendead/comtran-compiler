@@ -24,7 +24,8 @@ deck. Decisions D0.5 and D0.6 govern it.
 2. **Never hand-edit a `.ct` mirror outside VS Code.** A mirror is a generated
    artifact. An edit outside VS Code is lost at the next regeneration, and CI
    fails it. In VS Code, saving a mirror runs `deckconv to-canon`: the edit
-   becomes the deck, or the save is rejected with the card named.
+   becomes the deck, or the tool rejects the text and leaves the deck
+   unchanged. A rejected save leaves the pair stale until you fix the text.
 3. **Change a deck through the tools.** `deckconv`, `deck_write`,
    `deck_edit_cards`, and a VS Code save of either file of a pair rewrite
    the canon file and regenerate the mirror together, so the pair stays
