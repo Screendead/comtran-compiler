@@ -286,6 +286,11 @@ M2 to M6.
 - Manuals: `comtran-manuals/{F28-8043,J28-6169}/`. `comtran-manuals/README.md`
   holds the conventions. The sample program is
   `comtran-manuals/J28-6169/90.05-sample-program.md`.
+- The method: `docs/reconstruction-method.md`. It states how this project
+  decides a question when the sources are thin, silent, or in conflict, and
+  what the method cannot do. It describes; it binds nothing. `CLAUDE.md`,
+  `docs/design/decisions.md` and the definition are the authorities it
+  describes, and any disagreement means the method document is stale.
 - Improvement candidates: `docs/opportunities.md`. It holds ways to make the
   project stronger as research, ranked, with the rejected ones and their
   reasons. It binds nothing. Read it when the question is "what should we do
