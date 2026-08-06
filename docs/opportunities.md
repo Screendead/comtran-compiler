@@ -58,7 +58,7 @@ Ids are permanent. Rank is the row order, and a row may move.
 | O2 | Read the scans again with a different reader | Medium | Yes |
 | O10 | State the reconstruction method as a method | Medium | Yes |
 | O11 | Keep a first-class record of refuted readings | Small | Yes |
-| O1 | Hold the deck and the conversion consistent, mechanically | Small | Yes |
+| O1 | Hold the deck and the conversion consistent, mechanically | Small | Done 2026-08-06 |
 | O4 | Give the project one reproducibility entry point | Small | Yes |
 | O5 | Add citation and preservation metadata | Small | Part done |
 | O3 | Tag every semantic rule with its evidence tier | Large | No — needs a unit of account |
@@ -70,6 +70,11 @@ Ids are permanent. Rank is the row order, and a row may move.
 ## 5. The entries
 
 ### O1 — Hold the deck and the conversion consistent, mechanically
+
+**Done 2026-08-06.** `test/deck_conversion_test.dart` holds the comparison.
+It reaches all 112 Environment and Procedure cards, compares 438 blank runs,
+and finds no divergence. The paragraphs below are the entry as written, with
+the outcome recorded at the end.
 
 **Read this first.** An earlier form of this entry called the two artifacts
 independent transcriptions and claimed the check was a form of validation. Jack
@@ -119,6 +124,22 @@ claim on it.
 throwaway script and needs a proper home.
 
 **What blocks it.** Nothing.
+
+**What the build found.** The entry names two exclusions. A third was
+necessary, and it is the same kind of thing: the Environment card's fixed
+name and type fields, columns 7 to 30 (definition §1.9.3). The printer pads
+those two fields, so a blank run inside them decides nothing about a punch.
+
+Two matching rules were also necessary, and the entry did not predict either.
+The listing glues a generated name to the first punched word, as in
+`GN)000CALL`, because a generated name fills the name margin exactly. And two
+listing lines carry the same words as each other, so a duplicate is only
+ambiguous when the candidates disagree on their blank runs.
+
+The build also corrected a claim. The throwaway script left 14 cards to a hand
+check, and `test/fixtures/90.05-payroll-deck-notes.md` item 4 read that as 14
+cards that no single conversion line matches. Six are, and the two rules above
+match all six. Item 4 now records the correction.
 
 ### O2 — Re-read the scans with a second tool and diff the result
 
