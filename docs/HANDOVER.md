@@ -19,6 +19,7 @@ home.
 | `ED-n` | An emulator design decision | `docs/design/emulator.md` |
 | `C1` to `C5` | A diagnostic severity class from D9.2 | `docs/design/severity-notes.md` |
 | `Qn` | An Open Question number | The Open Questions list in `docs/comtran-language-definition.md` |
+| `On` and `Rn` | An improvement candidate, and a rejected one | `docs/opportunities.md`. Binding on nothing. |
 | `§n` and `§8.5.n` | A section of the language definition | `docs/comtran-language-definition.md` |
 
 Terms that appear without expansion:
@@ -280,6 +281,10 @@ M2 to M6.
 - Manuals: `comtran-manuals/{F28-8043,J28-6169}/`. `comtran-manuals/README.md`
   holds the conventions. The sample program is
   `comtran-manuals/J28-6169/90.05-sample-program.md`.
+- Improvement candidates: `docs/opportunities.md`. It holds ways to make the
+  project stronger as research, ranked, with the rejected ones and their
+  reasons. It binds nothing. Read it when the question is "what should we do
+  next to raise the project's standing", not "what is the next task".
 - Archive provenance: commit 8f619e5 preserves the raw research output
   (`docs/research-2026-08-01-interrupted.md`). The language definition
   supersedes it.
