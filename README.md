@@ -135,8 +135,10 @@ document repeats the detail.
 ## License
 
 The code and the documents written for this project are copyright © 2026 Jack
-Lusher, and licensed under the GNU General Public License, version 3. The full
-text is in [LICENSE](LICENSE).
+Lusher, and licensed under the GNU General Public License, version 3 only. A
+later version of that license does not apply. `CITATION.cff` records the same
+choice as `GPL-3.0-only`; change the two together. The full text is in
+[LICENSE](LICENSE).
 
 The license does not cover the IBM material. `comtran-manuals/` holds page
 scans and conversions of two IBM publications from 1960–1962: F28-8043 and

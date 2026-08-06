@@ -182,7 +182,8 @@ door and a claim.
 
 **What.** Three items:
 
-- `CITATION.cff`, so the repository states how to cite it.
+- `CITATION.cff`, so the repository states how to cite it. **Done 2026-08-05**
+  (PR #73). It carries Jack's ORCID.
 - A Zenodo deposit on each release, which mints a DOI.
 - Software Heritage archival, which is free and needs one submission.
 
@@ -191,7 +192,9 @@ survives the loss of the hosting account.
 
 **Cost.** Small.
 
-**What blocks it.** Jack's ORCID, and a decision on how to name versions.
+**What blocks it.** The Zenodo deposit needs a first release, and a decision on
+how to name versions. Software Heritage archival needs neither, and is blocked
+on nothing.
 
 ### O6 — Find more surviving COMTRAN artifacts
 
