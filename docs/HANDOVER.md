@@ -287,8 +287,10 @@ M2 to M6.
   holds the conventions. The sample program is
   `comtran-manuals/J28-6169/90.05-sample-program.md`.
 - The method: `docs/reconstruction-method.md`. It states how this project
-  decides a question when the sources are thin, silent, or in conflict, and
-  what the method cannot do. It describes; it binds nothing. `CLAUDE.md`,
+  decides a question when the sources are thin, silent, or in conflict, what
+  the method cannot do, and how far large language models did the work
+  (section 11, with the human gates that bound them). It describes; it binds
+  nothing. `CLAUDE.md`,
   `docs/design/decisions.md` and the definition are the authorities it
   describes, and any disagreement means the method document is stale.
 - Improvement candidates: `docs/opportunities.md`. It holds ways to make the

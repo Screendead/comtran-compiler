@@ -268,7 +268,78 @@ O12, O2, O6, and O7 in `docs/opportunities.md`. **If the search for a second
 copy returns nothing, print that too.** "No second copy was located" is a
 result, and the reader needs it in order to weigh everything else.
 
-## 11. Admit period evidence, and fence it
+## 11. Disclose the machine, and what it cannot witness
+
+This reconstruction was built with heavy use of large language models. A
+reader must know that. A reader must also be able to see exactly where the
+machine's work stops and a person's judgment starts.
+
+**What the machine did.** The mechanical work, and most of the drafting. It
+converted the manual pages to text, wrote the compiler and its tests, drafted
+the decision records, and searched the sources. The scale, measured from the
+session transcripts: under five days, 30 sessions, about 20,000 model calls,
+19 million tokens of generated text, and 606 subagents. The author typed 178
+instructions in that time. Their median length was 99 characters.
+
+**What the author did.** Every judgment call, and every irreversible act.
+Four practices carried that, and each one is visible in the transcripts:
+
+- **He read the disputed characters himself.** Before any correction to a
+  read-only source, he asked for the evidence in a form he could check —
+  "everything I need to make the call on that judgement you made, including
+  page scans, code snippets, and blown-up screenshots if appropriate" — and he
+  answered against the images, not against the argument: "I reviewed the page,
+  and the literal text is 100% manually confirmed"; "I have seen the evidence.
+  I authorise the change."
+- **He held the read-only sources shut.** The manual conversions cannot change
+  without his explicit authorization. Nine changes have been authorized, and
+  each one followed a measurement he checked.
+- **He decided every open point.** The decision records carry a **Jack's call**
+  status for exactly this reason. Where the evidence ran out, a person chose,
+  and the record names them and the date.
+- **He refused the machine's strongest overclaim.** The machine proposed that
+  the card deck and the text conversion were independent transcriptions, and
+  that agreement between them was a form of validation. He rejected it in one
+  sentence: "If there's only one place, two passes with the same AI does not
+  add any veracity." Section 10 of this document exists because of that
+  refusal.
+
+**Six controls made the machine's output usable.** They are the transferable
+part:
+
+1. **Force plain language before every decision.** He approved nothing he
+   could not restate himself, and said so repeatedly: "Expand each jargon word
+   into its actual meaning at least once." A decision a person cannot restate
+   is a decision the machine made.
+2. **Record the decision before writing the code.** All 68 ambiguity entries
+   were walked and 96 decision records written before the compiler existed.
+   Code generation then became execution against a locked specification, which
+   is the part a machine does well.
+3. **Review adversarially, with fresh context.** A reviewer reads the diff and
+   the repository, never the author's plan or rationale. Several such reviews
+   ran over pull requests and diffs, and two more came from language models
+   outside this project, brought in as outside critics.
+4. **Choose the model for the task, and write the rule down.** Cheap models do
+   search and mechanical edits; design and review need the strongest available.
+   Of 606 subagents, 550 record which model they ran: 6 on the cheapest, 504 on
+   the middle tiers, and 40 on the strongest — the last reserved for review and
+   for judgment the evidence could not settle.
+5. **Distrust a long context.** Work was cut into 30 sessions with 20 context
+   restarts, on the stated rule that late-context output is less reliable than
+   early-context output.
+6. **Give the machine standing permission to refuse.** A machine that always
+   agrees tells you only what you already think.
+
+**What none of it buys.** Model effort does not add a witness. Six models that
+read one scan are still one reading of one scan. Two passes over the same page
+raise the chance of catching a slip, and they raise nothing else. Every limit
+in section 10 survives the machine untouched, and heavy machine use makes one
+of them sharper: the reader of the faint 1962 print was substantially a
+language model, and a language model produces plausible text by construction.
+That is the reason for the scan rule in section 8, for the grades in section
+4, and for the human gate on every read-only source.
+
+## 12. Admit period evidence, and fence it
 
 Sources outside the two manuals are useful and dangerous. They are useful
 where the manuals delegate. They are dangerous where a later, better-known
@@ -288,7 +359,7 @@ Two rules fence them:
    comparison held in the same repository invites exactly the contamination
    this rule prevents.
 
-## 12. A checklist for a different language
+## 13. A checklist for a different language
 
 If you reconstruct a different extinct language, this is the method stripped
 of COMTRAN:
@@ -309,6 +380,9 @@ of COMTRAN:
 7. **Keep the readings you rejected**, with the evidence that killed each one.
 8. **State the ceiling in print**, and name the outside work that would raise
    it.
+9. **Disclose your tools, and say what they cannot witness.** If a machine did
+   the reading, say so, and keep a person's eyes on every irreversible edit to
+   a source.
 
 Step 7 is the one this project holds least well, and it says so. Refuted
 readings survive here mostly in commit messages, not in a first-class record;

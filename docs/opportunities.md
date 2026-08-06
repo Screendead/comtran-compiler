@@ -282,10 +282,11 @@ program's printed output.
 
 ### O10 — State the reconstruction method as a method
 
-**Done 2026-08-06.** `docs/reconstruction-method.md` holds it, in twelve
-sections. It answers all six questions below, and it closes with a checklist
-for a different language. The paragraphs below are the entry as written, with
-the outcome recorded at the end.
+**Done 2026-08-06.** `docs/reconstruction-method.md` holds it, in thirteen
+sections. It answers all six questions below, it discloses how far large
+language models did the work, and it closes with a checklist for a different
+language. The paragraphs below are the entry as written, with the outcome
+recorded at the end.
 
 **What.** One document that says how this project decides things, written so
 that someone reconstructing a different extinct language could follow it. It
