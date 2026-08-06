@@ -137,9 +137,10 @@ feature.
 An inference marked in one file and lost in the next is not marked. This
 project marks it three times, in the three places a reader can arrive.
 
-- **In the catalog.** §8.5 of the language definition holds 68 ambiguity
-  entries. Each states the problem, then a paragraph that opens *Resolution:*.
-  Every resolution is a labeled judgment call, and the file says so.
+- **In the catalog.** §8.5 of the language definition catalogs every known
+  ambiguity. Each entry states the problem, then a paragraph that opens
+  *Resolution:*. Every resolution is a labeled judgment call, and the file
+  says so.
 - **In the decision record.** Each D-record carries a **Status.** line, a
   **Decision.**, a **Rationale.**, an **Implementation.**, an **Oracle.**, and
   its citations. An unattested part names itself: "design decision under D0.4,
@@ -276,10 +277,13 @@ machine's work stops and a person's judgment starts.
 
 **What the machine did.** The mechanical work, and most of the drafting. It
 converted the manual pages to text, wrote the compiler and its tests, drafted
-the decision records, and searched the sources. The scale, measured from the
-session transcripts: under five days, 30 sessions, about 20,000 model calls,
-19 million tokens of generated text, and 606 subagents. The author typed 178
-instructions in that time. Their median length was 99 characters.
+the decision records, and searched the sources.
+
+The scale, measured from the session transcripts on 2026-08-06 and not revised
+since: about 30 sessions, 20,000 model calls, 19 million tokens of generated
+text, and 600 subagents, in a little under five days. The author typed about
+180 instructions in that time, with a median length near 100 characters. Read
+every figure as a floor at that date. Later work only adds to it.
 
 **What the author did.** Every judgment call, and every irreversible act.
 Four practices carried that, and each one is visible in the transcripts:
@@ -311,19 +315,20 @@ part:
    could not restate himself, and said so repeatedly: "Expand each jargon word
    into its actual meaning at least once." A decision a person cannot restate
    is a decision the machine made.
-2. **Record the decision before writing the code.** All 68 ambiguity entries
-   were walked and 96 decision records written before the compiler existed.
-   Code generation then became execution against a locked specification, which
-   is the part a machine does well.
+2. **Record the decision before writing the code.** Every entry in the
+   ambiguity catalog was walked, and 84 decision records were locked, before
+   any compiler code was written. Code generation then became execution
+   against a locked specification, which is the part a machine does well.
 3. **Review adversarially, with fresh context.** A reviewer reads the diff and
    the repository, never the author's plan or rationale. Several such reviews
    ran over pull requests and diffs, and two more came from language models
    outside this project, brought in as outside critics.
 4. **Choose the model for the task, and write the rule down.** Cheap models do
    search and mechanical edits; design and review need the strongest available.
-   Of 606 subagents, 550 record which model they ran: 6 on the cheapest, 504 on
-   the middle tiers, and 40 on the strongest — the last reserved for review and
-   for judgment the evidence could not settle.
+   Of the 600 subagents above, about 550 record which model they ran: a handful
+   on the cheapest, roughly 500 on the middle tiers, and about 40 on the
+   strongest — the last reserved for review and for judgment the evidence could
+   not settle.
 5. **Distrust a long context.** Work was cut into 30 sessions with 20 context
    restarts, on the stated rule that late-context output is less reliable than
    early-context output.
