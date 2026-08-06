@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-08-05. Audience: the next agent, or Jack. This file is the
+*Updated 2026-08-06. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -59,7 +59,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline, measured 2026-08-05: 976 Dart tests pass, and 154 extension
+Test baseline, measured 2026-08-06: 979 Dart tests pass, and 154 extension
 tests pass. Both suites must stay green; re-measure the counts, do not trust
 them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -151,6 +151,11 @@ binds work outside the definition.
   number at 79, where the transcription had 43, 50 and 78, and column 55 is
   where the manual's own layout for these two cards starts the secondary
   identifier ([J 03.02.09]).
+- `test/deck_conversion_test.dart` holds the deck and the conversion
+  consistent. It compares the blank runs of all 112 Environment and Procedure
+  cards against the printed listing. It is a regression gate, and it is not
+  evidence: both artifacts derive from one scanned copy, so agreement between
+  them is not corroboration (`docs/opportunities.md`, O1).
 - The page scans (`comtran-manuals/*/images/page-NNN.png`) are ground truth for
   any disputed reading.
 - For any claim about card columns, measure the page scan. Never trust the
