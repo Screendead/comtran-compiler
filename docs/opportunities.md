@@ -206,16 +206,22 @@ door and a claim.
 - `CITATION.cff`, so the repository states how to cite it. **Done 2026-08-05**
   (PR #73). It carries Jack's ORCID.
 - A Zenodo deposit on each release, which mints a DOI.
-- Software Heritage archival, which is free and needs one submission.
+- Software Heritage archival. **Done 2026-08-07** (PR #78). The snapshot is
+  `swh:1:snp:54265d5e78e0d38ed2cafa6f37c94ae1c72ec955`, taken with `master` at
+  `e322f82`. `CITATION.cff` carries it, and the README carries the archive
+  badge. The archive re-crawls the origin on its own, so later work needs no
+  second submission.
 
 **What it buys.** Researchers can cite a version, not a moving branch. The work
 survives the loss of the hosting account.
 
 **Cost.** Small.
 
-**What blocks it.** The Zenodo deposit needs a first release, and a decision on
-how to name versions. Software Heritage archival needs neither, and is blocked
-on nothing.
+**What blocks it.** Only the Zenodo deposit is left. It needs a first release
+and a decision on how to name versions, and M6 is the moment for both: "the
+compiler reproduces the 1961 printed report" is a citable claim in a way that
+the current state is not. Software Heritage needed neither, which is why it
+went first.
 
 ### O6 — Find more surviving COMTRAN artifacts
 
