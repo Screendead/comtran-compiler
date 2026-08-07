@@ -26,7 +26,7 @@ generation prints the storage map, but generates no procedure text yet. Read
 | `test/` | The Dart tests, plus `test/goldens/`, `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its mirror, and the keying notes) |
 | `tool/` | Dart generators for this package |
 | `editors/vscode-punchcard/` | The VS Code punchcard extension (TypeScript, npm) |
-| `docs/` | The language definition, HANDOVER, and `docs/design/` |
+| `docs/` | The language definition and its generated browser mirror `docs/definition/`, HANDOVER, and `docs/design/` |
 | `comtran-manuals/` | The two manual conversions and their page scans. **Read-only.** |
 
 ## 4. Commands
@@ -215,6 +215,7 @@ Do not edit these by hand:
 | File | Generator |
 |---|---|
 | `lib/src/lexer/message_catalog.dart` | `dart run tool/generate_message_catalog.dart` |
+| every file in `docs/definition/` | `dart run tool/generate_definition_mirror.dart` |
 | `editors/vscode-punchcard/manual-map.json` | `dart run tool/generate_manual_map.dart` |
 | `editors/vscode-punchcard/syntaxes/comtran-deck.tmLanguage.json` | `npm run grammar` |
 | every `*.ct` mirror | `dart run comtran:deckconv regen <path>` |
@@ -290,8 +291,16 @@ Two consequences to expect:
 
 **Scope.** STE governs repo prose documents only. It does not govern assistant
 responses; those follow the Density rules below. Exempt: verbatim manual quotes
-and citations, code, code comments, and commit messages. Never rewrite exempt
-text to fit STE — a rewritten transcription breaks ground truth.
+and citations, code, code comments, commit messages, and the two front-door
+documents, `README.md` and `CONTRIBUTING.md`. Never rewrite exempt text to fit
+STE — a rewritten transcription breaks ground truth.
+
+The front-door exemption is Jack's call, made 2026-08-07. Those two documents
+have one job: to bring in a reader who does not yet know what COMTRAN was or
+why the project exists. STE's ban on metaphor and its one-word-one-meaning rule
+serve a maintenance manual, not a first page, and the flatness they produce
+costs a reader this project needs. The exemption covers those two files by
+name. Every other document under `docs/` follows STE.
 
 Within that scope:
 

@@ -15,6 +15,12 @@ const Map<String, int> budgets = <String, int>{
   'docs/design/m3-data.md': 9000,
 };
 
+/// The generated mirror of the language definition, which the guard skips.
+/// Canon already carries the budget for that text, so a budget per part
+/// would count the same words a second time and would move whenever a
+/// section grows.
+const String generatedMirror = 'docs/definition/';
+
 int wordCount(String text) =>
     text.split(RegExp(r'\s+')).where((String w) => w.isNotEmpty).length;
 
@@ -23,7 +29,10 @@ void main() {
     final List<File> files = Directory('docs')
         .listSync(recursive: true)
         .whereType<File>()
-        .where((File f) => f.path.endsWith('.md'))
+        .where(
+          (File f) =>
+              f.path.endsWith('.md') && !f.path.startsWith(generatedMirror),
+        )
         .toList();
     expect(files, isNotEmpty);
     for (final file in files) {
