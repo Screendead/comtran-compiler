@@ -1,5 +1,7 @@
 # COMTRAN Compiler
 
+[![Archived in Software Heritage](https://archive.softwareheritage.org/badge/origin/https://github.com/Screendead/comtran-compiler/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/Screendead/comtran-compiler)
+
 **COMTRAN was IBM's business programming language before COBOL existed. No
 compiler for it survives, and no machine-readable source. This project
 reconstructs the language from the two manuals that are left, and builds a
@@ -137,7 +139,8 @@ language, with a catalog of every place the two manuals disagree and every
 ambiguity the sources leave open. Section 10 of the method document lists what
 this project cannot establish on its own. [`CONTRIBUTING.md`](CONTRIBUTING.md)
 says what outside help would change that, and finding a second scan of either
-manual is top of the list. `CITATION.cff` records how to cite the work.
+manual is top of the list. `CITATION.cff` records how to cite the work,
+including its Software Heritage identifier.
 
 **If you build compilers**, [`CONTRIBUTING.md`](CONTRIBUTING.md) has the setup
 and the house rules, and [`docs/design/`](docs/design/README.md) holds the

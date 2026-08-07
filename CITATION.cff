@@ -14,6 +14,14 @@ authors:
     family-names: Lusher
     orcid: https://orcid.org/0009-0000-5395-2345
 repository-code: https://github.com/Screendead/comtran-compiler
+identifiers:
+  - type: swh
+    value: swh:1:snp:54265d5e78e0d38ed2cafa6f37c94ae1c72ec955
+    description: >-
+      Software Heritage snapshot of
+      https://github.com/Screendead/comtran-compiler, archived 2026-08-07 with
+      master at e322f82. The identifier is pinned to that snapshot; the archive
+      re-crawls for later work under the same origin.
 license: GPL-3.0-only
 keywords:
   - COMTRAN
