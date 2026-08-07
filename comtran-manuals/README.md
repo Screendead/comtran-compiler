@@ -72,3 +72,14 @@ Do not edit the source PDFs (`F28-8043/F28-8043_CommercialTranslatorGenInfMan_Ju
 and `J28-6169/J28-6169-1_CommercialTranslator_Jan62.pdf`). The conversion pipeline (OCR → per-page correction
 against scans by parallel agents → assembly → mechanical validation → sampled
 adversarial QA → typo authentication) was run on 2026-08-01.
+
+Both PDFs carry the same producer in their metadata, `tumble by Eric Smith`.
+The dates differ: 10 July 2004 for J28-6169-1, and 29 September 2004 for
+F28-8043. Run `pdfinfo` on each file to see this. The two scans share a
+toolchain, so one defect of that toolchain would appear in both.
+
+A search on 2026-08-06 looked for a second digitisation of either manual and
+found none. Every claim this project makes about the source text passes through
+the two PDFs above. Section 10 of `../docs/reconstruction-method.md` states what
+that limit means, and entry O12 of `../docs/opportunities.md` records what the
+search reached and what it left open.

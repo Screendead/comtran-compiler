@@ -269,6 +269,17 @@ O12, O2, O6, and O7 in `docs/opportunities.md`. **If the search for a second
 copy returns nothing, print that too.** "No second copy was located" is a
 result, and the reader needs it in order to weigh everything else.
 
+**The search was made. This is its result.** On 2026-08-06 this project looked
+for a second digitisation of each manual and found none. The two source PDFs in
+`comtran-manuals/` carry the same producer in their metadata, with two dates in
+2004. They share a toolchain. **The reconstruction rests on a single scanned
+copy of each manual, and no second digitisation was located.**
+
+Read that result with its own limit. The search covered digitisations in
+circulation. It did not cover uncatalogued physical copies, and it cannot show
+that none exists. Entry O12 in `docs/opportunities.md` records what the search
+reached and what it left open.
+
 ## 11. Disclose the machine, and what it cannot witness
 
 This reconstruction was built with heavy use of large language models. A
