@@ -113,7 +113,7 @@ What stage 2 must add, beyond the verb generators:
 ## Rules that bind future work
 
 The definition's
-[Sources and authority](comtran-language-definition.md#sources-and-authority)
+[Sources and authority](definition/README.md#sources-and-authority)
 section is the one home for three facts: the F/J authority rule, the fidelity
 conventions, and the citation style. Read them there. This list holds only what
 binds work outside the definition.
@@ -278,7 +278,11 @@ M2 to M6.
 
 ## Pointers
 
-- Definition: `docs/comtran-language-definition.md`. §8.3 catalogs the F/J
+- Definition: `docs/comtran-language-definition.md` is canon. It is above
+  GitHub's 512 KB limit for Markdown, so a browser cannot render it; read it
+  in a browser through the generated mirror, `docs/definition/`. Correct
+  canon, then run `dart run tool/generate_definition_mirror.dart`.
+  §8.3 catalogs the F/J
   divergences and §8.5 the ambiguities. §8.5.8 holds the transcription cautions.
   The Open Questions list at the end of that file is the only place that states
   its own item count and the resolved and narrowed status of each item. Read the
