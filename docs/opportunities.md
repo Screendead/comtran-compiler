@@ -40,7 +40,7 @@ Two sources so far:
 | This project's own work | 2026-08-05 | O1, O2, and R5 |
 | A second pass by the same external reviewer | 2026-08-05 | O10, O11, and the first amendment to R2 |
 | Jack, refusing O1's original claim | 2026-08-05 | O12, the demotion of O1, and the second amendment to R2 |
-| Jack's enquiry to the Computer History Museum, and a memoir it led to | 2026-08-07 | The search records under O6 and O12, and the amendment to R1 |
+| Halpern's memoir, and Jack's enquiry to the Computer History Museum | 2026-08-07 | The search records under O6 and O12, and the amendment to R1 |
 
 The external review had no access to the working history. It graded the project
 8.5 out of 10 as a research reconstruction. Its central claim is sound: nearly
@@ -261,12 +261,16 @@ of them can do what this entry asks for. This entry wants a program that
 compiles; these are sources about the language. The entry stays open.
 
 **Jack's ruling, 2026-08-07.** If F28-8013 arrives it takes the lowest rank of
-the three manuals, and both present manuals supersede it. One question stays
-open: a rank decides which source binds the compiler, and it must not decide
-whether a divergence is recorded. Jack wants the 1959 edition because it
-predates IBM's revision under CODASYL influence. Section 8.3 of the language
-definition catalogues the F-to-J divergences instead of resolving them, and the
-1959 divergences need the same treatment.
+the three manuals, and both present manuals supersede it.
+
+**Open with Jack. Proposed 2026-08-07, and not ruled on.** A rank decides which
+source binds the compiler. Whether a divergence gets recorded is a second
+question, and the two are not the same. Jack wants the 1959 edition because it
+predates IBM's revision under CODASYL influence. Section 6 of `CLAUDE.md`, read
+literally, amends a divergence away as an error in the lower source. Section 8.3
+of the language definition instead catalogues the F-to-J divergences. The
+proposal is to give the 1959 divergences that same treatment. **Nobody has
+agreed to it. Do not act on it.**
 
 ### O7 — Get an independent domain expert to review the reconstruction
 
