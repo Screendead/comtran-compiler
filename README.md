@@ -41,6 +41,12 @@ numbered statements. A test compares it against the printed page and fails on
 a single wrong byte. You can read the whole thing here without installing
 anything.
 
+**In a hurry?** The recovered language is
+[`docs/definition/`](docs/definition/README.md). The method behind it is
+[`docs/reconstruction-method.md`](docs/reconstruction-method.md). To build or
+contribute, [`CONTRIBUTING.md`](CONTRIBUTING.md). Longer routes for each kind
+of reader are [at the bottom](#where-to-start).
+
 ## What COMTRAN was
 
 Commercial Translator was IBM's business data-processing language of the
