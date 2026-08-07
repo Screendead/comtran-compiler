@@ -113,15 +113,23 @@ that way. Each deck is a pair: `X.ctd` is a binary punch-level card image and
 is canonical; `X.ct` is a generated text mirror committed beside it so that
 diffs and reviews are readable.
 
-Three rules, and the first one is the one people break:
+Four rules. The first two are where people go wrong:
 
-1. **Never hand-edit a `.ct` mirror.** The next regeneration discards your
-   edit, and CI rejects a stale pair. Change a deck through `deckconv`, the
-   MCP deck tools, or a VS Code save — each rewrites canon and regenerates the
-   mirror together.
-2. The compiler and every tool read canon only. Address a deck by its `.ctd`
+1. **Outside VS Code, never hand-edit a `.ct` mirror.** It is a generated
+   artifact. The next regeneration discards your edit, and CI rejects the
+   stale pair. Change a deck through `deckconv` or the MCP deck tools instead;
+   each rewrites canon and regenerates the mirror together.
+2. **Inside VS Code, the pair syncs both ways on save.** That is what the
+   punchcard extension is for. Saving the deck runs `deckconv regen`, which
+   rewrites the mirror. Saving the mirror runs `deckconv to-canon`, which turns
+   your text into the deck — so in VS Code, and only there, editing the mirror
+   is a real way to edit the program. The edit stays provisional until that
+   round trip accepts it: `to-canon` rejects text that is not in normal form
+   and leaves the deck untouched, which leaves the pair stale until you fix the
+   text. `deckconv check` is what reports that.
+3. The compiler and every tool read canon only. Address a deck by its `.ctd`
    path.
-3. The format is frozen. Amending it needs a new format version byte.
+4. The format is frozen. Amending it needs a new format version byte.
 
 [`docs/design/deck-format.md`](docs/design/deck-format.md) holds the formats,
 the workflow, and two one-time git settings a fresh clone does not have — the
