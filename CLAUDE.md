@@ -215,6 +215,7 @@ Do not edit these by hand:
 | File | Generator |
 |---|---|
 | `lib/src/lexer/message_catalog.dart` | `dart run tool/generate_message_catalog.dart` |
+| every file in `docs/definition/` | `dart run tool/generate_definition_mirror.dart` |
 | `editors/vscode-punchcard/manual-map.json` | `dart run tool/generate_manual_map.dart` |
 | `editors/vscode-punchcard/syntaxes/comtran-deck.tmLanguage.json` | `npm run grammar` |
 | every `*.ct` mirror | `dart run comtran:deckconv regen <path>` |
