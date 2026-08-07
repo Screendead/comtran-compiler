@@ -35,8 +35,11 @@ this repository.*
                    6,00   71203     NAME         3             A(15)
 ```
 
-That is our output, not a transcription. A test compares all 229 numbered
-statements against the printed page and fails on a single wrong byte.
+That is our output, not a transcription — the first sixteen lines of
+[the full listing](test/goldens/90.05-payroll.listing), which runs to 229
+numbered statements. A test compares it against the printed page and fails on
+a single wrong byte. You can read the whole thing here without installing
+anything.
 
 ## What COMTRAN was
 
@@ -51,8 +54,8 @@ Procedure, Data Description, and Environment. Procedure statements are
 English-like imperative sentences — `MOVE`, `SET`, `GET`, `FILE`, `DO`,
 `GO TO … WHEN …` — over period-joined compound names such as
 `END.OF.MASTERS`. Data descriptions are pictorial. File handling is
-tape-oriented. If that sounds like COBOL, it is because COMTRAN is one of
-COBOL's two principal ancestors, beside FLOW-MATIC.
+tape-oriented. If that sounds like COBOL, that is no accident: Commercial
+Translator counts, beside FLOW-MATIC, as one of the principal inputs to COBOL.
 
 Then it vanished. The language it fed into replaced it, the machines that ran
 it were scrapped, and what reached us is two manuals and one compiled sample
