@@ -56,7 +56,7 @@ Ids are permanent. Rank is the row order, and a row may move.
 |---|---|---|---|
 | O12 | Find a second scan of each manual, or record that none exists | Small to attempt | Yes |
 | O2 | Read the scans again with a different reader | Medium | Yes |
-| O10 | State the reconstruction method as a method | Medium | Yes |
+| O10 | State the reconstruction method as a method | Medium | Done 2026-08-06 |
 | O11 | Keep a first-class record of refuted readings | Small | Yes |
 | O1 | Hold the deck and the conversion consistent, mechanically | Small | Done 2026-08-06 |
 | O4 | Give the project one reproducibility entry point | Small | Yes |
@@ -282,6 +282,12 @@ program's printed output.
 
 ### O10 — State the reconstruction method as a method
 
+**Done 2026-08-06.** `docs/reconstruction-method.md` holds it, in thirteen
+sections. It answers all six questions below, it discloses how far large
+language models did the work, and it closes with a checklist for a different
+language. The paragraphs below are the entry as written, with the outcome
+recorded at the end.
+
 **What.** One document that says how this project decides things, written so
 that someone reconstructing a different extinct language could follow it. It
 must answer at least these:
@@ -308,6 +314,20 @@ method rather than as house rules.
 **Cost.** Medium. Mostly assembly and generalisation, not new thinking.
 
 **What blocks it.** Nothing. It does not wait for M6, unlike O9.
+
+**What the build found.** Two things the entry did not predict.
+
+The document needed a rank of its own, and it has to be the lowest one. It
+restates rules that `CLAUDE.md` and the design records already bind. Without a
+stated rank, a later edit to either side becomes a peer collision for no
+reason. The document therefore says in its first section that it binds
+nothing, and that a disagreement means the method document is stale.
+
+The hardest section to write was section 10, on what the method cannot do, and
+it is the one a sceptical reader will read first. Three limits follow from one
+cause — one scanned copy, one reader — and each names the outside work that
+would lift it. That section is where O12, O2, O6 and O7 earn their place in
+this file.
 
 ### O11 — Keep a first-class record of refuted readings
 
