@@ -263,14 +263,24 @@ compiles; these are sources about the language. The entry stays open.
 **Jack's ruling, 2026-08-07.** If F28-8013 arrives it takes the lowest rank of
 the three manuals, and both present manuals supersede it.
 
-**Open with Jack. Proposed 2026-08-07, and not ruled on.** A rank decides which
+**Deferred by Jack, 2026-08-08, and deferred knowingly.** A rank decides which
 source binds the compiler. Whether a divergence gets recorded is a second
 question, and the two are not the same. Jack wants the 1959 edition because it
-predates IBM's revision under CODASYL influence. Section 6 of `CLAUDE.md`, read
-literally, amends a divergence away as an error in the lower source. Section 8.3
-of the language definition instead catalogues the F-to-J divergences. The
-proposal is to give the 1959 divergences that same treatment. **Nobody has
-agreed to it. Do not act on it.**
+predates IBM's revision under CODASYL influence, so those divergences are the
+reason to hold the manual at all.
+
+Section 8.3 of the language definition catalogues the F-to-J divergences and
+gives both readings. Three options stand for the 1959 readings: extend section
+8.3 to three sources, give them a section of their own, or keep them out of the
+definition under the scope rule in section 7 of `CLAUDE.md`. The conversions
+themselves are safe under every option, because section 6 of `CLAUDE.md` needs
+Jack's authorization before anyone changes a manual conversion.
+
+**Settle this after retrieval and transcription, and in that order.** The number
+and the kind of the divergences decide which option fits, and nobody knows
+either until the pages are read. Transcribe the manual first. Then choose where
+the 1959 readings live. Do not write one into the language definition before
+that choice is made.
 
 ### O7 — Get an independent domain expert to review the reconstruction
 
