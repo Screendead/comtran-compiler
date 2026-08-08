@@ -40,6 +40,7 @@ Two sources so far:
 | This project's own work | 2026-08-05 | O1, O2, and R5 |
 | A second pass by the same external reviewer | 2026-08-05 | O10, O11, and the first amendment to R2 |
 | Jack, refusing O1's original claim | 2026-08-05 | O12, the demotion of O1, and the second amendment to R2 |
+| Halpern's memoir, and Jack's enquiry to the Computer History Museum | 2026-08-07 | The search records under O6 and O12, and the amendment to R1 |
 
 The external review had no access to the working history. It graded the project
 8.5 out of 10 as a research reconstruction. Its central claim is sound: nearly
@@ -54,7 +55,7 @@ Ids are permanent. Rank is the row order, and a row may move.
 
 | Id | Opportunity | Cost | Ready? |
 |---|---|---|---|
-| O12 | Find a second scan of each manual, or record that none exists | Small to attempt | Yes |
+| O12 | Find a second scan of each manual, or record that none exists | Small to attempt | Part done 2026-08-06 |
 | O2 | Read the scans again with a different reader | Medium | Yes |
 | O10 | State the reconstruction method as a method | Medium | Done 2026-08-06 |
 | O11 | Keep a first-class record of refuted readings | Small | Yes |
@@ -244,6 +245,43 @@ contribution.
 
 **What blocks it.** Nothing.
 
+**What the search found, 2026-08-06.** Jack asked the Computer History Museum
+about reproduction of four un-digitised items. No reply had arrived by
+2026-08-07. The four are:
+
+| Item | What it is |
+|---|---|
+| Catalogue 102664056 | "IBM Commercial Translator", 1959, 79 pages. The catalogue record gives the form number as F29-8013. It is very probably F28-8013, the 1959 first edition. F28-8043's own front matter names it: "form F28-8013, which is obsolete and should be destroyed" (`comtran-manuals/F28-8043/00-front-matter.md`). Search under both numbers. |
+| J28-6310 | "COBOL and Commercial Translator: A Comparison", bound into catalogue 102663034. IBM's own account of how the two languages differ. R1 below states how to handle it. |
+| Bemer preprint | R. W. Bemer, "The Status of Automatic Programming for Scientific Problems", October 1957, 12 pages, Mark I. Halpern collection, Box 1. |
+| Brady memo | Burnyce Brady, "Input-Output", 9 May 1957, 9 pages, same box. It discusses CLERK, the input/output section of COMTRAN. |
+
+**Read the result correctly.** None of the four is a COMTRAN program, so none
+of them can do what this entry asks for. This entry wants a program that
+compiles; these are sources about the language. The entry stays open.
+
+**Jack's ruling, 2026-08-07.** If F28-8013 arrives it takes the lowest rank of
+the three manuals, and both present manuals supersede it.
+
+**Deferred by Jack, 2026-08-08, and deferred knowingly.** A rank decides which
+source binds the compiler. Whether a divergence gets recorded is a second
+question, and the two are not the same. Jack wants the 1959 edition because it
+predates IBM's revision under CODASYL influence, so those divergences are the
+reason to hold the manual at all.
+
+Section 8.3 of the language definition catalogues the F-to-J divergences and
+gives both readings. Three options stand for the 1959 readings: extend section
+8.3 to three sources, give them a section of their own, or keep them out of the
+definition under the scope rule in section 7 of `CLAUDE.md`. The conversions
+themselves are safe under every option, because section 6 of `CLAUDE.md` needs
+Jack's authorization before anyone changes a manual conversion.
+
+**Settle this after retrieval and transcription, and in that order.** The number
+and the kind of the divergences decide which option fits, and nobody knows
+either until the pages are read. Transcribe the manual first. Then choose where
+the 1959 readings live. Do not write one into the language definition before
+that choice is made.
+
 ### O7 — Get an independent domain expert to review the reconstruction
 
 **What.** Ask a computing historian, an IBM 709x specialist, or a museum
@@ -391,6 +429,24 @@ what it covered.
 
 **What blocks it.** Nothing.
 
+**What the search found, 2026-08-06.** Jack looked for a second digitisation of
+either manual and found none. He stated that result in his enquiry to the
+Computer History Museum of that date. Section 10 of
+`docs/reconstruction-method.md` now prints it, and `comtran-manuals/README.md`
+records it beside the source PDFs.
+
+Two limits hold on that result, and a reader needs both. The search covered
+digitisations in circulation, not uncatalogued physical copies. Its coverage was
+not written down at the time, so treat bitsavers, the Internet Archive, the
+university libraries, the IBM corporate archive, and the classic-computing lists
+as still open. **This entry is part done, not done.**
+
+The same pass settled the origin of the two PDFs this project reads. Both carry
+the producer `tumble by Eric Smith` in their metadata, with two dates in 2004:
+10 July for J28-6169-1, and 29 September for F28-8043. Run `pdfinfo` on each
+file to see this. They share a toolchain, so one defect of that toolchain would
+appear in both manuals and no internal check could find it.
+
 ## 6. Rejected, with reasons
 
 Do not re-open these without new evidence.
@@ -401,6 +457,22 @@ Section 7 of `CLAUDE.md` forbids correcting the language definition against
 COBOL knowledge. A comparative study held in the same repository invites exactly
 the contamination that rule prevents. The analysis is worth doing. Do it as a
 separate work that cites this one.
+
+*Amended 2026-08-07.* This rejection covers an analysis that this project
+writes. It does not cover a period source that is itself comparative. The two
+are different things, and the difference decides one pending item.
+
+J28-6310, "COBOL and Commercial Translator: A Comparison", is an IBM
+publication of the period. It is evidence of what IBM said in its own time. It
+is not a modern comparison of the two languages. O6 above records the request
+for it. **Without this amendment, a later reader meets a rejection record that
+appears to forbid a document this project deliberately asked for.**
+
+Three rules hold if it arrives. It needs a rank of its own before anyone reads
+it, and that rank is not yet decided. Cite it for facts about Commercial
+Translator only. Never let a COBOL fact inside it settle a COMTRAN rule, because
+section 7 of `CLAUDE.md` still forbids that. The comparative argument stays out
+of this repository, which is what this entry rejects and still rejects.
 
 ### R2 — "Improve emulator fidelity"
 
