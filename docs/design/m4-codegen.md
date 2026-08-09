@@ -75,6 +75,47 @@ M4 executes I/O-free programs.
      D0.3 contract tests per handler; storage assertions after emulated
      runs.
 
+  **Amended 2026-08-09, stage 2 (Jack's call). Stage 2 is not one pull
+  request.** Its oracle needs a blind pass over nineteen page scans, the
+  most expensive evidence work on the roadmap. One pull request puts that
+  whole pass at risk of a usage limit. Stage 2 therefore splits into
+  chunks. Each chunk is green alone, and each is worth merging alone.
+  Stages 1, 3, and 4 do not change.
+
+  Phase A builds the target listing, before any generator runs:
+
+  | Chunk | What it delivers |
+  |---|---|
+  | A0 | This amendment, and the M4-8 amendment it names. |
+  | A1 | The tool and the target file — the transcription's object-listing content, re-rendered in the M4-8 geometry. |
+  | A2 | One page verified blind against its scan, PDF p. 212, to measure the cost of the rest. It brings the corrections table, which the first correction needs. |
+  | A3 to A8 | The other seventeen pages, three to a pull request. |
+
+  The target holds listing pages 8 to 25, PDF pp. 199 to 216. Page 7,
+  PDF p. 198, carries the loader control cards on no LOC/OCTAL/CNTRL
+  grid, and stage 3 both generates that page and takes it as its own
+  oracle, so its verification goes with stage 3.
+
+  Phase B generates, and it sizes before it fills:
+
+  | Chunk | What it delivers |
+  |---|---|
+  | B1 | The address spine — the word count of every verb shape (the [J 90.02] calling sequences, the M4-15 I/O shapes included), the constant-pool allocator, the `RS)` and `TS)` cell scheme, and the later-pass names GN)084 on (M4-6). |
+  | B2 | MOVE (M4-9). |
+  | B3 | SET and arithmetic (M4-10). |
+  | B4 | IF and WHEN (M4-11). |
+  | B5 | GO TO and DO (M4-12, M4-13). |
+  | B6 | STOP with the statement stamps (M4-14), and the I/O shapes (M4-15). |
+  | B7 | The close-out — the `USE 1` and `BGN 2,PI)1` head rows, the four block sizes, the constant pool, the page furniture, and the full listing diff. |
+  | B8 | The diagnostics — msg 942 widened (M4-5), ids 946 and 947 reserved (M4-18), and the D10.2 stop shape M4-2 defers to here. |
+
+  B1 comes first because the listing's addresses are continuous. A verb
+  site references `CP)+n`, `n.RS)m`, and absolute LOC values, so no site
+  matches byte for byte until every unit before it carries the right word
+  count. B1's oracle is therefore the LOC column of the whole target,
+  matched line for line, with the other columns still empty. B2 to B6
+  then each match their own attested sites, LOC included.
+
 ## Pipeline position and the text model
 
 - **M4-2. A separate phase over `SemanticResult`.** The code generator is
@@ -345,6 +386,25 @@ M4 executes I/O-free programs.
   columns and the evidence. It also refuted the head this project
   printed, and the golden listing carries the correction. The per-page
   blank counts stay with the verification pass.
+  **Amended again 2026-08-09, stage 2. The target is verified before any
+  code generates against it** (Jack's call, with M4-1's chunking). This
+  entry had stage 2 render the listing and then verify that render blind.
+  That order spends the nineteen-page pass again each time a generator is
+  wrong. The order is now: build the target from the transcription's
+  content and this entry's geometry; verify it page by page against the
+  scans; then generate against the committed file. The formula does not
+  change. The transcription supplies content, the scans supply geometry,
+  and a scan measurement still decides a disagreement.
+  The target file is `test/fixtures/90.05-object-listing.target`. It is
+  scaffolding, not a second oracle. Jack's ruling of 2026-08-09: the
+  golden stays the oracle of record, and the target buys resumability
+  alone. B7 deletes it, once `test/goldens/90.05-payroll.storage-map` has
+  grown into the whole object listing.
+  A disagreement takes one of two routes, and this is what makes the page
+  chunks independent. A wrong target line is ours to correct, in the
+  corrections table. A wrong conversion line becomes an erratum candidate
+  in HANDOVER; it waits for Jack and blocks no other page. The pass also
+  settles each page's own blank-line count, which this entry leaves open.
 
 ## MOVE
 
@@ -847,6 +907,9 @@ Four pull requests, each green alone (M4-1): the assembly model with the
 storage-map print; the verb generators with the full listing; the object
 deck, loader cards, and loader; the machine assembly with the compute
 handlers.
+
+*Amended 2026-08-09: stage 2 is chunked into A0 to A8 and B1 to B8, so it
+takes more than one pull request. M4-1 holds the chunks and the reason.*
 
 ## Oracles
 
