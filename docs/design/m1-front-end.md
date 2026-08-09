@@ -161,17 +161,36 @@ source citation. Amend by updating this file and `decisions.md` together.*
   | `PAGE` | 83 |
   | the page number | 89 |
 
-  *Four pages carry this one geometry: PDF pp. 195 and 196 from the
-  source listing, and pp. 199 and 212 from the object listing. Each page
-  was deskewed, its guide rules deleted, and its character pitch fitted
-  on its own text. Two pages settle the page number: p. 199 is listing
-  page 8 and prints one digit at column 89, and p. 212 is listing page 21
-  and prints two at 89 and 90. The number is therefore left-aligned at
-  89, where this entry had it right-aligned ending at 90. The account
-  value's column is a reconstruction — every account in the sample is
-  blank, as with the serial field in M1-15. The transcription's own head
-  spacing is a divergence from the print; it is an erratum candidate and
-  the conversion is not edited.*
+  *Five pages carry this one geometry: PDF pp. 195 and 196 from the
+  source listing, and pp. 198, 199 and 212 from the object listing. Each
+  page was deskewed, its guide rules deleted, and its character pitch
+  fitted on its own text. Two pages settle the page number: p. 199 is
+  listing page 8 and prints one digit at column 89, and p. 212 is listing
+  page 21 and prints two at 89 and 90. The number is therefore
+  left-aligned at 89, where this entry had it right-aligned ending at 90.
+  The account value's column is a reconstruction — every account in the
+  sample is blank, as with the serial field in M1-15.*
+  *Amended again 2026-08-09: the conversion is corrected, under Jack's
+  authorization. Its 25 page heads held four different spacings, and no
+  one of them was the print's. The table below gives what each held, in
+  columns from `DATE`. Every head now carries the measured spacing. The
+  left margin is not corrected: the four groups still start 8, 0, 0 and 4
+  spaces in, because the conversion flattens the head-to-body margin and
+  M1-15 already records that. An absolute column still must not be read
+  out of the transcription.*
+
+  | Transcribed heads | `TIME` | time | `ACCOUNT` | `ID.` | identifier | `PAGE` | number |
+  |---|---|---|---|---|---|---|---|
+  | the print | 15 | 21 | 27 | 55 | 59 | 83 | 89 |
+  | listing pages 1–6 | 16 | 22 | 29 | 56 | 60 | 83 | 90 |
+  | listing page 7 | 16 | 21 | 28 | 60 | 64 | 88 | 93 |
+  | listing pages 8–16 | 16 | 21 | 28 | 55 | 59 | 80 | 85 |
+  | listing pages 17–25 | 15 | 21 | 27 | 60 | 64 | 87 | 93 |
+
+  *The first group is where M1-16 took its template, which is how the six
+  wrong fields reached the compiler. The object listing's column header on
+  line 672 of the conversion is a separate candidate, not corrected: it
+  holds 0, 11, 26 and 54 where the scan measures 1, 12, 25 and 58.*
 - **M1-17. Control-card echo** prints card columns 1–72 at the far-left
   margin (two columns in from position 1), with the phase letters CTC
   under it and CTD/CTE before the diagnostic block ([J 05.06.01]; the
