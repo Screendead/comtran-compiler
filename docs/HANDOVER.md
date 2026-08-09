@@ -86,6 +86,13 @@ blind scan verification pass over about nineteen pages (M4-8; the M3-22
 pattern). Plan for the cost: this pass is the most token-hungry task on
 the roadmap.
 
+Stage 2 is chunked, by Jack's call of 2026-08-09, so a usage limit costs
+one chunk and not the stage. Phase A builds and verifies the target
+listing before any generator runs. Phase B generates, and it sizes every
+unit in the program before it fills any word. `docs/design/m4-codegen.md`
+M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
+holds the inverted order and the target file.
+
 What stage 2 must add, beyond the verb generators:
 
 - The two head rows stage 1 could not compute, `USE 1` and
