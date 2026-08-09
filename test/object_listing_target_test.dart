@@ -10,6 +10,31 @@ List<String> _words(String line) {
   return trimmed.isEmpty ? const <String>[] : trimmed.split(RegExp(r'\s+'));
 }
 
+/// The lines that carry an object word or a pseudo-operation. The page
+/// heads, the column header, the blanks, and the three closing lines
+/// carry none.
+List<String> _units(List<String> target) => target
+    .where((l) => l.trim().isNotEmpty)
+    .where((l) => !l.startsWith('DATE ') && !l.contains('SYMBOLIC'))
+    .where((l) => !RegExp(r'^(THE |\*CTEND|DONE$)').hasMatch(l))
+    .toList();
+
+/// A line's [start] to [end] columns. A line that ends before a column
+/// prints nothing there.
+String _column(String line, int start, int end) => start >= line.length
+    ? ''
+    : line.substring(start, end.clamp(0, line.length)).trim();
+
+/// The four OCTAL renderings (M4-8 as amended). The fourth prints an
+/// 18-bit mask as one group, where the others split a tag from an
+/// address.
+final List<RegExp> _octalForms = <RegExp>[
+  RegExp(r'^[0-7]{12}$'),
+  RegExp(r'^[0-7]{4} [0-7]{2} [0-7] [0-7]{5}$'),
+  RegExp(r'^[0-7] [0-7]{5} [0-7] [0-7]{5}$'),
+  RegExp(r'^[0-7]{4} [0-7]{2} [0-7]{6}$'),
+];
+
 void main() {
   final List<String> source = File(objectListingSource).readAsLinesSync();
   final List<String> committed = File(objectListingTarget).readAsLinesSync();
@@ -63,6 +88,61 @@ void main() {
       expect(headers.single.indexOf('OCTAL'), 12);
       expect(headers.single.indexOf('CNTRL'), 25);
       expect(headers.single.indexOf('SYMBOLIC'), 58);
+    });
+  });
+
+  // A field the generator put in the wrong column still holds the right
+  // words, so the spacing test above cannot catch a misassignment. These
+  // four read each field back out of its measured column and check what
+  // the field is allowed to hold.
+  group('the target decodes at its measured columns (M4-8)', () {
+    final List<String> units = _units(committed);
+
+    test('LOC holds five octal digits', () {
+      for (final line in units) {
+        final String loc = _column(line, 0, 5);
+        if (loc.isNotEmpty) {
+          expect(loc, matches(RegExp(r'^[0-7]{5}$')), reason: line);
+        }
+      }
+    });
+
+    test('CNTRL holds a five-digit control group', () {
+      for (final line in units) {
+        final String control = _column(line, 25, 34);
+        if (control.isNotEmpty) {
+          expect(control, matches(RegExp(r'^[01]{5}$')), reason: line);
+        }
+      }
+    });
+
+    test('OCTAL holds one of the four renderings', () {
+      for (final line in units) {
+        final String octal = _column(line, 7, 25);
+        if (octal.isNotEmpty) {
+          expect(
+            _octalForms.any((f) => f.hasMatch(octal)),
+            isTrue,
+            reason: line,
+          );
+        }
+      }
+    });
+
+    // The strongest check here: an offset misread as a label, or a label
+    // misread as an offset, breaks the chain at once.
+    test('the +n offset counts up and restarts after a line without one', () {
+      int? previous;
+      for (final line in units) {
+        final String zone = _column(line, 34, 49);
+        final int? offset = zone.startsWith('+')
+            ? int.tryParse(zone.substring(1))
+            : null;
+        if (offset != null) {
+          expect(offset, (previous ?? 0) + 1, reason: line);
+        }
+        previous = offset;
+      }
     });
   });
 }
