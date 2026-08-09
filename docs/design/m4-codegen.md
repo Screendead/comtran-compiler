@@ -414,6 +414,16 @@ M4 executes I/O-free programs.
   corrections table. A wrong conversion line becomes an erratum candidate
   in HANDOVER; it waits for Jack and blocks no other page. The pass also
   settles each page's own blank-line count, which this entry leaves open.
+  **Amended 2026-08-09, chunk A3. The page body is a frame of 57 line
+  slots.** On each of the four verified pages — listing 8, 9, 10 and 21 —
+  the last content line sits in slot 57, with the head as slot 0. A page
+  that prints no furniture blanks slots 1 and 2 and prints 55 content
+  lines. Page 8 prints the column header: it blanks slots 1 to 3, prints
+  the header at 4 and a blank at 5, and prints 52. Stage 2 lays out a
+  page by the frame, not by a line count. Four pages of eighteen carry
+  this, and chunks A4 to A8 test it. Listing page 19, PDF p. 210, is the
+  one page whose transcription would break it: it holds 54 content lines.
+  `test/fixtures/90.05-object-listing-notes.md` holds the measurements.
 
 ## MOVE
 

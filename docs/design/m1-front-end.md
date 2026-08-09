@@ -187,6 +187,18 @@ source citation. Amend by updating this file and `decisions.md` together.*
   | listing pages 8–16 | 16 | 21 | 28 | 55 | 59 | 80 | 85 |
   | listing pages 17–25 | 15 | 21 | 27 | 60 | 64 | 87 | 93 |
 
+  *Amended 2026-08-09 (M4 stage 2, chunk A3): the 55-line count is a
+  frame, and on the object pages the frame is 57 line slots below the
+  head. Three more blind readers measured the head on PDF pp. 199, 200
+  and 201 and found the columns above; pp. 200 and 201 are new evidence,
+  since p. 199 is already in the five. The same readers settled what the
+  55 counts. A page whose head is followed by two blank slots prints 55
+  content lines and its last one sits in slot 57. Listing page 8 prints
+  the column header, spends three slots on furniture, and prints 52.
+  `test/fixtures/90.05-object-listing-notes.md` holds the four page
+  measurements. This qualifies the count for the object pages only; the
+  source listing pages are not re-measured here.*
+
   *The first group is where M1-16 took its template, which is how the six
   wrong fields reached the compiler. The object listing's column header on
   line 672 of the conversion was a separate candidate; it is corrected the

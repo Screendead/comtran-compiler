@@ -49,11 +49,19 @@ final RegExp _token = RegExp(r'\S(?:\S| (?! ))*');
 /// line, for each page a scan pass has measured (M4-1 chunks A2 to A8).
 ///
 /// The transcription's own counts are not evidence. M4-8 records that it
-/// holds one blank on every object page but PDF p. 208, and the p. 212
-/// measurement finds two there as well. A page absent from this map is
-/// not verified yet and keeps the count the transcription holds.
+/// holds one blank on every object page but PDF p. 208, and every page
+/// measured since holds more. A page absent from this map is not
+/// verified yet and keeps the count the transcription holds.
 /// `test/fixtures/90.05-object-listing-notes.md` holds each measurement.
-const Map<int, int> _measuredBlanksAfterHead = <int, int>{21: 2};
+///
+/// Listing page 8 is the one page that prints the column header, and it
+/// is the one page whose head is followed by three blanks, not two.
+const Map<int, int> _measuredBlanksAfterHead = <int, int>{
+  8: 3,
+  9: 2,
+  10: 2,
+  21: 2,
+};
 
 /// The 18 object pages of [sourceLines], every field at its measured
 /// column.
