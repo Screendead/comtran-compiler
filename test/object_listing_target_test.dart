@@ -19,16 +19,30 @@ void main() {
       expect(buildObjectListingTarget(source), committed);
     });
 
-    test('changes the spacing of the transcription and nothing else', () {
-      final List<String> original = objectListingSourceLines(source);
-      expect(committed.length, original.length);
+    test("changes the transcription's spacing and nothing else", () {
+      final List<String> original = objectListingSourceLines(
+        source,
+      ).where((l) => l.trim().isNotEmpty).toList();
+      final List<String> printed = committed
+          .where((l) => l.trim().isNotEmpty)
+          .toList();
+      expect(printed.length, original.length);
       for (var i = 0; i < original.length; i++) {
         expect(
-          _words(committed[i]),
+          _words(printed[i]),
           _words(original[i]),
           reason: 'line ${i + 1}',
         );
       }
+    });
+
+    test('carries the measured blank count on each verified page', () {
+      // Listing page 21, PDF p. 212, is verified (chunk A2). The
+      // transcription holds one blank line after its head; the scan
+      // measures two.
+      final int head = committed.indexWhere((l) => l.endsWith('PAGE  21'));
+      expect(committed.sublist(head + 1, head + 3), <String>['', '']);
+      expect(committed[head + 3], startsWith('01324'));
     });
 
     test('holds all 18 object pages, 8 through 25', () {

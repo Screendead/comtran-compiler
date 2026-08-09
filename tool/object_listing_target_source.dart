@@ -45,13 +45,43 @@ final RegExp _trailer = RegExp(r'^(THE |\*CTEND|DONE$)');
 /// token. Two blanks separate two fields.
 final RegExp _token = RegExp(r'\S(?:\S| (?! ))*');
 
+/// The blank lines a page prints between its head and its first content
+/// line, for each page a scan pass has measured (M4-1 chunks A2 to A8).
+///
+/// The transcription's own counts are not evidence. M4-8 records that it
+/// holds one blank on every object page but PDF p. 208, and the p. 212
+/// measurement finds two there as well. A page absent from this map is
+/// not verified yet and keeps the count the transcription holds.
+/// `test/fixtures/90.05-object-listing-notes.md` holds each measurement.
+const Map<int, int> _measuredBlanksAfterHead = <int, int>{21: 2};
+
 /// The 18 object pages of [sourceLines], every field at its measured
 /// column.
 List<String> buildObjectListingTarget(List<String> sourceLines) {
   final Map<int, List<String>> pages = _objectPages(sourceLines);
   return <String>[
     for (final page in pages.keys.toList()..sort())
-      ..._render(_dedent(pages[page]!), page <= 16 ? _earlyPages : _latePages),
+      ..._render(
+        _blanks(_dedent(pages[page]!), _measuredBlanksAfterHead[page]),
+        page <= 16 ? _earlyPages : _latePages,
+      ),
+  ];
+}
+
+/// Sets the run of blank lines after [page]'s head to [measured]. A page
+/// with no measurement keeps what the transcription holds.
+List<String> _blanks(List<String> page, int? measured) {
+  if (measured == null) {
+    return page;
+  }
+  var first = 1;
+  while (first < page.length && page[first].trim().isEmpty) {
+    first++;
+  }
+  return <String>[
+    page.first,
+    ...List<String>.filled(measured, ''),
+    ...page.sublist(first),
   ];
 }
 
