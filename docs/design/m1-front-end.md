@@ -191,6 +191,28 @@ source citation. Amend by updating this file and `decisions.md` together.*
   wrong fields reached the compiler. The object listing's column header on
   line 672 of the conversion is a separate candidate, not corrected: it
   holds 0, 11, 26 and 54 where the scan measures 1, 12, 25 and 58.*
+
+  *The geometry each page was measured on. The scans are tracked and do not
+  change, so these four numbers and the two tables above reproduce the
+  measurement and its overlays without any other artifact. Deskew is
+  counter-clockwise about the image centre, applied before anything else;
+  x and the row band are in the deskewed image.*
+
+  | Page | Deskew | Pitch px | `DATE` at x | Head rows |
+  |---|---|---|---|---|
+  | 195 | −0.44° | 9.3306 | 404 | 267–276 |
+  | 196 | +0.56° | 9.3050 | 437 | 187–196 |
+  | 198 | +0.52° | 9.2430 | 438 | 192–202 |
+  | 199 | −0.32° | 9.2736 | 411 | 270–279 |
+  | 212 | +0.96° | 9.2412 | 429 | 184–193 |
+
+  *Two traps cost real time and neither announces itself. Fit the pitch on
+  the longest baseline the page offers: a 25-column baseline drifts half a
+  cell by column 89, which is where the page number sits. Delete a guide
+  rule by deleting whole rule rows — a rule row carries a horizontal ink
+  run of up to 381 px where the worst glyph row carries 7 — and never by
+  keeping only pixels inside a vertical ink run, which leaves bare stems
+  and moves every glyph's left edge.*
 - **M1-17. Control-card echo** prints card columns 1–72 at the far-left
   margin (two columns in from position 1), with the phase letters CTC
   under it and CTD/CTE before the diagnostic block ([J 05.06.01]; the
