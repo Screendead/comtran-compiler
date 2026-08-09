@@ -189,8 +189,9 @@ source citation. Amend by updating this file and `decisions.md` together.*
 
   *The first group is where M1-16 took its template, which is how the six
   wrong fields reached the compiler. The object listing's column header on
-  line 672 of the conversion is a separate candidate, not corrected: it
-  holds 0, 11, 26 and 54 where the scan measures 1, 12, 25 and 58.*
+  line 672 of the conversion was a separate candidate; it is corrected the
+  same day under the same authorization, and `m4-codegen.md` M4-8 holds
+  that measurement.*
 
   *The geometry each page was measured on. The scans are tracked and do not
   change, so these four numbers and the two tables above reproduce the
