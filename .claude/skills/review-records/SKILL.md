@@ -23,8 +23,11 @@ a later reader needs the evidence and the reasoning, not a conclusion.
 
 ## The rules
 
-1. **One directory per review**, at `reviews/YYYY-MM-DD-<slug>/`. The slug names
-   the work, for example `2026-08-09-m4s2-chunk-a4`.
+1. **One directory per review**, at `reviews/YYYY-MM-DD-<name>/`, where the name
+   says what the work was: `reviews/2026-08-09-m4s2-chunk-a4/`. The date is the
+   date of the evidence, not of the writing. **The branch is `review/` followed
+   by that same directory name**, so `review/2026-08-09-m4s2-chunk-a4`. One name
+   identifies the record everywhere.
 2. **`index.html` is standalone.** Full boilerplate — `<!DOCTYPE html>`,
    `<html lang="en">`, `<head>` with charset and viewport, `<body>`. Every image
    embedded as a `data:` URI, so the file renders from any location with no
@@ -67,15 +70,24 @@ Density and honesty rules from `CLAUDE.md` bind this document. Beyond them:
   what breaks, what is left unbuilt, what a later reader is misled about, and
   what it costs to reverse. That is the section 6 collision format, and it fits
   every review.
+- **Point every repository link at a commit, never a branch.** A topic branch is
+  deleted when its pull request merges, and a `blob/<branch>/…` link 404s from
+  that moment on. The record outlives the branch it was written beside.
 - **Never ask Jack to confirm something the evidence settles.** His attention is
   the scarcest input in this project.
+
+A record built after the fact carries a **provenance** block instead of a
+rulings banner, and says plainly that no review document existed at the time and
+where the decision was actually put to Jack. Never dress a retrofit as a review
+that happened. Where such a record replaces an older branch, carry that branch's
+README into it verbatim as `evidence/original-README.md`: deleting the old
+branch destroys the only copy.
 
 ## The house style
 
 The document's visual identity is fixed, so records stay comparable across
-years. `reviews/2026-08-09-m4s2-chunk-a4/tools/build_doc.py` on branch
-`review/m4s2-a4` is the reference implementation; copy it and replace the
-content.
+years. `tools/build_doc.py` on branch `review/2026-08-09-m4s2-chunk-a4` is the
+reference implementation; copy it and replace the content.
 
 | Token | Light | Dark | Role |
 |---|---|---|---|
@@ -106,19 +118,47 @@ plumbing, which touches neither the index nor the tree:
 ```sh
 IDX=$(mktemp -u /tmp/orphan-idx.XXXXXX)
 TREE=$(GIT_INDEX_FILE=$IDX sh -c 'git add -f reviews/<dir> && git write-tree')
-COMMIT=$(git commit-tree "$TREE" -m "<slug> review record
+COMMIT=$(git commit-tree -S "$TREE" -m "<dir> review record
 
 <what it holds, and the date of Jack's rulings>")
-git branch review/<slug> "$COMMIT"
+git branch review/<dir> "$COMMIT"
 rm -f "$IDX"
-git push origin review/<slug>
+git push origin review/<dir>
 rm -rf reviews/<dir>
 ```
 
-Verify three things before you push: `git ls-tree -r --name-only` shows the
-review directory and nothing else, `git log --format='%P' -1` shows no parent,
-and `git status` is unchanged from before you started.
+`-S` is not optional. `commit.gpgsign` governs `git commit` only, so plumbing
+produces an unsigned commit, and the ruleset below rejects it.
+
+Verify four things before you push:
+
+| Check | Expect |
+|---|---|
+| `git ls-tree -r --name-only review/<dir>` | the review directory and nothing else |
+| `git log -1 --format='%P' review/<dir>` | empty: no parent |
+| `git log -1 --format='%G?' review/<dir>` | anything but `N` |
+| `git status` | unchanged from before you started |
 
 **The pushed branch is what makes the record permanent.** An unreferenced commit
 is garbage-collected, on GitHub as well as locally. Never delete a `review/`
 branch.
+
+## You get one push, and only one
+
+The repository ruleset `review-lock` targets `refs/heads/review/**/*` and
+restricts updates, deletions and force-pushes, and requires a signed commit. It
+does not restrict creations. A `review/` branch is therefore free to create and
+frozen from the moment it lands.
+
+Two consequences bind the work:
+
+- **Finish the record before you push it.** There is no amending a typo, a
+  wrong number, or a missing file. Render `index.html` and read it first.
+- **No one can repair a bad record**, Jack included: the ruleset lists no bypass
+  actor. The only route is for him to edit the ruleset, which should stay a
+  deliberate act. A record that turns out wrong is superseded by a new branch
+  that says what it replaces, not rewritten.
+
+If a second push to a `review/` branch ever succeeds, the lock is not doing its
+job. Read `gh api repos/Screendead/comtran-compiler/rulesets` and check that
+`review-lock` reports `"enforcement": "active"`.
