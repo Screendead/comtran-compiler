@@ -1,6 +1,6 @@
                                     COMPILATION OF SAMPLE PROBLEM
 
-        DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   1
+        DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  1
 
 
         *COMPILE LIST                                   CT PUBLICATIONS
@@ -57,7 +57,7 @@
                   45,00         GN)004          02             A(20) ' '
                   46,00   71255  AMOUNT         02             $8889.99
                   47,00   71256 PAYRECORD        1RECORD
-        DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   2
+        DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  2
 
                   48,00   71260  EMPLOYEE.NUMBER 2
                   49,00   71261   DEPARTMENT     3             AA
@@ -114,7 +114,7 @@
                  100,00   71345 BONDORDER        1RECORD
                  101,00         GN)029           2             A ' '
                  102,00   71350   DAT            2
-        DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   3
+        DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  3
 
                  103,00             EMPLOYEE.NUM 3             A(6)
                           71351              BER
@@ -171,7 +171,7 @@
                  153,00         GN)042           2             '150120'
                  154,00         GN)043           2           IR9(5) '03499'
                  155,00         GN)044           2             '200120'
-        DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   4
+        DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  4
 
                  156,00         GN)045           2           IR9(5) '03999'
                  157,00         GN)046           2             '200150'
@@ -228,7 +228,7 @@
                  194,00               GET MASTER, AT END DO END.OF.MASTERS.
                  195,00               GO TO COMPARE.EMPLOYEE.NUMBERS.
                  196,00   71503 LOW.DETAIL. MOVE DETAIL TO ERROROUT INFO, MOVE 'D' TO ERRORTYPE,
-        DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   5
+        DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  5
 
                                       FILE ERROROUT,
                                       GO TO GET.DETAIL.
@@ -285,7 +285,7 @@
                                       SET WORKING WHT = WORKING WHT * TR(WORKING WHT GT 0),
                                       ADD WORKING WHT TO MASTER WHT.
                  216,00         GN)078END WITHOLDING.TAX.ROUTINE.
-        DATE 10/18/61   TIME  2.45   ACCOUNT                    ID. CT PUBLICATIONS        PAGE   6
+        DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  6
 
                  217,00   71531 BOND.ROUTINE.  BEGIN SECTION.
                  218,00               ADD M.BND.DED TO M.BND.ACC,INTERNAL.TOTALS BONDEDUCTION.

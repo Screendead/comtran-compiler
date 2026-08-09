@@ -96,9 +96,11 @@ What stage 2 must add, beyond the verb generators:
   generators size all four. Stage 1 derives `BL)` alone, and gets the
   sample's attested 3 (M4-4 as amended). `TS)` still has no recovered
   sizing rule; the sample reserves 7 words and references none of them.
-- The page furniture: the page head, the `LOC OCTAL CNTRL SYMBOLIC`
-  column header, and the per-page blank counts. The header's columns are
-  measured to one column, not to the byte (M4-8 as amended).
+- The page furniture: the per-page blank counts. The page head and the
+  `LOC OCTAL CNTRL SYMBOLIC` column header are measured to the byte and
+  pinned (M4-8 as amended 2026-08-09). The head is the source listing's
+  own head, so stage 2 calls the existing builder in
+  `lib/src/listing/listing.dart`.
 - The later-pass GN allocation rule (GN)084 on). Stage 2 pins it
   instruction by instruction during the listing diff (M4-6). A design
   that assumes a dense counter is wrong by construction.
@@ -123,7 +125,14 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. No candidate is open. Nine are authorized and applied. The
+  authorization. **One candidate is open.** The 90.05 transcription's page
+  head spaces its fields as the flattened print does not: it puts `TIME`
+  one column late, the time value one late, `ACCOUNT` two late, `ID.` one
+  late, the identifier one late, and the page number one late. Four page
+  scans measure the true columns, and `docs/design/m1-front-end.md` M1-16
+  as amended 2026-08-09 holds them. The compiler and the golden are
+  already corrected; only the conversion waits. Nine are authorized and
+  applied. The
   most recent, on 2026-08-05, corrected word spacing at two sites in statement
   193, after `ERRORTYPE,` and after `DAT`, where the print and the deck both
   hold two spaces and the conversion held one. A card-by-card comparison of the
