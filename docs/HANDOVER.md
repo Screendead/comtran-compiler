@@ -100,8 +100,9 @@ about 230k tokens and 35 minutes, measured over the three of chunk A4,
 against 210k and 30 minutes over chunk A3; the 135k of the chunk A2
 calibration page was a floor, because that page already had its grid
 recorded. Give each reader its own scratch directory: two of chunk A4's
-ran at once, shared one, and collided over a working file
-(`test/fixtures/90.05-object-listing-notes.md`, the chunk A4 flaw).
+ran at once, shared one, and collided over a working file.
+`test/fixtures/90.05-object-listing-notes.md` records it, in the section
+on the chunk A4 flaw.
 
 What stage 2 must add, beyond the verb generators:
 
