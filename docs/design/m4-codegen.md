@@ -371,11 +371,17 @@ M4 executes I/O-free programs.
   The two page scans differ in horizontal registration. Measure each
   page against its own LOC column, never against the other page.
   - Page furniture: the `LOC OCTAL CNTRL SYMBOLIC` column header prints
-    once, on the first object page. The transcription records one blank
+    once, on the first object page. The transcription recorded one blank
     line after each page head and one after the column header; the M4-20
-    item (e) measurement resolves two blank lines on PDF p. 208, now in
-    the conversion for that page alone, so the per-page blank counts are
-    still taken from the scans during the stage-2 verification pass. No blank line separates routines, the storage map
+    item (e) measurement resolves two blank lines on PDF p. 208, so the
+    per-page blank counts are
+    still taken from the scans during the stage-2 verification pass.
+    **Amended 2026-08-09, chunks A2 to A4.** Seven measured pages are now
+    corrected in the conversion itself, under Jack's option B: each chunk
+    authorizes its own pages. Listing pages 9 to 13 and 21 hold two blanks
+    after the head, and listing page 8 holds three. The eleven unverified
+    pages still hold one, so a page's blank count remains a scan
+    measurement and never a read of the conversion. No blank line separates routines, the storage map
     from the code, or the pool from the end-of-text line. The
     listing closes with that line, one blank line,
     `THE LAST LOADER CONTROL CARD PUNCHED IS`, the `*CTEND` card, and

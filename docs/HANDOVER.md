@@ -143,22 +143,25 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **Seven candidates are open, and more of their kind are
-  expected.** Seven object pages print more blank lines between the head
-  and the first content line than the 90.05 conversion holds. Listing
-  pages 9 to 13 and 21 — PDF pp. 200 to 204 and 212 — print two where the
-  conversion holds one. Listing page 8, PDF p. 199, prints three.
+  authorization. **No candidate is open.** Jack's call of 2026-08-09 took
+  option B: each chunk authorizes its own pages as it lands, and no set
+  waits for the end of the scan pass. Chunks A2 to A4 measured seven
+  object pages that print more blank lines between the head and the first
+  content line than the conversion held. Listing pages 9 to 13 and 21 —
+  PDF pp. 200 to 204 and 212 — print two where it held one, and listing
+  page 8, PDF p. 199, prints three.
   `test/fixtures/90.05-object-listing-notes.md` holds each measurement,
   and its section on what the seven pages share holds the frame: 57 line
   slots below the head, whatever furniture the page prints.
-  M4-8 records that the conversion holds one blank on every object page
-  but PDF p. 208, where a 2026-08-05 measurement found two, so the scan
-  pass of M4-1 chunks A5 to A8 will probably find two on the other
-  eleven. Hold these candidates until that pass ends, and authorize the
-  whole set at once. The target already carries the measured counts, so
-  nothing waits on the authorization. Eleven are authorized and
-  applied. The most recent, on 2026-08-09, corrected the object listing's
-  column header on line 672, the only such header in the file. It held
+  Eleven object pages are still unverified. The conversion holds one
+  blank on each of them but PDF p. 208, where a 2026-08-05 measurement
+  found two, so chunks A5 to A8 will probably find two on the other ten.
+  The target carries the measured counts either way, so nothing waits on
+  an authorization. Eighteen are authorized and
+  applied. The most recent seven, on 2026-08-09, are the object-page
+  blank counts above. The eleventh, also on 2026-08-09, corrected the
+  object listing's
+  column header on line 674, the only such header in the file. It held
   `LOC` at 0, `OCTAL` at 11, `CNTRL` at 26 and `SYMBOLIC` at 54; PDF
   p. 199 measures 1, 12, 25 and 58, and `docs/design/m4-codegen.md` M4-8
   as amended holds the measurement. The tenth, also on 2026-08-09,
