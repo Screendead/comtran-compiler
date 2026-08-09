@@ -125,15 +125,17 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **One candidate is open.** The 90.05 transcription's page
-  head spaces its fields as the flattened print does not: it puts `TIME`
-  one column late, the time value one late, `ACCOUNT` two late, `ID.` one
-  late, the identifier one late, and the page number one late. Four page
-  scans measure the true columns, and `docs/design/m1-front-end.md` M1-16
-  as amended 2026-08-09 holds them. The compiler and the golden are
-  already corrected; only the conversion waits. Nine are authorized and
-  applied. The
-  most recent, on 2026-08-05, corrected word spacing at two sites in statement
+  authorization. **One candidate is open.** The object listing's column
+  header on line 672 of the 90.05 conversion holds `LOC` at 0, `OCTAL` at
+  11, `CNTRL` at 26 and `SYMBOLIC` at 54; PDF p. 199 measures 1, 12, 25 and
+  58. It is the only such header in the file. Ten are authorized and
+  applied. The most recent, on 2026-08-09, corrected the spacing of all 25
+  page heads, which held four different spacings and no one of them the
+  print's. Five page scans measure the true columns and
+  `docs/design/m1-front-end.md` M1-16 as amended holds them, with the four
+  spacings the conversion had. The left margin is deliberately left
+  flattened, so an absolute column still must not be read out of the
+  transcription. The ninth, on 2026-08-05, corrected word spacing at two sites in statement
   193, after `ERRORTYPE,` and after `DAT`, where the print and the deck both
   hold two spaces and the conversion held one. A card-by-card comparison of the
   deck against the conversion found them, and
