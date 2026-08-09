@@ -42,7 +42,7 @@ void main() {
       for (final JobCompilation job in deck.jobs) {
         expect(
           writeListing(job.frontEnd, _options, diagnostics: job.diagnostics),
-          contains('PAGE   1'),
+          contains('PAGE  1'),
         );
       }
     });

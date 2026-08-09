@@ -13,6 +13,7 @@ const Map<String, int> budgets = <String, int>{
   'docs/comtran-language-definition.md': 115000,
   'docs/design/decisions.md': 50000,
   'docs/design/m3-data.md': 9000,
+  'docs/design/m4-codegen.md': 9000,
 };
 
 /// The generated mirror of the language definition, which the guard skips.

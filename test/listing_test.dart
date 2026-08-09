@@ -171,8 +171,8 @@ void main() {
           .split('\n')
           .where((String line) => line.contains('DATE 10/18/61'));
       expect(heads, hasLength(6));
-      expect(listing, contains('PAGE   1'));
-      expect(listing, contains('PAGE   6'));
+      expect(listing, contains('PAGE  1'));
+      expect(listing, contains('PAGE  6'));
     });
   });
 }

@@ -293,8 +293,8 @@ final class _ListingWriter {
     final String id = result.program.compileCard == null
         ? ''
         : result.program.compileCard!.textRange(55, 72).trim();
-    return '        DATE ${options.date}   TIME  ${options.time}   '
-        'ACCOUNT ${options.account.padRight(19)}ID. ${id.padRight(23)}'
-        'PAGE${'$_page'.padLeft(4)}';
+    return '        DATE ${options.date}  TIME  ${options.time}  '
+        'ACCOUNT ${options.account.padRight(20)}ID. ${id.padRight(24)}'
+        'PAGE  $_page';
   }
 }

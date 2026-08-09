@@ -316,9 +316,8 @@ M4 executes I/O-free programs.
     p. 200. The transcription indents the second line two columns,
     which is an artifact.
   - The column header centers each of its first three names over its
-    field: `LOC` at 1, `OCTAL` at 12, `CNTRL` at 25. `SYMBOLIC` prints
-    at 58. This measurement holds to one column, not to the byte, so
-    the stage-1 golden excludes the header and stage 2 pins it.
+    field. The reading held to one column, so the stage-1 golden
+    excludes the header; the 2026-08-09 amendment measures it.
   The two page scans differ in horizontal registration. Measure each
   page against its own LOC column, never against the other page.
   - Page furniture: the `LOC OCTAL CNTRL SYMBOLIC` column header prints
@@ -331,6 +330,17 @@ M4 executes I/O-free programs.
     listing closes with that line, one blank line,
     `THE LAST LOADER CONTROL CARD PUNCHED IS`, the `*CTEND` card, and
     `DONE`.
+  **Amended 2026-08-09, stage 2. The page frame is pinned to the byte,**
+  on the scans, field by field. Item (g)'s one geometry is unchanged;
+  this adds precision to it. The column header prints `LOC` at 1,
+  `OCTAL` at 12, `CNTRL` at 25 and `SYMBOLIC` at 58, which is the
+  stage-1 reading; the transcription's 0, 11, 26 and 54 are wrong at all
+  four. The page head is the source listing's head unchanged, so stage 2
+  calls the builder in `lib/src/listing/listing.dart` and writes no
+  second template; `m1-front-end.md` M1-16 as amended holds the measured
+  columns and the evidence. It also refuted the head this project
+  printed, and the golden listing carries the correction. The per-page
+  blank counts stay with the verification pass.
 
 ## MOVE
 

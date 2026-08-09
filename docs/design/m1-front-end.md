@@ -141,6 +141,37 @@ source citation. Amend by updating this file and `decisions.md` together.*
   the correction; the M1 model was verified against the flattened
   transcription, which drops blank lines — the scan is the
   authority.*
+  *Amended 2026-08-09 (M4 stage 2): the head's own field columns are
+  measured. M1-15 measured D, the DATE column, from the scans, but this
+  entry took the spacing between the head's fields from the
+  transcription. That is what section 9 of `CLAUDE.md` forbids, and it
+  put six fields wrong. The columns below are measured, with D as print
+  column 0.*
+
+  | Field | Print column |
+  |---|---|
+  | `DATE` | 0 |
+  | the date value, `mm/dd/yy` | 5 |
+  | `TIME` | 15 |
+  | the time value, `h.hh` | 21 |
+  | `ACCOUNT` | 27 |
+  | the account value | 35 |
+  | `ID.` | 55 |
+  | the identifier | 59 |
+  | `PAGE` | 83 |
+  | the page number | 89 |
+
+  *Four pages carry this one geometry: PDF pp. 195 and 196 from the
+  source listing, and pp. 199 and 212 from the object listing. Each page
+  was deskewed, its guide rules deleted, and its character pitch fitted
+  on its own text. Two pages settle the page number: p. 199 is listing
+  page 8 and prints one digit at column 89, and p. 212 is listing page 21
+  and prints two at 89 and 90. The number is therefore left-aligned at
+  89, where this entry had it right-aligned ending at 90. The account
+  value's column is a reconstruction — every account in the sample is
+  blank, as with the serial field in M1-15. The transcription's own head
+  spacing is a divergence from the print; it is an erratum candidate and
+  the conversion is not edited.*
 - **M1-17. Control-card echo** prints card columns 1–72 at the far-left
   margin (two columns in from position 1), with the phase letters CTC
   under it and CTD/CTE before the diagnostic block ([J 05.06.01]; the
