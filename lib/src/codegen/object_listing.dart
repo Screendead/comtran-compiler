@@ -29,6 +29,38 @@ const int _labelWidth = _operation - _label;
 /// [value] as the five octal digits a LOC or address column prints.
 String octal5(int value) => value.toRadixString(8).padLeft(5, '0');
 
+/// One line with every field at its measured column. An omitted field
+/// prints nothing and takes no column.
+///
+/// The caller decides when a long label pushes the instruction to its own
+/// line, and calls this twice.
+String objectListingLine({
+  String loc = '',
+  String octal = '',
+  String control = '',
+  String label = '',
+  String offset = '',
+  String operation = '',
+  String operand = '',
+}) => _line([
+  (_loc, loc),
+  (_octal, octal),
+  (_control, control),
+  (_label, label),
+  (_offsetEnd - offset.length + 1, offset),
+  (_operation, operation),
+  (_operand, operand),
+]).trimRight();
+
+/// The `LOC OCTAL CNTRL SYMBOLIC` header, which prints once on the first
+/// object page (M4-8 as amended 2026-08-09).
+String objectListingHeader() => _line([
+  (1, 'LOC'),
+  (12, 'OCTAL'),
+  (25, 'CNTRL'),
+  (58, 'SYMBOLIC'),
+]).trimRight();
+
 /// One line with each text placed at its column. A field that has
 /// already run past the next column is separated from it by one space.
 String _line(List<(int, String)> fields) {
@@ -77,26 +109,35 @@ List<String> _unit(AssemblyUnit unit, String offset) {
   // Every label but the last prints alone against the LOC, the word
   // falling to the last (M4-8; the attested GN)000 over START).
   for (var i = 0; i + 1 < unit.labels.length; i++) {
-    out.add(_line([(_loc, loc), (_label, unit.labels[i])]).trimRight());
+    out.add(objectListingLine(loc: loc, label: unit.labels[i]));
   }
   final String label = unit.labels.isEmpty ? '' : unit.labels.last;
-  final List<(int, String)> head = [
-    (_loc, loc),
-    (_octal, octal),
-    (_control, cntrl),
-    (_label, label),
-    (_offsetEnd - offset.length + 1, offset),
-  ];
-  final List<(int, String)> tail = [
-    (_operation, unit.operation),
-    (_operand, unit.operand),
-  ];
   if (label.length >= _labelWidth) {
     out
-      ..add(_line(head).trimRight())
-      ..add(_line(tail).trimRight());
+      ..add(
+        objectListingLine(
+          loc: loc,
+          octal: octal,
+          control: cntrl,
+          label: label,
+          offset: offset,
+        ),
+      )
+      ..add(
+        objectListingLine(operation: unit.operation, operand: unit.operand),
+      );
   } else {
-    out.add(_line([...head, ...tail]).trimRight());
+    out.add(
+      objectListingLine(
+        loc: loc,
+        octal: octal,
+        control: cntrl,
+        label: label,
+        offset: offset,
+        operation: unit.operation,
+        operand: unit.operand,
+      ),
+    );
   }
   return out;
 }
