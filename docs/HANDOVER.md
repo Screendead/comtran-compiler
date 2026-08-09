@@ -125,11 +125,13 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **One candidate is open.** The object listing's column
-  header on line 672 of the 90.05 conversion holds `LOC` at 0, `OCTAL` at
-  11, `CNTRL` at 26 and `SYMBOLIC` at 54; PDF p. 199 measures 1, 12, 25 and
-  58. It is the only such header in the file. Ten are authorized and
-  applied. The most recent, on 2026-08-09, corrected the spacing of all 25
+  authorization. **No candidate is open.** Eleven are authorized and
+  applied. The most recent, on 2026-08-09, corrected the object listing's
+  column header on line 672, the only such header in the file. It held
+  `LOC` at 0, `OCTAL` at 11, `CNTRL` at 26 and `SYMBOLIC` at 54; PDF
+  p. 199 measures 1, 12, 25 and 58, and `docs/design/m4-codegen.md` M4-8
+  as amended holds the measurement. The tenth, also on 2026-08-09,
+  corrected the spacing of all 25
   page heads, which held four different spacings and no one of them the
   print's. Five page scans measure the true columns and
   `docs/design/m1-front-end.md` M1-16 as amended holds them, with the four

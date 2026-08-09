@@ -334,8 +334,12 @@ M4 executes I/O-free programs.
   on the scans, field by field. Item (g)'s one geometry is unchanged;
   this adds precision to it. The column header prints `LOC` at 1,
   `OCTAL` at 12, `CNTRL` at 25 and `SYMBOLIC` at 58, which is the
-  stage-1 reading; the transcription's 0, 11, 26 and 54 are wrong at all
-  four. The page head is the source listing's head unchanged, so stage 2
+  stage-1 reading; the transcription held 0, 11, 26 and 54, wrong at all
+  four, and is corrected 2026-08-09 under Jack's authorization. The
+  header's grid origin is the LOC column's first digit, so `LOC` sits one
+  column right of the digits below it; the correction adds that column
+  and does not restore the flattened left margin, which M1-15 records.
+  The page head is the source listing's head unchanged, so stage 2
   calls the builder in `lib/src/listing/listing.dart` and writes no
   second template; `m1-front-end.md` M1-16 as amended holds the measured
   columns and the evidence. It also refuted the head this project
