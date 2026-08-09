@@ -315,6 +315,15 @@ M4 executes I/O-free programs.
   - Three OCTAL renderings: twelve solid digits for `OCT` words;
     `OOOO FF T AAAAA` for type-B instructions; `P DDDDD T AAAAA` for
     prefix-type words (PZE, MZE, TXI, TXH, TXL, IOST, BSS, USE, ORG).
+    *Amended 2026-08-09, stage 2: a fourth rendering, `OOOO FF DDDDDD`,
+    prints the low 18 bits as one group where the type-B form splits a
+    tag from an address. Three sites carry it, all on listing page 20:
+    `RIR 777777` at LOC 01240, `SIR 000001` at 01247, and `RFT 000001`
+    at 01251. Their operand is one 18-bit sense-indicator mask, not a
+    tag and an address, and the print does not split it. This reading
+    comes from the transcription and not yet from a scan. The A3 to A8
+    pass over PDF p. 211 confirms or refutes it; until then the target
+    reproduces it and stage 2 does not depend on it.*
   - The CNTRL column prints the word's 5-bit object-deck control group
     (M4-16). `USE`, `BSS`, and `ORG` lines print CNTRL 00001 with their
     control word in the OCTAL column (the `OP A` form of [J 90.03.03]);
