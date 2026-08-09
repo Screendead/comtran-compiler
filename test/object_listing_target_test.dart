@@ -61,13 +61,44 @@ void main() {
       }
     });
 
+    // The transcription holds one blank line after every page head. Every
+    // page measured against its scan holds more. Page 8 is the one page
+    // that prints the column header, and it holds three.
+    const measured = <int, (int, String)>{
+      8: (3, ' LOC '),
+      9: (2, '00060'),
+      10: (2, '00200'),
+      21: (2, '01324'),
+    };
+
+    int headOf(int page) =>
+        committed.indexWhere((l) => l.endsWith('PAGE  $page'));
+
     test('carries the measured blank count on each verified page', () {
-      // Listing page 21, PDF p. 212, is verified (chunk A2). The
-      // transcription holds one blank line after its head; the scan
-      // measures two.
-      final int head = committed.indexWhere((l) => l.endsWith('PAGE  21'));
-      expect(committed.sublist(head + 1, head + 3), <String>['', '']);
-      expect(committed[head + 3], startsWith('01324'));
+      for (final MapEntry<int, (int, String)> entry in measured.entries) {
+        final (int blanks, String first) = entry.value;
+        final int head = headOf(entry.key);
+        expect(
+          committed.sublist(head + 1, head + 1 + blanks),
+          List<String>.filled(blanks, ''),
+          reason: 'page ${entry.key}',
+        );
+        expect(
+          committed[head + 1 + blanks],
+          startsWith(first),
+          reason: 'page ${entry.key}',
+        );
+      }
+    });
+
+    // The frame, not the content-line count, is what the four scans hold
+    // in common (M4-8 as amended, chunk A3).
+    test('ends every verified page in line slot 57', () {
+      for (final int page in measured.keys) {
+        final int head = headOf(page);
+        expect(committed[head + 57].trim(), isNotEmpty, reason: 'page $page');
+        expect(committed[head + 58], startsWith('DATE '), reason: 'page $page');
+      }
     });
 
     test('holds all 18 object pages, 8 through 25', () {

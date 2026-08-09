@@ -59,9 +59,9 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline, measured 2026-08-06: 979 Dart tests pass, and 154 extension
-tests pass. Both suites must stay green; re-measure the counts, do not trust
-them.
+Test baseline: 994 Dart tests pass, measured 2026-08-09, and 154 extension
+tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
+counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
 manual's own payroll sample through the front end, the parser, and the
 semantic layer. The job deck is the 293-card artifact plus one reconstructed
@@ -92,6 +92,13 @@ listing before any generator runs. Phase B generates, and it sizes every
 unit in the program before it fills any word. `docs/design/m4-codegen.md`
 M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
 holds the inverted order and the target file.
+
+Chunks A0 to A3 are done. Four of the eighteen object pages are verified
+against their scans: listing pages 8, 9, 10 and 21. Chunk A4 takes the
+next three, listing pages 11 to 13, PDF pp. 202 to 204. One page costs
+about 210k tokens and 30 minutes, measured over the three of chunk A3;
+the 135k of the chunk A2 calibration page was a floor, because that page
+already had its grid recorded.
 
 What stage 2 must add, beyond the verb generators:
 
@@ -132,15 +139,19 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **One candidate is open, and more of its kind are
-  expected.** Listing page 21, PDF p. 212, prints two blank lines between
-  its head and its first content line; the 90.05 conversion holds one.
-  `test/fixtures/90.05-object-listing-notes.md` holds the measurement.
+  authorization. **Four candidates are open, and more of their kind are
+  expected.** Four object pages print more blank lines between the head
+  and the first content line than the 90.05 conversion holds. Listing
+  pages 9, 10 and 21 — PDF pp. 200, 201 and 212 — print two where the
+  conversion holds one. Listing page 8, PDF p. 199, prints three.
+  `test/fixtures/90.05-object-listing-notes.md` holds each measurement,
+  and its last section holds the frame the four pages share: 57 line
+  slots below the head, whatever furniture the page prints.
   M4-8 records that the conversion holds one blank on every object page
   but PDF p. 208, where a 2026-08-05 measurement found two, so the scan
-  pass of M4-1 chunks A3 to A8 will probably find the same on the other
-  sixteen. Hold this candidate until that pass ends, and authorize the
-  whole set at once. The target already carries the measured count, so
+  pass of M4-1 chunks A4 to A8 will probably find two on the other
+  fourteen. Hold these candidates until that pass ends, and authorize the
+  whole set at once. The target already carries the measured counts, so
   nothing waits on the authorization. Eleven are authorized and
   applied. The most recent, on 2026-08-09, corrected the object listing's
   column header on line 672, the only such header in the file. It held
