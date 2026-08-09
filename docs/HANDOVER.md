@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-08-06. Audience: the next agent, or Jack. This file is the
+*Updated 2026-08-09. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -93,12 +93,15 @@ unit in the program before it fills any word. `docs/design/m4-codegen.md`
 M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
 holds the inverted order and the target file.
 
-Chunks A0 to A3 are done. Four of the eighteen object pages are verified
-against their scans: listing pages 8, 9, 10 and 21. Chunk A4 takes the
-next three, listing pages 11 to 13, PDF pp. 202 to 204. One page costs
-about 210k tokens and 30 minutes, measured over the three of chunk A3;
-the 135k of the chunk A2 calibration page was a floor, because that page
-already had its grid recorded.
+Chunks A0 to A4 are done. Seven of the eighteen object pages are verified
+against their scans: listing pages 8 to 13 and 21. Chunk A5 takes the
+next three, listing pages 14 to 16, PDF pp. 205 to 207. One page costs
+about 230k tokens and 35 minutes, measured over the three of chunk A4,
+against 210k and 30 minutes over chunk A3; the 135k of the chunk A2
+calibration page was a floor, because that page already had its grid
+recorded. Give each reader its own scratch directory: two of chunk A4's
+ran at once, shared one, and collided over a working file
+(`test/fixtures/90.05-object-listing-notes.md`, the chunk A4 flaw).
 
 What stage 2 must add, beyond the verb generators:
 
@@ -139,18 +142,18 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **Four candidates are open, and more of their kind are
-  expected.** Four object pages print more blank lines between the head
+  authorization. **Seven candidates are open, and more of their kind are
+  expected.** Seven object pages print more blank lines between the head
   and the first content line than the 90.05 conversion holds. Listing
-  pages 9, 10 and 21 — PDF pp. 200, 201 and 212 — print two where the
+  pages 9 to 13 and 21 — PDF pp. 200 to 204 and 212 — print two where the
   conversion holds one. Listing page 8, PDF p. 199, prints three.
   `test/fixtures/90.05-object-listing-notes.md` holds each measurement,
-  and its last section holds the frame the four pages share: 57 line
+  and its section on what the seven pages share holds the frame: 57 line
   slots below the head, whatever furniture the page prints.
   M4-8 records that the conversion holds one blank on every object page
   but PDF p. 208, where a 2026-08-05 measurement found two, so the scan
-  pass of M4-1 chunks A4 to A8 will probably find two on the other
-  fourteen. Hold these candidates until that pass ends, and authorize the
+  pass of M4-1 chunks A5 to A8 will probably find two on the other
+  eleven. Hold these candidates until that pass ends, and authorize the
   whole set at once. The target already carries the measured counts, so
   nothing waits on the authorization. Eleven are authorized and
   applied. The most recent, on 2026-08-09, corrected the object listing's

@@ -424,6 +424,10 @@ M4 executes I/O-free programs.
   this, and chunks A4 to A8 test it. Listing page 19, PDF p. 210, is the
   one page whose transcription would break it: it holds 54 content lines.
   `test/fixtures/90.05-object-listing-notes.md` holds the measurements.
+  **Amended 2026-08-09, chunk A4.** Seven pages of eighteen now carry the
+  frame. Listing pages 11, 12 and 13 each print two blank slots and 55
+  content lines, and each ends in slot 57. Their 165 content lines carry
+  no content correction. Chunks A5 to A8 test the remaining eleven.
 
 ## MOVE
 
