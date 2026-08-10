@@ -62,9 +62,9 @@ void main() {
     });
 
     // Every one of the eighteen pages is measured against its scan, and
-    // none holds the single blank line the transcription held before the
-    // pass. Page 8 is the one page that prints the column header, and the
-    // one that holds three.
+    // none holds the single blank line the transcription held on all but
+    // PDF p. 208 before the pass. Page 8 is the one page that prints the
+    // column header, and the one that holds three.
     const measured = <int, (int, String)>{
       8: (3, ' LOC '),
       9: (2, '00060'),

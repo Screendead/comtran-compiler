@@ -123,7 +123,9 @@ M4 executes I/O-free programs.
   target's LOC column, and the five pages then unverified changed no LOC
   value. The scan pass corrected blank counts and one wrapped instruction,
   and neither touches an address. A Phase B chunk that depends on a column
-  the scan pass can still move must wait for it; B1 does not.
+  the scan pass can still move must wait for it; B1 does not. The pass is
+  now spent: chunks A2 to A8 verified all eighteen object pages, which is
+  the true size of it, not the nineteen this section first estimated.
 
 ## Pipeline position and the text model
 
@@ -446,7 +448,7 @@ M4 executes I/O-free programs.
   verification is blind in the M3-22 pattern: a reader transcribes the
   scan without the target's content. This replaces the order this entry
   first set, which rendered the listing and verified that render, and so
-  spent the page pass again on every wrong generator. The transcription
+  spent the scan pass again on every wrong generator. The transcription
   supplies content, the scans supply geometry, and a scan measurement
   decides a disagreement.
   The target file is `test/fixtures/90.05-object-listing.target`. It is
