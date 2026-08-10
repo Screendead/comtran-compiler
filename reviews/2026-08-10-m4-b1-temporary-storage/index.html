@@ -8,7 +8,7 @@
 :root {
   --paper:#F7F8F6; --raised:#FFFFFF; --ink:#14171A; --muted:#5C6560;
   --rule:#C9CFC8; --hair:#E1E5DF; --stamp:#B3261E; --stamp-soft:#FBEAE8;
-  --settled:#40685A;
+  --settled:#40685A; --settled-soft:#EAF1ED;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 }
@@ -16,13 +16,13 @@
   :root:not([data-theme="light"]) {
     --paper:#141715; --raised:#1C201D; --ink:#E7EBE5; --muted:#9AA69D;
     --rule:#3A423C; --hair:#2A302C; --stamp:#FF7A6B; --stamp-soft:#33201D;
-    --settled:#7FB8A2;
+    --settled:#7FB8A2; --settled-soft:#1B2A24;
   }
 }
 :root[data-theme="dark"] {
   --paper:#141715; --raised:#1C201D; --ink:#E7EBE5; --muted:#9AA69D;
   --rule:#3A423C; --hair:#2A302C; --stamp:#FF7A6B; --stamp-soft:#33201D;
-  --settled:#7FB8A2;
+  --settled:#7FB8A2; --settled-soft:#1B2A24;
 }
 * { box-sizing:border-box; }
 body {
@@ -57,6 +57,12 @@ section { display:flex; flex-direction:column; gap:.2rem; }
            border-left:3px solid var(--ink); padding:1.15rem 1.3rem; }
 .answer ol { margin:0; padding-left:1.2rem; }
 .answer li { margin-bottom:.5rem; }
+
+.rulings { border:1px solid var(--settled); border-left:3px solid var(--settled);
+            background:var(--settled-soft); padding:1.15rem 1.3rem; }
+.rulings h2 { margin:0 0 .7rem; color:var(--settled); }
+.rulings p { margin:0 0 .7rem; }
+.rulings p:last-child { margin:0; }
 
 .correction { border-left:3px solid var(--stamp); background:var(--stamp-soft);
                padding:.9rem 1.1rem; margin:0 0 1.15rem; }
@@ -116,6 +122,35 @@ footer { border-top:1px solid var(--rule); padding-top:1.2rem; font-size:.85rem;
   state. The fifth, <code>TS)</code>, is reserved by the 1962 compiler and touched
   by nothing, and no source this project holds says how it got its size.</p>
 </header>
+
+<section class="rulings">
+  <h2>Jack's ruling, 10 August 2026</h2>
+  <p><strong>Option A. <code>TS)</code> takes the attested 7 as a constant, and no
+  rule is invented for it.</strong> In his words: &ldquo;Agreed &mdash; 7 as
+  constant. It&rsquo;s the best we can do.&rdquo;</p>
+  <p>The ruling followed an eleven&#8209;agent hunt over both manuals, run after
+  this record was first pushed. It refuted seven readings of the number &mdash;
+  among them the operator&#8209;switch reading, which turned out to name a real
+  mechanism the sample never uses &mdash; and left two, a fixed block the compiler
+  always lays down and a pessimistic sizing pass the generator never drew on. One
+  sample cannot separate them. The hunt also produced the correction above, and one
+  finding that decides the option on its own: no word of the object program
+  addresses any of the seven cells, so a compiler that sized temporary storage by
+  what the code uses would have printed <code>TS) BSS 0</code>. Every rule that
+  could be derived from the calling sequences is refuted by the one program that
+  can check it.</p>
+  <p><code>docs/design/m4-codegen.md</code> M4&#8209;4 as amended carries the
+  decision, its basis, and an explicit instruction not to implement one cell per
+  file, sections&#8209;plus&#8209;one, or any other rule that returns 7. No code
+  carries the constant yet: all four block sizes enter <code>blockWords</code>
+  together in chunk B1, because <code>originOf</code> sums the blocks declared
+  ahead of its argument and sizing <code>TS)</code> while <code>RS)</code> is still
+  absent would put <code>BL)1</code> at 01630 rather than the attested 01666.</p>
+  <p>One artifact overturns it: the storage map of a second compiled COMTRAN
+  listing. Nothing else will, and no further scan work on PDF p.&nbsp;215 can help
+  &mdash; two readers have already read it independently and both print
+  <code>TS) BSS 7</code>. The ink was never the question.</p>
+</section>
 
 <section>
   <div class="answer">

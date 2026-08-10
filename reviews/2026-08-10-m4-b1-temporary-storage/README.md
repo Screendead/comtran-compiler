@@ -42,7 +42,14 @@ renders from any location with no network and no server.
 Run `spine.py` and `crops.py` from the repository root; `build_doc.py` runs from
 anywhere.
 
-## The one thing that needs Jack
+## Jack ruled on 2026-08-10: option A
+
+`TS)` takes the attested 7 as a constant, and no rule is invented for it. The
+banner at the head of `index.html` carries the ruling and its basis, and
+`docs/design/m4-codegen.md` M4-4 as amended binds the code. The per-item chip
+below is left as it was: the record shows the question as well as the answer.
+
+## The one thing that needed Jack
 
 Section "What the compiler does with a block it cannot size" holds it, with
 three options and a recommendation. Nothing is blocked on the answer: B1
