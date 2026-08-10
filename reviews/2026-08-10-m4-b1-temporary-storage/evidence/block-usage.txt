@@ -1,0 +1,15 @@
+Every assembled address in the object listing, tested against each block.
+The address field is print columns 17 to 21 (M4-8).
+
+block   origin  words   lines  distinct   dead
+RS)      01621     30      14         5     25
+      addressed: 01621 01623 01627 01633 01643
+TS)      01657      7       0         0      7
+BL)      01666      3      34         3      0
+      addressed: 01666 01667 01670
+PI)      01671      3      11         3      0
+      addressed: 01671 01672 01673
+
+Temporary storage is the only block no word addresses. Result storage
+leaves 25 of its 30 words addressed by nothing, so reserving without
+referencing is not peculiar to temporary storage.

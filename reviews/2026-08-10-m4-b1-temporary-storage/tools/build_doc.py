@@ -87,6 +87,11 @@ section {{ display:flex; flex-direction:column; gap:.2rem; }}
 .answer ol {{ margin:0; padding-left:1.2rem; }}
 .answer li {{ margin-bottom:.5rem; }}
 
+.correction {{ border-left:3px solid var(--stamp); background:var(--stamp-soft);
+               padding:.9rem 1.1rem; margin:0 0 1.15rem; }}
+.correction p {{ margin:0 0 .7rem; }}
+.correction p:last-child {{ margin:0; font-size:.92rem; color:var(--muted); }}
+
 .chip {{ font-family:var(--mono); font-size:.66rem; letter-spacing:.14em;
          text-transform:uppercase; padding:.24em .6em; border-radius:2px;
          border:1px solid currentColor; white-space:nowrap; }}
@@ -151,8 +156,10 @@ footer {{ border-top:1px solid var(--rule); padding-top:1.2rem; font-size:.85rem
       last word.</li>
       <li><strong>Nothing in the program touches temporary storage.</strong> Not one
       word of the object program addresses those seven cells, by name or by absolute
-      address. <code>RS)</code>, <code>BL)</code> and <code>PI)</code> are all
-      addressed, 12, 34 and 11 times.</li>
+      address. <strong>But reserving and never referencing is this compiler's habit,
+      not a temporary&#8209;storage peculiarity</strong> &mdash; result storage
+      reserves 30 words and only 5 of them are addressed. The corrected table below
+      replaces the one this record first printed.</li>
       <li><strong>The manual gives a sizing rule for result storage and none for
       temporary storage.</strong> The gap is specific, and it is not an artifact of
       how hard anyone looked.</li>
@@ -227,15 +234,42 @@ footer {{ border-top:1px solid var(--rule); padding-top:1.2rem; font-size:.85rem
 
   <div class="scroll">
   <table>
-    <thead><tr><th>Block</th><th>Reserved</th><th>Referenced by name</th>
-    <th>Addressed absolutely</th></tr></thead>
+    <thead><tr><th>Block</th><th>Rule in the manual</th><th>Reserved</th>
+    <th>Distinct words addressed</th><th>Addressed by nothing</th></tr></thead>
     <tbody>
-      <tr><td><code>RS)</code></td><td class="num">30 words</td><td class="num">12</td><td class="num">14</td></tr>
-      <tr><td><code>TS)</code></td><td class="num">7 words</td><td class="num">0</td><td class="num">0</td></tr>
-      <tr><td><code>BL)</code></td><td class="num">3 words</td><td class="num">34</td><td class="num">34</td></tr>
-      <tr><td><code>PI)</code></td><td class="num">3 words</td><td class="num">11</td><td class="num">11</td></tr>
+      <tr><td><code>PI)</code></td><td>exact: &ldquo;the total number of Positional
+      Indicators&rdquo;</td><td class="num">3</td><td class="num">3</td><td class="num">0</td></tr>
+      <tr><td><code>BL)</code></td><td>derived (M4&#8209;4)</td>
+      <td class="num">3</td><td class="num">3</td><td class="num">0</td></tr>
+      <tr><td><code>RS)</code></td><td>worst case: &ldquo;the sum of maximum Result
+      Storage used in each section&rdquo;</td><td class="num">30</td>
+      <td class="num">5</td><td class="num">25</td></tr>
+      <tr><td><code>TS)</code></td><td>none</td><td class="num">7</td>
+      <td class="num">0</td><td class="num">7</td></tr>
     </tbody>
   </table>
+  </div>
+
+  <div class="correction">
+  <p><strong>Corrected 2026-08-10, and this weakens the argument above.</strong> The
+  table this record first printed counted <em>addressing lines</em> &mdash;
+  <code>RS)</code> 12 by name and 14 absolute, <code>BL)</code> 34, <code>PI)</code>
+  11 &mdash; beside temporary storage's 0. Read that way, temporary storage looks
+  uniquely dead. It is not. Those 14 result&#8209;storage lines reach only
+  <strong>5 distinct words of the 30 reserved</strong>, so 25 result&#8209;storage
+  words are addressed by nothing either.</p>
+  <p>The table is now ordered by how well the manual documents the rule, because that
+  is what over&#8209;reservation tracks. Where the rule is exact, the listing matches
+  it exactly and every word is used. Where the rule is a worst case, the listing
+  over&#8209;reserves by construction, since per&#8209;section maxima are summed
+  rather than pooled. Where there is no rule at all, we get seven words and no user.
+  <strong>Temporary storage is the undocumented end of a documented spectrum, not an
+  anomaly.</strong> The recommendation below is unchanged &mdash; it never rested on
+  temporary storage being unique &mdash; but a reader should not be left believing
+  that it was.</p>
+  <p>This came from a 2026&#8209;08&#8209;10 sweep of both manuals that was told to
+  find whatever a temporary&#8209;storage&#8209;focused reader would walk past. The
+  distinct&#8209;word counts were then measured independently against the target.</p>
   </div>
 
   <p>The second check matters as much as the first. A reference could have hidden

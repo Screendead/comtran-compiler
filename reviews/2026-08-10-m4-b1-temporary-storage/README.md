@@ -29,6 +29,7 @@ renders from any location with no network and no server.
 |---|---|
 | `spine-derivation.txt` | Full output of `tools/spine.py`: the procedure text's span, the five block origins, all 45 units and their word counts, the wrapped labels, the EQU lines, and the printed `GN)` set |
 | `ts-references.txt` | Reservation and reference counts for `RS)`, `TS)`, `BL)`, `PI)` and `CP)` |
+| `block-usage.txt` | The 2026-08-10 correction: distinct words addressed inside each Location Counter 1 block, against the addressing-line counts the record first printed |
 
 ### tools
 
@@ -47,3 +48,13 @@ Section "What the compiler does with a block it cannot size" holds it, with
 three options and a recommendation. Nothing is blocked on the answer: B1
 proceeds either way, and what the answer changes is what the design record and
 the code claim about the number 7.
+
+## Corrected 2026-08-10, before any ruling
+
+The record's first version contrasted temporary storage's zero references
+against result storage's 14, and those 14 are *addressing lines*. By distinct
+words, result storage reaches 5 of the 30 it reserves, so 25 of its words are
+addressed by nothing either. Temporary storage is the undocumented end of a
+documented spectrum rather than an anomaly, and the corrected table is ordered
+by how well the manual documents each block's rule. The recommendation does not
+change; it never rested on temporary storage being unique.
