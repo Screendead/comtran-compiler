@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COMTRAN — a compiler for a dead language</title>
+<meta name="description" content="IBM Commercial Translator, 1959 to 1962, rebuilt from its two surviving manuals. Type a program and watch the compiler work, in your browser.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="runner">
+  <span>COMTRAN Reconstruction</span>
+  <span>IBM Commercial Translator, 1959&ndash;1962</span>
+</header>
+
+<main>
+
+<section class="hero">
+  <p class="mark" aria-hidden="true"></p>
+  <h1>A compiler for<br>a dead language</h1>
+  <p class="lede">
+    <span class="gloss-host"><button type="button" class="gloss" aria-expanded="false" aria-describedby="gloss-comtran">COMTRAN</button><span class="gloss-note" id="gloss-comtran" role="note">The manuals call it Commercial Translator; COMTRAN is the name it is known by, and neither manual prints it.</span></span>
+    was IBM&rsquo;s business programming language for the 7090. It ran from
+    1959 to 1962, and then it stopped. No compiler survives, no source, and
+    no machine you could feed a deck into &mdash; two manuals survive, and
+    little else.
+  </p>
+  <p class="lede">
+    This compiler was rebuilt from those two manuals. For the one program
+    whose printed output survives, it reproduces IBM&rsquo;s listing byte for
+    byte. It runs in your browser, and nothing you type leaves this page.
+  </p>
+</section>
+
+<section class="rests">
+  <h2 class="strip-label">What this reconstruction rests on</h2>
+  <div class="boxes">
+    <div class="box">
+      <p class="box-label">One copy, one reader</p>
+      <p>Two manuals, 345 scanned pages, one copy of each. There is no second
+      copy to settle a doubtful word against, and no second reader has been
+      through them.</p>
+    </div>
+    <div class="box">
+      <p class="box-label">The judgment calls are marked</p>
+      <p>Where the manuals leave a question open, the language reference
+      records the reading we chose and says plainly that it is a choice.
+      Nothing is decided quietly.</p>
+    </div>
+    <div class="box">
+      <p class="box-label">The error severities are ours</p>
+      <p>The manuals list every message the compiler could print. They never
+      say which ones stopped a run, so each severity on this page is this
+      project&rsquo;s own decision.</p>
+    </div>
+  </div>
+</section>
+
+<section class="prose">
+  <h2>What IBM was building</h2>
+  <p>
+    Commercial Translator was aimed at the work computers actually did in
+    1960: payrolls, inventories and ledgers. You described your files first
+    &mdash; each field&rsquo;s name, how deep it sat inside a record, and a
+    picture of the characters it held &mdash; and then wrote the procedure in
+    something close to English. <code>MOVE</code>, <code>ADD</code>,
+    <code>IF</code>, <code>GO TO</code>.
+  </p>
+  <p>
+    The machine underneath was the IBM 7090, which worked in words of 36
+    bits. Cards went in. A printed listing and a binary deck came out. The
+    manuals call a field of letters and digits
+    <span class="gloss-host"><button type="button" class="gloss" aria-expanded="false" aria-describedby="gloss-alpha">alphameric</button><span class="gloss-note" id="gloss-alpha" role="note">IBM&rsquo;s own word of the period for letters and digits together; it is not a misspelling of alphanumeric.</span></span>,
+    and this project keeps their spelling everywhere.
+  </p>
+
+  <h2>Why it stopped</h2>
+  <p>
+    We do not know. Neither manual says, and this project will not invent a
+    reason. What the manuals do show is a language still being finished: the
+    1962 reference is marked <em>Preliminary</em>, and its own appendix lists
+    the features that had not been built. After that, the paper we hold runs
+    out.
+  </p>
+  <p>
+    COBOL was being written over the same few years, and the relationship
+    between the two languages is a real historical question. It is not a
+    question these two manuals answer, so you will not find this project
+    asserting an answer to it.
+  </p>
+
+  <h2>Why rebuild it</h2>
+  <div class="personal">
+    <p>
+      COMTRAN is obscure even by the standards of retrocomputing. It was
+      eclipsed before it ever became mainstream, and it disappeared with
+      barely a trace. That is most of why I cannot stop thinking about it.
+    </p>
+    <p>
+      There is probably nobody alive who has written a program in this
+      language and watched it run, short of someone with physical access to a
+      working 7090. That is a strange thing to be true of a language IBM
+      printed manuals for. It seemed worth fixing.
+    </p>
+    <p>
+      I am not building it for me. Researchers, code archaeologists, museum
+      curators, and a kid who has just found out that programs used to be
+      holes punched in cardboard &mdash; they all need a way in, a foothold a
+      deeper interest can grow from. That is what this page is for.
+    </p>
+    <p>
+      Correctness is the foundation and it is not the whole story. If this
+      outlives me as one thread in the tapestry, that was the plan.
+    </p>
+    <p class="disclosure">
+      One thing worth knowing before you judge any of it: every commit in the
+      repository was written by a large language model, under my direction and
+      held to my standards.
+      <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/reconstruction-method.md">How the reconstruction was done, and what it means for the evidence</a>.
+    </p>
+  </div>
+</section>
+
+<section class="machine" id="bench">
+  <h2>Compile a program</h2>
+  <p class="machine-intro">
+    This is the compiler from the repository, built to WebAssembly and running
+    on this page. Type into the deck on the left; the panels on the right are
+    what the compiler makes of it. The program loaded is the payroll sample
+    printed in the 1962 manual &mdash; the one program whose source, compiler
+    listing and object code all survive together.
+  </p>
+
+  <div class="bench">
+
+    <div class="deck-pane">
+      <div class="pane-head">
+        <span class="pane-title">The deck</span>
+        <span class="controls">
+          <button type="button" id="compile">Compile</button>
+          <button type="button" id="load">Load the sample program</button>
+          <button type="button" id="clear">Clear</button>
+        </span>
+      </div>
+      <div class="ruler-wrap"><pre class="ruler" id="ruler" aria-hidden="true"></pre></div>
+      <div class="editor">
+        <pre class="gutter" id="gutter" aria-hidden="true"></pre>
+        <textarea id="source" spellcheck="false" autocomplete="off" autocapitalize="characters" wrap="off" aria-label="COMTRAN source deck, eighty columns to a card"></textarea>
+      </div>
+      <p class="pane-foot">
+        <span id="where">Card 1, column 1</span>
+        <span id="deck-size"></span>
+      </p>
+      <p class="note">
+        Eighty columns to a card. Columns 1 to 6 hold a serial number the 1962
+        compiler does not read, columns 7 to 72 hold the program, and columns
+        73 to 80 are never read at all. Lower case is punched as upper case,
+        because the card character set has none.
+      </p>
+    </div>
+
+    <div class="out-pane">
+      <div class="pane-head">
+        <span class="pane-title">What the compiler made of it</span>
+        <span id="verdict" class="verdict"></span>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Compiler stage">
+        <button type="button" role="tab" id="tab-cards" data-stage="cards" aria-controls="panel"><span class="tab-n">01</span>Cards</button>
+        <button type="button" role="tab" id="tab-scan" data-stage="scan" aria-controls="panel"><span class="tab-n">02</span>Scan</button>
+        <button type="button" role="tab" id="tab-parse" data-stage="parse" aria-controls="panel"><span class="tab-n">03</span>Parse</button>
+        <button type="button" role="tab" id="tab-semantics" data-stage="semantics" aria-controls="panel"><span class="tab-n">04</span>Semantics</button>
+        <button type="button" role="tab" id="tab-listing" data-stage="listing" aria-controls="panel"><span class="tab-n">05</span>Listing</button>
+        <button type="button" role="tab" id="tab-code" data-stage="code" aria-controls="panel"><span class="tab-n">06</span>Code</button>
+      </div>
+      <p class="stage-caption" id="caption"></p>
+      <div class="evidence" id="evidence">
+        <p class="box-label" id="evidence-label"></p>
+        <p id="evidence-text"></p>
+      </div>
+      <p class="refusal" id="refusal" role="status" hidden></p>
+      <div class="panel" id="panel" role="tabpanel" tabindex="0" aria-live="polite"><pre id="out"></pre></div>
+      <p class="pane-foot"><span id="panel-foot"></span></p>
+    </div>
+
+  </div>
+
+  <p class="note wide">
+    Every listing on this page prints <span class="mono">DATE 10/18/61</span>
+    and <span class="mono">TIME 2.45</span> in its page head. Those are the
+    sample listing&rsquo;s own values, pinned so that one program always
+    prints the same bytes, whoever compiles it and whenever.
+  </p>
+</section>
+
+<section class="deeper">
+  <h2>Going deeper</h2>
+  <p>
+    Everything on this page is a reading of a document you can go and check.
+    The repository is the academic artifact; this page is only the door.
+  </p>
+  <ul class="links">
+    <li><a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/comtran-language-definition.md">The language reference, with every claim cited to a manual page</a></li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/tree/master/comtran-manuals">Both manuals: 345 page scans beside their transcriptions</a></li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/decisions.md">The decision slate: every choice the sources did not make for us</a></li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/blob/master/test/goldens/90.05-payroll.listing">The 1962 listing this page reproduces byte for byte</a></li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/tree/master/lib/src">The compiler source</a></li>
+  </ul>
+  <p class="note">
+    If a reading here is wrong, the page it came from is one click away. The
+    page number is the useful thing to send.
+  </p>
+</section>
+
+</main>
+
+<footer class="runner">
+  <span>Static pages. No server, no tracking, no outbound request.</span>
+  <span id="build"></span>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
