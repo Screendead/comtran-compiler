@@ -38,9 +38,11 @@ final class CodegenResult {
 /// here that can detect an error (M4-2, amended; CLAUDE.md section 11).
 CodegenResult runCodegen(SemanticResult semantics) {
   final List<AssemblyUnit> units = storageMapUnits(semantics);
-  // Result storage, temporary storage, the positional indicators, and
-  // the constant pool are all sized by the verb generators, so they
-  // stay empty until stage 2.
+  // Result storage, the positional indicators and the constant pool are
+  // sized by the verb generators, and temporary storage takes M4-4's
+  // constant 7. All four land together in chunk B1: originOf sums the
+  // blocks ahead of its argument, so sizing one alone moves the origins
+  // of every block below it.
   final image = ProgramImage(
     inlineWords: semantics.areas.fold(
       0,

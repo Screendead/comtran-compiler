@@ -25,9 +25,11 @@ enum StorageBlock {
   /// listing's LOC values, not stated by J).
   rs,
 
-  /// Temporary storage. Its sizing rule is unrecovered: the 90.05
-  /// sample reserves 7 words and references none of them. M4-4 leaves
-  /// the rule open for the stage-2 listing diff to reveal.
+  /// Temporary storage. It has no sizing rule and will not get one: the
+  /// manuals do not hold it, and the 90.05 sample reserves 7 words while
+  /// addressing none of them, which refutes any rule derived from what
+  /// the code uses. M4-4 as amended 2026-08-10 takes the attested 7 as a
+  /// constant and forbids inventing a rule that returns it.
   ts,
 
   /// Base locators: one word each (M4-4).

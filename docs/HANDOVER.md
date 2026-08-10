@@ -131,9 +131,29 @@ What stage 2 must add, beyond the verb generators:
   the procedure text (M4-7.1).
 - The four block sizes stage 1 leaves empty: result storage, temporary
   storage, the positional indicators, and the constant pool. The verb
-  generators size all four. Stage 1 derives `BL)` alone, and gets the
-  sample's attested 3 (M4-4 as amended). `TS)` still has no recovered
-  sizing rule; the sample reserves 7 words and references none of them.
+  generators size three of them. Stage 1 derives `BL)` alone, and gets
+  the sample's attested 3 (M4-4 as amended). **`TS)` has no rule and will
+  not get one.** Jack ruled on 2026-08-10 that it takes the attested 7 as
+  a constant, after an eleven-agent hunt over both manuals refuted seven
+  readings and left two that one sample cannot separate. M4-4 as amended
+  holds the reasoning and forbids inventing a rule that returns 7. All
+  four sizes enter `blockWords` together in chunk B1, because
+  `ProgramImage.originOf` sums the blocks ahead of its argument and
+  sizing one alone moves every origin below it.
+
+  The hunt is worth not repeating. Its central negatives: no word of the
+  object program addresses any of the seven cells, which refutes
+  demand-driven sizing; over-reservation tracks how well [J 90.02]
+  documents each rule, so `PI)` uses all 3 of its words, `RS)` 5 of its
+  30, and `TS)` none of its 7; and the `BSS` operand counts words rather
+  than items, since `RS)` cell 0 sits at 01621 and cell 1 at 01623, so
+  matching sevens of anything against it is doubly ungrounded. Two
+  coincidence-grade sevens exist and are recorded as coincidences: the
+  program declares seven files, and it has six sections. **Do not
+  commission more scan work on this.** PDF p. 215 has been read
+  independently twice and both readers print `TS) BSS 7`; the ink is not
+  in doubt and the rule is not on the page. Only the storage map of a
+  second compiled listing settles it.
 - The page furniture: the per-page blank counts. The page head and the
   `LOC OCTAL CNTRL SYMBOLIC` column header are measured to the byte and
   pinned (M4-8 as amended 2026-08-09). The head is the source listing's
