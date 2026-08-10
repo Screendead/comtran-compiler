@@ -117,6 +117,19 @@ C1.
 - **D4. Dates, form numbers and machine names carry the weight.** Write
   "January 1962", "the IBM 7090", "F28-8043". Vague period language such as
   "the early days of computing" loses all three groups at once.
+- **D5. Use no em dash.** *Jack's call, 2026-08-10.* The mark stays out of the
+  copy, out of a caption, out of a page title, and out of a comment in a site
+  file. Where a sentence seems to need one, write the sentence again. A colon,
+  a full stop, a comma pair or a pair of parentheses does the same work.
+  `test/web_copy_test.dart` enforces the rule. It reads each committed file in
+  `web/` that its extension list names as text, and rejects the character and
+  its three HTML forms, `&mdash;`, `&#8212;` and `&#x2014;`. A site file in a
+  new text format adds its extension to that list in the same pull request.
+
+  E2 is the one case the rule cannot govern, because a quotation keeps its own
+  characters. No quotation on the site holds an em dash today. The transcribed
+  title of F28-8043 holds one, so W2 adds an exception to the test in the same
+  pull request that first prints that title.
 
 ### E — What the site never rewrites
 
@@ -175,6 +188,40 @@ affordance, and it opens on hover, on keyboard focus, and on tap.
 One note on the element. `<abbr>` is the familiar choice and its meaning is
 wrong here, because a period spelling is not an abbreviation. Build one marker
 component from a focusable element, and use it for both cases.
+
+### H — When a project change reaches the site
+
+*Recorded 2026-08-10, from a requirement Jack stated. The rules are this
+project's reading of it. He has approved none of them.*
+
+Every push to master deploys the site (`docs/HANDOVER.md`, the Hosting
+section). No window exists in which a page is stale but unpublished. Each rule
+below therefore binds the pull request that makes the change, and none of them
+is a follow-up task.
+
+- **H1. A change to what the compiler prints needs no change to the site.**
+  The site holds no compiler knowledge. It calls the compiler and prints the
+  answer, and the deploy carries the new output. `docs/HANDOVER.md`, "The rule
+  that keeps it cheap", states this. One exception: a new `--emit` stage needs
+  a panel and a caption, which are site text.
+- **H2. A milestone or a phase that changes state in the "Where things stand"
+  table of `docs/HANDOVER.md` changes its station on `web/roadmap.html`,** in
+  the same pull request. Both are written by hand and no tool compares them.
+  `test/web_copy_test.dart` checks only that each codename appears.
+- **H3. A number the site states moves with the fact behind it.** Rule C3 ties
+  each number to a source, so a number that moves beside a page that does not
+  is a false citation. One consequence: a number that moves each week stays
+  off the site. Write "eighteen object pages", not the count verified so far.
+- **H4. A capability the reader can see gets its prose in the pull request
+  that ships it.** A run button, a deck download, a new stage panel: the page
+  must not describe a site that no longer exists, in either direction.
+- **H5. A limit that stops being true changes the sentence that states it.**
+  Section 5 names three. If a second reader ever verifies the scans, the first
+  statement becomes false, and a false limit costs more than no limit.
+- **H6. Nothing else triggers a change to the site.** A refactor, a new design
+  record, a new test and an edit to a document under `docs/` are all invisible
+  here. The site records what a reader can see. It does not mirror the
+  repository.
 
 ## 5. The three statements the site must carry
 

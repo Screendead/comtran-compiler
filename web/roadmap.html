@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What is built &middot; COMTRAN</title>
+<meta name="description" content="What the COMTRAN reconstruction has finished, what is being built now, and what has not been started. Finished work carries the day it was finished; unfinished work carries no date.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="runner">
+  <a href="index.html" class="wordmark">COMTRAN Reconstruction</a>
+  <nav>
+    <a href="index.html">The compiler</a>
+    <a href="reading-the-scans.html">How we read the scans</a>
+    <a href="roadmap.html" aria-current="page">What is built</a>
+  </nav>
+</header>
+
+<main>
+
+<section class="hero">
+  <p class="mark" aria-hidden="true"></p>
+  <h1>What is built,<br>and what is not</h1>
+  <p class="lede">
+    Three tracks run at once. The compiler is the mission. The tooling exists
+    to keep the punched decks honest. The website is the page you are on and
+    whatever comes after it.
+  </p>
+  <p class="lede">
+    A finished item carries the day it was finished. An unfinished one carries
+    no date, because the work takes as long as the evidence takes and a date
+    here would be a guess dressed as a plan.
+  </p>
+</section>
+
+<section class="legend" aria-hidden="true">
+  <p class="strip-label">How to read the marks</p>
+  <ul class="keys">
+    <li class="key done"><span class="mk"></span>Finished</li>
+    <li class="key now"><span class="mk"></span>Being built now</li>
+    <li class="key todo"><span class="mk"></span>Not started</li>
+  </ul>
+</section>
+
+<section class="track">
+  <h2>The compiler</h2>
+  <p class="track-intro">
+    Seven steps from a box of cards to a program that runs. The first four are
+    finished, and each one is held to the 1962 manual by a test that compares
+    output byte for byte.
+  </p>
+  <ol class="stations">
+
+    <li class="station done">
+      <p class="station-head">
+        <span class="code">M0</span>
+        <span class="state">Finished 2 August 2026</span>
+      </p>
+      <h3>The commitments</h3>
+      <p>
+        Before any code, the choices that could not be un-chosen: which of the
+        two manuals the compiler follows, that the output is real 7090 machine
+        code, that a deck is stored as holes and not as text, and that
+        correctness means a diff against the listing IBM printed.
+      </p>
+      <p class="station-link">
+        <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/decisions.md">Every decision, with the evidence that forced it</a>
+      </p>
+    </li>
+
+    <li class="station done">
+      <p class="station-head">
+        <span class="code">M1</span>
+        <span class="state">Finished 3 August 2026</span>
+      </p>
+      <h3>Cards in, listing out</h3>
+      <p>
+        The deck is split into its divisions, read into statements, and printed
+        as a listing in the page geometry measured off the 1962 scans. The
+        payroll sample comes through with the same statement numbers the 1962
+        compiler gave it and no complaints.
+      </p>
+      <p class="station-link">
+        <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/m1-front-end.md">How the front end was built</a>
+      </p>
+    </li>
+
+    <li class="station done">
+      <p class="station-head">
+        <span class="code">M2</span>
+        <span class="state">Finished 3 August 2026</span>
+      </p>
+      <h3>The parser</h3>
+      <p>
+        Every statement in all three divisions, plus the control cards that
+        drive a compile. When something is wrong, the message is the manual's
+        own, keyed to the statement number, the way the 1962 compiler keyed it.
+      </p>
+      <p class="station-link">
+        <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/m2-parser.md">How the parser was built</a>
+      </p>
+    </li>
+
+    <li class="station done">
+      <p class="station-head">
+        <span class="code">M3</span>
+        <span class="state">Finished 5 August 2026</span>
+      </p>
+      <h3>What the names mean</h3>
+      <p>
+        Levels, pictures and type codes become storage: every name in the
+        program bound to an address and a machine word. The addresses are
+        checked row by row against the ones printed on the 1962 page.
+      </p>
+      <p class="station-link">
+        <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/m3-data.md">How storage was worked out</a>
+      </p>
+    </li>
+
+    <li class="station now">
+      <p class="station-head">
+        <span class="code">M4</span>
+        <span class="state">Being built now</span>
+      </p>
+      <h3>Machine code</h3>
+      <p>
+        The verbs become 7090 instructions. The assembly model and the storage
+        map are built and print correctly; the verb generators are the work in
+        hand. There is a right answer to check against, because the manual
+        prints this program's assembled object code in full.
+      </p>
+      <p>
+        Eighteen of those printed pages have to be read off the scans first,
+        one page at a time, before a single instruction is generated. That
+        reading is most of the work, and
+        <a href="reading-the-scans.html">what it takes to do it honestly</a> is
+        its own page.
+      </p>
+      <p class="station-link">
+        <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/m4-codegen.md">The code generation design, with every open question</a>
+      </p>
+    </li>
+
+    <li class="station todo">
+      <p class="station-head">
+        <span class="code">M5</span>
+        <span class="state">Not started</span>
+      </p>
+      <h3>Reading and writing</h3>
+      <p>
+        Files, tapes and printed reports. A payroll program that cannot read a
+        tape or write a report does nothing at all, and this is the runtime
+        that lets it.
+      </p>
+    </li>
+
+    <li class="station todo">
+      <p class="station-head">
+        <span class="code">M6</span>
+        <span class="state">Not started</span>
+      </p>
+      <h3>The acceptance test</h3>
+      <p>
+        Compile the payroll sample, run it on an emulated 7090, and reproduce
+        the report the 1962 manual prints beside it. Byte for byte, the way the
+        listing already matches. That is the finish line as the project is
+        scoped today.
+      </p>
+    </li>
+
+  </ol>
+</section>
+
+<div class="parallel">
+
+<section class="track">
+  <h2>The tooling</h2>
+  <p class="track-intro">
+    A COMTRAN program is a deck of punched cards, and this project stores one
+    as holes rather than as text. These four exist so that no hole is ever lost
+    to a careless edit.
+  </p>
+  <ol class="stations">
+
+    <li class="station done">
+      <p class="station-head">
+        <span class="code">T1</span>
+        <span class="state">Finished 3 August 2026</span>
+      </p>
+      <h3>The deck tool</h3>
+      <p>
+        Converts a punched deck to readable text and back again, and refuses to
+        let the two drift apart. It runs as a commit hook, as a build check,
+        and as the thing that lets git show a deck in a diff.
+      </p>
+    </li>
+
+    <li class="station done">
+      <p class="station-head">
+        <span class="code">T2</span>
+        <span class="state">Finished 3 August 2026</span>
+      </p>
+      <h3>The punchcard editor</h3>
+      <p>
+        An editor for a binary deck inside VS Code: the punch grid, the row the
+        keypunch printed along the top, the column rulers, and click to punch.
+        Saving either half of a deck brings the other half with it.
+      </p>
+    </li>
+
+    <li class="station done">
+      <p class="station-head">
+        <span class="code">T3</span>
+        <span class="state">Finished 3 August 2026</span>
+      </p>
+      <h3>The deck server</h3>
+      <p>
+        Deck tools served to an assistant working in this repository, so a card
+        is always changed through the format's own rules and never by hand.
+      </p>
+    </li>
+
+    <li class="station done">
+      <p class="station-head">
+        <span class="code">T4</span>
+        <span class="state">Finished 3 August 2026</span>
+      </p>
+      <h3>Colouring the fields</h3>
+      <p>
+        Both deck views colour the card fields from one shared table of column
+        positions, so no two views can disagree about where a field begins.
+      </p>
+    </li>
+
+  </ol>
+</section>
+
+<section class="track">
+  <h2>The website</h2>
+  <p class="track-intro">
+    This site is the door. It exists so that someone can react to the
+    reconstruction without cloning a repository, and so that the limits are in
+    the reader's way rather than in a footnote.
+  </p>
+  <ol class="stations">
+
+    <li class="station done">
+      <p class="station-head">
+        <span class="code">W1</span>
+        <span class="state">Finished 10 August 2026</span>
+      </p>
+      <h3>The compiler in your browser</h3>
+      <p>
+        The front page. The compiler is built to WebAssembly and runs on your
+        machine, with the punched card, the deck, the compiler's own complaints
+        and all six of its stages.
+      </p>
+      <p>
+        Two items on its own list are still missing: a download of your deck as
+        a punched card file, and a link that carries a deck to someone else.
+      </p>
+    </li>
+
+    <li class="station todo">
+      <p class="station-head">
+        <span class="code">W2</span>
+        <span class="state">Not started</span>
+      </p>
+      <h3>The sources</h3>
+      <p>
+        Both manuals in full, and each of the 345 page scans beside the text
+        that was read off it. Every claim on this site starts on one of those
+        pages, and this is where you go to check one.
+      </p>
+    </li>
+
+    <li class="station todo">
+      <p class="station-head">
+        <span class="code">W3</span>
+        <span class="state">Not started</span>
+      </p>
+      <h3>The stages</h3>
+      <p>
+        Pick one statement and follow it through every stage of the compiler at
+        once, joined by the number the 1962 compiler gave that statement.
+      </p>
+    </li>
+
+    <li class="station todo">
+      <p class="station-head">
+        <span class="code">W4</span>
+        <span class="state">Not started</span>
+      </p>
+      <h3>Teach it</h3>
+      <p>
+        A tutorial that writes a program with you, card by card. A Run button
+        arrives with M5 and M6 and not before, because until then there is
+        nothing to run.
+      </p>
+    </li>
+
+  </ol>
+</section>
+
+</div>
+
+<section class="deeper">
+  <h2>Going deeper</h2>
+  <p>
+    This page is a summary, and it is kept in step with the repository by rule
+    rather than by memory: a milestone that changes state here changes state in
+    the same commit that moved it.
+  </p>
+  <ul class="links">
+    <li><a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/HANDOVER.md">The project handover: the live state, the next task, and the cost of it</a></li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/web-copy.md">The rules this site's words follow, including when a page must change</a></li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/opportunities.md">The improvement backlog, and the things deliberately turned down</a></li>
+  </ul>
+  <p class="note">
+    Nothing on this page is a promise. It is a record of what has been done,
+    written down so that a reader can tell the built part from the intended
+    part without having to guess.
+  </p>
+</section>
+
+</main>
+
+<footer class="runner">
+  <span>Static pages. No server, no tracking, no outbound request.</span>
+  <span>State as of the last deploy</span>
+</footer>
+
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>COMTRAN — a compiler for a dead language</title>
+<title>COMTRAN: a compiler for a dead language</title>
 <meta name="description" content="IBM Commercial Translator, rebuilt from its two surviving manuals of 1960 and 1962. Type a program and watch the compiler work, in your browser.">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,6 +14,7 @@
   <nav>
     <a href="index.html" aria-current="page">The compiler</a>
     <a href="reading-the-scans.html">How we read the scans</a>
+    <a href="roadmap.html">What is built</a>
   </nav>
 </header>
 
@@ -25,8 +26,8 @@
   <p class="lede">
     <span class="gloss-host"><button type="button" class="gloss" aria-expanded="false" aria-describedby="gloss-comtran">COMTRAN</button><span class="gloss-note" id="gloss-comtran" role="note">The manuals call it Commercial Translator; COMTRAN is the name it is known by, and neither manual prints it.</span></span>
     was IBM&rsquo;s business programming language for the 7090. No compiler
-    survives and no source &mdash; two manuals survive, one from June 1960 and
-    one from January 1962, and little else.
+    survives and no source. What survives is two manuals, one from June 1960
+    and one from January 1962, and little else.
   </p>
   <p class="lede">
     This compiler was rebuilt from those two manuals. For the one program
@@ -65,9 +66,9 @@
   <p>
     Commercial Translator was aimed at the work computers actually did in
     1960: payrolls, inventories and ledgers. You described your files first
-    &mdash; each field&rsquo;s name, how deep it sat inside a record, and a
-    picture of the characters it held &mdash; and then wrote the procedure in
-    something close to English. <code>MOVE</code>, <code>ADD</code>,
+    (each field&rsquo;s name, how deep it sat inside a record, and a picture of
+    the characters it held) and then wrote the procedure in something close to
+    English. <code>MOVE</code>, <code>ADD</code>,
     <code>IF</code>, <code>GO TO</code>.
   </p>
   <p>
@@ -109,9 +110,9 @@
     </p>
     <p>
       I am not building it for me. Researchers, code archaeologists, museum
-      curators, and a kid who has just found out that programs used to be
-      holes punched in cardboard &mdash; they all need a way in, a foothold a
-      deeper interest can grow from. That is what this page is for.
+      curators, a kid who has just found out that programs used to be holes
+      punched in cardboard: they all need a way in, a foothold a deeper
+      interest can grow from. That is what this page is for.
     </p>
     <p>
       Correctness is the foundation and it is not the whole story. If this
@@ -132,8 +133,8 @@
     This is the compiler from the repository, built to WebAssembly and running
     on this page. Type into the deck, and the panels beside it show what the
     compiler makes of it. The program already loaded is the payroll sample
-    printed in the 1962 manual &mdash; the one program whose source, compiler
-    listing and object code all survive together in the manuals.
+    printed in the 1962 manual: the one program whose source, compiler listing
+    and object code all survive together in the manuals.
   </p>
 
   <div class="card-view">
@@ -145,8 +146,8 @@
       <div class="card" id="card" role="grid" tabindex="0" aria-label="The punched card under the cursor. Arrow keys move, space punches."></div>
     </div>
     <p class="note">
-      Twelve rows &mdash; 12, 11 and 0 at the top, then 1 to 9 &mdash; by
-      eighty columns. The characters along the top are what the keypunch
+      Twelve rows by eighty columns, the rows numbered 12, 11 and 0 at the
+      top, then 1 to 9. The characters along the top are what the keypunch
       printed above the holes it cut; the holes are the part the compiler
       reads. Click a position to punch it, and the deck text follows. Cut a
       combination no character matches and the card leaves the character form
@@ -223,17 +224,17 @@
 <section class="next">
   <h2>What comes next</h2>
   <p>
-    Today this page compiles. It reads your deck, checks it, lays out storage
-    and prints the listing &mdash; and there it stops, because the compiler
-    stops there too. Three things stand between that and a program that runs.
+    Today this page compiles: it reads your deck, checks it, lays out storage
+    and prints the listing. There it stops, because the compiler stops there
+    too. Three things stand between that and a program that runs.
   </p>
 
   <div class="step">
     <h3>Code generation</h3>
     <p>
-      The verbs &mdash; <code>MOVE</code>, <code>IF</code>, <code>GO TO</code>
-      and the rest &mdash; become 7090 instructions. The compiler already lays
-      down the data, which is the constants and the space each record needs.
+      The verbs (<code>MOVE</code>, <code>IF</code>, <code>GO TO</code> and the
+      rest) become 7090 instructions. The compiler already lays down the data,
+      which is the constants and the space each record needs.
       The procedure text is the part still being built, and it is not being
       guessed at: the manual prints this sample&rsquo;s assembled object
       program in full, so there is a right answer to check against, line by
@@ -253,23 +254,23 @@
   <div class="step">
     <h3>Running it</h3>
     <p>
-      The input and output runtime &mdash; reading a tape, writing a report
-      &mdash; and then the test that ends the project: compile the payroll
-      sample, run it, and reproduce the report the 1962 manual prints with it.
-      Byte for byte, the way the listing on this page already matches.
+      The input and output runtime, reading a tape and writing a report. Then
+      the test that ends the project: compile the payroll sample, run it, and
+      reproduce the report the 1962 manual prints with it. Byte for byte, the
+      way the listing on this page already matches.
     </p>
   </div>
 
   <p>
-    Each of those arrives here for free. The page holds no compiler knowledge
-    &mdash; it asks the compiler and prints the answer &mdash; so the Code
-    panel fills itself, and a Run button appears once there is something to
-    run.
+    Each of those arrives here for free, because the page holds no compiler
+    knowledge: it asks the compiler and prints the answer. The Code panel
+    fills itself, and a Run button appears once there is something to run.
   </p>
   <p class="note">
     There is no timetable, and this page will not invent one. It takes as long
     as the evidence takes.
-    <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/HANDOVER.md">The roadmap, with the state of every milestone</a>.
+    <a href="roadmap.html">What is built, and what is not</a>, or
+    <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/HANDOVER.md">the project handover, with the state of every milestone</a>.
   </p>
 </section>
 

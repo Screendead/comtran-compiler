@@ -55,7 +55,7 @@ Terms that appear without expansion:
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
 | T3 MCP server and skill | Done 2026-08-03 (PR #8) | `bin/deckmcp.dart`, `.claude/skills/comtran-decks/` |
 | T4 deck syntax highlighting | Done 2026-08-03 (PR #14) | `editors/vscode-punchcard/` |
-| W1 to W4, the public website | W1 built 2026-08-10 on branch `w1-site`, and waits for Jack's review; W2 to W4 not started | The web track below |
+| W1 to W4, the public website | W1 merged 2026-08-10 (PR #91) and deployed from `.github/workflows/pages.yml`; W2 to W4 not started | The web track below |
 
 The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
@@ -508,6 +508,21 @@ combination no character matches puts the card into the `!` punch form (D0.5)
 rather than into an error. The deck also prints the compiler's own diagnostics
 under it, the Compile button greys out while the panels already answer to the
 typed text, and each run prints how long it took.
+
+**Amended 2026-08-10, after the W1 merge.** Jack asked for two things: no em
+dash in the site copy, and a roadmap page. `web/roadmap.html` draws the three
+tracks of this file as stations, each marked finished, in progress, or not
+started. A finished station carries the date it was finished and links its
+design record. An unfinished one carries no date, because this file promises
+no schedule and the site must not invent one.
+
+Two rules follow, both in `docs/design/web-copy.md`. D5 bars the em dash, and
+section H states when a change to the project obliges a change to a page.
+Every push to master deploys, so each H rule binds the same pull request that
+makes the change. `test/web_copy_test.dart` enforces D5 across the text files in `web/`, and
+checks that the roadmap page carries a station for every codename in the
+glossary above. Nothing compares the two states; H2 is the rule that keeps
+them in step.
 
 **W2 — the sources.** The documents page. It holds the language reference, both
 manual conversions, both source PDFs (17 MB), and each of the 345 page scans

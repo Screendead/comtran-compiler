@@ -33,6 +33,7 @@ browser refuses to fetch one from a `file://` URL. Any static server does.
 |---|---|
 | `index.html` | The compiler page. Committed. |
 | `reading-the-scans.html` | How a page scan becomes text. Static; it loads no compiler. Committed. |
+| `roadmap.html` | What is built, and what is not. Static. Committed. |
 | `styles.css`, `app.js` | Shared style, and the compiler page's behaviour. Committed. |
 | `images/` | Scan crops used as evidence. Committed. |
 | `main.dart` | The browser entry point. Committed. |
@@ -86,6 +87,18 @@ committed goldens. It runs in the normal `dart test` gate.
 The test runs on the Dart VM, so it proves the library and not the
 WebAssembly build. To check the build itself, load the page and compare the
 listing panel against `test/goldens/90.05-payroll.listing`.
+
+## What holds the copy to its rules
+
+`test/web_copy_test.dart` enforces the two rules in `docs/design/web-copy.md`
+that a test can check. Rule D5 bars the em dash from every committed file
+here, in the character and in its three HTML forms. Rule H2 requires the
+roadmap page to carry a station for every codename, so a new milestone cannot
+reach `docs/HANDOVER.md` and miss the site.
+
+Section H of that record holds the rest, which is when a change to the project
+obliges a change to a page. Those rules bind the pull request that makes the
+change, because every push to master deploys.
 
 ## Not built yet
 
