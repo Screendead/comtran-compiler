@@ -112,9 +112,26 @@ C1.
 
 - **E1.** Every line the compiler prints: the listing, the diagnostics, the
   storage map.
-- **E2.** Every quotation from a manual, and its spelling. "Alphameric" and
-  "imbedded" stay.
-- **E3.** The measured 1962 listing geometry.
+- **E2.** Every quotation from a manual, and its spelling.
+- **E3. Mark a genuine typo `[sic]`.** Jack's call, 2026-08-10. Put the mark
+  immediately after the word, inside the quotation. The word itself never
+  changes. J28-6169 prints "at lease", "lables", "dinsity", "Parentheis" and
+  "Appox-Max Size"; each keeps its spelling and takes the mark.
+- **E4. Never mark an authentic period spelling `[sic]`.** "Alphameric" and
+  "imbedded" are IBM's own words of the period, not errors. The mark would tell
+  the reader that IBM made a mistake, which is a false claim and the one a
+  historian catches first. Gloss the word at first use instead, under A3. Rule
+  5 of section 8 of `CLAUDE.md` draws this line, and the fidelity policy in
+  `comtran-manuals/README.md` states it.
+- **E5.** The measured 1962 listing geometry.
+
+E3 has two limits, and both hold outside this record. The manual conversions in
+`comtran-manuals/` never carry the mark: they are the transcription of the
+page, and an editorial mark inside them breaks ground truth. The documents
+under `docs/` keep the form they already use, which puts `sic` in the citation
+parenthesis after the quoted word. `docs/comtran-language-definition.md` holds
+five of these. The site uses the inline form instead, because its reader has no
+citation parenthesis to look in.
 
 ### F — Interface text
 
