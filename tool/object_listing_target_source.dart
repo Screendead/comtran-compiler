@@ -49,8 +49,8 @@ final RegExp _token = RegExp(r'\S(?:\S| (?! ))*');
 /// line, measured on the page scan (M4-1 chunks A2 to A8, now complete).
 ///
 /// The transcription's own counts are not evidence. M4-8 records that it
-/// holds one blank on every object page but PDF p. 208, and every one of
-/// the eighteen holds more.
+/// held one blank on every object page but PDF p. 208, and that every one
+/// of the eighteen holds more.
 /// `test/fixtures/90.05-object-listing-notes.md` holds each measurement.
 ///
 /// Listing page 8 is the one page that prints the column header, and it

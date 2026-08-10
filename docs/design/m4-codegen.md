@@ -88,7 +88,7 @@ M4 executes I/O-free programs.
   |---|---|
   | A0 | This amendment, and the M4-8 amendment it names. |
   | A1 | The tool and the target file — the transcription's object-listing content, re-rendered in the M4-8 geometry. |
-  | A2 | One page verified blind against its scan, PDF p. 212, to measure the cost of the rest. It brings the corrections table, which the first correction needs. |
+  | A2 | One page verified blind against its scan, PDF p. 212, to measure the cost of the rest. It brings the notes file that records each correction, which the first correction needs. |
   | A3 to A8 | The other seventeen pages, three to a pull request. |
 
   The target holds listing pages 8 to 25, PDF pp. 199 to 216. Page 7,
@@ -338,9 +338,7 @@ M4 executes I/O-free programs.
   line prints no `+n`, and a long label overruns the offset zone. The
   page head prints on the same grid — DATE at 0, PAGE at 83. The golden
   is therefore built from the transcription's *content* and the scans'
-  *geometry*: stage 2 renders every page in the measured geometry and
-  verifies the result with a blind transcription pass (M3-22 pattern)
-  before the golden is committed. The transcription
+  *geometry*, never from the transcription's columns. The transcription
   itself is never edited (it is read-only), and the golden is not
   "regularised" against it — the scan measurement decides.
   Line-form rules the transcription attests and the printer implements:
@@ -401,9 +399,11 @@ M4 executes I/O-free programs.
   - Page furniture: the `LOC OCTAL CNTRL SYMBOLIC` column header prints
     once, on the first object page.
     **Amended 2026-08-10, chunks A2 to A8, and this closes the blank
-    count.** All eighteen object pages are measured against their scans.
-    Seventeen hold two blank lines after the head and listing page 8 holds
-    three, so no page holds the one the conversion held before the pass.
+    count.** The conversion held one blank line after every page head but
+    PDF p. 208, which M4-20 item (e) had already corrected to two. All
+    eighteen object pages are now measured against their scans. Seventeen
+    hold two blank lines after the head and listing page 8 holds three, so
+    no page holds the single blank the conversion held.
     The conversion carries all eighteen, corrected chunk by chunk under
     Jack's option B, and `tool/object_listing_target_source.dart` holds the
     map. `test/fixtures/90.05-object-listing-notes.md` holds the per-page
@@ -441,9 +441,11 @@ M4 executes I/O-free programs.
   columns and the evidence. It also refuted the head this project
   printed, and the golden listing carries the correction.
   **Amended again 2026-08-09, stage 2. The target is verified before any
-  code generates against it** (Jack's call, with M4-1's chunking). The
-  transcription supplies content, the scans supply geometry, and a scan
-  measurement decides a disagreement.
+  code generates against it** (Jack's call, with M4-1's chunking). This
+  replaces the order this entry first set, which rendered the listing and
+  verified that render, and so spent the eighteen-page pass again on every
+  wrong generator. The transcription supplies content, the scans supply
+  geometry, and a scan measurement decides a disagreement.
   The target file is `test/fixtures/90.05-object-listing.target`. It is
   scaffolding, not a second oracle. Jack's ruling of 2026-08-09: the
   golden stays the oracle of record, and the target buys resumability
@@ -458,8 +460,9 @@ M4 executes I/O-free programs.
   slots 1 and 2 and print 55 content lines, ending in slot 57. Listing
   page 8 prints the column header: it blanks slots 1 to 3, prints the
   header at 4 and a blank at 5, and prints 52, ending in slot 57.
-  Listing page 25 blanks slots 1 and 2 and prints 48, ending in slot 51,
-  because the listing ends there. Stage 2 therefore lays out an object
+  Listing page 25 blanks slots 1 and 2, prints 45 content lines, blanks
+  slot 48, and prints the three closing lines at 49 to 51, where the
+  listing ends. Stage 2 therefore lays out an object
   page by the frame and never by a line count. The frame has no
   exception: listing page 19, the one page whose transcription said 54
   content lines, prints 55, because the transcription had joined two
@@ -483,8 +486,8 @@ M4 executes I/O-free programs.
   Nothing in either manual states this behaviour. It is read off the
   artifact, which makes it an M4-8 geometry fact and not a language fact:
   it stays out of the definition. The line count is the visible
-  consequence, and it is what makes the frame hold on all thirteen
-  measured pages.
+  consequence, and it is what makes the frame hold on all eighteen
+  object pages.
 
 ## MOVE
 
