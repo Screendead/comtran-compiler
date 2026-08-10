@@ -69,7 +69,10 @@ const Map<int, int> _measuredBlanksAfterHead = <int, int>{
   17: 2,
   18: 2,
   19: 2,
+  20: 2,
   21: 2,
+  22: 2,
+  23: 2,
 };
 
 /// The 18 object pages of [sourceLines], every field at its measured
