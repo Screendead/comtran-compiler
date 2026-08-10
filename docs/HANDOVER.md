@@ -443,13 +443,11 @@ notes on the shape:
 - CI now also runs `dart run tool/build_web.dart`. The site is built and never
   committed, so before this nothing proved that it compiles.
 
-Two things still wait for Jack, and the order matters. Set the source first:
-Settings, then Pages, then Source set to GitHub Actions. The setting takes no
-workflow on master, and the push that merges the pull request then deploys on
-its first run. In the other order the first run fails at its last step, and
-the setting alone re-triggers nothing, so the deploy needs a third action. The
-site is at `https://screendead.github.io/comtran-compiler/` unless the domain
-question below is settled first.
+**The site is live. Done 2026-08-10.** Jack set the Pages source to GitHub
+Actions. Three deploys have run since the W1 merge and all three succeeded.
+The site is at `https://screendead.github.io/comtran-compiler/`, and that
+address serves both the page and the WebAssembly module. The domain ruling
+below moves it.
 
 **Verified from a subpath on 2026-08-10**, because a project-page URL carries
 one. Served under `/web/`, the WebAssembly module loads, both pages find their
@@ -462,10 +460,23 @@ Cloudflare Pages is the recorded escape hatch, if the bandwidth ever matters.
 Its free tier sets no bandwidth cap, and it reads a `_headers` file, which
 Pages does not. The artifact is the same, so the move costs about a day.
 
-One item is open. A custom domain costs about £10 each year, and a
-`github.io` address breaks if the account is ever renamed. M6, the Zenodo
-deposit under O5 and the report under O9 are the reasons to hold a stable URL.
-Jack has not decided.
+**The project takes a custom domain. Jack's call, 2026-08-10, and he sets it
+up himself.** The likely address is `comtran.screendead.com`. He gave no
+date. A custom domain costs about £10 each year, and a `github.io` address
+breaks if the account is ever renamed. M6, the Zenodo deposit under O5 and
+the report under O9 are the reasons to hold a stable URL.
+
+Two things wait on that work, and this project has done neither:
+
+- The subdomain needs a DNS record that points at `screendead.github.io`.
+- Find out whether an Actions deploy also needs a `CNAME` file in the
+  artifact. `tool/build_web.dart` writes `.nojekyll` and no `CNAME`. Nobody
+  here has tested a custom domain against a workflow deploy, so treat the
+  answer as unverified until the deploy proves it.
+
+One consequence binds this repository, and only after the move. Every link
+that names the old address becomes a redirect. Search the repository for
+`screendead.github.io` at that point, and change what it finds.
 
 ### The phases
 
