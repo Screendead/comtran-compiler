@@ -95,21 +95,24 @@ unit in the program before it fills any word. `docs/design/m4-codegen.md`
 M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
 holds the inverted order and the target file.
 
-Chunks A0 to A6 are done. Thirteen of the eighteen object pages are
-verified against their scans: listing pages 8 to 19 and 21. Chunk A7 takes
-the next three, listing pages 20, 22 and 23, PDF pp. 211, 213 and 214. One page costs
-about 250k tokens and 50 minutes, measured over the three of chunk A5,
-against 230k and 35 minutes over chunk A4 and 210k and 30 minutes over
-chunk A3; the 135k of the chunk A2 calibration page was a floor, because
-that page already had its grid recorded. The A5 figure was measured with
-six readers running at once, three of them chunk A6's, so it carries
-whatever the machine lost to contention.
+Chunks A0 to A7 are done. Sixteen of the eighteen object pages are
+verified against their scans: listing pages 8 to 23. Chunk A8 takes the
+last two, listing pages 24 and 25, PDF pp. 215 and 216.
+
+Chunk A7 read each page **twice**, by two readers who did not know of each
+other, and compared the two readings before either met the target. Ten
+readers ran at once, over the five pages of chunks A7 and A8 together, at
+2.45M tokens and 43 minutes of wall clock for the ten. One page therefore
+costs about 245k tokens, which matches the 250k measured over chunk A5,
+and reading it twice costs twice that and no more wall clock. The five
+pages returned zero disagreements between paired readers, over 261 content
+lines.
 
 Give each reader its own scratch directory: two of chunk A4's ran at
 once, shared one, and collided over a working file.
 `test/fixtures/90.05-object-listing-notes.md` records it, in the section
-on the chunk A4 flaw. Chunk A5 gave each of six concurrent readers its
-own directory and none collided.
+on the chunk A4 flaw. Chunks A5 to A8 gave every concurrent reader its own
+directory and none collided.
 
 What stage 2 must add, beyond the verb generators:
 
@@ -181,13 +184,19 @@ binds work outside the definition.
   19. Listing page 17 already held two, from a 2026-08-05 measurement, and
   its reader measured the same two without knowing that.
 
-  Five object pages are still unverified: listing pages 20 and 22 to 25.
-  The conversion holds one blank on each, so chunks A7 and A8 will probably
-  find two.
+  **Chunk A7 measured three more, on 2026-08-10, under the same option B.**
+  Listing pages 20, 22 and 23, PDF pp. 211, 213 and 214, each print two
+  blanks where the conversion held one, and the conversion now carries all
+  three. Their 165 content lines carry no content correction between them,
+  and each page was read twice.
+
+  Two object pages are still unverified: listing pages 24 and 25. The
+  conversion holds one blank on each, so chunk A8 will probably find two.
   The target carries the measured counts either way, so nothing waits on
-  an authorization. Twenty-four are authorized and
-  applied. The most recent three, on 2026-08-10, are chunk A6's two blank
-  counts and its one content correction; the three before those are chunk
+  an authorization. Twenty-seven are authorized and
+  applied. The most recent three, on 2026-08-10, are chunk A7's blank
+  counts; the three before those are chunk A6's two blank counts and its
+  one content correction, also 2026-08-10; the three before those are chunk
   A5's object-page blank counts, also 2026-08-10; the seven before those,
   on 2026-08-09, are the
   object-page blank counts above. The eleventh, also on 2026-08-09, corrected the

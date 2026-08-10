@@ -320,10 +320,11 @@ M4 executes I/O-free programs.
     tag from an address. Three sites carry it, all on listing page 20:
     `RIR 777777` at LOC 01240, `SIR 000001` at 01247, and `RFT 000001`
     at 01251. Their operand is one 18-bit sense-indicator mask, not a
-    tag and an address, and the print does not split it. This reading
-    comes from the transcription and not yet from a scan. The A3 to A8
-    pass over PDF p. 211 confirms or refutes it; until then the target
-    reproduces it and stage 2 does not depend on it.*
+    tag and an address, and the print does not split it.*
+    *Confirmed 2026-08-10, chunk A7. Two readers transcribed PDF p. 211
+    independently, neither knowing of the other, and both print all
+    three sites in this form. The rendering is a scan reading, and stage
+    2 may depend on it.*
   - The CNTRL column prints the word's 5-bit object-deck control group
     (M4-16). `USE`, `BSS`, and `ORG` lines print CNTRL 00001 with their
     control word in the OCTAL column (the `OP A` form of [J 90.03.03]);
@@ -386,7 +387,11 @@ M4 executes I/O-free programs.
     listing page 17 already held two from a 2026-08-05 measurement, which
     its reader confirmed without knowing of it. The five unverified
     pages still hold one, so a page's blank count remains a scan
-    measurement and never a read of the conversion. No blank line separates routines, the storage map
+    measurement and never a read of the conversion.
+    **Amended 2026-08-10, chunk A7.** Listing pages 20, 22 and 23 hold two,
+    and the conversion now carries all three, under the same option B. Two
+    pages are left unmeasured, 24 and 25, and both still hold one.
+    No blank line separates routines, the storage map
     from the code, or the pool from the end-of-text line. The
     listing closes with that line, one blank line,
     `THE LAST LOADER CONTROL CARD PUNCHED IS`, the `*CTEND` card, and
