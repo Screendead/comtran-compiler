@@ -116,6 +116,15 @@ M4 executes I/O-free programs.
   matched line for line, with the other columns still empty. B2 to B6
   then each match their own attested sites, LOC included.
 
+  **Amended 2026-08-10, chunk A8 (Jack's call). Phase A and Phase B
+  overlap.** The phases were written to run in order, and B1 started while
+  chunks A7 and A8 were still reading page scans. This costs nothing and
+  is worth recording as permitted rather than as a departure: B1 reads the
+  target's LOC column, and the five pages then unverified changed no LOC
+  value. The scan pass corrected blank counts and one wrapped instruction,
+  and neither touches an address. A Phase B chunk that depends on a column
+  the scan pass can still move must wait for it; B1 does not.
+
 ## Pipeline position and the text model
 
 - **M4-2. A separate phase over `SemanticResult`.** The code generator is
@@ -396,6 +405,26 @@ M4 executes I/O-free programs.
     listing closes with that line, one blank line,
     `THE LAST LOADER CONTROL CARD PUNCHED IS`, the `*CTEND` card, and
     `DONE`.
+    **Amended 2026-08-10, chunk A8, and this closes the blank count.**
+    Listing pages 24 and 25 hold two, and the conversion now carries both,
+    under the same option B. All eighteen object pages are measured:
+    seventeen hold two and listing page 8 holds three. No object page holds
+    the one the conversion held on every page before the pass. The count is
+    no longer a prediction, and `tool/object_listing_target_source.dart`
+    carries all eighteen.
+    **Amended 2026-08-10, chunk A8: the three closing lines do not print on
+    the object grid, and two print to the left of it.** Both readers of PDF
+    p. 216 measured the three, and they agree. Taking the LOC column as
+    print column 0, as the rest of this entry does,
+    `THE LAST LOADER CONTROL CARD PUNCHED IS` prints at column −6, the
+    `*CTEND` card prints at column 0, and `DONE` prints at column −5. The
+    loader writes these lines, not the compiler's listing formatter, which
+    is why they do not share its margin.
+    **The target cannot express a negative column, so it prints all three
+    at column 0 and is knowingly wrong on two of them.** Whatever stage
+    emits the trailer takes its geometry from this entry, never from the
+    target. Chunk B7 deletes the target; it must not first promote this
+    into the golden.
   **Amended 2026-08-09, stage 2. The page frame is pinned to the byte,**
   on the scans, field by field. Item (g)'s one geometry is unchanged;
   this adds precision to it. The column header prints `LOC` at 1,

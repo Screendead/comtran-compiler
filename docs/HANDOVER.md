@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-08-09. Audience: the next agent, or Jack. This file is the
+*Updated 2026-08-10. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -49,7 +49,8 @@ Terms that appear without expansion:
 | M3 — the semantic layer | Done 2026-08-05 (stages 1–2 2026-08-04; stage 3, the listing extension, 2026-08-05) | `docs/design/m3-data.md`, `lib/src/data/` |
 | M4 decision walk (M4-1 to M4-21) | Done 2026-08-05 | `docs/design/m4-codegen.md` |
 | M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
-| M4 stages 2–4, M5, M6 | Not started | — |
+| M4 stage 2 — core-verb text | Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B under way at chunk B1 | `test/fixtures/90.05-object-listing.target`, `test/fixtures/90.05-object-listing-notes.md` |
+| M4 stages 3–4, M5, M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); hardens in M4 stage 4 | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -61,7 +62,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1021 Dart tests pass, measured 2026-08-10, and 154 extension
+Test baseline: 1022 Dart tests pass, measured 2026-08-10, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -95,11 +96,11 @@ unit in the program before it fills any word. `docs/design/m4-codegen.md`
 M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
 holds the inverted order and the target file.
 
-Chunks A0 to A7 are done. Sixteen of the eighteen object pages are
-verified against their scans: listing pages 8 to 23. Chunk A8 takes the
-last two, listing pages 24 and 25, PDF pp. 215 and 216.
+**Phase A is complete.** Chunks A0 to A8 are done, and all eighteen object
+pages are verified against their scans, listing pages 8 to 25. The next
+task is Phase B, and B1 is under way.
 
-Chunk A7 read each page **twice**, by two readers who did not know of each
+Chunks A7 and A8 read each page **twice**, by two readers who did not know of each
 other, and compared the two readings before either met the target. Ten
 readers ran at once, over the five pages of chunks A7 and A8 together, at
 2.45M tokens and 43 minutes of wall clock for the ten. One page therefore
@@ -107,6 +108,15 @@ costs about 245k tokens, which matches the 250k measured over chunk A5,
 and reading it twice costs twice that and no more wall clock. The five
 pages returned zero disagreements between paired readers, over 261 content
 lines.
+
+**With every page verified, the location column was walked end to end**, a
+check no page reader could run. The three location counters hold 1021 words
+with no gap: counter 0 runs 00000 to 01620 for 913 words, counter 1 runs
+01621 to 01771 for 105, and counter 2 runs 01666 to 01670 for 3, written
+over the top of the `BL)` block. Counter 1's 105 words are exactly
+`RS)` 30 plus `TS)` 7 plus `BL)` 3 plus `PI)` 3 plus `CP)` 62.
+`test/fixtures/90.05-object-listing-notes.md` holds the walk and the four
+print forms it has to model.
 
 Give each reader its own scratch directory: two of chunk A4's ran at
 once, shared one, and collided over a working file.
@@ -190,12 +200,27 @@ binds work outside the definition.
   three. Their 165 content lines carry no content correction between them,
   and each page was read twice.
 
-  Two object pages are still unverified: listing pages 24 and 25. The
-  conversion holds one blank on each, so chunk A8 will probably find two.
-  The target carries the measured counts either way, so nothing waits on
-  an authorization. Twenty-seven are authorized and
-  applied. The most recent three, on 2026-08-10, are chunk A7's blank
-  counts; the three before those are chunk A6's two blank counts and its
+  **Chunk A8 closes the pass, on 2026-08-10, under the same option B.**
+  Listing pages 24 and 25, PDF pp. 215 and 216, each print two blanks where
+  the conversion held one, and the conversion now carries both. Their 103
+  content lines carry no content correction. All eighteen object pages are
+  measured, and the conversion holds no page at the one blank it held on
+  every page before the pass.
+
+  Chunk A8 also measured the three closing lines of the listing, which no
+  earlier page could carry.
+  `THE LAST LOADER CONTROL CARD PUNCHED IS` prints six columns left of the
+  location column and `DONE` prints five columns left of it, while the
+  `*CTEND` card prints at it. **This is not an erratum candidate.** The
+  conversion renders all three at the location column, and its left margins
+  are documented non-facts (M1-15), so a flattened offset is nothing to
+  correct. `docs/design/m4-codegen.md` M4-8 as amended carries the measured
+  columns, and warns that the target renders two of the three wrongly
+  because its grid cannot express a negative column.
+
+  Twenty-nine corrections are authorized and
+  applied. The most recent two, on 2026-08-10, are chunk A8's blank counts;
+  the three before those are chunk A7's blank counts, also 2026-08-10; the three before those are chunk A6's two blank counts and its
   one content correction, also 2026-08-10; the three before those are chunk
   A5's object-page blank counts, also 2026-08-10; the seven before those,
   on 2026-08-09, are the
