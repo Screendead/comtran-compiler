@@ -66,7 +66,33 @@ main {
   color: var(--ink-faint);
 }
 
-header.runner { border-bottom: 1px solid var(--rule); }
+header.runner {
+  border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+}
+
+.runner a {
+  color: var(--ink-faint);
+  text-decoration: none;
+}
+
+.runner a:hover { color: var(--ink); }
+
+.runner .wordmark { color: var(--ink); }
+
+.runner nav {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+/* The page you are on, marked in the header rather than in the nav's colour
+   alone, so it survives a monochrome print and a colour-blind reader. */
+.runner nav a[aria-current="page"] {
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 2px;
+}
 
 footer.runner {
   border-top: 1px solid var(--rule);
@@ -596,6 +622,48 @@ button:focus-visible {
 
 .js .gloss-host:hover .gloss-note,
 .js .gloss[aria-expanded="true"] + .gloss-note { display: block; }
+
+/* ---- Scan evidence ---- */
+
+/* Evidence is the point of the page, so a crop is allowed wider than the
+   measure the prose reads at. */
+figure {
+  margin: 22px 0;
+  width: min(940px, calc(100vw - 64px));
+}
+
+/* One crop is a whole listing line, far wider than any column. It keeps its
+   own pixels and scrolls, rather than shrinking until it cannot be read. */
+.wide-crop { overflow-x: auto; }
+
+.wide-crop img { max-width: none; }
+
+/* A crop is evidence, so it gets the tone of card stock behind it rather
+   than white, and it never scales past its own pixels. */
+figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: var(--panel);
+  border: 1px solid var(--panel-rule);
+  padding: 8px;
+}
+
+figcaption {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin-top: 8px;
+}
+
+.prose h3 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  margin: 30px 0 8px;
+}
 
 /* ---- What comes next ---- */
 

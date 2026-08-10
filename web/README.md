@@ -31,9 +31,23 @@ browser refuses to fetch one from a `file://` URL. Any static server does.
 
 | File | What it is |
 |---|---|
-| `index.html`, `styles.css`, `app.js` | The page. Committed. |
+| `index.html` | The compiler page. Committed. |
+| `reading-the-scans.html` | How a page scan becomes text. Static; it loads no compiler. Committed. |
+| `styles.css`, `app.js` | Shared style, and the compiler page's behaviour. Committed. |
+| `images/` | Scan crops used as evidence. Committed. |
 | `main.dart` | The browser entry point. Committed. |
 | `main.wasm`, `main.mjs`, `main.support.js`, `sample.js` | Build output. Not committed. |
+
+### Where the crops came from
+
+`images/` holds four crops copied from the chunk A4 review record, which is
+orphan-committed on branch `review/2026-08-09-m4s2-chunk-a4`. That record's
+`tools/crops.py` cut them from the page scans in `comtran-manuals/`.
+
+They are copied rather than regenerated for two reasons. They are the exact
+images the reviewer saw when the ruling was made, which is what makes them
+evidence. And regenerating them would put Python and an imaging library into
+the site build, which nothing else there needs.
 
 `app.js` holds no compiler knowledge. It sends the typed text to the
 compiled compiler and prints what comes back, so a later milestone fills
