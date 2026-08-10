@@ -515,6 +515,15 @@ function deckChanged() {
 }
 
 el('download').addEventListener('click', () => {
+  // The compiler encodes the file, so there is nothing to save until it is
+  // there. Without this the click throws and the reader is told nothing.
+  if (!ready) {
+    say(
+      'The compiler has not loaded yet, and it is what encodes the deck ' +
+        'file. Try again in a moment.',
+    );
+    return;
+  }
   const bytes = globalThis.comtranCanon(source.value);
   if (bytes === null || bytes === undefined) {
     say(
