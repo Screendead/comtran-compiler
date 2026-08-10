@@ -303,9 +303,9 @@ Two consequences to expect:
 
 **Scope.** STE governs repo prose documents only. It does not govern assistant
 responses; those follow the Density rules below. Exempt: verbatim manual quotes
-and citations, code, code comments, commit messages, and the two front-door
-documents, `README.md` and `CONTRIBUTING.md`. Never rewrite exempt text to fit
-STE — a rewritten transcription breaks ground truth.
+and citations, code, code comments, commit messages, the two front-door
+documents, `README.md` and `CONTRIBUTING.md`, and the website copy. Never
+rewrite exempt text to fit STE — a rewritten transcription breaks ground truth.
 
 The front-door exemption is Jack's call, made 2026-08-07. Those two documents
 have one job: to bring in a reader who does not yet know what COMTRAN was or
@@ -313,6 +313,11 @@ why the project exists. STE's ban on metaphor and its one-word-one-meaning rule
 serve a maintenance manual, not a first page, and the flatness they produce
 costs a reader this project needs. The exemption covers those two files by
 name. Every other document under `docs/` follows STE.
+
+The website exemption is Jack's call, made 2026-08-10: the site copy "has to
+have a whole different register". `docs/design/web-copy.md` holds that register
+and the rules that carry it, and the site follows that record in place of this
+section. The record itself is a repository document, so STE governs it.
 
 Within that scope:
 

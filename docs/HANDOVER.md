@@ -14,6 +14,7 @@ home.
 |---|---|---|
 | `M0` to `M6` | A compiler milestone | The roadmap below |
 | `T1` to `T4` | A parallel tooling task | The tooling track below |
+| `W1` to `W4` | A phase of the public website | The web track below |
 | `Dn` and `Dn.n` | A binding design decision record | `docs/design/decisions.md` |
 | `M1-n`, `M2-n` | A design entry inside one milestone's note | `docs/design/m1-front-end.md`, `docs/design/m2-parser.md` |
 | `ED-n` | An emulator design decision | `docs/design/emulator.md` |
@@ -54,6 +55,7 @@ Terms that appear without expansion:
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
 | T3 MCP server and skill | Done 2026-08-03 (PR #8) | `bin/deckmcp.dart`, `.claude/skills/comtran-decks/` |
 | T4 deck syntax highlighting | Done 2026-08-03 (PR #14) | `editors/vscode-punchcard/` |
+| W1 to W4, the public website | Recorded 2026-08-10; not started, and not approved | The web track below |
 
 The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
@@ -322,6 +324,158 @@ M2 to M6.
     every card with the compiler's deck-splitting rules. The field ruler and the
     status line follow the current card's division.
   - Known limit: a literal that continues across cards highlights per line.
+
+## Parallel web track
+
+*Recorded 2026-08-10, from a requirement Jack stated. The phases, the cuts and
+the risk below are recommendations. Jack has approved none of them. W1 gets a
+design record in `docs/design/` when it starts; this section is the roadmap
+entry only.*
+
+The web track builds a public website. Jack asked for three things: a front
+page that compiles a program and shows how the compiler works, a tutorial page,
+and a documents page that holds the language reference, the manual pages and
+their scans. Claude Design does the interface design.
+
+### What the track is for
+
+The site is the reviewer access this project cannot supply any other way.
+`docs/opportunities.md` O7 wants an independent domain expert, and it names
+its own blocker: something readable for a reviewer to react to. O4 wants one
+reproducibility entry point. A browser that compiles the 1962 sample and prints
+the 1962 listing is the strongest form of both. **It is not an adoption play.
+R3 still stands: count no stars, forks or visitors.**
+
+### Why the track is cheap
+
+The compiler already runs in a browser. Only three of the 63 files in
+`lib/src/` import `dart:io` — `cards/deck_files.dart` and the two `mcp/` files
+— and the compile path touches none of them. A probe on 2026-08-10 compiled the
+front end, the parser, the semantic layer and the listing to 250 KB of
+JavaScript in 1.08 seconds. That bundle read the 90.05 mirror text and printed
+the listing, and its 21,865 bytes are identical to
+`test/goldens/90.05-payroll.listing`. The site needs no server and no sandbox.
+
+The probe imported the `lib/src/` libraries one by one. `lib/comtran.dart`
+exports `deck_files.dart`, so a web entrypoint cannot use the barrel. W1 either
+imports the libraries directly or splits the barrel in two.
+
+`editors/vscode-punchcard/media/punchcard.js` is already a browser punch grid,
+in 793 lines with 11 references to the editor API. W1 ports it. The column
+table `editors/vscode-punchcard/src/columns.ts` moves with it.
+
+### The rule that keeps it cheap
+
+**The site holds no compiler knowledge.** It calls the compiled compiler, and
+it prints what the compiler returns. Each milestone then upgrades the site with
+no website work: M4 stage 2 fills the object-code panel, and M6 fills the run
+output. A site that knows the stages itself pays for every milestone twice.
+
+Two consequences bind the work:
+
+- A structured emit surface, such as source spans in JSON, is a compiler
+  change. It needs an amendment to `docs/design/emit-stages.md`, and it must
+  land in the milestone that also lands the site code that reads it. Section 11
+  of `CLAUDE.md` bans it otherwise. W1 reads the present text dumps.
+- The site takes the language reference from `docs/definition/`, which
+  `tool/generate_definition_mirror.dart` generates. It never holds a third
+  copy. The `.ct` mirror problem is the precedent.
+
+**The site lives in this repository, under `web/`. Jack's call, 2026-08-10.**
+The extension already brought npm into CI, so the precedent holds, and the
+site's content is generated from this repository.
+
+### The copy
+
+The site copy does not follow Simplified Technical English.
+`docs/design/web-copy.md` holds its register and its rules, and section 13 of
+`CLAUDE.md` records the exemption. Two facts from that record bind the whole
+track: where simple and precise collide, the site chooses simple and links the
+repository artifact; and no simplification ever hides the difference between
+what a manual states and what this project decided.
+
+### Hosting
+
+**GitHub Pages, from a GitHub Actions build. Jack's call, 2026-08-10.** It
+costs nothing, and it cannot cost anything: Pages has no paid tier, so a site
+above a limit draws an email from GitHub and never a charge. The published site
+is about 75 MB against the 1 GB limit. A visitor who compiles a program and
+reads a few manual pages pulls under 1 MB. The measurements behind that: the
+compiler bundle is 250 KB, and the 345 page scans average 171 KB each, with the
+largest at 323 KB.
+
+**The build deploys the site. Nobody commits it.** Two reasons hold that rule.
+A branch deploy copies 58 MB of page scans into git beside the copies already
+there. And the site's content is generated, so the Actions build runs
+`dart compile js` and `tool/generate_definition_mirror.dart`, and the site
+cannot drift from the compiler. The `.ct` mirrors already follow this rule. The
+build also needs `.nojekyll`, or Jekyll mishandles the scans.
+
+Cloudflare Pages is the recorded escape hatch, if the bandwidth ever matters.
+Its free tier sets no bandwidth cap, and it reads a `_headers` file, which
+Pages does not. The artifact is the same, so the move costs about a day.
+
+One item is open. A custom domain costs about £10 each year, and a
+`github.io` address breaks if the account is ever renamed. M6, the Zenodo
+deposit under O5 and the report under O9 are the reasons to hold a stable URL.
+Jack has not decided.
+
+### The phases
+
+**W1 — the compiler in the browser.** Blocked on nothing. It delivers:
+
+- the web entrypoint and the JavaScript bundle;
+- one card editor, in two views: the deck text, and the punch grid of the
+  selected card;
+- the listing panel, in the measured 1962 geometry;
+- the 90.05 sample on one click;
+- the diff against `test/goldens/90.05-payroll.listing`, which shows that the
+  browser output and the 1962 print agree byte for byte;
+- a deck download as `.ctd`, and a share link that carries the deck;
+- **the limits, on the page.** `docs/design/web-copy.md` §5 names the three
+  statements. This is a requirement of W1, not an addition to it.
+
+**W2 — the sources.** The documents page. It holds the language reference, both
+manual conversions, both source PDFs (17 MB), and each of the 345 page scans
+beside its transcription (58 MB; load one page at a time).
+
+**W3 — the stages.** The step-through. The six `--emit-*` dumps become panels,
+and the reader selects a statement to mark its part in each one. The join key
+is the statement number `n,cc` ([J 02.02.01]): the 1962 compiler numbered the
+statements itself and keyed its diagnostics to them, so the site uses the
+artifact's own key and invents none. This phase needs the structured emit
+surface, under the rule above.
+
+**W4 — teach and run.** The tutorial page, with the W1 editor and no second
+editor. The run button waits for M5 and M6, because no program runs before
+them.
+
+### Later, and not scheduled
+
+Three entries in `docs/opportunities.md` have the site as their natural home.
+Each stays in that file, and none is promised here: the evidence chain from a
+generated instruction to its page scan (O8), the archive of decided questions,
+built from the review records that already exist as HTML (O11), and the
+evidence tier of a rule, shown where the compiler acts on it (O3).
+
+### What the track cuts, and why
+
+| Cut | Reason |
+|---|---|
+| The run button, before M5 and M6 | Nothing executes yet. Do not build a stub. |
+| The tutorial, before W4 | It is writing, and it is the one part no artifact in this repository can generate. |
+| A second editor for the tutorial page | Two editors mean two column rules, and two places to get a card column wrong. |
+| The choice between the terminal and the punchcard | They are not alternatives. The punch grid shows one input card; the terminal holds the deck text and the compiler output. |
+
+### The risk
+
+The site becomes the most-read document in the project, and its readers never
+open this file. A confident site that hides the limits oversells the
+reconstruction, and this project's standing rests on doing the opposite. Three
+facts go on the site itself, in the reader's way: the reconstruction rests on
+one scanned copy of each manual and one reader (O12); every §8.5 resolution is
+a labeled judgment call, not a fact; and every per-message severity value is
+this project's own decision (Open Question 65).
 
 ## Pointers
 
