@@ -94,7 +94,7 @@ one chunk and not the stage. Phase A builds and verifies the target
 listing before any generator runs. Phase B generates, and it sizes every
 unit in the program before it fills any word. `docs/design/m4-codegen.md`
 M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
-holds the inverted order and the target file.
+holds the verify-first order and the target file.
 
 **Phase A is complete.** Chunks A0 to A8 are done, and all eighteen object
 pages are verified against their scans, listing pages 8 to 25. The next
