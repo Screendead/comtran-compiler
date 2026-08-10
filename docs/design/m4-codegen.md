@@ -442,11 +442,13 @@ M4 executes I/O-free programs.
   columns and the evidence. It also refuted the head this project
   printed, and the golden listing carries the correction.
   **Amended again 2026-08-09, stage 2. The target is verified before any
-  code generates against it** (Jack's call, with M4-1's chunking). This
-  replaces the order this entry first set, which rendered the listing and
-  verified that render, and so spent the eighteen-page pass again on every
-  wrong generator. The transcription supplies content, the scans supply
-  geometry, and a scan measurement decides a disagreement.
+  code generates against it** (Jack's call, with M4-1's chunking). The
+  verification is blind in the M3-22 pattern: a reader transcribes the
+  scan without the target's content. This replaces the order this entry
+  first set, which rendered the listing and verified that render, and so
+  spent the page pass again on every wrong generator. The transcription
+  supplies content, the scans supply geometry, and a scan measurement
+  decides a disagreement.
   The target file is `test/fixtures/90.05-object-listing.target`. It is
   scaffolding, not a second oracle. Jack's ruling of 2026-08-09: the
   golden stays the oracle of record, and the target buys resumability
@@ -463,7 +465,8 @@ M4 executes I/O-free programs.
   header at 4 and a blank at 5, and prints 52, ending in slot 57.
   Listing page 25 blanks slots 1 and 2, prints 45 content lines, blanks
   slot 48, and prints the three closing lines at 49 to 51, where the
-  listing ends. Stage 2 therefore lays out an object
+  listing ends. The notes table counts those three lines as content and
+  so gives that page 48. Stage 2 therefore lays out an object
   page by the frame and never by a line count. The frame has no
   exception: listing page 19, the one page whose transcription said 54
   content lines, prints 55, because the transcription had joined two
@@ -1000,7 +1003,8 @@ takes more than one pull request. M4-1 holds the chunks and the reason.*
 - Stage 1: the storage-map region of the 1962 listing, byte for byte,
   scan-checked before commit.
 - Stage 2: the full listing diff, PDF pp. 198–216, byte for byte, after
-  the M3-22-pattern blind scan verification; the 90.05 job deck compiles
+  the M3-22-pattern blind scan verification of pp. 199–216 (p. 198 is
+  stage 3's, per M4-1); the 90.05 job deck compiles
   clean in default mode, and `--pedantic` adds only the three 943 notes
   (ours, non-historical — the sample's own doubtful blank-moves, D11.4
   as amended) plus any new 946/947 sites the deck triggers (it triggers
