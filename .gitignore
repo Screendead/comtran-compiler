@@ -5,6 +5,14 @@ build/
 # Node
 node_modules/
 
+# The website build (tool/build_web.dart). The build deploys the site;
+# nobody commits it.
+/web/main.mjs
+/web/main.support.js
+/web/main.wasm
+/web/main.wasm.map
+/web/sample.js
+
 # macOS
 .DS_Store
 

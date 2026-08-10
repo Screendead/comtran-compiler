@@ -35,7 +35,7 @@ The Dart SDK constraint is `^3.12.0`. Run these from the repository root:
 
 ```sh
 dart pub get
-dart format --output=none --set-exit-if-changed lib bin test tool
+dart format --output=none --set-exit-if-changed lib bin test tool web
 dart analyze --fatal-infos
 dart test
 dart run comtran:deckconv check .
@@ -46,7 +46,7 @@ CI runs the same gate on every pull request. `.github/workflows/` is the
 authority on what CI runs. Two notes:
 
 - `--fatal-infos` is strict. One info-level lint or one unformatted file fails
-  the build. The gate covers `lib`, `bin`, `test`, and `tool`.
+  the build. The gate covers `lib`, `bin`, `test`, `tool`, and `web`.
 - The golden listing test (`test/listing_test.dart` against
   `test/goldens/90.05-payroll.listing`) is the acceptance oracle for the front
   end. It compares byte for byte.
