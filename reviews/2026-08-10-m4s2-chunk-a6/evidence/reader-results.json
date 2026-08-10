@@ -1,0 +1,585 @@
+{
+  "pages": [
+    {
+      "pdfPage": 208,
+      "scratchDir": "/private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c9073b01-107a-4886-92e7-76ee79dd7c35/scratchpad/a6/page-208",
+      "transcriptionPath": "/private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c9073b01-107a-4886-92e7-76ee79dd7c35/scratchpad/a6/page-208/transcription.txt",
+      "reportPath": "/private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c9073b01-107a-4886-92e7-76ee79dd7c35/scratchpad/a6/page-208/report.md",
+      "blankSlotsBeforeFirstContentLine": 2,
+      "contentLineCount": 55,
+      "lastContentLineSlot": 57,
+      "interiorBlankSlots": [],
+      "locationRange": "00772 to 01060",
+      "grid": {
+        "charAdvancePx": 9.28245,
+        "originX": 442.198,
+        "deskewDegrees": 1.078,
+        "linePitchPx": 15.2096,
+        "centroidCount": 1884,
+        "residualRmsPx": 0.552,
+        "baselineUsed": "print columns 0 to 90, the full printed width, including the page head's PAGE 17 at columns 83-90; the twelve-digit machine-word field (columns 7-21) was deliberately NOT used as the baseline"
+      },
+      "fieldColumns": {
+        "LOC": 0,
+        "OCTAL": 7,
+        "CNTRL": 25,
+        "offset": 40,
+        "mnemonic": 49,
+        "operand": 56
+      },
+      "doubtfulGlyphs": [
+        {
+          "where": "LOC 00772 (slot 03), column 56 - first character of the operand, giving 8L)3,2 or BL)3,2",
+          "chosen": "8",
+          "alternative": "B",
+          "evidence": "Three measurements against same-page training sets that are semantically certain (B from PUBLICATIONS and NUMBER; 8 from shift counts whose value its own octal address confirms, from +88, and from 10/18/61). (1) Leave-one-out centroid-aligned template correlation: vs B 0.773, vs 8 0.885, below every known B's own B-score of 0.857-0.955. (2) Column-profile left-lobe/right-lobe peak ratio: five known B glyphs 1.02-1.49, 23 known 8 glyphs 0.80-0.99, target 0.78. (3) Fisher discriminant on the patch binarised at each glyph's own half-maximum: B population +0.88..+3.43, 8 population -4.20..-1.64, target -2.26. BUT all three key on the left stroke, and this glyph's upper-left printed weakly (stem one sample wide in the top half against four in both reference shapes), so a B with a thin stem would land in the 8 population by construction. The only dropout-immune evidence is the lower bowl, which printed cleanly: its left edge bulges outward by one sample (about 0.5 px) at rows 12-14, the 8 pattern, where all five reference B glyphs hold a straight edge. That half-pixel feature favours 8 but does not settle it.",
+          "settled": false
+        },
+        {
+          "where": "LOC 01030 (slot 33), column 7 - first digit of the octal machine word",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-stroke ink ratio 0.080 against a page-wide median of 0.994 over 740 zeros (5th percentile 0.752), so the right stroke of the 0 did not print. Shape alone prefers C: a Fisher discriminant trained on this page's 22 real C glyphs against its column-7 zeros puts real C at +0.281..+0.430 and column-7 zeros at -0.482..-0.061, and this cell projects to +0.309. The octal machine-word field holds digits only, and the line's mnemonic COM is +0760, which fixes the first digit as 0.",
+          "settled": true
+        },
+        {
+          "where": "LOC 01027 (slot 32), column 7 - first digit of the octal machine word",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-stroke ink ratio 0.170 against a median of 0.994. Fisher projection +0.213, between the C population (+0.281..+0.430) and the column-7 zero population (-0.482..-0.061) but nearer C. The octal field holds digits only, and the mnemonic ANS is +0320, which fixes the first digit as 0.",
+          "settled": true
+        },
+        {
+          "where": "LOC 01041 (slot 42), column 26 - second digit of CNTRL",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-stroke ink ratio 0.312 against a median of 0.994. CNTRL is a five-digit field that takes only 10001, 10000 or 10010 on this page, so digit 2 is 0.",
+          "settled": true
+        },
+        {
+          "where": "LOC 01025 (slot 30), column 26 - second digit of CNTRL",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-stroke ink ratio 0.423 against a median of 0.994. Same CNTRL field constraint.",
+          "settled": true
+        },
+        {
+          "where": "LOC 01056 (slot 55), column 26 - second digit of CNTRL",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-stroke ink ratio 0.480 against a median of 0.994. Same CNTRL field constraint.",
+          "settled": true
+        },
+        {
+          "where": "page head (slot 00), column 6 - second character of the date 10/18/61",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-stroke ink ratio 0.389 against a median of 0.994. The field is a date printed MM/DD/YY with the slashes measured at columns 7 and 10, so column 6 is the second month digit; 1C is not a month.",
+          "settled": true
+        },
+        {
+          "where": "LOC 01060 (slot 57), column 0 - first digit of LOC",
+          "chosen": "0",
+          "alternative": ") or an incomplete digit",
+          "evidence": "This zero lost its LEFT stroke instead of its right: left/right ink ratio 2.83 where the page median is 0.994. LOC is a five-digit field, the previous line is 01057, and the offset column reads +94, so the value is 01060.",
+          "settled": true
+        }
+      ],
+      "specksRejected": [
+        {
+          "where": "slot 1 (the first empty slot), image rows 210-211 across the printed x-range",
+          "measurement": "5 dark pixels at threshold 180 and 20 at threshold 200; zero at thresholds 100 and 140. The same two rows carry 78 and 102 dark pixels in the right page margin, and they are contiguous with the dashed form rule whose core sits at row 212.5 and whose spacing places it in the 32-rule comb at 30.4 px pitch.",
+          "fallbackReading": "a content line printing in slot 1, which would have made the head-to-first-line gap one slot instead of three"
+        },
+        {
+          "where": "slot 57 (LOC 01060), 28 cells in columns 44-89",
+          "measurement": "each cell shows 4-7 dark pixels, all of it in image rows 1063-1064. That is the bottom dashed rule, which sits at rows 1061-1062 in the left margin and 1064-1065 in the right, so it enters this line's 13-row band only on the right-hand half of the page. Dash run length there is 4-6 px, matching every other dashed rule on the page.",
+          "fallbackReading": "trailing characters printed after LGR  24 in columns 44-89"
+        },
+        {
+          "where": "left page margin at y 764 and y 769, and right page margin at y 416",
+          "measurement": "each appears in one margin only and so fails the two-margin rule test; the left-hand marks are small page-edge numerals and the right-hand mark is their show-through from the reverse of the leaf. All lie outside the listing's printed x-range of 442 to 1287.",
+          "fallbackReading": "three further form rules, which would have made the rule comb 35 instead of 32 and corrupted the measured 30.4 px rule pitch"
+        }
+      ],
+      "selfChecks": [
+        {
+          "check": "A line that prints its machine word twice must agree digit for digit",
+          "result": "not applicable",
+          "detail": "No line on this page prints its machine word twice. Every content line prints one twelve-digit octal word, at columns 7-21 only."
+        },
+        {
+          "check": "Location sequence runs unbroken with correct octal carries",
+          "result": "pass",
+          "detail": "55 values from 00772 to 01060, each one greater than the last in octal. Carries at 00777->01000, 01007->01010, 01017->01020, 01027->01030, 01037->01040, 01047->01050 and 01057->01060 are all correct."
+        },
+        {
+          "check": "Offset sequence runs unbroken",
+          "result": "pass",
+          "detail": "+40 to +94, each one greater than the last, 55 values, matching the 55 location values."
+        },
+        {
+          "check": "Location agrees with offset",
+          "result": "pass",
+          "detail": "Location minus offset is the constant 00722 on all 55 lines."
+        },
+        {
+          "check": "Each mnemonic agrees with the opcode prefix of its own octal word",
+          "result": "pass",
+          "detail": "0 mismatches over 55 lines. A leading 4 is the sign bit: CAL 4500, ANA 4320, ORS 4602, LGL 4763, LGR 4765, RQL 4773 are the negative opcodes; ANS 0320, LDQ 0560, SLW 0602, COM 0760, ARS 0771, LAC 0535 are the positive ones; the single TXL prints prefix digit 7, which is -3."
+        },
+        {
+          "check": "Shift count in the operand equals the address field of the same word",
+          "result": "pass",
+          "detail": "19 shift instructions, 0 mismatches: ARS 6 / 00006, ARS 18 / 00022, LGL 6 / 00006, LGL 18 / 00022, LGL 24 / 00030, LGL 30 / 00036, LGR 24 / 00030, RQL 0 / 00000, RQL 6 / 00006, RQL 12 / 00014, RQL 18 / 00022."
+        },
+        {
+          "check": "An address that names a label resolves to that label's own location",
+          "result": "pass",
+          "detail": "The six CP)+n operands (+16, +17, +25 twice, +35, +36) carry addresses 01714, 01715, 01725, 01725, 01737, 01740. Subtracting n converted from decimal to octal gives the single base 01674 in all six cases. Data-name operands such as 3)EMPLOYEE.NUMBER point at storage not printed on this page and cannot be resolved here."
+        },
+        {
+          "check": "A tag agrees with the word that carries it",
+          "result": "pass",
+          "detail": "The tag digit at column 15 is 2 on exactly the 10 lines whose operand ends ,2 and on the TXL line whose operand is SYS)294,2,0; it is 0 on the other 44. 0 mismatches."
+        },
+        {
+          "check": "A decrement agrees with the word that carries it",
+          "result": "pass",
+          "detail": "The one line carrying a decrement, LOC 00773, prints decrement 00000 and operand SYS)294,2,0, whose third subfield is 0."
+        },
+        {
+          "check": "The same operand always carries the same address",
+          "result": "pass",
+          "detail": "No operand string on this page maps to two different address fields. Consistent pairs include 3)EMPLOYEE.NUMBER 00006 with 3)EMPLOYEE.NUMBER+1 00007, and 3)EMPLOYEE 00020 with 3)EMPLOYEE+1 00021."
+        },
+        {
+          "check": "Every octal machine word holds twelve digits",
+          "result": "pass",
+          "detail": "All 55 words hold exactly 12 digits: 54 in a 4-2-1-5 layout at columns 7-10, 12-13, 15, 17-21, and the one TXL in a 1-5-1-5 layout at columns 7, 9-13, 15, 17-21."
+        },
+        {
+          "check": "CNTRL is a function of the operand qualifier",
+          "result": "pass",
+          "detail": "Qualifier 2) gives 10000; qualifiers 3), 4), CP) and 8L) give 10001; SYS) gives 10010; a bare literal operand gives 10000. No exceptions over 55 lines."
+        },
+        {
+          "check": "Cell occupancy agrees with the transcription",
+          "result": "pass",
+          "detail": "After masking the 32 form rules, a sweep of all 56 lines by 95 columns found zero disagreements: no column transcribed as blank carries ink, and no column transcribed as a character lacks it."
+        },
+        {
+          "check": "Digit identity cross-check by template classification",
+          "result": "pass",
+          "detail": "A digit-only classifier over the 1320 digit cells disagreed with the reading on 27 cells, all of them 2/7, 5/4, 3/1 or 0/6/8/3 confusions. Every one of the 27 is independently fixed by the location sequence, the offset sequence, the mnemonic-to-opcode map, the shift-count identity, the CP)+n base identity, or a repeated data address. None changed a reading."
+        }
+      ],
+      "unreadCells": [],
+      "methodNotes": "Conventions. originX 442.198 px is the left edge of print column 0, and column 0 is this page's leftmost printed column - the head's DATE and the body's LOC field both start there. Absolute printer column numbers cannot be recovered from a photographic reproduction. Deskew of 1.078 deg means the content descends to the right and was corrected by rotating that much counter-clockwise about the point (800, 640) in the original image; the reading strips and every cell measurement come from that deskewed image, never from the rule-suppressed copy.\n\nSlot frame. Slot 0 is the head. The 55 body lines occupy slots 3 to 57 with no interior gap: 56 y-clusters, inter-cluster gaps 14.5-15.7 px, never near the 30.4 px that a skipped slot would give. The head sits 3.046 pitches above the first body line, which is within the 0.830 px worst-case line residual of exactly 3; measuring on cap-top instead of centroid gives the same 3.046.\n\nForm rules. 32 rules from y 120 to y 1064 at 30.4 px pitch, one every two text slots. Found by the margin test: ink in the left margin (x 150-420) AND the right margin (x 1330-1620). A run-length filter cannot work here - dashed rules have a longest run of 4-7 px while the three solid rules at y 182, 273 and 912 reach 328, 546 and 348 px, so any single threshold misses one kind. The rules are not exactly parallel to the text: rule pitch is 30.361 px in the left margin and 30.516 px in the right, so a rule 2.1 px below its neighbouring text line at the left is 2.7 px above it at the right. The mask was therefore built per rule, interpolated between its measured centre at x=285 and at x=1475, thickened by +/-2 px; it covers 12.5 per cent of the page.\n\nOctal sub-layouts. The 12-digit word prints 4-2-1-5 on 54 lines (columns 7-10, 12-13, 15, 17-21). The one TXL line, LOC 00773, prints 1-5-1-5: prefix digit at column 7, decrement at columns 9-13, tag at column 15, address at columns 17-21. Column 11 carries ink on that line and on no other, which is what pins the decrement to 9-13 and so the prefix to column 7.\n\nFourth field. No line on this page prints a label; all 55 print a +n offset with the plus in column 40 and the digits in 41-42. Columns 30-39 and 43-48 are blank on every content line. Justification cannot be determined from this page: all 55 offsets are two digits (+40 to +94), so there is no one-digit or three-digit case to separate left- from right-justification.\n\nTwo lines print no operand at all: LOC 01010 and LOC 01030, both mnemonic COM.\n\nPage head fields: DATE at 0, 10/18/61 at 5, TIME at 15, 2.45 at 21, ACCOUNT at 27 (with no value after it), ID. at 55, CT at 59, PUBLICATIONS at 62, PAGE at 83, 17 at 89.\n\nFor a later reader. Deskew on the text but build the rule mask per rule from both margins, or it drifts about 3 px across the page and eats a text line at one end. Include the head line in the advance fit - PAGE 17 at columns 83-90 is what extends the baseline to the full 91 columns. This chain drops strokes in both directions: six zeros lost their right stroke badly enough to read as C, and one lost its left stroke. The strongest verification on an object-listing page is arithmetic, not shape: the shift-count-to-address identity and the CP)+n base identity between them confirmed every digit the template classifier doubted.",
+      "contaminationReport": "I opened none of the banned files. I did not open test/fixtures/90.05-object-listing.target, test/fixtures/90.05-object-listing-notes.md, tool/object_listing_target_source.dart, tool/generate_object_listing_target.dart, comtran-manuals/J28-6169/90.05-sample-program.md, docs/design/m4-codegen.md, docs/design/m1-front-end.md, anything under test/goldens/, or any page scan other than comtran-manuals/J28-6169/images/page-208.png. I did not read any file that quotes them, and I ran no search over the repository. I also chose not to open comtran-manuals/J28-6169/02-compiler.md, which the task permits, because the only question I might have taken there - what the operand qualifier 8L) means - is a question about this page's value, and I preferred to leave that glyph unsettled on the ink rather than settle it from a document.\n\nEvery value in the transcription and the report came from measuring page-208.png with my own scripts, written and run inside my own directory. I read no file another reader wrote and wrote no file outside my directory.\n\nOne class of value came from outside the scan, and it is not a reading: the 709/7090 opcode-to-mnemonic correspondences used in the self-check (CAL -0500, LDQ +0560, SLW +0602, ANA -0320, ANS +0320, ORS -0602, LGL -0763, LGR -0765, RQL -0773, ARS +0771, COM +0760, LAC +0535, TXL prefix -3) are my general knowledge of the machine, not taken from any file in this repository. They were used only to check a reading already made from the ink, and every one of them agreed. The same applies to the two dropped-stroke zeros at LOC 01027 and LOC 01030, whose shape favours C: I settled them on the field type plus the mnemonic already read from the ink of the same line, not on any external text."
+    },
+    {
+      "pdfPage": 209,
+      "scratchDir": "/private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c9073b01-107a-4886-92e7-76ee79dd7c35/scratchpad/a6/page-209",
+      "transcriptionPath": "/private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c9073b01-107a-4886-92e7-76ee79dd7c35/scratchpad/a6/page-209/transcription.txt",
+      "reportPath": "/private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c9073b01-107a-4886-92e7-76ee79dd7c35/scratchpad/a6/page-209/report.md",
+      "blankSlotsBeforeFirstContentLine": 2,
+      "contentLineCount": 55,
+      "lastContentLineSlot": 57,
+      "interiorBlankSlots": [],
+      "locationRange": "01061 to 01147",
+      "grid": {
+        "charAdvancePx": 9.32283,
+        "originX": 402.82,
+        "deskewDegrees": -1.163,
+        "linePitchPx": 15.2378,
+        "centroidCount": 2025,
+        "residualRmsPx": 0.5653,
+        "baselineUsed": "print columns 0-90 (grid cells k=43-133, x approx 400 to 1245 px), the full printed width of the page including the head line; NOT the twelve-digit machine-word field. originX 402.82 px is the centre of print column 0, i.e. the leftmost printed cell (the first LOC digit). Underlying fit: cell centre x = 1.9404 + 9.32283*k, and print column c = k - 43, so x = 402.82 + 9.32283*c. Advance found by phase coherence over a=9.0-9.7 px at 0.0001 px steps on 2025 intensity-weighted ink centroids (blobs 3-8 px wide, >=5 rows tall, rule dashes excluded), then least-squares refit on assigned cell indices to a fixed point. Max residual 2.99 px; residual x-slope against y is 4.1e-05 px/px, confirming the deskew."
+      },
+      "fieldColumns": {
+        "LOC": 0,
+        "OCTAL": 7,
+        "CNTRL": 25,
+        "offset": 39,
+        "mnemonic": 49,
+        "operand": 56
+      },
+      "doubtfulGlyphs": [
+        {
+          "where": "slot 38 col 56 and slot 45 col 56, first character of the operand BL)2 (LOC 01124 and 01133)",
+          "chosen": "B",
+          "alternative": "8",
+          "evidence": "The two cells match each other at ink-normalised shape distance 0.031, inside the same-character band (known-8 to known-8 pairs on this page: median 0.026, 90th pct 0.041). Against all 14 known 8 glyphs they sit at median 0.087 and 0.072, minimum 0.050 and 0.062 - every one of those 28 distances is above the 90th percentile of the 8-to-8 spread, so the two cells form their own class, distinct from this page's eights. In the unresampled original pixels both put their topmost ink directly over the left stem with a straight full-height left edge, whereas the page's eights inset their topmost ink 1-2 px right of the leftmost column as the apex of an arc. Counter-evidence, stated: averaging the two cells and comparing to the mean of the 14 eights gives 0.066, closer than the head line's B of PUBLICATIONS is to that same mean (0.101) - but the head is printed markedly heavier (raw ink mass 63.4 against 38-54), which fills counters and inflates every distance involving it. Rendered at 26x, the candidate mean, the 8 mean and the head B are not separable by eye. Context, not ink: every other qualified operand uses a one-digit prefix (1) 2) 3) 4)) or an alphabetic prefix (CP), SYS)), and BL) fits the alphabetic pattern. At 150 dpi this print chain's B and 8 are close to the same shape; the ink leans to B but does not decide.",
+          "settled": false
+        },
+        {
+          "where": "42 operand cells, the character between the name prefix and the digits, e.g. slot 3 col 57 in 3)DAY, slot 4 col 58 in CP)+35, slot 11 col 59 in SYS)180,4",
+          "chosen": ")",
+          "alternative": "J (also 1, which the machine matcher preferred)",
+          "evidence": "Six clean exemplars on even, uncrossed slots (6/57, 10/57, 16/57, 22/57, 30/58, 4/58) show a narrow stroke that starts at the left of the cell, bows right through the middle and returns left at the bottom, symmetric top to bottom, with no top-left flag and no base serif. Every 1 on this page has both a flag at the upper left and a base bar 4-5 px wide centred under the stem (slot 4 col 1, slot 28 col 1). A J would put a hook to the LEFT of the stem at the bottom and nothing symmetric at the top; there is no such hook. Corroborated arithmetically: SYS)nnn resolves to an octal address equal to nnn read as decimal on all eight distinct labels (132->00204, 133->00205, 180->00264, 182->00266, 239->00357, 240->00360, 241->00361, 267->00413), which only holds if this character is a separator.",
+          "settled": true
+        },
+        {
+          "where": "54 cells across LOC, OCTAL, CNTRL, offset and operand fields, e.g. slot 27 col 1, slot 43 col 1, slot 11 col 60, slot 15 col 58",
+          "chosen": "1",
+          "alternative": ") and L and I",
+          "evidence": "Each carries the top-left flag and the base bar centred on the stem (cell columns 3-6). An L on this page (slot 4 col 51 in CAL, slot 39 col 51 in ACL) has no top flag and a base bar running to the RIGHT of the stem, cell columns 4-9. An I (slot 13 col 51 in TXI, slot 37 col 51 in STI) has matching serifs top and bottom and no flag. ) has neither flag nor base. The machine matcher was misled only because the dashed rule crosses the base of every 1 on an odd slot, leaving just the stem. Corroboration: slot 15 col 58 and slot 27 col 58 are the 1 of the operand 7,1, and the tag digit of the same machine word is 1.",
+          "settled": true
+        },
+        {
+          "where": "37 cells in the OCT operands at print columns 56-67, slots 14, 20, 26, 34 and 57",
+          "chosen": "0 (digit zero)",
+          "alternative": "O (letter) and D",
+          "evidence": "The first machine run preferred O because every letter O on the page lies in the right half while my digit-0 sample came from the left half, so print weight and registration drove the match rather than glyph identity. Repeated with a column-matched control (digit 0 cells at print column 56 or beyond) and a +/-1.5 px registration search: known digit0 to known digit0 median 0.024; known letterO to known letterO 0.031; known digit0 to known letterO 0.086; OCT-operand glyph to known digit0 0.026; OCT-operand glyph to known letterO 0.095. 50 of 50 are closer to the digit. Independently, each OCT operand cell was matched against the same line's octal-field cell at the same position: all 60 pairs give 0.023-0.034 against a same-character control of 0.024. The D variant (DVP, LDI, 3)DAY) resolved the same way once registration was corrected.",
+          "settled": true
+        },
+        {
+          "where": "slot 4 col 8, second digit of the octal word 4500 (LOC 01062)",
+          "chosen": "5",
+          "alternative": "6",
+          "evidence": "At 18x the glyph is a flat top bar open at the left with a bowl at the lower right. Slot 3 col 8 immediately above is a 6 in the same column - a closed lower loop with a stem curving up to the right - and the two are plainly different shapes. The other three lines printing this word (slots 6, 38, 45) carry the identical glyph, and all four have mnemonic CAL while slot 3 has STQ; no CAL line on the page prints 4600 and no STQ line prints 4500.",
+          "settled": true
+        },
+        {
+          "where": "slot 15 col 56 and slot 27 col 56, first character of the operand 7,1",
+          "chosen": "7",
+          "alternative": "T (also Z, flagged on one pass)",
+          "evidence": "Flat top bar with a diagonal descender, against T's symmetric bar and straight vertical stem; read at 14x. The address field of both lines is 00007, and 7 decimal equals 00007 octal, so the operand and the assembled address agree.",
+          "settled": true
+        },
+        {
+          "where": "slot 6 col 29, last digit of CNTRL on LOC 01064 (CAL 2)YEAR,2)",
+          "chosen": "0",
+          "alternative": "1",
+          "evidence": "This value is contextually anomalous: every other line with a data-name operand prints CNTRL 10001, and this one prints 10000. Verified from the ink at 18x rather than from the pattern - the character is a round closed oval, unlike the flagged-and-based 1 that slots 5, 10 and 12 print in the identical column on adjacent lines. The value stands as read.",
+          "settled": true
+        }
+      ],
+      "specksRejected": [
+        {
+          "where": "slot 3, print column 18 - the second digit of the address field on LOC 01061; a dark wedge appears attached to the lower left of the 0 and is prominent when the crop is upsampled",
+          "measurement": "Ink mass above threshold 0.3 in the five address cells of that line, rule rows dropped, is 26.4 / 26.6 / 25.3 / 26.6 / 25.3 for print columns 17-21: column 18 carries no excess mass over its four neighbours on the same line. Slot 3 is printed a little heavier than average overall - plain 0 glyphs in the same column on slots 5, 9 and 55 measure 22.8, 24.0 and 24.4 - which accounts for the appearance. The pixel dump places the mark in image rows 334-337, exactly where the modelled dashed rule crosses the glyph, and the address field is exactly 5 columns wide here as on every other line, so there is no cell for an extra character to occupy.",
+          "fallbackReading": "None available: the address would still read 00000, because the cell already holds a 0 and the 5-column field is full. 00000 is corroborated by the label - 3)DAY resolves to 00000 and 3)YEAR on the next line to 00001."
+        },
+        {
+          "where": "left margin, x 279-292 (print column about -13), y 858-1153 - eleven upright numerals reading 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2 top to bottom, one on each of the eleven lowest rules",
+          "measurement": "A page-wide sweep for ink above 0.35 that is neither rule nor a transcribed cell found 321 pixels in 25 clusters; these numerals account for the clusters at x 279-288, all outside the print field (print columns 0-90, x 398-1246).",
+          "fallbackReading": "Not page text and not transcribed - form or annotation furniture. They matter only because they sit close to where a left-margin rule test wants to sample; my left band starts at x 300, clear of them."
+        },
+        {
+          "where": "right margin, x 1477-1486 (print column about 115), y 216-513 - eleven numerals, reversed and inverted",
+          "measurement": "Same sweep; these account for the remaining clusters, all outside the print field. Their position and form mirror the left-margin set, consistent with show-through from the reverse of the leaf.",
+          "fallbackReading": "Not page text and not transcribed. My right-margin rule band ends at x 1470, clear of them."
+        }
+      ],
+      "selfChecks": [
+        {
+          "check": "Empty-slot sweep at several thresholds",
+          "result": "pass",
+          "detail": "Slots 1, 2 and 58 give 0 ink pixels across the 910-px text band at thresholds 0.20, 0.30, 0.35, 0.45 and 0.60 (0.20 is grey level 204 of 255), rule rows excluded. For contrast the head gives 2328/2069/1957/1729/1418 and slot 3 gives 1202/1063/1001/890/717. The full sweep over slots 0-58 returned exactly [1, 2, 58] as empty, so there is no interior blank."
+        },
+        {
+          "check": "LOC sequence unbroken, in octal",
+          "result": "pass",
+          "detail": "01061 to 01147, 55 values, 0 breaks."
+        },
+        {
+          "check": "Octal carries in the LOC column",
+          "result": "pass",
+          "detail": "01067->01070, 01077->01100, 01107->01110, 01117->01120, 01127->01130, 01137->01140, all correct."
+        },
+        {
+          "check": "Offset sequence and its tie to LOC",
+          "result": "pass",
+          "detail": "+95 to +149, consecutive, 55 values. LOC minus offset is the constant 466 = octal 0722 on every line."
+        },
+        {
+          "check": "A line that prints its machine word twice must agree digit for digit",
+          "result": "pass",
+          "detail": "All 5 OCT lines (slots 14, 20, 26, 34, 57): the 12-digit OCTAL field equals the operand character for character. Re-checked at pixel level, operand cell against octal-field cell at the same position, all 60 pairs: median distance 0.023-0.034 against a same-character control of 0.024."
+        },
+        {
+          "check": "Each mnemonic agrees with the opcode prefix of its own octal word",
+          "result": "pass",
+          "detail": "Built from this page alone, with no external opcode table: every mnemonic maps to exactly one opcode form and every opcode form maps to exactly one mnemonic. ACL 0361, ALS 0767, ANA 4320, ANS 0320, AXT 0774, CAL 4500, CLA 0500, DVP 0221, LDI 0441, LRS 0765, ORS 4602, PZE prefix 0, SLW 0602, STI 0604, STQ 4600, TSX 0074, TXI prefix 1, OCT is a 12-digit constant."
+        },
+        {
+          "check": "An address that names a label resolves to that label's own location",
+          "result": "pass",
+          "detail": "All 22 distinct labels resolve to one address each: 1)NETPAY 00040, 2)FICA 00032, 2)GROSS 00027, 2)WHT 00030, 2)YEAR 00001, 3)DAY 00000, 3)NETPAY 00107, 3)YEAR 00001, 4)FICA 00105, 4)GROSS 00102, 4)WHT 00106, AMOUNT 00016, BL)2 01667, SYS)132 00204, SYS)133 00205, SYS)180 00264, SYS)182 00266, SYS)239 00357, SYS)240 00360, SYS)241 00361, SYS)267 00413. CP)+n resolves to one base, 01674, across all six offsets (+24, +35, +36, +47, +56, +57)."
+        },
+        {
+          "check": "SYS)nnn label number, read as decimal, equals its octal address",
+          "result": "pass",
+          "detail": "All 8 labels: 132->00204, 133->00205, 180->00264, 182->00266, 239->00357, 240->00360, 241->00361, 267->00413."
+        },
+        {
+          "check": "Literal operands equal their assembled address",
+          "result": "pass",
+          "detail": "All 7: ALS 18 -> 00022, AXT 7 -> 00007 (three times), AXT 6 -> 00006 (twice), LRS 35 -> 00043 (twice)."
+        },
+        {
+          "check": "Tag digit agrees with the ,t suffix and the decrement agrees with the ,,d suffix",
+          "result": "pass",
+          "detail": "0 disagreements over all 50 lines with a grouped octal word, covering TSX ...,4 (tag 4), TXI ...,1,4 and ...,1,15 and ...,1,12 and ...,1,3 (tag 1, decrements 00004/00017/00014/00003), PZE ...,,1 / ,,3 / ,,4 / ,,5, and CAL 2)YEAR,2 (tag 2)."
+        },
+        {
+          "check": "Rule mask removes all rule ink and no glyph ink",
+          "result": "pass",
+          "detail": "After masking a fitted per-x line +/-3 rows, ink remaining in columns that carry no text on any line (print columns 30-38, 43-48, 70-89) is 0 pixels at threshold 0.35 on every slot tested, including the crossed odd slots 3, 5, 7, 9, 55, 57."
+        },
+        {
+          "check": "Every cell I record as blank really is blank",
+          "result": "pass",
+          "detail": "0 of the untranscribed cells in print columns 0-71 carry 3 or more ink pixels above threshold 0.35 with the rule masked."
+        },
+        {
+          "check": "Machine cross-check of every transcribed character against page-internal templates",
+          "result": "pass",
+          "detail": "2012 character cells matched by ink-normalised sum-of-squares with leave-one-out templates and a sub-pixel registration search. 93 cells did not have my reading as nearest; all 93 fell into six confusion families (1 vs ), 1 vs L, 1 vs I, 0 vs O, 0 vs D, plus single instances of 5 vs 6 and 7 vs T), each settled separately by a structural feature or an arithmetic cross-check. No cell outside those families disagreed."
+        },
+        {
+          "check": "Deskew verified against the line frame",
+          "result": "pass",
+          "detail": "After rotation by -1.163 deg the residual x-error has a slope of 4.1e-05 px per px of y, under 0.05 px of drift over the whole 780-px printed height. Line-fit residual rms 0.341 px, max 0.663 px."
+        },
+        {
+          "check": "Offset justification determined from the page",
+          "result": "pass",
+          "detail": "Right justified in print columns 39-42: the five two-digit offsets (+95 to +99) occupy 40-42 and leave column 39 blank, the fifty three-digit offsets (+100 to +149) occupy 39-42. Column 39 carries ink on exactly 50 of 55 lines, column 42 on all 55."
+        }
+      ],
+      "unreadCells": [],
+      "methodNotes": "For a later page reader of this listing.\n\n1. The text angle is not the page angle. Variance-maximising deskew returns -1.27 deg, which is the angle of 32 pre-printed form rules, not of the text (-1.163 deg). The rules are furniture printed on the stock and the listing is printed on top, so the two carry independent registration; the rules are also slightly bowed, their local slope running from -0.0036 at the top of the page to +0.002 at the bottom. Fit the deskew on text blobs and verify by checking the residual x-error has no slope against y.\n\n2. The rules run at exactly twice the line pitch (30.47 px against 15.2378 px) and every third one is solid, the other two dashed. They fall about 6 px below the centre of every ODD-numbered slot, so odd lines lose their glyph bases and even lines are clean. On a crossed line as few as 9 of the 15 rows in the read band survive. Read doubtful cells from a magnified crop that keeps the rule in place; do not read from a rule-stripped bitmap.\n\n3. Remove the rules by the margin test, with a tolerance for the rule's own tilt. Solid and dashed rules both print in the margins where no text prints; a run-length filter would catch the solid ones and miss the dashed, whose dashes are only about 6 px. But because the rules sit at a different angle from the deskewed text, one rule is not on one image row - it moves about 2 px from margin to margin, so a plain \"ink in both margins on the same row\" test misses rules. Detect each rule at one margin, measure its intensity-weighted y centroid in the left band and again in the right band, fit y = ic + slope*x through those two clean points, and mask +/-3 rows about that fitted line at every x.\n\n4. The clean rule-only bands on this page are x 300-386 on the left and x 1300-1470 on the right. The left one is narrow and hemmed in: the rules themselves start at x about 288, and eleven upright margin numerals sit at x 279-292 over the lower half of the page (with eleven mirrored show-through numerals at x 1477-1486 over the upper half). Neither set is page text.\n\n5. Fit the character advance over the full printed width. Here it is 9.32283 px over print columns 0-90 from 2025 intensity-weighted centroids; fitting on the twelve-digit machine-word field alone would be a 12-cell baseline. Fit centroids, not left edges. Print column 0 is grid cell k=43, centre x = 402.82 px; cell centre x = 402.82 + 9.32283*c.\n\n6. Whole-glyph correlation is the wrong tool for this font. Mean-subtracted NCC on a mostly-white cell cannot separate 1 from ) or 0 from O - it puts them within 0.01 of each other at r about 0.97. Ink-normalised sum-of-squares with a sub-pixel registration search is much sharper, but two confounds still defeat it, and both bit me before I caught them. First, averaging hundreds of exemplars into a template blurs it through registration jitter, so a sharp glyph then prefers a sparser, sharper template of the wrong character; use leave-one-out and match sample counts. Second, print weight and registration vary across the page width, so an exemplar pool drawn from one side will beat the right answer drawn from the other; match column against column.\n\n7. Prefer a structural feature or an arithmetic cross-check to any shape score. Almost every ambiguity here closed on one of: the top-left flag and centred base bar that distinguish 1 from ) and L and I; the decimal-to-octal identity of SYS)nnn; the constant base 01674 of CP)+n; the tag and decrement echoing the operand suffix; the OCT operand repeating the machine word.\n\n8. Field layout of this page, all in print columns: LOC 0-4, OCTAL 7-21, CNTRL 25-29, offset 39-42 right justified, mnemonic 49-51, operand 56-67. No line prints a label in the offset field; all 55 print a +n offset. The OCTAL field prints the 36-bit word as twelve octal digits in one of three groupings - 4-2-1-5 at columns 7-10, 12-13, 15, 17-21 (37 lines); 1-5-1-5 at columns 7, 9-13, 15, 17-21 (13 lines); and 12 solid digits at columns 7-18 (5 lines, the OCT constants). The head line reads DATE 10/18/61 / TIME 2.45 / ACCOUNT / ID. CT PUBLICATIONS / PAGE 18, with word runs at columns 0-3, 5-12, 15-18, 21-24, 27-33, 55-57, 59-60, 62-73, 83-86, 89-90; its last character in column 90 is the rightmost printed cell on the page.\n\n9. One value on the page is contextually odd and is nevertheless correct as read: slot 6 (LOC 01064, CAL 2)YEAR,2) prints CNTRL 10000 where every other data-name line prints 10001. Verified from the ink, not from the pattern. CNTRL takes three values on the page: 10001 on 23 lines, 10010 on 19, 10000 on 13.\n\n10. The only glyph left open is the first character of the operand BL)2 on slots 38 and 45. Everything else is settled.",
+      "contaminationReport": "I opened no banned file. Over the whole task I read exactly one file for its content: the page scan /Users/jacklusher/development/comtran-compiler/comtran-manuals/J28-6169/images/page-209.png. I did not open the 90.05 object-listing target, the keying notes, either object-listing tool, the 90.05 sample-program conversion, the m4-codegen or m1-front-end design records, anything under test/goldens/, or any other page scan. I also did not open comtran-manuals/J28-6169/02-compiler.md, although the task permitted it for field semantics: my own measurements settled the field layout, so reading it was unnecessary and skipping it keeps this report clean. Every other file I touched I created myself inside my own scratch directory (deskewed images, crops, numpy arrays, and my own analysis scripts, including mytext.py which holds only my own reading). No value in the transcription came from any source but my scan of the pixels.\n\nOne disclosure, so it is not mistaken for repository reading. While transcribing I recognised IBM 709/7090 opcode values from prior knowledge - for instance that CAL is -0500, CLA +0500, TSX +0074, TXI a prefix of 1 - and that recognition ran alongside my reading as informal corroboration. It is prior knowledge carried in the model, not anything read from this repository or from a transcription. Crucially, the self-check I actually recorded does not depend on it: I built the mnemonic-to-opcode mapping from this page alone and verified it is a bijection in both directions, which needs no external table. Every other arithmetic check - the LOC octal sequence, the offset constant, the OCT double print, the label resolution, the decimal-to-octal identity of SYS)nnn, the tag and decrement agreement - is internal to the page.\n\nTwo smaller notes on provenance of judgement rather than data. My reading of the \")\" separator and of the operand-prefix pattern (1) 2) 3) 4) and CP) SYS)) came from this page's own glyphs and its own arithmetic, not from knowing what COMTRAN data names look like. And the context argument I cite for reading B rather than 8 in BL)2 is explicitly labelled in the report as pattern, not ink, and is not what carries that reading; the pixel measurements are, and I have left that glyph marked unsettled."
+    },
+    {
+      "pdfPage": 210,
+      "scratchDir": "/private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c9073b01-107a-4886-92e7-76ee79dd7c35/scratchpad/a6/page-210",
+      "transcriptionPath": "/private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c9073b01-107a-4886-92e7-76ee79dd7c35/scratchpad/a6/page-210/transcription.txt",
+      "reportPath": "/private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c9073b01-107a-4886-92e7-76ee79dd7c35/scratchpad/a6/page-210/report.md",
+      "blankSlotsBeforeFirstContentLine": 2,
+      "contentLineCount": 55,
+      "lastContentLineSlot": 57,
+      "interiorBlankSlots": [],
+      "locationRange": "01150 to 01234",
+      "grid": {
+        "charAdvancePx": 9.2666,
+        "originX": 437.374,
+        "deskewDegrees": 1.2658,
+        "linePitchPx": 15.1844,
+        "centroidCount": 1738,
+        "residualRmsPx": 0.651,
+        "baselineUsed": "print columns 0 to 90, x 437 to 1271 in the deskewed image; intensity-weighted character centroids from all 55 content lines plus the page head. Fitting on a half of that span instead gives 9.2989 px (left) against 9.2446 px (right), a 5.0 px disagreement by column 90, so the full width is what the reported advance rests on."
+      },
+      "fieldColumns": {
+        "LOC": 0,
+        "OCTAL": 7,
+        "CNTRL": 25,
+        "label": 34,
+        "offset": 39,
+        "mnemonic": 49,
+        "operand": 56
+      },
+      "doubtfulGlyphs": [
+        {
+          "where": "slot 42, LOC column 0 (the leading character of 01217)",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "The main stroke is open on the right like a C, but the raw grey patch carries ink on every row of the glyph's right-middle window: 87, 84, 111, 96, 152. Sixteen unambiguous letter-C glyphs on this page read 0 to 35 there; twenty-six unambiguous zeros read 127 to 211. The right stroke printed, faintly, and broke away from the main stroke, which is why a connected-component test misses it. Ink chooses 0.",
+          "settled": true
+        },
+        {
+          "where": "slot 43, LOC column 0 (the leading character of 01217)",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-middle window grey by row: 58, 39, 39, 181, 255, 198. Ink on every row, weak at the top only. A letter C reads 0 to 3 on those rows. Ink chooses 0.",
+          "settled": true
+        },
+        {
+          "where": "slot 44, LOC column 0 (the leading character of 01220)",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-middle window grey by row: 19, 2, 1, 58, 157. Three middle rows are bare, so the ink alone reads C and does not choose. Settled by arithmetic instead: the locations run 01216 (slot 41), 01217 (42), 01217 (43), then 01221 (46), so slot 44 can only be 01220, and a location counter holds no letter.",
+          "settled": false
+        },
+        {
+          "where": "slot 31, OCTAL column 8 (second digit of the operation code)",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-middle window grey by row: 13, 39, 8, 22, 143. The ink reads C and does not choose. Settled by the field: it is an octal field and C is not an octal digit; the line is TRA, and slot 33, also TRA one line later, prints a clean 0020; all four TRA lines and the one TRA* share the operation code 0020.",
+          "settled": false
+        },
+        {
+          "where": "slot 32, OCTAL column 8 (second digit of the operation code)",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-middle window grey by row: 2, 1, 1, 30, 127. The ink reads C and does not choose. Settled by the same octal-digit constraint and TRA opcode agreement as slot 31.",
+          "settled": false
+        },
+        {
+          "where": "slot 17, CNTRL column 26 (second digit of the control number)",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-middle window grey by row: 37, 10, 72, 156, 208. Two rows near-bare, so the ink leans C and does not choose. Settled by the field's closed value set: across the 53 lines that print it, CNTRL takes only 10000, 10001 and 10010, and this line is an LDQ with a symbolic operand, which prints 10001 everywhere else on the page.",
+          "settled": false
+        },
+        {
+          "where": "slot 21, CNTRL column 26 (second digit of the control number)",
+          "chosen": "0",
+          "alternative": "C",
+          "evidence": "Right-middle window grey by row: 141, 46, 196, 228, 240. Ink present on every row, well above the 0-to-35 band that letter C glyphs occupy here. Ink chooses 0.",
+          "settled": true
+        },
+        {
+          "where": "slot 46, OCTAL column 9 (third digit of the LDQ operation code, 0560)",
+          "chosen": "6",
+          "alternative": "5",
+          "evidence": "A 4x crop read this as 5, giving LDQ the code 0550 against 0560 on slot 17 and breaking the opcode-agreement check. At 11x the glyph is a stroke descending from upper right to lower left that closes into a bowl at the bottom, matching the known 6 at slot 41 column 4. A 5 has a horizontal top bar and an S-curve, which is exactly what the neighbouring column 8 shows on the same line. Corrected to 6; the opcode check then passes.",
+          "settled": true
+        },
+        {
+          "where": "slots 10, 24 and 47, operand column 56 (the leading character of BL)2)",
+          "chosen": "B",
+          "alternative": "8",
+          "evidence": "The left side is a single straight vertical with ink in columns 1 and 2 of every row, and two bowls hang off it to the right. The known 8 at slot 11 column 60, inside GN)089, has no straight side and pinches at the waist.",
+          "settled": true
+        },
+        {
+          "where": "slots 4, 7 and 12, operand column 56 (the leading character of IOC)9,4)",
+          "chosen": "I",
+          "alternative": "1",
+          "evidence": "A symmetric vertical stroke that widens equally at top and bottom, identical to the I inside FICA at slot 26 column 59. Every digit 1 on this page carries a flag on the upper LEFT of the stem plus a wider foot, as at slot 26 columns 56 and 63.",
+          "settled": true
+        },
+        {
+          "where": "slots 26, 28, 29, 34 and 41, operand column 63 (the trailing character of 1)FICA,1)",
+          "chosen": "1",
+          "alternative": "L",
+          "evidence": "Carries the upper-left flag of the digit 1 and is the same glyph as the leading character of the same operand. An L has no upper flag and a longer horizontal foot.",
+          "settled": true
+        },
+        {
+          "where": "slots 36, 38, 51 and 53, operand column 57 (the separator in 1.RS)0 and 2.RS)0)",
+          "chosen": ". (period)",
+          "alternative": ", (comma)",
+          "evidence": "A compact blob four image rows tall sitting on the baseline with no tail. The comma at slot 4 column 61 spans six rows and its ink walks left as it descends. The period at slot 43 column 60, inside FICA.ROUTINE, is the same four-row blob.",
+          "settled": true
+        },
+        {
+          "where": "slot 31 operand column 56 (*+3) and slot 43 mnemonic column 52 (TRA*)",
+          "chosen": "* (asterisk)",
+          "alternative": ". (period)",
+          "evidence": "A solid blob 5 to 6 px across centred at mid glyph height, image rows 4 to 10; a period on this page sits at rows 9 to 13. At 150 dpi after photo-reduction the asterisk's five strokes merge into one mass. Corroborated twice: TRA* at slot 43 carries flag digits 60, the indirect flag, where every plain TRA prints 00; and TRA *+3 at location 01204 prints address 01207, which is 01204 plus 3.",
+          "settled": true
+        },
+        {
+          "where": "slot 44, label field columns 34 to 55",
+          "chosen": "WITHOLDING.TAX.ROUTINE",
+          "alternative": "WITHHOLDING.TAX.ROUTINE",
+          "evidence": "W-I-T-H-O-L-D-I-N-G occupies columns 34 to 43, ten characters, with no second H. The cell-occupancy check independently fixes the label at columns 34 to 55, which is 22 characters, the length of the printed spelling and not of the modern one. Kept as printed.",
+          "settled": true
+        },
+        {
+          "where": "nine numeric-subfield cells: AXT 0 on slots 16 and 45, OUTPUTMASTER,,0 on slot 13, PAYFILE,,0 on slot 8, 1.RS)0 on slots 36 and 38, 2.RS)0 on slot 51, SYS)294,1,0 on slots 25 and 48",
+          "chosen": "0 (digit zero)",
+          "alternative": "O (letter)",
+          "evidence": "Glyph width does not separate the two on this page: letter O measures 4 to 8 px, digit 0 also 4 to 8. The mean shapes do differ, the letter being squarer and one row taller, and a mean-template correlation built from 13 letter-O and 592 digit-0 exemplars separates its own exemplars 12/13 and 586/592. All nine cells score higher against the digit template, by margins from 0.041 to 0.172, and all nine sit in numeric subfields whose sister lines carry 16, 20 and 15.",
+          "settled": true
+        },
+        {
+          "where": "slot 5, operand column 67 (the trailing character of CHECKFILE,,0)",
+          "chosen": "0 (digit zero)",
+          "alternative": "O (letter)",
+          "evidence": "A solid form rule crosses this glyph, so no component could be isolated and the 0-versus-O correlation could not be computed. Read from a 13x crop, where the shape matches its twin on slot 8 (PAYFILE,,0), which does measure as a digit. The subfield is numeric on every sister line. Shape evidence alone does not choose.",
+          "settled": false
+        },
+        {
+          "where": "slot 53, operand column 61 (the trailing character of 2.RS)0)",
+          "chosen": "0 (digit zero)",
+          "alternative": "O (letter)",
+          "evidence": "A solid form rule crosses this glyph, so no component could be isolated and the correlation could not be computed. Read from a 13x crop; the same operand on slot 51 does measure as a digit, and both lines address 01633. Shape evidence alone does not choose.",
+          "settled": false
+        }
+      ],
+      "specksRejected": [
+        {
+          "where": "slot 19, OCTAL column 14 (a position that is a space on all 45 lines taking this octal layout)",
+          "measurement": "Exactly one pixel above grey 90; peak grey 185; total cell ink 185 grey-units. The real glyph in the next cell, slot 19 column 15, has 42 pixels above 90 and total ink 7639 - 41 times as much. Across all 5280 cells, the next-strongest cell I read as blank measures 0.",
+          "fallbackReading": "blank; the instruction-word octal layout prints no digit at column 14"
+        }
+      ],
+      "selfChecks": [
+        {
+          "check": "LOC sequence unbroken with correct octal carries",
+          "result": "pass",
+          "detail": "01150 to 01234, stepping +1 throughout, including the carries 01157 to 01160 and 01177 to 01200. One deliberate repeat: 01217 prints on slots 42 and 43, the label-only line and its instruction. 54 LOC values for 55 content lines, the odd one being slot 45, which prints no LOC because the 22-character label on slot 44 pushed its instruction down a line."
+        },
+        {
+          "check": "each mnemonic agrees with the opcode prefix of its own octal word",
+          "result": "pass",
+          "detail": "ACL 0361 (x2), ADD 0400, AXT 0774 (x2), CAS 0340, CLA 0500 (x6), DVP 0221, LAC 0535 (x2), LDQ 0560 (x2), LRS 0765, LXA 0534, MPY 0200 (x4), STO 0601 (x4), STQ 4600 (x2), SUB 0402 (x3), SXA 0634, TRA 0020 (x4), TRA* 0020, TSX 0074 (x3), XCA 0131 (x3). IOST (prefix 7, x3), PZE (prefix 0, x3) and TXL (prefix 7, x2) print a prefix and a decrement rather than a 4-digit opcode, so they are checked as a group for internal agreement and not against an opcode table."
+        },
+        {
+          "check": "an address that names a label resolves to that label's own location",
+          "result": "pass",
+          "detail": "SXA GN)089 gives 01163 and GN)089 is defined on slot 14 at 01163. TRA GN)076 gives 01217 on two lines and GN)076 is defined on slot 42 at 01217. TRA* FICA.ROUTINE gives 01165 and FICA.ROUTINE is defined on slot 16 at 01165. TRA *+3 at 01204 gives 01207."
+        },
+        {
+          "check": "a governing label's location plus the printed decimal offset equals the line's location",
+          "result": "pass",
+          "detail": "38 offset lines. FICA.ROUTINE at 01165 governs +1 through +25, and 01165 plus 25 is 01216 in octal. WITHOLDING.TAX.ROUTINE at 01220 governs +1 through +12, and 01220 plus 12 is 01234. The +150 to +160 block belongs to a label that does not appear on this page, so those eleven lines are not checked."
+        },
+        {
+          "check": "the same operand string yields the same address field everywhere",
+          "result": "pass",
+          "detail": "1)FICA,1 gives 00012 on 5 lines, 4)FICA gives 00105 on 4, 4)GROSS gives 00102 on 2, BL)2 gives 01667 on 3, 1.RS)0 gives 01627 on 2, 2.RS)0 gives 01633 on 2, SYS)294,1,0 gives 00446 on 2, IOC)9,4 gives 00011 on 3, GN)076 gives 01217 on 2, CP)+10 gives 01706 on 3, CP)+31 gives 01733 on 2, CP)+34 gives 01736 on 2."
+        },
+        {
+          "check": "the CP)+n operand family is arithmetically linear",
+          "result": "pass",
+          "detail": "CP)+9 gives 01705, +10 gives 01706, +11 gives 01707, +12 gives 01710, +31 gives 01733, +34 gives 01736. Every one is 01674 plus the offset in octal. This check is what exposed the 0550-for-0560 misread on slot 46 that no shape test had flagged."
+        },
+        {
+          "check": "a decrement agrees with the word that carries it",
+          "result": "pass",
+          "detail": "IOST CHECK,,16 carries decrement 00020, which is 16 decimal. IOST PAYRECORD,,20 carries 00024, which is 20. IOST MASTER,,15 carries 00017, which is 15."
+        },
+        {
+          "check": "a literal operand agrees with its address field",
+          "result": "pass",
+          "detail": "AXT 6,1 prints address 00006. LRS 35 prints address 00043, which is 35 decimal."
+        },
+        {
+          "check": "a tag agrees with the word that carries it",
+          "result": "pass",
+          "detail": "14 tagged lines. Tag digit 4 on TSX IOC)9,4, LXA BL)2,4 and SXA GN)089,4; tag digit 1 on LAC BL)2,1, CLA and STO 1)FICA,1, and MPY EXEMPTIONS,1. No mismatch."
+        },
+        {
+          "check": "the CNTRL field takes only the page's own closed value set",
+          "result": "pass",
+          "detail": "10000, 10001 and 10010, across all 53 lines that print it. Nothing else appears."
+        },
+        {
+          "check": "a line that prints its machine word twice must agree digit for digit",
+          "result": "not applicable",
+          "detail": "No line on this page prints its machine word twice; every content line prints exactly one octal word, in one of two 15-column layouts."
+        },
+        {
+          "check": "transcription rendered back onto the column grid against measured cell ink",
+          "result": "pass",
+          "detail": "5280 cells (55 lines by 96 columns), zero mismatches. Every cell claimed to carry a character measures at least 1251 ink units; every cell claimed blank measures at most 257, and only one such cell has any ink at all (the rejected speck). A one-column error anywhere in any field would have surfaced here."
+        },
+        {
+          "check": "empty slots proven by multi-threshold ink sweep",
+          "result": "pass",
+          "detail": "Slots 1 and 2 swept at grey thresholds 60, 90, 120, 150 and 180 across x 430 to 1295. Slot 2 is bare at all five even on the raw image. Slot 1 shows 310/210/126/52/26 raw pixels, every one of them inside the form rule that crosses at y 204; with the rule mask removed it is bare at all five, and the sub-band 190 to 200, which the rule does not reach, is bare raw. Control: occupied slot 3 reads 1210/1016/879/723/588."
+        }
+      ],
+      "unreadCells": [],
+      "methodNotes": "CONVENTIONS THE NUMBERS NEED. originX 437.374 is the x of the CENTRE of print column 0, not its left edge, and it is measured in the deskewed image, not the original. deskewDegrees +1.2658 is the counter-clockwise rotation I APPLIED to the original scan; residual skew after it, measured on the three all-digit fields, is -0.037 deg. The fieldColumns entry for \"offset\" is 39, the leftmost column any offset reaches (+150); the offset is NOT left-justified. It is right-justified with its units digit fixed at column 42: +150 occupies 39-42, +10 and +25 occupy 40-42, +1 occupies 41-42. The page can tell, because the plus sign moves and the units digit does not. The label field starts at 34 and the longest label on this page runs to column 55.\n\nTWO OCTAL LAYOUTS, BOTH 15 COLUMNS. Instruction words put a four-digit operation code in columns 7-10 and a two-digit flag in 12-13 (45 lines). Prefix words put one digit in column 7 and a five-digit decrement in 9-13 (8 lines). Both put the tag in column 15 and the address in 17-21. A reader who assumes one layout will mis-slice the other.\n\nTHE RULES BOW; MASK PER-RULE, NOT BY ROW BAND. 32 form rules, pitch 30.36 px, which is exactly two line pitches, sitting at half-slot offsets in the gaps between alternate content lines. Every third rule is solid, recurring every 91.1 px, that is every six content lines. Fitted slopes sweep smoothly from -0.00215 at the top of the page to +0.00140 at the bottom, 0.20 deg of page bow, so one rule can sit above a content line on the left of the page and cut through it on the right. I fitted each rule as its own line through its margin ink and masked +/-3 px around it across the full width. A row-band mask cannot do this, and nine content lines are crossed by a solid rule that leaves them as few as five clean image rows; every doubtful cell in those lines was read from a crop.\n\nMARGIN TEST, NOT RUN-LENGTH. A row is a rule row when it carries ink in x 330-428 or x 1292-1486 AND spans at least 1000 px. Text spans at most 841 px and never enters either band. This catches the dashed rules (dashes about 6 px, which a 25 px run-length filter keeps) and the solid ones alike. Keep the right band inboard of x 1490: the form prints its own line numerals 1 to 12 upright at x 315-327 on the left and the same numerals rotated 180 degrees at x above 1490 on the right, and both would otherwise trip the test.\n\nDO NOT DESKEW FROM CENTROIDS THAT INCLUDE THE OPERAND FIELD. Commas and parentheses descend and drag the right-hand centroids down; on this page that fabricates +0.093 deg of skew that is not there. Use the projection-variance peak (identical at 1.2665 deg whether run over the whole page or the text band alone), then verify with the all-digit fields only.\n\nDO NOT FIT THE ADVANCE ON HALF THE PAGE. Left half 9.2989 px, right half 9.2446 px, full width 9.2666 px. The halves disagree by 5.0 px, more than half a cell, by print column 90. Ten-column residual means run -0.36, +0.28, +0.33, +0.37, +0.19, -0.19, -0.24 with no monotone trend, so the full-width fit carries no accumulating drift.\n\nCOUNT THE FAINT LINES FIRST. Slot 45 carries 99 ink pixels and slot 42 carries 350, against about 1100 for a typical line; a sweep that thresholds on line weight loses both. Both are content. Slot 44's label WITHOLDING.TAX.ROUTINE is 22 characters and runs to column 55, past the mnemonic field at 49, so its instruction (AXT 0) is pushed onto slot 45, which prints no LOC, no octal word, no control number and no label. Slot 42 is a label-only line taking its own slot at the same location as slot 43. Consequence: the location sequence legitimately repeats, and the content-line count exceeds the count of distinct locations.\n\nBUILD THE OCCUPANCY CROSS-CHECK. Rendering the finished reading back onto the column grid and comparing all 5280 cells against measured ink is cheap and it proves the field column numbers and the character positions together. It is the reason I can state the field columns as measured rather than estimated.\n\nA TEMPLATE CLASSIFIER DID NOT WORK HERE AND I DROPPED IT. Three attempts. Fixed cell windows were dominated by neighbour bleed and \"disagreed\" with 109 readings including the leading zero of 01150. Connected-component isolation cured the bleed but merged glyphs with the rules crossing them, so its 80 disagreements fell almost entirely on the rule-crossed lines. Excluding rule-touched cells left 20 usable exemplars and could not build templates past 0 and 1. The arithmetic self-checks are the stronger instrument on a page like this because they are independent of the ink, and the CP)+n check found a real misread that no shape test flagged.\n\nTHE 0-AGAINST-C PROBLEM IS IMPRESSION LOSS, NOT A LETTER. Seven cells, clustered as consecutive lines at one print column (three at column 0, two at column 8, two at column 26). Where the ink decides it decides for zero; where it does not, the field's own arithmetic does. Do not settle these by shape alone in either direction, and expect the same pattern on neighbouring pages.\n\nPAGE HEAD, for whoever needs it: DATE 10/18/61  TIME  2.45  ACCOUNT ... ID. CT PUBLICATIONS ... PAGE  19. Two rules print above it (y 112 and y 142) and one below the last content line (y 1053); all three are furniture.",
+      "contaminationReport": "I opened no banned file. I opened exactly one source file for the whole task: the page scan at comtran-manuals/J28-6169/images/page-210.png. Everything else I read was derived by me from that image inside my own directory /private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c9073b01-107a-4886-92e7-76ee79dd7c35/scratchpad/a6/page-210 - the deskewed PNG, the crops, the numpy arrays and my own scripts. I wrote nothing outside that directory and read nothing another reader wrote. I did not open, read, grep, list, diff or git-log the object-listing target, the keying notes, either target generator, the 90.05 sample-program conversion, the m4-codegen or m1-front-end design records, anything under test/goldens/, or any other page scan, and I read no file that quotes them. I also did not open 02-compiler.md, although that was permitted: the field meanings used here (LOC, octal machine word, control number, label or offset, mnemonic, operand) are inferred from this page's own column structure and arithmetic rather than looked up. Every value in transcription.txt and report.md came from my own measurement of that one image. No value was taken from outside it. Where a reading is settled by arithmetic rather than by shape - the four zeros marked settled=false in the C question, and the two rule-crossed digit-zeros - the arithmetic is arithmetic on numbers printed on this same page, and I have flagged each such case rather than presenting it as an ink reading. One external fact did inform my confidence but decided nothing: the mnemonics on this page (CLA, STO, TRA, TSX, AXT and the rest) are recognisable IBM 709 symbolic operations. I used that only as background; every opcode claim in the self-checks is a within-page consistency check, never a lookup against an outside table."
+    }
+  ]
+}

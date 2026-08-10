@@ -1,0 +1,64 @@
+page-210 of J28-6169 (PDF page 210) -- object listing, one record per line slot.
+Slot 0 is the page head. Every slot from 0 to 57 appears, empty slots included.
+Field print columns, measured: LOC 0, OCTAL 7, CNTRL 25, label 34,
+offset right-justified with its units digit at column 42, mnemonic 49, operand 56.
+A field that the line does not print is shown as a dash.
+
+slot 00 | PAGE HEAD | DATE 10/18/61  TIME  2.45  ACCOUNT   ID. CT PUBLICATIONS   PAGE  19
+slot 01 | EMPTY SLOT
+slot 02 | EMPTY SLOT
+slot 03 | LOC 01150 | OCTAL 0774 00 1 00006 | CNTRL 10000 | +150                   | AXT  | 6,1
+slot 04 | LOC 01151 | OCTAL 0074 00 4 00011 | CNTRL 10010 | +151                   | TSX  | IOC)9,4
+slot 05 | LOC 01152 | OCTAL 0 00000 0 04004 | CNTRL 10010 | +152                   | PZE  | CHECKFILE,,0
+slot 06 | LOC 01153 | OCTAL 7 00020 0 00000 | CNTRL 10001 | +153                   | IOST | CHECK,,16
+slot 07 | LOC 01154 | OCTAL 0074 00 4 00011 | CNTRL 10010 | +154                   | TSX  | IOC)9,4
+slot 08 | LOC 01155 | OCTAL 0 00000 0 04005 | CNTRL 10010 | +155                   | PZE  | PAYFILE,,0
+slot 09 | LOC 01156 | OCTAL 7 00024 0 00020 | CNTRL 10001 | +156                   | IOST | PAYRECORD,,20
+slot 10 | LOC 01157 | OCTAL 0534 00 4 01667 | CNTRL 10001 | +157                   | LXA  | BL)2,4
+slot 11 | LOC 01160 | OCTAL 0634 00 4 01163 | CNTRL 10001 | +158                   | SXA  | GN)089,4
+slot 12 | LOC 01161 | OCTAL 0074 00 4 00011 | CNTRL 10010 | +159                   | TSX  | IOC)9,4
+slot 13 | LOC 01162 | OCTAL 0 00000 0 04002 | CNTRL 10010 | +160                   | PZE  | OUTPUTMASTER,,0
+slot 14 | LOC 01163 | OCTAL 7 00017 0 00000 | CNTRL 10001 | GN)089                 | IOST | MASTER,,15
+slot 15 | LOC 01164 | OCTAL 0020 00 0 00221 | CNTRL 10001 | +1                     | TRA  | GET.MASTER
+slot 16 | LOC 01165 | OCTAL 0774 00 0 00000 | CNTRL 10000 | FICA.ROUTINE           | AXT  | 0
+slot 17 | LOC 01166 | OCTAL 0560 00 0 01705 | CNTRL 10001 | +1                     | LDQ  | CP)+9
+slot 18 | LOC 01167 | OCTAL 0200 00 0 00102 | CNTRL 10001 | +2                     | MPY  | 4)GROSS
+slot 19 | LOC 01170 | OCTAL 0131 00 0 00000 | CNTRL 10000 | +3                     | XCA  | -
+slot 20 | LOC 01171 | OCTAL 0361 00 0 01736 | CNTRL 10001 | +4                     | ACL  | CP)+34
+slot 21 | LOC 01172 | OCTAL 0765 00 0 00043 | CNTRL 10000 | +5                     | LRS  | 35
+slot 22 | LOC 01173 | OCTAL 0221 00 0 01733 | CNTRL 10001 | +6                     | DVP  | CP)+31
+slot 23 | LOC 01174 | OCTAL 4600 00 0 00105 | CNTRL 10001 | +7                     | STQ  | 4)FICA
+slot 24 | LOC 01175 | OCTAL 0535 00 1 01667 | CNTRL 10001 | +8                     | LAC  | BL)2,1
+slot 25 | LOC 01176 | OCTAL 7 00000 1 00446 | CNTRL 10010 | +9                     | TXL  | SYS)294,1,0
+slot 26 | LOC 01177 | OCTAL 0500 00 1 00012 | CNTRL 10000 | +10                    | CLA  | 1)FICA,1
+slot 27 | LOC 01200 | OCTAL 0400 00 0 00105 | CNTRL 10001 | +11                    | ADD  | 4)FICA
+slot 28 | LOC 01201 | OCTAL 0601 00 1 00012 | CNTRL 10000 | +12                    | STO  | 1)FICA,1
+slot 29 | LOC 01202 | OCTAL 0500 00 1 00012 | CNTRL 10000 | +13                    | CLA  | 1)FICA,1
+slot 30 | LOC 01203 | OCTAL 0340 00 0 01706 | CNTRL 10001 | +14                    | CAS  | CP)+10
+slot 31 | LOC 01204 | OCTAL 0020 00 0 01207 | CNTRL 10001 | +15                    | TRA  | *+3
+slot 32 | LOC 01205 | OCTAL 0020 00 0 01217 | CNTRL 10001 | +16                    | TRA  | GN)076
+slot 33 | LOC 01206 | OCTAL 0020 00 0 01217 | CNTRL 10001 | +17                    | TRA  | GN)076
+slot 34 | LOC 01207 | OCTAL 0500 00 1 00012 | CNTRL 10000 | +18                    | CLA  | 1)FICA,1
+slot 35 | LOC 01210 | OCTAL 0402 00 0 01706 | CNTRL 10001 | +19                    | SUB  | CP)+10
+slot 36 | LOC 01211 | OCTAL 0601 00 0 01627 | CNTRL 10001 | +20                    | STO  | 1.RS)0
+slot 37 | LOC 01212 | OCTAL 0500 00 0 00105 | CNTRL 10001 | +21                    | CLA  | 4)FICA
+slot 38 | LOC 01213 | OCTAL 0402 00 0 01627 | CNTRL 10001 | +22                    | SUB  | 1.RS)0
+slot 39 | LOC 01214 | OCTAL 0601 00 0 00105 | CNTRL 10001 | +23                    | STO  | 4)FICA
+slot 40 | LOC 01215 | OCTAL 0500 00 0 01706 | CNTRL 10001 | +24                    | CLA  | CP)+10
+slot 41 | LOC 01216 | OCTAL 0601 00 1 00012 | CNTRL 10000 | +25                    | STO  | 1)FICA,1
+slot 42 | LOC 01217 | OCTAL -               | CNTRL -     | GN)076                 | -    | -
+slot 43 | LOC 01217 | OCTAL 0020 60 0 01165 | CNTRL 10001 | GN)077                 | TRA* | FICA.ROUTINE
+slot 44 | LOC 01220 | OCTAL 0774 00 0 00000 | CNTRL 10000 | WITHOLDING.TAX.ROUTINE | -    | -
+slot 45 | LOC -     | OCTAL -               | CNTRL -     | -                      | AXT  | 0
+slot 46 | LOC 01221 | OCTAL 0560 00 0 01710 | CNTRL 10001 | +1                     | LDQ  | CP)+12
+slot 47 | LOC 01222 | OCTAL 0535 00 1 01667 | CNTRL 10001 | +2                     | LAC  | BL)2,1
+slot 48 | LOC 01223 | OCTAL 7 00000 1 00446 | CNTRL 10010 | +3                     | TXL  | SYS)294,1,0
+slot 49 | LOC 01224 | OCTAL 0200 00 1 00006 | CNTRL 10000 | +4                     | MPY  | EXEMPTIONS,1
+slot 50 | LOC 01225 | OCTAL 0200 00 0 01733 | CNTRL 10001 | +5                     | MPY  | CP)+31
+slot 51 | LOC 01226 | OCTAL 4600 00 0 01633 | CNTRL 10001 | +6                     | STQ  | 2.RS)0
+slot 52 | LOC 01227 | OCTAL 0500 00 0 00102 | CNTRL 10001 | +7                     | CLA  | 4)GROSS
+slot 53 | LOC 01230 | OCTAL 0402 00 0 01633 | CNTRL 10001 | +8                     | SUB  | 2.RS)0
+slot 54 | LOC 01231 | OCTAL 0131 00 0 00000 | CNTRL 10000 | +9                     | XCA  | -
+slot 55 | LOC 01232 | OCTAL 0200 00 0 01707 | CNTRL 10001 | +10                    | MPY  | CP)+11
+slot 56 | LOC 01233 | OCTAL 0131 00 0 00000 | CNTRL 10000 | +11                    | XCA  | -
+slot 57 | LOC 01234 | OCTAL 0361 00 0 01736 | CNTRL 10001 | +12                    | ACL  | CP)+34
