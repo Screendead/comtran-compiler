@@ -348,6 +348,16 @@ button:focus-visible {
 
 .note.wide { max-width: 660px; margin-top: 22px; }
 
+/* What the deck controls answer with. It is the site's own voice, never a
+   compiler message, so it looks like neither a diagnostic nor a refusal. */
+.link-note {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  margin: 8px 0 0;
+}
+
 /* ---- The stage tabs and panel ---- */
 
 .tabs {

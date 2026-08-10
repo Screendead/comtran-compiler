@@ -61,7 +61,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 994 Dart tests pass, measured 2026-08-09, and 154 extension
+Test baseline: 1021 Dart tests pass, measured 2026-08-10, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -500,6 +500,21 @@ Three items on the W1 list above are not built: the deck download as `.ctd`,
 the share link, and the golden-diff panel. The diff earns its place least: the
 site now prints the listing the golden test already compares, and the test is
 the stronger claim. The other two stand.
+
+**Amended 2026-08-10.** Two of those three items are now built.
+
+The deck download gives the reader the canon `.ctd` bytes. `canonDeck` in
+`lib/src/web/web_compile.dart` encodes them, and `test/web_compile_test.dart`
+holds them equal to `test/fixtures/90.05-payroll-job.ctd`, byte for byte. The
+site encodes no card itself.
+
+The share link carries the typed deck in the address fragment. It deflates the
+deck where the browser has `CompressionStream`, and it writes plain bytes
+where the browser does not. A page reads both forms. The site therefore stores
+no deck, and it still needs no server. The address drops the link as soon as
+the reader changes the deck, because a link that names another deck is false.
+
+The golden-diff panel is the one item left.
 
 **Amended 2026-08-10 at Jack's request.** The punch grid moved above the deck
 and became editable: a click cuts or fills one hole, and the deck text becomes

@@ -9,6 +9,7 @@ library;
 
 import 'dart:convert';
 import 'dart:js_interop';
+import 'dart:typed_data';
 
 import 'package:comtran/src/version.dart';
 import 'package:comtran/src/web/web_compile.dart';
@@ -27,6 +28,12 @@ external set _comtranPunch(JSFunction value);
 /// the reader can punch by hand and watch the text follow.
 @JS('comtranToggle')
 external set _comtranToggle(JSFunction value);
+
+/// The typed deck as the bytes of a canon `.ctd` file, or `null` when the
+/// punch could not cut it, so the reader takes the deck away in the form
+/// every tool in this repository reads.
+@JS('comtranCanon')
+external set _comtranCanon(JSFunction value);
 
 /// The compiler version the page prints, so a reader can tell which build
 /// produced the listing on the screen.
@@ -48,6 +55,10 @@ void main() {
       column.toDartInt,
     );
     return card == null ? null : jsonEncode(card.toJson()).toJS;
+  }).toJS;
+  _comtranCanon = ((JSString typed) {
+    final Uint8List? bytes = canonDeck(typed.toDart);
+    return bytes?.toJS;
   }).toJS;
   _comtranVersion = comtranVersion.toJS;
 }

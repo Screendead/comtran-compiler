@@ -103,7 +103,7 @@ change, because every push to master deploys.
 
 ## Not built yet
 
-W1 does not yet include the deck download, the share link, or the
-golden-diff panel.
+W1 does not yet include the golden-diff panel. The deck download and the
+share link landed on 2026-08-10.
 
 W2 to W4 add the manual pages, the stage-by-stage walk, and the tutorial.

@@ -107,6 +107,28 @@ void main() {
     });
   });
 
+  group('the deck a reader downloads', () {
+    test('is byte for byte the canon file the repository holds', () {
+      // The site's download is the deck itself, not a rendering of it, so
+      // the bytes must match the committed canon pair of the same program.
+      expect(
+        canonDeck(_sample()),
+        File('test/fixtures/90.05-payroll-job.ctd').readAsBytesSync(),
+      );
+    });
+
+    test('round-trips back through the compiler', () {
+      final List<CardImage> deck = decodeCanon(canonDeck(_sample())!);
+      expect(deckToMirror(deck), _sample());
+    });
+
+    test('a deck the punch cannot cut has no file', () {
+      expect(canonDeck('   \n'), isNull);
+      expect(canonDeck('      A%B\n'), isNull);
+      expect(canonDeck('\tSTOP RUN.\n'), isNull);
+    });
+  });
+
   group('the card view', () {
     test('punches a card 1 the reader can check against the manual', () {
       // Card 1 of the sample: *COMPILE in columns 7 to 14. An asterisk is
