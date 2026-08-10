@@ -381,11 +381,18 @@ Two consequences bind the work:
   `tool/generate_definition_mirror.dart` generates. It never holds a third
   copy. The `.ct` mirror problem is the precedent.
 
-One decision is open, and W1 needs it: does the site live in this repository
-under `web/`, or in a repository of its own? In-repo has precedent, because the
-extension already brought npm into CI, and the site's content is generated from
-this repository. A separate repository buys a clean CI split and costs a sync
-gate.
+**The site lives in this repository, under `web/`. Jack's call, 2026-08-10.**
+The extension already brought npm into CI, so the precedent holds, and the
+site's content is generated from this repository.
+
+### The copy
+
+The site copy does not follow Simplified Technical English.
+`docs/design/web-copy.md` holds its register and its rules, and section 13 of
+`CLAUDE.md` records the exemption. Two facts from that record bind the whole
+track: where simple and precise collide, the site chooses simple and links the
+repository artifact; and no simplification ever hides the difference between
+what a manual states and what this project decided.
 
 ### The phases
 
@@ -399,15 +406,12 @@ gate.
 - the diff against `test/goldens/90.05-payroll.listing`, which shows that the
   browser output and the 1962 print agree byte for byte;
 - a deck download as `.ctd`, and a share link that carries the deck;
-- **the limits, on the page.** See the risk below. This is a requirement of
-  W1, not an addition to it.
+- **the limits, on the page.** `docs/design/web-copy.md` §5 names the three
+  statements. This is a requirement of W1, not an addition to it.
 
 **W2 — the sources.** The documents page. It holds the language reference, both
 manual conversions, both source PDFs (17 MB), and each of the 345 page scans
-beside its transcription (58 MB; load one page at a time). One decision is
-needed here: does STE govern the site copy? Section 13 of `CLAUDE.md` exempts
-`README.md` and `CONTRIBUTING.md` as the front door, and the site is now the
-front door.
+beside its transcription (58 MB; load one page at a time).
 
 **W3 — the stages.** The step-through. The six `--emit-*` dumps become panels,
 and the reader selects a statement to mark its part in each one. The join key

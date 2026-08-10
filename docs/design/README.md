@@ -26,6 +26,7 @@ and the roadmap live in `docs/HANDOVER.md`.*
 | `emulator.md` | The 7090 CPU core in `lib/src/emulator/`. Holds the `ED-n` entries. Draft until M4 connects codegen, the loader, and the runtime to it. |
 | `emit-stages.md` | The requirement that every compilation stage is dumpable behind a flag, with attested stages oracled against their evidence. Recorded 2026-08-04; M4 adopts or amends it. |
 | `severity-notes.md` | The severity assigned to every 90.04 message, under D9.2. Every value is our design decision, not recovered history. |
+| `web-copy.md` | The register and the copy rules for the public website (the W track). Proposed 2026-08-10; Jack has approved the register and the tiebreak, not the rule list. |
 | `message-checklist.tsv` | The per-message conformance checklist required by D9.3: one row per message id, with its class, disposition, component, B.2 rule, and test. |
 
 ## Rules for this directory
