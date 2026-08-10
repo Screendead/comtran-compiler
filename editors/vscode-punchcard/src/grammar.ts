@@ -80,8 +80,12 @@ const PROCEDURE_LABEL: Rule = {
 const PROCEDURE_TEXT_WIDTH =
   PROCEDURE_FIELDS[2].end - PROCEDURE_FIELDS[1].start + 1;
 
+/**
+ * The headers hold one metacharacter today, the leading `*`. The escape covers
+ * the whole set so that a header which gains another stays a literal match.
+ */
 function escapeHeader(word: string): string {
-  return word.replace(/\*/g, '\\*');
+  return word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
