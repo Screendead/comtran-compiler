@@ -1,0 +1,36 @@
+lines in the object-listing target: 999
+
+RS)  reservations: 1   operand references: 12
+    def  01621  2 00000 0 00036   00001    RS)            BSS    30
+    ref  00532  0602 00 0 01621   10001           +3      SLW    RS)0
+    ref  00537  4340 00 0 01621   10001           +8      LAS    RS)0
+    ref  00621  4600 00 0 01623   10001          +30      STQ    RS)1+0
+    ref  00624  4600 00 0 01621   10001          +33      STQ    RS)0
+    ... and 8 more
+
+TS)  reservations: 1   operand references: 0
+    def  01657  2 00000 0 00007   00001    TS)            BSS    7
+
+BL)  reservations: 1   operand references: 34
+    def  01666  2 00000 0 00003   00001    BL)            BSS    3
+    ref  00203  5 00017 6 01667   10001          +14      IOCTN* BL)2,,15
+    ref  00212  0535 00 1 01667   10001           +2      LAC    BL)2,1
+    ref  00225  5 00017 6 01667   10001           +4      IOCTN* BL)2,,15
+    ref  00236  5 00003 6 01670   10001           +4      IOCTN* BL)3,,3
+    ... and 30 more
+
+PI)  reservations: 1   operand references: 11
+    def  01671  2 00000 0 00003   00001    PI)            BSS    3
+    ref  01671                                            BGN    2,PI)1
+    ref  00707  0601 00 0 01671   10001           +6      STO    PI)1
+    ref  00715  0400 00 0 01671   10001           +4      ADD    PI)1
+    ref  00716  0601 00 0 01671   10001           +5      STO    PI)1
+    ... and 7 more
+
+CP)  reservations: 1   operand references: 95
+    def  01674  000000000000      10000    CP)            OCT    000000000000
+    ref  00167  0441 00 0 01744   10001           +2      LDI    CP)+40
+    ref  00173  0441 00 0 01745   10001           +6      LDI    CP)+41
+    ref  00177  3 01713 0 01712   10101          +10      TXH    CP)+14,0,CP)+15
+    ref  00210  4500 00 0 01714   10001    GN)059         CAL    CP)+16
+    ... and 91 more

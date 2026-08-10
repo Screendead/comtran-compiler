@@ -1,0 +1,118 @@
+object lines parsed: 977
+procedure-text lines: 808
+
+procedure text runs 00165 to 01620
+  span:            796 words
+  distinct LOCs:   796 words
+  gaps:            0
+  Location Counter 1 origin: 01621 (attested 01621)
+
+--- block arithmetic, forward from the derived origin ---
+  RS) at 01621  attested 01621  ok
+  TS) at 01657  attested 01657  ok
+  BL) at 01666  attested 01666  ok
+  PI) at 01671  attested 01671  ok
+  CP) at 01674  attested 01674  ok
+  pool ends at 01771  attested 01771
+
+--- units ---
+units in the procedure text: 45
+words across all units:      796 (procedure text holds 796)
+
+--- every unit, in program order ---
+  00165   16w  START
+  00205    3w  GN)058
+  00210    9w  GN)059
+  00221    6w  GET.MASTER
+  00227    3w  GN)060
+  00232    6w  GN)061 GET.DETAIL
+  00240    1w  GN)062
+  00241   13w  GN)063 COMPARE.EMPLOYEE.NUMBERS
+  00256   22w  HIGH.DETAIL
+  00304    3w  GN)064
+  00307    1w  GN)065
+  00310   17w  LOW.DETAIL
+  00331    9w  END.OF.MASTERS
+  00342    6w  GN)066
+  00350    1w  GN)067
+  00351    8w  END.OF.DETAILS
+  00361    7w  GN)068
+  00370   95w  GN)069 END.OF.RUN
+  00527   15w  CHECK.NEW.DEPT
+  00546    1w  GN)070
+  00547   12w  GN)071
+  00563   44w  COMPUTE.PAY
+  00637    9w  GN)072
+  00650   18w  GN)073
+  00672    8w  GN)074
+  00702    6w  GN)088
+  00710    1w  GN)085
+  00711    9w  GN)075 GN)086
+  00722  161w  NET
+  01163    2w  GN)089
+  01165   26w  FICA.ROUTINE
+  01217    1w  GN)076 GN)077
+  01220   33w  WITHOLDING.TAX.ROUTINE
+  01261    1w  GN)078
+  01262   25w  BOND.ROUTINE
+  01313    5w  GN)079
+  01320   51w  GN)080
+  01403    1w  BOND.END
+  01404   11w  SEARCH
+  01417    2w  GN)081
+  -----    0w  GN)091
+  01421   41w  GN)093
+  01472    1w  GN)082 SEARCH.END
+  01473   85w  DEPARTMENT.END
+  01620    1w  GN)083
+
+--- unit size histogram ---
+    0 words: 1 units
+    1 words: 10 units
+    2 words: 2 units
+    3 words: 3 units
+    5 words: 1 units
+    6 words: 4 units
+    7 words: 1 units
+    8 words: 2 units
+    9 words: 4 units
+   11 words: 1 units
+   12 words: 1 units
+   13 words: 1 units
+   15 words: 1 units
+   16 words: 1 units
+   17 words: 1 units
+   18 words: 1 units
+   22 words: 1 units
+   25 words: 1 units
+   26 words: 1 units
+   33 words: 1 units
+   41 words: 1 units
+   44 words: 1 units
+   51 words: 1 units
+   85 words: 1 units
+   95 words: 1 units
+  161 words: 1 units
+
+--- wrapped labels (M4-8.1) ---
+  00044  DEPARTMENT.TOTAL  (16 chars)
+  00113  INTERNAL.TOTALS  (15 chars)
+  00241  COMPARE.EMPLOYEE.NUMBERS  (24 chars)
+  01220  WITHOLDING.TAX.ROUTINE  (22 chars)
+
+--- EQU lines ---
+  01741  GN)088     EQU CP)+37
+  01405  GN)085     EQU SEARCH+1
+  01742  GN)091     EQU CP)+38
+  01743  GN)093     EQU CP)+39
+
+--- GN) definitions in print order ---
+  33 printed, range GN)000 to GN)093
+  never printed: ['GN)001', 'GN)002', 'GN)003', 'GN)004', 'GN)005', 'GN)006', 'GN)007', 'GN)008', 'GN)009', 'GN)010', 'GN)011', 'GN)012', 'GN)013', 'GN)014', 'GN)015', 'GN)016', 'GN)017', 'GN)018', 'GN)019', 'GN)020', 'GN)021', 'GN)022', 'GN)023', 'GN)024', 'GN)025', 'GN)026', 'GN)027', 'GN)028', 'GN)029', 'GN)030', 'GN)031', 'GN)032', 'GN)033', 'GN)034', 'GN)035', 'GN)036', 'GN)037', 'GN)038', 'GN)039', 'GN)040', 'GN)041', 'GN)042', 'GN)043', 'GN)044', 'GN)045', 'GN)046', 'GN)047', 'GN)048', 'GN)049', 'GN)050', 'GN)051', 'GN)052', 'GN)053', 'GN)054', 'GN)055', 'GN)056', 'GN)057', 'GN)084', 'GN)087', 'GN)090', 'GN)092']
+  GN)084 and later:
+    GN)085  01405  EQU     SEARCH+1
+    GN)086  00711  CLA     INDEX
+    GN)088  01741  EQU     CP)+37
+    GN)089  01163  IOST    MASTER,,15
+    GN)091  01742  EQU     CP)+38
+    GN)093  01743  EQU     CP)+39
