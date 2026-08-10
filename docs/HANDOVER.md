@@ -394,6 +394,32 @@ track: where simple and precise collide, the site chooses simple and links the
 repository artifact; and no simplification ever hides the difference between
 what a manual states and what this project decided.
 
+### Hosting
+
+**GitHub Pages, from a GitHub Actions build. Jack's call, 2026-08-10.** It
+costs nothing, and it cannot cost anything: Pages has no paid tier, so a site
+above a limit draws an email from GitHub and never a charge. The published site
+is about 75 MB against the 1 GB limit. A visitor who compiles a program and
+reads a few manual pages pulls under 1 MB. The measurements behind that: the
+compiler bundle is 250 KB, and the 345 page scans average 171 KB each, with the
+largest at 323 KB.
+
+**The build deploys the site. Nobody commits it.** Two reasons hold that rule.
+A branch deploy copies 58 MB of page scans into git beside the copies already
+there. And the site's content is generated, so the Actions build runs
+`dart compile js` and `tool/generate_definition_mirror.dart`, and the site
+cannot drift from the compiler. The `.ct` mirrors already follow this rule. The
+build also needs `.nojekyll`, or Jekyll mishandles the scans.
+
+Cloudflare Pages is the recorded escape hatch, if the bandwidth ever matters.
+Its free tier sets no bandwidth cap, and it reads a `_headers` file, which
+Pages does not. The artifact is the same, so the move costs about a day.
+
+One item is open. A custom domain costs about £10 each year, and a
+`github.io` address breaks if the account is ever renamed. M6, the Zenodo
+deposit under O5 and the report under O9 are the reasons to hold a stable URL.
+Jack has not decided.
+
 ### The phases
 
 **W1 — the compiler in the browser.** Blocked on nothing. It delivers:
