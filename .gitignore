@@ -7,3 +7,6 @@ node_modules/
 
 # macOS
 .DS_Store
+
+# Review records. Each lives on its own orphan branch, never in the tree.
+/reviews/

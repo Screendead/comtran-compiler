@@ -60,6 +60,9 @@ const Map<int, int> _measuredBlanksAfterHead = <int, int>{
   8: 3,
   9: 2,
   10: 2,
+  11: 2,
+  12: 2,
+  13: 2,
   21: 2,
 };
 

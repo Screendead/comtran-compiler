@@ -174,6 +174,7 @@ DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS      
 00263  0441 00 0 01746   10001           +5      LDI    CP)+42
 DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  11
 
+
 00264  0604 00 0 00205   10010           +6      STI    SYS)133
 00265  4500 00 0 01667   10001           +7      CAL    BL)2
 00266  0361 00 0 01747   10001           +8      ACL    CP)+43
@@ -231,6 +232,7 @@ DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS      
 00352  0535 00 1 01667   10001           +1      LAC    BL)2,1
 DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  12
 
+
 00353  7 00000 1 00446   10010           +2      TXL    SYS)294,1,0
 00354  4340 00 1 00000   10000           +3      LAS    1)EMPLOYEE.NUMBER,1
 00355  0020 00 0 00361   10001           +4      TRA    GN)068
@@ -287,6 +289,7 @@ DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS      
 00437  000004000003      10000          +39      OCT    000004000003
 00440  0774 00 1 00005   10000          +40      AXT    5,1
 DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  13
+
 
 00441  0500 00 0 00131   10001          +41      CLA    5)INSURANCE
 00442  0074 00 4 00264   10010          +42      TSX    SYS)180,4

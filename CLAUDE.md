@@ -138,6 +138,9 @@ plain English, with no jargon and no internal shorthand:
    to reverse.
 4. Recommend one, and say why.
 
+Build it as a review record, not as a chat message. Section 12 holds the rule
+and `.claude/skills/review-records/SKILL.md` holds the how.
+
 Then wait. This holds even when one option is obviously better, and even
 when the work is already done — if a collision surfaces after the fact,
 flag it with the same four parts and say plainly that it is already
@@ -271,6 +274,15 @@ Two consequences to expect:
 - CI must pass before a merge. Run the section 4 gate before you push.
 - Do not ask permission to make a branch, to commit to it, or to push it. Do
   ask before you open a pull request, and never merge one: both are Jack's.
+- **A question for Jack is a review record, not a chat message.** Whenever work
+  stops and waits for him — a human-OCR request, a peer collision under section
+  6, an authorization to change a conversion, a choice between designs — build
+  the record first. It is a standalone HTML document with the crops, the
+  evidence, an argument and a recommendation per item. His answer goes into the
+  same document, the directory is orphan-committed, and the pull request
+  references the orphan. Read `.claude/skills/review-records/SKILL.md` before
+  you build one. His answer is also the authorization to open that pull
+  request, so the review cycle satisfies the rule above.
 - Write short, imperative, jargonless commit messages.
 - Make atomic commits. Each component must work in each commit. Never split a
   working component across two commits.
