@@ -19,6 +19,15 @@ const Set<String> textExtensions = <String>{
 /// The character and the three HTML forms of it.
 final RegExp emDash = RegExp('—|&mdash;|&#8212;|&#[xX]2014;');
 
+/// The en dash stays legal under D5, because it is Jack's own register, and
+/// it stays minimal. The guard caps it rather than barring it, so that a
+/// rewrite cannot obey D5 by turning every em dash into an en dash. To give
+/// the site more room, raise [enDashCap] in the same pull request and give
+/// the reason in the commit message.
+final RegExp enDash = RegExp('–|&ndash;|&#8211;|&#[xX]2013;');
+
+const int enDashCap = 4;
+
 /// The codename series `docs/HANDOVER.md` defines, each of which the roadmap
 /// page carries as one station.
 const List<String> codenames = <String>[
@@ -65,6 +74,19 @@ void main() {
         );
       }
     }
+  });
+
+  test('the en dash stays under its cap (web-copy.md, rule D5)', () {
+    final List<File> files = siteFiles();
+    var found = 0;
+    for (final file in files) {
+      found += enDash.allMatches(file.readAsStringSync()).length;
+    }
+    expect(
+      found,
+      lessThanOrEqualTo(enDashCap),
+      reason: 'web/ holds $found en dashes; the cap is $enDashCap',
+    );
   });
 
   test('the roadmap page carries every codename (web-copy.md, rule H2)', () {

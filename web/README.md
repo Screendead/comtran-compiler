@@ -90,11 +90,12 @@ listing panel against `test/goldens/90.05-payroll.listing`.
 
 ## What holds the copy to its rules
 
-`test/web_copy_test.dart` enforces the two rules in `docs/design/web-copy.md`
-that a test can check. Rule D5 bars the em dash from every committed file
-here, in the character and in its three HTML forms. Rule H2 requires the
-roadmap page to carry a station for every codename, so a new milestone cannot
-reach `docs/HANDOVER.md` and miss the site.
+`test/web_copy_test.dart` enforces the parts of `docs/design/web-copy.md` that
+a test can check. Rule D5 bars the em dash from every committed text file
+here, in the character and in its three HTML forms, and caps the en dash,
+which stays legal and stays rare. Rule H2 requires the roadmap page to carry a
+station for every codename, so a new milestone cannot reach `docs/HANDOVER.md`
+and miss the site.
 
 Section H of that record holds the rest, which is when a change to the project
 obliges a change to a page. Those rules bind the pull request that makes the
