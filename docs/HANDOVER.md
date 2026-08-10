@@ -95,16 +95,21 @@ unit in the program before it fills any word. `docs/design/m4-codegen.md`
 M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
 holds the inverted order and the target file.
 
-Chunks A0 to A4 are done. Seven of the eighteen object pages are verified
-against their scans: listing pages 8 to 13 and 21. Chunk A5 takes the
-next three, listing pages 14 to 16, PDF pp. 205 to 207. One page costs
-about 230k tokens and 35 minutes, measured over the three of chunk A4,
-against 210k and 30 minutes over chunk A3; the 135k of the chunk A2
-calibration page was a floor, because that page already had its grid
-recorded. Give each reader its own scratch directory: two of chunk A4's
-ran at once, shared one, and collided over a working file.
+Chunks A0 to A5 are done. Ten of the eighteen object pages are verified
+against their scans: listing pages 8 to 16 and 21. Chunk A6 takes the
+next three, listing pages 17 to 19, PDF pp. 208 to 210. One page costs
+about 250k tokens and 50 minutes, measured over the three of chunk A5,
+against 230k and 35 minutes over chunk A4 and 210k and 30 minutes over
+chunk A3; the 135k of the chunk A2 calibration page was a floor, because
+that page already had its grid recorded. The A5 figure was measured with
+six readers running at once, three of them chunk A6's, so it carries
+whatever the machine lost to contention.
+
+Give each reader its own scratch directory: two of chunk A4's ran at
+once, shared one, and collided over a working file.
 `test/fixtures/90.05-object-listing-notes.md` records it, in the section
-on the chunk A4 flaw.
+on the chunk A4 flaw. Chunk A5 gave each of six concurrent readers its
+own directory and none collided.
 
 What stage 2 must add, beyond the verb generators:
 
@@ -155,13 +160,18 @@ binds work outside the definition.
   `test/fixtures/90.05-object-listing-notes.md` holds each measurement,
   and its section on what the seven pages share holds the frame: 57 line
   slots below the head, whatever furniture the page prints.
-  Eleven object pages are still unverified. The conversion holds one
+  Chunk A5 measured three more, on 2026-08-10, under the same option B:
+  listing pages 14 to 16, PDF pp. 205 to 207, each printing two blanks
+  where the conversion held one. Their 165 content lines carry no content
+  correction between them.
+  Eight object pages are still unverified. The conversion holds one
   blank on each of them but PDF p. 208, where a 2026-08-05 measurement
-  found two, so chunks A5 to A8 will probably find two on the other ten.
+  found two, so chunks A6 to A8 will probably find two on the other seven.
   The target carries the measured counts either way, so nothing waits on
-  an authorization. Eighteen are authorized and
-  applied. The most recent seven, on 2026-08-09, are the object-page
-  blank counts above. The eleventh, also on 2026-08-09, corrected the
+  an authorization. Twenty-one are authorized and
+  applied. The most recent three, on 2026-08-10, are chunk A5's
+  object-page blank counts; the seven before them, on 2026-08-09, are the
+  object-page blank counts above. The eleventh, also on 2026-08-09, corrected the
   object listing's
   column header on line 674, the only such header in the file. It held
   `LOC` at 0, `OCTAL` at 11, `CNTRL` at 26 and `SYMBOLIC` at 54; PDF
