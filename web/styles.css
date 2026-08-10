@@ -597,6 +597,27 @@ button:focus-visible {
 .js .gloss-host:hover .gloss-note,
 .js .gloss[aria-expanded="true"] + .gloss-note { display: block; }
 
+/* ---- What comes next ---- */
+
+.next { max-width: 660px; }
+
+.next .step {
+  border-left: 2px solid var(--rule);
+  padding-left: 18px;
+  margin: 18px 0;
+}
+
+.next h3 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+
+.next .step p { font-size: 16px; margin-bottom: 0; }
+
 .links { padding-left: 20px; max-width: 660px; }
 
 .links li { margin-bottom: 8px; }

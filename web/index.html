@@ -217,6 +217,59 @@
   </p>
 </section>
 
+<section class="next">
+  <h2>What comes next</h2>
+  <p>
+    Today this page compiles. It reads your deck, checks it, lays out storage
+    and prints the listing &mdash; and there it stops, because the compiler
+    stops there too. Three things stand between that and a program that runs.
+  </p>
+
+  <div class="step">
+    <h3>Code generation</h3>
+    <p>
+      The verbs &mdash; <code>MOVE</code>, <code>IF</code>, <code>GO TO</code>
+      and the rest &mdash; become 7090 instructions. The compiler already lays
+      down the data, which is the constants and the space each record needs.
+      The procedure text is the part still being built, and it is not being
+      guessed at: the manual prints this sample&rsquo;s assembled object
+      program in full, so there is a right answer to check against, line by
+      line.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>The machine</h3>
+    <p>
+      A 7090 emulator, word-exact, to run those instructions on. A draft core
+      already reads 43 instructions harvested from the manuals. It hardens
+      alongside the code generator, because each one is the other&rsquo;s test.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>Running it</h3>
+    <p>
+      The input and output runtime &mdash; reading a tape, writing a report
+      &mdash; and then the test that ends the project: compile the payroll
+      sample, run it, and reproduce the report the 1962 manual prints with it.
+      Byte for byte, the way the listing on this page already matches.
+    </p>
+  </div>
+
+  <p>
+    Each of those arrives here for free. The page holds no compiler knowledge
+    &mdash; it asks the compiler and prints the answer &mdash; so the Code
+    panel fills itself, and a Run button appears once there is something to
+    run.
+  </p>
+  <p class="note">
+    There is no timetable, and this page will not invent one. It takes as long
+    as the evidence takes.
+    <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/HANDOVER.md">The roadmap, with the state of every milestone</a>.
+  </p>
+</section>
+
 <section class="deeper">
   <h2>Going deeper</h2>
   <p>
