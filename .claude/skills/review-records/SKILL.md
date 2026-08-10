@@ -35,11 +35,12 @@ a later reader needs the evidence and the reasoning, not a conclusion.
 3. **Ship the materials beside it**: `crops/` for the images as separate files,
    `evidence/` for the primary sources the document draws on, `tools/` for the
    scripts that measured and built it. A `README.md` says what each holds.
-4. **The process ends with Jack's response.** Add his rulings to `index.html` as
-   a dated banner. Leave the per-item chips as they were: the record must show
-   the question as well as the answer.
-5. **Then orphan-commit the directory** and push the branch. It never enters the
-   working tree of any other branch.
+4. **Orphan-commit the directory and push the branch**, which is how Jack
+   receives the record. It never enters the working tree of any other branch.
+5. **The process ends with his response.** Add his rulings to `index.html` as a
+   dated banner, and commit that as a second commit on the same branch. Leave
+   the per-item chips as they were: the record must show the question as well
+   as the answer.
 6. **The pull request references the orphan** by branch name, commit, and a
    `tree/` link.
 7. **Jack's response settles the pull request too.** The answer that closes the
@@ -120,22 +121,45 @@ IDX=$(mktemp -u /tmp/orphan-idx.XXXXXX)
 TREE=$(GIT_INDEX_FILE=$IDX sh -c 'git add -f reviews/<dir> && git write-tree')
 COMMIT=$(git commit-tree -S "$TREE" -m "<dir> review record
 
-<what it holds, and the date of Jack's rulings>")
+<what it holds>")
 git branch review/<dir> "$COMMIT"
 rm -f "$IDX"
 git push origin review/<dir>
 rm -rf reviews/<dir>
 ```
 
+To add the rulings banner, or to correct the record, restore the **whole**
+directory, edit its source, rebuild `index.html`, and commit a child of the
+branch tip. The tree is built from the disk exactly as it was the first time,
+so the only new thing is `-p`:
+
+```sh
+git checkout origin/review/<dir> -- reviews/<dir>
+git reset -q HEAD -- reviews/<dir>          # `reviews/` is gitignored; keep it out of the index
+# edit tools/build_doc.py, then rebuild index.html
+IDX=$(mktemp -u /tmp/orphan-idx.XXXXXX)
+TREE=$(GIT_INDEX_FILE=$IDX sh -c 'git add -f reviews/<dir> && git write-tree')
+COMMIT=$(git commit-tree -S -p origin/review/<dir> "$TREE" -m "<what changed, and why>")
+git update-ref refs/heads/review/<dir> "$COMMIT"
+rm -f "$IDX"
+git push origin review/<dir>
+rm -rf reviews/<dir>
+```
+
+Restore the whole directory and do not reach for `git read-tree`. Seeding the
+index from the old commit looks helpful and is a trap: it carries forward any
+file the rebuild deleted, so a removal never lands. `git add -f` over the full
+directory writes what is on disk, which is what the record should hold.
+
 `-S` is not optional. `commit.gpgsign` governs `git commit` only, so plumbing
-produces an unsigned commit, and the ruleset below rejects it.
+produces an unsigned commit, and both rulesets below reject it.
 
 Verify four things before you push:
 
 | Check | Expect |
 |---|---|
 | `git ls-tree -r --name-only review/<dir>` | the review directory and nothing else |
-| `git log -1 --format='%P' review/<dir>` | empty: no parent |
+| `git log -1 --format='%P' review/<dir>` | empty on the first commit; the branch tip on a correction |
 | `git log -1 --format='%G?' review/<dir>` | anything but `N` |
 | `git status` | unchanged from before you started |
 
@@ -143,22 +167,41 @@ Verify four things before you push:
 is garbage-collected, on GitHub as well as locally. Never delete a `review/`
 branch.
 
-## You get one push, and only one
+## A record is append-only: correct it, never rewrite it
 
-The repository ruleset `review-lock` targets `refs/heads/review/**/*` and
-restricts updates, deletions and force-pushes, and requires a signed commit. It
-does not restrict creations. A `review/` branch is therefore free to create and
-frozen from the moment it lands.
+Two repository rulesets bind this work. Read them, do not trust this summary:
+`gh api repos/Screendead/comtran-compiler/rulesets`.
 
-Two consequences bind the work:
+| Ruleset | Targets | Restricts |
+|---|---|---|
+| `review-lock` | `refs/heads/review/**/*` | deletion, force-push, unsigned commits |
+| `all` | every branch | force-push, unsigned commits |
 
-- **Finish the record before you push it.** There is no amending a typo, a
-  wrong number, or a missing file. Render `index.html` and read it first.
-- **No one can repair a bad record**, Jack included: the ruleset lists no bypass
-  actor. The only route is for him to edit the ruleset, which should stay a
-  deliberate act. A record that turns out wrong is superseded by a new branch
-  that says what it replaces, not rewritten.
+Neither restricts an ordinary update, so a `review/` branch takes as many
+commits as the work needs. What no branch takes any more is a rewrite: `all`
+bars a force-push everywhere, so an amended commit cannot be pushed over a
+pushed one, on a review branch or a topic branch.
 
-If a second push to a `review/` branch ever succeeds, the lock is not doing its
-job. Read `gh api repos/Screendead/comtran-compiler/rulesets` and check that
-`review-lock` reports `"enforcement": "active"`.
+Three consequences bind the work:
+
+- **Correct a record with a new commit on its own branch.** A wrong number, a
+  weakened argument, a missing file: fix the source, rebuild `index.html`,
+  and commit it as a child of the branch tip. Build it with the same plumbing,
+  adding `-p <branch>` to `git commit-tree` so the commit has a parent, then
+  `git update-ref` and push. The verification table above still applies, except
+  that `%P` now holds the parent rather than being empty.
+- **Say in the document that it was corrected, and what it said before.** The
+  correction is part of the record, exactly as the question and the answer are.
+  A reader must be able to see the argument that was put to Jack, not only the
+  one that survived. Date the correction and name the evidence that forced it.
+- **Still finish the record before the first push.** Append-only is a repair
+  route, not a licence to ship a draft. Every correction is permanent too, and a
+  record whose history is mostly corrections is hard to read.
+
+*Amended 2026-08-10, Jack's call.* `review-lock` previously restricted updates
+as well, so a branch was frozen from the moment it landed and a bad record could
+only be superseded by a new branch. He lifted that restriction and added the
+repository-wide `all` ruleset the same day. The first correction under the new
+rule is the second commit of
+`review/2026-08-10-m4-b1-temporary-storage`, which replaces a contrast the
+record drew from the wrong counts.
