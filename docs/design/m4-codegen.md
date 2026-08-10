@@ -100,7 +100,7 @@ M4 executes I/O-free programs.
 
   | Chunk | What it delivers |
   |---|---|
-  | B1 | The address spine — the word count of every verb shape (the [J 90.02] calling sequences, the M4-15 I/O shapes included), the constant-pool allocator, the `RS)` and `TS)` cell scheme, and the later-pass names GN)084 on (M4-6). |
+  | B1 | The address spine — the word count of every verb shape (the [J 90.02] calling sequences, the M4-15 I/O shapes included), the constant-pool allocator, the `RS)` cell scheme, `TS)`'s constant 7 (M4-4 as amended), and the later-pass names GN)084 on (M4-6). |
   | B2 | MOVE (M4-9). |
   | B3 | SET and arithmetic (M4-10). |
   | B4 | IF and WHEN (M4-11). |
@@ -200,14 +200,37 @@ M4 executes I/O-free programs.
   per located-record buffer pointer (M3-11); `PI)` is one word per
   positional indicator (M3-20's counter). The `TS)` sizing rule is
   unrecovered: the sample reserves 7 words and references none of them.
-  Stage 1 carries `TS) BSS 7` as a recorded constant; the listing diff
-  either reveals the rule or this sentence stands as the decision.
   **Amended 2026-08-05, stage 1.** Stage 1 does not carry `TS) BSS 7`.
   Jack's call: build the layout rule, and leave each size to the stage
   that can derive it. The verb generators size result storage, temporary
   storage, the positional indicators, and the constant pool, so stage 1
   leaves all four empty and stage 2 fills them. Stage 1 derives `BL)`
   alone, and gets the sample's attested 3.
+  **Amended 2026-08-10, chunk B1. `TS)` takes the attested 7 as a
+  constant, and no rule is invented for it. Jack's call.** The 2026-08-05
+  amendment left the size "to the stage that can derive it". No stage
+  can: an eleven-agent hunt over both manuals refuted seven readings and
+  left two that one sample cannot separate. `docs/HANDOVER.md` holds the
+  hunt. Three findings decide it:
+  - **The sample refutes demand-driven sizing.** No word of the object
+    program addresses any of the seven cells, so a compiler that sized
+    temporary storage by use would have printed `TS) BSS 0`.
+  - **Reserve-and-never-reference is this compiler's habit.** Over-
+    reservation tracks how well [J 90.02] documents each rule: `PI)` has
+    an exact rule and uses all 3 words, `RS)` a worst-case rule and uses
+    5 of 30, `TS)` no rule and uses none of 7.
+  - **A fitted rule would be worse than a constant.** One cell per file
+    returns 7, and sections-plus-one returns 7. Either presents a guess
+    as a derivation and then sizes every other program confidently and
+    wrongly. **Do not implement either, or any other rule returning 7.**
+  For any program but the sample our size is therefore unverifiable, and
+  that is stated rather than hidden. One artifact overturns this entry:
+  the storage map of a second compiled listing.
+  **Where the constant goes.** Into `blockWords` in
+  `lib/src/codegen/codegen.dart`, with `RS)`, `PI)` and the pool, never
+  before them. `originOf` sums the blocks declared ahead of its argument,
+  so sizing `TS)` while `RS)` is absent puts `BL)1` at 01630 instead of
+  the attested 01666. The four land in one change.
   Arithmetic confirms the block order against three attested addresses.
   Location Counter 1 starts at 01621. RS 30 words and TS 7 words put
   `BL)1` at 01666, which the `ORG BL)1` line prints. BL 3 words put
@@ -324,16 +347,14 @@ M4 executes I/O-free programs.
   - Three OCTAL renderings: twelve solid digits for `OCT` words;
     `OOOO FF T AAAAA` for type-B instructions; `P DDDDD T AAAAA` for
     prefix-type words (PZE, MZE, TXI, TXH, TXL, IOST, BSS, USE, ORG).
-    *Amended 2026-08-09, stage 2: a fourth rendering, `OOOO FF DDDDDD`,
-    prints the low 18 bits as one group where the type-B form splits a
-    tag from an address. Three sites carry it, all on listing page 20:
-    `RIR 777777` at LOC 01240, `SIR 000001` at 01247, and `RFT 000001`
-    at 01251. Their operand is one 18-bit sense-indicator mask, not a
-    tag and an address, and the print does not split it.*
-    *Confirmed 2026-08-10, chunk A7. Two readers transcribed PDF p. 211
-    independently, neither knowing of the other, and both print all
-    three sites in this form. The rendering is a scan reading, and stage
-    2 may depend on it.*
+    *Amended 2026-08-09, and confirmed on scan 2026-08-10 in chunk A7: a
+    fourth rendering, `OOOO FF DDDDDD`, prints the low 18 bits as one
+    group where the type-B form splits a tag from an address. Three
+    sites carry it, all on listing page 20: `RIR 777777` at LOC 01240,
+    `SIR 000001` at 01247, `RFT 000001` at 01251. Their operand is one
+    18-bit sense-indicator mask, and the print does not split it. Two
+    readers of PDF p. 211, neither knowing of the other, print all
+    three, so stage 2 may depend on it.*
   - The CNTRL column prints the word's 5-bit object-deck control group
     (M4-16). `USE`, `BSS`, and `ORG` lines print CNTRL 00001 with their
     control word in the OCTAL column (the `OP A` form of [J 90.03.03]);
@@ -386,32 +407,19 @@ M4 executes I/O-free programs.
     item (e) measurement resolves two blank lines on PDF p. 208, so the
     per-page blank counts are
     still taken from the scans during the stage-2 verification pass.
-    **Amended 2026-08-09, chunks A2 to A4.** Seven measured pages are now
-    corrected in the conversion itself, under Jack's option B: each chunk
-    authorizes its own pages. Listing pages 9 to 13 and 21 hold two blanks
-    after the head, and listing page 8 holds three.
-    **Amended 2026-08-10, chunk A5.** Listing pages 14, 15 and 16 hold two
-    blanks as well, under the same option B.
-    **Amended 2026-08-10, chunk A6.** Listing pages 18 and 19 hold two, and
-    listing page 17 already held two from a 2026-08-05 measurement, which
-    its reader confirmed without knowing of it. The five unverified
-    pages still hold one, so a page's blank count remains a scan
-    measurement and never a read of the conversion.
-    **Amended 2026-08-10, chunk A7.** Listing pages 20, 22 and 23 hold two,
-    and the conversion now carries all three, under the same option B. Two
-    pages are left unmeasured, 24 and 25, and both still hold one.
+    **Amended 2026-08-10, chunks A2 to A8, and this closes the blank
+    count.** All eighteen object pages are measured against their scans.
+    Seventeen hold two blank lines after the head and listing page 8 holds
+    three, so no page holds the one the conversion held before the pass.
+    The conversion carries all eighteen, corrected chunk by chunk under
+    Jack's option B, and `tool/object_listing_target_source.dart` holds the
+    map. `test/fixtures/90.05-object-listing-notes.md` holds the per-page
+    measurement and the per-chunk history this entry no longer repeats.
     No blank line separates routines, the storage map
     from the code, or the pool from the end-of-text line. The
     listing closes with that line, one blank line,
     `THE LAST LOADER CONTROL CARD PUNCHED IS`, the `*CTEND` card, and
     `DONE`.
-    **Amended 2026-08-10, chunk A8, and this closes the blank count.**
-    Listing pages 24 and 25 hold two, and the conversion now carries both,
-    under the same option B. All eighteen object pages are measured:
-    seventeen hold two and listing page 8 holds three. No object page holds
-    the one the conversion held on every page before the pass. The count is
-    no longer a prediction, and `tool/object_listing_target_source.dart`
-    carries all eighteen.
     **Amended 2026-08-10, chunk A8: the three closing lines do not print on
     the object grid, and two print to the left of it.** Both readers of PDF
     p. 216 measured the three, and they agree. Taking the LOC column as
