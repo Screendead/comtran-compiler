@@ -200,6 +200,11 @@ door and a claim.
 
 **What blocks it.** Nothing.
 
+*Pointer, 2026-08-10.* The web track's W1 phase is the strongest form of this
+entry: a browser that compiles the sample needs no Dart SDK and no clone. See
+the web track in `docs/HANDOVER.md`. This entry stays open, because a command
+and a website are different doors and a reader may want either.
+
 ### O5 — Add citation and preservation metadata
 
 **What.** Three items:
@@ -296,6 +301,11 @@ own diffs. The gap is outside expertise, not more rigour.
 **What blocks it.** Something readable for a reviewer to react to. O9, or a
 shorter public write-up.
 
+*Pointer, 2026-08-10.* The web track is that write-up, and this entry is the
+reason the track exists. See the web track in `docs/HANDOVER.md`. W1 gives a
+reviewer a program to compile and a listing to check; W2 gives the reviewer the
+page scan behind any reading.
+
 ### O8 — Link a generated instruction back to its page scan
 
 **What.** A chain from one generated instruction, through the compiler rule and
@@ -311,6 +321,9 @@ anchor. The missing link is from the code to the D-record.
 
 **What blocks it.** O3. The tier tags and the code-to-record link want one
 scheme, not two.
+
+*Pointer, 2026-08-10.* The web track names this entry as the site's natural
+home, and schedules it nowhere. The block above still holds.
 
 ### O9 — Write a citable technical report
 
@@ -507,6 +520,13 @@ D0.3 without Jack's explicit instruction.**
 
 Stars, forks and issue counts measure a different kind of project. The
 repository was five days old when they were counted. Track nothing here.
+
+*Amended 2026-08-10.* A public website is now on the roadmap, and a later
+reader could take it for the adoption push this entry rejects. It is not one.
+The site exists to give a reviewer access to the compiler and to the page scans
+(O7 and O4). **This rejection is unchanged: measure no audience.** Judge the
+site by whether a reviewer can check a reading, not by how many people visit
+it.
 
 ### R4 — A headline percentage with no stated denominator
 
