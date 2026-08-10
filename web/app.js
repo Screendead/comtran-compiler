@@ -111,6 +111,7 @@ const where = el('where');
 const card = el('card');
 const cardNo = el('card-no');
 const compileButton = el('compile');
+const linkNote = el('link-note');
 const whinges = el('whinges');
 const whingeCount = el('whinge-count');
 const tabs = [...document.querySelectorAll('[role="tab"]')];
@@ -271,6 +272,7 @@ function punch(row, column) {
   const caret = start + Math.min(column - 1, line.length);
   source.setSelectionRange(caret, caret);
   at = { row, column };
+  deckChanged();
   drawGutter();
   drawCursor();
   updateCompileState();
@@ -413,6 +415,7 @@ function runSoon() {
 }
 
 source.addEventListener('input', () => {
+  deckChanged();
   drawGutter();
   drawCursor();
   updateCompileState();
@@ -435,6 +438,7 @@ el('load').addEventListener('click', () => {
   source.focus();
   source.setSelectionRange(0, 0);
   source.scrollTop = 0;
+  deckChanged();
   drawGutter();
   drawCursor();
   run();
@@ -443,9 +447,120 @@ el('load').addEventListener('click', () => {
 el('clear').addEventListener('click', () => {
   source.value = '';
   source.focus();
+  deckChanged();
   drawGutter();
   drawCursor();
   run();
+});
+
+// Taking the deck away. The file is the compiler's; the link is the page's,
+// and it carries the deck in the address so that no deck is ever stored on a
+// server. `d1` is deflated and `d0` is plain, because a browser without
+// CompressionStream must still be able to write a link every browser reads.
+const LINK = /^#d([01])=([A-Za-z0-9_-]+)$/;
+
+function say(message) {
+  linkNote.hidden = message === null;
+  linkNote.textContent = message ?? '';
+}
+
+function toBase64Url(bytes) {
+  // String.fromCharCode takes its arguments on the stack, so a whole deck at
+  // once overflows it on a long program.
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+}
+
+function fromBase64Url(text) {
+  const plain = text.replaceAll('-', '+').replaceAll('_', '/');
+  const binary = atob(plain + '='.repeat((4 - (plain.length % 4)) % 4));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+async function through(bytes, stream) {
+  const piped = new Blob([bytes]).stream().pipeThrough(stream);
+  return new Uint8Array(await new Response(piped).arrayBuffer());
+}
+
+async function linkFor(text) {
+  const plain = new TextEncoder().encode(text);
+  if (typeof CompressionStream !== 'function') return `#d0=${toBase64Url(plain)}`;
+  const squeezed = await through(plain, new CompressionStream('deflate-raw'));
+  return `#d1=${toBase64Url(squeezed)}`;
+}
+
+async function deckFromLink() {
+  const carried = LINK.exec(location.hash);
+  if (!carried) return null;
+  const bytes = fromBase64Url(carried[2]);
+  const plain =
+    carried[1] === '0'
+      ? bytes
+      : await through(bytes, new DecompressionStream('deflate-raw'));
+  return new TextDecoder().decode(plain);
+}
+
+// An address that describes a deck the reader has since changed is a false
+// address, and a note about a deck that has moved on is a false note. Both
+// go when the deck goes.
+function deckChanged() {
+  say(null);
+  if (!LINK.test(location.hash)) return;
+  history.replaceState(null, '', location.pathname + location.search);
+}
+
+el('download').addEventListener('click', () => {
+  const bytes = globalThis.comtranCanon(source.value);
+  if (bytes === null || bytes === undefined) {
+    say(
+      'There is no deck file to save. A card here is not one the punch could ' +
+        'cut, and the file holds punches. Fix that card and try again.',
+    );
+    return;
+  }
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'deck.ctd';
+  link.click();
+  URL.revokeObjectURL(url);
+  say(`Saved deck.ctd, ${bytes.length.toLocaleString('en-GB')} bytes.`);
+});
+
+// Chrome leaves a clipboard write pending, neither kept nor refused, while
+// the page has no focus. A pending promise leaves the reader with no message
+// at all, so the wait is bounded and the page always says how it went.
+const CLIPBOARD_WAIT = 1000;
+
+async function copyLink(text) {
+  const pending = navigator.clipboard?.writeText(text);
+  if (!pending) return 'refused';
+  return Promise.race([
+    pending.then(() => 'copied', () => 'refused'),
+    new Promise((resolve) => setTimeout(resolve, CLIPBOARD_WAIT, 'no answer')),
+  ]);
+}
+
+const ELSEWHERE = 'The address bar now holds the link, so copy it from there.';
+
+el('share').addEventListener('click', async () => {
+  history.replaceState(null, '', await linkFor(source.value));
+  const went = await copyLink(location.href);
+  if (went === 'copied') {
+    say(
+      `Link copied, ${location.href.length.toLocaleString('en-GB')} ` +
+        'characters. It carries the deck as you typed it.',
+    );
+  } else if (went === 'refused') {
+    say(`This browser would not let the page reach the clipboard. ${ELSEWHERE}`);
+  } else {
+    say(`The clipboard did not answer. ${ELSEWHERE}`);
+  }
 });
 
 for (const tab of tabs) {
@@ -485,7 +600,16 @@ document.addEventListener('click', (event) => {
   for (const gloss of glosses) gloss.setAttribute('aria-expanded', 'false');
 });
 
-source.value = SAMPLE;
+let carried = null;
+try {
+  carried = await deckFromLink();
+} catch {
+  say(
+    'The address carried a deck this page could not read, so the sample ' +
+      'program is loaded instead.',
+  );
+}
+source.value = carried ?? SAMPLE;
 // Assigning to value leaves the caret at the end of the deck; card 1 is
 // where a reader starts.
 source.setSelectionRange(0, 0);

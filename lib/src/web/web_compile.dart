@@ -9,9 +9,12 @@
 /// and the same six stage dumps `bin/comtranc.dart` runs, and reports a
 /// refusal in the site's own words rather than an exception. [punchCard]
 /// and [togglePunch] serve the card view, which reads and cuts one card's
-/// holes.
+/// holes. [canonDeck] hands the reader the deck itself, to take away.
 library;
 
+import 'dart:typed_data';
+
+import '../cards/canon_codec.dart';
 import '../cards/card_image.dart';
 import '../cards/text_codec.dart';
 import '../chars/char_code.dart';
@@ -262,6 +265,24 @@ String punchText(String typed) {
       ..write('\n');
   }
   return buffer.toString();
+}
+
+/// The typed deck as canon bytes, or null when the punch could not cut a
+/// card of it.
+///
+/// The canon file is the deck (D0.5), so a reader who saves one holds what
+/// `deckconv`, the compiler and the editor all read. The site encodes
+/// nothing itself.
+Uint8List? canonDeck(String typed) {
+  final String mirror = punchText(typed);
+  if (mirror.isEmpty) {
+    return null;
+  }
+  try {
+    return encodeCanon(mirrorToDeck(mirror));
+  } on FormatException {
+    return null;
+  }
 }
 
 /// Compiles [typed] and renders every stage the compiler reached.

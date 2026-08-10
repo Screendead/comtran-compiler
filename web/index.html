@@ -163,6 +163,8 @@
         <span class="controls">
           <button type="button" id="compile">Compile</button>
           <button type="button" id="load">Load the sample program</button>
+          <button type="button" id="download">Download the deck</button>
+          <button type="button" id="share">Copy a link to this deck</button>
           <button type="button" id="clear">Clear</button>
         </span>
       </div>
@@ -175,6 +177,7 @@
         <span id="where">Card 1, column 1</span>
         <span id="deck-size"></span>
       </p>
+      <p class="link-note" id="link-note" role="status" hidden></p>
       <div class="whinge-head">
         <span class="pane-title">What the compiler said</span>
         <span class="verdict" id="whinge-count"></span>
@@ -185,6 +188,12 @@
         compiler does not read, columns 7 to 72 hold the program, and columns
         73 to 80 are never read at all. Lower case is punched as upper case,
         because the card character set has none.
+      </p>
+      <p class="note">
+        Download the deck and you get the holes, not the text: the same
+        card-image file the compiler, the deck tool and the card editor in
+        this repository all read. Copy a link and the whole deck rides inside
+        the address, so nothing you type is stored anywhere.
       </p>
     </div>
 
