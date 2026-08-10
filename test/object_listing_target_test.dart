@@ -61,9 +61,10 @@ void main() {
       }
     });
 
-    // The transcription holds one blank line after every page head. Every
-    // page measured against its scan holds more. Page 8 is the one page
-    // that prints the column header, and it holds three.
+    // Every one of the eighteen pages is measured against its scan, and
+    // none holds the single blank line the transcription held before the
+    // pass. Page 8 is the one page that prints the column header, and the
+    // one that holds three.
     const measured = <int, (int, String)>{
       8: (3, ' LOC '),
       9: (2, '00060'),
@@ -81,6 +82,8 @@ void main() {
       21: (2, '01324'),
       22: (2, '01413'),
       23: (2, '01477'),
+      24: (2, '01566'),
+      25: (2, '01716'),
     };
 
     int headOf(int page) =>
@@ -103,14 +106,25 @@ void main() {
       }
     });
 
-    // The frame, not the content-line count, is what the four scans hold
-    // in common (M4-8 as amended, chunk A3).
-    test('ends every verified page in line slot 57', () {
-      for (final int page in measured.keys) {
+    // The frame, not the content-line count, is what the scans hold in
+    // common (M4-8 as amended, chunk A3). Listing page 25 is the listing's
+    // last page and stops early, at slot 51, so the frame's lower edge is
+    // the one thing it cannot show.
+    test('ends every verified page but the last in line slot 57', () {
+      for (final int page in measured.keys.where((p) => p != 25)) {
         final int head = headOf(page);
         expect(committed[head + 57].trim(), isNotEmpty, reason: 'page $page');
         expect(committed[head + 58], startsWith('DATE '), reason: 'page $page');
       }
+    });
+
+    test('ends the last page in line slot 51', () {
+      final int head = headOf(25);
+      expect(committed[head + 51].trim(), isNotEmpty);
+      expect(
+        committed.sublist(head + 52).every((l) => l.trim().isEmpty),
+        isTrue,
+      );
     });
 
     test('holds all 18 object pages, 8 through 25', () {
