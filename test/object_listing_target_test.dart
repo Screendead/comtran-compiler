@@ -118,13 +118,14 @@ void main() {
       }
     });
 
-    test('ends the last page in line slot 51', () {
+    // Slot 51 is `DONE`, the last line of the listing, so an "everything
+    // below is blank" check would iterate an empty range and assert nothing.
+    // The length is the claim: the page stops at 51 and the listing stops
+    // with it.
+    test('ends the last page in line slot 51, where the listing stops', () {
       final int head = headOf(25);
       expect(committed[head + 51].trim(), isNotEmpty);
-      expect(
-        committed.sublist(head + 52).every((l) => l.trim().isEmpty),
-        isTrue,
-      );
+      expect(committed.length, head + 52);
     });
 
     test('holds all 18 object pages, 8 through 25', () {
