@@ -379,7 +379,9 @@ M4 executes I/O-free programs.
     **Amended 2026-08-09, chunks A2 to A4.** Seven measured pages are now
     corrected in the conversion itself, under Jack's option B: each chunk
     authorizes its own pages. Listing pages 9 to 13 and 21 hold two blanks
-    after the head, and listing page 8 holds three. The eleven unverified
+    after the head, and listing page 8 holds three.
+    **Amended 2026-08-10, chunk A5.** Listing pages 14, 15 and 16 hold two
+    blanks as well, under the same option B. The eight unverified
     pages still hold one, so a page's blank count remains a scan
     measurement and never a read of the conversion. No blank line separates routines, the storage map
     from the code, or the pool from the end-of-text line. The
@@ -434,6 +436,13 @@ M4 executes I/O-free programs.
   frame. Listing pages 11, 12 and 13 each print two blank slots and 55
   content lines, and each ends in slot 57. Their 165 content lines carry
   no content correction. Chunks A5 to A8 test the remaining eleven.
+  **Amended 2026-08-10, chunk A5.** Ten pages of eighteen now carry the
+  frame. Listing pages 14, 15 and 16 each print two blank slots and 55
+  content lines, and each ends in slot 57. Their 165 content lines carry
+  no content correction. Chunks A6 to A8 test the remaining eight.
+  These three pages add one check no per-page reader could run: their
+  location ranges are contiguous with each other and with chunk A4's last
+  page, so six pages run unbroken from 00264 to 00771.
 
 ## MOVE
 
