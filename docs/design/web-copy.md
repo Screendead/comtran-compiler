@@ -91,6 +91,12 @@ C1.
 - **C4. Make no lineage claim and no priority claim** without a period source
   on the page. "The ancestor of COBOL" and "the first business language" are
   both banned in that form. Neither manual even uses the word COMTRAN.
+  *Clarified 2026-08-10.* This rule sets a condition, not a ban. A lineage
+  claim with a period source named in the reader's view satisfies it. R1 in
+  `docs/opportunities.md`, as amended 2026-08-07, admits a period source that
+  is itself comparative, and J28-6310 is one. What stays out is the
+  comparative argument, which R1 rejects for the whole repository and the site
+  is part of the repository. State the record; do not argue from it.
 - **C5. Invent no history.** No anecdote about an IBM programmer that a source
   does not carry.
 - **C6. Define "we" once,** on the about page, which links
@@ -187,3 +193,12 @@ above, not in small print.
 - Jack has approved the register and the tiebreak. He has not approved the rule
   list.
 - The site needs an about page for C6. Nothing specifies it yet.
+- C2's three phrases all speak about the manuals. None fits a fact that sits
+  outside them and is attested elsewhere, such as the existence of J28-6310.
+  The front page states one in plain prose, with no evidence box, because a
+  box would file it as reconstruction evidence. A fourth register may be
+  needed when there is more than one such fact.
+- "We do not know" is barred wherever the truth is that this project declines
+  to rule. *Jack's call, 2026-08-10.* The two are different, and the first
+  states a scope decision as an evidentiary blank, which is the C1 failure
+  running the other way.
