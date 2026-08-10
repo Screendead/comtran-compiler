@@ -52,8 +52,12 @@ C1.
   at two levels of difficulty.
 - **A2. A link names what is on the other side.** Write "the decision record
   for the MOVE verb", not "learn more".
-- **A3. Define each term at first use, on each page.** A reader arrives from a
-  search engine, not from page 1.
+- **A3. Define each term the reader needs in order to follow the sentence,** in
+  the prose, at first use on each page. A reader arrives from a search engine,
+  not from page 1. "Deck", "listing" and "object code" are terms of this kind.
+- **A3.1. A word that only needs disambiguating takes a gloss marker instead**
+  (section G). The reader follows the sentence without it and wants it only on
+  a stumble. "Alphameric" is a word of this kind.
 - **A4. Cap the length.** A front-page paragraph takes three sentences. A
   tutorial step takes five. Longer material becomes a link.
 
@@ -120,9 +124,9 @@ C1.
 - **E4. Never mark an authentic period spelling `[sic]`.** "Alphameric" and
   "imbedded" are IBM's own words of the period, not errors. The mark would tell
   the reader that IBM made a mistake, which is a false claim and the one a
-  historian catches first. Gloss the word at first use instead, under A3. Rule
-  5 of section 8 of `CLAUDE.md` draws this line, and the fidelity policy in
-  `comtran-manuals/README.md` states it.
+  historian catches first. Give the word a gloss marker in place instead
+  (section G). Rule 5 of section 8 of `CLAUDE.md` draws this line, and the
+  fidelity policy in `comtran-manuals/README.md` states it.
 - **E5.** The measured 1962 listing geometry.
 
 E3 has two limits, and both hold outside this record. The manual conversions in
@@ -139,6 +143,32 @@ citation parenthesis to look in.
   "Download the deck".
 - **F2.** The site states its own failures plainly and says what to do next. It
   never paraphrases a 1962 diagnostic into one of its own.
+
+### G — The gloss marker
+
+*Jack's call, 2026-08-10: define a word in place rather than at a first use
+further up the page.*
+
+A gloss marker explains one word where the word stands. It carries a visible
+affordance, and it opens on hover, on keyboard focus, and on tap.
+
+- **G1. Do not carry the definition in a `title` attribute.** A `title` tooltip
+  does not open on a touch screen, and screen readers treat it inconsistently.
+  Those are the two readers the marker exists for.
+- **G2. The definition is text in the page.** It reads correctly with
+  JavaScript off and in a screen reader.
+- **G3. Copying the text gives the original characters and nothing else.** A
+  reader who copies a quotation gets IBM's words, without this project's gloss
+  inside them. This rule bars the parenthetical form for any quoted word.
+- **G4. Keep a gloss to one sentence.** A word that needs two sentences is a
+  term under A3, not a gloss.
+- **G5. The gloss marker and the "go deeper" link look different,** because
+  they do different things. The gloss stays on the page. The link leaves it for
+  the repository.
+
+One note on the element. `<abbr>` is the familiar choice and its meaning is
+wrong here, because a period spelling is not an abbreviation. Build one marker
+component from a focusable element, and use it for both cases.
 
 ## 5. The three statements the site must carry
 
