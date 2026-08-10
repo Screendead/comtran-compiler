@@ -4,9 +4,14 @@ This directory holds the W1 phase of the web track. `docs/HANDOVER.md`
 holds the track; `docs/design/web-copy.md` holds the register the copy
 obeys.
 
-The page does one thing: it runs this repository's compiler in a browser
-and prints all six stage dumps of whatever the reader types. It also draws
-the card under the cursor as the punch cut it.
+The page runs this repository's compiler in a browser and prints all six
+stage dumps of whatever the reader types, with the compiler's own
+diagnostics under the deck.
+
+Above them it draws the card the caret sits on. That card is editable: a
+click cuts or fills one hole, and the deck text becomes whatever the punch
+now says. A hole combination no character matches puts that card into the
+`!` punch form, which is the deck format's answer to exactly this case.
 
 ## Build and run
 
@@ -62,7 +67,6 @@ listing panel against `test/goldens/90.05-payroll.listing`.
 ## Not built yet
 
 W1 does not yet include the deck download, the share link, or the
-golden-diff panel. The card view is read-only: a position cannot be punched
-or cleared by clicking it.
+golden-diff panel.
 
 W2 to W4 add the manual pages, the stage-by-stage walk, and the tutorial.

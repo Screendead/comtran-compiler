@@ -39,7 +39,7 @@ void main() {
 
     test('the deck compiles clean', () {
       expect(result.cardCount, 294);
-      expect(result.diagnosticCount, 0);
+      expect(result.diagnostics, isEmpty);
       expect(result.maxSeverity, 0);
     });
 
@@ -53,7 +53,7 @@ void main() {
         'code',
         'listing',
         'cardCount',
-        'diagnosticCount',
+        'diagnostics',
         'maxSeverity',
       ]);
     });
@@ -153,6 +153,68 @@ void main() {
     test('lower case is punched as upper case', () {
       expect(punchCard('      stop')!.glyphs.substring(6, 10), 'STOP');
     });
+
+    test('a card carries the mirror text it came from', () {
+      final String card1 = _sample().split('\n').first;
+      expect(punchCard(card1)!.line, card1);
+    });
+  });
+
+  group('punching a card by hand', () {
+    // Row 0 is punch row 12, row 1 is row 11, row 2 is row 0, and rows 3
+    // to 11 are the digit rows.
+    const row12 = 0;
+    const row11 = 1;
+    const row4 = 6;
+    const row8 = 10;
+
+    test('cutting the three holes of an asterisk types the asterisk', () {
+      WebCard card = togglePunch('', row11, 7)!;
+      card = togglePunch(card.line, row4, 7)!;
+      card = togglePunch(card.line, row8, 7)!;
+      expect(card.line, '      *');
+      expect(card.glyphs[6], '*');
+    });
+
+    test('filling one hole of an asterisk leaves the letter M', () {
+      // 11-4-8 is the asterisk and 11-4 is M, so one filled hole is one
+      // different character, not a broken card.
+      final WebCard card = togglePunch('      *', row8, 7)!;
+      expect(card.line, '      M');
+      expect(togglePunch(card.line, row8, 7)!.line, '      *');
+    });
+
+    test('a hole no character matches puts the card in punch form', () {
+      // Row 12 alone is the plus sign. Rows 12 and 11 together are no BCD
+      // character at all, so the card leaves the glyph form for the `!`
+      // punch form the deck format defines for exactly this case.
+      final WebCard plus = togglePunch('', row12, 7)!;
+      expect(plus.line, '      +');
+      final WebCard both = togglePunch(plus.line, row11, 7)!;
+      expect(both.line, '! 7:12-11');
+      expect(both.glyphs.trim(), isEmpty);
+      expect(togglePunch(both.line, row11, 7)!.line, '      +');
+    });
+
+    test('a position off the card is refused', () {
+      expect(togglePunch('', row12, 0), isNull);
+      expect(togglePunch('', row12, 81), isNull);
+      expect(togglePunch('', -1, 7), isNull);
+      expect(togglePunch('', 12, 7), isNull);
+      expect(togglePunch('      A%B', row12, 7), isNull);
+    });
+  });
+
+  test("a diagnostic reaches the site in the listing's own words", () {
+    final WebCompilation result = compileText(
+      ['      *DATA', dataCard(name: 'A', level: '99'), ''].join('\n'),
+    );
+    final WebDiagnostic first = result.diagnostics.first;
+    expect(first.number, matches(RegExp(r'^\d+,\d\d$')));
+    expect(first.severity, inInclusiveRange(1, 5));
+    // The listing prints the same text for the same diagnostic, so the
+    // site never states a message of its own.
+    expect(result.listing, contains(first.text.split('\n').first));
   });
 
   test('a program the compiler rejects still returns its stages', () {
@@ -162,7 +224,7 @@ void main() {
       ['      *DATA', dataCard(name: 'A', level: '99'), ''].join('\n'),
     );
     expect(result.error, isNull);
-    expect(result.diagnosticCount, greaterThan(0));
+    expect(result.diagnostics, isNotEmpty);
     expect(result.listing, contains('ERRORS WERE DETECTED'));
   });
 }

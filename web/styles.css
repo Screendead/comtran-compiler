@@ -220,13 +220,30 @@ button:focus-visible {
   outline-offset: 1px;
 }
 
+/* The Compile button says whether the panels answer to what is typed. It
+   is live while they do not, and spent once they do. */
 #compile {
   background: var(--ink);
   color: var(--paper);
   border-color: var(--ink);
 }
 
-#compile:hover { background: #000; }
+#compile:hover:not(:disabled) {
+  background: var(--manual-edge);
+  border-color: var(--manual-edge);
+}
+
+#compile:active:not(:disabled) {
+  background: #2f5878;
+  border-color: #2f5878;
+}
+
+#compile:disabled {
+  background: transparent;
+  color: var(--ink-faint);
+  border-color: var(--panel-rule);
+  cursor: default;
+}
 
 /* The deck: a card image is fixed-width, so everything here is monospace
    and column-aligned to the same character cell. */
@@ -455,12 +472,78 @@ button:focus-visible {
   line-height: 13px;
   text-align: center;
   color: var(--card-faint);
+  cursor: pointer;
 }
+
+.card .p:hover { outline: 1px solid var(--ink); }
 
 /* A hole. The card stock is gone, so the light goes through. */
 .card .p.on {
   background: var(--ink);
   color: transparent;
+}
+
+/* The position the keyboard acts on. */
+.card:focus .p.at,
+.card:focus-visible .p.at {
+  outline: 2px solid var(--manual-edge);
+  outline-offset: 0;
+}
+
+.card:focus, .card:focus-visible { outline: none; }
+
+/* A card row lays its cells straight into the card's own grid. */
+.card .crow { display: contents; }
+
+/* ---- What the compiler said ---- */
+
+.whinge-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 8px;
+}
+
+.whinge-head .pane-title { margin: 0; }
+
+.whinges {
+  border: 1px solid var(--panel-rule);
+  background: var(--panel);
+  max-height: 190px;
+  overflow-y: auto;
+}
+
+.whinge {
+  display: grid;
+  grid-template-columns: 62px 20px minmax(0, 1fr);
+  gap: 10px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.whinge:last-child { border-bottom: 0; }
+
+.whinge .wn, .whinge .ws {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.whinge .wt { white-space: pre-wrap; }
+
+/* Severity 5 stopped the job, so it does not read like the rest. */
+.whinge.stopped .ws { color: var(--flag); font-weight: 700; }
+
+.whinge-none {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  margin: 0;
+  padding: 12px;
 }
 
 /* ---- The gloss marker (web-copy.md section G) ---- */

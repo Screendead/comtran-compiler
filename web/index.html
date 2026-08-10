@@ -132,6 +132,24 @@
     listing and object code all survive together in the manuals.
   </p>
 
+  <div class="card-view">
+    <div class="pane-head">
+      <span class="pane-title">The card under the cursor</span>
+      <span class="verdict" id="card-no"></span>
+    </div>
+    <div class="card-scroll">
+      <div class="card" id="card" role="grid" tabindex="0" aria-label="The punched card under the cursor. Arrow keys move, space punches."></div>
+    </div>
+    <p class="note">
+      Twelve rows &mdash; 12, 11 and 0 at the top, then 1 to 9 &mdash; by
+      eighty columns. The characters along the top are what the keypunch
+      printed above the holes it cut; the holes are the part the compiler
+      reads. Click a position to punch it, and the deck text follows. Cut a
+      combination no character matches and the card leaves the character form
+      for the punch form, which is what the deck format is for.
+    </p>
+  </div>
+
   <div class="bench">
 
     <div class="deck-pane">
@@ -152,6 +170,11 @@
         <span id="where">Card 1, column 1</span>
         <span id="deck-size"></span>
       </p>
+      <div class="whinge-head">
+        <span class="pane-title">What the compiler said</span>
+        <span class="verdict" id="whinge-count"></span>
+      </div>
+      <div class="whinges" id="whinges"></div>
       <p class="note">
         Eighty columns to a card. Columns 1 to 6 hold a serial number the 1962
         compiler does not read, columns 7 to 72 hold the program, and columns
@@ -183,22 +206,6 @@
       <p class="pane-foot"><span id="panel-foot"></span></p>
     </div>
 
-  </div>
-
-  <div class="card-view">
-    <div class="pane-head">
-      <span class="pane-title">The card under the cursor</span>
-      <span class="verdict" id="card-no"></span>
-    </div>
-    <div class="card-scroll">
-      <div class="card" id="card" role="img" aria-label="The punched card under the cursor"></div>
-    </div>
-    <p class="note">
-      Twelve rows &mdash; 12, 11 and 0 at the top, then 1 to 9 &mdash; by
-      eighty columns. The characters along the top are what the keypunch
-      printed above the holes it cut. The holes are the part the compiler
-      reads.
-    </p>
   </div>
 
   <p class="note wide">

@@ -467,8 +467,15 @@ in one place and leaves the site with no card knowledge of its own.
 Three items on the W1 list above are not built: the deck download as `.ctd`,
 the share link, and the golden-diff panel. The diff earns its place least: the
 site now prints the listing the golden test already compares, and the test is
-the stronger claim. The other two stand. The punch grid is read-only; a
-position cannot yet be punched by clicking it.
+the stronger claim. The other two stand.
+
+**Amended 2026-08-10 at Jack's request.** The punch grid moved above the deck
+and became editable: a click cuts or fills one hole, and the deck text becomes
+the card that results. The compiler decides what that text is, so a hole
+combination no character matches puts the card into the `!` punch form (D0.5)
+rather than into an error. The deck also prints the compiler's own diagnostics
+under it, the Compile button greys out while the panels already answer to the
+typed text, and each run prints how long it took.
 
 **W2 — the sources.** The documents page. It holds the language reference, both
 manual conversions, both source PDFs (17 MB), and each of the 345 page scans

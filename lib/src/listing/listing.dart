@@ -71,6 +71,24 @@ final class ListingAnnotations {
   final Map<int, (int, String)> nameByCard;
 }
 
+/// The statement number the diagnostic block prints for [diagnostic].
+///
+/// The NUMBER column carries the statement number; `9999,99` marks a
+/// diagnostic not confined to a numbered statement — an unnumbered card, or
+/// no card at all (J 02.02.01; decisions D9.5 and D11.3). A clause-confined
+/// diagnostic prints the clause digits after the comma (design note M2-6).
+String diagnosticStatementNumber(FrontEndResult result, Diagnostic diagnostic) {
+  final SourceCard? card = diagnostic.card;
+  final String number = card == null
+      ? '9999,99'
+      : result.statementNumberByCard[card.cardNumber] ?? '9999,99';
+  if (diagnostic.clause == null || !number.endsWith(',00')) {
+    return number;
+  }
+  return '${number.substring(0, number.length - 2)}'
+      '${diagnostic.clause.toString().padLeft(2, '0')}';
+}
+
 /// Renders the listing for [result]. When [diagnostics] is given it
 /// replaces `result.diagnostics` as the printed block — the M2 driver
 /// passes the merged front-end-plus-parser list (`ParseResult`,
@@ -244,20 +262,7 @@ final class _ListingWriter {
     _line('NUMBER   CODE   MESSAGE');
     _line('');
     for (final Diagnostic d in diagnostics) {
-      // The NUMBER column carries the statement number; 9999,99 marks a
-      // diagnostic not confined to a numbered statement — an unnumbered
-      // card, or no card at all (J 02.02.01; decisions D9.5 and D11.3).
-      // A clause-confined diagnostic prints the clause digits after the
-      // comma (design note M2-6).
-      final SourceCard? card = d.card;
-      String number = card == null
-          ? '9999,99'
-          : result.statementNumberByCard[card.cardNumber] ?? '9999,99';
-      if (d.clause != null && number.endsWith(',00')) {
-        number =
-            '${number.substring(0, number.length - 2)}'
-            '${d.clause.toString().padLeft(2, '0')}';
-      }
+      final String number = diagnosticStatementNumber(result, d);
       final List<String> lines = d.text.split('\n');
       _line('${number.padLeft(7)}    ${d.severity}    ${lines.first}');
       lines.skip(1).forEach(_line);

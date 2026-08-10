@@ -23,6 +23,11 @@ external set _comtranCompile(JSFunction value);
 @JS('comtranPunch')
 external set _comtranPunch(JSFunction value);
 
+/// Cuts or fills one hole on a card and returns the card that results, so
+/// the reader can punch by hand and watch the text follow.
+@JS('comtranToggle')
+external set _comtranToggle(JSFunction value);
+
 /// The compiler version the page prints, so a reader can tell which build
 /// produced the listing on the screen.
 @JS('comtranVersion')
@@ -34,6 +39,14 @@ void main() {
   ).toJS).toJS;
   _comtranPunch = ((JSString typed) {
     final WebCard? card = punchCard(typed.toDart);
+    return card == null ? null : jsonEncode(card.toJson()).toJS;
+  }).toJS;
+  _comtranToggle = ((JSString typed, JSNumber row, JSNumber column) {
+    final WebCard? card = togglePunch(
+      typed.toDart,
+      row.toDartInt,
+      column.toDartInt,
+    );
     return card == null ? null : jsonEncode(card.toJson()).toJS;
   }).toJS;
   _comtranVersion = comtranVersion.toJS;

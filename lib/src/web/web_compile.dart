@@ -4,10 +4,12 @@
 /// reader typed and prints what comes back, so a later milestone fills the
 /// site's panels with no website work.
 ///
-/// Two jobs live here. [punchText] turns keyboard text into the mirror
-/// normal form `mirrorToDeck` demands (D0.5). [compileText] then runs the
-/// same driver and the same six stage dumps `bin/comtranc.dart` runs, and
-/// reports a refusal in the site's own words rather than an exception.
+/// [punchText] turns keyboard text into the mirror normal form
+/// `mirrorToDeck` demands (D0.5). [compileText] then runs the same driver
+/// and the same six stage dumps `bin/comtranc.dart` runs, and reports a
+/// refusal in the site's own words rather than an exception. [punchCard]
+/// and [togglePunch] serve the card view, which reads and cuts one card's
+/// holes.
 library;
 
 import '../cards/card_image.dart';
@@ -34,6 +36,29 @@ const ListingOptions webListingOptions = ListingOptions(
   title: 'COMPILATION OF SAMPLE PROBLEM',
 );
 
+/// One row of the compiler's diagnostic block, in the listing's own words.
+///
+/// The site never writes a diagnostic of its own and never rewrites one of
+/// these (`docs/design/web-copy.md`, rules E1 and F2).
+final class WebDiagnostic {
+  const WebDiagnostic(this.number, this.severity, this.text);
+
+  /// The statement number the listing prints in its NUMBER column.
+  final String number;
+
+  /// The D9.2 severity; 5 stopped the job.
+  final int severity;
+
+  /// The message text with its operands substituted.
+  final String text;
+
+  Map<String, Object?> toJson() => {
+    'number': number,
+    'severity': severity,
+    'text': text,
+  };
+}
+
 /// One browser compilation: the six stage dumps, or a refusal.
 ///
 /// [error] is non-null exactly when the deck never reached the driver. A
@@ -48,7 +73,7 @@ final class WebCompilation {
     required this.listing,
     required this.code,
     required this.cardCount,
-    required this.diagnosticCount,
+    required this.diagnostics,
     required this.maxSeverity,
   }) : error = null;
 
@@ -61,7 +86,7 @@ final class WebCompilation {
       listing = '',
       code = '',
       cardCount = 0,
-      diagnosticCount = 0,
+      diagnostics = const [],
       maxSeverity = 0;
 
   final String? error;
@@ -85,7 +110,9 @@ final class WebCompilation {
   final String code;
 
   final int cardCount;
-  final int diagnosticCount;
+
+  /// Every diagnostic the deck drew, in the listing's order.
+  final List<WebDiagnostic> diagnostics;
 
   /// The worst severity on the deck (D11.2); 5 stopped a job.
   final int maxSeverity;
@@ -101,7 +128,7 @@ final class WebCompilation {
     'code': code,
     'listing': listing,
     'cardCount': cardCount,
-    'diagnosticCount': diagnosticCount,
+    'diagnostics': [for (final WebDiagnostic d in diagnostics) d.toJson()],
     'maxSeverity': maxSeverity,
   };
 }
@@ -119,33 +146,76 @@ final List<int> _rowBits = [
 
 /// One card as the punch cut it, for the card view.
 final class WebCard {
-  const WebCard(this.rows, this.glyphs);
+  const WebCard(this.line, this.rows, this.glyphs);
+
+  /// The card's own mirror text (D0.5). A card every column of which
+  /// carries a source-set character is a glyph line; any other card is a
+  /// `!` punch line, which is what a hand-punched hole with no character
+  /// against it produces.
+  final String line;
 
   /// Twelve strings of eighty characters, `#` for a hole and `.` for solid
   /// card, in the row order [_rowBits] documents.
   final List<String> rows;
 
   /// The eighty characters printed along the top of the card, blanks
-  /// included — what the keypunch prints above the holes it cuts.
+  /// included — what the keypunch prints above the holes it cuts. A column
+  /// no character matches prints a blank.
   final String glyphs;
 
-  Map<String, Object?> toJson() => {'rows': rows, 'glyphs': glyphs};
+  Map<String, Object?> toJson() => {
+    'line': line,
+    'rows': rows,
+    'glyphs': glyphs,
+  };
 }
 
 /// Punches one line of typed text as one card, or returns null when the
 /// punch could not cut it. A blank line is a blank card, not a failure.
 WebCard? punchCard(String typed) {
-  final String line = punchText(typed).split('\n').first;
+  final CardImage? card = _cardFrom(typed);
+  return card == null ? null : _render(card);
+}
+
+/// Cuts or fills one hole and returns the card that results, so that a
+/// reader can punch a card by hand and read the text it becomes.
+///
+/// [row] indexes [_rowBits] — 0 is row 12, 1 is row 11, 2 is row 0, and 3
+/// to 11 are the digit rows. [column] is 1-based.
+WebCard? togglePunch(String typed, int row, int column) {
+  final CardImage? card = _cardFrom(typed);
+  if (card == null || row < 0 || row >= _rowBits.length) {
+    return null;
+  }
+  if (column < 1 || column > CardImage.columnCount) {
+    return null;
+  }
+  final List<int> columns = [
+    for (var c = 1; c <= CardImage.columnCount; c++) card.punchesAt(c),
+  ];
+  columns[column - 1] ^= _rowBits[row];
+  return _render(CardImage.fromColumns(columns));
+}
+
+/// Reads one line of typed text as one card.
+CardImage? _cardFrom(String typed) {
+  // A punch line is already in the punch's own alphabet, and upper-casing
+  // it would corrupt nothing but reading it as typed text would.
+  final String first = typed.split('\n').first;
+  final String line = first.startsWith('!')
+      ? first.trimRight()
+      : punchText(first).split('\n').firstOrNull ?? '';
   if (line.contains('\t')) {
     return null;
   }
-  final List<CardImage> deck;
   try {
-    deck = mirrorToDeck('$line\n');
+    return mirrorToDeck('$line\n').single;
   } on FormatException {
     return null;
   }
-  final CardImage card = deck.single;
+}
+
+WebCard _render(CardImage card) {
   final rows = <String>[];
   for (final int bit in _rowBits) {
     final row = StringBuffer();
@@ -160,7 +230,7 @@ WebCard? punchCard(String typed) {
     final int? bcd = isGlyphColumn(punches) ? bcdFromPunches(punches) : null;
     glyphs.write(bcd == null ? ' ' : glyphFromBcd(bcd) ?? ' ');
   }
-  return WebCard(rows, glyphs.toString());
+  return WebCard(deckToMirror([card]).trimRight(), rows, glyphs.toString());
 }
 
 /// Turns typed text into mirror normal form (`docs/design/deck-format.md`
@@ -232,7 +302,7 @@ WebCompilation compileText(String typed) {
     );
   }
   final listing = StringBuffer();
-  var diagnosticCount = 0;
+  final diagnostics = <WebDiagnostic>[];
   for (final JobCompilation job in compilation.jobs) {
     listing.write(
       writeListing(
@@ -242,7 +312,15 @@ WebCompilation compileText(String typed) {
         annotations: job.semantics?.allocation?.annotations,
       ),
     );
-    diagnosticCount += job.diagnostics.length;
+    for (final Diagnostic d in job.diagnostics) {
+      diagnostics.add(
+        WebDiagnostic(
+          diagnosticStatementNumber(job.frontEnd, d),
+          d.severity,
+          d.text,
+        ),
+      );
+    }
   }
   return WebCompilation(
     cards: deckToMirror(deck),
@@ -252,7 +330,7 @@ WebCompilation compileText(String typed) {
     listing: listing.toString(),
     code: emitCode(compilation),
     cardCount: deck.length,
-    diagnosticCount: diagnosticCount,
+    diagnostics: diagnostics,
     maxSeverity: compilation.maxSeverity,
   );
 }
