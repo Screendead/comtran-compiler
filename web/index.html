@@ -22,14 +22,14 @@
   <p class="lede">
     <span class="gloss-host"><button type="button" class="gloss" aria-expanded="false" aria-describedby="gloss-comtran">COMTRAN</button><span class="gloss-note" id="gloss-comtran" role="note">The manuals call it Commercial Translator; COMTRAN is the name it is known by, and neither manual prints it.</span></span>
     was IBM&rsquo;s business programming language for the 7090. It ran from
-    1959 to 1962, and then it stopped. No compiler survives, no source, and
-    no machine you could feed a deck into &mdash; two manuals survive, and
-    little else.
+    1959 to 1962, and then it stopped. No compiler survives and no source
+    &mdash; two manuals survive, and little else.
   </p>
   <p class="lede">
     This compiler was rebuilt from those two manuals. For the one program
-    whose printed output survives, it reproduces IBM&rsquo;s listing byte for
-    byte. It runs in your browser, and nothing you type leaves this page.
+    whose printed output survives in them, it reproduces IBM&rsquo;s listing
+    byte for byte. It runs in your browser, and nothing you type leaves this
+    page.
   </p>
 </section>
 
@@ -129,7 +129,7 @@
     on this page. Type into the deck, and the panels beside it show what the
     compiler makes of it. The program already loaded is the payroll sample
     printed in the 1962 manual &mdash; the one program whose source, compiler
-    listing and object code all survive together.
+    listing and object code all survive together in the manuals.
   </p>
 
   <div class="bench">
@@ -163,7 +163,7 @@
     <div class="out-pane">
       <div class="pane-head">
         <span class="pane-title">What the compiler made of it</span>
-        <span id="verdict" class="verdict"></span>
+        <span id="verdict" class="verdict" role="status" aria-live="polite"></span>
       </div>
       <div class="tabs" role="tablist" aria-label="Compiler stage">
         <button type="button" role="tab" id="tab-cards" data-stage="cards" aria-controls="panel"><span class="tab-n">01</span>Cards</button>
@@ -179,7 +179,7 @@
         <p id="evidence-text"></p>
       </div>
       <p class="refusal" id="refusal" role="status" hidden></p>
-      <div class="panel" id="panel" role="tabpanel" tabindex="0" aria-live="polite"><pre id="out"></pre></div>
+      <div class="panel" id="panel" role="tabpanel" tabindex="0"><pre id="out"></pre></div>
       <p class="pane-foot"><span id="panel-foot"></span></p>
     </div>
 
