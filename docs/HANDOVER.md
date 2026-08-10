@@ -426,6 +426,38 @@ there. And the site's content is generated, so the Actions build runs
 cannot drift from the compiler. The `.ct` mirrors already follow this rule. The
 build also needs `.nojekyll`, or Jekyll mishandles the scans.
 
+**The deploy workflow, written 2026-08-10** (`.github/workflows/pages.yml`,
+branch `w1-site`). It runs on a push to master and on demand, and it takes
+five steps: `dart pub get`, `dart test`, `dart run tool/build_web.dart`,
+`actions/upload-pages-artifact` over `web/`, and `actions/deploy-pages`. Four
+notes on the shape:
+
+- The test run is the gate. The site's whole claim is the byte-for-byte
+  listing, and the golden test is what proves it, so nothing publishes without
+  it. Format and lint stay in CI: a style failure must not stop a correct site.
+- No path filter guards the workflow. The site prints what the compiler
+  prints, so every push to master must redeploy.
+- Jekyll never runs on a workflow artifact, which is served as uploaded. The
+  build writes `.nojekyll` anyway, as a guard if the source ever moves back to
+  a branch.
+- CI now also runs `dart run tool/build_web.dart`. The site is built and never
+  committed, so before this nothing proved that it compiles.
+
+Two things still wait for Jack, and the order matters. Set the source first:
+Settings, then Pages, then Source set to GitHub Actions. The setting takes no
+workflow on master, and the push that merges the pull request then deploys on
+its first run. In the other order the first run fails at its last step, and
+the setting alone re-triggers nothing, so the deploy needs a third action. The
+site is at `https://screendead.github.io/comtran-compiler/` unless the domain
+question below is settled first.
+
+**Verified from a subpath on 2026-08-10**, because a project-page URL carries
+one. Served under `/web/`, the WebAssembly module loads, both pages find their
+styles and their four crops, no request 404s, and the listing panel holds
+21,865 bytes that hash to the golden. The page fetches the module and hands
+the bytes to `compile`, so the `Content-Type` of `.wasm` on the host never
+matters.
+
 Cloudflare Pages is the recorded escape hatch, if the bandwidth ever matters.
 Its free tier sets no bandwidth cap, and it reads a `_headers` file, which
 Pages does not. The artifact is the same, so the move costs about a day.

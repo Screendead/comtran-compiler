@@ -1,0 +1,51 @@
+name: Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+# The build publishes the site. Nobody commits it, and no path filter guards
+# this workflow: the site prints what the compiler prints, so any change to
+# the compiler must reach the published page (docs/HANDOVER.md, web track).
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and never cancel one that is already publishing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.12.2' # Matches ci.yml; bump the two together
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: pub-
+      - run: dart pub get
+      # The site claims it reproduces the 1962 listing byte for byte, and the
+      # golden test is what proves it. Nothing publishes without it. Format and
+      # lint stay in CI: a style failure must not stop a correct site.
+      - run: dart test
+      - run: dart run tool/build_web.dart
+      # A workflow artifact is served as uploaded, so Jekyll never runs on it.
+      # The file guards the site if the source is ever moved back to a branch.
+      - run: touch web/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deploy
+        uses: actions/deploy-pages@v4

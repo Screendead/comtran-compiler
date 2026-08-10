@@ -32,3 +32,5 @@ jobs:
       - run: dart analyze --fatal-infos
       - run: dart test
       - run: dart run comtran:deckconv check .
+      # The site is built, never committed, so nothing else proves it compiles.
+      - run: dart run tool/build_web.dart

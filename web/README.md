@@ -68,6 +68,15 @@ faster than the JavaScript build did.
 The same trap waits for any later browser work, the M4 emulator most of
 all.
 
+## How it publishes
+
+`.github/workflows/pages.yml` builds this directory and deploys it to GitHub
+Pages, on a push to master and on demand. Nobody commits the build output.
+
+The workflow runs `dart test` before it builds. The site claims it reproduces
+the 1962 listing byte for byte, and the golden test is what proves that claim,
+so nothing publishes without it.
+
 ## What holds this to the goldens
 
 `test/web_compile_test.dart` compiles the sample program through the same
