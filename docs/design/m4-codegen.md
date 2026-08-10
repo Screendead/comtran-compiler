@@ -385,7 +385,7 @@ M4 executes I/O-free programs.
   **Amended 2026-08-05, stage 1.** A second scan pass measured the
   character grid of PDF pp. 199–200 and confirmed every column above.
   It confirmed on ink one reading this entry already recorded, and
-  settled the two it left open:
+  settled one it left open:
   - The `+n` offset is right-aligned, as recorded above. Page 200 holds
     the only discriminating evidence, the two-digit offsets `+10` to `+23`.
     Each starts one column to the left of a single-digit offset. The
@@ -396,17 +396,10 @@ M4 executes I/O-free programs.
     same result: DEPARTMENT.TOTAL on p. 199 and INTERNAL.TOTALS on
     p. 200. The transcription indents the second line two columns,
     which is an artifact.
-  - The column header centers each of its first three names over its
-    field. The reading held to one column, so the stage-1 golden
-    excludes the header; the 2026-08-09 amendment measures it.
   The two page scans differ in horizontal registration. Measure each
   page against its own LOC column, never against the other page.
   - Page furniture: the `LOC OCTAL CNTRL SYMBOLIC` column header prints
-    once, on the first object page. The transcription recorded one blank
-    line after each page head and one after the column header; the M4-20
-    item (e) measurement resolves two blank lines on PDF p. 208, so the
-    per-page blank counts are
-    still taken from the scans during the stage-2 verification pass.
+    once, on the first object page.
     **Amended 2026-08-10, chunks A2 to A8, and this closes the blank
     count.** All eighteen object pages are measured against their scans.
     Seventeen hold two blank lines after the head and listing page 8 holds
@@ -446,55 +439,32 @@ M4 executes I/O-free programs.
   calls the builder in `lib/src/listing/listing.dart` and writes no
   second template; `m1-front-end.md` M1-16 as amended holds the measured
   columns and the evidence. It also refuted the head this project
-  printed, and the golden listing carries the correction. The per-page
-  blank counts stay with the verification pass.
+  printed, and the golden listing carries the correction.
   **Amended again 2026-08-09, stage 2. The target is verified before any
-  code generates against it** (Jack's call, with M4-1's chunking). This
-  entry had stage 2 render the listing and then verify that render blind.
-  That order spends the nineteen-page pass again each time a generator is
-  wrong. The order is now: build the target from the transcription's
-  content and this entry's geometry; verify it page by page against the
-  scans; then generate against the committed file. The formula does not
-  change. The transcription supplies content, the scans supply geometry,
-  and a scan measurement still decides a disagreement.
+  code generates against it** (Jack's call, with M4-1's chunking). The
+  transcription supplies content, the scans supply geometry, and a scan
+  measurement decides a disagreement.
   The target file is `test/fixtures/90.05-object-listing.target`. It is
   scaffolding, not a second oracle. Jack's ruling of 2026-08-09: the
   golden stays the oracle of record, and the target buys resumability
   alone. B7 deletes it, once `test/goldens/90.05-payroll.storage-map` has
-  grown into the whole object listing.
-  A disagreement takes one of two routes, and this is what makes the page
-  chunks independent. A wrong target line is ours to correct, in the
-  corrections table. A wrong conversion line becomes an erratum candidate
-  in HANDOVER; it waits for Jack and blocks no other page. The pass also
-  settles each page's own blank-line count, which this entry leaves open.
-  **Amended 2026-08-09, chunk A3. The page body is a frame of 57 line
-  slots.** On each of the four verified pages — listing 8, 9, 10 and 21 —
-  the last content line sits in slot 57, with the head as slot 0. A page
-  that prints no furniture blanks slots 1 and 2 and prints 55 content
-  lines. Page 8 prints the column header: it blanks slots 1 to 3, prints
-  the header at 4 and a blank at 5, and prints 52. Stage 2 lays out a
-  page by the frame, not by a line count. Four pages of eighteen carry
-  this, and chunks A4 to A8 test it. Listing page 19, PDF p. 210, is the
-  one page whose transcription would break it: it holds 54 content lines.
-  `test/fixtures/90.05-object-listing-notes.md` holds the measurements.
-  **Amended 2026-08-09, chunk A4.** Seven pages of eighteen now carry the
-  frame. Listing pages 11, 12 and 13 each print two blank slots and 55
-  content lines, and each ends in slot 57. Their 165 content lines carry
-  no content correction. Chunks A5 to A8 test the remaining eleven.
-  **Amended 2026-08-10, chunk A5.** Ten pages of eighteen now carry the
-  frame. Listing pages 14, 15 and 16 each print two blank slots and 55
-  content lines, and each ends in slot 57. Their 165 content lines carry
-  no content correction. Chunks A6 to A8 test the remaining eight.
-  These three pages add one check no per-page reader could run: their
-  location ranges are contiguous with each other and with chunk A4's last
-  page, so six pages run unbroken from 00264 to 00771.
-  **Amended 2026-08-10, chunk A6, and the frame now has no exception.**
-  Thirteen pages of eighteen carry it. Listing page 19, the one page whose
-  transcription said 54 content lines, prints 55: the transcription had
-  joined two printed lines into one. Stage 2 therefore lays out every
-  object page by the frame and never by a line count. Chunks A7 and A8
-  test the remaining five, and listing page 25 is the last page of the
-  listing, where a short count is expected.
+  grown into the whole object listing. A wrong target line is corrected
+  in `tool/object_listing_target_source.dart`, and the notes file records
+  it; a wrong conversion line becomes an erratum candidate in HANDOVER,
+  which waits for Jack and blocks no other page.
+  **Amended 2026-08-09 to 2026-08-10, chunks A3 to A8, and this closes
+  the frame. The page body is a frame of 57 line slots,** with the head
+  as slot 0, and all eighteen object pages hold it. Sixteen pages blank
+  slots 1 and 2 and print 55 content lines, ending in slot 57. Listing
+  page 8 prints the column header: it blanks slots 1 to 3, prints the
+  header at 4 and a blank at 5, and prints 52, ending in slot 57.
+  Listing page 25 blanks slots 1 and 2 and prints 48, ending in slot 51,
+  because the listing ends there. Stage 2 therefore lays out an object
+  page by the frame and never by a line count. The frame has no
+  exception: listing page 19, the one page whose transcription said 54
+  content lines, prints 55, because the transcription had joined two
+  printed lines into one under an over-long label (M4-8.1).
+  `test/fixtures/90.05-object-listing-notes.md` holds the per-page table.
 
 - **M4-8.1. An over-long label pushes its instruction to the next line.**
   *Recovered from the print 2026-08-10, chunk A6; Jack's ruling the same

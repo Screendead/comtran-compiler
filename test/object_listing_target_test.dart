@@ -107,7 +107,7 @@ void main() {
     });
 
     // The frame, not the content-line count, is what the scans hold in
-    // common (M4-8 as amended, chunk A3). Listing page 25 is the listing's
+    // common (M4-8 as amended, chunks A3 to A8). Listing page 25 is the
     // last page and stops early, at slot 51, so the frame's lower edge is
     // the one thing it cannot show.
     test('ends every verified page but the last in line slot 57', () {
