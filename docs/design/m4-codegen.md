@@ -404,8 +404,9 @@ M4 executes I/O-free programs.
     eighteen object pages are now measured against their scans. Seventeen
     hold two blank lines after the head and listing page 8 holds three, so
     no page holds the single blank the conversion held.
-    The conversion carries all eighteen, corrected chunk by chunk under
-    Jack's option B, and `tool/object_listing_target_source.dart` holds the
+    The conversion carries all eighteen, the seventeen corrected chunk by
+    chunk under Jack's option B, and
+    `tool/object_listing_target_source.dart` holds the
     map. `test/fixtures/90.05-object-listing-notes.md` holds the per-page
     measurement and the per-chunk history this entry no longer repeats.
     No blank line separates routines, the storage map
