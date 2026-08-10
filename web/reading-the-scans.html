@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How we read the scans — COMTRAN</title>
+<title>How we read the scans &middot; COMTRAN</title>
 <meta name="description" content="Turning a 1962 page scan into text you can trust: deskewing the page, fitting the character grid, and deciding the glyphs the ink will not settle.">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -14,6 +14,7 @@
   <nav>
     <a href="index.html">The compiler</a>
     <a href="reading-the-scans.html" aria-current="page">How we read the scans</a>
+    <a href="roadmap.html">What is built</a>
   </nav>
 </header>
 
@@ -39,8 +40,8 @@
   <p>
     Six crops, all from one page of a compiled program listing, all printed by
     the same machine on the same day. The one on the left is the character
-    under question. The other five are characters we are certain of &mdash;
-    three of them are <code>B</code>, two of them are <code>8</code>.
+    under question. The other five are characters we are certain of: three of
+    them are <code>B</code>, two of them are <code>8</code>.
   </p>
 
   <figure>
@@ -79,24 +80,23 @@
     between the characters we already know: a certain <code>B</code> scores 0.76
     to 0.89 against the certain <code>8</code>s. The ranges overlap. The test
     cannot separate the two even when it is told the answer, so it carries no
-    information about the one we are asking. Two more tests &mdash; the
-    straightness of the left edge, the balance of ink between the halves
-    &mdash; fail the same way.
+    information about the one we are asking. Two more tests fail the same way:
+    the straightness of the left edge, and the balance of ink between the
+    halves.
   </p>
   <p>
     So the ink does not decide it, and no amount of staring will change that.
     It was decided on something else: every other name prefix on the page is
     either all letters or a single digit, never a digit and a letter mixed. On
-    that reasoning it reads <code>BL)3</code> &mdash; and it is recorded as
-    provisional, with the reason written down, because the reason was not the
-    ink.
+    that reasoning it reads <code>BL)3</code>. It is recorded as provisional,
+    with the reason written down, because the reason was not the ink.
   </p>
 
   <h2>One reader, and nothing else</h2>
   <p>
     Pages are read by a reader who is given the scan and forbidden everything
-    else &mdash; no transcription, no design note, no test fixture, not even
-    another page of the same listing. Several files in the repository state,
+    else: no transcription, no design note, no test fixture, not even another
+    page of the same listing. Several files in the repository state,
     in words, the very numbers the reading is supposed to establish
     independently. One glance at any of them and the measurement stops being
     evidence and starts being an echo.
@@ -110,8 +110,8 @@
   <p>
     A photographed page arrives tilted. Page 202 of the 1962 manual leans
     0.935 of a degree, found by rotating the image until the horizontal ink
-    profile is at its sharpest &mdash; when the lines are level, the ink
-    stacks into peaks.
+    profile is at its sharpest. When the lines are level, the ink stacks into
+    peaks.
   </p>
   <p>
     Then the character grid has to be recovered from the ink itself, because
@@ -124,9 +124,8 @@
     Both numbers belong to that page and no other. Two neighbouring pages have
     differed by 25 pixels in where they sit on the paper, so a grid carried
     over from the page before is simply wrong. And it has to be fitted across
-    the widest span the page offers: an error of 0.06 of a pixel per column
-    &mdash; far too small to see &mdash; has drifted half a character wide by
-    column 89.
+    the widest span the page offers: an error of 0.06 of a pixel per column,
+    far too small to see, has drifted half a character wide by column 89.
   </p>
 
   <h2>The page checks itself</h2>
@@ -136,7 +135,7 @@
     have to agree digit for digit, which turns one line into a test of the
     whole reading. It doubles as the longest ruler on the page: on page 202
     the two printings stand 621 pixels and exactly 67 characters apart, giving
-    9.269 pixels per character &mdash; the same figure the fit found on its
+    9.269 pixels per character. That is the same figure the fit found on its
     own, arrived at a different way.
   </p>
   <p>
@@ -161,8 +160,8 @@
   <p>
     It was ruled not a character at all, and the reasoning is the nicest thing
     on this page. A printer cannot print between columns. Every full stop
-    measured on that page sits within 0.07 of a whole column &mdash; 59.018,
-    39.049, 43.070, 62.989. This mark sits at column 29.63, about a third of a
+    measured on that page sits within 0.07 of a whole column: 59.018, 39.049,
+    43.070, 62.989. This mark sits at column 29.63, about a third of a
     character adrift of anywhere a character could be. It is also too small and
     too pale: two rows tall where the real ones are four or five, and never
     reaching true black.
@@ -205,8 +204,8 @@
   </p>
   <p>
     Three of the four questions on the pages above were settled that way. The
-    fourth &mdash; the <code>B</code> &mdash; is still provisional, and will
-    stay provisional until something other than this one photograph turns up.
+    fourth is the <code>B</code>. It stays provisional until something other
+    than this one photograph turns up.
   </p>
 
   <h2>Why bother to this degree</h2>

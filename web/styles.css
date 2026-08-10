@@ -610,7 +610,7 @@ button:focus-visible {
 }
 
 /* With JavaScript the same text becomes a marker that opens on hover, on
-   keyboard focus, and on tap — the three ways a reader asks for it. */
+   keyboard focus, and on tap: the three ways a reader asks for it. */
 .js .gloss-note {
   display: none;
   position: absolute;
@@ -689,6 +689,141 @@ figcaption {
 .links { padding-left: 20px; max-width: 660px; }
 
 .links li { margin-bottom: 8px; }
+
+/* ---- The roadmap ---- */
+
+.legend { margin-top: 44px; }
+
+.keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.key {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* One mark shape in three states, so the difference survives a monochrome
+   print: filled, ringed, and open. Colour carries none of it. */
+.mk {
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+}
+
+.key.now .mk { box-shadow: inset 0 0 0 2px var(--paper); }
+
+.key.todo .mk {
+  background: var(--paper);
+  border-color: var(--card-rule);
+}
+
+.track { max-width: 660px; }
+
+.track-intro {
+  max-width: 640px;
+  color: var(--ink-soft);
+  font-size: 16px;
+}
+
+.stations {
+  list-style: none;
+  margin: 26px 0 0 9px;
+  padding: 0;
+}
+
+.station {
+  position: relative;
+  border-left: 2px solid var(--ink);
+  padding: 0 0 30px 26px;
+}
+
+.station.todo { border-left-color: var(--rule); }
+
+/* The spine stops at the last mark. It carries no segment past the end of a
+   track, because there is nothing after M6, T4 or W4 to point at. */
+.station:last-child {
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+
+.station::before {
+  content: "";
+  position: absolute;
+  left: -9.5px;
+  top: 2px;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+}
+
+.station.now::before { box-shadow: inset 0 0 0 2px var(--paper); }
+
+.station.todo::before {
+  background: var(--paper);
+  border-color: var(--card-rule);
+}
+
+.station-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 5px;
+}
+
+.station-head .code {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.station-head .state { color: var(--ink-faint); }
+
+.station.now .station-head .state { color: var(--flag); }
+
+.station h3 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  margin: 0 0 7px;
+}
+
+.station p:not(.station-head) {
+  font-size: 15.5px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.station p:last-child { margin-bottom: 0; }
+
+.station-link { font-size: 14px; }
+
+.parallel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 20px 48px;
+}
+
+.parallel .track { max-width: none; }
 
 @media (max-width: 1000px) {
   .bench { grid-template-columns: minmax(0, 1fr); }

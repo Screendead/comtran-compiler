@@ -28,9 +28,9 @@ const STAGES = {
   },
   scan: {
     caption:
-      'Cards read into statements. Each statement is given a number — the ' +
-      'line, then the clause — and that number is the thread running ' +
-      'through every stage after this one.',
+      'Cards read into statements. Each statement is given a number: the ' +
+      'line, then the clause. That number is the thread running through ' +
+      'every stage after this one.',
     kind: 'chosen',
     label: 'Nobody knows, we chose',
     evidence:
@@ -52,7 +52,7 @@ const STAGES = {
   semantics: {
     caption:
       'Names bound to storage. Every item is given an address and a machine ' +
-      'word, and constants are laid down in octal — base eight, three bits ' +
+      'word, and constants are laid down in octal: base eight, three bits ' +
       'to a digit, so a 36-bit word prints as twelve digits.',
     kind: 'derived',
     label: 'We worked this out from',
@@ -76,7 +76,7 @@ const STAGES = {
   code: {
     caption:
       'The assembled text: address, symbol, operation, octal word and ' +
-      'control field. Today the compiler lays down the data — the constants ' +
+      'control field. Today the compiler lays down the data: the constants ' +
       'and the space each record needs. It generates no procedure code yet.',
     kind: 'derived',
     label: 'We worked this out from',
@@ -139,7 +139,7 @@ function drawGutter() {
   gutter.scrollTop = source.scrollTop;
   // The gutter numbers every line the cursor can reach. The count below it
   // is the number of cards those lines punch, which drops the blank line a
-  // trailing return leaves — the same rule punchText applies.
+  // trailing return leaves. That is the same rule punchText applies.
   const cards = source.value.replace(/\s+$/, '').split('\n').length;
   const punched = source.value.trim() === '' ? 0 : cards;
   deckSize.textContent = `${punched} ${punched === 1 ? 'card' : 'cards'}`;
