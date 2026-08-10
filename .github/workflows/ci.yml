@@ -28,7 +28,9 @@ jobs:
           key: pub-${{ hashFiles('pubspec.lock') }}
           restore-keys: pub-
       - run: dart pub get
-      - run: dart format --output=none --set-exit-if-changed lib bin test tool
+      - run: dart format --output=none --set-exit-if-changed lib bin test tool web
       - run: dart analyze --fatal-infos
       - run: dart test
       - run: dart run comtran:deckconv check .
+      # The site is built, never committed, so nothing else proves it compiles.
+      - run: dart run tool/build_web.dart

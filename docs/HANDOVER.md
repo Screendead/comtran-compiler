@@ -55,7 +55,7 @@ Terms that appear without expansion:
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
 | T3 MCP server and skill | Done 2026-08-03 (PR #8) | `bin/deckmcp.dart`, `.claude/skills/comtran-decks/` |
 | T4 deck syntax highlighting | Done 2026-08-03 (PR #14) | `editors/vscode-punchcard/` |
-| W1 to W4, the public website | Recorded 2026-08-10; not started, and not approved | The web track below |
+| W1 to W4, the public website | W1 built 2026-08-10 on branch `w1-site`, and waits for Jack's review; W2 to W4 not started | The web track below |
 
 The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
@@ -356,6 +356,21 @@ JavaScript in 1.08 seconds. That bundle read the 90.05 mirror text and printed
 the listing, and its 21,865 bytes are identical to
 `test/goldens/90.05-payroll.listing`. The site needs no server and no sandbox.
 
+**Amended 2026-08-10, when W1 built the other four stage dumps.** The probe
+above checked the listing only, and the listing holds no machine word. A Dart
+`int` compiled to JavaScript is a double, and its bitwise operators truncate to
+32 bits, so the JavaScript build drops the top four bits of every packed 36-bit
+word with no error of any kind: the semantics dump prints `006060606060` where
+the machine held `606060606060`. The listing, cards, scan and parse dumps are
+unaffected, which is why the probe passed.
+
+**The site therefore compiles to WebAssembly, not to JavaScript.** A WasmGC
+`int` is a true 64-bit integer, and the wasm build reproduces all six goldens
+byte for byte, in 246 KB, faster than the JavaScript build ran. One cost
+follows: a browser will not fetch a WebAssembly module from a `file://` URL, so
+the page needs a static server, and a local check needs one too. Any later
+browser work inherits this finding, the M4 emulator most of all.
+
 The probe imported the `lib/src/` libraries one by one. `lib/comtran.dart`
 exports `deck_files.dart`, so a web entrypoint cannot use the barrel. W1 either
 imports the libraries directly or splits the barrel in two.
@@ -411,6 +426,38 @@ there. And the site's content is generated, so the Actions build runs
 cannot drift from the compiler. The `.ct` mirrors already follow this rule. The
 build also needs `.nojekyll`, or Jekyll mishandles the scans.
 
+**The deploy workflow, written 2026-08-10** (`.github/workflows/pages.yml`,
+branch `w1-site`). It runs on a push to master and on demand, and it takes
+five steps: `dart pub get`, `dart test`, `dart run tool/build_web.dart`,
+`actions/upload-pages-artifact` over `web/`, and `actions/deploy-pages`. Four
+notes on the shape:
+
+- The test run is the gate. The site's whole claim is the byte-for-byte
+  listing, and the golden test is what proves it, so nothing publishes without
+  it. Format and lint stay in CI: a style failure must not stop a correct site.
+- No path filter guards the workflow. The site prints what the compiler
+  prints, so every push to master must redeploy.
+- Jekyll never runs on a workflow artifact, which is served as uploaded. The
+  build writes `.nojekyll` anyway, as a guard if the source ever moves back to
+  a branch.
+- CI now also runs `dart run tool/build_web.dart`. The site is built and never
+  committed, so before this nothing proved that it compiles.
+
+Two things still wait for Jack, and the order matters. Set the source first:
+Settings, then Pages, then Source set to GitHub Actions. The setting takes no
+workflow on master, and the push that merges the pull request then deploys on
+its first run. In the other order the first run fails at its last step, and
+the setting alone re-triggers nothing, so the deploy needs a third action. The
+site is at `https://screendead.github.io/comtran-compiler/` unless the domain
+question below is settled first.
+
+**Verified from a subpath on 2026-08-10**, because a project-page URL carries
+one. Served under `/web/`, the WebAssembly module loads, both pages find their
+styles and their four crops, no request 404s, and the listing panel holds
+21,865 bytes that hash to the golden. The page fetches the module and hands
+the bytes to `compile`, so the `Content-Type` of `.wasm` on the host never
+matters.
+
 Cloudflare Pages is the recorded escape hatch, if the bandwidth ever matters.
 Its free tier sets no bandwidth cap, and it reads a `_headers` file, which
 Pages does not. The artifact is the same, so the move costs about a day.
@@ -434,6 +481,33 @@ Jack has not decided.
 - a deck download as `.ctd`, and a share link that carries the deck;
 - **the limits, on the page.** `docs/design/web-copy.md` §5 names the three
   statements. This is a requirement of W1, not an addition to it.
+
+**W1, as built on 2026-08-10** (branch `w1-site`, `web/README.md`). It
+delivers the entry point and the WebAssembly build; one card editor with a
+column ruler and a card-number gutter; the punch grid of the card under the
+cursor, drawn from the punch codes the compiler holds; all six `--emit` dumps
+as selectable panels, each with a caption that says what attests it; the 90.05
+sample on one click, and on load; and the three §5 statements in the reader's
+path. Every stage and the punch grid are held to their goldens by
+`test/web_compile_test.dart`, in the normal `dart test` gate.
+
+The punch grid did not need the port this section expected.
+`editors/vscode-punchcard/media/punchcard.js` stayed where it is: the site asks
+the compiler for the twelve rows and prints them, which keeps the punch codes
+in one place and leaves the site with no card knowledge of its own.
+
+Three items on the W1 list above are not built: the deck download as `.ctd`,
+the share link, and the golden-diff panel. The diff earns its place least: the
+site now prints the listing the golden test already compares, and the test is
+the stronger claim. The other two stand.
+
+**Amended 2026-08-10 at Jack's request.** The punch grid moved above the deck
+and became editable: a click cuts or fills one hole, and the deck text becomes
+the card that results. The compiler decides what that text is, so a hole
+combination no character matches puts the card into the `!` punch form (D0.5)
+rather than into an error. The deck also prints the compiler's own diagnostics
+under it, the Compile button greys out while the panels already answer to the
+typed text, and each run prints how long it took.
 
 **W2 — the sources.** The documents page. It holds the language reference, both
 manual conversions, both source PDFs (17 MB), and each of the 345 page scans

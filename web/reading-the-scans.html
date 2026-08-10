@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How we read the scans — COMTRAN</title>
+<meta name="description" content="Turning a 1962 page scan into text you can trust: deskewing the page, fitting the character grid, and deciding the glyphs the ink will not settle.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="runner">
+  <a href="index.html" class="wordmark">COMTRAN Reconstruction</a>
+  <nav>
+    <a href="index.html">The compiler</a>
+    <a href="reading-the-scans.html" aria-current="page">How we read the scans</a>
+  </nav>
+</header>
+
+<main>
+
+<section class="hero">
+  <p class="mark" aria-hidden="true"></p>
+  <h1>Reading a page<br>that cannot answer</h1>
+  <p class="lede">
+    Every fact in this reconstruction comes from ink on a photographed page.
+    Two manuals, 345 scans at 150 dots to the inch, and no way to ask anyone
+    what a smudge was meant to be.
+  </p>
+  <p class="lede">
+    This is what it takes to turn one of those pages into text you can trust.
+    Start with the part that goes wrong.
+  </p>
+</section>
+
+<section class="prose">
+
+  <h2>Which of these is a B?</h2>
+  <p>
+    Six crops, all from one page of a compiled program listing, all printed by
+    the same machine on the same day. The one on the left is the character
+    under question. The other five are characters we are certain of &mdash;
+    three of them are <code>B</code>, two of them are <code>8</code>.
+  </p>
+
+  <figure>
+    <img src="images/a2-bl3-compare.png" alt="Six greatly enlarged crops of single printed characters, each a blurred double-loop shape. They are labelled: in question, B line 36, B line 38, B head, 8 head, 8 line 7. All six look substantially the same.">
+    <figcaption>
+      Left to right: the character in question, then <code>B</code> from two
+      lines of the body, <code>B</code> from the page head, <code>8</code> from
+      the page head, <code>8</code> from the label <code>GN)068</code>.
+    </figcaption>
+  </figure>
+
+  <p>
+    If you cannot tell, that is the correct answer. On this printer, at this
+    resolution, after sixty-odd years and one photograph, <code>B</code> and
+    <code>8</code> are the same double-loop blob.
+  </p>
+  <p>
+    It matters because the character is the first letter of a name in a
+    compiled program, and the line reads either <code>BL)3</code> or
+    <code>8L)3</code>.
+  </p>
+
+  <figure class="wide-crop">
+    <img src="images/a1-bl3-line.png" alt="A wide crop of one line of the listing, reading: 00361 4500 00 0 01670 10001 GN)068 CAL, then the name in question.">
+    <figcaption>
+      The line it sits on, at the far right. Scroll it if your screen is
+      narrower than a printer page.
+    </figcaption>
+  </figure>
+
+  <h3>What the measurements said</h3>
+  <p>
+    Cross-correlating the doubtful glyph against every certain one on the page
+    scores it 0.82 to 0.87 against the <code>8</code>s and 0.62 to 0.85 against
+    the <code>B</code>s. That looks like an answer until you run the same test
+    between the characters we already know: a certain <code>B</code> scores 0.76
+    to 0.89 against the certain <code>8</code>s. The ranges overlap. The test
+    cannot separate the two even when it is told the answer, so it carries no
+    information about the one we are asking. Two more tests &mdash; the
+    straightness of the left edge, the balance of ink between the halves
+    &mdash; fail the same way.
+  </p>
+  <p>
+    So the ink does not decide it, and no amount of staring will change that.
+    It was decided on something else: every other name prefix on the page is
+    either all letters or a single digit, never a digit and a letter mixed. On
+    that reasoning it reads <code>BL)3</code> &mdash; and it is recorded as
+    provisional, with the reason written down, because the reason was not the
+    ink.
+  </p>
+
+  <h2>One reader, and nothing else</h2>
+  <p>
+    Pages are read by a reader who is given the scan and forbidden everything
+    else &mdash; no transcription, no design note, no test fixture, not even
+    another page of the same listing. Several files in the repository state,
+    in words, the very numbers the reading is supposed to establish
+    independently. One glance at any of them and the measurement stops being
+    evidence and starts being an echo.
+  </p>
+  <p>
+    Three pages, three readers, no shared context. Each writes down what it
+    measured, what it judged, and what it could not read at all.
+  </p>
+
+  <h2>The page is not straight, and the grid is not given</h2>
+  <p>
+    A photographed page arrives tilted. Page 202 of the 1962 manual leans
+    0.935 of a degree, found by rotating the image until the horizontal ink
+    profile is at its sharpest &mdash; when the lines are level, the ink
+    stacks into peaks.
+  </p>
+  <p>
+    Then the character grid has to be recovered from the ink itself, because
+    every field on this listing is defined by which column it starts in. On
+    page 202 the characters sit 9.26708 pixels apart, with the first column
+    centred at 438.290 pixels, fitted across 2,006 character edges for an
+    error of under half a pixel.
+  </p>
+  <p>
+    Both numbers belong to that page and no other. Two neighbouring pages have
+    differed by 25 pixels in where they sit on the paper, so a grid carried
+    over from the page before is simply wrong. And it has to be fitted across
+    the widest span the page offers: an error of 0.06 of a pixel per column
+    &mdash; far too small to see &mdash; has drifted half a character wide by
+    column 89.
+  </p>
+
+  <h2>The page checks itself</h2>
+  <p>
+    Occasionally the listing prints the same machine word twice on one line,
+    once as data and once as the instruction's operand. Those two printings
+    have to agree digit for digit, which turns one line into a test of the
+    whole reading. It doubles as the longest ruler on the page: on page 202
+    the two printings stand 621 pixels and exactly 67 characters apart, giving
+    9.269 pixels per character &mdash; the same figure the fit found on its
+    own, arrived at a different way.
+  </p>
+  <p>
+    The addresses give another check. They should run continuously in base
+    eight down the page, so a misread digit usually breaks the sequence and
+    announces itself.
+  </p>
+
+  <h2>Is that a full stop, or a speck of dirt?</h2>
+  <p>
+    Here is a mark beside a digit, with two certain full stops from the same
+    page for comparison.
+  </p>
+
+  <figure>
+    <img src="images/b2-00465-compare.png" alt="Three enlarged crops. The leftmost, labelled the mark, shows a small faint smear beside a digit. The other two, labelled period 00443 and period 00527, show darker, rounder, larger dots.">
+    <figcaption>
+      The mark, and two full stops the reader was sure of.
+    </figcaption>
+  </figure>
+
+  <p>
+    It was ruled not a character at all, and the reasoning is the nicest thing
+    on this page. A printer cannot print between columns. Every full stop
+    measured on that page sits within 0.07 of a whole column &mdash; 59.018,
+    39.049, 43.070, 62.989. This mark sits at column 29.63, about a third of a
+    character adrift of anywhere a character could be. It is also too small and
+    too pale: two rows tall where the real ones are four or five, and never
+    reaching true black.
+  </p>
+  <p>
+    So it is a flick of ink or a speck on the copy, and it is left out of the
+    transcription with the measurement recorded in case anyone later disagrees.
+  </p>
+
+  <h2>Sometimes the reader is simply wrong</h2>
+
+  <figure>
+    <img src="images/d2-0602-compare.png" alt="Three enlarged crops of single characters. The leftmost, labelled row 48 in question, is a broken ambiguous shape. The other two, labelled row 3 and row 24, are clean round zeros.">
+    <figcaption>
+      A broken character, and two clean zeros from the same page.
+    </figcaption>
+  </figure>
+
+  <p>
+    The reader of page 202 first read this as a <code>2</code>, making the
+    machine word <code>0622</code>. It is a <code>0</code>, making the word
+    <code>0602</code>. What caught it was stroke shape at high magnification:
+    through its middle the character carries ink only in a straight vertical
+    on the right, while every certain <code>2</code> on the same line drifts
+    diagonally leftward there, and every certain <code>3</code> pinches inward.
+  </p>
+  <p>
+    That correction is in the record, phrased by the reader as
+    &ldquo;this one I first read wrong&rdquo;. A method that never catches
+    itself is not being tested.
+  </p>
+
+  <h2>What happens to a doubt</h2>
+  <p>
+    Nothing doubtful is settled quietly. It is cut out of the scan, enlarged,
+    set beside characters we are sure of, and written up with the measurements
+    and an argument for each way it could go. Jack rules on it, the ruling is
+    recorded with its reason, and if the reason was not the ink then the record
+    says that too.
+  </p>
+  <p>
+    Three of the four questions on the pages above were settled that way. The
+    fourth &mdash; the <code>B</code> &mdash; is still provisional, and will
+    stay provisional until something other than this one photograph turns up.
+  </p>
+
+  <h2>Why bother to this degree</h2>
+  <p>
+    Because a compiler built on a misread column produces output that is wrong
+    in a way nobody can see. Two corrections to this project came only from
+    measuring a scan, after the transcription had already been read by eye and
+    believed. Every claim about a card column in this reconstruction is
+    measured from ink, and never taken from how a transcription happens to be
+    indented.
+  </p>
+  <p class="note">
+    The rulings above, and the per-page verification record, live in
+    <a href="https://github.com/Screendead/comtran-compiler/blob/master/test/fixtures/90.05-object-listing-notes.md">the object-listing notes</a>.
+    The crops on this page are the ones the reviewer actually saw.
+    <a href="index.html">Go and compile something</a>.
+  </p>
+
+</section>
+
+</main>
+
+<footer class="runner">
+  <span>Static pages. No server, no tracking, no outbound request.</span>
+  <span>J28-6169, January 1962 &middot; listing pages 11 to 13</span>
+</footer>
+
+</body>
+</html>

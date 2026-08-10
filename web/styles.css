@@ -1,0 +1,703 @@
+/* The public website (roadmap W1).
+   The register is docs/design/web-copy.md; the visual voice is a printed
+   1960s technical document read on paper, not a terminal. One committed
+   light palette: the page is paper, and paper has no dark mode. */
+
+:root {
+  --paper: #faf9f5;
+  --ink: #16150f;
+  --ink-soft: #46433c;
+  --ink-faint: #837f76;
+  --rule: #d6d2c6;
+  --panel: #fffefb;
+  --panel-rule: #ddd9cd;
+  --deck: #f7f2e3;
+  --deck-rule: #ded4b8;
+  --card: #e7ddc4;
+  --card-rule: #cdc0a0;
+  --card-faint: #b3a789;
+  --manual: #e8f0f7;
+  --manual-edge: #47799f;
+  --derived: #eceae3;
+  --derived-edge: #96928a;
+  --chosen: #f4f2ec;
+  --chosen-edge: #96928a;
+  --flag: #8c2f18;
+
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --display: "Helvetica Neue", "Arial Narrow", "Liberation Sans Narrow",
+    system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px 96px;
+}
+
+/* The running head and foot, in the manuals' own register. */
+.runner {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 18px 32px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+header.runner {
+  border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+}
+
+.runner a {
+  color: var(--ink-faint);
+  text-decoration: none;
+}
+
+.runner a:hover { color: var(--ink); }
+
+.runner .wordmark { color: var(--ink); }
+
+.runner nav {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+/* The page you are on, marked in the header rather than in the nav's colour
+   alone, so it survives a monochrome print and a colour-blind reader. */
+.runner nav a[aria-current="page"] {
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 2px;
+}
+
+footer.runner {
+  border-top: 1px solid var(--rule);
+  margin-top: 24px;
+  padding-top: 18px;
+}
+
+h1, h2 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: -0.015em;
+  line-height: 1.04;
+  margin: 0;
+}
+
+h1 { font-size: clamp(40px, 6.5vw, 64px); }
+
+h2 {
+  font-size: 27px;
+  margin: 56px 0 14px;
+}
+
+p { margin: 0 0 16px; }
+
+a {
+  color: var(--ink);
+  text-decoration-color: var(--manual-edge);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+a:hover { text-decoration-color: var(--ink); }
+
+code, .mono { font-family: var(--mono); font-size: 0.88em; }
+
+/* ---- The opening ---- */
+
+.hero {
+  position: relative;
+  max-width: 660px;
+  padding: 64px 0 8px;
+}
+
+.hero .mark {
+  position: absolute;
+  top: 74px;
+  left: -52px;
+  width: 26px;
+  height: 26px;
+  background: var(--ink);
+}
+
+.lede {
+  font-size: 19px;
+  line-height: 1.5;
+  margin-top: 22px;
+}
+
+.prose, .machine-intro, .deeper > p { max-width: 660px; }
+
+/* ---- The three-box strip ---- */
+
+.strip-label,
+.pane-title,
+.box-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 10px;
+}
+
+.rests { margin-top: 52px; }
+
+.boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+}
+
+.box {
+  border: 1px solid var(--panel-rule);
+  background: var(--panel);
+  padding: 16px 18px 4px;
+}
+
+.box p:not(.box-label) { font-size: 15.5px; line-height: 1.5; }
+
+/* ---- Jack's block ---- */
+
+.personal {
+  border-left: 3px solid var(--ink);
+  padding-left: 22px;
+  margin: 22px 0 0;
+}
+
+.personal p { font-size: 17.5px; }
+
+.disclosure {
+  font-size: 15px;
+  color: var(--ink-soft);
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+}
+
+/* ---- The bench ---- */
+
+.machine { margin-top: 64px; }
+
+.bench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px;
+  margin-top: 26px;
+  align-items: start;
+}
+
+.pane-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  min-height: 26px;
+}
+
+.pane-head .pane-title { margin: 0; }
+
+.controls { display: flex; gap: 8px; flex-wrap: wrap; }
+
+button {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--panel-rule);
+  padding: 6px 11px;
+  cursor: pointer;
+}
+
+button:hover { border-color: var(--ink); }
+
+button:focus-visible {
+  outline: 2px solid var(--manual-edge);
+  outline-offset: 1px;
+}
+
+/* The Compile button says whether the panels answer to what is typed. It
+   is live while they do not, and spent once they do. */
+#compile {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+#compile:hover:not(:disabled) {
+  background: var(--manual-edge);
+  border-color: var(--manual-edge);
+}
+
+#compile:active:not(:disabled) {
+  background: #2f5878;
+  border-color: #2f5878;
+}
+
+#compile:disabled {
+  background: transparent;
+  color: var(--ink-faint);
+  border-color: var(--panel-rule);
+  cursor: default;
+}
+
+/* The deck: a card image is fixed-width, so everything here is monospace
+   and column-aligned to the same character cell. */
+
+.ruler-wrap, .editor {
+  background: var(--deck);
+  border: 1px solid var(--deck-rule);
+}
+
+.ruler-wrap { border-bottom: 0; overflow: hidden; }
+
+.editor {
+  display: flex;
+  height: 460px;
+}
+
+.ruler, .gutter, #source {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 17px;
+  tab-size: 8;
+  margin: 0;
+}
+
+.ruler {
+  /* The gutter's width plus the text area's left padding, so column 1 of
+     the ruler sits over column 1 of the card. */
+  padding: 6px 0 2px 62px;
+  color: var(--ink-faint);
+  white-space: pre;
+}
+
+.gutter {
+  flex: 0 0 auto;
+  width: 52px;
+  padding: 8px 10px 8px 0;
+  text-align: right;
+  color: var(--ink-faint);
+  background: var(--deck);
+  border-right: 1px solid var(--deck-rule);
+  overflow: hidden;
+  user-select: none;
+  white-space: pre;
+}
+
+#source {
+  flex: 1 1 auto;
+  padding: 8px 10px;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  color: var(--ink);
+  white-space: pre;
+  overflow: auto;
+}
+
+.pane-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 7px 0 0;
+}
+
+.note {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin-top: 12px;
+}
+
+.note.wide { max-width: 660px; margin-top: 22px; }
+
+/* ---- The stage tabs and panel ---- */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.tabs button {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+}
+
+.tab-n {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+
+.tabs button[aria-selected="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.tabs button[aria-selected="true"] .tab-n { color: #b9b5a9; }
+
+.stage-caption { font-size: 15.5px; line-height: 1.5; }
+
+.evidence {
+  border: 1px solid var(--panel-rule);
+  border-left-width: 3px;
+  padding: 13px 16px 1px;
+  margin-bottom: 14px;
+}
+
+.evidence p:not(.box-label) { font-size: 14.5px; line-height: 1.5; }
+
+.evidence[data-kind="manual"] {
+  background: var(--manual);
+  border-color: #cfdeea;
+  border-left-color: var(--manual-edge);
+}
+
+.evidence[data-kind="derived"] {
+  background: var(--derived);
+  border-color: #dcd9d2;
+  border-left-color: var(--derived-edge);
+}
+
+/* "Nobody knows, we chose" is hatched, so the least-attested claim is the
+   one you can pick out of the page without reading a word. */
+.evidence[data-kind="chosen"] {
+  background-color: var(--chosen);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 6px,
+    rgba(150, 146, 138, 0.22) 6px 7px
+  );
+  border-color: #dcd9d2;
+  border-left-color: var(--chosen-edge);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-rule);
+  height: 460px;
+  overflow: auto;
+}
+
+.panel:focus-visible { outline: 2px solid var(--manual-edge); }
+
+.panel pre {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 15px;
+  tab-size: 8;
+  margin: 0;
+  padding: 12px 14px;
+  white-space: pre;
+}
+
+.verdict {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.verdict[data-state="bad"] { color: var(--flag); }
+
+/* A refusal is the site's own voice and never a 1962 diagnostic, so it
+   never looks like one. */
+.refusal {
+  border: 1px solid var(--flag);
+  border-left-width: 3px;
+  background: #fbf1ee;
+  color: var(--flag);
+  font-size: 15px;
+  padding: 11px 15px;
+  margin-bottom: 14px;
+}
+
+/* ---- The card ---- */
+
+.card-view { margin-top: 30px; }
+
+.card-scroll { overflow-x: auto; }
+
+.card {
+  display: grid;
+  grid-template-columns: 24px repeat(80, 12px);
+  gap: 1px;
+  width: max-content;
+  background: var(--card);
+  border: 1px solid var(--card-rule);
+  padding: 12px 14px;
+  font-family: var(--mono);
+}
+
+/* The row label, in the position the card prints it. */
+.card .rl {
+  font-size: 9px;
+  line-height: 13px;
+  text-align: right;
+  padding-right: 5px;
+  color: var(--card-faint);
+}
+
+/* The character the keypunch printed above the column. */
+.card .g {
+  font-size: 10px;
+  line-height: 13px;
+  text-align: center;
+  color: var(--ink);
+  white-space: pre;
+}
+
+.card .p {
+  height: 13px;
+  font-size: 8px;
+  line-height: 13px;
+  text-align: center;
+  color: var(--card-faint);
+  cursor: pointer;
+}
+
+.card .p:hover { outline: 1px solid var(--ink); }
+
+/* A hole. The card stock is gone, so the light goes through. */
+.card .p.on {
+  background: var(--ink);
+  color: transparent;
+}
+
+/* The position the keyboard acts on. */
+.card:focus .p.at,
+.card:focus-visible .p.at {
+  outline: 2px solid var(--manual-edge);
+  outline-offset: 0;
+}
+
+.card:focus, .card:focus-visible { outline: none; }
+
+/* A card row lays its cells straight into the card's own grid. */
+.card .crow { display: contents; }
+
+/* ---- What the compiler said ---- */
+
+.whinge-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 8px;
+}
+
+.whinge-head .pane-title { margin: 0; }
+
+.whinges {
+  border: 1px solid var(--panel-rule);
+  background: var(--panel);
+  max-height: 190px;
+  overflow-y: auto;
+}
+
+.whinge {
+  display: grid;
+  grid-template-columns: 62px 20px minmax(0, 1fr);
+  gap: 10px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.whinge:last-child { border-bottom: 0; }
+
+.whinge .wn, .whinge .ws {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.whinge .wt { white-space: pre-wrap; }
+
+/* Severity 5 stopped the job, so it does not read like the rest. */
+.whinge.stopped .ws { color: var(--flag); font-weight: 700; }
+
+.whinge-none {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  margin: 0;
+  padding: 12px;
+}
+
+/* ---- The gloss marker (web-copy.md section G) ---- */
+
+.gloss-host { position: relative; }
+
+.gloss {
+  font: inherit;
+  text-transform: none;
+  letter-spacing: inherit;
+  background: none;
+  border: 0;
+  border-bottom: 1px dotted var(--ink-soft);
+  padding: 0;
+  cursor: help;
+  color: inherit;
+}
+
+.gloss::after {
+  content: "\00a0?";
+  font-size: 0.7em;
+  vertical-align: super;
+  color: var(--manual-edge);
+}
+
+/* G2: the definition is real text in the page. With no JavaScript it simply
+   reads, in place, after the word it explains. */
+.gloss-note {
+  display: block;
+  background: var(--panel);
+  border: 1px solid var(--ink);
+  padding: 10px 13px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+  /* G3: a reader who copies the sentence gets the original words only. */
+  user-select: none;
+}
+
+/* With JavaScript the same text becomes a marker that opens on hover, on
+   keyboard focus, and on tap — the three ways a reader asks for it. */
+.js .gloss-note {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 7px);
+  z-index: 5;
+  width: min(330px, 78vw);
+}
+
+.js .gloss-host:hover .gloss-note,
+.js .gloss[aria-expanded="true"] + .gloss-note { display: block; }
+
+/* ---- Scan evidence ---- */
+
+/* Evidence is the point of the page, so a crop is allowed wider than the
+   measure the prose reads at. */
+figure {
+  margin: 22px 0;
+  width: min(940px, calc(100vw - 64px));
+}
+
+/* One crop is a whole listing line, far wider than any column. It keeps its
+   own pixels and scrolls, rather than shrinking until it cannot be read. */
+.wide-crop { overflow-x: auto; }
+
+.wide-crop img { max-width: none; }
+
+/* A crop is evidence, so it gets the tone of card stock behind it rather
+   than white, and it never scales past its own pixels. */
+figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: var(--panel);
+  border: 1px solid var(--panel-rule);
+  padding: 8px;
+}
+
+figcaption {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin-top: 8px;
+}
+
+.prose h3 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  margin: 30px 0 8px;
+}
+
+/* ---- What comes next ---- */
+
+.next { max-width: 660px; }
+
+.next .step {
+  border-left: 2px solid var(--rule);
+  padding-left: 18px;
+  margin: 18px 0;
+}
+
+.next h3 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+
+.next .step p { font-size: 16px; margin-bottom: 0; }
+
+.links { padding-left: 20px; max-width: 660px; }
+
+.links li { margin-bottom: 8px; }
+
+@media (max-width: 1000px) {
+  .bench { grid-template-columns: minmax(0, 1fr); }
+  .hero .mark { display: none; }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  main, .runner { padding-left: 20px; padding-right: 20px; }
+  .runner { font-size: 10px; letter-spacing: 0.1em; }
+  .editor, .panel { height: 340px; }
+}
