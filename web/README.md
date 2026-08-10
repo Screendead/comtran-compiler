@@ -5,7 +5,8 @@ holds the track; `docs/design/web-copy.md` holds the register the copy
 obeys.
 
 The page does one thing: it runs this repository's compiler in a browser
-and prints all six stage dumps of whatever the reader types.
+and prints all six stage dumps of whatever the reader types. It also draws
+the card under the cursor as the punch cut it.
 
 ## Build and run
 
@@ -60,6 +61,8 @@ listing panel against `test/goldens/90.05-payroll.listing`.
 
 ## Not built yet
 
-W1 does not yet include the punched-card view, the deck download, the share
-link, or the golden-diff panel. W2 to W4 add the manual pages, the
-stage-by-stage walk, and the tutorial.
+W1 does not yet include the deck download, the share link, or the
+golden-diff panel. The card view is read-only: a position cannot be punched
+or cleared by clicking it.
+
+W2 to W4 add the manual pages, the stage-by-stage walk, and the tutorial.

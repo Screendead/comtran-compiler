@@ -13,6 +13,9 @@
   --panel-rule: #ddd9cd;
   --deck: #f7f2e3;
   --deck-rule: #ded4b8;
+  --card: #e7ddc4;
+  --card-rule: #cdc0a0;
+  --card-faint: #b3a789;
   --manual: #e8f0f7;
   --manual-edge: #47799f;
   --derived: #eceae3;
@@ -409,6 +412,55 @@ button:focus-visible {
   font-size: 15px;
   padding: 11px 15px;
   margin-bottom: 14px;
+}
+
+/* ---- The card ---- */
+
+.card-view { margin-top: 30px; }
+
+.card-scroll { overflow-x: auto; }
+
+.card {
+  display: grid;
+  grid-template-columns: 24px repeat(80, 12px);
+  gap: 1px;
+  width: max-content;
+  background: var(--card);
+  border: 1px solid var(--card-rule);
+  padding: 12px 14px;
+  font-family: var(--mono);
+}
+
+/* The row label, in the position the card prints it. */
+.card .rl {
+  font-size: 9px;
+  line-height: 13px;
+  text-align: right;
+  padding-right: 5px;
+  color: var(--card-faint);
+}
+
+/* The character the keypunch printed above the column. */
+.card .g {
+  font-size: 10px;
+  line-height: 13px;
+  text-align: center;
+  color: var(--ink);
+  white-space: pre;
+}
+
+.card .p {
+  height: 13px;
+  font-size: 8px;
+  line-height: 13px;
+  text-align: center;
+  color: var(--card-faint);
+}
+
+/* A hole. The card stock is gone, so the light goes through. */
+.card .p.on {
+  background: var(--ink);
+  color: transparent;
 }
 
 /* ---- The gloss marker (web-copy.md section G) ---- */

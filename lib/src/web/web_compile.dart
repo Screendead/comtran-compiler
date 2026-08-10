@@ -12,6 +12,7 @@ library;
 
 import '../cards/card_image.dart';
 import '../cards/text_codec.dart';
+import '../chars/char_code.dart';
 import '../driver/driver.dart';
 import '../emit/emit_code.dart';
 import '../emit/emit_parse.dart';
@@ -103,6 +104,63 @@ final class WebCompilation {
     'diagnosticCount': diagnosticCount,
     'maxSeverity': maxSeverity,
   };
+}
+
+/// The twelve punch rows of a card, in the order the card prints them.
+///
+/// A card reads 12 and 11 at the top, then 0, then 1 to 9 (J 02.03.01). The
+/// site never learns this order: it prints the rows it is handed.
+final List<int> _rowBits = [
+  rowBit12,
+  rowBit11,
+  rowBit0,
+  for (var digit = 1; digit <= 9; digit++) rowBitDigit(digit),
+];
+
+/// One card as the punch cut it, for the card view.
+final class WebCard {
+  const WebCard(this.rows, this.glyphs);
+
+  /// Twelve strings of eighty characters, `#` for a hole and `.` for solid
+  /// card, in the row order [_rowBits] documents.
+  final List<String> rows;
+
+  /// The eighty characters printed along the top of the card, blanks
+  /// included — what the keypunch prints above the holes it cuts.
+  final String glyphs;
+
+  Map<String, Object?> toJson() => {'rows': rows, 'glyphs': glyphs};
+}
+
+/// Punches one line of typed text as one card, or returns null when the
+/// punch could not cut it. A blank line is a blank card, not a failure.
+WebCard? punchCard(String typed) {
+  final String line = punchText(typed).split('\n').first;
+  if (line.contains('\t')) {
+    return null;
+  }
+  final List<CardImage> deck;
+  try {
+    deck = mirrorToDeck('$line\n');
+  } on FormatException {
+    return null;
+  }
+  final CardImage card = deck.single;
+  final rows = <String>[];
+  for (final int bit in _rowBits) {
+    final row = StringBuffer();
+    for (var column = 1; column <= CardImage.columnCount; column++) {
+      row.write(card.punchesAt(column) & bit == 0 ? '.' : '#');
+    }
+    rows.add(row.toString());
+  }
+  final glyphs = StringBuffer();
+  for (var column = 1; column <= CardImage.columnCount; column++) {
+    final int punches = card.punchesAt(column);
+    final int? bcd = isGlyphColumn(punches) ? bcdFromPunches(punches) : null;
+    glyphs.write(bcd == null ? ' ' : glyphFromBcd(bcd) ?? ' ');
+  }
+  return WebCard(rows, glyphs.toString());
 }
 
 /// Turns typed text into mirror normal form (`docs/design/deck-format.md`

@@ -18,6 +18,11 @@ import 'package:comtran/src/web/web_compile.dart';
 @JS('comtranCompile')
 external set _comtranCompile(JSFunction value);
 
+/// Punches one line as one card and returns its rows as JSON, or `null`
+/// when the line is not a card the punch could cut.
+@JS('comtranPunch')
+external set _comtranPunch(JSFunction value);
+
 /// The compiler version the page prints, so a reader can tell which build
 /// produced the listing on the screen.
 @JS('comtranVersion')
@@ -27,5 +32,9 @@ void main() {
   _comtranCompile = ((JSString typed) => jsonEncode(
     compileText(typed.toDart).toJson(),
   ).toJS).toJS;
+  _comtranPunch = ((JSString typed) {
+    final WebCard? card = punchCard(typed.toDart);
+    return card == null ? null : jsonEncode(card.toJson()).toJS;
+  }).toJS;
   _comtranVersion = comtranVersion.toJS;
 }

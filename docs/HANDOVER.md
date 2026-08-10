@@ -452,16 +452,23 @@ Jack has not decided.
 
 **W1, as built on 2026-08-10** (branch `w1-site`, `web/README.md`). It
 delivers the entry point and the WebAssembly build; one card editor with a
-column ruler and a card-number gutter; all six `--emit` dumps as selectable
-panels, each with a caption that says what attests it; the 90.05 sample on one
-click, and on load; and the three §5 statements in the reader's path. Every
-stage is held to its golden by `test/web_compile_test.dart`, in the normal
-`dart test` gate.
+column ruler and a card-number gutter; the punch grid of the card under the
+cursor, drawn from the punch codes the compiler holds; all six `--emit` dumps
+as selectable panels, each with a caption that says what attests it; the 90.05
+sample on one click, and on load; and the three §5 statements in the reader's
+path. Every stage and the punch grid are held to their goldens by
+`test/web_compile_test.dart`, in the normal `dart test` gate.
 
-Four items on the W1 list above are not built: the punch grid of the selected
-card, the deck download as `.ctd`, the share link, and the golden-diff panel.
-The diff earns its place least: the site now prints the listing the golden test
-already compares, and the test is the stronger claim. The other three stand.
+The punch grid did not need the port this section expected.
+`editors/vscode-punchcard/media/punchcard.js` stayed where it is: the site asks
+the compiler for the twelve rows and prints them, which keeps the punch codes
+in one place and leaves the site with no card knowledge of its own.
+
+Three items on the W1 list above are not built: the deck download as `.ctd`,
+the share link, and the golden-diff panel. The diff earns its place least: the
+site now prints the listing the golden test already compares, and the test is
+the stronger claim. The other two stand. The punch grid is read-only; a
+position cannot yet be punched by clicking it.
 
 **W2 — the sources.** The documents page. It holds the language reference, both
 manual conversions, both source PDFs (17 MB), and each of the 345 page scans

@@ -107,6 +107,54 @@ void main() {
     });
   });
 
+  group('the card view', () {
+    test('punches a card 1 the reader can check against the manual', () {
+      // Card 1 of the sample: *COMPILE in columns 7 to 14. An asterisk is
+      // 11-4-8, so column 7 carries exactly those three holes and no
+      // others.
+      final WebCard card = punchCard(_sample().split('\n').first)!;
+      expect(card.rows, hasLength(12));
+      expect(card.glyphs, hasLength(80));
+      expect(card.glyphs.substring(6, 14), '*COMPILE');
+      expect(card.glyphs.substring(0, 6), '      ');
+
+      const rows = [
+        '12',
+        '11',
+        '0',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+      ];
+      final punched = <String>[
+        for (var i = 0; i < 12; i++)
+          if (card.rows[i][6] == '#') rows[i],
+      ];
+      expect(punched, ['11', '4', '8']);
+    });
+
+    test('a blank line is a blank card', () {
+      final WebCard card = punchCard('')!;
+      expect(card.glyphs.trim(), isEmpty);
+      expect(card.rows.every((String row) => !row.contains('#')), isTrue);
+    });
+
+    test('a character the punch cannot cut has no card', () {
+      expect(punchCard('      A%B'), isNull);
+      expect(punchCard('\tSTOP RUN.'), isNull);
+    });
+
+    test('lower case is punched as upper case', () {
+      expect(punchCard('      stop')!.glyphs.substring(6, 10), 'STOP');
+    });
+  });
+
   test('a program the compiler rejects still returns its stages', () {
     // A severity-5 stop is a result, not a refusal: the reader gets the
     // listing with the diagnostic block, and the stages that ran (D10.2).
