@@ -126,10 +126,18 @@ C1.
   its three HTML forms, `&mdash;`, `&#8212;` and `&#x2014;`. A site file in a
   new text format adds its extension to that list in the same pull request.
 
-  E2 is the one case the rule cannot govern, because a quotation keeps its own
-  characters. No quotation on the site holds an em dash today. The transcribed
-  title of F28-8043 holds one, so W2 adds an exception to the test in the same
-  pull request that first prints that title.
+  The en dash stays legal, because it is Jack's own register. *His call,
+  2026-08-10: keep it minimal.* It is not the replacement for the mark this
+  rule removes. A rewrite that turns each em dash into an en dash obeys the
+  letter of D5 and defeats it. The test therefore counts the en dash in all
+  its forms and caps the total across `web/`. To raise the cap, raise it in
+  the pull request that needs the room and give the reason in the commit
+  message.
+
+  **A quotation is always verbatim.** *Jack's call, 2026-08-10.* E2 outranks
+  this rule wherever the two meet. No quotation on the site holds an em dash
+  today. The transcribed title of F28-8043 holds one, so W2 adds an exception
+  to the test in the same pull request that first prints that title.
 
 ### E — What the site never rewrites
 
@@ -191,8 +199,8 @@ component from a focusable element, and use it for both cases.
 
 ### H — When a project change reaches the site
 
-*Recorded 2026-08-10, from a requirement Jack stated. The rules are this
-project's reading of it. He has approved none of them.*
+*Recorded 2026-08-10, from a requirement Jack stated. He approved all six the
+same day.*
 
 Every push to master deploys the site (`docs/HANDOVER.md`, the Hosting
 section). No window exists in which a page is stale but unpublished. Each rule
@@ -237,8 +245,9 @@ above, not in small print.
 
 ## 6. Open items
 
-- Jack has approved the register and the tiebreak. He has not approved the rule
-  list.
+- Jack has approved the register, the tiebreak, rule D5 and all of section H,
+  plus each call recorded in place below. He has not approved the rest of the
+  rule list.
 - The site needs an about page for C6. Nothing specifies it yet.
 - C2's three phrases all speak about the manuals. None fits a fact that sits
   outside them and is attested elsewhere, such as the existence of J28-6310.

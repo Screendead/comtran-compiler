@@ -516,8 +516,10 @@ started. A finished station carries the date it was finished and links its
 design record. An unfinished one carries no date, because this file promises
 no schedule and the site must not invent one.
 
-Two rules follow, both in `docs/design/web-copy.md`. D5 bars the em dash, and
-section H states when a change to the project obliges a change to a page.
+Two rules follow, both in `docs/design/web-copy.md`, and Jack approved both on
+2026-08-10. D5 bars the em dash and caps the en dash, which stays legal
+because it is his own register. Section H states when a change to the project
+obliges a change to a page.
 Every push to master deploys, so each H rule binds the same pull request that
 makes the change. `test/web_copy_test.dart` enforces D5 across the text files in `web/`, and
 checks that the roadmap page carries a station for every codename in the
