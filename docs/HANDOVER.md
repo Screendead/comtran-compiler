@@ -95,9 +95,9 @@ unit in the program before it fills any word. `docs/design/m4-codegen.md`
 M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
 holds the inverted order and the target file.
 
-Chunks A0 to A5 are done. Ten of the eighteen object pages are verified
-against their scans: listing pages 8 to 16 and 21. Chunk A6 takes the
-next three, listing pages 17 to 19, PDF pp. 208 to 210. One page costs
+Chunks A0 to A6 are done. Thirteen of the eighteen object pages are
+verified against their scans: listing pages 8 to 19 and 21. Chunk A7 takes
+the next three, listing pages 20, 22 and 23, PDF pp. 211, 213 and 214. One page costs
 about 250k tokens and 50 minutes, measured over the three of chunk A5,
 against 230k and 35 minutes over chunk A4 and 210k and 30 minutes over
 chunk A3; the 135k of the chunk A2 calibration page was a floor, because
@@ -164,13 +164,32 @@ binds work outside the definition.
   listing pages 14 to 16, PDF pp. 205 to 207, each printing two blanks
   where the conversion held one. Their 165 content lines carry no content
   correction between them.
-  Eight object pages are still unverified. The conversion holds one
-  blank on each of them but PDF p. 208, where a 2026-08-05 measurement
-  found two, so chunks A6 to A8 will probably find two on the other seven.
+
+  **Chunk A6 brought the first content correction of the scan pass, and
+  Jack authorized it on 2026-08-10.** Listing page 19, PDF p. 210, prints
+  55 content lines where the conversion held 54. The label
+  `WITHOLDING.TAX.ROUTINE` is 22 characters and overruns a label field that
+  ends at print column 48, so the printer put its instruction, `AXT 0`, on
+  the next line, at the ordinary mnemonic and operand columns. The
+  conversion had recorded the two printed lines as one. His ruling:
+  fidelity to the print governs, so the conversion carries two lines.
+  `test/fixtures/90.05-object-listing-notes.md` holds the measurement, and
+  the review record on branch `review/2026-08-10-m4s2-chunk-a6` holds the
+  plates. It is the only site of its kind in the eighteen pages: three
+  other labels reach the mnemonic column and each stands alone on its
+  line. Chunk A6 also corrected the blank count on listing pages 18 and
+  19. Listing page 17 already held two, from a 2026-08-05 measurement, and
+  its reader measured the same two without knowing that.
+
+  Five object pages are still unverified: listing pages 20 and 22 to 25.
+  The conversion holds one blank on each, so chunks A7 and A8 will probably
+  find two.
   The target carries the measured counts either way, so nothing waits on
-  an authorization. Twenty-one are authorized and
-  applied. The most recent three, on 2026-08-10, are chunk A5's
-  object-page blank counts; the seven before them, on 2026-08-09, are the
+  an authorization. Twenty-four are authorized and
+  applied. The most recent three, on 2026-08-10, are chunk A6's two blank
+  counts and its one content correction; the three before those are chunk
+  A5's object-page blank counts, also 2026-08-10; the seven before those,
+  on 2026-08-09, are the
   object-page blank counts above. The eleventh, also on 2026-08-09, corrected the
   object listing's
   column header on line 674, the only such header in the file. It held

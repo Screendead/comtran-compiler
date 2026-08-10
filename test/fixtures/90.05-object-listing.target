@@ -580,6 +580,7 @@ DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS      
 01060  4765 00 0 00030   10000          +94      LGR    24
 DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  18
 
+
 01061  4600 00 0 00000   10001          +95      STQ    3)DAY
 01062  4500 00 0 01737   10001          +96      CAL    CP)+35
 01063  0320 00 0 00001   10001          +97      ANS    3)YEAR
@@ -637,6 +638,7 @@ DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS      
 01147  000004000003      10000         +149      OCT    000004000003
 DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  19
 
+
 01150  0774 00 1 00006   10000         +150      AXT    6,1
 01151  0074 00 4 00011   10010         +151      TSX    IOC)9,4
 01152  0 00000 0 04004   10010         +152      PZE    CHECKFILE,,0
@@ -678,7 +680,8 @@ DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS      
 01216  0601 00 1 00012   10000          +25      STO    1)FICA,1
 01217                             GN)076
 01217  0020 60 0 01165   10001    GN)077         TRA*   FICA.ROUTINE
-01220  0774 00 0 00000   10000    WITHOLDING.TAX.ROUTINE AXT 0
+01220  0774 00 0 00000   10000    WITHOLDING.TAX.ROUTINE
+                                                 AXT    0
 01221  0560 00 0 01710   10001           +1      LDQ    CP)+12
 01222  0535 00 1 01667   10001           +2      LAC    BL)2,1
 01223  7 00000 1 00446   10010           +3      TXL    SYS)294,1,0

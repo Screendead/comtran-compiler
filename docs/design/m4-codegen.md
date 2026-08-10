@@ -381,7 +381,10 @@ M4 executes I/O-free programs.
     authorizes its own pages. Listing pages 9 to 13 and 21 hold two blanks
     after the head, and listing page 8 holds three.
     **Amended 2026-08-10, chunk A5.** Listing pages 14, 15 and 16 hold two
-    blanks as well, under the same option B. The eight unverified
+    blanks as well, under the same option B.
+    **Amended 2026-08-10, chunk A6.** Listing pages 18 and 19 hold two, and
+    listing page 17 already held two from a 2026-08-05 measurement, which
+    its reader confirmed without knowing of it. The five unverified
     pages still hold one, so a page's blank count remains a scan
     measurement and never a read of the conversion. No blank line separates routines, the storage map
     from the code, or the pool from the end-of-text line. The
@@ -443,6 +446,33 @@ M4 executes I/O-free programs.
   These three pages add one check no per-page reader could run: their
   location ranges are contiguous with each other and with chunk A4's last
   page, so six pages run unbroken from 00264 to 00771.
+  **Amended 2026-08-10, chunk A6, and the frame now has no exception.**
+  Thirteen pages of eighteen carry it. Listing page 19, the one page whose
+  transcription said 54 content lines, prints 55: the transcription had
+  joined two printed lines into one. Stage 2 therefore lays out every
+  object page by the frame and never by a line count. Chunks A7 and A8
+  test the remaining five, and listing page 25 is the last page of the
+  listing, where a short count is expected.
+
+- **M4-8.1. An over-long label pushes its instruction to the next line.**
+  *Recovered from the print 2026-08-10, chunk A6; Jack's ruling the same
+  day.* The label field ends at print column 48 and the mnemonic column is
+  49. Where a label reaches column 49, the 1962 printer put the
+  instruction on the following line, at the ordinary mnemonic and operand
+  columns, and left the label alone on its own. Stage 2 must do the same,
+  or the listing diff fails on that page.
+
+  One site in the program exercises the rule: `WITHOLDING.TAX.ROUTINE` at
+  LOC 01220 on listing page 19, which is 22 characters. Three other labels
+  reach column 49 and each stands alone on its line with no instruction to
+  displace, so they settle nothing about the wrap and are consistent with
+  it.
+
+  Nothing in either manual states this behaviour. It is read off the
+  artifact, which makes it an M4-8 geometry fact and not a language fact:
+  it stays out of the definition. The line count is the visible
+  consequence, and it is what makes the frame hold on all thirteen
+  measured pages.
 
 ## MOVE
 
