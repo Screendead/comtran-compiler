@@ -1,0 +1,41 @@
+The six source statements the two items rest on, quoted verbatim from the
+compilation listing in comtran-manuals/J28-6169/90.05-sample-program.md.
+Statements 188 and 199 carry the comma counts and the verb counts of item 1.
+Statements 203, 207, 212 and 215 carry the operator counts of item 2.
+
+=== statement 188 (conversion lines 468-470) ===
+        188,00   71466  START.          OPEN ALL FILES,
+                                         MOVE ZEROS TO INTERNAL.TOTALS, GRAND.TOTALS,
+                                         GET MASTER, AT END DO END.OF.MASTERS.
+
+=== statement 199 (conversion lines 503-513) ===
+        199,00   71512  END.OF.RUN.     DO DEPARTMENT.END,
+                                         MOVE CORRESPONDING GRAND.TOTALS TO PAYRECORD,
+                                         MOVE GRAND.TOTALS HOURS TO PAYRECORD HRS,
+                                         MOVE GRAND.TOTALS INSURANCE TO PAYRECORD INS.PREM,
+                                         MOVE GRAND.TOTALS RETIREMENT TO PAYRECORD RET.PREM,
+                                         MOVE 'GT' TO PAYRECORD DEPARTMENT,
+                                         MOVE  BLANKS TO PAYRECORD NAME, PAYRECORD EMPLOYEE,
+                                         PAYRECORD MONTH, PAYRECORD DAY, PAYRECORD YEAR,
+                                         MOVE GRAND.TOTALS BONDPURCHASES TO PAYRECORD
+                                         BONDENOMINATION,  FILE PAYRECORD,
+                                         CLOSE ALL FILES,  STOP RUN.
+
+=== statement 203 (conversion lines 520-522) ===
+        203,00                          IF WORKING HOURS GT 40.0 THEN SET WORKING GROSS = (WORKING
+                                         HOURS * 1.5 -20) * MASTER RATE OTHERWISE SET WORKING
+                                         GROSS = WORKING HOURS * MASTER RATE.
+
+=== statement 207 (conversion lines 529-530) ===
+        207,00   71523  NET.            SET WORKING NETPAY = WORKING GROSS - WORKING FICA - WORKING
+                                         WHT - WORKING RETIREMENT - WORKING INSURANCE - M.BND.DED.
+
+=== statement 212 (conversion lines 543-544) ===
+        212,00                          IF MASTER FICA GT 144.00 THEN SET WORKING FICA = WORKING
+                                         FICA - (MASTER FICA - 144.00), SET MASTER FICA = 144.00.
+
+=== statement 215 (conversion lines 547-550) ===
+        215,00                          SET WORKING WHT = 0.18 * (WORKING GROSS - 13 * MASTER
+                                         EXEMPTIONS),
+                                         SET WORKING WHT = WORKING WHT * TR(WORKING WHT GT 0),
+                                         ADD WORKING WHT TO MASTER WHT.

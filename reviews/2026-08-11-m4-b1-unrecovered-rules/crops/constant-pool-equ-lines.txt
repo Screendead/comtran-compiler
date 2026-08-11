@@ -1,0 +1,16 @@
+The three EQU lines whose printed LOC depends on the size of the
+machine-word sub-pool, from test/fixtures/90.05-object-listing.target.
+Verbatim, full columns. An EQU line prints the equated value in its LOC
+column, so a wrong sub-pool size prints a wrong LOC here.
+
+fixture line 462
+01741                             GN)088         EQU    CP)+37
+
+fixture line 822
+01742                             GN)091         EQU    CP)+38
+
+fixture line 823
+01743                             GN)093         EQU    CP)+39
+
+CP) itself, fixture line 969
+01674  000000000000      10000    CP)            OCT    000000000000

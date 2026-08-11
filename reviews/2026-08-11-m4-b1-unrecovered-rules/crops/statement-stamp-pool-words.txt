@@ -1,0 +1,27 @@
+The constant-pool words the five statement-stamp sites name, from
+test/fixtures/90.05-object-listing.target. Verbatim, full columns.
+The BCD reading of each word follows it; 60 is a blank and 73 is a comma.
+
+CP)+14 (fixture line 983)  =  "   188"
+01712  606060011010      10000          +14      OCT    606060011010
+
+CP)+15 (fixture line 984)  =  ",02   "
+01713  730002606060      10000          +15      OCT    730002606060
+
+CP)+18 (fixture line 990)  =  "   190"
+01716  606060011100      10000          +18      OCT    606060011100
+
+CP)+19 (fixture line 991)  =  ",00   "
+01717  730000606060      10000          +19      OCT    730000606060
+
+CP)+20 (fixture line 992)  =  "   191"
+01720  606060011101      10000          +20      OCT    606060011101
+
+CP)+22 (fixture line 994)  =  "   194"
+01722  606060011104      10000          +22      OCT    606060011104
+
+CP)+26 (fixture line 998)  =  "   199"
+01726  606060011111      10000          +26      OCT    606060011111
+
+CP)+27 (fixture line 999)  =  ",14   "
+01727  730104606060      10000          +27      OCT    730104606060

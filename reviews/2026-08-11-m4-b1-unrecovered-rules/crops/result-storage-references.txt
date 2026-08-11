@@ -1,0 +1,25 @@
+The five result-storage references and the reservation line, from
+test/fixtures/90.05-object-listing.target. Verbatim, full columns.
+The octal address sits in the last field of the machine word.
+
+RS)0 at 01621 -- section 0 starts here (fixture line 354)
+00532  0602 00 0 01621   10001           +3      SLW    RS)0
+
+RS)1 at 01623 -- a cell is two words (fixture line 416)
+00625  0500 00 0 01623   10001          +34      CLA    RS)1
+
+1.RS)0 at 01627 -- section 0 holds 3 cells (fixture line 675)
+01211  0601 00 0 01627   10001          +20      STO    1.RS)0
+
+2.RS)0 at 01633 -- section 1 holds 2 cells (fixture line 690)
+01226  4600 00 0 01633   10001           +6      STQ    2.RS)0
+
+3.RS)1 at 01643 -- section 2 holds 3 cells (fixture line 788)
+01362  0601 00 0 01643   10001          +34      STO    3.RS)1
+
+The reservation, 30 words = 15 cells (fixture line 965)
+01621  2 00000 0 00036   00001    RS)            BSS    30
+
+The line the reservation width moves, the second content line of the
+whole listing (fixture line 8)
+01671                                            BGN    2,PI)1

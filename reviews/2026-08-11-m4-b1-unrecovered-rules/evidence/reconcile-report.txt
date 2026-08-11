@@ -1,0 +1,277 @@
+The report follows. One process note first: the harness refused the `Write` of a report `.md` file (a system-level guard the orchestrator's instruction cannot override), so **this text is the deliverable**. The computation artifacts persist and reproduce every number in it: `/Users/jacklusher/development/comtran-compiler/scratch/reconcile/walk.py`, `walk.tsv`, `claims.py`.
+
+---
+
+# Reconciliation of the eight generated-code specifications against the 90.05 procedure text
+
+The eight specifications, walked statement by statement against the answer key, land every one of the 42 statement boundaries from statement 188 to statement 229 and sum to 796 words — but they only *account for* 781 of those words. 15 words of the 1962 procedure text belong to no family, 141 words are claimed by two families at once, and 40 rules across the eight documents are labelled pinned-at-the-diff or fitted rather than derived.
+
+---
+
+## 0. Inputs, and how the paths were resolved
+
+The task text named `undefined/<slug>/spec.md`, `undefined` (the answer key) and `undefined/reconcile` — an uninterpolated orchestrator variable. Resolved as follows, and every file was verified to exist and to be the intended artefact:
+
+| Slug | File used |
+|---|---|
+| descriptors | `/Users/jacklusher/development/comtran-compiler/scratch/descriptors/spec.md` |
+| figuratives | `/Users/jacklusher/development/comtran-compiler/scratch/figuratives/spec.md` |
+| alphameric | `/Users/jacklusher/development/comtran-compiler/scratch/alphameric/spec.md` |
+| numeric | `/Users/jacklusher/development/comtran-compiler/scratch/numeric/spec.md` |
+| arithmetic | `/Users/jacklusher/development/comtran-compiler/scratch/arithmetic/spec.md` |
+| compares | `<session scratchpad>/compares/spec.md` |
+| structure | `<session scratchpad>/structure/spec.md` |
+| pool | `<session scratchpad>/pool/spec.md` |
+
+Five workers wrote into the repository's `scratch/`; three fell back to the session scratchpad `/private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler/c3b08b06-7069-4268-8989-8c4ea6618e24/scratchpad/`. A second copy of the figuratives spec sits at `<scratchpad>/specs/figuratives/spec.md`; it is a shorter, stale draft and was **not** used. `<scratchpad>/figuratives-spec.md` is byte-identical to the repository copy.
+
+The answer key is `<scratchpad>/numeric/compact.txt` (also `<scratchpad>/answer-key.txt`, the same 980 lines with the `+n` offset column dropped).
+
+### The key was verified before it was used
+
+`test/fixtures/90.05-object-listing.target` is the repository's scan-verified transcription and outranks a worker-derived file, so the key was projected against it: 980 rows each, **every LOC identical**, and only five symbolic differences, all of them long labels that the key preserved with the printed column break (`COMPARE.EMPLOYE E.NUMBE RS`) and the target joined (`COMPARE.EMPLOYEE.NUMBERS`); two of the five are page-footer lines outside the procedure span. The key is faithful. All walking below was done against the fixture, with every octal conversion in code.
+
+Span arithmetic: 0o1620 − 0o165 + 1 = 912 − 117 + 1 = **796**.
+
+Independent confirmation from the fixture itself: lines 96 to 904 are 809 printed lines; 13 of them consume no word (nine label-only lines at 00165, 00232, 00241, 00370, 00702, 01217, 01472 plus the two over-long-label continuations, and four `EQU` lines whose LOC column prints the equated value, 01741, 01405, 01742, 01743); 809 − 13 = **796**, and the LOC column runs without a single break from 00165 to 01620.
+
+---
+
+## 1. The walk, statement 188 to statement 229
+
+Every row was checked two ways: the clause decomposition sums to the row's word count, and the row's start LOC equals the previous row's end LOC plus one. Both checks pass for all 42 rows; the closing LOC is 01620 and the column sums to 796.
+
+`family:shape` names the specification that owns each clause. **Bold** marks a clause containing words no specification accounts for (part 3 lists them).
+
+| Stmt | LOC range | Clauses and shapes | Words |
+|---|---|---|---|
+| 188 | 00165–00207 | `OPEN ALL FILES` structure §1 (2); `MOVE ZEROS TO INTERNAL.TOTALS` figuratives A1+B2 (4); `, GRAND.TOTALS` figuratives A1+B2 (4); `GET MASTER, AT END DO` structure §3.2 stamp+call+`TRA`+DO-triple (9) | 19 |
+| 189 | 00210–00220 | `MOVE MASTER DEPARTMENT TO CURRENT.DEPT` alphameric A3 (6) + one guard pair (2); `GO TO GET.DETAIL` structure §11 (1) | 9 |
+| 190 | 00221–00231 | `GET MASTER, AT END DO` structure §3.2 (9) | 9 |
+| 191 | 00232–00240 | `GET DETAIL, AT END GO TO` structure §3.2 (7) | 7 |
+| 192 | 00241–00255 | `WHEN =` compares CMP-ALPHA, no spill, two prologues, V=2 (8); `WHEN LT` CMP-ALPHA, prologues suppressed by liveness, V=3 (5) | 13 |
+| 193 | 00256–00275 | `MOVE 'M'` alphameric A7 (5); **`MOVE MASTER DAT TO ERROROUT INFO` descriptors D1+D2+SYS)182 (6) + two unowned mover words (2)**; `FILE ERROROUT` structure §4.1 (3) | 16 |
+| 194 | 00276–00306 | `GET MASTER, AT END DO` (9) | 9 |
+| 195 | 00307 | `GO TO` structure §11, folded onto the GET join label (1) | 1 |
+| 196 | 00310–00330 | **`MOVE DETAIL TO ERROROUT INFO` descriptors (6) + two unowned mover words (2)**; `MOVE 'D'` alphameric A7 (5); `FILE ERROROUT` (3); `GO TO GET.DETAIL` (1) | 17 |
+| 197 | 00331–00350 | return cell structure §6.1 (1); `IF … = HIGH.VALUE` compares CMP-ALPHA, V=3 (7); THEN `GO TO END.OF.RUN` (1); OTHERWISE `SET M.EMP.NO = HIGH.VALUE` figuratives A2+B3 (6); terminal `TRA*` structure §6.2 (1) | 16 |
+| 198 | 00351–00367 | CMP-ALPHA V=3 (7); THEN `GO TO` (1); OTHERWISE figuratives A2+B3 (6); `GO TO HIGH.DETAIL` (1) | 15 |
+| 199 | 00370–00526 | `DO DEPARTMENT.END` structure §5.1 (3); `MOVE CORRESPONDING` five numeric N1 units, one carrying N2 (32); three explicit N1 stores (18); `MOVE 'GT'` alphameric A7 (5); `MOVE BLANKS` five figurative units (20); BONDPURCHASES N1 (6); `FILE PAYRECORD` (3); `CLOSE ALL FILES` structure §2 (2); `STOP RUN` structure §7.1 (6) | 95 |
+| 200 | 00527–00546 | `IF NOT EQUAL` compares CMP-ALPHA with spill, V=2 (11); THEN `DO DEPARTMENT.END` (3); **THEN-arm join `TRA GN)071` (1)**; **OTHERWISE `GO TO COMPUTE.PAY` (1)** | 16 |
+| 201 | 00547–00562 | `MOVE ZEROS` figuratives A1+B2 (4); `MOVE D.DEPT TO CURRENT.DEPT` alphameric A3 + guard pair (8) | 12 |
+| 202 | 00563–00611 | `MOVE DETAIL DATE TO MASTER DATE` alphameric A1 with two guard pairs (6); `MOVE DETAIL HOURS TO WORKING HOURS` numeric N3, preamble 3 (6); `, PAYRECORD HRS` numeric N5, preambles 2+3 (11) | 23 |
+| 203 | 00612–00647 | `IF … GT 40.0` compares CMP-NUM V=3 (5); THEN arithmetic A3+A2+A4+A1+A3+A5-scaling (15); **THEN-arm join `TRA GN)073` (1)**; OTHERWISE arithmetic A0+A3+A5-scaling (9) | 30 |
+| 204 | 00650–00655 | two plain `DO` structure §5.1 (3+3) | 6 |
+| 205 | 00656–00701 | `IF NOT EQUAL TO ZERO` compares CMP-NUM, three-word zero build, V=2 (8); THEN `DO BOND.ROUTINE` (3); **THEN-arm join `TRA GN)075` (1)**; OTHERWISE two figurative units (8) | 20 |
+| 206 | 00702–00721 | `DO SEARCH FOR INDEX = 1(1)12` structure §5.2, 11+5·M with M=1 (16) | 16 |
+| 207 | 00722–00732 | `SET WORKING NETPAY = …` arithmetic A1, n=6, one A0, A5-plain (9) | 9 |
+| 208 | 00733–01163 | `ADD CORRESPONDING` arithmetic A8, 7 pairs (21) then 3 pairs (9); `MOVE CORRESPONDING DETAIL` alphameric A6/A2/A3/A4/A5 nine blocks (63); `MOVE CORRESPONDING WORKING` four N1, one with N2 (26); **`MOVE MASTER NAME TO PAYRECORD NAME, CHECK NAME` descriptors 6+6 + three unowned mover words (15)**; `MOVE WORKING NETPAY TO CHECK AMOUNT` N1+N2 (8); `FILE CHECK` (3); `FILE PAYRECORD` (3); `FILE MASTER` structure §4.2 located (5) | 153 |
+| 209 | 01164 | `GO TO GET.MASTER` (1) | 1 |
+| 210 | 01165 | `BEGIN SECTION` 0 words; return cell structure §6.1 (1) | 1 |
+| 211 | 01166–01201 | `SET WORKING FICA = .03 * …` arithmetic A3-load+A5-scaling (7); `ADD WORKING FICA TO MASTER FICA` arithmetic A7 with A0 (5) | 12 |
+| 212 | 01202–01216 | `IF … GT 144.00` compares CMP-NUM V=3 (5); THEN arithmetic A1 with inner sub-chain + A2 park + A5-plain (6); **`SET MASTER FICA = 144.00` arithmetic A1 n=1 + A5-plain, in no site table (2)** | 13 |
+| 213 | 01217 | `END FICA.ROUTINE` terminal `TRA*` (1) | 1 |
+| 214 | 01220 | `BEGIN SECTION` 0; return cell (1) | 1 |
+| 215 | 01221–01260 | `SET WORKING WHT = 0.18 * (…)` arithmetic A3+A0+A4-chain+A2+A1+A3-fromAC+A5-scaling (15); `SET WORKING WHT = WORKING WHT * TR(…)` arithmetic A10 / compares TR (11) + A3-fromAC + A5-plain (3); `ADD WORKING WHT TO MASTER WHT` arithmetic A7, register live (3) | 32 |
+| 216 | 01261 | terminal `TRA*` (1) | 1 |
+| 217 | 01262 | return cell (1) | 1 |
+| 218 | 01263–01272 | `ADD M.BND.DED TO M.BND.ACC, INTERNAL.TOTALS BONDEDUCTION` arithmetic A7, A0 + two targets (2+3+3) | 8 |
+| 219 | 01273–01300 | `MOVE M.BND.DED TO PAYRECORD BONDEDUCTION` numeric N1 with load (6) | 6 |
+| 220 | 01301–01317 | `IF NOT GT` compares CMP-NUM, P(A)=2, V=2 (6); THEN arithmetic A1 n=2 + A5-plain (3); **THEN-arm join `TRA GN)080` (1)**; OTHERWISE figurative unit (4); `GO TO BOND.END` (1) | 15 |
+| 221 | 01320–01377 | `MOVE CORRESPONDING MASTER TO BONDORDER` — DATE alphameric A1+guard (4), BONDENOMINATION numeric N1 zero-variant (6), EMPLOYEE.NUMBER alphameric A6 (11), **NAME descriptors (6) + one unowned mover word (7)**; `ADD BONDORDER BONDENOMINATION TO …` numeric N4 (7) + arithmetic A2 park and A7 body (3); `MOVE … TO PAYRECORD BONDENOMINATION` numeric N6 (10) | 48 |
+| 222 | 01400–01402 | `FILE BONDORDER` (3) | 3 |
+| 223 | 01403 | `END BOND.ROUTINE` terminal `TRA*` (1) | 1 |
+| 224 | 01404 | `BEGIN SECTION` 0; return cell (1) | 1 |
+| 225 | 01405–01471 | `IF … GT TABLE.ITEM RATE (INDEX)` compares CMP-NUM, P(A)=2, P(B)=2, V=3 (9); THEN `GO TO SEARCH.END` (1); OTHERWISE `MOVE INDEX TO POS` numeric N7 (2); positional-indicator recomputation arithmetic §12, two indicators (10); `MOVE INSPREM (POS) TO INS.PREM` N5 with two DP preambles (10); `, WORKING INSURANCE` N3 (5); `MOVE RETPREM (POS) TO RET.PREM` N5 (10); `, WORKING RETIREMENT` N3 (5); `GO TO NET` (1) | 53 |
+| 226 | 01472 | `END SEARCH` terminal `TRA*` (1) | 1 |
+| 227 | 01473 | `BEGIN SECTION` 0; return cell (1) | 1 |
+| 228 | 01474–01617 | `MOVE CORRESPONDING INTERNAL.TOTALS TO DEPARTMENT.TOTAL` nine N1 units (54); `FILE DEPARTMENT.TOTAL` (3); `ADD CORRESPONDING` arithmetic A8, nine pairs (27) | 84 |
+| 229 | 01620 | `END DEPARTMENT.END` terminal `TRA*` (1) | 1 |
+| | | **Total** | **796** |
+
+Statement 187 (`CALL (MASTER EMPLOYEE.NUMBER) M.EMP.NO, …`) generates zero words. It owns the label-only line `GN)000` at 00165, which is the same word as statement 188's `START TSX SYS)175,4`, so the walk's lower boundary is justified rather than assumed.
+
+**No boundary misses.** Every start LOC in the table equals the previous end plus one, in octal, and the last end is 01620.
+
+**But the specifications do not pay for the whole 796.** Of the 796 words, 781 fall inside a site or a shape that some specification names; 15 do not. Part 3 lists them. The nine bolded rows are where the specifications' predicted statement total falls short of the key: statement 193 by 2, 196 by 2, 200 by 2, 203 by 1, 205 by 1, 208 by 3, 212 by 2, 220 by 1, 221 by 1.
+
+---
+
+## 2. Every conflict between two specifications
+
+### 2.1 Three families claim the same words as three other families (141 words)
+
+These are not disagreements about what the compiler emitted. They are disagreements about **who owns the word**, and every one of them makes a naive sum of the eight documents' totals wrong. Summing the families as written gives 922 words for a 796-word program.
+
+| Families | Words | Where |
+|---|---|---|
+| descriptors ∩ numeric | 84 | the 25 `SYS)180` two-word calls (50), and the pointer preambles plus `TSX SYS)182,4` inside N3/N4/N5/N6 at 00571–00574, 00577–00604, 01354–01356, 01366–01372, 01433–01437, 01445–01447, 01452–01456, 01464–01466 (34) |
+| descriptors ∩ figuratives | 41 | the descriptor prologue plus `TSX SYS)182,4` at all thirteen figurative sites |
+| arithmetic ∩ compares | 16 | 00656–00660 (the three-word zero build), 01240–01252 (the whole `TR( )` block), 01301–01302 (the base-locator guard) |
+
+The first two are layering, not contradiction: descriptors sizes the specific mover at zero and figuratives/numeric size the whole unit, and at every site the two agree word for word (descriptors' 155-word and figuratives' 56-word headlines both reproduce exactly from the site tables). A design record must still pick one owner per word or it will double-count.
+
+The third is a genuine ownership dispute, and it points both ways:
+
+- **`TR( )` at LOC 01240–01252** is fully specified twice. Arithmetic §11 gives `W(A10) = 1 + prep + 1 + v + 1 + 3` = 11; compares §2.7 gives `TR = 1 + (comparison unit less its vector) + V + 4` = 11. Same eleven words, same decomposition, two homes.
+- **The zero build at 00656–00660** is arithmetic's shape A4 (`LDQ CP)+0 / MPY CP)+31 / XCA`, three words) and simultaneously compares' `L(A) = 3` branch, inside its eight-word CMP-NUM total for statement 205. Compares even says "the scale constant `CP)+scale` is the arithmetic family's rescale word — defer to chunk B3" while still counting the three words.
+- **The guard pair at 01301–01302** is arithmetic's shape A0 site list ("01301–01302 (220,00)") and compares' `P(A) = 2` inside its six-word CMP-NUM total for statement 220. The identical pair at 00661–00662 is arithmetic's A0 and compares' `P(B) = 2`.
+
+### 2.2 Two incompatible rules for base-locator register liveness
+
+Both are labelled pinned-at-the-diff, and they are not the same rule.
+
+- **arithmetic §2:** "The sample reloads **at a label, at a section entry, and after any MOVPAK calling sequence**, and reuses the register inside a straight run."
+- **compares §2.2:** "the generator caches what index registers 1 and 2 hold; the cache is cleared **at any word that carries a label and at any instruction that writes the register**."
+
+They explain the same three reload sites (00555, 01301, 01405) by different mechanisms — compares reads 01301 as "the `AXT 6,1` at 01300 wrote IR1", arithmetic reads it as "a MOVPAK sequence intervened". No site in the sample separates them, because every MOVPAK sequence in the program ends in an `AXT` that writes IR1. A generator must pick one, and the pick is unforced.
+
+### 2.3 Two specifications disagree about where statement 202 ends
+
+- **pool §5** attributes `202 = 00563–00612` and `203 = 00613–00647`.
+- **compares §2.4** puts statement 203's compare at `00612–00616`, five words beginning with `CLA 3)HOURS`.
+
+The key decides for compares: 00612 is `CLA 3)HOURS` and 00613 is `CAS CP)+5`, the load and the compare of `IF WORKING HOURS GT 40.0`. Statement 202's last word is the `TXI SYS)225,1,5` terminator at 00611. Pool's attribution table is off by one word here; every other line of it agrees with the walk.
+
+### 2.4 One family's site list disagrees with its own tally
+
+structure §11 sizes `GO TO` at one word and lists ten sites, and its summary table records "GO TO | 1 | attested ×10". The listing holds **eleven**: the `TRA COMPUTE.PAY` at 00546, the OTHERWISE arm of statement 200, is missing from the list. The shape covers it; the census does not.
+
+### 2.5 A shape claimed and then disowned
+
+numeric §6 specifies shape N7 (`CLA S / STO T`, two words, LOC 01417–01420) and then says "Recommend the arithmetic family (M4-10) owns it; this spec claims only the note." Arithmetic never picks it up — its site tables have no row for 01417–01420. The two words are specified, but by a document that disclaims them.
+
+### 2.6 Corrections one specification makes to another's inputs — no collision, recorded for the record
+
+These were checked against the key and each is **right**; they are listed so a later reader does not re-litigate them.
+
+- alphameric §10 removes LOC 00263–00272 and 00310–00317 from the in-line family (they are MOVPAK dispatches) and re-splits statement 208 into nine interleaved blocks. The key agrees: 63 words, 00771–01067.
+- numeric §1 moves LOC 01273–01300 from statement 218 to statement **219**, and splits 00373–00454 into a 32-word CORRESPONDING expansion and three explicit MOVEs. The key agrees.
+- numeric §5 corrects the run lengths the task supplied: every edited-target run is five words, and the "four at 01373–01377" reading had skipped the `OCT 000005000004`. The key agrees.
+- compares §6 falsifies M4-11's positional relative-form rule at statement 215 and re-attributes M4-11's "statement 219, LOC 01306" to statement 220. The key agrees with both.
+- structure §3.6 emits `IOCTN*` against the conversion's `IOCDN*`, on the attested prefix-5 octal, and routes the divergence to Jack rather than amending a conversion. That is the correct disposition under CLAUDE.md §9 and it is still open.
+
+---
+
+## 3. Every gap
+
+### 3.1 Words in the answer key that no specification accounts for — 15
+
+**The alphameric MOVPAK movers, eight words, owned by nobody.**
+
+| LOC | Printed | Statement | Move |
+|---|---|---|---|
+| 00271 / 00272 | `TXI SYS)240,1,21` / `TXI SYS)241,1,2` | 193 | MASTER `DAT` (21 ch) → ERROROUT `INFO` `A(23)` |
+| 00316 / 00317 | `TXI SYS)240,1,15` / `TXI SYS)241,1,8` | 196 | DETAIL (15 ch) → ERROROUT `INFO` `A(23)` |
+| 01130 | `TXI SYS)239,1,15` | 208 | MASTER `NAME` `A(15)` → PAYRECORD `NAME` `A(15)` |
+| 01137 / 01140 | `TXI SYS)240,1,15` / `TXI SYS)241,1,3` | 208 | MASTER `NAME` `A(15)` → CHECK `NAME` `A(18)` |
+| 01353 | `TXI SYS)239,1,15` | 221 | MASTER `NAME` `A(15)` → BONDORDER `NAME` `A(15)` |
+
+Every family pushes these elsewhere: descriptors' scope note sizes "the specific-move subroutine call … at zero"; numeric's scope line says "the alphameric movers (`SYS)239` to `SYS)242`) … belong to other families"; alphameric §10 identifies these exact sites, names the words, and says "It is a MOVPAK dispatch … not in this family"; figuratives covers only `SYS)243`–`SYS)245`. No document gives the run a shape, a word count, or a selection rule.
+
+What the eight words *show*, stated as an observation this reconciliation makes and not as a rule any document carries: **equal `storageChars` on both sides takes `SYS)239` alone with the character count; a source shorter than its target takes `SYS)240` with the source's character count followed by `SYS)241` with the shortfall.** The arithmetic closes at all three two-word sites — 21 + 2 = 23, 15 + 8 = 23, 15 + 3 = 18 — and the field lengths were read from the DATA division (`ERROROUT INFO A(23)`, `CHECK NAME A(18)`, `BONDORDER NAME A(15)`, `MASTER DAT` = `AA` + `AAAA` + `A(15)` = 21). Three sites for the two-word form and two for the one-word form is thin; do not promote it to a derivation without saying so.
+
+**The THEN-arm join transfers, four words, described but never sized.**
+
+| LOC | Printed | Statement |
+|---|---|---|
+| 00545 | `TRA GN)071` | 200 |
+| 00636 | `TRA GN)073` | 203 |
+| 00671 | `TRA GN)075` | 205 |
+| 01312 | `TRA GN)080` | 220 |
+
+compares §3.3 states the rule exactly — "A THEN arm that does not end in an unconditional transfer gets one trailing `TRA <join>` (00545, 00636, 00671, 01312)" — and puts it under "Layout words the vector's addresses depend on, but which are not part of the vector". No word-count formula in any of the eight documents includes them. The rule exists; the arithmetic does not.
+
+**Three more, each an omission from a site table rather than a missing rule.**
+
+| LOC | Printed | Statement | Why it is orphaned |
+|---|---|---|---|
+| 00546 | `TRA COMPUTE.PAY` | 200 | structure's `GO TO` shape covers it; its site list and its ×10 tally omit it (§2.4) |
+| 01215 / 01216 | `CLA CP)+10` / `STO 1)FICA,1` | 212 | `SET MASTER FICA = 144.00`. Arithmetic's A1 (n = 1) and A5-plain compose to exactly these two words, but §1's site list stops at 01207–01213 and no row covers them. This is the program's only `SET` whose right-hand side is a bare literal — the one site that would attest "a one-term chain is `CLA <pool word>` with no prep" |
+
+### 3.2 The pinned-at-the-diff inventory — what the design record must record as ours
+
+40 rules across the eight documents have the answer key, and nothing else, as their authority. Each entry cites the document and the section that carries the label. Items the source documents label *unattested* or *manual-only* are **not** in this list, because those are gaps in evidence rather than claims made on the diff's authority.
+
+**descriptors §8**
+
+1. Shape DP, the `LDI PI)n / STI SYS)13x` positional-indicator setter. [J 90.02.11] gives three cases; this is a fourth. Four sites.
+2. The dispatch selection rule — `SYS)180` when the source is a register, `SYS)182` otherwise, and never `SYS)179` or `SYS)181`. The manual permits the two cheaper entries at thirteen sites; the compiler pays 29 extra words to decline them.
+3. R1, no reuse ever: every dispatch re-emits every cell its mover reads. Three witnesses, no counter-example, no manual text.
+4. R2, target cell before source cell. Nine sites agree, but none pairs a Case-2 or Case-3 target with any source setup, so "cheaper block first" survives.
+
+**figuratives §8**
+
+5. One unit per target of a multi-target move.
+6. Units emitted in source order.
+7. No sharing of descriptor, `TSX` or pool constant between two targets of one statement, even inside one record.
+8. Constant-pool dedup by target descriptor across all move families, with first-use allocation order.
+
+**alphameric**
+
+9. §1 — the whole in-line/MOVPAK boundary: both operands alphameric, equal `storageChars`, source inside one word, target inside two. A generalisation of the key; [J 90.02] says nothing about in-line move shapes.
+10. §4 — the A4 selection rule (prefer the five-word AC chain over A3's six when `tB == 0`), inferred from a single site.
+11. §5 — the A5 selection rule, inferred from a single site.
+12. §7 — A6's selection (the eleven-word two-word chain). Its arithmetic is derived from three sites; its selection is pinned.
+13. §2 — the field-source form of the mask insert (`ANA source[,i]`) is this document's addition to M4-9, attested twice and stated nowhere.
+14. §10.4 — the `MOVE CORRESPONDING DETAIL TO PAYRECORD, CHECK` receiver interleaving (CHECK, then PAYRECORD ×5, then CHECK ×3). Explicitly *not* derived: "Do not derive it here."
+
+**numeric §8**
+
+15. `TRA SYS)267,0,0` replaces the `TXI` when the edit control computes to 0. One site, confirmed by the punched opcode.
+16. `LDI PI)n / STI SYS)132` as a pointer preamble. Four sites; [J 90.02.15] gives the positional indicator a different form.
+17. The target pointer is set before the source pointer. 4/4 sites, no text.
+18. `SYS)275`'s decrement is the source's digit count. One site, where two readings coincide.
+
+**arithmetic §13**
+
+19. The per-section Result Storage maximum. `RS) BSS 30` with sections 0, 1 and 2 reserving 3, 2 and 3 cells while referencing 2, 1 and 1. No tested rule fits all three.
+20. `ADD CORRESPONDING` target order — reversed at its one site, and the one plain-`ADD` site goes the other way.
+21. The RS cell number ("count of chain operands to the right in source order"). Four sites, one discriminating.
+22. `RS)1+0` printed at LOC 00621 against the bare form everywhere else. A printed form with no rule behind it, scan-verified.
+23. Base-locator register liveness (see conflict §2.2).
+
+**compares**
+
+24. §2.1 rule 2 — a figurative constant goes into the accumulator in an equality compare. Two sites, one construct.
+25. §2.2 — the index-register liveness cache (the second, incompatible formulation of item 23).
+26. §2.7 — the `TR( )` block's shape, which works only because the true outcome is the *less* outcome. One site, and the placement there was forced.
+27. §4.5 — the run-lengths that reproduce generated names `GN)084`–`GN)093`. Labelled **fitted, not derived**: three sites cannot determine four run lengths, and the placement of `GN)090` and `GN)092` is undecidable from this listing.
+28. §3.1's negative — a two-slot elision is legal and unattested. "Do not implement it."
+
+**structure §13**
+
+29. Tag 7 on the plain `DO`'s `AXT` against tag 4 on the `DO FOR` patch's.
+30. `PZE <file>,,0` — the zero decrement of the `FILE` call.
+31. §8.3 — the sub-statement number `MM`. Labelled **fitted**, to two informative sites, with the competing comma-count rule rejected only by a page-scan reading.
+32. The `EQU` line placement rule, and the use of a generated name rather than a direct `CP)+n` reference for the three positional-indicator pointers.
+33. `TRA SEARCH+1` and `TPL GN)085` naming one address two ways in one block.
+34. The GET join label's three printing placements.
+35. One base locator per located record, shared across an input and an output file, numbered from `BL)2`. Two sites.
+36. Section numbers 4 and 5 for SEARCH and DEPARTMENT.END, inferred from ordering alone.
+
+**pool §7**
+
+37. The seeded head — indices 0 and 1 hold the integers 0 and 1 ahead of every source literal.
+38. The S1/S2 boundary — the table stride sits with the literals while the scale factors sit with the machine words. One entry carries the rule.
+39. The concatenation order S1, S2, S3, S4. Each sub-pool's internal order is evidenced; the order between them is only the printed layout.
+40. The `GET` statement stamp itself — [J 90.02.04]'s READ sequence has no `TXH CP)+a,0,CP)+b` word.
+
+**One rule is explicitly left unrecovered, and should stay that way.** pool §4.2.2 records that no counting rule reproduces both attested clause-digit values (`,02` for statement 188 and `,14` for statement 199): comma-counting gets 199 and misses 188, verb-counting gets 188 and misses 199. structure §8.3 does offer a fitted rule for the same two words. **These two documents disagree about whether to fit it**, and pool argues the stronger case — "this is the `TS) BSS 7` situation, and a fitted rule would be worse than an honest gap". That disagreement is the one place in the eight documents where the right answer is to record less, not more.
+
+---
+
+## 4. Numbers a design record can rely on
+
+| Quantity | Value | How it was checked |
+|---|---|---|
+| Procedure text | 00165–01620, 796 words, 809 printed lines, 13 zero-word lines | LOC continuity, no breaks |
+| Statements walked | 42 (188 to 229) | every boundary lands on the key's LOC |
+| Words the specifications account for | 781 | interval coverage in `scratch/reconcile/claims.py` |
+| Words no specification accounts for | 15 | listed in §3.1 |
+| Words claimed by two families | 141 | listed in §2.1 |
+| Sum of the eight documents as written | 922 | 781 + 141 |
+| `TSX SYS)182,4` dispatches / `TSX SYS)180,4` calls | 26 / 25 | grep of the fixture, matching descriptors' 51 |
+| `SYS)132` / `SYS)133` in-line stores | 13 / 22 | matching descriptors' closure check 22 + 13 − 26 = 9 |
+| `TXI SYS)24x` fill calls | 13 | matching figuratives' thirteen units |
+| `SYS)239`/`240`/`241` mover words | 8 | exactly the eight orphans of §3.1 |

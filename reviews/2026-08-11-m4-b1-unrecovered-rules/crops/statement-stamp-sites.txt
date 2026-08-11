@@ -1,0 +1,17 @@
+The five statement-stamp sites, from test/fixtures/90.05-object-listing.target.
+Each line is quoted verbatim, with every column as the fixture holds it.
+
+LOC 00177 -- statement 188, the GET (fixture line 116)
+00177  3 01713 0 01712   10101          +10      TXH    CP)+14,0,CP)+15
+
+LOC 00221 -- statement 190, the GET (fixture line 137)
+00221  3 01717 0 01716   10101    GET.MASTER     TXH    CP)+18,0,CP)+19
+
+LOC 00232 -- statement 191, the GET (fixture line 147)
+00232  3 01717 0 01720   10101    GET.DETAIL     TXH    CP)+20,0,CP)+19
+
+LOC 00276 -- statement 194, the GET (fixture line 188)
+00276  3 01717 0 01722   10101          +16      TXH    CP)+22,0,CP)+19
+
+LOC 00522 -- statement 199, the STOP RUN (fixture line 343)
+00522  0 01727 0 01726   10101          +90      PZE    CP)+26,,CP)+27
