@@ -82,19 +82,12 @@ M4 executes I/O-free programs.
   chunks. Each chunk is green alone, and each is worth merging alone.
   Stages 1, 3, and 4 do not change.
 
-  Phase A builds the target listing, before any generator runs:
-
-  | Chunk | What it delivers |
-  |---|---|
-  | A0 | This amendment, and the M4-8 amendment it names. |
-  | A1 | The tool and the target file — the transcription's object-listing content, re-rendered in the M4-8 geometry. |
-  | A2 | One page verified blind against its scan, PDF p. 212, to measure the cost of the rest. It brings the notes file that records each correction, which the first correction needs. |
-  | A3 to A8 | The other seventeen pages, three to a pull request. |
-
-  The target holds listing pages 8 to 25, PDF pp. 199 to 216. Page 7,
-  PDF p. 198, carries the loader control cards on no LOC/OCTAL/CNTRL
-  grid, and stage 3 both generates that page and takes it as its own
-  oracle, so its verification goes with stage 3.
+  Phase A built the target listing before any generator ran, in chunks A0
+  to A8, and closed on 2026-08-10 with all eighteen object pages verified
+  against their scans. The target holds listing pages 8 to 25, PDF
+  pp. 199 to 216. Page 7, PDF p. 198, carries the loader control cards on
+  no LOC/OCTAL/CNTRL grid, and stage 3 both generates that page and takes
+  it as its own oracle, so its verification goes with stage 3.
 
   Phase B generates, and it sizes before it fills:
 
@@ -116,16 +109,6 @@ M4 executes I/O-free programs.
   matched line for line, with the other columns still empty. B2 to B6
   then each match their own attested sites, LOC included.
 
-  **Amended 2026-08-10, chunk A8 (Jack's call). Phase A and Phase B
-  overlap.** The phases were written to run in order, and B1 started while
-  chunks A7 and A8 were still reading page scans. This costs nothing and
-  is worth recording as permitted rather than as a departure: B1 reads the
-  target's LOC column, and the five pages then unverified changed no LOC
-  value. The scan pass corrected blank counts and one wrapped instruction,
-  and neither touches an address. A Phase B chunk that depends on a column
-  the scan pass can still move must wait for it; B1 does not. The pass is
-  now spent: chunks A2 to A8 verified all eighteen object pages, which is
-  the true size of it, not the nineteen this section first estimated.
 
 ## Pipeline position and the text model
 
@@ -258,6 +241,29 @@ M4 executes I/O-free programs.
   bit-identical pointer pair CP)+38/CP)+39 and the four zero-valued
   pointer words CP)+43 to CP)+46 stay separate entries; D4.1 already
   pins CP)+24, CP)+31 to CP)+34 by index.
+  **Amended 2026-08-11, chunk B1. The pool is not in first-need order.**
+  Statement 188, the first statement the compiler generates, references
+  `CP)+40`, `CP)+14` and `CP)+15`; first-need allocation gives its first
+  constant `CP)+0`. The pool is four sub-pools, concatenated in one
+  layout pass: literals, machine words, subscript bases, descriptors.
+  Only the last three fill in first-need order, and the literals fill in
+  source order. Three consequences bind the generator:
+  - It emits a reference as a sub-pool and a key, and a layout pass
+    assigns every `CP)+NN`. An entry's index counts every entry of the
+    sub-pools ahead of it, and the machine-word sub-pool is complete only
+    when the text ends: `CP)+37`, the first subscript base, takes that
+    index because the literals hold 14 and the machine words 23. No
+    generator can number an entry as it mints it.
+  - A literal or machine word keys on its 36-bit value, and a pointer or
+    descriptor on its printed symbolic operand. The value key corrects
+    "as written" above: statement 205 writes `ZERO`, statement 215
+    writes `0`, and both take `CP)+0`.
+  - The sub-pool is part of the key. No two sub-pools share a word in
+    the sample, so the print never had to decide; the layout forces it.
+
+  `test/fixtures/90.05-object-code-notes.md` holds the 62 entries, the
+  evidence for each sub-pool's own order, and the two entries that rest
+  on the print alone.
   **The dictionary LOC column and the object LOC column are different
   address spaces.** The listing's source-page column prints compile-time
   dictionary addresses (base 71175, M3-8); the object pages print object
@@ -296,6 +302,21 @@ M4 executes I/O-free programs.
   method; whichever mapping reproduces 084–093 exactly amends this entry
   with the rule and the evidence. A design that assumes a dense counter is
   wrong by construction.
+  **Amended 2026-08-11, chunk B1. The gap mechanism above is refuted; the
+  headline stands.** The working rule explains an unprinted name by a word
+  that falls through or takes an in-line form. Such a word would still
+  print its name: two names on one word print on two lines throughout the
+  sample, `GN)076` over `GN)077` at LOC 01217 and `GN)082` over
+  `SEARCH.END` at 01472, so the printer hides no name and an unprinted one
+  was never bound. The pass walks the text in ascending object address and
+  gives each machinery site one contiguous run. Statement 206's `DO … FOR`
+  takes 084 to 088 and binds 085, 086 and 088; statement 208's `FILE` of a
+  buffered record takes 089 and 090 and binds 089; each subscripted
+  reference of statement 225 takes two and binds the first. That
+  reproduces the print exactly and it is **fitted, not derived**: three
+  sites cannot fix four run lengths, and the roles of 084 and 087 are a
+  guess. `test/fixtures/90.05-object-code-notes.md` holds the second
+  grouping the print cannot separate from this one.
 
 ## The storage-map print
 
@@ -446,19 +467,14 @@ M4 executes I/O-free programs.
   **Amended again 2026-08-09, stage 2. The target is verified before any
   code generates against it** (Jack's call, with M4-1's chunking). The
   verification is blind in the M3-22 pattern: a reader transcribes the
-  scan without the target's content. This replaces the order this entry
-  first set, which rendered the listing and verified that render, and so
-  spent the scan pass again on every wrong generator. The transcription
+  scan without the target's content. The transcription
   supplies content, the scans supply geometry, and a scan measurement
   decides a disagreement.
   The target file is `test/fixtures/90.05-object-listing.target`. It is
   scaffolding, not a second oracle. Jack's ruling of 2026-08-09: the
   golden stays the oracle of record, and the target buys resumability
   alone. B7 deletes it, once `test/goldens/90.05-payroll.storage-map` has
-  grown into the whole object listing. A wrong target line is corrected
-  in `tool/object_listing_target_source.dart`, and the notes file records
-  it; a wrong conversion line becomes an erratum candidate in HANDOVER,
-  which waits for Jack and blocks no other page.
+  grown into the whole object listing.
   **Amended 2026-08-09 to 2026-08-10, chunks A3 to A8, and this closes
   the frame. The page body is a frame of 57 line slots,** with the head
   as slot 0, and all eighteen object pages hold it. Sixteen pages blank
@@ -679,6 +695,20 @@ M4 executes I/O-free programs.
   - **AND, OR, NOT** compile as short-circuit chains of compare-and-branch
     to the arm labels; no boolean value is materialized. Unexercised in
     the sample; ours.
+  **Amended 2026-08-11, chunk B1. The relative form is chosen by symbol,
+  not by position, and one site attribution is corrected.** This entry
+  makes an interior slot print `TRA *+n` when its target is the word
+  after the vector. Statement 215 falsifies that: the slots at LOC 01245
+  and 01246 both target 01250, the word after the vector is 01247, and
+  both print the relative form. The rule is that a slot prints relative
+  when the generator holds no name for its target, and the only name it
+  holds is the written target of the WHEN or the arm. One site
+  discriminates, so the correction rests on one site. The `TRA *+1` this
+  entry cites at LOC 01306 belongs to statement 220; statement 219 is a
+  MOVE and compiles no compare. Every other part of the rule is confirmed
+  site by site, and the reason only a trailing slot can be elided is that
+  the three slots sit at fixed displacements from the compare, in
+  [J 90.02.12]'s own HIGH, EQUAL and LOW order.
 
 ## GO TO
 
@@ -989,16 +1019,6 @@ M4 executes I/O-free programs.
   - **Q38, Q39, Q42 residue, Q43**: Q42's WHEN fold shapes are decided
     (M4-11); Q38 (msg 170's trigger), Q39, and Q43 stay open and block
     nothing in M4.
-
-## Staging
-
-Four pull requests, each green alone (M4-1): the assembly model with the
-storage-map print; the verb generators with the full listing; the object
-deck, loader cards, and loader; the machine assembly with the compute
-handlers.
-
-*Amended 2026-08-09: stage 2 is chunked into A0 to A8 and B1 to B8, so it
-takes more than one pull request. M4-1 holds the chunks and the reason.*
 
 ## Oracles
 
