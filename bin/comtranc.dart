@@ -203,7 +203,8 @@ int _run(List<String> arguments) {
     final StringBuffer? listing = emitPaths.containsKey('listing')
         ? StringBuffer()
         : null;
-    for (final JobCompilation job in deck.jobs) {
+    var refused = false;
+    for (final (int index, JobCompilation job) in deck.jobs.indexed) {
       final String page = writeListing(
         job.frontEnd,
         options,
@@ -215,6 +216,13 @@ int _run(List<String> arguments) {
       if (explain) {
         job.diagnostics.forEach(stderr.writeln);
       }
+      if (job.unrecovered != null) {
+        // The refusal is this compiler's, not the program's, so it
+        // prints as an error of the tool and never as a line of the
+        // 1962 listing (M4-2 as amended).
+        refused = true;
+        stderr.writeln('error: job ${index + 1}: ${job.unrecovered}');
+      }
     }
     // A stopped job still dumps every stage it reached (D10.2): the
     // renderers print the stopped line for the stages it did not.
@@ -225,8 +233,8 @@ int _run(List<String> arguments) {
     _emit(emitPaths['listing'], () => listing!.toString());
     _emit(emitPaths['code'], () => emitCode(deck));
     // Severity 5 stops a job (J 90.04.02); lower severities still
-    // produce output.
-    return deck.maxSeverity >= 5 ? 1 : 0;
+    // produce output. A refusal fails the run the same way.
+    return deck.maxSeverity >= 5 || refused ? 1 : 0;
   } on StopCompilation {
     // Every phase catches its own stop and returns partial results;
     // this net keeps a stop from any future phase from crashing the

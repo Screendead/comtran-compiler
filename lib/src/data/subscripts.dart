@@ -32,7 +32,13 @@ final class SubscriptChecker {
   /// One entry per unique array-and-notation pair — `A (J, K)`,
   /// `A (J, K+1)` and `A (2, 3)` are three positional indicators
   /// (J 02.04.07; the CRYPT Symbolic Register, J 02.08).
+  ///
+  /// Insertion order is the order of first reference, which is the
+  /// order the object program numbers `PI)1` on (M4-4).
   final Set<(DataItem, String)> _indicators = {};
+
+  /// The positional indicators the program needs, in `PI)` order.
+  Iterable<(DataItem, String)> get indicators => _indicators;
 
   /// One entry per distinct `a * VARIABLE ± b` subscript.
   final Set<String> _indexExpressions = {};
@@ -152,11 +158,11 @@ final class SubscriptChecker {
   }
 
   void _countIndicator(DataItem array, NameReference reference) {
-    if (!tableLimits) {
-      return;
-    }
+    // The set is the object program's `PI)` block, so it is collected
+    // whatever `--no-table-limits` says (M4-4); the flag lifts the
+    // diagnostic alone (D9.7).
     _indicators.add((array, reference.subscripts.map(_notation).join(',')));
-    if (_indicators.length == 91) {
+    if (tableLimits && _indicators.length == 91) {
       // The "Appox-Max" 90 positional indicators (J 90.01.05; D9.7
       // rejects the unknown band above the printed number).
       resolver.report(msgSubscriptedNameCapacity, reference.anchor);

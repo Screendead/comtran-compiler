@@ -114,4 +114,5 @@ const Set<String> resettingOperations = <String>{
   'ORG',
   'BGN',
   'EQU',
+  'START',
 };

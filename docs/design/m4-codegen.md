@@ -82,19 +82,12 @@ M4 executes I/O-free programs.
   chunks. Each chunk is green alone, and each is worth merging alone.
   Stages 1, 3, and 4 do not change.
 
-  Phase A builds the target listing, before any generator runs:
-
-  | Chunk | What it delivers |
-  |---|---|
-  | A0 | This amendment, and the M4-8 amendment it names. |
-  | A1 | The tool and the target file — the transcription's object-listing content, re-rendered in the M4-8 geometry. |
-  | A2 | One page verified blind against its scan, PDF p. 212, to measure the cost of the rest. It brings the notes file that records each correction, which the first correction needs. |
-  | A3 to A8 | The other seventeen pages, three to a pull request. |
-
-  The target holds listing pages 8 to 25, PDF pp. 199 to 216. Page 7,
-  PDF p. 198, carries the loader control cards on no LOC/OCTAL/CNTRL
-  grid, and stage 3 both generates that page and takes it as its own
-  oracle, so its verification goes with stage 3.
+  Phase A built the target listing before any generator ran, in chunks A0
+  to A8, and closed on 2026-08-10 with all eighteen object pages verified
+  against their scans. The target holds listing pages 8 to 25, PDF
+  pp. 199 to 216. Page 7, PDF p. 198, carries the loader control cards on
+  no LOC/OCTAL/CNTRL grid, and stage 3 both generates that page and takes
+  it as its own oracle, so its verification goes with stage 3.
 
   Phase B generates, and it sizes before it fills:
 
@@ -109,23 +102,12 @@ M4 executes I/O-free programs.
   | B7 | The close-out — the `USE 1` and `BGN 2,PI)1` head rows, the four block sizes, the constant pool, the page furniture, and the full listing diff. |
   | B8 | The diagnostics — msg 942 widened (M4-5), ids 946 and 947 reserved (M4-18), and the D10.2 stop shape M4-2 defers to here. |
 
-  B1 comes first because the listing's addresses are continuous. A verb
-  site references `CP)+n`, `n.RS)m`, and absolute LOC values, so no site
-  matches byte for byte until every unit before it carries the right word
-  count. B1's oracle is therefore the LOC column of the whole target,
-  matched line for line, with the other columns still empty. B2 to B6
-  then each match their own attested sites, LOC included.
+  B1 comes first: no site matches byte for byte until every unit before
+  it carries the right word count. Its oracle is the LOC column and the
+  label field of the whole target, matched line for line, the other
+  columns still empty. B2 to B6 then each match their own attested
+  sites, LOC included.
 
-  **Amended 2026-08-10, chunk A8 (Jack's call). Phase A and Phase B
-  overlap.** The phases were written to run in order, and B1 started while
-  chunks A7 and A8 were still reading page scans. This costs nothing and
-  is worth recording as permitted rather than as a departure: B1 reads the
-  target's LOC column, and the five pages then unverified changed no LOC
-  value. The scan pass corrected blank counts and one wrapped instruction,
-  and neither touches an address. A Phase B chunk that depends on a column
-  the scan pass can still move must wait for it; B1 does not. The pass is
-  now spent: chunks A2 to A8 verified all eighteen object pages, which is
-  the true size of it, not the nineteen this section first estimated.
 
 ## Pipeline position and the text model
 
@@ -139,14 +121,19 @@ M4 executes I/O-free programs.
   **Amended 2026-08-05, stage 1.** Stage 1 builds the storage map from
   facts the semantic layer already validated, so it detects no error and
   reports no diagnostic. Its stop shape was therefore unreachable: no
-  input could enter the `catch`, the `stopped` flag was always false, and
-  the diagnostic list was always empty. CLAUDE.md section 11 bans code
+  input could enter the `catch`. CLAUDE.md section 11 bans code
   that is neither exercised nor tested, and it outranks this record, so
   stage 1 ships without the shape. `runCodegen(SemanticResult) →
   CodegenResult` takes no diagnostic sink. The stop shape above binds
   stage 2, whose verb generators are the first code here that can detect
   an error; it arrives with them, sink and all. The driver's skip of a
   stopped earlier phase is unaffected and still holds.
+  **Amended 2026-08-15, chunk B1.** B1 does detect one failure: a valid
+  shape the sample never reaches, no generated form attested, none
+  invented. The refusal is this recovery's, not the program's — no
+  [J 90.04] message covers it — so it bypasses the sink: the sizers
+  throw `UnrecoveredShape`, the driver scopes it to the job, and later
+  jobs compile ([J 90.04.02]).
   The phase re-resolves nothing: data references
   come from `dataResolutions`, CORRESPONDING pairs from
   `correspondingPairs`, storage facts from `ItemSemantics`, initial words
@@ -200,8 +187,7 @@ M4 executes I/O-free programs.
   inference from the listing's LOC values, not stated by J;
   `BL)` is one word per base locator — BL)1 for the IOCS label area, one
   per located-record buffer pointer (M3-11); `PI)` is one word per
-  positional indicator (M3-20's counter). The `TS)` sizing rule is
-  unrecovered: the sample reserves 7 words and references none of them.
+  positional indicator (M3-20's counter).
   **Amended 2026-08-05, stage 1.** Stage 1 does not carry `TS) BSS 7`.
   Jack's call: build the layout rule, and leave each size to the stage
   that can derive it. The verb generators size result storage, temporary
@@ -228,16 +214,14 @@ M4 executes I/O-free programs.
   For any program but the sample our size is therefore unverifiable, and
   that is stated rather than hidden. One artifact overturns this entry:
   the storage map of a second compiled listing.
-  **Where the constant goes.** Into `blockWords` in
-  `lib/src/codegen/codegen.dart`, with `RS)`, `PI)` and the pool, never
-  before them. `originOf` sums the blocks declared ahead of its argument,
-  so sizing `TS)` while `RS)` is absent puts `BL)1` at 01630 instead of
-  the attested 01666. The four land in one change.
-  Arithmetic confirms the block order against three attested addresses.
-  Location Counter 1 starts at 01621. RS 30 words and TS 7 words put
-  `BL)1` at 01666, which the `ORG BL)1` line prints. BL 3 words put
-  `PI)1` at 01671, which the `BGN 2,PI)1` line prints. PI 3 words put
-  the pool at 01674, where the listing shows it.
+  **Amended 2026-08-15, chunk B1. `RS)` takes the attested reservation
+  as constants of the sample. Jack's ruling, the chunk B1 review
+  record.** [J 90.02.03] needs each section's maximum, and the maximum
+  is unrecoverable: sections 0 to 2 reserve 3, 2 and 3 cells while
+  referencing 2, 1 and 1. Two decoders refuted every constant-free
+  rule. The unobservable tail admits contradictory splits. The constants:
+  3, 2 and 3 cells, then a 7-cell undivided tail, 30 words. The `TS)`
+  findings above apply in full.
   **Amended 2026-08-05, the block order is frozen.** Jack's call: the
   order is load-bearing, so the `StorageBlock` declaration is frozen.
   Two facts support it. First, the three addresses above do not in fact
@@ -258,6 +242,29 @@ M4 executes I/O-free programs.
   bit-identical pointer pair CP)+38/CP)+39 and the four zero-valued
   pointer words CP)+43 to CP)+46 stay separate entries; D4.1 already
   pins CP)+24, CP)+31 to CP)+34 by index.
+  **Amended 2026-08-11, chunk B1. The pool is not in first-need order.**
+  Statement 188, the first statement the compiler generates, references
+  `CP)+40`, `CP)+14` and `CP)+15`; first-need allocation gives its first
+  constant `CP)+0`. The pool is four sub-pools, concatenated in one
+  layout pass: literals, machine words, subscript bases, descriptors.
+  Only the last three fill in first-need order, and the literals fill in
+  source order. Three consequences bind the generator:
+  - It emits a reference as a sub-pool and a key, and a layout pass
+    assigns every `CP)+NN`. An entry's index counts every entry of the
+    sub-pools ahead of it, and the machine-word sub-pool is complete only
+    when the text ends: `CP)+37`, the first subscript base, takes that
+    index because the literals hold 14 and the machine words 23. No
+    generator can number an entry as it mints it.
+  - A literal or machine word keys on its 36-bit value, and a pointer or
+    descriptor on its printed symbolic operand. The value key corrects
+    "as written" above: statement 205 writes `ZERO`, statement 215
+    writes `0`, and both take `CP)+0`.
+  - The sub-pool is part of the key. No two sub-pools share a word in
+    the sample, so the print never had to decide; the layout forces it.
+
+  `test/fixtures/90.05-object-code-notes.md` holds the 62 entries, the
+  evidence for each sub-pool's own order, and the two entries that rest
+  on the print alone.
   **The dictionary LOC column and the object LOC column are different
   address spaces.** The listing's source-page column prints compile-time
   dictionary addresses (base 71175, M3-8); the object pages print object
@@ -283,19 +290,32 @@ M4 executes I/O-free programs.
   order over the generated text, and **the counter is not dense in the
   print** — the sample prints 085, 086, 088, 089, 091, 093 and never
   prints 084, 087, 090, 092. The attested assignments: GN)085
-  `EQU SEARCH+1` (loop-body entry), GN)086 (the increment block), GN)088
-  `EQU CP)+37` (the table-base initializer) for statement 206's
+  `EQU SEARCH+1`, GN)086 and GN)088 `EQU CP)+37` for statement 206's
   `DO SEARCH FOR`; GN)089 on the `IOST` word FILE MASTER patches at run
   time; GN)091 `EQU CP)+38` and GN)093 `EQU CP)+39` for the RETPREM (POS)
-  and INSPREM (POS) subscript bases. Working rule (ours, provisional):
-  each machinery site allocates the fixed label group its shape needs, and
-  a label lands unprinted when its word either falls through (a loop exit)
-  or takes an in-line form that needs no name (a pointer-update routine
-  absorbed into counter-0 text). Stage 2 pins the exact rule
-  instruction by instruction during the listing diff, the D5.1 decode
-  method; whichever mapping reproduces 084–093 exactly amends this entry
-  with the rule and the evidence. A design that assumes a dense counter is
-  wrong by construction.
+  and INSPREM (POS) subscript bases.
+  **Amended 2026-08-11, chunk B1. The provisional gap mechanism is
+  refuted; the headline stands.** The first working rule (cut, spent)
+  explained an unprinted name by a word that falls through or
+  takes an in-line form. Such a word would still
+  print its name: two names on one word print on two lines throughout the
+  sample, `GN)076` over `GN)077` at LOC 01217 and `GN)082` over
+  `SEARCH.END` at 01472, so the printer hides no name and an unprinted one
+  was never bound. The pass walks the text in ascending object address and
+  gives each machinery site one contiguous run. Statement 206's `DO … FOR`
+  takes 084 to 088 and binds 085, 086 and 088; statement 208's `FILE` of a
+  buffered record takes 089 and 090 and binds 089; each subscripted
+  reference of statement 225 takes two and binds the first. That
+  reproduces the print exactly and it is **fitted, not derived**: three
+  sites cannot fix four run lengths, and the roles of 084 and 087 are a
+  guess. `test/fixtures/90.05-object-code-notes.md` holds the second
+  grouping the print cannot separate from this one.
+  **Amended 2026-08-15, chunk B1, three fitted placements**: the
+  table-base EQU heads the DO FOR block, the body-entry EQU stands
+  before the prologue's last word, and a subscript store prints both
+  recomputation EQUs, then the update blocks, in reverse
+  first-reference order. The spine oracle reads the label field byte for
+  byte, proving the mapping against the target, not the goldens.
 
 ## The storage-map print
 
@@ -316,7 +336,7 @@ M4 executes I/O-free programs.
   2026-08-05). The golden runs from `USE 0` through LOC 00164. It does
   not hold `USE 1` or `BGN 2,PI)1`. Both carry Location Counter 1's
   origin, which follows the procedure text, so no stage without verb
-  generation can compute them. Stage 2 prepends the two rows.
+  generation can compute them. Chunk B1 prepends the two rows.
   Before the golden was committed, the 89 body rows were diffed against
   the 90.05 transcription. The M3 storage output already reproduces
   every LOC value, every `OCT` and `BSS` row, and every label, with no
@@ -365,6 +385,8 @@ M4 executes I/O-free programs.
     breaks while 14-character names print inline, matching the
     15-column label field. [J 90.02.02] says "exceeds 15" of statement
     names; the attested break is at 15 exactly, and the print governs.
+    The pushed instruction prints at the normal mnemonic and operand
+    columns, every other field blank (both attested sites).
     Two labels on one word print one label per
     line, the word on the last (six attested sites).
   - An `EQU` line prints where the assembler first needs the symbol — out
@@ -382,22 +404,8 @@ M4 executes I/O-free programs.
   - `SYS)n` and `IOC)n` print the decimal n in the address field, flagged
     external in CNTRL. A file name prints as 04000 plus its loader-card
     file number.
-  **Amended 2026-08-05, stage 1.** A second scan pass measured the
-  character grid of PDF pp. 199–200 and confirmed every column above.
-  It confirmed on ink one reading this entry already recorded, and
-  settled one it left open:
-  - The `+n` offset is right-aligned, as recorded above. Page 200 holds
-    the only discriminating evidence, the two-digit offsets `+10` to `+23`.
-    Each starts one column to the left of a single-digit offset. The
-    transcription prints them left-aligned, which is an artifact.
-  - A broken long-label line prints its instruction at the normal
-    columns, the mnemonic at 49 and the operand at 56. The LOC, OCTAL,
-    CNTRL, and label fields stay blank. Both attested sites give the
-    same result: DEPARTMENT.TOTAL on p. 199 and INTERNAL.TOTALS on
-    p. 200. The transcription indents the second line two columns,
-    which is an artifact.
-  The two page scans differ in horizontal registration. Measure each
-  page against its own LOC column, never against the other page.
+  Page scans differ in horizontal registration. Measure each page
+  against its own LOC column, never against another page.
   - Page furniture: the `LOC OCTAL CNTRL SYMBOLIC` column header prints
     once, on the first object page.
     **Amended 2026-08-10, chunks A2 to A8, and this closes the blank
@@ -446,19 +454,14 @@ M4 executes I/O-free programs.
   **Amended again 2026-08-09, stage 2. The target is verified before any
   code generates against it** (Jack's call, with M4-1's chunking). The
   verification is blind in the M3-22 pattern: a reader transcribes the
-  scan without the target's content. This replaces the order this entry
-  first set, which rendered the listing and verified that render, and so
-  spent the scan pass again on every wrong generator. The transcription
+  scan without the target's content. The transcription
   supplies content, the scans supply geometry, and a scan measurement
   decides a disagreement.
   The target file is `test/fixtures/90.05-object-listing.target`. It is
   scaffolding, not a second oracle. Jack's ruling of 2026-08-09: the
   golden stays the oracle of record, and the target buys resumability
   alone. B7 deletes it, once `test/goldens/90.05-payroll.storage-map` has
-  grown into the whole object listing. A wrong target line is corrected
-  in `tool/object_listing_target_source.dart`, and the notes file records
-  it; a wrong conversion line becomes an erratum candidate in HANDOVER,
-  which waits for Jack and blocks no other page.
+  grown into the whole object listing.
   **Amended 2026-08-09 to 2026-08-10, chunks A3 to A8, and this closes
   the frame. The page body is a frame of 57 line slots,** with the head
   as slot 0, and all eighteen object pages hold it. Sixteen pages blank
@@ -508,9 +511,7 @@ M4 executes I/O-free programs.
      through the numeric route (ours, no sample site) — and
      `TXI SYS)245,1,n` plus an in-line `OCT` word of six
      fill characters for HIGH.VALUE and LOW.VALUE — n the target's full
-     character count. Attested: the three SYS)243 statements and the
-     SYS)244 zero-fills of statement 188; the SYS)245 HIGH.VALUE store of
-     statement 197.
+     character count. The notes' section 4.4 holds every site.
   2. **Alphameric class to alphameric class, in-line forms.** A one-word
      literal into a word-resident field: the mask-insert five-word shape
      `CAL mask / ANS target / COM / ANA literal / ORS target` (statements
@@ -519,7 +520,10 @@ M4 executes I/O-free programs.
      in-line bound is ours, pinned at the diff: in-line when both fields
      are word-addressable and the move is word-whole or single-word
      masked; otherwise the SYS)239–242 character movers through a MOVPAK
-     dispatch entry.
+     dispatch entry. **Amended 2026-08-15, chunk B1: the mover run is
+     sized from five sites** — `SYS)239` alone on equal storage lengths,
+     `SYS)240` then `SYS)241` on a shorter source (the notes' section
+     3.3).
   3. **Numeric and edited classes**: route per the [J 02.04.03] chart
      through the internal-decimal hub, selecting the MOVPAK family —
      SYS)183 (XD→XD), 184 (XD→ID), 185 (XD→EF), 186/187/188 (ID→XD by
@@ -534,14 +538,15 @@ M4 executes I/O-free programs.
      `CLA source / TSX SYS)180,4 / PZE target,,pos / TXI SYS)267,1,edit /
      OCT control / AXT digits,1` (statement 218) — `edit` the
      target-edit-control bits and `control` the control-word bits, both
-     per the SYS)185 feature table; the digit count rides in the `AXT`
-     (the sample varies `edit` between 4 and 12 while the `AXT`
-     holds 6).
-  4. **CORRESPONDING**: expand `correspondingPairs` in data-description
-     order, one ordinary move per pair, the written subscript appended on
-     its side (D4.12). Attested: statements 199, 208, 220, 227;
-     statement 199's expansion inside END.OF.RUN runs 32 words
-     (LOC 00373–00432).
+     per the SYS)185 feature table; the digit count rides in the `AXT`,
+     tracking the target — 5, 6 and 7 across the sites.
+  4. **CORRESPONDING**: expand `correspondingPairs`, one ordinary move
+     per pair, the written subscript appended on its side (D4.12).
+     **Amended 2026-08-15, chunk B1: the pairs emit breadth-first** — a
+     top-level pair before the pairs inside a matched group (statement
+     221's attested unit order) — and a MOVPAK kill of the register
+     cache defers to the expansion's end (statement 221's chain against
+     statement 220's reload).
   5. **Multiple targets**: one independent sequence per target, no shared
      setup (attested at statement 188's two receivers; D4.8's store
      independence is the same rule on SET).
@@ -557,6 +562,12 @@ M4 executes I/O-free programs.
   Register use (ours, pinned at the diff): XR1 for the first buffer
   operand of a statement, XR2 for the second; XR4 stays the linkage
   register ([J 02.08.03] destroys it on located references).
+  **Amended 2026-08-15, chunk B1, the liveness composite** (pinned at
+  the diff; deciding sites in the notes' Question 2 addendum): a
+  register already holding its locator is reused, no words. The cache
+  clears whole at a labelled word, a section entry and a subroutine
+  call; a register write kills that register alone, at statement
+  distance, the kill deferred to a CORRESPONDING expansion's end.
   The MOVPAK dispatch entries and their return-skip convention: SYS)179
   (both descriptors in the calling sequence, resume 3,4), SYS)180 (target
   only, 2,4), SYS)181 (source only, 2,4), SYS)182 (both preset, 1,4) —
@@ -602,9 +613,7 @@ M4 executes I/O-free programs.
     store recomputes from the stored value — the attested
     `LDQ var / MPY CP)+stride / XCA / ADD base / STO PI)n` sequence
     (statement 225, LOC 01421–01432) — indexing by the raw stored
-    digits, no scaling step (M3-20). The exact in-line lookup and update
-    shapes are pinned
-    against the sample's subscript sites during the diff.
+    digits, no scaling step (M3-20).
   - `SET condition.name` stores the COND entry's constant into the
     conditional variable under the variable's own format (D5.6) — an
     ordinary constant store, no special machinery.
@@ -679,6 +688,20 @@ M4 executes I/O-free programs.
   - **AND, OR, NOT** compile as short-circuit chains of compare-and-branch
     to the arm labels; no boolean value is materialized. Unexercised in
     the sample; ours.
+  **Amended 2026-08-11, chunk B1. The relative form is chosen by symbol,
+  not by position, and one site attribution is corrected.** This entry
+  makes an interior slot print `TRA *+n` when its target is the word
+  after the vector. Statement 215 falsifies that: the slots at LOC 01245
+  and 01246 both target 01250, the word after the vector is 01247, and
+  both print the relative form. The rule is that a slot prints relative
+  when the generator holds no name for its target, and the only name it
+  holds is the written target of the WHEN or the arm. One site
+  discriminates, so the correction rests on one site. The `TRA *+1` this
+  entry cites at LOC 01306 belongs to statement 220; statement 219 is a
+  MOVE and compiles no compare. Every other part of the rule is confirmed
+  site by site, and the reason only a trailing slot can be elided is that
+  the three slots sit at fixed displacements from the compare, in
+  [J 90.02.12]'s own HIGH, EQUAL and LOW order.
 
 ## GO TO
 
@@ -755,20 +778,27 @@ M4 executes I/O-free programs.
 
 - **M4-14. STOP and the number stamps.** STOP RUN emits the D2.7 shape,
   three parts in order: the message call `TSX SYS)178,4` with two
-  `PZE CP)+a,,CP)+b` words carrying the BCD statement number and the
+  `PZE CP)+a,,CP)+b` words carrying the statement stamp and the
   words ` STOP ` / ` RUN  `; the implicit close-all pair
   `TSX SYS)177,4 / PZE IOC)1`; then `TXI IOC)40,0` — no halt
   instruction. The sample's leading SYS)177 pair at LOC 00517/00520
   belongs to the source's separate `CLOSE ALL FILES` clause (M4-15's
   shape), not to STOP RUN (D2.7). STOP n emits the
   SYS)178 call with type NNN and no close-all and no monitor transfer;
-  the halt lives in the SYS)178 handler (D2.7). The statement-number
-  stamps: each GET sequence opens with a `TXH CP)+a,0,CP)+b` word — a
-  tag-0 no-op holding the statement number in BCD (four attested sites,
-  statements 188, 190, 191, 194). The stamp is part of the GET calling
-  sequence and of SYS)178's parameters only; no other statement emits one
-  (attested silence elsewhere). Omitting them would shift every following
-  address, so they are not optional.
+  the halt lives in the SYS)178 handler (D2.7). The statement stamp is a
+  pool pair: the statement number in BCD, then a comma, two digits, and
+  three blanks. Each GET sequence opens with it as a tag-0 no-op,
+  `TXH CP)+a,0,CP)+b`; SYS)178's parameters carry it; no other statement
+  emits one (five attested sites, statements 188, 190, 191, 194 and 199).
+  Omitting one would shift every following address.
+  **Amended 2026-08-15, Jack's ruling (the chunk B1 review record). The
+  two digits take a fitted rule.** They are the zero-based ordinal of the
+  stamping clause within its statement, where each target of a
+  multi-target MOVE counts as its own clause, `OPEN ALL FILES` does not
+  count, and `CLOSE ALL FILES` does. [J 90.02.29] names STATEMENT-NUMBER
+  and SUB-STATEMENT-NUMBER and defines neither, so the rule is **fitted,
+  not derived**: it reproduces the five sites, and the two counting
+  exceptions rest on one site each.
 
 ## The I/O shapes at M4
 
@@ -990,16 +1020,6 @@ M4 executes I/O-free programs.
     (M4-11); Q38 (msg 170's trigger), Q39, and Q43 stay open and block
     nothing in M4.
 
-## Staging
-
-Four pull requests, each green alone (M4-1): the assembly model with the
-storage-map print; the verb generators with the full listing; the object
-deck, loader cards, and loader; the machine assembly with the compute
-handlers.
-
-*Amended 2026-08-09: stage 2 is chunked into A0 to A8 and B1 to B8, so it
-takes more than one pull request. M4-1 holds the chunks and the reason.*
-
 ## Oracles
 
 - Stage 1: the storage-map region of the 1962 listing, byte for byte,
@@ -1046,5 +1066,8 @@ takes more than one pull request. M4-1 holds the chunks and the reason.*
 [J 90.02.12]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.29]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.03.03]: ../../comtran-manuals/J28-6169/90.03-object-deck-format.md#3-file-check-entry-specifications
+[J 90.04]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#appendix-9004
+[J 90.04.02]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#a-error-messages
 [J 90.08]: ../../comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md#appendix-9008

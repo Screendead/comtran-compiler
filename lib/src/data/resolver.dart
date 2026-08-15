@@ -72,6 +72,10 @@ final class NameResolver extends ClauseWalk with OperandWalk {
     tableLimits: tableLimits,
   );
 
+  /// The program's positional indicators, in `PI)` order (M4-4).
+  Iterable<(DataItem, String)> get positionalIndicators =>
+      _subscripts.indicators;
+
   /// Set while the triage runs over a subscript expression. A condition
   /// name resolves there, so that M3-20's msg 71 speaks for it in place
   /// of the triage's msg 25 (M3-17: a site-specific row overrides).

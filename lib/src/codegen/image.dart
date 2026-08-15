@@ -40,7 +40,10 @@ enum StorageBlock {
 
   /// The constant pool, allocated in first-need order during
   /// generation, one entry per distinct constant as written (M4-4).
-  cp,
+  cp;
+
+  /// The `SYM)` the listing prints against the block's reservation.
+  String get symbol => '${name.toUpperCase()})';
 }
 
 /// Base locators the program needs: one for the IOCS label area, plus
