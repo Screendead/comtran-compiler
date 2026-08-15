@@ -84,6 +84,13 @@ void main() {
       // width the listing reserves for BL).
       expect(baseLocatorWords(_payrollSemantics()), 3);
     });
+
+    test('the sample needs three positional indicators', () {
+      // RATE (INDEX), INSPREM (POS) and RETPREM (POS), in that order of
+      // first reference — the width the listing reserves for PI), and
+      // the numbering its PI)1, PI)2 and PI)3 references attest.
+      expect(_payrollSemantics().positionalIndicators, hasLength(3));
+    });
   });
 
   group('the object listing geometry (M4-8)', () {
@@ -144,9 +151,9 @@ void main() {
       );
     });
 
-    test('the phase generates the whole data region', () {
-      // 117 words: LOC 00000 through 00164.
-      expect(result.image.inlineWords, _octal('165'));
+    test('the phase generates the whole of Location Counter 0', () {
+      // The data region and the procedure text: LOC 00000 through 01620.
+      expect(result.image.inlineWords, _octal('1621'));
     });
 
     test('the +n offset counts units, not addresses', () {

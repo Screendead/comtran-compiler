@@ -48,6 +48,8 @@ final class DictionaryAllocation {
     required this.programEntryWord,
     required this.synonymWords,
     required this.labelWords,
+    required this.clauseNames,
+    required this.generatedCount,
     required this.annotations,
   });
 
@@ -69,6 +71,17 @@ final class DictionaryAllocation {
   /// One word per procedure label, keyed by the labelled sentence.
   final Map<Sentence, int> labelWords;
 
+  /// The generated names the procedure text takes, in the order the
+  /// clause takes them: an IF's join alone, or its OTHERWISE arm and
+  /// then its join; an AT END phrase's exit and resume; an unlabelled
+  /// END's own name. Codegen binds these to locations (M4-11), so the
+  /// rule that mints them stays here and is never written twice.
+  final Map<Clause, List<String>> clauseNames;
+
+  /// How many GN names the front end minted; the code pass continues
+  /// from the next number (M4-6 — the sample's GN)084 on).
+  final int generatedCount;
+
   /// The card-keyed print annotations (M3-8).
   final ListingAnnotations annotations;
 }
@@ -79,6 +92,7 @@ DictionaryAllocation allocateDictionary(ParseResult parse) {
   final dataWords = <DataItem, int>{};
   final synonymWords = <Token, int>{};
   final labelWords = <Sentence, int>{};
+  final clauseNames = <Clause, List<String>>{};
   final locByCard = <int, String>{};
   final nameByCard = <int, (int, String)>{};
   int? programEntryWord;
@@ -100,6 +114,14 @@ DictionaryAllocation allocateDictionary(ParseResult parse) {
 
   void printName(SourceCard card, String name) {
     nameByCard.putIfAbsent(card.cardNumber, () => (_gnColumn, name));
+  }
+
+  /// Takes [count] generated names and their words for [clause].
+  void mint(Clause clause, int count) {
+    clauseNames[clause] = <String>[
+      for (var i = 0; i < count; i++) _gnName(++generated),
+    ];
+    take(count);
   }
 
   void allocateItem(DataItem item) {
@@ -146,29 +168,24 @@ DictionaryAllocation allocateDictionary(ParseResult parse) {
                 // A branch and its join: two labels with OTHERWISE, the
                 // join alone without (GN)058-076, 079-082 attested;
                 // J 90.05 symbolic listing).
-                generated += otherwiseArm.isEmpty ? 1 : 2;
-                take(otherwiseArm.isEmpty ? 1 : 2);
+                mint(clause, otherwiseArm.isEmpty ? 1 : 2);
               case GetClause(atEnd: AtEndClause()):
                 // The AT END exit and the resume point (GN)058/059
                 // pattern, J 90.05 symbolic listing).
-                generated += 2;
-                take(2);
+                mint(clause, 2);
               case SetClause(onOverflow: Clause()) ||
                   AddClause(onOverflow: Clause()):
                 // Unattested: no ON OVERFLOW survives in the sample.
                 // The slot mirrors AT END structurally, so it takes
                 // the same pair (recorded inference, M3-23).
-                generated += 2;
-                take(2);
+                mint(clause, 2);
               case EndClause() when scan.label == null:
                 // An unlabelled END sentence takes a generated name
                 // and prints it: GN)077, GN)078, GN)083 close the
                 // sample's unlabelled sections. A labelled END prints
                 // its own label's word instead (BOND.END., SEARCH.END.).
-                generated++;
-                final String name = _gnName(generated);
-                take(1);
-                printName(scan.cards.first, name);
+                mint(clause, 1);
+                printName(scan.cards.first, clauseNames[clause]!.single);
               default:
                 break;
             }
@@ -182,6 +199,8 @@ DictionaryAllocation allocateDictionary(ParseResult parse) {
     programEntryWord: programEntryWord,
     synonymWords: synonymWords,
     labelWords: labelWords,
+    clauseNames: clauseNames,
+    generatedCount: generated,
     annotations: ListingAnnotations(
       locByCard: locByCard,
       nameByCard: nameByCard,

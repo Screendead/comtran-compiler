@@ -1,0 +1,155 @@
+/// The constant pool (M4-4 as amended): four sub-pools, filled
+/// independently and concatenated in one fixed order at layout time.
+///
+/// The pool is not in first-need order as a whole — the first generated
+/// statement references entries of three different sub-pools — so a
+/// generator must emit a reference as a sub-pool and a key, and resolve
+/// every `CP)+NN` after generation ends. Two constants collapse into one
+/// entry exactly when they land in the same sub-pool and their keys are
+/// equal: an `OCT` entry keys on its 36-bit word value, a `PZE` entry on
+/// its printed symbolic operand, never the assembled bits (the sample
+/// holds four all-zero `PZE` words that stay four entries).
+library;
+
+import 'dart:collection';
+
+/// The four sub-pools, in their frozen concatenation order (M4-4).
+enum SubPool {
+  /// The values written in the PROCEDURE source, plus the subscript
+  /// strides: source order, after the seeds 0 and 1.
+  literals,
+
+  /// Masks, statement stamps, verb text, fills, scale and round
+  /// constants: first-need order, keyed on the 36-bit word.
+  machineWords,
+
+  /// `PZE symbol±offset`, no decrement: first-need order, keyed on the
+  /// printed operand.
+  subscriptBases,
+
+  /// `PZE symbol,,byte`: first-need order, keyed on the printed operand.
+  descriptors,
+}
+
+/// One pool reference: a sub-pool and a key, resolved to an index by
+/// [ConstantPool.layout] after generation ends.
+final class PoolHandle {
+  PoolHandle._(this.subPool, this.key);
+
+  final SubPool subPool;
+
+  /// The 36-bit word of an `OCT` entry, or the printed operand of a
+  /// `PZE` entry.
+  final Object key;
+}
+
+/// The pool under construction. Registration is idempotent: the first
+/// call creates the entry, every call returns its handle.
+final class ConstantPool {
+  /// The seeded head: indices 0 and 1 hold the integers 0 and 1 ahead
+  /// of every source literal (the notes, section 6.2 item 37 — pinned
+  /// at the diff).
+  ConstantPool() {
+    _literals[0] = (-1, 0);
+    _literals[1] = (-1, 1);
+  }
+
+  /// Written literals, keyed on the word value; the position of the
+  /// earliest source appearance orders them. The seeds sort ahead of
+  /// every card and the strides behind, so a written 0 or 1 merges
+  /// into its seed and a written stride value absorbs the stride.
+  final Map<int, (int, int)> _literals = HashMap<int, (int, int)>();
+
+  final LinkedHashSet<int> _machineWords = LinkedHashSet<int>();
+  final LinkedHashSet<String> _bases = LinkedHashSet<String>();
+  final LinkedHashSet<String> _descriptors = LinkedHashSet<String>();
+
+  /// A value the source writes at [card], [column].
+  PoolHandle literal(int bits, {required int card, required int column}) {
+    final at = (card, column);
+    _literals.update(
+      bits,
+      ((int, int) first) => first.compareTo(at) <= 0 ? first : at,
+      ifAbsent: () => at,
+    );
+    return PoolHandle._(SubPool.literals, bits);
+  }
+
+  /// A seed's handle. The entries exist from construction; this only
+  /// names one for a machinery reference (the zero build, the truth
+  /// function's true value, the DO FOR unit bounds).
+  PoolHandle seed(int value) {
+    assert(value == 0 || value == 1, 'only 0 and 1 are seeded');
+    return PoolHandle._(SubPool.literals, value);
+  }
+
+  /// A subscript stride, in words. Strides sit at the tail of the
+  /// literal sub-pool, after every written literal — the attested
+  /// `CP)+13`, first emitted three words ahead of the literal `CP)+8`
+  /// yet laid out last.
+  PoolHandle stride(int words) {
+    final (int, int) at = (1 << 40, words);
+    _literals.update(
+      words,
+      ((int, int) first) => first.compareTo(at) <= 0 ? first : at,
+      ifAbsent: () => at,
+    );
+    return PoolHandle._(SubPool.literals, words);
+  }
+
+  PoolHandle machineWord(int bits) {
+    _machineWords.add(bits);
+    return PoolHandle._(SubPool.machineWords, bits);
+  }
+
+  PoolHandle base(String operand) {
+    _bases.add(operand);
+    return PoolHandle._(SubPool.subscriptBases, operand);
+  }
+
+  PoolHandle descriptor(String operand) {
+    _descriptors.add(operand);
+    return PoolHandle._(SubPool.descriptors, operand);
+  }
+
+  /// Concatenates the four sub-pools and assigns every entry its index.
+  PoolLayout layout() {
+    final entries = <(SubPool, Object)>[
+      for (final MapEntry<int, (int, int)> e
+          in _literals.entries.toList()..sort(_literalOrder))
+        (SubPool.literals, e.key),
+      for (final int bits in _machineWords) (SubPool.machineWords, bits),
+      for (final String operand in _bases) (SubPool.subscriptBases, operand),
+      for (final String operand in _descriptors) (SubPool.descriptors, operand),
+    ];
+    return PoolLayout._(<(SubPool, Object), int>{
+      for (var i = 0; i < entries.length; i++) entries[i]: i,
+    });
+  }
+
+  /// Seeds first, written literals by source position, strides last —
+  /// the three position-marker zones.
+  static int _literalOrder(
+    MapEntry<int, (int, int)> a,
+    MapEntry<int, (int, int)> b,
+  ) => a.value.compareTo(b.value);
+}
+
+extension on (int, int) {
+  int compareTo((int, int) other) {
+    final int cards = $1.compareTo(other.$1);
+    return cards != 0 ? cards : $2.compareTo(other.$2);
+  }
+}
+
+/// The laid-out pool: every handle's `CP)+NN` index.
+final class PoolLayout {
+  PoolLayout._(this._indices);
+
+  final Map<(SubPool, Object), int> _indices;
+
+  int get length => _indices.length;
+
+  /// The index `CP)+NN` prints for [handle].
+  int indexOf(PoolHandle handle) => _indices[(handle.subPool, handle.key)]!;
+}

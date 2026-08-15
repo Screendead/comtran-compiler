@@ -245,6 +245,7 @@ final class SemanticResult {
     required this.dataResolutions,
     required this.correspondingPairs,
     required this.keysConditions,
+    required this.positionalIndicators,
     required this.capacityDeletedSentences,
     required this.semanticDiagnostics,
     required this.stopped,
@@ -280,6 +281,11 @@ final class SemanticResult {
   /// Condition references that resolve to an Environment COND card —
   /// the console-key test (J 02.06.17).
   final Set<NameReference> keysConditions;
+
+  /// The program's positional indicators, one per unique
+  /// array-and-notation pair, in the order of first reference: the
+  /// object program's `PI)` block, `PI)1` first (M3-20; M4-4).
+  final List<(DataItem, String)> positionalIndicators;
 
   /// Sentences msg 177 deleted from the text: their references
   /// overflowed the per-sentence table, so M4 generates nothing for

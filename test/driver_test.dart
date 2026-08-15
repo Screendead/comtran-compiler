@@ -25,7 +25,9 @@ void main() {
           '      *FINISH',
           r'$CMPLE JOBB',
           '      *PROCEDURE',
-          "            DISPLAY 'HI'.",
+          // STOP n, not DISPLAY: codegen has no attested DISPLAY shape
+          // and refuses to invent one (chunk B1; the notes, section 7).
+          '            STOP 7.',
           '            STOP RUN.',
           '      *FINISH',
         ]),
