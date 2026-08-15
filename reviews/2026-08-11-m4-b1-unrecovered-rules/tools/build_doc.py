@@ -385,6 +385,89 @@ footer {{ border-top:1px solid var(--rule); padding-top:1.2rem; font-size:.85rem
   plainly that it was tried.</p></div>
 </section>
 
+<section class="item needs">
+  <div class="itemhead"><span class="chip call">Your call</span>
+  <h2>The decode ran on 15 August 2026, and it failed</h2></div>
+
+  <p>Two independent decoders ran the search Jack authorized, one from a
+  1962-compiler-internals lens and one as a systematic enumeration of counting
+  rules, neither knowing of the other. Both returned <strong>refuted</strong>,
+  and their refutations converge on one structure. An adversarial verification
+  stage stood ready and received no candidate to attack.</p>
+
+  <h3>What the search established</h3>
+  <ul>
+    <li><strong>The heads are derivable.</strong> Counting the binary operators
+    of the largest park&#8209;bearing clause expression, with straight
+    equal&#8209;scale chains exempt and a conversion counted as a node,
+    reproduces sections 0, 1 and 2 exactly &mdash; 3, 2, 3 &mdash; and lands
+    section 3's hard floor of 2. Statement 207's six&#8209;operand chain is
+    exempt and charges nothing, which is what saves section 0.</li>
+    <li><strong>The tail refutes every untuned rule.</strong> Sections 4 and 5
+    &mdash; SEARCH and DEPARTMENT.END &mdash; contain no SET, no park and no
+    result&#8209;storage reference. Every head&#8209;compatible counter values
+    them at a combined 3 or less, so the tail caps at 5 cells against the
+    attested 7.</li>
+    <li><strong>The split is unobservable.</strong> Splits as different as
+    3&#8239;+&#8239;3&#8239;+&#8239;1, 3&#8239;+&#8239;1&#8239;+&#8239;3 and
+    2&#8239;+&#8239;4&#8239;+&#8239;1 each satisfy every hard constraint, and
+    nothing in the listing separates them. Any weight that lifts the tail to
+    exactly 7 is tuned against the very sum it predicts.</li>
+    <li><strong>The manuals do not close the gap.</strong> <code>J 90.02.03</code>
+    names no counting basis. The only other &ldquo;result storage&rdquo; in
+    either manual, <code>J 90.03.05</code>, is the loader's load&#8209;time
+    expression bank &mdash; a fixed roster of cells 0 to 6, a different
+    mechanism sharing the name, and its fixed size contradicts section 0's
+    attested 3.</li>
+  </ul>
+  <p class="note">The systematic pass enumerated 24 rule families with the
+  single constraint that killed each; the internals pass enumerated 15 and swept
+  both manuals for a compiler-side storage model. The full trails, the checks
+  behind every number, and the evidence pack the decoders read ship in
+  <code>evidence/rs-decode/</code>. File paths under a session scratchpad named
+  in those reports died with the session; the pack they name is the copy
+  shipped here.</p>
+
+  <h3>The options now</h3>
+
+  <div class="opt pick">
+    <h3>A. Pin the attested reservation as a constant of the sample</h3>
+    <p class="consequence">Sections 0, 1 and 2 take 3, 2 and 3 cells, each
+    attested by a base address the listing prints; the 7&#8209;cell tail is one
+    undivided block, because its split is unobservable. Total 30 words. This is
+    <code>TS) BSS 7</code>'s treatment: for any program but the sample the
+    figure is unverifiable, and the record says so. The head rule is recorded
+    as a finding, not implemented &mdash; implementing it would need a tail it
+    cannot produce.</p>
+  </div>
+
+  <div class="opt">
+    <h3>B. Freeze the total 30 with no per-section commitment</h3>
+    <p class="consequence">Identical for chunk B1, which needs only the block
+    width. But chunk B3 must place park addresses &mdash; the listing prints
+    01621, 01627, 01633 and 01641 as section bases &mdash; so the per-section
+    figures get pinned then anyway, and this option only defers the same
+    decision to a chunk that is worse placed to record it.</p>
+  </div>
+
+  <div class="opt">
+    <h3>C. Implement the head rule with a fitted tail closure</h3>
+    <p class="consequence">Presents a fit as a derivation. Both decoders exhibit
+    multiple closures that fit every constraint and contradict each other, so
+    the choice among them is arbitrary, and M4-4 as amended forbids exactly this
+    move for <code>TS)</code>.</p>
+  </div>
+
+  <div class="ask"><span class="label">Recommendation &mdash; A</span>
+  <p>The decode was the honest test of <code>J 90.02.03</code>'s sentence, and
+  it returned the same verdict twice from two directions. The rule the manual
+  gestures at cannot be recovered from one artifact whose last two sections
+  never touch the storage they reserve.</p>
+  <p>Pin the attested numbers, label them attested, and record the head rule as
+  a finding for a second listing to test. One artifact overturns this: the
+  storage map of another compiled program.</p></div>
+</section>
+
 <section class="item">
   <h2>What both items share, and what neither is</h2>
   <p>Both are numbers the compiler must emit that rest on one 1962 listing.
