@@ -1,0 +1,16 @@
+c077c28df8fe096783376effe5c61da26879595d
+exit code 255
+
+Unhandled exception:
+Bad state: no attested shape: DISPLAY ([J 90.01.01]) (chunk B1, notes section 7)
+#0      _unruled (package:comtran/src/codegen/procedure.dart:84:5)
+#1      _Text._clause (package:comtran/src/codegen/procedure.dart:567:9)
+#2      List.forEach (dart:core-patch/growable_array.dart:428:8)
+#3      _Text.sentences (package:comtran/src/codegen/procedure.dart:495:24)
+#4      generateProcedure (package:comtran/src/codegen/procedure.dart:74:12)
+#5      runCodegen (package:comtran/src/codegen/codegen.dart:78:24)
+#6      compileDeck (package:comtran/src/driver/driver.dart:121:11)
+#7      _run (file:///Users/jacklusher/development/comtran-compiler/bin/comtranc.dart:191:34)
+#8      main (file:///Users/jacklusher/development/comtran-compiler/bin/comtranc.dart:80:14)
+#9      _delayEntrypointInvocation.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:311:33)
+#10     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:192:12)

@@ -1,0 +1,8 @@
+$CMPLE JOBA
+      *PROCEDURE
+            DISPLAY 'HI'.
+      *FINISH
+$CMPLE JOBB
+      *PROCEDURE
+            STOP RUN.
+      *FINISH
