@@ -158,6 +158,14 @@ footer {{ border-top:1px solid var(--rule); padding-top:1.2rem; font-size:.85rem
   <p>Under the review-cycle rule, this answer also authorizes the chunk B1 pull
   request. The items below stand as they were put; this banner is the only
   addition.</p>
+  <p><strong>Second ruling, same day, on the failed decode:</strong> option A.
+  &ldquo;It has to be (A). You effectively gave no other option within the
+  bounds of this project.&rdquo; The attested reservation &mdash; 3, 2 and 3
+  cells, the 7&#8209;cell tail as one undivided block, 30 words &mdash; enters
+  the compiler as a labelled constant of the sample, on the <code>TS) BSS 7</code>
+  precedent. The head rule the decoders found is recorded as a finding for a
+  second listing to test, and is not implemented. Every question this record
+  carries is now closed.</p>
 </div>
 <header>
   <p class="eyebrow">M4 stage 2 &middot; chunk B1 &middot; prepared 11 August 2026</p>

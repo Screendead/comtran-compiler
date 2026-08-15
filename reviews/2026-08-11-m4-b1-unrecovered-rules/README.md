@@ -14,10 +14,13 @@ recommendations were adopted as put.
 The bounded search ran the same day and failed: two independent decoders both
 returned refuted, and the split of the 7-cell tail is unobservable in the one
 surviving artifact. The section "The decode ran on 15 August 2026, and it
-failed" holds the outcome, the options, and the new recommendation — pin the
-attested reservation as a constant of the sample. That question waits for
-Jack. `evidence/rs-decode/` holds the evidence pack the decoders read and
-both decoders' full reports, search trails included.
+failed" holds the outcome and the options. `evidence/rs-decode/` holds the
+evidence pack the decoders read and both decoders' full reports, search trails
+included.
+
+Jack ruled on the outcome the same day: option A — pin the attested
+reservation as a labelled constant of the sample. The banner carries his
+words. Every question this record carries is closed.
 
 ## What to open
 
