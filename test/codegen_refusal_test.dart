@@ -52,6 +52,7 @@ List<String> _data() => [
     description: '9V9',
   ),
   dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
+  dataCard(name: 'FLT', level: '1', mode: 'I', description: '9.9F9'),
   dataCard(name: 'EDT', level: '1', description: r'$889.99'),
   dataCard(name: 'STATE', level: '1', description: 'A'),
   dataCard(name: 'MARRIED', level: '2', type: 'COND', description: "'M'"),
@@ -343,6 +344,178 @@ void main() {
         _refuses(['            IF ALF = BLANKS THEN STOP RUN.']),
         'this figurative comparison (no sample instance)',
       );
+    });
+
+    test('a floating literal', () {
+      expect(
+        _refuses(['            SET NUM = 2.5F1.']),
+        'a floating literal operand (no sample instance)',
+      );
+    });
+
+    test('a floating literal in a comparison', () {
+      expect(
+        _refuses(['            IF NUM = 2.5F1 THEN STOP RUN.']),
+        'a floating literal operand (no sample instance)',
+      );
+    });
+
+    test('an alphameric literal in arithmetic', () {
+      // The parser reports the shape (msg 116) below the stop
+      // severity, so the sizers still see it.
+      expect(
+        _refuses(["            SET NUM = 'AB' + TOT."]),
+        'an alphameric literal operand (no sample instance)',
+      );
+    });
+
+    test('a floating-point chain operand', () {
+      expect(
+        _refuses(['            SET NUM = FLT + TOT.']),
+        'an arithmetic operand of floatingPoint (no sample instance)',
+      );
+    });
+
+    test('a floating-point SET target', () {
+      expect(
+        _refuses(['            SET FLT = NUM.']),
+        'an arithmetic operand of floatingPoint (no sample instance)',
+      );
+    });
+
+    test('a floating-point comparison', () {
+      expect(
+        _refuses(['            IF FLT = NUM THEN STOP RUN.']),
+        'an arithmetic operand of floatingPoint (no sample instance)',
+      );
+    });
+
+    test('a floating-point DO index', () {
+      expect(
+        _refuses(['            DO RTN FOR FLT = 1(1)12.']),
+        'an arithmetic operand of floatingPoint (no sample instance)',
+      );
+    });
+
+    test('an external-decimal chain operand', () {
+      expect(
+        _refuses(['            SET NUM = EXT + TOT.']),
+        'an arithmetic operand of externalDecimal (no sample instance)',
+      );
+    });
+
+    test('an edited chain operand', () {
+      expect(
+        _refuses(['            SET NUM = EDT + TOT.']),
+        'an arithmetic operand of edited (no sample instance)',
+      );
+    });
+
+    test('an external ADD source', () {
+      expect(
+        _refuses(['            ADD EXT TO NUM.']),
+        'an arithmetic operand of externalDecimal (no sample instance)',
+      );
+    });
+
+    test('an external ADD target', () {
+      expect(
+        _refuses(['            ADD NUM TO EXT.']),
+        'an arithmetic operand of externalDecimal (no sample instance)',
+      );
+    });
+
+    test('a chain of a truth function, several terms', () {
+      expect(
+        _refuses(['            SET NUM = NUM + TR (NUM GT TOT).']),
+        'a chain of TruthExpr (no sample instance)',
+      );
+    });
+
+    test('a mixed-class alphameric comparison', () {
+      // Msg 107,00 flags the class mix below the stop severity, so
+      // the sizers still see the shape.
+      final SemanticResult semantics = runJob(
+        data: _data(),
+        procedure: ['            IF ALF = NUM THEN STOP RUN.', ..._tail],
+      );
+      expect(ids(semantics), ['107,00']);
+      expect(semantics.stopped, isFalse);
+      try {
+        runCodegen(semantics);
+        fail('generated code without refusing');
+      } on UnrecoveredShape catch (refusal) {
+        expect(
+          refusal.shape,
+          'an alphameric comparison of internalDecimal (no sample instance)',
+        );
+      }
+    });
+
+    test('a third base register in one statement', () {
+      // Three input tape files, so three located records ride in one
+      // chain; M4-9 assigns XR1 and XR2 and stops.
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'R1', level: '1', type: 'RECORD'),
+          dataCard(
+            name: 'FA',
+            level: '2',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(name: 'R2', level: '1', type: 'RECORD'),
+          dataCard(
+            name: 'FB',
+            level: '2',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(name: 'R3', level: '1', type: 'RECORD'),
+          dataCard(
+            name: 'FC',
+            level: '2',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5',
+          ),
+          environmentCard(
+            name: 'TAPE2',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,R2,BLOCKSIZE 5',
+          ),
+          environmentCard(
+            name: 'TAPE3',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,R3,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: ['            SET NUM = FA + FB + FC.', ..._tail],
+      );
+      expect(ids(semantics), isEmpty, reason: 'the program must be valid');
+      expect(semantics.stopped, isFalse);
+      try {
+        runCodegen(semantics);
+        fail('generated code without refusing');
+      } on UnrecoveredShape catch (refusal) {
+        expect(refusal.shape, 'a third base register in one statement (M4-9)');
+      }
     });
 
     test('a positional indicator with no repeated ancestor', () {

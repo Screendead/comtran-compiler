@@ -295,6 +295,21 @@ final class _Text {
     return fieldClass == FieldClass.group ? FieldClass.alphameric : fieldClass;
   }
 
+  /// Every attested arithmetic operand, SET target, ADD operand,
+  /// numeric-compare operand and DO index is internal decimal; the one
+  /// attested non-binary fetch is the edited ADD source of statement
+  /// 221 (catalogue 4.7), handled at its own site. Any other class has
+  /// no attested arithmetic form and refuses.
+  DataItem _decimal(DataItem item) {
+    final FieldClass fieldClass = _sem(item).fieldClass;
+    if (fieldClass != FieldClass.internalDecimal) {
+      _unruled(
+        'an arithmetic operand of ${fieldClass.name} (no sample instance)',
+      );
+    }
+    return item;
+  }
+
   // --- The register cache (notes question 2, settled above) ---------------
 
   /// Emits the guard pair `LAC BL)n,i / TXL SYS)294,i,0` when no
@@ -305,10 +320,13 @@ final class _Text {
     if (_registerHolds.containsValue(locator)) {
       return;
     }
-    final int register = _statementRegisters.putIfAbsent(
-      locator,
-      () => _statementRegisters.length + 1,
-    );
+    final int register = _statementRegisters.putIfAbsent(locator, () {
+      if (_statementRegisters.length >= 2) {
+        // M4-9 assigns XR1 and XR2 and stops; no rule covers a third.
+        _unruled('a third base register in one statement (M4-9)');
+      }
+      return _statementRegisters.length + 1;
+    });
     _registerHolds[register] = locator;
     words(2);
   }
@@ -405,9 +423,19 @@ final class _Text {
   }
 
   /// A numeric literal's pool word: the written digits with the point
-  /// dropped (catalogue 5.3), and its scale in fraction digits.
+  /// dropped (catalogue 5.3), and its scale in fraction digits. The
+  /// keying rule covers decimal digits only, so any other literal kind
+  /// has no attested pool form and refuses. A sign is never in the
+  /// token: the parser carries it as [UnaryExpr], and every such path
+  /// refuses.
   (int, int) _literalValue(Token literal) {
-    final String text = literal.text.replaceFirst(RegExp('^[+-]'), '');
+    if (literal.kind != TokenKind.numericLiteral) {
+      final kind = literal.kind == TokenKind.floatingLiteral
+          ? 'a floating'
+          : 'an alphameric';
+      _unruled('$kind literal operand (no sample instance)');
+    }
+    final String text = literal.text;
     final int point = text.indexOf('.');
     final String digits = text.replaceFirst('.', '');
     return (int.parse(digits), point < 0 ? 0 : text.length - point - 1);
@@ -655,6 +683,10 @@ final class _Text {
       _unruled('a multi-index DO (notes section 7)');
     }
     final DoIndex index = clause.indices.single;
+    final DataItem? indexItem = _item(index.index);
+    if (indexItem != null) {
+      _decimal(indexItem);
+    }
     final driven = <(DataItem, String)>[
       for (final (DataItem, String) each in semantics.positionalIndicators)
         if (each.$2 == index.index.text) each,
@@ -981,7 +1013,10 @@ final class _Text {
     final int sB = s.byte;
     final int tB = t.byte;
     if (length % 6 == 0 && sB == 0 && tB == 0) {
-      words(2 * (length ~/ 6)); // The whole-word move.
+      // The gate above caps the source inside one word, so the
+      // whole-word move is always exactly one: CAL / SLW. The
+      // multi-word form has no site (notes section 7).
+      words(2);
     } else if (tB + length <= 6) {
       if (sB == tB) {
         _pool.machineWord(_clearMask(tB, tB + length - 1));
@@ -1086,12 +1121,12 @@ final class _Text {
     if (_sem(source).fractionDigits != _sem(target).fractionDigits) {
       _unruled('an ADD pair of unequal scales (notes section 7)');
     }
-    _loadBaseOf(source);
+    _loadBaseOf(_decimal(source));
     _addBody(target);
   }
 
   void _addBody(DataItem target) {
-    _loadBaseOf(target);
+    _loadBaseOf(_decimal(target));
     words(3);
   }
 
@@ -1105,7 +1140,7 @@ final class _Text {
           if (name.subscripts.isNotEmpty) {
             _unruled('a subscripted chain operand (no sample instance)');
           }
-          _loadBaseOf(_item(name)!);
+          _loadBaseOf(_decimal(_item(name)!));
           word(); // CLA.
           return _naturalScale(term);
         case LiteralOperand(:final literal):
@@ -1132,7 +1167,7 @@ final class _Text {
       final int deficit = chainScale - _naturalScale(term);
       switch (term) {
         case NameOperand(:final name) when deficit == 0:
-          _loadBaseOf(_item(name)!); // Fetched in place by the assembly.
+          _loadBaseOf(_decimal(_item(name)!)); // Fetched in place.
         case LiteralOperand(:final literal) when deficit == 0:
           _numericLiteral(literal);
         case NameOperand() || LiteralOperand():
@@ -1141,7 +1176,7 @@ final class _Text {
           if (term case LiteralOperand(:final literal)) {
             _numericLiteral(literal);
           } else if (term case NameOperand(:final name)) {
-            _loadBaseOf(_item(name)!);
+            _loadBaseOf(_decimal(_item(name)!));
           }
           _pool.machineWord(_pow10(deficit));
           words(3);
@@ -1181,10 +1216,9 @@ final class _Text {
   /// A `*` node: the complex side first, then the two-word step
   /// (catalogue 4.7). Returns the product's scale, the factor sum.
   int _product(BinaryExpr expr) {
+    // Both call sites take an additive node before this runs, so any
+    // operator here but `*` is unruled.
     if (expr.operator.text != '*') {
-      if (_additive(expr)) {
-        return _chain(expr);
-      }
       _unruled('the operator ${expr.operator.text} (notes section 7)');
     }
     final ArithExpr left = expr.left;
@@ -1220,7 +1254,7 @@ final class _Text {
         if (name.subscripts.isNotEmpty) {
           _unruled('a subscripted factor (no sample instance)');
         }
-        _loadBaseOf(_item(name)!);
+        _loadBaseOf(_decimal(_item(name)!));
       default:
         _unruled('a factor of ${leaf.runtimeType}');
     }
@@ -1244,7 +1278,7 @@ final class _Text {
     if (target.subscripts.isNotEmpty) {
       _unruled('a subscripted SET target (no sample instance)');
     }
-    final DataItem item = _item(target)!;
+    final DataItem item = _decimal(_item(target)!);
     final int targetScale = _sem(item).fractionDigits;
     if (scale == targetScale) {
       _loadBaseOf(item);
@@ -1377,10 +1411,11 @@ final class _Text {
       case LiteralOperand():
         _zeroBuild(storage);
       case NameOperand(:final name):
+        final DataItem item = _decimal(_item(name)!);
         if (name.subscripts.isNotEmpty) {
           words(2); // The positional-indicator prologue.
         } else {
-          _loadBaseOf(_item(name)!);
+          _loadBaseOf(item);
         }
         word(); // CLA.
       default:
@@ -1390,10 +1425,11 @@ final class _Text {
       case LiteralOperand(:final literal):
         _numericLiteral(literal); // CAS CP)+nn.
       case NameOperand(:final name):
+        final DataItem item = _decimal(_item(name)!);
         if (name.subscripts.isNotEmpty) {
           words(2); // The positional-indicator prologue.
         } else {
-          _loadBaseOf(_item(name)!);
+          _loadBaseOf(item);
         }
       default:
         _unruled('a comparison of ${storage.runtimeType}');
@@ -1437,6 +1473,19 @@ final class _Text {
     required bool trueFalls,
     required bool falseFalls,
   }) {
+    // Both attested operands are alphameric (statement 200); a class
+    // mix rides in below the stop severity (msg 107,00) and refuses.
+    for (final operand in <ArithExpr>[acc, storage]) {
+      if (operand case NameOperand(:final name)) {
+        final FieldClass fieldClass = _moveClass(_item(name)!);
+        if (fieldClass != FieldClass.alphameric) {
+          _unruled(
+            'an alphameric comparison of ${fieldClass.name} '
+            '(no sample instance)',
+          );
+        }
+      }
+    }
     final int storageExtraction = _extractionCost(storage);
     switch (acc) {
       case FigurativeOperand(word: final figurative):

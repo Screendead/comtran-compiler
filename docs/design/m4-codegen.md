@@ -218,8 +218,8 @@ M4 executes I/O-free programs.
   as constants of the sample. Jack's ruling, the chunk B1 review
   record.** [J 90.02.03] needs each section's maximum, and the maximum
   is unrecoverable: sections 0 to 2 reserve 3, 2 and 3 cells while
-  referencing 2, 1 and 1, two decoders refuted every untuned closure,
-  and the unobservable tail admits contradictory splits. The constants:
+  referencing 2, 1 and 1. Two decoders refuted every constant-free
+  rule. The unobservable tail admits contradictory splits. The constants:
   3, 2 and 3 cells, then a 7-cell undivided tail, 30 words. The `TS)`
   findings above apply in full.
   **Amended 2026-08-05, the block order is frozen.** Jack's call: the
