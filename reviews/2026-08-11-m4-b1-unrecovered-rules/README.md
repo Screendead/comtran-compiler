@@ -6,8 +6,10 @@ recommendation on each. It is orphan-committed, so it stays in git history and
 never enters the working tree.
 
 The two items are the clause digits of the statement stamp, and the per-section
-maximum of result storage. Both are `YOUR CALL`. Jack's answer has not been
-added yet.
+maximum of result storage. Both are `YOUR CALL`. Jack answered on 15 August
+2026 — "Adopt the fitted rule, and run the bounded search on RS)" — and the
+rulings banner at the top of `index.html` carries the answer. Both
+recommendations were adopted as put.
 
 ## What to open
 

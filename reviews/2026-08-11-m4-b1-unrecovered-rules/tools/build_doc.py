@@ -116,6 +116,13 @@ figure {{ margin:1rem 0 1.2rem; }}
 figcaption {{ font-family:var(--mono); font-size:.71rem; line-height:1.5; color:var(--muted);
               margin-top:.5rem; }}
 
+.rulings {{ border:2px solid var(--settled); padding:1rem 1.2rem; }}
+.rulings .label {{ font-family:var(--mono); font-size:.68rem; letter-spacing:.14em;
+                   text-transform:uppercase; color:var(--settled); display:block;
+                   margin-bottom:.4rem; }}
+.rulings p {{ margin:0 0 .55rem; }}
+.rulings p:last-child {{ margin:0; }}
+
 .ask {{ background:var(--stamp-soft); border:1px solid var(--stamp); padding:.9rem 1.1rem;
         margin:.9rem 0 0; }}
 .ask p {{ margin:0 0 .5rem; }}
@@ -138,6 +145,20 @@ footer {{ border-top:1px solid var(--rule); padding-top:1.2rem; font-size:.85rem
 <body>
 
 <main>
+<div class="rulings">
+  <span class="label">Jack's rulings &middot; 15 August 2026</span>
+  <p>&ldquo;Adopt the fitted rule, and run the bounded search on
+  <code>RS)</code>.&rdquo; Both recommendations are adopted as put.</p>
+  <p><strong>The clause digits:</strong> option A. The fitted rule enters the
+  compiler labelled fitted, in the code and in the design record.</p>
+  <p><strong>Result storage:</strong> option A. The bounded decode is authorized
+  and runs before any ruling on the 30. If it lands, <code>RS)</code> takes the
+  derived rule; if it fails, the choice between freezing 30 and any other course
+  returns to Jack with the search recorded.</p>
+  <p>Under the review-cycle rule, this answer also authorizes the chunk B1 pull
+  request. The items below stand as they were put; this banner is the only
+  addition.</p>
+</div>
 <header>
   <p class="eyebrow">M4 stage 2 &middot; chunk B1 &middot; prepared 11 August 2026</p>
   <h1>Two rules the listing does not give up</h1>
