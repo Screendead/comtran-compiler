@@ -287,12 +287,15 @@ both texts previously said B2, against the record's own table).</td></tr>
 <td>Deleted.</td></tr>
 </table></div>
 <p>The record stands at 9,995 of 10,000 words; the cuts were M4-6's refuted
-provisional mechanism, a spent stage-2 promise in M4-13, and tightened
+provisional mechanism, a spent stage-2 promise in M4-10, and tightened
 amendment prose. Full suite 1,064 tests, format, analyze
 <code>--fatal-infos</code>, deckconv and the sample compile all green.</p>
 </section>
 
 <footer>
+<p>Corrected 2026-08-15, same day, before any reading: item 5 first
+attributed the spent-promise cut to M4-13; the cut sentence sat in M4-10,
+the expression compiler.</p>
 <p>Reviewed commit:
 <a href="{GH_REVIEWED}">c077c28</a> · fix commit
 <a href="{GH_FIXED}">52e32c1</a> on <code>m4s2-chunk-b1</code> · the
