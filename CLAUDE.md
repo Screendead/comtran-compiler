@@ -274,12 +274,13 @@ Two consequences to expect:
 - One pull request per topic. The remote is `Screendead/comtran-compiler`.
 - CI must pass before a merge. Run the section 4 gate before you push.
 - Do not ask permission to make a branch, to commit to it, or to push it. Do
-  ask before you open a pull request: that call is Jack's. Merge on his word,
-  or on external-review convergence — both reviewers, `VERDICT: LGTM`, the
-  same head, under the REVIEW.md charter. His standing authorization of
-  2026-08-16: "a merge without my approval is explicitly approved by me"
-  when both reviewers converge. From M4 stage 2 on, a pull request needs
-  that convergence before merge unless Jack waives it.
+  ask before you open a pull request: that call is Jack's. One merge rule
+  governs: from M4 stage 2 on, a pull request merges on external-review
+  convergence — both reviewers, `VERDICT: LGTM`, the same head, under the
+  REVIEW.md charter. Jack's instruction to merge is a waiver of that
+  requirement. A pull request that changes the charter, this section, or
+  the external-review skill merges only on his instruction. The charter
+  quotes his standing authorization of 2026-08-16 in full.
 - **A question for Jack is a review record, not a chat message.** Whenever work
   stops and waits for him — a human-OCR request, a peer collision under section
   6, an authorization to change a conversion, a choice between designs — build

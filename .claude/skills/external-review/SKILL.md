@@ -28,11 +28,10 @@ and the charter disagree, the charter wins.
    review on the wrong configuration is void.
 3. Type the charter's fixed line. Type nothing else. Record the
    interaction as a GIF. The GIFs are the audit trail.
-4. Wait. A review takes minutes. Poll the tab with `read_page` at
-   patient intervals; do not hammer.
+4. Wait. A review takes minutes. Poll the tab with `read_page` no more
+   than once each minute.
 5. If a reviewer stalls or asks a question, send the charter's one
-   recovery line. After two failures in one chat, stop the run and
-   report to Jack.
+   recovery line. The charter sets the failure limit.
 6. Copy each finished review verbatim, and take the chat's share URL.
    Post one PR comment per review:
 
@@ -44,9 +43,8 @@ and the charter disagree, the charter wins.
 
 ## Adjudication
 
-1. Verify every finding empirically before you answer it: probe
-   programs, traces, measurements. Fix the confirmed findings in one
-   commit. Refute the rest, each with the trace that refutes it.
+1. Adjudicate per charter rule 4: verify each finding empirically —
+   probe programs, traces, measurements — then fix or refute.
 2. Run the section 4 gate, push, and post one adjudication comment:
    `## Author adjudication — round <N>`, the per-finding record, and
    the new head.
@@ -55,10 +53,9 @@ and the charter disagree, the charter wins.
 
 ## Convergence
 
-1. Both reviews end `VERDICT: LGTM at <sha>`, the shas agree, and that
-   sha is the head: check CI, then merge with
-   `gh pr merge <N> --merge --delete-branch`. Do not ask Jack; the
-   charter authorizes the merge.
-2. Any other pair of verdicts: adjudicate, then open the next round.
-3. A finding that is open after two adjudication rounds is a peer
-   collision. Stop, and build a review record for Jack.
+The charter defines convergence, the failure limit, the escalation,
+and the charter-amendment exception. On convergence for an ordinary
+pull request: check CI, then merge with
+`gh pr merge <N> --merge --delete-branch`. On convergence for a
+charter-amendment pull request: report the recommendation to Jack and
+wait.
