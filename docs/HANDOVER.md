@@ -62,7 +62,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1078 Dart tests pass, measured 2026-08-15, and 154 extension
+Test baseline: 1080 Dart tests pass, measured 2026-08-15, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -81,9 +81,9 @@ M4 stage 1 closed 2026-08-05, and stage 2's chunk B1 closed 2026-08-15.
 `lib/src/codegen/` holds the text model (M4-3), the program image
 (M4-4), the storage-map print (M4-7), the `--emit-code` dump (M4-19),
 and the B1 sizing generator (`procedure.dart`, `pool.dart`,
-`blocks.dart`): every unit of the object program sized and placed, the
-whole LOC and offset spine matched line for line against the verified
-target by `test/object_spine_test.dart`. The golden
+`blocks.dart`). The generator sizes and places every unit of the
+object program. `test/object_spine_test.dart` matches the whole LOC
+and offset spine line for line against the verified target. The golden
 `test/goldens/90.05-payroll.storage-map` holds the full B1 render. The
 91 stage-1 rows are in it, unchanged.
 

@@ -695,6 +695,11 @@ final class _Text {
     for (final bound in <ArithExpr>[index.from, index.by, index.to]) {
       if (bound case LiteralOperand(:final literal)) {
         _numericLiteral(literal);
+      } else {
+        // A field-name or signed bound is legal (F pp. 50-51; D10.7)
+        // but the sample's bounds are all plain literals, so neither
+        // prologue form is attested.
+        _unruled('a DO FOR bound of ${bound.runtimeType} (no sample instance)');
       }
     }
     for (final (DataItem item, _) in driven) {

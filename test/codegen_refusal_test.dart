@@ -67,14 +67,21 @@ List<String> _data() => [
 /// A target paragraph, so GO TO and DO have somewhere legal to land.
 const List<String> _tail = <String>['      RTN.  STOP RUN.'];
 
-/// Compiles one clean job to its semantics, asserts it reached code
-/// generation with no diagnostic, and returns the refusal's shape.
-String _refuses(List<String> statements, {List<String>? data}) {
+/// Compiles one job to its semantics, asserts it reached code
+/// generation carrying exactly [flagged] (diagnostics below the stop
+/// severity, none by default), and returns the refusal's shape.
+String _refuses(
+  List<String> statements, {
+  List<String>? data,
+  List<String> environment = const [],
+  List<String> flagged = const [],
+}) {
   final SemanticResult semantics = runJob(
     data: data ?? _data(),
+    environment: environment,
     procedure: [...statements, ..._tail],
   );
-  expect(ids(semantics), isEmpty, reason: 'the program must be valid');
+  expect(ids(semantics), flagged, reason: 'the program must reach the sizers');
   expect(semantics.stopped, isFalse);
   try {
     runCodegen(semantics);
@@ -361,7 +368,7 @@ void main() {
     });
 
     test('an alphameric literal in arithmetic', () {
-      // The parser reports the shape (msg 116) below the stop
+      // The parser reports the shape (msg 912) below the stop
       // severity, so the sizers still see it.
       expect(
         _refuses(["            SET NUM = 'AB' + TOT."]),
@@ -394,6 +401,20 @@ void main() {
       expect(
         _refuses(['            DO RTN FOR FLT = 1(1)12.']),
         'an arithmetic operand of floatingPoint (no sample instance)',
+      );
+    });
+
+    test('a field-name DO FOR bound', () {
+      expect(
+        _refuses(['            DO RTN FOR IDX = NUM(1)12.']),
+        'a DO FOR bound of NameOperand (no sample instance)',
+      );
+    });
+
+    test('a negative DO FOR bound', () {
+      expect(
+        _refuses(['            DO RTN FOR IDX = -5(1)12.']),
+        'a DO FOR bound of UnaryExpr (no sample instance)',
       );
     });
 
@@ -433,114 +454,90 @@ void main() {
     });
 
     test('a mixed-class alphameric comparison', () {
-      // Msg 107,00 flags the class mix below the stop severity, so
-      // the sizers still see the shape.
-      final SemanticResult semantics = runJob(
-        data: _data(),
-        procedure: ['            IF ALF = NUM THEN STOP RUN.', ..._tail],
+      expect(
+        _refuses(
+          ['            IF ALF = NUM THEN STOP RUN.'],
+          flagged: ['107,00'],
+        ),
+        'an alphameric comparison of internalDecimal (no sample instance)',
       );
-      expect(ids(semantics), ['107,00']);
-      expect(semantics.stopped, isFalse);
-      try {
-        runCodegen(semantics);
-        fail('generated code without refusing');
-      } on UnrecoveredShape catch (refusal) {
-        expect(
-          refusal.shape,
-          'an alphameric comparison of internalDecimal (no sample instance)',
-        );
-      }
     });
 
     test('a third base register in one statement', () {
-      // Three input tape files, so three located records ride in one
-      // chain; M4-9 assigns XR1 and XR2 and stops.
-      final SemanticResult semantics = runJob(
-        data: [
-          dataCard(name: 'R1', level: '1', type: 'RECORD'),
-          dataCard(
-            name: 'FA',
-            level: '2',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-          dataCard(name: 'R2', level: '1', type: 'RECORD'),
-          dataCard(
-            name: 'FB',
-            level: '2',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-          dataCard(name: 'R3', level: '1', type: 'RECORD'),
-          dataCard(
-            name: 'FC',
-            level: '2',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-        ],
-        environment: [
-          environmentCard(
-            name: 'TAPE1',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5',
-          ),
-          environmentCard(
-            name: 'TAPE2',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,R2,BLOCKSIZE 5',
-          ),
-          environmentCard(
-            name: 'TAPE3',
-            type: 'FILE',
-            options: 'INPUT,BCD,TAPE,R3,BLOCKSIZE 5',
-          ),
-        ],
-        procedure: ['            SET NUM = FA + FB + FC.', ..._tail],
+      // Three input tape files, so one chain touches three located
+      // records; M4-9 assigns XR1 and XR2 and stops.
+      expect(
+        _refuses(
+          ['            SET NUM = FA + FB + FC.'],
+          data: [
+            dataCard(name: 'R1', level: '1', type: 'RECORD'),
+            dataCard(
+              name: 'FA',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+            dataCard(name: 'R2', level: '1', type: 'RECORD'),
+            dataCard(
+              name: 'FB',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+            dataCard(name: 'R3', level: '1', type: 'RECORD'),
+            dataCard(
+              name: 'FC',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+            dataCard(
+              name: 'NUM',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+          ],
+          environment: [
+            environmentCard(
+              name: 'TAPE1',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5',
+            ),
+            environmentCard(
+              name: 'TAPE2',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,R2,BLOCKSIZE 5',
+            ),
+            environmentCard(
+              name: 'TAPE3',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,R3,BLOCKSIZE 5',
+            ),
+          ],
+        ),
+        'a third base register in one statement (M4-9)',
       );
-      expect(ids(semantics), isEmpty, reason: 'the program must be valid');
-      expect(semantics.stopped, isFalse);
-      try {
-        runCodegen(semantics);
-        fail('generated code without refusing');
-      } on UnrecoveredShape catch (refusal) {
-        expect(refusal.shape, 'a third base register in one statement (M4-9)');
-      }
     });
 
     test('a positional indicator with no repeated ancestor', () {
       // The one route in is a program msg 98,00 already flags below
       // the stop severity — a subscripted flat item. The DO FOR must
       // come first: the flagged MOVE has a refusal site of its own.
-      final SemanticResult semantics = runJob(
-        data: _data(),
-        procedure: [
-          '            DO RTN FOR IDY = 1(1)12.',
-          '            MOVE STATE (IDY) TO ALF.',
-          ..._tail,
-        ],
+      expect(
+        _refuses(
+          [
+            '            DO RTN FOR IDY = 1(1)12.',
+            '            MOVE STATE (IDY) TO ALF.',
+          ],
+          flagged: ['98,00'],
+        ),
+        'a positional indicator with no repeated ancestor',
       );
-      expect(ids(semantics), ['98,00']);
-      expect(semantics.stopped, isFalse);
-      try {
-        runCodegen(semantics);
-        fail('generated code without refusing');
-      } on UnrecoveredShape catch (refusal) {
-        expect(
-          refusal.shape,
-          'a positional indicator with no repeated ancestor',
-        );
-      }
     });
   });
 }
