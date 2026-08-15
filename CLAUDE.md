@@ -274,7 +274,12 @@ Two consequences to expect:
 - One pull request per topic. The remote is `Screendead/comtran-compiler`.
 - CI must pass before a merge. Run the section 4 gate before you push.
 - Do not ask permission to make a branch, to commit to it, or to push it. Do
-  ask before you open a pull request, and never merge one: both are Jack's.
+  ask before you open a pull request: that call is Jack's. Merge on his word,
+  or on external-review convergence — both reviewers, `VERDICT: LGTM`, the
+  same head, under the REVIEW.md charter. His standing authorization of
+  2026-08-16: "a merge without my approval is explicitly approved by me"
+  when both reviewers converge. From M4 stage 2 on, a pull request needs
+  that convergence before merge unless Jack waives it.
 - **A question for Jack is a review record, not a chat message.** Whenever work
   stops and waits for him — a human-OCR request, a peer collision under section
   6, an authorization to change a conversion, a choice between designs — build
@@ -291,7 +296,8 @@ Two consequences to expect:
   skill — with the rejected options and their costs still written out. Jack
   can overturn it; silence lets it stand. The rule never covers a section 6
   peer collision, a change to a manual conversion, or the pull-request and
-  merge calls above. Those still stop and wait.
+  merge calls above. Opening waits for Jack; a merge waits for his word or
+  for external-review convergence.
 - Write short, imperative, jargonless commit messages.
 - Make atomic commits. Each component must work in each commit. Never split a
   working component across two commits.
