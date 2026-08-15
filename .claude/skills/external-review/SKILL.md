@@ -5,7 +5,7 @@ description: Run the two-family external review loop on a pull request — invok
 
 # External review
 
-The charter is the "External review" section of `REVIEW.md`. This skill
+The charter is `EXTERNAL-REVIEW.md` at the repository root. This skill
 is the procedure that runs it. Read the charter first. Where this file
 and the charter disagree, the charter wins.
 

@@ -97,6 +97,7 @@ clone does not have them.
 | the other files in `docs/design/` | The per-milestone and per-component design records |
 | `docs/comtran-language-definition.md` | The source language |
 | `REVIEW.md` | The criteria for every code review. `/code-review` injects the file into each review agent. |
+| `EXTERNAL-REVIEW.md` | The external-review charter: the two-family review loop and the merge rule |
 
 Two rules keep these apart:
 
@@ -277,10 +278,11 @@ Two consequences to expect:
   ask before you open a pull request: that call is Jack's. One merge rule
   governs: from M4 stage 2 on, a pull request merges on external-review
   convergence — both reviewers, `VERDICT: LGTM`, the same head, under the
-  REVIEW.md charter. Jack's instruction to merge is a waiver of that
-  requirement. A pull request that changes the charter, this section, or
-  the external-review skill merges only on his instruction. The charter
-  quotes his standing authorization of 2026-08-16 in full.
+  EXTERNAL-REVIEW.md charter. Jack's instruction to merge is a waiver of
+  that requirement. A pull request that changes REVIEW.md, the charter,
+  this section, or the external-review skill merges only on his
+  instruction. The charter quotes his standing authorization of
+  2026-08-16 in full.
 - **A question for Jack is a review record, not a chat message.** Whenever work
   stops and waits for him — a human-OCR request, a peer collision under section
   6, an authorization to change a conversion, a choice between designs — build
@@ -297,8 +299,8 @@ Two consequences to expect:
   skill — with the rejected options and their costs still written out. Jack
   can overturn it; silence lets it stand. The rule never covers a section 6
   peer collision, a change to a manual conversion, or the pull-request and
-  merge calls above. Opening waits for Jack; a merge waits for his word or
-  for external-review convergence.
+  merge calls above. Opening waits for Jack; a merge waits for the merge
+  rule above.
 - Write short, imperative, jargonless commit messages.
 - Make atomic commits. Each component must work in each commit. Never split a
   working component across two commits.
