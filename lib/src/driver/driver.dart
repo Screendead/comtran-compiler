@@ -26,6 +26,7 @@ final class JobCompilation {
     this.parse,
     this.semantics,
     this.codegen,
+    this.unrecovered,
     this.sink,
     this.diagnostics,
   );
@@ -41,8 +42,14 @@ final class JobCompilation {
   final SemanticResult? semantics;
 
   /// The generated object text, or `null` when an earlier phase
-  /// stopped (M4-2; D10.2).
+  /// stopped (M4-2; D10.2) or code generation refused ([unrecovered]).
   final CodegenResult? codegen;
+
+  /// The code generator's refusal, or `null`. A refusal is this
+  /// recovery's gap, not a 1962 diagnostic: it enters no sink and no
+  /// listing, the job keeps every earlier stage's result, and the next
+  /// job still compiles (M4-2 as amended; J 90.04.02).
+  final UnrecoveredShape? unrecovered;
 
   /// The job's diagnostic sink (D11.2): its `maxSeverity` decides the
   /// job's severity.
@@ -116,9 +123,19 @@ DeckCompilation compileDeck(
             tableLimits: tableLimits,
           );
     // A semantic stop skips code generation the same way (M4-2; D10.2).
-    final CodegenResult? codegen = semantics == null || semantics.stopped
-        ? null
-        : runCodegen(semantics);
+    // A refusal — a valid shape with no attested generated form — stops
+    // this job's code generation only: the refusal is this recovery's
+    // gap, not a 1962 diagnostic, so it enters no sink and the next job
+    // still compiles (M4-2 as amended; J 90.04.02).
+    CodegenResult? codegen;
+    UnrecoveredShape? unrecovered;
+    if (semantics != null && !semantics.stopped) {
+      try {
+        codegen = runCodegen(semantics);
+      } on UnrecoveredShape catch (refusal) {
+        unrecovered = refusal;
+      }
+    }
     final diagnostics = <Diagnostic>[
       ...semantics?.diagnostics ?? parse?.diagnostics ?? frontEnd.diagnostics,
     ];
@@ -161,6 +178,7 @@ DeckCompilation compileDeck(
         parse,
         semantics,
         codegen,
+        unrecovered,
         sink,
         List.unmodifiable(diagnostics),
       ),

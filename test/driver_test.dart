@@ -76,6 +76,34 @@ void main() {
       expect(deck.maxSeverity, 5);
     });
 
+    test('a codegen refusal never starves the next job '
+        '(M4-2 as amended)', () {
+      final DeckCompilation deck = compileDeck(
+        _deck([
+          r'$CMPLE JOBA',
+          '      *PROCEDURE',
+          "            DISPLAY 'HI'.",
+          '            STOP RUN.',
+          '      *FINISH',
+          r'$CMPLE JOBB',
+          '      *PROCEDURE',
+          '            STOP RUN.',
+          '      *FINISH',
+        ]),
+      );
+      final JobCompilation refused = deck.jobs[0];
+      expect(refused.unrecovered?.shape, 'DISPLAY ([J 90.01.01])');
+      expect(refused.codegen, isNull);
+      // The refusal is this recovery's, not a 1962 diagnostic: it
+      // rides outside the severity stream and the listing, and the
+      // job keeps every earlier stage's result.
+      expect(refused.diagnostics, isEmpty);
+      expect(refused.semantics, isNotNull);
+      expect(deck.maxSeverity, 0);
+      expect(deck.jobs[1].unrecovered, isNull);
+      expect(deck.jobs[1].codegen, isNotNull);
+    });
+
     test('a job closed by a compile card is accepted silently', () {
       // The recorded leniency (D11.1 rule e); --pedantic warns later.
       final DeckCompilation deck = compileDeck(

@@ -19,6 +19,8 @@ import 'procedure.dart';
 import 'storage_map.dart';
 import 'text_model.dart';
 
+export 'procedure.dart' show UnrecoveredShape;
+
 /// The words temporary storage reserves.
 ///
 /// A constant, and deliberately not a rule. The manuals hold no sizing
@@ -57,13 +59,12 @@ final class CodegenResult {
 
 /// Generates the object text of [semantics].
 ///
-/// Chunk B1 reports no diagnostic of its own, so the phase still takes
-/// no diagnostic sink and cannot stop. It sizes and places units from
-/// facts the semantic layer already validated, which is the same
-/// argument stage 1 made: no input can enter a `catch`, so D10.2's stop
-/// shape would be unreachable code. The shape arrives with the first
-/// generator that can detect an error, B2 (M4-2 as amended;
-/// CLAUDE.md section 11).
+/// The phase takes no diagnostic sink, because the one failure it can
+/// detect is not a diagnostic: a valid source shape the sample never
+/// reaches has no attested generated form, and none is invented. The
+/// sizers throw [UnrecoveredShape] at such a shape and the driver
+/// scopes the refusal to the job (M4-2 as amended 2026-08-15). The
+/// diagnostic sink arrives with chunk B8 (M4-1).
 CodegenResult runCodegen(SemanticResult semantics) {
   final List<AssemblyUnit> data = storageMapUnits(semantics);
   final int dataWords = semantics.areas.fold(
@@ -99,11 +100,7 @@ CodegenResult runCodegen(SemanticResult semantics) {
       // control group carries (D2.1). Its word and its operand are the
       // object deck's, which is stage 3's (M4-16); the `START` pseudo-op
       // itself is structural, and the line prints no offset.
-      AssemblyUnit(
-        operation: 'START',
-        operand: '',
-        location: semantics.areas.isEmpty ? 0 : dataWords,
-      ),
+      AssemblyUnit(operation: 'START', operand: '', location: dataWords),
     ],
     image: image,
   );

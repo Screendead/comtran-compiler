@@ -27,7 +27,12 @@ String emitCode(DeckCompilation deck) {
     out.writeln(jobHeader(index + 1));
     final CodegenResult? codegen = job.codegen;
     if (codegen == null) {
-      out.writeln(stageNotReached);
+      // A refused job reached this stage and declined the shape, so its
+      // marker names the shape rather than claiming an earlier stop.
+      final UnrecoveredShape? refusal = job.unrecovered;
+      out.writeln(
+        refusal == null ? stageNotReached : '* NOT RECOVERED: ${refusal.shape}',
+      );
       continue;
     }
     out.writeln('* TEXT');

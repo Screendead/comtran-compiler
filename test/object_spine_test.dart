@@ -30,23 +30,20 @@ bool _isFurniture(String line) =>
     line.startsWith('*CTEND') ||
     line == 'DONE';
 
-/// The `+n` offset lives between the label column and column 42. An
-/// operand can hold a `+` of its own and every operand prints past that
-/// zone, so the search must not run over the whole line.
-final RegExp _offsetDigits = RegExp(r'\+\d+');
-
-/// The LOC field of [line] and its `+n` offset.
+/// The LOC field of [line], then the name zone verbatim.
 ///
 /// LOC is five octal digits, or empty where the line prints none: a
 /// `USE` discontinuity, or the second line of a wrapped over-long label
-/// (M4-8.1). The offset counts printed lines since the last line that
-/// carried a name, so it tests where the labels landed, which the LOC
-/// column alone cannot (M4-20 item d).
+/// (M4-8.1). The zone is the 15-column label field, which holds every
+/// name B1 binds and every `+n` offset, byte for byte — so it tests
+/// which name each word took and how the offset is aligned, which the
+/// LOC column alone cannot (M4-20 item d; M4-6). The mnemonic column
+/// starts where the zone ends, and B2 owns it.
 String _spineField(String line) {
   final String loc = line.length < 5 ? '' : line.substring(0, 5).trim();
-  final int end = line.length < 43 ? line.length : 43;
+  final int end = line.length < 49 ? line.length : 49;
   final String zone = line.length < 34 ? '' : line.substring(34, end);
-  return '$loc ${_offsetDigits.stringMatch(zone) ?? ''}';
+  return '$loc ${zone.trimRight()}';
 }
 
 /// Our own lines carry no furniture, so every one of them is content. A

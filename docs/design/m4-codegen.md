@@ -102,12 +102,11 @@ M4 executes I/O-free programs.
   | B7 | The close-out — the `USE 1` and `BGN 2,PI)1` head rows, the four block sizes, the constant pool, the page furniture, and the full listing diff. |
   | B8 | The diagnostics — msg 942 widened (M4-5), ids 946 and 947 reserved (M4-18), and the D10.2 stop shape M4-2 defers to here. |
 
-  B1 comes first because the listing's addresses are continuous. A verb
-  site references `CP)+n`, `n.RS)m`, and absolute LOC values, so no site
-  matches byte for byte until every unit before it carries the right word
-  count. B1's oracle is therefore the LOC column of the whole target,
-  matched line for line, with the other columns still empty. B2 to B6
-  then each match their own attested sites, LOC included.
+  B1 comes first: no site matches byte for byte until every unit before
+  it carries the right word count. Its oracle is the LOC column and the
+  label field of the whole target, matched line for line, the other
+  columns still empty. B2 to B6 then each match their own attested
+  sites, LOC included.
 
 
 ## Pipeline position and the text model
@@ -122,14 +121,19 @@ M4 executes I/O-free programs.
   **Amended 2026-08-05, stage 1.** Stage 1 builds the storage map from
   facts the semantic layer already validated, so it detects no error and
   reports no diagnostic. Its stop shape was therefore unreachable: no
-  input could enter the `catch`, the `stopped` flag was always false, and
-  the diagnostic list was always empty. CLAUDE.md section 11 bans code
+  input could enter the `catch`. CLAUDE.md section 11 bans code
   that is neither exercised nor tested, and it outranks this record, so
   stage 1 ships without the shape. `runCodegen(SemanticResult) →
   CodegenResult` takes no diagnostic sink. The stop shape above binds
   stage 2, whose verb generators are the first code here that can detect
   an error; it arrives with them, sink and all. The driver's skip of a
   stopped earlier phase is unaffected and still holds.
+  **Amended 2026-08-15, chunk B1.** B1 does detect one failure: a valid
+  shape the sample never reaches, no generated form attested, none
+  invented. The refusal is this recovery's, not the program's — no
+  [J 90.04] message covers it — so it bypasses the sink: the sizers
+  throw `UnrecoveredShape`, the driver scopes it to the job, and later
+  jobs compile ([J 90.04.02]).
   The phase re-resolves nothing: data references
   come from `dataResolutions`, CORRESPONDING pairs from
   `correspondingPairs`, storage facts from `ItemSemantics`, initial words
@@ -286,22 +290,14 @@ M4 executes I/O-free programs.
   order over the generated text, and **the counter is not dense in the
   print** — the sample prints 085, 086, 088, 089, 091, 093 and never
   prints 084, 087, 090, 092. The attested assignments: GN)085
-  `EQU SEARCH+1` (loop-body entry), GN)086 (the increment block), GN)088
-  `EQU CP)+37` (the table-base initializer) for statement 206's
+  `EQU SEARCH+1`, GN)086 and GN)088 `EQU CP)+37` for statement 206's
   `DO SEARCH FOR`; GN)089 on the `IOST` word FILE MASTER patches at run
   time; GN)091 `EQU CP)+38` and GN)093 `EQU CP)+39` for the RETPREM (POS)
-  and INSPREM (POS) subscript bases. Working rule (ours, provisional):
-  each machinery site allocates the fixed label group its shape needs, and
-  a label lands unprinted when its word either falls through (a loop exit)
-  or takes an in-line form that needs no name (a pointer-update routine
-  absorbed into counter-0 text). Stage 2 pins the exact rule
-  instruction by instruction during the listing diff, the D5.1 decode
-  method; whichever mapping reproduces 084–093 exactly amends this entry
-  with the rule and the evidence. A design that assumes a dense counter is
-  wrong by construction.
-  **Amended 2026-08-11, chunk B1. The gap mechanism above is refuted; the
-  headline stands.** The working rule explains an unprinted name by a word
-  that falls through or takes an in-line form. Such a word would still
+  and INSPREM (POS) subscript bases.
+  **Amended 2026-08-11, chunk B1. The provisional gap mechanism is
+  refuted; the headline stands.** The first working rule (cut, spent)
+  explained an unprinted name by a word that falls through or
+  takes an in-line form. Such a word would still
   print its name: two names on one word print on two lines throughout the
   sample, `GN)076` over `GN)077` at LOC 01217 and `GN)082` over
   `SEARCH.END` at 01472, so the printer hides no name and an unprinted one
@@ -318,7 +314,8 @@ M4 executes I/O-free programs.
   table-base EQU heads the DO FOR block, the body-entry EQU stands
   before the prologue's last word, and a subscript store prints both
   recomputation EQUs, then the update blocks, in reverse
-  first-reference order.
+  first-reference order. The spine oracle reads the label field byte for
+  byte, proving the mapping against the target, not the goldens.
 
 ## The storage-map print
 
@@ -339,7 +336,7 @@ M4 executes I/O-free programs.
   2026-08-05). The golden runs from `USE 0` through LOC 00164. It does
   not hold `USE 1` or `BGN 2,PI)1`. Both carry Location Counter 1's
   origin, which follows the procedure text, so no stage without verb
-  generation can compute them. Stage 2 prepends the two rows.
+  generation can compute them. Chunk B1 prepends the two rows.
   Before the golden was committed, the 89 body rows were diffed against
   the 90.05 transcription. The M3 storage output already reproduces
   every LOC value, every `OCT` and `BSS` row, and every label, with no
@@ -525,8 +522,8 @@ M4 executes I/O-free programs.
      masked; otherwise the SYS)239–242 character movers through a MOVPAK
      dispatch entry. **Amended 2026-08-15, chunk B1: the mover run is
      sized from five sites** — `SYS)239` alone on equal storage lengths,
-     `SYS)240` then `SYS)241` on a shorter source — promoted from the
-     notes' section 3.3 observation, and thinner than any rule above.
+     `SYS)240` then `SYS)241` on a shorter source (the notes' section
+     3.3).
   3. **Numeric and edited classes**: route per the [J 02.04.03] chart
      through the internal-decimal hub, selecting the MOVPAK family —
      SYS)183 (XD→XD), 184 (XD→ID), 185 (XD→EF), 186/187/188 (ID→XD by
@@ -565,6 +562,12 @@ M4 executes I/O-free programs.
   Register use (ours, pinned at the diff): XR1 for the first buffer
   operand of a statement, XR2 for the second; XR4 stays the linkage
   register ([J 02.08.03] destroys it on located references).
+  **Amended 2026-08-15, chunk B1, the liveness composite** (pinned at
+  the diff; deciding sites in the notes' Question 2 addendum): a
+  register already holding its locator is reused, no words. The cache
+  clears whole at a labelled word, a section entry and a subroutine
+  call; a register write kills that register alone, at statement
+  distance, the kill deferred to a CORRESPONDING expansion's end.
   The MOVPAK dispatch entries and their return-skip convention: SYS)179
   (both descriptors in the calling sequence, resume 3,4), SYS)180 (target
   only, 2,4), SYS)181 (source only, 2,4), SYS)182 (both preset, 1,4) —
@@ -610,9 +613,7 @@ M4 executes I/O-free programs.
     store recomputes from the stored value — the attested
     `LDQ var / MPY CP)+stride / XCA / ADD base / STO PI)n` sequence
     (statement 225, LOC 01421–01432) — indexing by the raw stored
-    digits, no scaling step (M3-20). The exact in-line lookup and update
-    shapes are pinned
-    against the sample's subscript sites during the diff.
+    digits, no scaling step (M3-20).
   - `SET condition.name` stores the COND entry's constant into the
     conditional variable under the variable's own format (D5.6) — an
     ordinary constant store, no special machinery.
@@ -1067,4 +1068,6 @@ M4 executes I/O-free programs.
 [J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.29]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.03.03]: ../../comtran-manuals/J28-6169/90.03-object-deck-format.md#3-file-check-entry-specifications
+[J 90.04]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#appendix-9004
+[J 90.04.02]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#a-error-messages
 [J 90.08]: ../../comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md#appendix-9008

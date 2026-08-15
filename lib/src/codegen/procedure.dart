@@ -36,7 +36,6 @@ final class ProcedureText {
   const ProcedureText({
     required this.units,
     required this.words,
-    required this.entry,
     required this.poolWords,
   });
 
@@ -45,9 +44,6 @@ final class ProcedureText {
 
   /// Words the text takes on Location Counter 0.
   final int words;
-
-  /// The word the object deck enters at — `GN)000` (D2.1).
-  final int entry;
 
   /// The constant pool's entry count after layout (M4-4).
   final int poolWords;
@@ -77,11 +73,28 @@ ProcedureText generateProcedure(
   return text.result();
 }
 
+/// A refusal of this recovery, not a diagnostic of the program.
+///
+/// The sample never reaches the refusing site, so no generated shape
+/// is attested and none is invented (the notes, section 7). The 1962
+/// compiler had code for the shape, so no [J 90.04] message and no
+/// severity fits: the refusal rides outside the D10.2 stream, enters
+/// no sink and no listing. The driver catches it per job, and a later
+/// job still compiles (J 90.04.02's shape; M4-2 as amended).
+final class UnrecoveredShape implements Exception {
+  UnrecoveredShape(this.shape);
+
+  /// The unattested shape, named for the report.
+  final String shape;
+
+  @override
+  String toString() => 'unrecovered shape: $shape';
+}
+
 /// A rule this chunk has no ground for. The sample never reaches these
 /// sites, so no shape is attested and none is invented (CLAUDE.md §11;
 /// notes section 7).
-Never _unruled(String what) =>
-    throw StateError('no attested shape: $what (chunk B1, notes section 7)');
+Never _unruled(String what) => throw UnrecoveredShape(what);
 
 /// The three outcomes of a skip vector, in slot order ([J 90.02.12]).
 enum _Outcome { greater, equal, less }
@@ -251,7 +264,6 @@ final class _Text {
     return ProcedureText(
       units: _units,
       words: _location - _origin,
-      entry: _origin,
       poolWords: _layout.length,
     );
   }
@@ -379,9 +391,11 @@ final class _Text {
       return;
     }
     if (_located(item)) {
-      if (_sem(item).variableLength) {
-        _unruled('the complex base locator ([J 90.02.11] case 3)');
-      }
+      // A located record never holds a variable-length item: an input
+      // record containing one transmits instead (J 02.07.03;
+      // J 90.01.01, the binder's record classification), so this
+      // descriptor's byte offset is a compile-time constant.
+      assert(!_sem(item).variableLength, 'the binder bars this shape');
       _descriptor(item);
       words(3); // CAL BL)n / ACL CP)+nn / SLW.
       return;
@@ -416,9 +430,10 @@ final class _Text {
   /// makes the mask insert's shift distance zero by construction.
   PoolHandle _alphamericLiteral(Token literal, {int offset = 0}) {
     final String text = literal.text;
-    if (offset + text.length > 6) {
-      _unruled('an alphameric literal past its word (notes section 7)');
-    }
+    assert(
+      offset + text.length <= 6,
+      'the caller guards the word boundary before pooling',
+    );
     var word = 0;
     for (var i = 0; i < 6; i++) {
       final int j = i - offset;
@@ -586,7 +601,11 @@ final class _Text {
 
   void _stop(StopClause clause, {required bool run}) {
     if (!run) {
-      words(3); // STOP n: the SYS)178 call alone (M4-14; D2.7).
+      // STOP n: the SYS)178 call alone, no close-all and no monitor
+      // transfer (M4-14; D2.7). SYS)178's parameters carry the
+      // statement stamp, so the pair pools here too (M4-14).
+      _stamp(_statement, _ordinals[clause] ?? 0);
+      words(3);
       _callClears();
       return;
     }
@@ -1105,6 +1124,11 @@ final class _Text {
       chainScale = scale > chainScale ? scale : chainScale;
     }
     for (final term in terms) {
+      // The sample's chains never subscript a term, so the multi-term
+      // arms refuse one exactly as the single-term arm above does.
+      if (term case NameOperand(:final name) when name.subscripts.isNotEmpty) {
+        _unruled('a subscripted chain operand (no sample instance)');
+      }
       final int deficit = chainScale - _naturalScale(term);
       switch (term) {
         case NameOperand(:final name) when deficit == 0:
@@ -1342,22 +1366,16 @@ final class _Text {
     required bool falseFalls,
   }) {
     switch (acc) {
-      case FigurativeOperand(:final word) when !_zero(word):
-        _unruled('a figurative numeric comparison (no sample instance)');
       case LiteralOperand(:final literal) when _literalValue(literal).$1 != 0:
         _numericLiteral(literal);
         word(); // CLA CP)+nn.
-      case FigurativeOperand() || LiteralOperand():
-        // The zero: aligned to the storage operand's scale when they
-        // differ, one plain load otherwise.
-        final int deficit = _operandScale(storage);
-        _pool.seed(0);
-        if (deficit > 0) {
-          _pool.machineWord(_pow10(deficit));
-          words(3);
-        } else {
-          word();
-        }
+      // Only a zero figurative reaches the zero build: legality bars
+      // the others against a numeric operand (msg 82,00), and one that
+      // slipped through would take the default refusal below.
+      case FigurativeOperand(:final word) when _zero(word):
+        _zeroBuild(storage);
+      case LiteralOperand():
+        _zeroBuild(storage);
       case NameOperand(:final name):
         if (name.subscripts.isNotEmpty) {
           words(2); // The positional-indicator prologue.
@@ -1387,6 +1405,19 @@ final class _Text {
   }
 
   bool _zero(Token figurative) => figurative.text.startsWith('ZERO');
+
+  /// The zero side of a numeric comparison: aligned to the storage
+  /// operand's scale when they differ, one plain load otherwise.
+  void _zeroBuild(ArithExpr storage) {
+    final int deficit = _operandScale(storage);
+    _pool.seed(0);
+    if (deficit > 0) {
+      _pool.machineWord(_pow10(deficit));
+      words(3);
+    } else {
+      word();
+    }
+  }
 
   int _operandScale(ArithExpr operand) => switch (operand) {
     NameOperand(:final name) => _sem(_item(name)!).fractionDigits,
@@ -1424,6 +1455,10 @@ final class _Text {
     if (storageExtraction == 0) {
       if (storage case NameOperand(:final name)) {
         _loadBaseOf(_item(name)!);
+      } else {
+        // A literal or figurative here would need a pool word no
+        // sample site attests.
+        _unruled('a comparison of ${storage.runtimeType}');
       }
       word(); // CAS or LAS against the field itself.
     } else {
