@@ -6,15 +6,22 @@ description: Build a review record when a task needs Jack's eyes — a human-OCR
 # Review records
 
 A **review record** is what this repository produces whenever work stops and
-waits for Jack. It replaces a question typed into chat.
+waits for Jack, and whenever a decision he could have been asked was made
+without him. It replaces a question typed into chat.
 
-Build one for either trigger:
+Build one for any of three triggers:
 
 - **A human-OCR request.** A glyph, a column, or a mark that the ink does not
   settle, where a human eye is the last authority.
 - **Any end-of-turn question that needs Jack's answer** before work continues:
   a peer collision under `CLAUDE.md` section 6, an authorization to change a
   read-only conversion, a choice between designs.
+- **A one-viable-option decision, taken without stopping** under the standing
+  rule of `CLAUDE.md` section 12 (Jack's call, 2026-08-15). The record uses
+  the same format as a question, recast as the explanation of a decision
+  made: the `DECIDED` status below. Jack's attention is metered, so the
+  explanation must state the decision, the rejected options with their
+  costs, and what an overturn would cost — compactly, at the top.
 
 The record is not a summary written after the fact. It is the artifact that
 carries the question, and then, after Jack answers, the artifact that carries
@@ -40,13 +47,17 @@ a later reader needs the evidence and the reasoning, not a conclusion.
 5. **The process ends with his response.** Add his rulings to `index.html` as a
    dated banner, and commit that as a second commit on the same branch. Leave
    the per-item chips as they were: the record must show the question as well
-   as the answer.
+   as the answer. A record whose items are all `DECIDED` or `SETTLED` needs no
+   response: silence lets the decisions stand, and the record stays at one
+   commit unless he overturns one.
 6. **The pull request references the orphan** by branch name, commit, and a
    `tree/` link.
 7. **Jack's response settles the pull request too.** The answer that closes the
    questions is the authorization to open it, so the standing rule of section 12
    — ask before opening — is satisfied by the review cycle itself. Say in the
-   description that you read it that way.
+   description that you read it that way. An all-`DECIDED` record has no
+   response to lean on, so it authorizes nothing: ask before opening, as
+   section 12 says.
 
 `/reviews/` is in `.gitignore`, so a record cannot ride into a topic branch by
 accident.
@@ -58,8 +69,10 @@ Density and honesty rules from `CLAUDE.md` bind this document. Beyond them:
 - **Open with the answer**, in a short numbered block. A reader who stops after
   it should still know what happened.
 - **One section per item.** Each carries its own status: what it asks of Jack.
-  Use three, and no more: `HUMAN OCR` for a reading only a human can settle,
-  `YOUR CALL` for a judgment made that he can overturn, `SETTLED` for something
+  Use four, and no more: `HUMAN OCR` for a reading only a human can settle,
+  `YOUR CALL` for a judgment that stops and waits for him, `DECIDED` for a
+  one-viable-option decision taken under the section 12 standing rule — he
+  can overturn it, and silence lets it stand — and `SETTLED` for something
   recorded for the account and needing nothing.
 - **Show the evidence before the argument.** The crop first, then the
   measurements, then the reading.

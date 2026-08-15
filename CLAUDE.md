@@ -283,6 +283,14 @@ Two consequences to expect:
   references the orphan. Read `.claude/skills/review-records/SKILL.md` before
   you build one. His answer is also the authorization to open that pull
   request, so the review cycle satisfies the rule above.
+- **A decision with one viable option does not stop and wait.** Standing rule,
+  Jack's call of 2026-08-15. When rank, precedent, and the evidence leave one
+  course open, take it. Build the same record, in the same format, but as the
+  explanation of a decision made — the `DECIDED` status of the review-records
+  skill — with the rejected options and their costs still written out. Jack
+  can overturn it; silence lets it stand. The rule never covers a section 6
+  peer collision, a change to a manual conversion, or the pull-request and
+  merge calls above. Those still stop and wait.
 - Write short, imperative, jargonless commit messages.
 - Make atomic commits. Each component must work in each commit. Never split a
   working component across two commits.
