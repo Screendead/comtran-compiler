@@ -27,18 +27,18 @@ and the charter disagree, the charter wins.
    review on the wrong configuration is void.
 3. Type the charter's fixed line. Type nothing else. Do not record the
    session. Make no GIF, and keep no image of a reviewer tab. A
-   reviewer tab shows the titles of Jack's other chats. The audit trail
-   is the verbatim review and its share URL on the pull request.
+   reviewer tab shows the titles of Jack's other chats. The verbatim
+   review on the pull request is the audit trail.
 4. Wait. A review takes minutes. Poll the tab with `read_page` no more
    than once each minute.
 5. If a reviewer stalls or asks a question, send the charter's one
    recovery line. The charter sets the failure limit.
-6. Copy each finished review verbatim, and take the chat's share URL.
-   Post one PR comment per review:
+6. Copy each finished review verbatim. Do not share the chat. Post one
+   PR comment per review:
 
        ## External review — round <N> — <reviewer>
 
-       Head reviewed: `<sha>`. Share URL: <url>.
+       Head reviewed: `<sha>`.
 
        <the verbatim review>
 

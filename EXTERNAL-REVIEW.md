@@ -18,8 +18,8 @@ The rules:
 1. The orchestrator is Claude Code, the pull request's author. It
    types only the fixed lines below into a reviewer chat. It never
    edits reviewer text. It relays each review to the pull request
-   verbatim, as a comment, with the chat's share URL and the head the
-   review names.
+   verbatim, as a comment, with the head the review names. It does not
+   share the chat, and it posts no link to it.
 2. Round 1 is isolated. Each reviewer starts a fresh chat and fetches
    the pull request, its branch, and the repository itself. It does
    not see the author's rationale or the other reviewer.
