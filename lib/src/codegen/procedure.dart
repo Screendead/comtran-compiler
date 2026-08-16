@@ -178,6 +178,12 @@ final class _Text {
         continue;
       }
       for (final Sentence sentence in group.sentences) {
+        if (_beginsSection(sentence)) {
+          final String? label = sentence.scan.label;
+          if (label != null) {
+            _sections.add(label);
+          }
+        }
         for (final Clause clause in clauseTree(sentence.clauses)) {
           if (clause case DoClause(:final procedure)) {
             _doTargets.add(procedure.text);
@@ -222,6 +228,10 @@ final class _Text {
   /// Procedure names at least one DO (or bare-name AT END) calls: these
   /// paragraphs carry a return cell (catalogue 4.1 — call-site-driven).
   final Set<String> _doTargets = <String>{};
+
+  /// Section names: every section carries a return cell whether or not
+  /// a DO addresses it (catalogue 4.1).
+  final Set<String> _sections = <String>{};
 
   /// The base locator serving each located record, `BL)2` on (M4-4).
   final Map<DataItem, int> _baseLocators = <DataItem, int>{};
@@ -987,6 +997,14 @@ final class _Text {
         if (_sentenceLabel == null) {
           _unruled('an unnamed section (no sample instance)');
         }
+        if (_openSection != null) {
+          // Overwriting the open name would drop its return; every
+          // sample section ends before the next begins.
+          _unruled(
+            'a section beginning inside an open section '
+            '(no sample instance)',
+          );
+        }
         _openSection = _sentenceLabel;
         _section += 1;
         // Every section carries a return cell (catalogue 4.1).
@@ -1073,10 +1091,11 @@ final class _Text {
       _unruled('the assigned GO TO (M4-12; no sample instance)');
     }
     for (final GoToTarget target in clause.targets) {
-      if (_doTargets.contains(target.name.text)) {
+      if (_doTargets.contains(target.name.text) ||
+          _sections.contains(target.name.text)) {
         // A celled target: no rule picks the cell against the word
         // after it, and every attested target is cell-less.
-        _unruled('a GO TO naming a DO-called procedure (M4-12)');
+        _unruled('a GO TO naming a celled procedure (M4-12)');
       }
       final CondExpr? condition = target.when;
       if (condition == null) {

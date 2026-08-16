@@ -247,8 +247,9 @@ M4 executes I/O-free programs.
   refuted; the headline stands.** The first working rule (cut, spent)
   read the unprinted names as bound but unprinted; the printer hides
   none — two names on one word print on two lines, at LOC 01217 and
-  01472 — so an unprinted name was never bound. The pass walks the text in ascending object address and
-  gives each machinery site one contiguous run. Statement 206's `DO … FOR`
+  01472 — so an unprinted name was never bound. The pass walks the
+  text in ascending object address and gives each machinery site one
+  contiguous run. Statement 206's `DO … FOR`
   takes 084 to 088 and binds 085, 086 and 088; statement 208's `FILE` of a
   buffered record takes 089 and 090 and binds 089; each subscripted
   reference of statement 225 takes two and binds the first. That
@@ -699,7 +700,7 @@ M4 executes I/O-free programs.
     (statement 200's `RS)0`, one site).
   - **The spill mirrors the outcomes.** `LAS` reads the accumulator
     against storage, and after the spill the accumulator holds the
-    second operand (external: 22-6528-4). The one site is a
+    second operand (derived; external: 22-6528-4). The one site is a
     symmetric NOT EQUAL and cannot show the swap.
   - **The subscripted comparand's prologue** is `LAC PI)n,r /
     TXL SYS)294,r,0`, the register the lowest free one under M4-9's
@@ -734,10 +735,9 @@ M4 executes I/O-free programs.
   `--no-goto-range-check`, recorded here; it removes the bounds test
   only.
   **Amended 2026-08-16, chunk B5. The generator fills every transfer
-  site.** One refusal: a GO TO naming a DO-addressed procedure. Msg
-  128 records the 1962 bypass, no site shows the bypass's object
-  form, so the shape refuses behind the message the front end already
-  issues.
+  site.** Refusals: the B1 assigned form stands, and a GO TO naming a
+  celled procedure — a DO target (behind msg 128, the 1962 bypass) or
+  a section. No site shows either transfer's object form.
 
 ## DO
 
@@ -775,17 +775,17 @@ M4 executes I/O-free programs.
   - Literal p, q, r bake into pool constants; a named parameter is
     read where the expansion reads it — p at entry, q and r each pass
     (F's order; §8.5 Open Question 36 disposition, M4-21).
-  - `DO … EXACTLY n TIMES` (no sample instance, ours): the same
-    patch-once machinery with a generated counter cell, counting down from
-    n with the magnitude exit.
+  - `DO … EXACTLY n TIMES` (no sample instance, ours): the patch-once
+    machinery with a generated counter cell, counted down from n to
+    the magnitude exit.
   - Multi-index DO: nested increment-and-test blocks, innermost first,
     rightmost index varying fastest; the outer index increments, never
     reassigns (D5.2).
   - USING and GIVING lower as MOVEs around the bare DO — parameters in
     before the call, results out after it, full MOVE editing per pair
     (M3-19; [F p. 53]'s expansion).
-  - Recursion is not guarded: a second activation overwrites the cell,
-    and the emulator reproduces the wild return (D5.7). Nested
+  - Recursion is unguarded: a second activation overwrites the cell;
+    the emulator reproduces the wild return (D5.7). Nested
     non-recursive DO is unrestricted.
   - `--pedantic` sites (D11.4; ids from M4-18): constant p, q, r whose
     (r − p) is not a whole multiple of q, or q zero or wrong-signed
@@ -793,14 +793,17 @@ M4 executes I/O-free programs.
   **Amended 2026-08-16, chunk B5. The generator fills the linkage.**
   The fill fixed:
   - The return's flag bits print as octal group 60 (LOC 00350).
-  - The loop entry's transfer prints `P+1`; the back edge prints the
-    body-entry EQU name against the same address (00710, 00721).
-  - A paragraph with no written END closes at the next label — the
-    attested GN)067 — or at a bare END, through the cell either way.
-  Five refusals: an unnamed section; an END inside an open paragraph
-  and an open section; a DO FOR index undefined (behind msg 108) or
-  under a located record; a DO FOR driving two indicators — the M4-6
-  name run is fitted to one.
+  - The loop entry prints `P+1`; the back edge prints the body-entry
+    EQU name — one address, two prints (00710, 00721).
+  - A paragraph with no written END closes at the next label
+    (attested: GN)067) or at a bare END, both through the cell.
+  Six refusals:
+  - an unnamed section;
+  - a section beginning inside an open section;
+  - an END inside an open paragraph and an open section;
+  - a DO FOR index undefined (behind msg 108) or under a located
+    record;
+  - a DO FOR driving two indicators — the M4-6 name run fits one.
 
 ## STOP and the statement stamps
 

@@ -728,7 +728,34 @@ void main() {
           ['            DO RTN.', '            GO TO RTN.'],
           flagged: ['128,00'],
         ),
-        'a GO TO naming a DO-called procedure (M4-12)',
+        'a GO TO naming a celled procedure (M4-12)',
+      );
+    });
+
+    test('a GO TO naming a section', () {
+      // A section carries a cell even with no DO, and this shape
+      // reaches the sizers with no diagnostic at all.
+      expect(
+        _refuses([
+          '            GO TO SEC.',
+          '      SEC.  BEGIN SECTION.',
+          '            SET NUM = NUM + NUM.',
+          '            END SEC.',
+        ]),
+        'a GO TO naming a celled procedure (M4-12)',
+      );
+    });
+
+    test('a section beginning inside an open section', () {
+      expect(
+        _refuses([
+          '      S1.   BEGIN SECTION.',
+          '            SET NUM = NUM + NUM.',
+          '      S2.   BEGIN SECTION.',
+          '            SET NUM = NUM + NUM.',
+          '            END S2.',
+        ]),
+        'a section beginning inside an open section (no sample instance)',
       );
     });
 
