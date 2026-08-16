@@ -1,0 +1,34 @@
+The two receivers of statement 208, as the data division describes them.
+From test/fixtures/90.05-payroll.ct.
+
+      CHECK           01RECORD
+       CNTRLCHAR      02             A '1'
+       DATE           02
+        MONTH         03             AA
+                      03             A '-'
+        DAY           03             AA
+                      03             A '-'
+        YEAR          03             AA
+                      03             A(30) ' '
+       EMPLOYEE.NUMBER02             A(6)
+       ENDFRSTLINE    02RCDMRK       A
+       CNTRLCHARSECLIN02             A '2'
+       NAME           02             A(18)
+                      02             A(20) ' '
+       AMOUNT         02             $8889.99
+
+      PAYRECORD        1RECORD
+       EMPLOYEE.NUMBER 2
+        DEPARTMENT     3             AA
+                       3             A ' '
+        EMPLOYEE       3             AAAA
+                       3             A ' '
+       NAME            2             A(15)
+                       2             A ' '
+       DATE            2
+        MONTH          3             AA
+                       3             A '-'
+        DAY            3             AA
+                       3             A '-'
+        YEAR           3             AA
+                       2             AAA ' '

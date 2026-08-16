@@ -1,0 +1,339 @@
+"""Assemble the chunk B2 underdetermined-rules record page.
+
+Run it from anywhere; it writes `index.html` into the record directory
+above this one. The page is standalone: the listing excerpts are inlined,
+and the full files ship alongside in `evidence/`.
+"""
+
+import html
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REC = os.path.dirname(HERE)
+OUT = os.path.join(REC, "index.html")
+
+GH = (
+    "https://github.com/Screendead/comtran-compiler/blob/"
+    "1b6d804c8c946fd81494398ced7a157e60fa3c94"
+)
+
+
+def pre(path, first=None, last=None):
+    with open(os.path.join(REC, path), encoding="utf-8") as fh:
+        lines = fh.read().splitlines()
+    if first is not None or last is not None:
+        lines = lines[first:last]
+    body = html.escape("\n".join(lines))
+    return (
+        f'<figure><div class="plate"><pre>{body}</pre></div>'
+        f"<figcaption>{html.escape(path)}</figcaption></figure>"
+    )
+
+
+HTML = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chunk B2 — two rules one program cannot settle</title>
+<style>
+:root {{
+  --paper:#F7F8F6; --raised:#FFFFFF; --ink:#14171A; --muted:#5C6560;
+  --rule:#C9CFC8; --hair:#E1E5DF; --stamp:#B3261E; --stamp-soft:#FBEAE8;
+  --settled:#40685A;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+}}
+@media (prefers-color-scheme:dark) {{
+  :root:not([data-theme="light"]) {{
+    --paper:#141715; --raised:#1C201D; --ink:#E7EBE5; --muted:#9AA69D;
+    --rule:#3A423C; --hair:#2A302C; --stamp:#FF7A6B; --stamp-soft:#33201D;
+    --settled:#7FB8A2;
+  }}
+}}
+:root[data-theme="dark"] {{
+  --paper:#141715; --raised:#1C201D; --ink:#E7EBE5; --muted:#9AA69D;
+  --rule:#3A423C; --hair:#2A302C; --stamp:#FF7A6B; --stamp-soft:#33201D;
+  --settled:#7FB8A2;
+}}
+* {{ box-sizing:border-box; }}
+body {{
+  background:var(--paper); color:var(--ink); font-family:var(--serif);
+  font-size:17px; line-height:1.62; margin:0;
+  padding:clamp(1.5rem,4vw,4rem) clamp(1rem,5vw,2rem);
+}}
+main {{ max-width:47rem; margin:0 auto; display:flex; flex-direction:column; gap:2.4rem; }}
+h1 {{ font-size:clamp(1.7rem,4.2vw,2.4rem); line-height:1.16; margin:0; text-wrap:balance;
+     letter-spacing:-0.015em; }}
+h2 {{ font-size:1.32rem; margin:0 0 .2rem; text-wrap:balance; letter-spacing:-0.01em; }}
+h3 {{ font-size:1.02rem; margin:1.6rem 0 .3rem; }}
+p, li {{ margin:0 0 .85rem; }}
+li:last-child {{ margin-bottom:0; }}
+ul, ol {{ padding-left:1.15rem; margin:0 0 .85rem; }}
+a {{ color:var(--ink); text-decoration-color:var(--rule); text-underline-offset:.16em; }}
+a:hover {{ text-decoration-color:var(--stamp); }}
+a:focus-visible {{ outline:2px solid var(--stamp); outline-offset:2px; border-radius:2px; }}
+code {{ font-family:var(--mono); font-size:.87em; background:var(--hair);
+        padding:.08em .3em; border-radius:2px; }}
+.eyebrow {{ font-family:var(--mono); font-size:.7rem; letter-spacing:.16em;
+            text-transform:uppercase; color:var(--muted); margin:0 0 .7rem; }}
+header {{ border-bottom:2px solid var(--ink); padding-bottom:1.4rem; }}
+header p.standfirst {{ font-size:1.06rem; color:var(--muted); margin:.75rem 0 0; }}
+section {{ display:flex; flex-direction:column; gap:.2rem; }}
+.answer {{ background:var(--raised); border:1px solid var(--hair);
+           border-left:3px solid var(--ink); padding:1.15rem 1.3rem; }}
+.answer ol {{ margin:0; padding-left:1.2rem; }}
+.answer li {{ margin-bottom:.5rem; }}
+.chip {{ font-family:var(--mono); font-size:.66rem; letter-spacing:.14em;
+         text-transform:uppercase; padding:.24em .6em; border-radius:2px;
+         border:1px solid currentColor; white-space:nowrap; }}
+.chip.decided {{ color:var(--stamp); background:var(--stamp-soft); }}
+.chip.done {{ color:var(--settled); }}
+.itemhead {{ display:flex; gap:.75rem; align-items:baseline; flex-wrap:wrap;
+             margin-bottom:.35rem; }}
+.item {{ border-top:1px solid var(--rule); padding-top:1.3rem; }}
+.item.needs {{ border-top:2px solid var(--stamp); }}
+table {{ border-collapse:collapse; width:100%; font-size:.87rem; }}
+.scroll {{ overflow-x:auto; margin:.5rem 0 1rem; }}
+th, td {{ text-align:left; padding:.42rem .7rem .42rem 0; border-bottom:1px solid var(--hair);
+          vertical-align:top; }}
+th {{ font-family:var(--mono); font-size:.68rem; letter-spacing:.11em; text-transform:uppercase;
+      color:var(--muted); font-weight:400; border-bottom:1px solid var(--rule); }}
+td.num {{ font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap; }}
+figure {{ margin:1rem 0 1.2rem; }}
+.plate {{ background:var(--raised); border:1px solid var(--rule); padding:.55rem;
+          overflow-x:auto; }}
+.plate pre {{ margin:0; font-family:var(--mono); font-size:.78rem; line-height:1.5; }}
+figcaption {{ font-family:var(--mono); font-size:.71rem; line-height:1.5; color:var(--muted);
+              margin-top:.5rem; }}
+.opt {{ border-left:3px solid var(--rule); padding:.15rem 0 .15rem 1rem; margin:0 0 1rem; }}
+.opt.pick {{ border-left-color:var(--stamp); }}
+.opt .name {{ font-family:var(--mono); font-size:.75rem; letter-spacing:.08em;
+              text-transform:uppercase; }}
+footer {{ border-top:1px solid var(--rule); padding-top:1rem; font-size:.85rem;
+          color:var(--muted); }}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+<p class="eyebrow">Review record · 2026-08-16 · chunk B2 · commit 1b6d804</p>
+<h1>Two rules one program cannot settle</h1>
+<p class="standfirst">Chunk B2 is the first verb generator: it fills the
+mnemonic, operand and OCTAL columns of every MOVE the 1962 payroll sample
+compiles, and every line it fills matches the listing byte for byte. Six
+rules carry it. Four are attested at several sites. Two are not — one
+statement attests each, and a rival formulation fits the same ink. Both
+are taken under the section 12 standing rule, and silence lets them
+stand.</p>
+</header>
+
+<section class="answer">
+<h2>What was decided, in four lines</h2>
+<ol>
+<li><strong>The CORRESPONDING emission order</strong> is level-major:
+pairs matched at a receiver's own level go first, receivers keep the
+clause's order, and within one receiver the matched groups emit in
+reverse description order. Statement 208 is the only statement that
+exercises the tie-break.</li>
+<li><strong>A two-factor product loads the literal into the Q
+register</strong>, and where neither factor is a literal the right one
+goes there. Three sites attest it, and the sample has no product of two
+literals to separate this from the near-identical rival.</li>
+<li>Each rejected formulation reproduces the 1962 listing exactly as
+well. They part on inputs the one surviving program never contains, so
+no evidence can choose between them and no further scan work would
+help.</li>
+<li>Both are one commit to overturn, in
+<code>lib/src/codegen/procedure.dart</code>, and nothing outside that
+file depends on either.</li>
+</ol>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>1 · The order CORRESPONDING emits its pairs</h2></div>
+
+<p><strong>The decision.</strong> The matched pairs sort on three keys, in
+this order: the depth of the receiving item below its record, then the
+receiver's position in the clause, then the matched group in reverse
+description order. Pairs inside one group keep their description order.
+<code>_emissionOrder</code> in
+<a href="{GH}/lib/src/codegen/procedure.dart">procedure.dart</a> implements
+it, and M4-9 item (d) records it.</p>
+
+<p><strong>Why the order matters at all.</strong> A base-register guard is
+emitted once and serves every later word that reads the same locator, and
+a MOVPAK dispatch kills the register cache. So the sequence of pairs
+decides how many guards the program contains. Get the order wrong and the
+word count changes, which moves every address after it.</p>
+
+<p><strong>The evidence for the level rule.</strong> Statement 221,
+<code>MOVE CORRESPONDING MASTER TO BONDORDER</code>, has one receiver, so
+it isolates depth from everything else. <code>DATE</code> and
+<code>BONDENOMINATION</code> sit at BONDORDER's own level and emit first,
+at LOC 01322 and 01324. <code>EMPLOYEE.NUMBER</code> and
+<code>NAME</code>, both inside a matched group, follow at 01332 and 01345.
+The last of them dispatches through MOVPAK at 01352, and any pair placed
+after that dispatch would have to reload its base register:</p>
+{pre("evidence/statement-221-corresponding.txt")}
+
+<p><strong>What statement 208 does settle.</strong>
+<code>MOVE CORRESPONDING DETAIL TO PAYRECORD, CHECK</code> is the only
+statement in the program with two receivers, and it settles that depth
+beats the clause's order. CHECK's <code>EMPLOYEE.NUMBER</code> is
+elementary at CHECK's own level, and it emits first, at LOC 00771, ahead
+of all five PAYRECORD pairs — though PAYRECORD is the first receiver
+written. The three CHECK pairs, all inside CHECK's <code>DATE</code>
+group, come last. A receiver-at-a-time expansion is therefore refuted: it
+would have finished PAYRECORD before touching CHECK.</p>
+
+<p><strong>The evidence for the tie-break, and its whole basis.</strong>
+PAYRECORD has two matched groups. The description writes
+<code>EMPLOYEE.NUMBER</code> first, holding <code>DEPARTMENT</code> and
+<code>EMPLOYEE</code>, then <code>DATE</code>, holding
+<code>MONTH</code>, <code>DAY</code> and <code>YEAR</code>. The listing
+emits <code>DATE</code> first, at LOC 01006 to 01025, and
+<code>DEPARTMENT</code> only at 01026. That one reversal is the entire
+evidence for the third sort key:</p>
+{pre("evidence/statement-208-corresponding.txt", 4, 28)}
+<p>The full excerpt through LOC 01067, and both receiver descriptions,
+ship in <code>evidence/</code>.</p>
+
+<p><strong>What would mislead.</strong> Two groups is the smallest number
+that can show a reversal, and it is also too few to tell a reversal from
+several other orders. Sorting PAYRECORD's groups by descending target
+address gives the same answer here: <code>DATE</code>'s targets sit at
+00024 and 00025, and <code>DEPARTMENT</code> and <code>EMPLOYEE</code>
+both sit at 00020.</p>
+
+<p><strong>The rejected options.</strong></p>
+<div class="opt">
+<p><span class="name">A — sort the groups by descending target address</span><br>
+Cost: it fits both attested statements exactly as well, and it is a worse
+rule for a reader. Address order is an accident of how the receiver was
+laid out, so the rule would silently reorder a clause when a field moved
+in storage, and nothing in the listing would explain why. It also has no
+meaning across receivers, where one address is absolute and the other an
+offset from a base register, so it could never be the whole rule.</p>
+</div>
+<div class="opt">
+<p><span class="name">B — refuse every clause with two receivers</span><br>
+Generate nothing where the tie-break is load-bearing, under the M4-2
+refusal doctrine. Cost: statement 208 is in the sample, so the sample
+would stop compiling and chunk B2 could not exist. The refusal doctrine
+covers shapes the sample never reaches; this shape is the sample.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">C — the three-key sort (taken)</span><br>
+It is the smallest rule that reproduces the attested order, it states its
+own basis, and it invents no machine. <strong>To overturn:</strong> one
+commit rewriting <code>_emissionOrder</code>; the oracle catches any
+change that breaks statement 208 or 221. <strong>What overturns
+it:</strong> a second compiled listing with a three-group receiver, or a
+manual page describing the expansion. Neither is known to survive.</p>
+</div>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>2 · Which factor of a product goes into the Q register</h2></div>
+
+<p><strong>The decision.</strong> Where one factor is a literal,
+<code>LDQ</code> takes the literal and <code>MPY</code> takes the name.
+Where neither is a literal, <code>LDQ</code> takes the right factor and
+<code>MPY</code> the left. <code>_product</code> in procedure.dart
+implements it, and M4-9 item (e) records it.</p>
+
+<p><strong>The evidence.</strong> The sample compiles three two-factor
+products, and they cover three of the four arrangements:</p>
+{pre("evidence/two-factor-products.txt")}
+<p>Site 1 refutes the obvious rule outright. A generator that always put
+the left factor in <code>LDQ</code> would print
+<code>LDQ 3)HOURS / MPY CP)+6</code> at LOC 00617, and the listing prints
+the opposite.</p>
+
+<p><strong>The rejected options.</strong></p>
+<div class="opt">
+<p><span class="name">A — MPY always takes a name</span><br>
+State the rule from the multiply's side: <code>MPY</code> takes a name
+wherever there is one, and the left name where both factors are names.
+Cost: none on any attested site — it agrees with the taken rule on all
+three, and on every arrangement except a product of two literals, where it
+says nothing at all and needs a tie-break of its own. It is the same rule
+read backwards, with one hole.</p>
+</div>
+<div class="opt">
+<p><span class="name">B — refuse the unattested arrangement</span><br>
+Generate only the three arrangements the sample prints, and refuse a
+product of two literals. Cost: it is defensible under M4-2 and it is what
+this chunk does for ten other shapes. It was rejected because the
+arrangement is not a shape: the same two words serve it, and the rule
+already has to answer which factor loads. A refusal here would mark a
+gap that does not exist.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">C — the literal loads, else the right factor (taken)</span><br>
+One sentence, total on all four arrangements, and refuted by no site.
+<strong>To overturn:</strong> one commit in <code>_product</code>; the
+oracle re-checks all three sites. <strong>What overturns it:</strong> a
+compiled listing containing a product of two literals.</p>
+</div>
+</section>
+
+<section class="item">
+<div class="itemhead"><span class="chip done">Settled</span>
+<h2>3 · What the chunk verified, and what needs nothing</h2></div>
+
+<p>The four other B2 rules are not underdetermined, and they are recorded
+in M4-9 without a decision behind them: the OCTAL column takes its
+operation codes from the emulator's own table, so the printed word and the
+executed word cannot diverge; a base-register guard sits at the word that
+uses its operand, attested by the guard for
+<code>1)BONDEDUCTION</code> at LOC 00727 sitting between two words of a
+chain rather than ahead of it; a base load takes the lowest free register,
+attested by statement 208 taking XR2 because an earlier sentence left XR1
+live; and ten legal shapes the sample never reaches refuse rather than
+generate invented text.</p>
+
+<p>The empirical state at commit 1b6d804:</p>
+<div class="scroll"><table>
+<tr><th>Check</th><th>Result</th></tr>
+<tr><td>Generated object lines against the verified target</td>
+<td class="num">977 of 977</td></tr>
+<tr><td>Lines where a generated mnemonic and operand are compared</td>
+<td class="num">552, all equal</td></tr>
+<tr><td>Lines where a generated 36-bit word is compared</td>
+<td class="num">550, all equal</td></tr>
+<tr><td>Columns left for a later chunk</td>
+<td>four <code>EQU</code> operands (B3 and B5) and one
+<code>START</code> operand (stage 3), each excluded by mnemonic</td></tr>
+<tr><td>Dart test suite</td><td class="num">1090 pass</td></tr>
+</table></div>
+
+<p><code>test/object_spine_test.dart</code> is monotone by construction:
+it counts the lines it read in each column and asserts the count, so a
+later chunk that stopped generating a column would fail here rather than
+pass unread. Each verb chunk raises the two counts and none may lower
+one.</p>
+</section>
+
+<footer>
+<p>Chunk B2 on <code>m4s2-chunk-b2</code>: the generator at
+<a href="{GH}/lib/src/codegen/procedure.dart">26db5bb</a>, the design
+record at <a href="{GH}/docs/design/m4-codegen.md">1b6d804</a>. The
+listing excerpts ship in <code>evidence/</code>. Built by
+<code>tools/build_doc.py</code>. Both items are DECIDED, so this record
+asks nothing and authorizes nothing; Jack authorized the B2 pull request
+directly on 2026-08-16.</p>
+</footer>
+
+</main>
+</body>
+</html>
+"""
+
+with open(OUT, "w", encoding="utf-8") as fh:
+    fh.write(HTML)
+print(f"wrote {OUT} ({os.path.getsize(OUT)} bytes)")

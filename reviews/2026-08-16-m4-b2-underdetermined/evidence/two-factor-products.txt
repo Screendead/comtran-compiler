@@ -1,0 +1,20 @@
+Every two-factor product the 90.05 sample compiles.
+Source lines are from test/fixtures/90.05-payroll.ct.
+
+1. SET WORKING GROSS = (WORKING HOURS * 1.5 -20) * MASTER RATE
+   left factor WORKING HOURS, a name; right factor 1.5, a literal.
+   00617  0560 00 0 01702   10001          +28      LDQ    CP)+6
+   00620  0200 00 0 00110   10001          +29      MPY    3)HOURS
+
+2. SET WORKING GROSS = WORKING HOURS * MASTER RATE
+   left factor WORKING HOURS, right factor MASTER RATE; neither is a literal.
+   00641  0560 00 1 00004   10000           +2      LDQ    1)RATE,1
+   00642  0200 00 0 00110   10001           +3      MPY    3)HOURS
+
+3. SET WORKING WHT = 0.18 * (WORKING GROSS - 13 * MASTER EXEMPTIONS)
+   left factor 13, a literal; right factor MASTER EXEMPTIONS, a name.
+   The guard for the right factor sits between the two words.
+   01221  0560 00 0 01710   10001           +1      LDQ    CP)+12
+   01222  0535 00 1 01667   10001           +2      LAC    BL)2,1
+   01223  7 00000 1 00446   10010           +3      TXL    SYS)294,1,0
+   01224  0200 00 1 00006   10000           +4      MPY    EXEMPTIONS,1
