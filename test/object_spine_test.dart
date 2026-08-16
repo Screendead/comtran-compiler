@@ -78,10 +78,13 @@ String _octalField(List<String> lines, int i) => _slice(
   25,
 ).trimRight();
 
-/// Operations B1 places whose operand a later chunk fills: the loop and
-/// pool equates belong to the SET, GO TO and DO generators, and the
-/// entry point to stage 3.
-const Set<String> _laterChunks = <String>{'EQU', 'START'};
+/// Operations B1 places whose operand a later chunk fills: the entry
+/// point belongs to stage 3.
+///
+/// An `EQU` carries no object word, so its operand is the only column a
+/// chunk can fill, and the filter reads one only once it is filled: B3
+/// owns the two subscript equates and B5 the loop and DO equates.
+const Set<String> _laterChunks = <String>{'START'};
 
 List<String> _generate() {
   final SemanticResult semantics = compileDeck(
@@ -145,10 +148,13 @@ void main() {
         _symbolicField,
         filled: (List<String> lines, int i) {
           final String operation = _operation(lines, i);
-          return operation.isNotEmpty && !_laterChunks.contains(operation);
+          if (operation.isEmpty || _laterChunks.contains(operation)) {
+            return false;
+          }
+          return operation != 'EQU' || _symbolicField(lines, i) != 'EQU';
         },
       ),
-      552,
+      709,
     );
   });
 
@@ -159,7 +165,7 @@ void main() {
         filled: (List<String> lines, int i) =>
             _octalField(lines, i).isNotEmpty && !_wrapped(lines[i]),
       ),
-      550,
+      705,
     );
   });
 }

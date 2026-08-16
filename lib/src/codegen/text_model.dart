@@ -10,7 +10,7 @@ library;
 
 /// How the OCTAL column spaces a word's twelve octal digits (M4-8).
 ///
-/// The three forms print one 36-bit word and differ only in where the
+/// The four forms print one 36-bit word and differ only in where the
 /// spaces fall, so the word is the single source the deck, the listing,
 /// and the memory image all render (M4-3).
 enum WordForm {
@@ -22,6 +22,11 @@ enum WordForm {
 
   /// `P DDDDD T AAAAA`: PZE, MZE, TXI, TXH, TXL, IOST, BSS, USE, ORG.
   prefix,
+
+  /// `OOOO FF AAAAAA`: a sense-indicator instruction, whose 18-bit mask
+  /// runs across the tag and address fields — the attested
+  /// `0057 00 777777` at LOC 01240.
+  indicator,
 }
 
 /// The 5-bit control groups of [J 90.03.04].
@@ -65,6 +70,9 @@ String octalColumn(int word, WordForm form) {
     WordForm.prefix =>
       '${digits[0]} ${digits.substring(1, 6)} '
           '${digits[6]} ${digits.substring(7)}',
+    WordForm.indicator =>
+      '${digits.substring(0, 4)} ${digits.substring(4, 6)} '
+          '${digits.substring(6)}',
   };
 }
 

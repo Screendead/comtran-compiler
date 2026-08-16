@@ -20,6 +20,10 @@ abstract final class Word36 {
   /// Mask of a 15-bit address or decrement field.
   static const int fieldMask15 = (1 << 15) - 1;
 
+  /// Mask of positions 18–35, which a sense-indicator instruction takes
+  /// as one 18-bit operand across the tag and address fields.
+  static const int fieldMask18 = (1 << 18) - 1;
+
   /// The sign of [word]: 0 = plus, 1 = minus (position S).
   static int sign(int word) => (word >> 35) & 1;
 

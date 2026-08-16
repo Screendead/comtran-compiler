@@ -32,19 +32,11 @@ export 'procedure.dart' show UnrecoveredShape;
 /// rather than hidden.
 const int temporaryStorageWords = 7;
 
-/// The words result storage reserves.
-///
-/// A constant, and deliberately not a rule — the `TS)` precedent again
-/// (Jack's ruling, 2026-08-15, the chunk B1 review record). The sample
-/// attests sections 0 to 2 reserving 3, 2 and 3 cells while referencing
-/// 2, 1 and 1, no tested rule reproduces those heads, and the 7-cell
-/// tail the remaining sections share is unobservable — the program
-/// addresses none of it, and contradictory closures fit. The ruling
-/// pins the attested reservation as constants of the sample: 3, 2 and
-/// 3 cells, then the tail as one undivided block, two words a cell
-/// (D4.8), 30 words. For any program but the sample this size is
-/// unverifiable, which is stated rather than hidden.
-const int resultStorageWords = 2 * (3 + 2 + 3 + 7);
+/// The words result storage reserves: [resultStorageCells], two words a
+/// cell (D4.8). Chunk B3 addresses the same list section by section, so
+/// the reservation and the addressing cannot disagree.
+final int resultStorageWords =
+    2 * resultStorageCells.reduce((int a, int b) => a + b);
 
 /// The code generator's result over one job.
 final class CodegenResult {
