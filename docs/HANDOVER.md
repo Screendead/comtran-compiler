@@ -149,8 +149,16 @@ B4 added six rules to M4-11, and six refusals. The rules:
 
 Two of the six rules are underdetermined,
 and the record `review/2026-08-16-m4-b4-underdetermined` holds the
-rejected formulations. The next task is chunk B5, the GO TO and DO
-generator (M4-12; catalogue 4.1), against the same target.
+rejected formulations.
+
+B5 filled the transfer and call sites: the GO TO transfers, the return
+cells, the terminal returns, the plain DO calls — the AT END forms
+included — and the DO FOR loop with its two interleaved EQU lines. The
+amendments to M4-12 and M4-13 add three print rules and six refusals;
+messages 128 and 108 stand in front of two of the refusals. The spine
+counts rose to 840 symbolic and 834 octal. The next task is chunk B6,
+STOP with the statement stamps (M4-14) and the I/O shapes (M4-15),
+against the same target.
 
 Chunks A7 and A8 read each page **twice**, by two readers who did not know of each
 other, and compared the two readings before either met the target. Ten

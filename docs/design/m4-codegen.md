@@ -86,9 +86,9 @@ M4 executes I/O-free programs.
   partial result with a `stopped` flag, and the driver skips it when an
   earlier phase stopped.
   **Amended 2026-08-05 and 2026-08-15, stages 1 and 2.** Stage 1 built
-  the map from facts the semantic layer had validated and could detect
-  no error, so under CLAUDE.md section 11, which outranks this record,
-  it shipped without the stop shape. `runCodegen(SemanticResult) →
+  the map from validated semantic facts and could detect no error, so
+  under CLAUDE.md section 11, which outranks this record, it shipped
+  without the stop shape. `runCodegen(SemanticResult) →
   CodegenResult` takes no diagnostic sink; the sink arrives at chunk B8
   with the first program error this phase can detect. The stage 2
   refusals are not that error: a valid shape the sample never attests
@@ -246,10 +246,8 @@ M4 executes I/O-free programs.
   **Amended 2026-08-11, chunk B1. The provisional gap mechanism is
   refuted; the headline stands.** The first working rule (cut, spent)
   read the unprinted names as bound but unprinted; the printer hides
-  none — two names
-  on one word print on two lines, `GN)076` over `GN)077` at LOC 01217
-  and `GN)082` over `SEARCH.END` at 01472 — so an unprinted name was
-  never bound. The pass walks the text in ascending object address and
+  none — two names on one word print on two lines, at LOC 01217 and
+  01472 — so an unprinted name was never bound. The pass walks the text in ascending object address and
   gives each machinery site one contiguous run. Statement 206's `DO … FOR`
   takes 084 to 088 and binds 085, 086 and 088; statement 208's `FILE` of a
   buffered record takes 089 and 090 and binds 089; each subscripted
@@ -262,8 +260,8 @@ M4 executes I/O-free programs.
   table-base EQU heads the DO FOR block, the body-entry EQU stands
   before the prologue's last word, and a subscript store prints both
   recomputation EQUs, then the update blocks, in reverse
-  first-reference order. The spine oracle reads the label field byte for
-  byte, proving the mapping against the target, not the goldens.
+  first-reference order. The spine oracle reads the label field byte
+  for byte against the target.
 
 ## The storage-map print
 
@@ -380,15 +378,10 @@ M4 executes I/O-free programs.
   grown into the whole object listing.
   **Amended 2026-08-09 to 2026-08-10, chunks A3 to A8, and this closes
   the frame. The page body is a frame of 57 line slots,** with the head
-  as slot 0, and all eighteen object pages hold it. Sixteen pages blank
-  slots 1 and 2 and print 55 content lines, ending in slot 57. Listing
-  page 8 prints the column header: it blanks slots 1 to 3, prints the
-  header at 4 and a blank at 5, and prints 52, ending in slot 57.
-  Listing page 25 blanks slots 1 and 2, prints 45 content lines, blanks
-  slot 48, and prints the three closing lines at 49 to 51, where the
-  listing ends. Stage 2 therefore lays out an object page by the frame
-  and never by a line count.
-  `test/fixtures/90.05-object-listing-notes.md` holds the per-page table.
+  as slot 0, and all eighteen object pages hold it. Stage 2 therefore
+  lays out an object page by the frame and never by a line count;
+  `test/fixtures/90.05-object-listing-notes.md` holds the per-page slot
+  table, page 8's column header and page 25's closing lines included.
 
 - **M4-8.1. An over-long label pushes its instruction to the next line.**
   *Recovered from the print 2026-08-10, chunk A6; Jack's ruling the same
@@ -733,22 +726,27 @@ M4 executes I/O-free programs.
   folds onto the join label (attested: GN)065 carries statement 195's
   `TRA`). The conditional form is M4-11's WHEN machinery in source order,
   fall-through after the last clause. The assigned form
-  `GO TO (p1,…,pn) ON index` (ours; no sample instance): take the index's
-  integral part per its declared scale, run the D5.5 range test — emitted
-  object-time bounds check, 1 through n, out of range falls through to
-  the next clause with no message — then transfer through an n-word `TRA`
-  vector indexed by an index register. D5.5's documented omit option is
-  the non-historical flag `--no-goto-range-check`, recorded here; it
-  removes the bounds test only.
+  `GO TO (p1,…,pn) ON index` (ours; no sample instance): the index's
+  integral part per its declared scale, the D5.5 object-time range
+  test, 1 through n — out of range falls through to the next clause,
+  no message — then an n-word `TRA` vector indexed by a register.
+  D5.5's omit option is the non-historical flag
+  `--no-goto-range-check`, recorded here; it removes the bounds test
+  only.
+  **Amended 2026-08-16, chunk B5. The generator fills every transfer
+  site.** One refusal: a GO TO naming a DO-addressed procedure. Msg
+  128 records the 1962 bypass, no site shows the bypass's object
+  form, so the shape refuses behind the message the front end already
+  issues.
 
 ## DO
 
 - **M4-13. The DO generator, and the D5.1 decode.** The linkage is the
   verified Q40 return-cell shape:
   - Every procedure any DO addresses gets a one-word return cell as its
-    first word, the placeholder `AXT 0`; the decision is call-site-driven
-    — a plain unlabeled paragraph gets a cell when a DO names it
-    (attested: END.OF.MASTERS), and a GO TO-only target gets none
+    first word, the placeholder `AXT 0`, call-site-driven — a
+    paragraph gets a cell when a DO names it (attested:
+    END.OF.MASTERS), and a GO TO-only target gets none
     (END.OF.DETAILS).
   - A plain `DO P` emits `AXT *+3,7 / SXA P,4 / TRA P+1`. The terminal
     END emits `TRA* P` — indirect through the cell — labeled by the
@@ -763,24 +761,20 @@ M4 executes I/O-free programs.
   - **The exit test is a magnitude test. This entry performs the decode
     D5.1 pre-committed to M4.** The attested block (statement 206,
     LOC 00711–00721) is `CLA INDEX / ADD CP)+1 / STO INDEX / CLA CP)+13 /
-    ADD PI)1 / STO PI)1 / CLA CP)+8 / SUB INDEX / TPL GN)085` — it forms
-    r − i and branches on sign, exactly the shape D5.1 named as the
-    magnitude exit ("an equality exit would branch on zero"). The loop
+    ADD PI)1 / STO PI)1 / CLA CP)+8 / SUB INDEX / TPL GN)085` — r − i,
+    branched on sign: D5.1's magnitude exit. The loop
     runs while i ≤ r after each increment; a +0 result (i = r) transfers,
     so the body runs for i = r; normal exit leaves i at the first value
     past r — r + q when q divides r − p exactly. D5.1's
     pre-committed amendment is applied in `decisions.md` with this
-    citation, and the codegen switch keeps the equality alternative one
-    line away. Consequences: the at-least-once rule holds (entry precedes
-    any test, [J 90.01.02]); an overshooting step terminates (first i > r
-    exits), so the equality reading's non-termination hazard is gone; a
-    zero or wrong-signed q with p ≤ r still never terminates (with
-    p > r the first test already exits), and the emulator reproduces
-    both faithfully.
-  - Literal p, q, r bake into pool constants; a named parameter is read
-    from its field where the expansion reads it (initialization reads p at
-    entry; the increment block reads q and r each pass — F's expansion
-    order; §8.5 Open Question 36 disposition, M4-21).
+    citation. Consequences: the at-least-once rule holds (entry precedes
+    any test, [J 90.01.02]); an overshooting step terminates, so the
+    equality reading's non-termination hazard is gone; a zero or
+    wrong-signed q with p ≤ r never terminates (p > r exits at the
+    first test), and the emulator reproduces both faithfully.
+  - Literal p, q, r bake into pool constants; a named parameter is
+    read where the expansion reads it — p at entry, q and r each pass
+    (F's order; §8.5 Open Question 36 disposition, M4-21).
   - `DO … EXACTLY n TIMES` (no sample instance, ours): the same
     patch-once machinery with a generated counter cell, counting down from
     n with the magnitude exit.
@@ -796,6 +790,17 @@ M4 executes I/O-free programs.
   - `--pedantic` sites (D11.4; ids from M4-18): constant p, q, r whose
     (r − p) is not a whole multiple of q, or q zero or wrong-signed
     (D5.1); a static cycle in the DO call graph (D5.7).
+  **Amended 2026-08-16, chunk B5. The generator fills the linkage.**
+  The fill fixed:
+  - The return's flag bits print as octal group 60 (LOC 00350).
+  - The loop entry's transfer prints `P+1`; the back edge prints the
+    body-entry EQU name against the same address (00710, 00721).
+  - A paragraph with no written END closes at the next label — the
+    attested GN)067 — or at a bare END, through the cell either way.
+  Five refusals: an unnamed section; an END inside an open paragraph
+  and an open section; a DO FOR index undefined (behind msg 108) or
+  under a located record; a DO FOR driving two indicators — the M4-6
+  name run is fitted to one.
 
 ## STOP and the statement stamps
 
