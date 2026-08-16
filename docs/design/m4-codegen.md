@@ -88,8 +88,8 @@ M4 executes I/O-free programs.
   **Amended 2026-08-05 and 2026-08-15, stages 1 and 2.** Stage 1 built
   the map from validated semantic facts and could detect no error, so
   under CLAUDE.md section 11, which outranks this record, it shipped
-  without the stop shape. `runCodegen(SemanticResult) →
-  CodegenResult` takes no diagnostic sink; the sink arrives at chunk B8
+  without the stop shape. The phase takes no diagnostic sink; the
+  sink arrives at chunk B8
   with the first program error this phase can detect. The stage 2
   refusals are not that error: a valid shape the sample never attests
   fails in the recovery, not in the program — no [J 90.04] message
@@ -249,14 +249,12 @@ M4 executes I/O-free programs.
   none — two names on one word print on two lines, at LOC 01217 and
   01472 — so an unprinted name was never bound. The pass walks the
   text in ascending object address and gives each machinery site one
-  contiguous run. Statement 206's `DO … FOR`
-  takes 084 to 088 and binds 085, 086 and 088; statement 208's `FILE` of a
-  buffered record takes 089 and 090 and binds 089; each subscripted
-  reference of statement 225 takes two and binds the first. That
-  reproduces the print exactly and it is **fitted, not derived**: three
-  sites cannot fix four run lengths, and the roles of 084 and 087 are a
-  guess. `test/fixtures/90.05-object-code-notes.md` holds the second
-  grouping the print cannot separate from this one.
+  contiguous run; the per-site runs and bindings are in
+  `test/fixtures/90.05-object-code-notes.md`. That reproduces the
+  print exactly and it is **fitted, not derived**: three sites cannot
+  fix four run lengths, and the roles of 084 and 087 are a guess. The
+  notes hold the second grouping the print cannot separate from this
+  one.
   **Amended 2026-08-15, chunk B1, three fitted placements**: the
   table-base EQU heads the DO FOR block, the body-entry EQU stands
   before the prologue's last word, and a subscript store prints both
@@ -735,9 +733,11 @@ M4 executes I/O-free programs.
   `--no-goto-range-check`, recorded here; it removes the bounds test
   only.
   **Amended 2026-08-16, chunk B5. The generator fills every transfer
-  site.** Refusals: the B1 assigned form stands, and a GO TO naming a
+  site.** Refusals: the B1 assigned form stands; a GO TO naming a
   celled procedure — a DO target (behind msg 128, the 1962 bypass) or
-  a section. No site shows either transfer's object form.
+  a section; and, at every transfer and call site, an undefined name
+  (behind msgs 127 and 188), a two-word D2.5 reference, and a name
+  bound twice. No site shows any of these object forms.
 
 ## DO
 
@@ -791,18 +791,18 @@ M4 executes I/O-free programs.
     (r − p) is not a whole multiple of q, or q zero or wrong-signed
     (D5.1); a static cycle in the DO call graph (D5.7).
   **Amended 2026-08-16, chunk B5. The generator fills the linkage.**
-  The fill fixed:
+  The fill added:
   - The return's flag bits print as octal group 60 (LOC 00350).
   - The loop entry prints `P+1`; the back edge prints the body-entry
     EQU name — one address, two prints (00710, 00721).
   - A paragraph with no written END closes at the next label
     (attested: GN)067) or at a bare END, both through the cell.
-  Six refusals:
+  Seven refusals:
   - an unnamed section;
   - a section beginning inside an open section;
   - an END inside an open paragraph and an open section;
-  - a DO FOR index undefined (behind msg 108) or under a located
-    record;
+  - a procedure open at the end of the text;
+  - a DO FOR index undefined (behind msg 108) or located;
   - a DO FOR driving two indicators — the M4-6 name run fits one.
 
 ## STOP and the statement stamps

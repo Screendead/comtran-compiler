@@ -160,8 +160,9 @@ B5 filled the transfer and call sites:
 - the plain DO calls, the AT END forms included;
 - the DO FOR loop with its two interleaved EQU lines.
 
-The amendments to M4-12 and M4-13 add three print rules and seven
-refusals; messages 128 and 108 stand in front of two of the refusals.
+The amendments to M4-12 and M4-13 add three print rules and eleven
+refusals; messages 127, 128, 188 and 108 stand in front of three of
+the refusals.
 The spine counts rose to 840 symbolic and 834 octal. The next task is
 chunk B6: STOP with the statement stamps (M4-14) and the I/O shapes
 (M4-15), against the same target.

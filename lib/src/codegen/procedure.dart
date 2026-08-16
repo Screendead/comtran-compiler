@@ -178,6 +178,12 @@ final class _Text {
         continue;
       }
       for (final Sentence sentence in group.sentences) {
+        if (!semantics.capacityDeletedSentences.contains(sentence)) {
+          final String? label = sentence.scan.label;
+          if (label != null) {
+            _labels.add(label);
+          }
+        }
         if (_beginsSection(sentence)) {
           final String? label = sentence.scan.label;
           if (label != null) {
@@ -233,6 +239,11 @@ final class _Text {
   /// a DO addresses it (catalogue 4.1).
   final Set<String> _sections = <String>{};
 
+  /// Every label the walk will bind, gathered before it: the deferred
+  /// binder resolves an unbound name to address 0, so a reference must
+  /// refuse ahead of it.
+  final Set<String> _labels = <String>{};
+
   /// The base locator serving each located record, `BL)2` on (M4-4).
   final Map<DataItem, int> _baseLocators = <DataItem, int>{};
 
@@ -280,6 +291,11 @@ final class _Text {
     final List<String> names = _pending;
     _pending = <String>[];
     for (final name in names) {
+      if (_labelled.containsKey(name)) {
+        // Rebinding keeps only the later address, against D2.5's
+        // section scoping, and no sample label repeats.
+        _unruled('a procedure name defined twice (no sample instance)');
+      }
       _labelled[name] = _location;
     }
     return names;
@@ -466,6 +482,21 @@ final class _Text {
   /// read after the walk so a forward transfer binds (M4-4).
   _Sym _labelSym(String name) => _Sym(() => name, () => _labelled[name] ?? 0);
 
+  /// Refuses a target the deferred binder cannot resolve: an undefined
+  /// name and a two-word D2.5 reference each fall to address 0, where
+  /// msgs 127 and 188 record the 1962 bypass instead.
+  void _checkTarget(NameReference name) {
+    if (name.words.length > 1) {
+      _unruled('a two-word procedure reference (D2.5; no sample instance)');
+    }
+    if (!_labels.contains(name.text)) {
+      _unruled(
+        'a transfer or call to an undefined procedure '
+        '(behind msgs 127 and 188)',
+      );
+    }
+  }
+
   /// `CP)+n` — a pool entry, by index and by address.
   _Sym _cp(PoolHandle handle) =>
       _Sym(() => 'CP)+${_layout.indexOf(handle)}', () => _poolAddress(handle));
@@ -541,6 +572,12 @@ final class _Text {
   late final PoolLayout _layout;
 
   ProcedureText result() {
+    if (_openParagraph != null || _openSection != null) {
+      // The two attested closes are the next label and a written END
+      // (GN)067; catalogue 4.1); no sample procedure runs to the end
+      // of the text still open.
+      _unruled('a procedure open at the end of the text (no sample instance)');
+    }
     _layout = _pool.layout();
     for (final (int index, String Function() operand, int Function() word)
         in _text) {
@@ -1091,6 +1128,7 @@ final class _Text {
       _unruled('the assigned GO TO (M4-12; no sample instance)');
     }
     for (final GoToTarget target in clause.targets) {
+      _checkTarget(target.name);
       if (_doTargets.contains(target.name.text) ||
           _sections.contains(target.name.text)) {
         // A celled target: no rule picks the cell against the word
@@ -1129,6 +1167,7 @@ final class _Text {
   /// The call `AXT *+3,7 / SXA P,4 / TRA P+1` (the attested 00370):
   /// return address into 7, through the cell, into the body.
   void _callTriple(NameReference procedure) {
+    _checkTarget(procedure);
     final int here = _location;
     _op(Op.axt, _Sym(() => '*+3', () => here + 3), tag: 7);
     _op(Op.sxa, _labelSym(procedure.text), tag: 4);
@@ -1148,6 +1187,7 @@ final class _Text {
     if (clause.indices.length > 1) {
       _unruled('a multi-index DO (notes section 7)');
     }
+    _checkTarget(clause.procedure);
     final DoIndex index = clause.indices.single;
     final DataItem? indexItem = _item(index.index);
     if (indexItem == null) {

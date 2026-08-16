@@ -836,5 +836,77 @@ void main() {
         'a DO FOR driving two indicators (M4-6; no sample instance)',
       );
     });
+
+    test('a transfer to an undefined procedure', () {
+      // Msg 127 says the 1962 compiler bypassed the transfer; the
+      // deferred binder would punch address 0 instead.
+      expect(
+        _refuses(['            GO TO AWAY.'], flagged: ['127,00']),
+        'a transfer or call to an undefined procedure '
+        '(behind msgs 127 and 188)',
+      );
+    });
+
+    test('a call of an undefined procedure', () {
+      expect(
+        _refuses(['            DO AWAY.'], flagged: ['188,00']),
+        'a transfer or call to an undefined procedure '
+        '(behind msgs 127 and 188)',
+      );
+    });
+
+    test('a two-word procedure reference', () {
+      // The D2.5 section-qualified form is valid upstream
+      // (transfer_checks_test.dart) but the binder holds single-word
+      // labels only.
+      expect(
+        _refuses([
+          '            GO TO S X.',
+          '      S.    BEGIN SECTION.',
+          '      X.    SET NUM = NUM + NUM.',
+          '            END S.',
+        ]),
+        'a two-word procedure reference (D2.5; no sample instance)',
+      );
+    });
+
+    test('a procedure name defined twice', () {
+      // D2.5 scopes the two X labels to their sections; the flat
+      // binder would keep only the later address.
+      expect(
+        _refuses([
+          '      S1.   BEGIN SECTION.',
+          '      X.    SET NUM = NUM + NUM.',
+          '            END S1.',
+          '      S2.   BEGIN SECTION.',
+          '      X.    SET NUM = NUM + TOT.',
+          '            END S2.',
+        ]),
+        'a procedure name defined twice (no sample instance)',
+      );
+    });
+
+    test('a procedure open at the end of the text', () {
+      // No _tail here: its label would close the paragraph.
+      final SemanticResult semantics = runJob(
+        data: _data(),
+        procedure: [
+          '            DO PARA.',
+          '            STOP RUN.',
+          '      PARA.  SET NUM = NUM + NUM.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      expect(semantics.stopped, isFalse);
+      try {
+        runCodegen(semantics);
+        fail('generated code without refusing');
+      } on UnrecoveredShape catch (refusal) {
+        expect(
+          refusal.shape,
+          'a procedure open at the end of the text (no sample instance)',
+        );
+      }
+    });
   });
 }

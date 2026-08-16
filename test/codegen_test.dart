@@ -198,6 +198,7 @@ void main() {
           '            GET IREC, AT END WRAP.UP.',
           '            STOP RUN.',
           '      WRAP.UP.  STOP RUN.',
+          '            END.',
         ],
       );
       expect(ids(semantics), isEmpty);
