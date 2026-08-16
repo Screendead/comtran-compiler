@@ -1,4 +1,4 @@
-/// The refusal sites of chunks B1 through B4 (M4-2 as amended
+/// The refusal sites of chunks B1 through B5 (M4-2 as amended
 /// 2026-08-15):
 /// a valid shape the sample never reaches has no attested generated
 /// form, so the sizers throw [UnrecoveredShape] rather than invent one.
@@ -714,6 +714,99 @@ void main() {
       expect(
         _refuses(['            IF LONG = LONG THEN STOP RUN.']),
         'a comparison past one word (M4-11, the SYS)162 boundary)',
+      );
+    });
+  });
+
+  group('the B5 refusal sites (M4-12, M4-13)', () {
+    test('a GO TO naming a DO-called procedure', () {
+      // Msg 128 says the 1962 compiler bypassed the transfer, and no
+      // listing site shows the bypass's object form, so the shape
+      // stays unrecovered behind the message.
+      expect(
+        _refuses(
+          ['            DO RTN.', '            GO TO RTN.'],
+          flagged: ['128,00'],
+        ),
+        'a GO TO naming a DO-called procedure (M4-12)',
+      );
+    });
+
+    test('an END inside an open paragraph and an open section', () {
+      expect(
+        _refuses([
+          '      SEC.  BEGIN SECTION.',
+          '            DO INNER.',
+          '      INNER.  SET NUM = NUM + NUM.',
+          '            END SEC.',
+        ]),
+        'an END inside an open paragraph and an open section '
+        '(no sample instance)',
+      );
+    });
+
+    test('an unnamed section', () {
+      expect(
+        _refuses(['            BEGIN SECTION.']),
+        'an unnamed section (no sample instance)',
+      );
+    });
+
+    test('a DO FOR index with no data definition', () {
+      expect(
+        _refuses(['            DO RTN FOR ZZZ = 1(1)12.'], flagged: ['108,00']),
+        'a DO FOR index with no data definition (no sample instance)',
+      );
+    });
+
+    test('a located DO FOR index', () {
+      expect(
+        _refuses(
+          ['            DO RTN FOR LIDX = 1(1)12.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'LREC', level: '1', type: 'RECORD'),
+            dataCard(
+              name: 'LIDX',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '99',
+            ),
+          ],
+          environment: [
+            environmentCard(
+              name: 'TAPE1',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,LREC,BLOCKSIZE 5',
+            ),
+          ],
+        ),
+        'a located DO FOR index (no sample instance)',
+      );
+    });
+
+    test('a DO FOR driving two indicators', () {
+      expect(
+        _refuses(
+          [
+            '            IF NUM = TAB CELL (IDX) THEN STOP RUN.',
+            '            IF NUM = TAB2 CEL2 (IDX) THEN STOP RUN.',
+            '            DO RTN FOR IDX = 1(1)12.',
+          ],
+          data: [
+            ..._data(),
+            dataCard(name: 'TAB2', level: '1', quantity: '12'),
+            dataCard(
+              name: 'CEL2',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+          ],
+        ),
+        'a DO FOR driving two indicators (M4-6; no sample instance)',
       );
     });
   });
