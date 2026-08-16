@@ -669,4 +669,51 @@ void main() {
       );
     });
   });
+
+  group('the B4 refusal sites (M4-11)', () {
+    test('a nonzero literal comparand', () {
+      expect(
+        _refuses(['            IF 5 GT NUM THEN STOP RUN.']),
+        'a nonzero literal comparand (no sample instance)',
+      );
+    });
+
+    test('a subscripted accumulator comparand', () {
+      expect(
+        _refuses(['            IF TAB CELL (IDX) GT NUM THEN STOP RUN.']),
+        'a subscripted accumulator comparand (no sample instance)',
+      );
+    });
+
+    test('an unscaled zero comparand', () {
+      // Both attested zero builds scale; an integer storage operand
+      // leaves no scale to build.
+      expect(
+        _refuses(['            IF NUM = 0 THEN STOP RUN.']),
+        'an unscaled zero comparand (no sample instance)',
+      );
+    });
+
+    test('a subscripted alphameric comparand', () {
+      expect(
+        _refuses(['            IF ATAB ACEL (IDX) = ALF THEN STOP RUN.']),
+        'a subscripted alphameric comparand (no sample instance)',
+      );
+    });
+
+    test('an unequal-length alphameric comparison', () {
+      // The D3.3 fold and the D5.3 truncation each wait for a site.
+      expect(
+        _refuses(['            IF ALF = SEVEN THEN STOP RUN.']),
+        'an unequal-length alphameric comparison (no sample instance)',
+      );
+    });
+
+    test('a comparison past one word', () {
+      expect(
+        _refuses(['            IF LONG = LONG THEN STOP RUN.']),
+        'a comparison past one word (M4-11, the SYS)162 boundary)',
+      );
+    });
+  });
 }

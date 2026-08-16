@@ -154,7 +154,7 @@ void main() {
           return operation != 'EQU' || _symbolicField(lines, i) != 'EQU';
         },
       ),
-      709,
+      774,
     );
   });
 
@@ -165,7 +165,7 @@ void main() {
         filled: (List<String> lines, int i) =>
             _octalField(lines, i).isNotEmpty && !_wrapped(lines[i]),
       ),
-      705,
+      770,
     );
   });
 }
