@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-08-10. Audience: the next agent, or Jack. This file is the
+*Updated 2026-08-16. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -39,7 +39,7 @@ Terms that appear without expansion:
 | Item | State | Where |
 |---|---|---|
 | Language definition | Complete and verified | `docs/comtran-language-definition.md` |
-| M0 design decisions (84 records) | Locked 2026-08-02 | `docs/design/decisions.md` |
+| M0 design decisions (85 records) | Locked 2026-08-02; D4.14 back-filled 2026-08-16 | `docs/design/decisions.md` |
 | Punch-level deck format | Frozen | `docs/design/deck-format.md` |
 | 90.05 canon deck (293 cards) | Authoritative; its mirror is CI-slaved | `test/fixtures/90.05-payroll.ctd` |
 | M1 front end | Done 2026-08-03 | `lib/src/lexer/`, `lib/src/listing/` |
@@ -62,7 +62,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1095 Dart tests pass, measured 2026-08-16, and 154 extension
+Test baseline: 1101 Dart tests pass, measured 2026-08-16, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -410,6 +410,13 @@ PDF p. 217. It makes every milestone below testable at once.
 - **M6 — Acceptance**: compile and run the 90.05 payroll sample end to end, and
   reproduce its printed report output (PDF p. 217). Then take a second corpus —
   F's payroll example with the documented F/J divergences applied (§9.8).
+- **Parked, unscheduled — the dangling-continuation diagnostic.** The Data
+  and Environment scanners accept a dangling continuation in silence: a
+  punched column 72 on a division's last card draws no diagnostic
+  (`continuationGroups`, `lib/src/lexer/source_card.dart`). The Procedure
+  scanner reports its analogue under D9.4. Give the other two scanners the
+  same treatment. The manuals are silent on the error case, so the message
+  id and severity are Jack's call at pickup.
 
 ## Parallel tooling track
 
