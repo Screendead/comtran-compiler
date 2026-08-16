@@ -1,0 +1,51 @@
+Every result-storage reference in the object program, with its statement
+and the register the parked value sat in.
+
+section 0, statement 203  SET WORKING GROSS = (WORKING HOURS * 1.5 - 20) * MASTER RATE
+00617  0560 00 0 01702   10001          +28      LDQ    CP)+6
+00620  0200 00 0 00110   10001          +29      MPY    3)HOURS
+00621  4600 00 0 01623   10001          +30      STQ    RS)1+0
+00622  0560 00 0 01703   10001          +31      LDQ    CP)+7
+00623  0200 00 0 01733   10001          +32      MPY    CP)+31
+00624  4600 00 0 01621   10001          +33      STQ    RS)0
+00625  0500 00 0 01623   10001          +34      CLA    RS)1
+00626  0402 00 0 01621   10001          +35      SUB    RS)0
+
+section 1, statement 212  SET WORKING FICA = WORKING FICA - (MASTER FICA - 144.00)
+01211  0601 00 0 01627   10001          +20      STO    1.RS)0
+01212  0500 00 0 00105   10001          +21      CLA    4)FICA
+01213  0402 00 0 01627   10001          +22      SUB    1.RS)0
+01214  0601 00 0 00105   10001          +23      STO    4)FICA
+
+section 2, statement 215  SET WORKING WHT = 0.18 * (WORKING GROSS - 13 * MASTER EXEMPTIONS)
+01224  0200 00 1 00006   10000           +4      MPY    EXEMPTIONS,1
+01225  0200 00 0 01733   10001           +5      MPY    CP)+31
+01226  4600 00 0 01633   10001           +6      STQ    2.RS)0
+01227  0500 00 0 00102   10001           +7      CLA    4)GROSS
+01230  0402 00 0 01633   10001           +8      SUB    2.RS)0
+01231  0131 00 0 00000   10000           +9      XCA
+
+section 3, statement 221  ADD BONDORDER BONDENOMINATION TO INTERNAL.TOTALS BONDPURCHASES
+01360  1 00005 1 00415   10010          +32      TXI    SYS)269,1,5
+01361  1 00005 1 00423   10010          +33      TXI    SYS)275,1,5
+01362  0601 00 0 01643   10001          +34      STO    3.RS)1
+01363  0500 00 0 00123   10001          +35      CLA    2)BONDPURCHASES
+01364  0400 00 0 01643   10001          +36      ADD    3.RS)1
+01365  0601 00 0 00123   10001          +37      STO    2)BONDPURCHASES
+
+the two references that are not parks: statement 200's alphameric
+compare uses cell 0 of section 0 as a scratch word (chunk B4 owns them)
+
+00532  0602 00 0 01621   10001           +3      SLW    RS)0
+00537  4340 00 0 01621   10001           +8      LAS    RS)0
+
+the block reservation and the section bases the parks imply
+
+01621  2 00000 0 00036   00001    RS)            BSS    30
+
+  RS)0    01621     section 0, 3 cells
+  1.RS)0  01627     section 1, 2 cells
+  2.RS)0  01633     section 2, 3 cells
+  3.RS)0  01641     section 3, the undivided 7-cell tail
+  3.RS)1  01643
+                    the block ends at 01656

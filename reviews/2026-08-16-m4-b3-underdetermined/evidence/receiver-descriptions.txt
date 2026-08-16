@@ -1,0 +1,32 @@
+The three records the ADD CORRESPONDING clause matches, as the data
+division describes them.
+
+WORKING, the source
+      WORKING          1
+        GROSS          2           IR9(5)V99
+        RETIREMENT     2           IR9(4)V99
+        INSURANCE      2           IR9(4)V99
+        FICA           2           IR9(4)V99
+        WHT            2           IR9(5)V99
+        NETPAY         2           IR9(5)V99
+        HOURS          2           IR99V9
+        INDEX          2           IR99
+        POS            2           IR99
+
+MASTER TOTALS, the first target written
+        TOTALS         2
+          GROSS        3           IR9(4)V99
+          RETIREMENT   3           IR999V99
+          INSURANCE    3           IR999V99
+
+INTERNAL.TOTALS, the second target written
+      INTERNAL.TOTALS  1
+       HOURS           2           IR9999V9
+       GROSS           2           IR9(5)V99
+       WHT             2           IR9(5)V99
+       FICA            2           IR9(4)V99
+       BONDEDUCTION    2           IR9(4)V99
+       INSURANCE       2           IR9(4)V99
+       RETIREMENT      2           IR9(4)V99
+       NETPAY          2           IR9(5)V99
+       BONDPURCHASES   2           IR9(5)V99
