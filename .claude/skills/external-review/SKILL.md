@@ -11,13 +11,17 @@ and the charter disagree, the charter wins.
 
 ## Preconditions
 
-1. The pull request is open, the section 4 gate passed locally, and CI
+1. The pull request needs the loop. Run
+   `git diff --name-only master...HEAD`. The loop runs only when a path
+   starts with `lib/` or `test/goldens/`, or is a `.target` file under
+   `test/fixtures/`. Any other pull request is routine maintenance:
+   report it to Jack and wait for his merge.
+2. The pull request is open, the section 4 gate passed locally, and CI
    is green on the head.
-2. Chrome runs on this machine with logged-in sessions for grok.com and
+3. Chrome runs on this machine with logged-in sessions for grok.com and
    the Anthropic reviewer's surface. Start it with
    `open -a "Google Chrome"` if it is not running.
-3. Load the Claude-in-Chrome tools in one ToolSearch batch, with
-   `gif_creator`.
+4. Load the Claude-in-Chrome tools in one ToolSearch batch.
 
 ## A round
 
@@ -26,18 +30,20 @@ and the charter disagree, the charter wins.
 2. Configure before you send, and verify visually: Grok on Expert
    mode; the Anthropic reviewer on Fable 5 with maximum reasoning. A
    review on the wrong configuration is void.
-3. Type the charter's fixed line. Type nothing else. Record the
-   interaction as a GIF. The GIFs are the audit trail.
+3. Type the charter's fixed line. Type nothing else. Do not record the
+   session. Make no GIF, and keep no image of a reviewer tab. A
+   reviewer tab shows the titles of Jack's other chats. The verbatim
+   review on the pull request is the audit trail.
 4. Wait. A review takes minutes. Poll the tab with `read_page` no more
    than once each minute.
 5. If a reviewer stalls or asks a question, send the charter's one
    recovery line. The charter sets the failure limit.
-6. Copy each finished review verbatim, and take the chat's share URL.
-   Post one PR comment per review:
+6. Copy each finished review verbatim. Do not share the chat. Post one
+   PR comment per review:
 
        ## External review — round <N> — <reviewer>
 
-       Head reviewed: `<sha>`. Share URL: <url>.
+       Head reviewed: `<sha>`.
 
        <the verbatim review>
 

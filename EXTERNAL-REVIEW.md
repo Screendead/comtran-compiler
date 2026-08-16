@@ -1,7 +1,12 @@
 # The external-review charter
 
-Two reviewers from two model families review every pull request from M4
-stage 2 on. Jack can waive the review for one pull request; his
+Two reviewers from two model families review the compiler work. A pull
+request needs the loop when its branch changes a file under `lib/` or
+under `test/goldens/`, or an object-code target under `test/fixtures/`.
+Every other pull request is routine maintenance. It skips the loop and
+merges on Jack's instruction (his call, 2026-08-16: "only the actual
+hard codegen stuff needs the two-reviewers; routine maintenance does
+not"). Jack can also waive the review for one pull request; his
 instruction to merge is such a waiver. He named the reviewers and their
 configurations on 2026-08-16:
 
@@ -18,8 +23,8 @@ The rules:
 1. The orchestrator is Claude Code, the pull request's author. It
    types only the fixed lines below into a reviewer chat. It never
    edits reviewer text. It relays each review to the pull request
-   verbatim, as a comment, with the chat's share URL and the head the
-   review names.
+   verbatim, as a comment, with the head the review names. It does not
+   share the chat, and it posts no link to it.
 2. Round 1 is isolated. Each reviewer starts a fresh chat and fetches
    the pull request, its branch, and the repository itself. It does
    not see the author's rationale or the other reviewer.

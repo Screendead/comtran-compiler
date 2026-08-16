@@ -275,12 +275,15 @@ Two consequences to expect:
 - One pull request per topic. The remote is `Screendead/comtran-compiler`.
 - CI must pass before a merge. Run the section 4 gate before you push.
 - Do not ask permission to make a branch, to commit to it, or to push it. Do
-  ask before you open a pull request: that call is Jack's. One merge rule
-  governs: from M4 stage 2 on, a pull request merges on external-review
-  convergence — both reviewers, `VERDICT: LGTM`, the same head, under the
-  EXTERNAL-REVIEW.md charter. Jack's instruction to merge is a waiver of
-  that requirement. A pull request that changes REVIEW.md, the charter,
-  this section, or the external-review skill merges only on his
+  ask before you open a pull request: that call is Jack's. Two merge rules
+  govern. A pull request that changes a file under `lib/` or under
+  `test/goldens/`, or an object-code target under `test/fixtures/`, merges
+  on external-review convergence — both reviewers, `VERDICT: LGTM`, the
+  same head, under the EXTERNAL-REVIEW.md charter. Every other pull
+  request is routine maintenance: it skips the loop and merges on Jack's
+  instruction. His instruction to merge is also a waiver of the
+  convergence requirement. A pull request that changes REVIEW.md, the
+  charter, this section, or the external-review skill merges only on his
   instruction. The charter quotes his standing authorization of
   2026-08-16 in full.
 - **A question for Jack is a review record, not a chat message.** Whenever work
