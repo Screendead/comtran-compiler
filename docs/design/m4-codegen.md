@@ -253,8 +253,7 @@ M4 executes I/O-free programs.
   `test/fixtures/90.05-object-code-notes.md`. That reproduces the
   print exactly and it is **fitted, not derived**: three sites cannot
   fix four run lengths, and the roles of 084 and 087 are a guess. The
-  notes hold the second grouping the print cannot separate from this
-  one.
+  notes hold the second grouping the print cannot separate.
   **Amended 2026-08-15, chunk B1, three fitted placements**: the
   table-base EQU heads the DO FOR block, the body-entry EQU stands
   before the prologue's last word, and a subscript store prints both
@@ -735,9 +734,10 @@ M4 executes I/O-free programs.
   **Amended 2026-08-16, chunk B5. The generator fills every transfer
   site.** Refusals: the B1 assigned form stands; a GO TO naming a
   celled procedure — a DO target (behind msg 128, the 1962 bypass) or
-  a section; and, at every transfer and call site, an undefined name
-  (behind msgs 127 and 188), a two-word D2.5 reference, and a name
-  bound twice. No site shows any of these object forms.
+  a section; at every transfer and call site, an undefined name
+  (behind msgs 127 and 188) and a two-word D2.5 reference; and, at
+  the binder, a name bound twice or bound to no word. No site shows
+  any of these object forms.
 
 ## DO
 
@@ -776,8 +776,8 @@ M4 executes I/O-free programs.
     read where the expansion reads it — p at entry, q and r each pass
     (F's order; §8.5 Open Question 36 disposition, M4-21).
   - `DO … EXACTLY n TIMES` (no sample instance, ours): the patch-once
-    machinery with a generated counter cell, counted down from n to
-    the magnitude exit.
+    machinery with a generated counter cell, counted down to the
+    magnitude exit.
   - Multi-index DO: nested increment-and-test blocks, innermost first,
     rightmost index varying fastest; the outer index increments, never
     reassigns (D5.2).
@@ -785,8 +785,8 @@ M4 executes I/O-free programs.
     before the call, results out after it, full MOVE editing per pair
     (M3-19; [F p. 53]'s expansion).
   - Recursion is unguarded: a second activation overwrites the cell;
-    the emulator reproduces the wild return (D5.7). Nested
-    non-recursive DO is unrestricted.
+    the emulator reproduces the wild return (D5.7). Non-recursive
+    nesting is unrestricted.
   - `--pedantic` sites (D11.4; ids from M4-18): constant p, q, r whose
     (r − p) is not a whole multiple of q, or q zero or wrong-signed
     (D5.1); a static cycle in the DO call graph (D5.7).

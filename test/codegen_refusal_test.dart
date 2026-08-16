@@ -886,6 +886,27 @@ void main() {
       );
     });
 
+    test('a label bound to no word', () {
+      // NOTE emits no word, so a trailing labelled NOTE never reaches
+      // the binder; no _tail, whose words would take the label.
+      final SemanticResult semantics = runJob(
+        data: _data(),
+        procedure: [
+          '            GO TO X.',
+          '            STOP RUN.',
+          '      X.    NOTE DONE.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      expect(semantics.stopped, isFalse);
+      try {
+        runCodegen(semantics);
+        fail('generated code without refusing');
+      } on UnrecoveredShape catch (refusal) {
+        expect(refusal.shape, 'a label bound to no word (no sample instance)');
+      }
+    });
+
     test('a procedure open at the end of the text', () {
       // No _tail here: its label would close the paragraph.
       final SemanticResult semantics = runJob(

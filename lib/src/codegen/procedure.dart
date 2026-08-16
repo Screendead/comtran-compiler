@@ -572,6 +572,12 @@ final class _Text {
   late final PoolLayout _layout;
 
   ProcedureText result() {
+    if (_pending.isNotEmpty) {
+      // A trailing label on a no-word sentence (NOTE, CALL, ENTER)
+      // never reaches the binder: no attested print, and a reference
+      // to it would punch address 0 past the _labels guard.
+      _unruled('a label bound to no word (no sample instance)');
+    }
     if (_openParagraph != null || _openSection != null) {
       // The two attested closes are the next label and a written END
       // (GN)067; catalogue 4.1); no sample procedure runs to the end
