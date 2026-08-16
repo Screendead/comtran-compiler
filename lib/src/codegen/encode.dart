@@ -72,14 +72,28 @@ String mnemonic(Op op) => op.name.toUpperCase();
 /// Whether [op] takes the type-A word layout.
 bool isTypeA(Op op) => typeAPrefixes.containsKey(op);
 
+/// The sense-indicator instructions. Each takes one 18-bit mask that
+/// runs across the tag and address fields, so the listing prints six
+/// unbroken octal digits where a type-B word prints `T AAAAA`.
+const Set<Op> indicatorOps = <Op>{Op.rir, Op.sir, Op.rft};
+
 /// How the OCTAL column spaces [op]'s word.
-WordForm formOf(Op op) => isTypeA(op) ? WordForm.prefix : WordForm.typeB;
+WordForm formOf(Op op) => switch (op) {
+  _ when isTypeA(op) => WordForm.prefix,
+  _ when indicatorOps.contains(op) => WordForm.indicator,
+  _ => WordForm.typeB,
+};
 
 /// A type-B instruction word: the operation field, then tag and address.
 int typeBWord(Op op, {int tag = 0, int address = 0}) =>
     (operationFields[op]! << 24) |
     ((tag & 7) << 15) |
     (address & Word36.fieldMask15);
+
+/// A sense-indicator instruction word: the operation field, then the
+/// 18-bit mask over positions 18 to 35.
+int indicatorWord(Op op, int mask) =>
+    (operationFields[op]! << 24) | (mask & Word36.fieldMask18);
 
 /// A type-A instruction word: the prefix, decrement, tag and address.
 int typeAWord(Op op, {int tag = 0, int decrement = 0, int address = 0}) =>

@@ -10,30 +10,8 @@ closes it and says so. Every unattested choice is labeled ours and is
 amendable by an explicit edit.*
 
 *Entry IDs are append-only. A new entry takes the next free number and goes in
-the section it belongs to. The code cites these IDs, so no entry is ever
-renumbered. Use the index below to find one.*
-
-| Entry | Section |
-|---|---|
-| M4-1 | Scope and stages |
-| M4-2, M4-3 | Pipeline position and the text model |
-| M4-4 | The program image |
-| M4-5, M4-6 | Generated names and msg 942 |
-| M4-7 | The storage-map print |
-| M4-8 | The symbolic listing pages |
-| M4-9 | MOVE |
-| M4-10 | SET and arithmetic |
-| M4-11 | IF and WHEN |
-| M4-12 | GO TO |
-| M4-13 | DO |
-| M4-14 | STOP and the statement stamps |
-| M4-15 | The I/O shapes at M4 |
-| M4-16 | The object deck and the loader cards |
-| M4-17 | The machine assembly and the runtime boundary |
-| M4-18 | Diagnostics |
-| M4-19 | Emit stages |
-| M4-20 | Scan readings and erratum candidates |
-| M4-21 | Open Question dispositions |
+the section it belongs to, and the section headings below are the index. The
+code cites these IDs, so no entry is ever renumbered.*
 
 ## Charter
 
@@ -58,22 +36,16 @@ M4 executes I/O-free programs.
   and their runtime lands at M5. Four stages, one pull request each, each
   green alone:
   1. **The assembly model** — the text model (M4-3), the program image
-     (M4-4), the storage-map print (M4-7), and `--emit-code`. Oracle: the
-     storage-map region of the 1962 listing, lines for LOC 00000–00164,
-     byte for byte (M4-7).
+     (M4-4), the storage-map print (M4-7), and `--emit-code`.
   2. **Core-verb text** — the verb generators (M4-9 to M4-15), the
      generated-name pass (M4-6), and the symbolic listing pages (M4-8).
-     Oracle: the full listing diff, PDF pp. 198–216, byte for byte, after a
-     scan verification pass (M4-8; M3-22 pattern).
   3. **The object deck and loader cards** — the 90.03 text encoding, the
      *FILE/*SPEC/*CTEXT/*CTEND cards, `--emit-deck`, `--emit-loader`, and
-     our loader (M4-16). Oracle: the loader-card page (PDF p. 198) inside
-     the listing diff; a load-and-verify round trip against the listing's
-     word image.
+     our loader (M4-16).
   4. **The machine assembly** — the runtime dispatch layer and the compute
-     handlers (M4-17), and execution tests for I/O-free programs. Oracle:
-     D0.3 contract tests per handler; storage assertions after emulated
-     runs.
+     handlers (M4-17), and execution tests for I/O-free programs.
+
+  The Oracles section at the end of this record holds each stage's oracle.
 
   **Amended 2026-08-09, stage 2 (Jack's call). Stage 2 is not one pull
   request.** Its oracle needs a blind pass over nineteen page scans, the
@@ -199,18 +171,14 @@ M4 executes I/O-free programs.
   amendment left the size "to the stage that can derive it". No stage
   can: a hunt over both manuals refuted seven readings and left two that
   one sample cannot separate, and `docs/HANDOVER.md` holds it. No word
-  of the object program addresses any of the seven cells, so a compiler
-  that sized temporary storage by use would have printed `TS) BSS 0`.
-  Over-reservation is this compiler's habit, and it tracks how well
-  [J 90.02] documents each rule: `PI)` has an exact rule and uses all 3
-  words, `RS)` a worst-case rule and uses 5 of 30, `TS)` no rule and
-  uses none of 7. Both surviving readings return 7 — one cell per file,
-  and sections plus one. Either presents a guess as a derivation and
-  then sizes every other program confidently and wrongly. **Do not
-  implement either, or any other rule returning 7.**
-  For any program but the sample our size is therefore unverifiable, and
-  that is stated rather than hidden. One artifact overturns this entry:
-  the storage map of a second compiled listing.
+  of the object program addresses any of the seven cells, so demand-driven
+  sizing would have printed `TS) BSS 0`; over-reservation is this
+  compiler's habit instead. Both surviving readings return 7, and either
+  presents a guess as a derivation and then sizes every other program
+  confidently and wrongly. **Do not implement either, or any other rule
+  returning 7.** For any program but the sample our size is therefore
+  unverifiable, and that is stated rather than hidden. One artifact
+  overturns this entry: the storage map of a second compiled listing.
   **Amended 2026-08-15, chunk B1. `RS)` takes the attested reservation
   as constants of the sample. Jack's ruling, the chunk B1 review
   record.** [J 90.02.03] needs each section's maximum, and the maximum
@@ -234,11 +202,8 @@ M4 executes I/O-free programs.
   entry per distinct constant as written — a literal keys on its OCT
   word, a pointer or descriptor word on its symbolic operand, never on
   the assembled bits — references printed `CP)+NN` (D8.8). The attested
-  pool (62 entries, LOC 01674–01771) is the conformance check:
-  statements 203 and 215 share the literal CP)+31, while the
-  bit-identical pointer pair CP)+38/CP)+39 and the four zero-valued
-  pointer words CP)+43 to CP)+46 stay separate entries; D4.1 already
-  pins CP)+24, CP)+31 to CP)+34 by index.
+  pool, 62 entries at LOC 01674–01771, is the conformance check, and
+  D4.1 pins CP)+24 and CP)+31 to CP)+34 by index.
   **Amended 2026-08-11, chunk B1. The pool is not in first-need order.**
   Statement 188, the first statement the compiler generates, references
   `CP)+40`, `CP)+14` and `CP)+15`; first-need allocation gives its first
@@ -605,8 +570,6 @@ M4 executes I/O-free programs.
     `ACL` word only (D4.1(b)).
   - Equal-scale chains compile direct: `CLA / SUB / ADD … / STO`
     (statement 207, six operands, no temporaries).
-  - Parenthesized subexpressions park in section-qualified `RS)` cells,
-    two words each (D4.8; [J 90.02.03]).
   - Mode promotion is one-way and remainder-scoped ([J 02.04.05.01]):
     floating or double promotes the rest of the expression, never
     retroactively. Double-precision work uses SYS)128/129 and the
@@ -625,7 +588,9 @@ M4 executes I/O-free programs.
     store recomputes from the stored value — the attested
     `LDQ var / MPY CP)+stride / XCA / ADD base / STO PI)n` sequence
     (statement 225, LOC 01421–01432) — indexing by the raw stored
-    digits, no scaling step (M3-20).
+    digits, no scaling step (M3-20). The base reaches the `ADD` through a
+    generated-name equate, `GN)091 EQU CP)+38`; a store that drives no
+    indicator emits nothing.
   - `SET condition.name` stores the COND entry's constant into the
     conditional variable under the variable's own format (D5.6) — an
     ordinary constant store, no special machinery.
@@ -639,9 +604,47 @@ M4 executes I/O-free programs.
     and run the clause; otherwise store. SYS)130 is not used for this: nothing
     may clear it (D4.2), so a sticky cell cannot carry a per-statement
     test. Without the clause, no test is emitted and the truncated store
-    proceeds silently — that silence is attested (D4.2). Non-historical,
-    amendable; the first ON OVERFLOW evidence found amends this entry.
+    proceeds silently — that silence is attested (D4.2). The first
+    ON OVERFLOW evidence found amends this entry.
 
+  **Amended 2026-08-16, chunk B3, the arithmetic generator.** B3 fills the
+  columns of every SET, every ADD, every truth function and every
+  subscript recomputation, and both subscript `EQU` operands. Six rules
+  carry it:
+
+  a. **A value carries the register that holds it.** A product ends in
+     the MQ and a chain in the accumulator, so a park writes `STQ` or
+     `STO`, five sites and no exception. The store tail opens on `XCA`,
+     which reads the MQ half, so a scaling store of a chain refuses.
+  b. **A computed operand parks in the cell its later operands count**,
+     in the section the walk is in: `RS)n` in section 0, `k.RS)n` after
+     it (notes 6.2 item 21).
+  c. **The generator addresses M4-4's reserved cells section by section.**
+     The undivided 7-cell tail is held whole for section 3, so result
+     storage in a fourth section refuses, and that refusal is what keeps
+     the fitted tail from overlapping anything. A cell past its section's
+     reservation refuses too.
+  d. **The `+0` word suffix is unrecovered** (notes 6.3 item 4). The
+     generator emits it on an `STQ` to a cell above cell 0, which prints
+     LOC 00621 and the bare form everywhere else — a predicate that
+     reproduces the ink, not a rule that explains it.
+  e. **ADD CORRESPONDING emits its targets backwards** — statement 208
+     fills INTERNAL.TOTALS before MASTER TOTALS — and keeps the matcher's
+     order inside one target. Statement 218's plain ADD keeps the written
+     order, so the reversal belongs to CORRESPONDING (notes 6.2 item 20).
+  f. **An edited ADD source converts through MOVPAK, then parks.**
+     `TSX SYS)182,4 / TXI SYS)268,1,1 / TXI SYS)269,1,d /
+     TXI SYS)275,1,d`, `d` the source's digits: a register target takes
+     every character, so the step list reduces to the move alone. The
+     convert leaves the accumulator, so the park is `STO`.
+
+  `RIR`, `SIR` and `RFT` print M4-8's fourth OCTAL rendering, so
+  `encode.dart` gives them a word form of their own. Two shapes refuse
+  beside the three named above — a scale alignment of a sub-chain, and a
+  product of a product — and `test/codegen_refusal_test.dart` pins one
+  program per site. Items (b), (d) and (e) are underdetermined, and
+  `review/2026-08-16-m4-b3-underdetermined` holds the formulations they
+  beat.
 ## IF and WHEN
 
 - **M4-11. One comparison generator.** IF and the conditional GO TO's WHEN
@@ -946,87 +949,77 @@ M4 executes I/O-free programs.
     decrement zero on both, though RETPREM occupies characters 3–5. The
     decrement column is live on the same page (`PZE INS.PREM,,3` prints
     00003), so the zeros are deliberate ink. The EQU'd subscript-base
-    words are therefore byte-blind: the byte selection for the RETPREM
-    (POS) and INSPREM (POS) lookups lives in the generated lookup code,
-    and the reproduced pool prints the two identical words. This closes
-    the review backlog's RETPREM pointer anomaly.
+    words are therefore byte-blind, the byte selection lives in the
+    generated lookup code, and the reproduced pool prints the two
+    identical words. This closes the review backlog's RETPREM pointer
+    anomaly.
   - **(b) LOC 01612 (PDF p. 215) — a transcription error, corrected
     2026-08-05 under Jack's authorization.** The print reads
     `CLA 5)NETPAY`; the transcription's `4)NETPAY` misread the 5. The
-    octal address 00133 is transcribed correctly, and the line is the
-    regular grand-total accumulation shape. The listing corroborates the
-    scan on its own: 00133 pairs with `5)NETPAY` at both other sites
-    that reference it, LOC 00423 and LOC 01614. The golden prints
+    listing corroborates the scan on its own: the correctly transcribed
+    octal address 00133 pairs with `5)NETPAY` at both other sites that
+    reference it, LOC 00423 and LOC 01614. The golden prints
     `5)NETPAY`.
   - **(c) LOC 01327 (PDF p. 212) — confirmed as printed.** The word is
     `TRA SYS)267,0,0`, octal `0020 00 0 00413`, inside a SYS)180
     sequence where every parallel site prints `TXI SYS)267,1,n`. The
     1962 ink is unambiguous, so the listing reproduces it byte for byte.
-    The execution reading is deferred: the word sits in a parameter
-    position the SYS)180 handler decodes, and what the 1962 runtime made
-    of it is discovered when the sample first runs (M6); the finding
-    amends this entry.
+    The execution reading is deferred to M6, when the sample first runs;
+    the finding amends this entry.
   - **(d) LOC 00702 (PDF p. 206) — confirmed verbatim.** The label-only
     `GN)075` line, the out-of-order `GN)088 EQU CP)+37` line between it
     and the instruction, and the unlabeled `AXT GN)086,4` word printing
-    `+1`: all as transcribed. The EQU-resets-the-offset-counter rule
-    (M4-8) is attested ink, and the first word after a reset prints
-    `+1`.
+    `+1`: all as transcribed, which is the attested ink behind M4-8's
+    offset-counter reset.
   - **(e) The PDF p. 208 page head — a transcription error, corrected
     2026-08-05 under Jack's authorization.** The print is one head line
     in the normal order, followed by two blank lines. A one-degree scan
     tilt drops the right half of the line, and the transcription split
     it into two transposed lines. The golden prints one line, on
-    PDF p. 209's field grid, per item (g). Its two blank lines are this
-    page's alone.
+    PDF p. 209's field grid, per item (g).
   - **(f) The GET descriptor mnemonic — the two artifacts genuinely
     differ.** The listing prints `IOCTN*` (read at three sites on PDF
     p. 201; the fourth glyph is a T at 40×, against a D control glyph
     from GET.DETAIL); the typeset [J 90.02.04] prints `IOCDN*`. Each
     transcription is faithful to its own source, so neither is an
-    erratum. The compiler emits the listing's `IOCTN*` — the listing is
-    the codegen oracle — and this divergence is recorded here, not in
-    the definition, because it is a print fact, not a language fact.
+    erratum. The compiler emits the listing's `IOCTN*`, and the
+    divergence is recorded here rather than in the definition because it
+    is a print fact, not a language fact.
   - **(g) The column geometry (PDF pp. 203 and 212) — one geometry.**
     Pages from both transcription ranges print identical grids, the
     M4-8 table, constant to half a character cell; the apparent two
-    conventions came from opposite scan distortions on the two pages,
-    and the pasted listing block sits at a different offset on each
-    manual page — page furniture, not print.
+    conventions came from opposite scan distortions, and the pasted
+    listing block sits at a different offset on each manual page — page
+    furniture, not print.
 
 ## Open Question dispositions
 
 - **M4-21.** Decided by this walk and annotated in place in the
-  definition's list:
-  - **Q37** (the index after a completed loop): the M4-13 decode gives
-    the generated answer — normal exit leaves i at the first value past
-    r (r + q when q divides r − p exactly); a GO TO out
-    leaves whatever the last increment stored. Annotated with the decode
-    citation; §8.5.5-a takes the matching dated annotation (the compiled
-    exit is a magnitude test; F's printed expansion stays the manual's
-    text).
+  definition's list. Each disposition is the generated behavior, and the
+  entry cited with it holds the shape:
+  - **Q37**, the index after a completed loop: normal exit leaves i at
+    the first value past r, r + q when q divides r − p exactly, and a
+    GO TO out leaves the last increment's value (M4-13). §8.5.5-a takes
+    the matching annotation: the compiled exit is a magnitude test, and
+    F's printed expansion stays the manual's text.
   - **Q26 residue**: the ACL half-adjust runs away from zero for
-    negatives by 7090 semantics; no negative case is attested, and the
-    reading stays flagged inference (D4.1(a) unchanged). Rounding cannot
-    arm SYS)130 on the arithmetic path (D4.1(f)).
-  - **Q27 / Q28 residues**: closed for implementation by M4-10's recorded
-    model (store-site-only downscale, ON OVERFLOW as an inline pre-store
-    test); the language questions stay open in the list, pointing here.
-  - **Q31**: SYS)131 is set by the numeric movers and read by nothing;
-    reproduced exactly (D4.3).
-  - **Q33**: multi-target stores run left to right in written order
-    (D4.8); observable only on REDEF overlap; annotated as our decision.
-  - **Q34**: DO USING/GIVING transfers are MOVEs (M3-19), so they take
-    full MOVE editing; annotated.
-  - **Q36**: named q and r are re-read each pass by the increment block;
-    literals bake into the pool (M4-13); annotated as the generated
-    behavior.
-  - **Q24**: no object-time check exists on a QUANTITY IN value against
-    its reservation ([J 90.01.02]'s policy); the emulator reproduces the
-    silent overrun. Annotated.
-  - **Q38, Q39, Q42 residue, Q43**: Q42's WHEN fold shapes are decided
-    (M4-11); Q38 (msg 170's trigger), Q39, and Q43 stay open and block
-    nothing in M4.
+    negatives by 7090 semantics, no negative case is attested, so the
+    reading stays flagged inference, and rounding cannot arm SYS)130
+    (D4.1(a), D4.1(f)).
+  - **Q27 / Q28 residues**: closed for implementation by M4-10 —
+    downscale at the store site only, ON OVERFLOW as an inline pre-store
+    test. The language questions stay open, pointing here.
+  - **Q31**: SYS)131 is set by the numeric movers and read by nothing,
+    reproduced exactly (D4.3). **Q33**: multi-target stores run left to
+    right in written order, observable only on REDEF overlap, ours
+    (D4.8). **Q34**: DO USING/GIVING transfers are MOVEs, so they take
+    full MOVE editing (M3-19). **Q36**: named q and r are re-read each
+    pass by the increment block and literals bake into the pool (M4-13).
+    **Q24**: no object-time check on a QUANTITY IN value against its
+    reservation, and the emulator reproduces the silent overrun
+    ([J 90.01.02]).
+  - **Q42 residue**: the WHEN fold shapes are decided (M4-11). Q38
+    (msg 170's trigger), Q39 and Q43 stay open and block nothing in M4.
 
 ## Oracles
 

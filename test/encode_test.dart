@@ -68,8 +68,27 @@ void main() {
     test('a type-B operation takes the type-B form', () {
       for (final Op op in operationFields.keys) {
         expect(isTypeA(op), isFalse);
+        if (indicatorOps.contains(op)) {
+          continue;
+        }
         expect(formOf(op), WordForm.typeB);
       }
+    });
+  });
+
+  group('the sense-indicator instructions', () {
+    test('the mask fills the tag and address fields together', () {
+      for (final Op op in indicatorOps) {
+        expect(formOf(op), WordForm.indicator);
+        expect(Instruction.decode(indicatorWord(op, 0x3FFFF)).op, op);
+      }
+    });
+
+    test('the OCTAL column prints the attested RIR line', () {
+      expect(
+        octalColumn(indicatorWord(Op.rir, 0x3FFFF), formOf(Op.rir)),
+        '0057 00 777777',
+      );
     });
   });
 

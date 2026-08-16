@@ -103,8 +103,32 @@ final class UnrecoveredShape implements Exception {
 /// notes section 7).
 Never _unruled(String what) => throw UnrecoveredShape(what);
 
+/// The result-storage cells each section reserves, section 0 first, the
+/// last entry the undivided tail every later section shares.
+///
+/// Constants, and deliberately not a rule — the `TS)` precedent (Jack's
+/// ruling, 2026-08-15, the chunk B1 review record). The sample attests
+/// sections 0 to 2 reserving 3, 2 and 3 cells while referencing 2, 1 and
+/// 1, no tested rule reproduces those heads, and the 7-cell tail is
+/// unobservable: the program addresses one cell of it, at statement 221,
+/// and contradictory closures fit the rest. Section 3 therefore takes
+/// the tail's first word and a fourth section refuses. For any program
+/// but the sample this reservation is unverifiable, which is stated
+/// rather than hidden.
+const List<int> resultStorageCells = <int>[3, 2, 3, 7];
+
 /// The three outcomes of a skip vector, in slot order ([J 90.02.12]).
 enum _Outcome { greater, equal, less }
+
+/// Where a computed value waits: `MPY` leaves it in the MQ and a chain
+/// leaves it in the accumulator, and the store, the park and the
+/// multiplicative step each choose their word by which it is
+/// (catalogue 4.7).
+enum _Register { ac, mq }
+
+/// One computed value: its compile-time scale in powers of ten, and the
+/// register holding it.
+typedef _Value = ({int scale, _Register register});
 
 /// One symbolic address: the text the operand column prints and the
 /// value the address field punches.
@@ -175,6 +199,10 @@ final class _Text {
   final List<(int, String Function(), int Function())> _text =
       <(int, String Function(), int Function())>[];
 
+  /// Deferred operand text with no object word: an `EQU` prints a
+  /// symbol in the operand column and leaves the OCTAL column blank.
+  final List<(int, String Function())> _operands = <(int, String Function())>[];
+
   /// Procedure names at least one DO (or bare-name AT END) calls: these
   /// paragraphs carry a return cell (catalogue 4.1 — call-site-driven).
   final Set<String> _doTargets = <String>{};
@@ -206,6 +234,12 @@ final class _Text {
 
   /// Whether a section is open; its END emits the terminal return.
   bool _openSection = false;
+
+  /// Which section the walk is in, counting from 1 at the first BEGIN
+  /// SECTION. Sections are sequential, never nested, so the counter never
+  /// falls: the main program before the first one is section 0. It names
+  /// the result-storage block a park addresses (catalogue 4.7).
+  int _section = 0;
 
   /// Names waiting for the next word. Two of them print one per line,
   /// the word on the last (M4-8).
@@ -299,6 +333,34 @@ final class _Text {
     () => typeBWord(op, address: distance),
   );
 
+  /// `XCA`, which exchanges the accumulator and the MQ whole and so
+  /// prints no operand.
+  void _xca() => _emit(
+    mnemonic(Op.xca),
+    formOf(Op.xca),
+    () => '',
+    () => typeBWord(Op.xca),
+  );
+
+  /// `PXA 0,0` — the truth function's clear of the accumulator, which
+  /// prints both fields though both are zero (catalogue 4.7).
+  void _pxa() => _emit(
+    mnemonic(Op.pxa),
+    formOf(Op.pxa),
+    () => '0,0',
+    () => typeBWord(Op.pxa),
+  );
+
+  /// `RIR`, `SIR` or `RFT`: one 18-bit mask over the sense indicators,
+  /// printed as six octal digits — the attested `RIR 777777` at LOC
+  /// 01240.
+  void _senseIndicator(Op op, int mask) => _emit(
+    mnemonic(op),
+    formOf(op),
+    () => mask.toRadixString(8).padLeft(6, '0'),
+    () => indicatorWord(op, mask),
+  );
+
   /// `COM`, whose `+0760` sub-operation rides in the address field and
   /// prints nothing ([J 90.02.02]; the emulator's decision ED-3).
   void _com() => _emit(
@@ -371,15 +433,42 @@ final class _Text {
     () => image?.symbolAddress(block, number) ?? 0,
   );
 
+  /// `RS)n` or `k.RS)n` — one result-storage cell of the section the
+  /// walk is in, two words a cell (D4.8).
+  ///
+  /// Section 0 prints the bare symbol and every later section qualifies
+  /// it with its number. [offset] prints the `+0` word suffix, which
+  /// LOC 00621 carries and no other reference does (M4-10).
+  _Sym _resultCell(int cell, {bool offset = false}) {
+    final int section = _section;
+    if (section >= resultStorageCells.length) {
+      _unruled('result storage in section $section (no sample instance)');
+    }
+    if (cell >= resultStorageCells[section]) {
+      _unruled('result-storage cell $cell of section $section (M4-10)');
+    }
+    var word = 0;
+    for (var i = 0; i < section; i++) {
+      word += 2 * resultStorageCells[i];
+    }
+    final text =
+        '${section == 0 ? '' : '$section.'}${StorageBlock.rs.symbol}$cell'
+        '${offset ? '+0' : ''}';
+    final int address =
+        (image?.originOf(StorageBlock.rs) ?? 0) + word + 2 * cell;
+    return _Sym(() => text, () => address);
+  }
+
   /// Emits an `EQU` line at the head of the machinery block that needs
   /// it, printing [value] in the LOC column and taking no word of its
-  /// own (M4-8).
+  /// own (M4-8). [operand] fills the symbolic column, which carries no
+  /// object word of its own.
   ///
   /// The line interrupts the stream, so a name still waiting for the
   /// next word prints alone ahead of it, at the location that word will
   /// take: the attested `GN)075` at LOC 00702, which the `GN)088 EQU`
   /// line separates from its `AXT`.
-  void equ(String name, int Function() value) {
+  void equ(String name, int Function() value, {String Function()? operand}) {
     if (_pending.isNotEmpty) {
       _units.add(
         AssemblyUnit(
@@ -389,6 +478,9 @@ final class _Text {
           labels: _take(),
         ),
       );
+    }
+    if (operand != null) {
+      _operands.add((_units.length, operand));
     }
     _fixups.add((_units.length, value));
     _units.add(AssemblyUnit(operation: 'EQU', operand: '', labels: [name]));
@@ -416,6 +508,17 @@ final class _Text {
         location: unit.location,
         labels: unit.labels,
         word: word(),
+        form: unit.form,
+      );
+    }
+    for (final (int index, String Function() operand) in _operands) {
+      final AssemblyUnit unit = _units[index];
+      _units[index] = AssemblyUnit(
+        operation: unit.operation,
+        operand: operand(),
+        location: unit.location,
+        labels: unit.labels,
+        word: unit.word,
         form: unit.form,
       );
     }
@@ -834,6 +937,7 @@ final class _Text {
         break; // No object word (F p. 59; J 02.04.02.01).
       case BeginSectionClause():
         _openSection = true;
+        _section += 1;
         word(); // Every section carries a return cell (catalogue 4.1).
       case EndClause():
         _endClause(clause);
@@ -1366,18 +1470,39 @@ final class _Text {
           in semantics.positionalIndicators.reversed)
         if (notation == target.text) item,
     ];
+    if (driven.isEmpty) {
+      return; // Most moves drive no indicator at all.
+    }
     // Both EQU lines print ahead of the update blocks — the attested
     // 01742 and 01743, back to back before LOC 01421.
+    final blocks = <(PoolHandle stride, _Sym base, DataItem table)>[];
     for (final table in driven) {
-      _tableStride(table);
+      final PoolHandle stride = _tableStride(table);
       final PoolHandle base = _pool.base(
         '${_printedName(table)}-${_strideWords(table)}',
       );
       final String bound = _mint();
       _generated += 1; // The pair's second name is never bound (M4-6).
-      equ(bound, () => _poolAddress(base));
+      equ(
+        bound,
+        () => _poolAddress(base),
+        // The equate prints the pool entry and the update block prints
+        // the name, which is what makes the name worth minting (notes
+        // 6.2 item 32).
+        operand: () => _cp(base).text(),
+      );
+      blocks.add((stride, _Sym(() => bound, () => _poolAddress(base)), table));
     }
-    words(5 * driven.length);
+    // The subscript variable is the value; the block scales it by the
+    // table's stride and offsets it by the table's base.
+    final DataItem variable = _decimal(_item(target)!);
+    for (final (PoolHandle stride, _Sym base, DataItem table) in blocks) {
+      _opItem(Op.ldq, variable);
+      _op(Op.mpy, _cp(stride));
+      _xca();
+      _op(Op.add, base);
+      _op(Op.sto, _blockWord(StorageBlock.pi, _indicator(table)));
+    }
   }
 
   // --- The figurative and literal fills (catalogue 4.4, 4.5) --------------
@@ -1605,8 +1730,7 @@ final class _Text {
       _figurativeFill(target, word);
       return;
     }
-    final int scale = _chain(clause.value);
-    _store(target, scale, truncated: clause.truncated);
+    _store(target, _chain(clause.value), truncated: clause.truncated);
   }
 
   void _add(AddClause clause) {
@@ -1614,8 +1738,10 @@ final class _Text {
       _unruled('ADD TRUNCATED / ON OVERFLOW (notes section 7)');
     }
     if (clause.corresponding) {
-      final List<(DataItem, DataItem)> pairs =
-          semantics.correspondingPairs[clause] ?? const [];
+      final List<(DataItem, DataItem)> pairs = _addOrder(
+        clause.targets,
+        semantics.correspondingPairs[clause] ?? const [],
+      );
       for (final (DataItem source, DataItem target) in pairs) {
         _addPair(source, target);
       }
@@ -1627,14 +1753,17 @@ final class _Text {
       }
       final DataItem source = _item(name)!;
       if (_sem(source).fieldClass == FieldClass.edited) {
-        // The non-binary operand fetch: the register convert of
-        // catalogue 4.6, plus one word to park (catalogue 4.7).
+        // The non-binary operand fetch (catalogue 4.7): the register
+        // convert of catalogue 4.6, then one word to park it. The
+        // convert leaves its result in the accumulator, so the park is
+        // `STO`, and the source is the one operand the targets follow.
         _setup(source, target: false);
-        words(1 + 3);
-        word(); // The park.
+        _editedFetch(source);
+        final _Sym park = _resultCell(clause.targets.length);
+        _op(Op.sto, park);
         _movpakClears();
         for (final NameReference target in clause.targets) {
-          _addBody(_item(target)!);
+          _addBody(_item(target)!, () => _op(Op.add, park));
         }
         return;
       }
@@ -1646,124 +1775,189 @@ final class _Text {
     _unruled('an ADD of a literal (no sample instance)');
   }
 
-  /// One ADD unit: `CLA source / ADD target / STO target` with the
+  /// The edited-field-to-register convert ([J 90.02.30]): the MOVPAK
+  /// entry, the fixed head, one step, and the terminator.
+  ///
+  /// A register target takes every source character, so the step list of
+  /// catalogue 4.6 reduces to the move alone. Both counts are the
+  /// source's digits: `NUMBER-OF-CHARACTERS-TO-CONVERT` as the edited
+  /// runs already read it, and `TARGET-DECIMAL-NUMERIC-LENGTH` because
+  /// the register receives exactly those digits (notes 6.2 item 18).
+  void _editedFetch(DataItem source) {
+    final int digits = _sem(source).digits;
+    _tsx(182);
+    _txi(268, 1);
+    _txi(269, digits);
+    _txi(275, digits);
+  }
+
+  /// The CORRESPONDING pairs in emission order: the target list runs
+  /// backwards and each target keeps the matcher's order within it.
+  ///
+  /// Statement 208 attests the reversal — `INTERNAL.TOTALS` fills 00733
+  /// to 00757 ahead of `MASTER TOTALS` at 00760, though MASTER is
+  /// written first — and statement 218's plain ADD keeps its target
+  /// order, so the reversal belongs to CORRESPONDING alone (M4-10).
+  List<(DataItem, DataItem)> _addOrder(
+    List<NameReference> targets,
+    List<(DataItem, DataItem)> pairs,
+  ) => <(DataItem, DataItem)>[
+    for (var i = targets.length - 1; i >= 0; i--)
+      for (final (DataItem, DataItem) pair in pairs)
+        if (_receiverIndex(targets, pair.$2) == i) pair,
+  ];
+
+  /// One ADD unit: `CLA target / ADD source / STO target` with the
   /// guards the operands force. Every attested pair has equal scale;
   /// the store tail on an ADD has no site (notes section 7).
   void _addPair(DataItem source, DataItem target) {
     if (_sem(source).fractionDigits != _sem(target).fractionDigits) {
       _unruled('an ADD pair of unequal scales (notes section 7)');
     }
-    _loadBaseOf(_decimal(source));
-    _addBody(target);
+    final DataItem addend = _decimal(source);
+    _loadBaseOf(addend);
+    _addBody(target, () => _opItem(Op.add, addend));
   }
 
-  void _addBody(DataItem target) {
-    _loadBaseOf(_decimal(target));
-    words(3);
+  void _addBody(DataItem target, void Function() addend) {
+    final DataItem item = _decimal(target);
+    _loadBaseOf(item);
+    _opItem(Op.cla, item);
+    addend();
+    _opItem(Op.sto, item);
   }
 
-  /// Emits the chain of [value] and returns the accumulator's scale.
-  int _chain(ArithExpr value) {
-    final List<ArithExpr> terms = _additiveTerms(value);
+  /// Emits the chain of [value] and returns what it computed and where.
+  _Value _chain(ArithExpr value) {
+    final List<(ArithExpr, Token?)> terms = _additiveTerms(value);
     if (terms.length == 1) {
-      final ArithExpr term = terms.single;
+      final ArithExpr term = terms.single.$1;
       switch (term) {
         case NameOperand(:final name):
           if (name.subscripts.isNotEmpty) {
             _unruled('a subscripted chain operand (no sample instance)');
           }
-          _loadBaseOf(_decimal(_item(name)!));
-          word(); // CLA.
-          return _naturalScale(term);
+          final DataItem item = _decimal(_item(name)!);
+          _loadBaseOf(item);
+          _opItem(Op.cla, item);
+          return (scale: _naturalScale(term), register: _Register.ac);
         case LiteralOperand(:final literal):
-          _numericLiteral(literal);
-          word(); // CLA CP)+nn — the one-term chain (notes 3.3).
-          return _naturalScale(term);
+          // The one-term chain (notes 3.3).
+          _op(Op.cla, _cp(_numericLiteral(literal)));
+          return (scale: _naturalScale(term), register: _Register.ac);
         case BinaryExpr():
-          return _product(term);
+          return (scale: _product(term), register: _Register.mq);
         default:
           _unruled('a chain of ${term.runtimeType} (no sample instance)');
       }
     }
     var chainScale = 0;
-    for (final term in terms) {
+    for (final (ArithExpr term, _) in terms) {
       final int scale = _naturalScale(term);
       chainScale = scale > chainScale ? scale : chainScale;
     }
-    // One entry per term: the item whose base register that term's own
-    // word must load, `null` where the assembly reads a parked value or
-    // a pool word. The NET sentence pins the placement: the guard for
-    // `1)BONDEDUCTION` sits at 00727, between the fifth `SUB` and its
-    // own, not ahead of the `CLA` at 00722.
-    final fetched = <DataItem?>[];
-    for (final term in terms) {
+    // One entry per term: the word the assembly emits for it, with the
+    // guard that word must carry. The NET sentence pins the placement:
+    // the guard for `1)BONDEDUCTION` sits at 00727, between the fifth
+    // `SUB` and its own, not ahead of the `CLA` at 00722.
+    final assembly = <void Function(Op op)>[];
+    for (var i = 0; i < terms.length; i++) {
+      final ArithExpr term = terms[i].$1;
       // The sample's chains never subscript a term, so the multi-term
       // arms refuse one exactly as the single-term arm above does.
       if (term case NameOperand(:final name) when name.subscripts.isNotEmpty) {
         _unruled('a subscripted chain operand (no sample instance)');
       }
       final int deficit = chainScale - _naturalScale(term);
-      fetched.add(
-        term is NameOperand && deficit == 0
-            ? _decimal(_item(term.name)!)
-            : null,
-      );
+      // The cell a computed term parks in: the count of the chain's
+      // operands that follow it in source order (M4-10).
+      final int cell = terms.length - 1 - i;
       switch (term) {
-        case NameOperand() when deficit == 0:
-          break; // Fetched in place, guarded at its own word below.
+        case NameOperand(:final name) when deficit == 0:
+          final DataItem item = _decimal(_item(name)!);
+          assembly.add((Op op) {
+            _loadBaseOf(item);
+            _opItem(op, item);
+          });
         case LiteralOperand(:final literal) when deficit == 0:
-          _numericLiteral(literal);
+          final _Sym at = _cp(_numericLiteral(literal));
+          assembly.add((Op op) => _op(op, at));
         case NameOperand() || LiteralOperand():
           // The scale alignment: a run-time multiply against a separate
           // pool word, never a folded literal (catalogue 4.7), parked.
           if (term case LiteralOperand(:final literal)) {
-            _numericLiteral(literal);
+            _op(Op.ldq, _cp(_numericLiteral(literal)));
           } else if (term case NameOperand(:final name)) {
-            _loadBaseOf(_decimal(_item(name)!));
+            final DataItem item = _decimal(_item(name)!);
+            _loadBaseOf(item);
+            _opItem(Op.ldq, item);
           }
-          _pool.machineWord(_pow10(deficit));
-          words(3);
+          _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
+          assembly.add(_park(cell, _Register.mq));
         case BinaryExpr() when _additive(term):
-          final int scale = _chain(term); // The sub-chain, then its park.
-          if (chainScale > scale) {
-            _pool.machineWord(_pow10(chainScale - scale));
-            word();
+          final _Value inner = _chain(term); // The sub-chain, then its park.
+          if (inner.scale < chainScale) {
+            // An additive sub-chain finishes in the accumulator, which
+            // no one word aligns: `MPY` reads the MQ half. The sample
+            // never writes one (M4-10).
+            _unruled('a scale alignment of a sub-chain (no sample instance)');
           }
-          word();
+          assembly.add(_park(cell, inner.register));
         case BinaryExpr():
-          _product(term); // The product, its alignment, and its park.
+          _product(term); // The product, then its alignment and park.
           if (deficit > 0) {
-            _pool.machineWord(_pow10(deficit));
-            word();
+            // The product is in the MQ, so one more multiply aligns it.
+            _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
           }
-          word();
+          assembly.add(_park(cell, _Register.mq));
         default:
           _unruled('a chain of ${term.runtimeType} (no sample instance)');
       }
     }
     // The assembly: one CLA, then ADD or SUB each.
-    for (final item in fetched) {
-      if (item != null) {
-        _loadBaseOf(item);
-      }
-      word();
+    for (var i = 0; i < assembly.length; i++) {
+      final Token? operator = terms[i].$2;
+      assembly[i](
+        operator == null
+            ? Op.cla
+            : operator.text == '-'
+            ? Op.sub
+            : Op.add,
+      );
     }
-    return chainScale;
+    return (scale: chainScale, register: _Register.ac);
+  }
+
+  /// Parks a computed term in result-storage cell [cell] and returns the
+  /// word the assembly reads it back with. The park names the register
+  /// the value sits in: `STQ` after a multiply, `STO` after a chain.
+  void Function(Op op) _park(int cell, _Register register) {
+    _op(
+      register == _Register.mq ? Op.stq : Op.sto,
+      _resultCell(cell, offset: cell != 0 && register == _Register.mq),
+    );
+    final _Sym read = _resultCell(cell);
+    return (Op op) => _op(op, read);
   }
 
   bool _additive(BinaryExpr expr) =>
       expr.operator.text == '+' || expr.operator.text == '-';
 
-  /// Flattens the left-associative additive spine into its terms.
-  List<ArithExpr> _additiveTerms(ArithExpr expr) {
+  /// Flattens the left-associative additive spine into its terms, each
+  /// with the operator that joins it. The first term has none.
+  List<(ArithExpr, Token?)> _additiveTerms(ArithExpr expr) {
     if (expr is BinaryExpr && _additive(expr)) {
-      return <ArithExpr>[..._additiveTerms(expr.left), expr.right];
+      return <(ArithExpr, Token?)>[
+        ..._additiveTerms(expr.left),
+        (expr.right, expr.operator),
+      ];
     }
-    return <ArithExpr>[expr];
+    return <(ArithExpr, Token?)>[(expr, null)];
   }
 
   /// A `*` node: the complex side first, then the two-word step
-  /// (catalogue 4.7). Returns the product's scale, the factor sum.
+  /// (catalogue 4.7). Returns the product's scale, the factor sum. A
+  /// product always finishes in the MQ.
   int _product(BinaryExpr expr) {
     // Both call sites take an additive node before this runs, so any
     // operator here but `*` is unruled.
@@ -1775,17 +1969,15 @@ final class _Text {
     final bool leftLeaf = left is NameOperand || left is LiteralOperand;
     final bool rightLeaf = right is NameOperand || right is LiteralOperand;
     if (leftLeaf && rightLeaf) {
-      final DataItem? first = _leafOperand(left);
-      final DataItem? second = _leafOperand(right);
+      final void Function(Op) first = _leafOperand(left);
+      final void Function(Op) second = _leafOperand(right);
       // `MPY` takes a name wherever one factor is a literal, so the
       // `LDQ` takes the literal — `LDQ CP)+12 / MPY EXEMPTIONS,1` at
       // 01221 — and the right factor when neither is one, as
       // `LDQ 1)RATE,1 / MPY 3)HOURS` at 00641 shows.
       final leftLoads = left is LiteralOperand;
-      _guarded(leftLoads ? first : second);
-      word(); // LDQ.
-      _guarded(leftLoads ? second : first);
-      word(); // MPY.
+      (leftLoads ? first : second)(Op.ldq);
+      (leftLoads ? second : first)(Op.mpy);
       return _naturalScale(left) + _naturalScale(right);
     }
     if (!leftLeaf && !rightLeaf) {
@@ -1795,77 +1987,109 @@ final class _Text {
     final leaf = leftLeaf ? left : right;
     final int scale = switch (complex) {
       TruthExpr() => _truthFunction(complex),
-      BinaryExpr() => _chain(complex),
+      BinaryExpr() => _accumulated(_chain(complex)),
       _ => _unruled('a factor of ${complex.runtimeType}'),
     };
-    final DataItem? item = _leafOperand(leaf);
-    // The step onto the finished value: `XCA`, then the factor's word.
-    word();
-    _guarded(item);
-    word();
+    final void Function(Op) factor = _leafOperand(leaf);
+    // The step onto the finished value: `XCA` moves it to the MQ half,
+    // then the factor's own word multiplies.
+    _xca();
+    factor(Op.mpy);
     return scale + _naturalScale(leaf);
   }
 
-  /// Prepares [leaf] as a factor and returns the item its own word
-  /// addresses, `null` for a literal — the pool word needs no guard.
-  DataItem? _leafOperand(ArithExpr leaf) {
+  /// The scale of a complex factor, which the `XCA` step requires in the
+  /// accumulator. A chain of one product finishes in the MQ instead, and
+  /// the sample never writes one (M4-10).
+  int _accumulated(_Value value) => value.register == _Register.ac
+      ? value.scale
+      : _unruled('a product of a product (no sample instance)');
+
+  /// Prepares [leaf] as a factor and returns the emitter of the word
+  /// that addresses it, guard and all. A literal takes a pool entry and
+  /// needs no guard.
+  void Function(Op op) _leafOperand(ArithExpr leaf) {
     switch (leaf) {
       case LiteralOperand(:final literal):
-        _numericLiteral(literal);
-        return null;
+        final _Sym at = _cp(_numericLiteral(literal));
+        return (Op op) => _op(op, at);
       case NameOperand(:final name):
         if (name.subscripts.isNotEmpty) {
           _unruled('a subscripted factor (no sample instance)');
         }
-        return _decimal(_item(name)!);
+        final DataItem item = _decimal(_item(name)!);
+        return (Op op) {
+          _loadBaseOf(item);
+          _opItem(op, item);
+        };
       default:
         _unruled('a factor of ${leaf.runtimeType}');
-    }
-  }
-
-  /// The guard [item] needs at the word that addresses it.
-  void _guarded(DataItem? item) {
-    if (item != null) {
-      _loadBaseOf(item);
     }
   }
 
   /// The truth function (catalogue 4.7): one head word, the comparison
   /// with its true outcome falling through, and the four-word tail that
   /// ends on `CLA` of the true value. Eleven words at its one site.
+  ///
+  /// The frame works in the lowest sense indicator. `RIR` clears every
+  /// indicator, the true outcome falls past the `SIR` that sets that
+  /// one, `PXA 0,0` clears the accumulator, and `RFT` skips the `CLA`
+  /// when the indicator is still off. The value is 0 or 1 in the
+  /// accumulator, so the caller's `XCA` step reads it there.
   int _truthFunction(TruthExpr expr) {
-    _pool.seed(1);
-    word();
+    final _Sym one = _cp(_pool.seed(1));
+    _senseIndicator(Op.rir, _everyIndicator);
     _compare(expr.condition, trueFalls: true, falseFalls: false);
-    words(4);
+    _senseIndicator(Op.sir, _truthIndicator);
+    _pxa();
+    _senseIndicator(Op.rft, _truthIndicator);
+    _op(Op.cla, one);
     return 0;
   }
+
+  /// The eighteen sense indicators, and the one the truth function uses.
+  static const int _everyIndicator = 0x3FFFF;
+  static const int _truthIndicator = 0x1;
 
   /// The store: one word on equal scale, the five-word scaling tail
   /// otherwise — `XCA / ACL half / LRS 35 / DVP scale / STQ`, the
   /// half-adjust suppressed under TRUNCATED (catalogue 4.7; D4.1).
-  void _store(NameReference target, int scale, {required bool truncated}) {
+  void _store(NameReference target, _Value value, {required bool truncated}) {
     if (target.subscripts.isNotEmpty) {
       _unruled('a subscripted SET target (no sample instance)');
     }
     final DataItem item = _decimal(_item(target)!);
     final int targetScale = _sem(item).fractionDigits;
-    if (scale == targetScale) {
+    if (value.scale == targetScale) {
       _loadBaseOf(item);
-      word();
+      _opItem(value.register == _Register.mq ? Op.stq : Op.sto, item);
       return;
     }
-    if (scale < targetScale) {
+    if (value.scale < targetScale) {
       _unruled('a store below the target scale (no sample instance)');
     }
-    final int divisor = _pow10(scale - targetScale);
-    if (!truncated) {
-      _pool.machineWord(divisor ~/ 2); // The half-adjust, referenced first.
+    if (value.register != _Register.mq) {
+      // The tail opens on `XCA`, which reads the MQ half, so it scales a
+      // product and nothing else. Every attested site is one (M4-10).
+      _unruled('a scaling store of a chain value (no sample instance)');
     }
-    _pool.machineWord(divisor);
+    final int divisor = _pow10(value.scale - targetScale);
+    // The half-adjust is referenced first, so it pools first.
+    final _Sym? half = truncated ? null : _cp(_pool.machineWord(divisor ~/ 2));
+    final _Sym scale = _cp(_pool.machineWord(divisor));
     _loadBaseOf(item);
-    words(truncated ? 4 : 5);
+    _xca();
+    if (half != null) {
+      _op(Op.acl, half);
+    }
+    _shift(Op.lrs, _storeShift);
+    _op(Op.dvp, scale);
+    _opItem(Op.stq, item);
   }
+
+  /// `LRS 35` leaves the whole product in the MQ half, which is what
+  /// `DVP` divides.
+  static const int _storeShift = 35;
 
   // --- IF and the comparisons (catalogue 4.8) -----------------------------
 
@@ -2158,9 +2382,10 @@ final class _Text {
     TruthExpr() => 0,
     BinaryExpr(:final left, :final right) when expr.operator.text == '*' =>
       _naturalScale(left) + _naturalScale(right),
-    BinaryExpr() when _additive(expr) => _additiveTerms(
-      expr,
-    ).map(_naturalScale).reduce((int a, int b) => a > b ? a : b),
+    BinaryExpr() when _additive(expr) =>
+      _additiveTerms(expr)
+          .map(((ArithExpr, Token?) term) => _naturalScale(term.$1))
+          .reduce((int a, int b) => a > b ? a : b),
     _ => _unruled('the scale of ${expr.runtimeType}'),
   };
 }

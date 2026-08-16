@@ -613,4 +613,60 @@ void main() {
       );
     });
   });
+
+  group('the B3 refusal sites (M4-10)', () {
+    test('a scaling store of a chain value', () {
+      // The tail opens on `XCA`, which reads the MQ half, and a chain
+      // finishes in the accumulator.
+      expect(
+        _refuses(['            SET NUM = FRAC + FRAC.']),
+        'a scaling store of a chain value (no sample instance)',
+      );
+    });
+
+    test('a scale alignment of a sub-chain', () {
+      // The sub-chain's scale is below the chain's, and no one word
+      // aligns a value the accumulator holds.
+      expect(
+        _refuses(['            SET FRAC = FRAC + (NUM + TOT).']),
+        'a scale alignment of a sub-chain (no sample instance)',
+      );
+    });
+
+    test('a product of a product', () {
+      // The `XCA` step reads the complex factor in the accumulator, and
+      // a product finishes in the MQ.
+      expect(
+        _refuses(['            SET NUM = NUM * TOT * IDX.']),
+        'a product of a product (no sample instance)',
+      );
+    });
+
+    test('a result-storage cell past the section reservation', () {
+      // Section 0 reserves three cells and this chain parks four.
+      expect(
+        _refuses([
+          '            SET NUM = NUM * TOT + NUM * TOT + NUM * TOT + NUM',
+          '            * TOT.',
+        ]),
+        'result-storage cell 3 of section 0 (M4-10)',
+      );
+    });
+
+    test('result storage past the last reserved section', () {
+      // The reservation covers sections 0 to 3; the fourth has none.
+      expect(
+        _refuses([
+          for (var i = 1; i <= 3; i++) ...[
+            '      ${'S$i.'.padRight(12)}BEGIN SECTION.',
+            '            END S$i.',
+          ],
+          '      ${'S4.'.padRight(12)}BEGIN SECTION.',
+          '            SET NUM = NUM * TOT + NUM.',
+          '            END S4.',
+        ]),
+        'result storage in section 4 (no sample instance)',
+      );
+    });
+  });
 }
