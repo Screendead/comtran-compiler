@@ -717,6 +717,41 @@ M4 executes I/O-free programs.
   site by site, and the reason only a trailing slot can be elided is that
   the three slots sit at fixed displacements from the compare, in
   [J 90.02.12]'s own HIGH, EQUAL and LOW order.
+  **Amended 2026-08-16, chunk B4. The generator fills the eleven sites,
+  and six rules the fill fixed are recorded.**
+  - **The zero build** (the catalogue's L(A) = 3): `LDQ` the pooled
+    zero, `MPY` the power of ten that raises it to the storage
+    operand's scale, `XCA` (statements 205 and 215). Both attested
+    sites scale, so the unscaled variant refuses.
+  - **The extraction shift** is six bits a character: `LGL 18` brings
+    statement 200's byte-3 field to character 0. One site pins the
+    distance.
+  - **The spill cell** is result-storage cell 0 of the walk's section
+    (statement 200's `RS)0`). One site attests it; the
+    first-free-cell formulation fits the same site, and the chunk B4
+    record holds the rejection.
+  - **The spill mirrors the outcomes.** `LAS` reads the accumulator
+    against storage. After the spill the accumulator holds the second
+    operand and the cell holds the first, so the vector's greater and
+    less swap (derived from the instruction — 22-6528-4, external).
+    The one attested site, statement 200's symmetric NOT EQUAL, cannot
+    show the swap.
+  - **The subscripted comparand's prologue** is `LAC PI)n,r /
+    TXL SYS)294,r,0`, the register the lowest free one under M4-9's
+    rule, and the compare addresses the element as `0,r`
+    (statement 225). The register leaves the locator cache: it holds
+    an element address now. One site attests the register choice; the
+    fixed-XR2 formulation fits the same site, and the chunk B4 record
+    holds the rejection.
+  - **A truth function's false outcomes** land one word past the
+    vector, over the `SIR` (statement 215's `*+3` and `*+2`).
+  Six unattested variants refuse rather than invent (M4-2 as amended):
+  a nonzero literal comparand, a subscripted accumulator comparand, an
+  unscaled zero, a subscripted alphameric comparand, an unequal-length
+  alphameric pair — the D3.3 fold and the D5.3 truncation each wait
+  for a site — and a comparand past one word, the SYS)162 boundary,
+  which stays unbuilt beside AND, OR and NOT under the
+  compound-condition precedent.
 
 ## GO TO
 
