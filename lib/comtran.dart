@@ -35,6 +35,7 @@ export 'src/cards/deck_files.dart';
 export 'src/cards/text_codec.dart';
 export 'src/chars/char_code.dart';
 export 'src/codegen/codegen.dart';
+export 'src/codegen/encode.dart';
 export 'src/codegen/image.dart';
 export 'src/codegen/object_listing.dart';
 export 'src/codegen/storage_map.dart';

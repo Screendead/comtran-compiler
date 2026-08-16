@@ -131,11 +131,17 @@ final class ItemSemantics {
 /// One transmitted storage area: a top-level data item with program
 /// storage, in source order (M3-6; Location Counter 0, J 90.02.01).
 final class AreaInfo {
-  AreaInfo(this.name, {required this.words});
+  AreaInfo(this.name, {required this.root, required this.words});
 
   /// The punched name; empty for an unnamed entry (its GN name is
   /// stage 3's).
   final String name;
+
+  /// The entry whose space this area is. Codegen addresses a data item
+  /// by finding its [ItemSemantics.spaceRoot] here and adding the item's
+  /// word, so the identity matters and the name does not: two areas can
+  /// share a name, and one can have none (M4-9).
+  final DataItem root;
 
   /// The area's initial words: a 36-bit value where any character is
   /// initialized, `null` for a wholly uninitialized word (M3-7).

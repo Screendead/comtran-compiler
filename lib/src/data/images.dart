@@ -125,6 +125,7 @@ final class ImageBuilder {
       areas.add(
         AreaInfo(
           root.entry.name,
+          root: root,
           words: [
             for (var i = 0; i < extentWords; i++)
               _touched[i] ? _words[i] : null,
