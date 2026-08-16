@@ -126,11 +126,12 @@ them are underdetermined by the one sample program, and the record
 `review/2026-08-16-m4-b2-underdetermined` holds the rejected
 formulations.
 
-B3 added eight rules to M4-10: the AC-or-MQ register a value sits in,
-the result-storage cell number, the per-section reservation as constants,
-the unrecovered `+0` suffix, the ADD CORRESPONDING target reversal, the
-edited-source convert, the truth-function frame, and the subscript
-recomputation — plus five more refusals. Three of the eight are
+B3 added six rules to M4-10: the AC-or-MQ register a value sits in, the
+result-storage cell number, the section-by-section addressing of M4-4's
+reserved cells, the unrecovered `+0` suffix, the ADD CORRESPONDING target
+reversal, and the edited-source convert. It also records the
+`RIR`/`SIR`/`RFT` word form, folds two subscript facts into M4-10's own
+subscript bullet, and adds five more refusals. Three of the six are
 underdetermined, and the record
 `review/2026-08-16-m4-b3-underdetermined` holds the rejected
 formulations. The next task is chunk B4, the IF and WHEN generator
