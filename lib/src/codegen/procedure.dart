@@ -2261,12 +2261,7 @@ final class _Text {
           final int register = _indicatorPrologue(item);
           // The element the indicator addresses: `CAS 0,r`, the word
           // the register alone reaches (the attested 01412).
-          _emit(
-            mnemonic(Op.cas),
-            formOf(Op.cas),
-            () => '0,$register',
-            () => typeBWord(Op.cas, tag: register),
-          );
+          _op(Op.cas, _Sym(() => '0', () => 0), tag: register);
         } else {
           _loadBaseOf(item);
           _opItem(Op.cas, item);

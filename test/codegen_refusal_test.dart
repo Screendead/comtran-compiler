@@ -1,4 +1,5 @@
-/// The refusal sites of chunks B1 and B2 (M4-2 as amended 2026-08-15):
+/// The refusal sites of chunks B1 through B4 (M4-2 as amended
+/// 2026-08-15):
 /// a valid shape the sample never reaches has no attested generated
 /// form, so the sizers throw [UnrecoveredShape] rather than invent one.
 /// Every site a valid program reaches is pinned here, one program per

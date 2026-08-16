@@ -706,7 +706,7 @@ M4 executes I/O-free programs.
     (statement 200's `RS)0`, one site).
   - **The spill mirrors the outcomes.** `LAS` reads the accumulator
     against storage, and after the spill the accumulator holds the
-    second operand (derived — 22-6528-4, external). The one site is a
+    second operand (external: 22-6528-4). The one site is a
     symmetric NOT EQUAL and cannot show the swap.
   - **The subscripted comparand's prologue** is `LAC PI)n,r /
     TXL SYS)294,r,0`, the register the lowest free one under M4-9's
@@ -716,12 +716,15 @@ M4 executes I/O-free programs.
     vector, over the `SIR` (statement 215's `*+3` and `*+2`).
   The one-site cell and register choices are underdetermined; the
   chunk B4 record holds the rejected formulations. Six unattested
-  variants refuse (M4-2 as amended): a nonzero literal comparand, a
-  subscripted accumulator comparand, an unscaled zero, a subscripted
-  alphameric comparand, an unequal-length pair — the D3.3 fold and the
-  D5.3 truncation each wait for a site — and a comparand past one
-  word: the SYS)162 boundary stays unbuilt beside AND, OR and NOT, the
-  compound-condition precedent.
+  variants refuse (M4-2 as amended):
+  - a nonzero literal comparand;
+  - a subscripted accumulator comparand;
+  - an unscaled zero;
+  - a subscripted alphameric comparand;
+  - an unequal-length pair — the D3.3 fold and the D5.3 truncation
+    each wait for a site;
+  - a comparand past one word: the SYS)162 boundary stays unbuilt
+    beside AND, OR and NOT, the compound-condition precedent.
 
 ## GO TO
 

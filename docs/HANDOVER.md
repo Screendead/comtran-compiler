@@ -138,10 +138,16 @@ underdetermined, and the record
 `review/2026-08-16-m4-b3-underdetermined` holds the rejected
 formulations.
 
-B4 added six rules to M4-11: the three-word zero build, the extraction
-shift distance, the spill cell, the spill's outcome mirror, the
-subscripted comparand's prologue, and the truth function's false
-target; and six refusals. Two of the six rules are underdetermined,
+B4 added six rules to M4-11, and six refusals. The rules:
+
+- the three-word zero build,
+- the extraction shift distance,
+- the spill cell,
+- the spill's outcome mirror,
+- the subscripted comparand's prologue,
+- and the truth function's false target.
+
+Two of the six rules are underdetermined,
 and the record `review/2026-08-16-m4-b4-underdetermined` holds the
 rejected formulations. The next task is chunk B5, the GO TO and DO
 generator (M4-12; catalogue 4.1), against the same target.
