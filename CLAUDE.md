@@ -343,7 +343,7 @@ section. The record itself is a repository document, so STE governs it.
 The catalog exemption is Jack's call, made 2026-08-16. It covers the §8.5
 ambiguity catalog and the final Open Questions list of the language
 definition. Their entries chain inference between quoted fragments, and some
-run past two thousand words. A reflow into short sentences risks a silent
+entries of the Open Questions list run past two thousand words. A reflow into short sentences risks a silent
 change to an evidentiary claim, which the section 9 evidence rules exist to
 prevent. The sentence-length and list-preference rules do not bind those
 entries; every other rule of this section still does.

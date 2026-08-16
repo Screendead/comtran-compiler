@@ -263,7 +263,7 @@ the §8.4 severity/conformance decisions, drafted per subsection, independently
 and adversarially verified against the definition and the page scans, then
 repaired — every blocker and correction applied and re-verified against the
 manuals and the 90.05 listing before adoption. The walk recorded 84: D1–D8
-mirror §8.5.1–§8.5.8, then 68 entries; D9 covers §8.4. Entry 8.5.4-n
+mirror §8.5.1–§8.5.8, which then held 68 entries; D9 covers §8.4. Entry 8.5.4-n
 (2026-08-04) grew the catalog to 69, and D4.14 (recorded 2026-08-16)
 back-fills its record: 85 records now.*
 
@@ -720,7 +720,7 @@ record built on it.*
 
 **Decision.** "Integer" carries two senses. The subscript sense is mechanical: a subscript variable with fraction or scale positions is rejected with msg 31, and a trailing-S scale is rejected with the rest. FIND/PLACE LENGTH IN takes the same sense: msgs 111/112 name the format ("IMPROPER DATA FORMAT"), and a scaled field cannot state an arbitrary length. The assigned GO TO index takes the value sense: a trailing-S field passes, because its values are whole; msg 130 fires only on true fraction positions, and the integral part serves. Code generation indexes by the raw stored digits and never adds a scaling step.
 
-**Rationale.** The attested lookup indexes by the raw stored digits with no scaling step (`LDQ POS / MPY CP)+13` — [J 90.05] listing, PDF p. 213, LOC 01421–01432), and [F p. 75] has the subscript "used within the system to count individual items", so the stored digits must equal the value. A trailing-S field stores a thousandth of its value ([F p. 80]), so its stored digits do not. [F p. 49]'s assigned GO TO rule speaks only of the index's value ("the value of the index will always be an integer in the range 1 to n"), which a trailing-S field satisfies; msg 130's recovery clause has nothing to truncate there. No field in either manual is declared with `S`, so the case is unattested. The definition's §8.5.4-n holds the evidence trail.
+**Rationale.** The attested lookup indexes by the raw stored digits with no scaling step (`LDQ POS / MPY CP)+13` — [J 90.05] listing, PDF p. 213, LOC 01421–01432), and [F p. 75] has the subscript "used within the system to count individual items", so the stored digits must equal the value. A trailing-S field stores a scaled fraction of its value (`999SSS`: a thousandth — [F p. 80]), so its stored digits do not. [F p. 49]'s assigned GO TO rule speaks only of the index's value ("the value of the index will always be an integer in the range 1 to n"), which a trailing-S field satisfies; msg 130's recovery clause has nothing to truncate there. No field in either manual is declared with `S`, so the case is unattested. The definition's §8.5.4-n holds the evidence trail.
 
 **Implementation.** Landed with M3 stage 2 (M3-20, "Subscript reference checks", `docs/design/m3-data.md`): msg 31 bars a trailing-S subscript variable, and the transfers triage passes a trailing-S assigned GO TO index. M4 code generation must index by the stored digits and never invent a scaling step.
 
