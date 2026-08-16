@@ -19,11 +19,11 @@ Conventions inherited from the conversions: 1960s spellings ("alphameric", "imbe
 
 ## Where to look
 
-- Ambiguity catalog with resolutions, 68 entries: [§8.5](#85-consolidated-ambiguity-catalog-with-plausible-resolutions), lines 3960–4059.
+- Ambiguity catalog with resolutions, 69 entries: [§8.5](#85-consolidated-ambiguity-catalog-with-plausible-resolutions), lines 3960–4060.
 - Severity codes and message-implied rules: [§8.4](#84-the-severity-code-system-and-rules-implied-by-the-diagnostics-j-appendix-9004), lines 3736–3959.
 - F28-8043 vs J28-6169 conflicts: [§8.3](#83-f28-8043-vs-j28-6169-contradictions-and-divergences), lines 3598–3735.
 - Deferred and removed features (F→J digest): [§8.2](#82-the-fj-delta-complete-digest-of-j-appendix-9001-deferred-features-restrictions-limitations), lines 3482–3597.
-- Questions the manuals do not answer: [Open questions](#open-questions), lines 4280–4514.
+- Questions the manuals do not answer: [Open questions](#open-questions), lines 4281–4521.
 
 ## Contents
 
