@@ -16,8 +16,7 @@ and the charter disagree, the charter wins.
 2. Chrome runs on this machine with logged-in sessions for grok.com and
    the Anthropic reviewer's surface. Start it with
    `open -a "Google Chrome"` if it is not running.
-3. Load the Claude-in-Chrome tools in one ToolSearch batch, with
-   `gif_creator`.
+3. Load the Claude-in-Chrome tools in one ToolSearch batch.
 
 ## A round
 
@@ -26,8 +25,10 @@ and the charter disagree, the charter wins.
 2. Configure before you send, and verify visually: Grok on Expert
    mode; the Anthropic reviewer on Fable 5 with maximum reasoning. A
    review on the wrong configuration is void.
-3. Type the charter's fixed line. Type nothing else. Record the
-   interaction as a GIF. The GIFs are the audit trail.
+3. Type the charter's fixed line. Type nothing else. Do not record the
+   session. Make no GIF, and keep no image of a reviewer tab. A
+   reviewer tab shows the titles of Jack's other chats. The audit trail
+   is the verbatim review and its share URL on the pull request.
 4. Wait. A review takes minutes. Poll the tab with `read_page` no more
    than once each minute.
 5. If a reviewer stalls or asks a question, send the charter's one
