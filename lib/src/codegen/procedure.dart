@@ -339,10 +339,12 @@ final class _Text {
   /// attested sites name a fixed location, so the word takes no tag and
   /// the located form has none (catalogue 4.3).
   void _pze(DataItem item) {
-    final _Ref ref = _ref(item);
-    if (ref.tag != 0) {
+    // The test precedes [_ref]: a located reference reads its record's
+    // base register, and no caller guards one for this word.
+    if (_located(item)) {
       _unruled('an in-line address word for a located item (catalogue 4.3)');
     }
+    final _Ref ref = _ref(item);
     final int byte = _sem(item).byte;
     _emit(
       'PZE',
@@ -473,8 +475,10 @@ final class _Text {
   ///
   /// A located item is addressed from its record's base register, so its
   /// address is the record-relative word; every other item carries its
-  /// area's origin. The `+n` suffix is the attested printed form at
-  /// `3)EMPLOYEE.NUMBER+1` (M4-9).
+  /// area's origin. Every root outside a located record that reserves a
+  /// character is a transmitted area, so the origin is there. The `+n`
+  /// suffix is the attested printed form at `3)EMPLOYEE.NUMBER+1`
+  /// (M4-9).
   _Ref _ref(DataItem item, {int plus = 0}) {
     final ItemSemantics sem = _sem(item);
     final String text = plus == 0
@@ -485,23 +489,15 @@ final class _Text {
     if (locator != null) {
       return (text: text, address: sem.word + plus, tag: _registerOf(locator));
     }
-    final int? origin = _areaOrigins[sem.spaceRoot];
-    if (origin == null) {
-      _unruled('a reference to an item with no transmitted area (M4-9)');
-    }
+    final int origin = _areaOrigins[sem.spaceRoot]!;
     return (text: text, address: origin + sem.word + plus, tag: 0);
   }
 
   /// The index register holding [locator]. Every located reference is
   /// guarded before it is emitted, so the cache always holds one.
-  int _registerOf(int locator) {
-    for (final MapEntry<int, int> held in _registerHolds.entries) {
-      if (held.value == locator) {
-        return held.key;
-      }
-    }
-    throw StateError('BL)$locator is referenced with no register loaded');
-  }
+  int _registerOf(int locator) => _registerHolds.entries
+      .firstWhere((MapEntry<int, int> held) => held.value == locator)
+      .key;
 
   /// The `PI)n` of a subscripted reference to [array].
   ///
@@ -1152,19 +1148,14 @@ final class _Text {
     return [for (final int i in order) pairs[i]];
   }
 
-  /// Which of [targets] holds [item].
-  int _receiverIndex(List<NameReference> targets, DataItem item) {
-    for (var i = 0; i < targets.length; i++) {
-      final DataItem? receiver = _item(targets[i]);
-      if (receiver != null &&
-          ancestorsOf(item).any((DataItem each) => identical(each, receiver))) {
-        return i;
-      }
-    }
-    // The matcher builds each pair under one receiver, so a pair under
-    // none would sort by an index that names no receiver at all.
-    _unruled('a matched pair outside every receiver (M4-9)');
-  }
+  /// Which of [targets] holds [item]. The matcher builds every pair
+  /// under one receiver, so the search always finds one.
+  int _receiverIndex(List<NameReference> targets, DataItem item) =>
+      Iterable<int>.generate(targets.length).firstWhere((int i) {
+        final DataItem? receiver = _item(targets[i]);
+        return receiver != null &&
+            ancestorsOf(item).any((DataItem each) => identical(each, receiver));
+      });
 
   /// One source-to-target unit, selected by the two field classes
   /// ([J 90.02.15] to [J 90.02.19], [J 90.02.30]).
@@ -1281,9 +1272,9 @@ final class _Text {
         shape.leadingProtected;
   }
 
-  Pictorial _editedShape(DataItem target) =>
-      _sem(target).shape ??
-      _unruled('an edited target with no pictorial (M4-9)');
+  /// The pictorial of an edited target. A field is edited because its
+  /// pictorial holds an edit character, so the measurement is there.
+  Pictorial _editedShape(DataItem target) => _sem(target).shape!;
 
   /// TARGET-SIGN-CONVENTION, the control word's tag ([J 90.02.17]
   /// Note 2's seven values).
@@ -1413,13 +1404,9 @@ final class _Text {
       _movpakClears();
       return;
     }
-    if (_zero(figurative)) {
-      _txi(244, extent);
-    } else if (figurative.text.startsWith('BLANK')) {
-      _txi(243, extent);
-    } else {
-      _unruled('a fill of ${figurative.text} (notes section 7)');
-    }
+    // The parser admits four figurative families (`figurativeConstants`),
+    // and HIGH and LOW are above, so the rest is ZERO or BLANK.
+    _txi(_zero(figurative) ? 244 : 243, extent);
     _movpakClears();
   }
 

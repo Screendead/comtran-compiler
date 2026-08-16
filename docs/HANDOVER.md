@@ -62,7 +62,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1090 Dart tests pass, measured 2026-08-16, and 154 extension
+Test baseline: 1095 Dart tests pass, measured 2026-08-16, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -119,7 +119,7 @@ as amended; the chunk B1 review record).
 
 B2 added six rules to M4-9: the encode table, the guard's use-point
 placement, the lowest-free-register allocation, the CORRESPONDING
-emission order, the two-factor `LDQ` selection, and ten refusals. Two of
+emission order, the two-factor `LDQ` selection, and five refusals. Two of
 them are underdetermined by the one sample program, and the record
 `review/2026-08-16-m4-b2-underdetermined` holds the rejected
 formulations. The next task is chunk B3, the SET and arithmetic

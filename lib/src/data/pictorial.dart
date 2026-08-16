@@ -153,9 +153,9 @@ final class Pictorial {
       kind == _Kind.star ||
       kind == _Kind.overpunch;
 
-  /// Digit positions `8`, `9` and `*` left of the real or implied
-  /// decimal point — the control word's decrement (J 90.02.17 Note 2).
-  /// With neither point present, every digit position counts.
+  /// Digit positions left of the real or implied decimal point — the
+  /// control word's decrement (J 90.02.17 Note 2). With neither point
+  /// present, every digit position counts.
   late final int digitsBeforePoint = _digitsBefore(
     (_Kind kind) => kind == _Kind.period || kind == _Kind.v,
   );

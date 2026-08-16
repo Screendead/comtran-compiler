@@ -575,14 +575,13 @@ M4 executes I/O-free programs.
      and `MPY` the left. Three sites attest it: `LDQ CP)+6 /
      MPY 3)HOURS`, `LDQ 1)RATE,1 / MPY 3)HOURS`, and `LDQ CP)+12 /
      MPY EXEMPTIONS,1`.
-  f. **Ten more shapes refuse**, each legal COMTRAN the sample never
+  f. **Five more shapes refuse**, each legal COMTRAN the sample never
      reaches, each throwing `UnrecoveredShape` under M4-2 as amended.
-     Every site names its own shape, and
-     `test/codegen_refusal_test.dart` reaches each one a valid program
-     can reach.
+     `test/codegen_refusal_test.dart` pins one program per site. Four
+     other conditions cannot arise; the code asserts them.
 
   Items (d) and (e) are underdetermined: one sample attests each, and
-  rival formulations fit the same ink. Both are taken under the section
+  other formulations agree with it. Both are taken under the section
   12 standing rule and recorded `DECIDED`, with the formulations they
   beat, on branch `review/2026-08-16-m4-b2-underdetermined`.
 
