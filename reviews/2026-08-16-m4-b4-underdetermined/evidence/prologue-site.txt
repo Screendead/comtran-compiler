@@ -1,0 +1,18 @@
+The one subscripted comparand in the object program: statement 225. XR1
+holds BL)2 for the located 1)RATE, so the lowest free register is XR2.
+
+225,00  SEARCH.  IF MASTER RATE GT TABLE.ITEM RATE (INDEX) THEN GO TO
+                 SEARCH.END OTHERWISE ...
+
+01405                             GN)085         EQU    SEARCH+1
+01404  0774 00 0 00000   10000    SEARCH         AXT    0
+01405  0535 00 1 01667   10001           +1      LAC    BL)2,1
+01406  7 00000 1 00446   10010           +2      TXL    SYS)294,1,0
+01407  0500 00 1 00004   10000           +3      CLA    1)RATE,1
+01410  0535 00 2 01671   10001           +4      LAC    PI)1,2
+01411  7 00000 2 00446   10010           +5      TXL    SYS)294,2,0
+01412  0340 00 2 00000   10000           +6      CAS    0,2
+01413  0020 00 0 01416   10001           +7      TRA    *+3
+01414  0020 00 0 01417   10001           +8      TRA    GN)081
+01415  0020 00 0 01417   10001           +9      TRA    GN)081
+01416  0020 00 0 01472   10001          +10      TRA    SEARCH.END

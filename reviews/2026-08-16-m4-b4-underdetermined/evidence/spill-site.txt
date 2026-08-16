@@ -1,0 +1,25 @@
+The one spill in the object program: statement 200, the doubly-extracted
+alphameric comparison. Section 0; the statement parks nothing, so cell 0
+and the first free cell coincide. RS)0 assembles to 01621, the section-0
+base.
+
+200,00  CHECK.NEW.DEPT.  IF CURRENT.DEPT IS NOT EQUAL TO D.DEPT THEN
+                         DO DEPARTMENT.END OTHERWISE GO TO COMPUTE.PAY.
+
+00527  4500 00 0 00047   10001    CHECK.NEW.DEPT CAL    CURRENT.DEPT
+00530  4763 00 0 00022   10000           +1      LGL    18
+00531  4320 00 0 01732   10001           +2      ANA    CP)+30
+00532  0602 00 0 01621   10001           +3      SLW    RS)0
+00533  0535 00 1 01670   10001           +4      LAC    BL)3,1
+00534  7 00000 1 00446   10010           +5      TXL    SYS)294,1,0
+00535  4500 00 1 00000   10000           +6      CAL    2)DEPARTMENT,1
+00536  4320 00 0 01732   10001           +7      ANA    CP)+30
+00537  4340 00 0 01621   10001           +8      LAS    RS)0
+00540  0020 00 0 00542   10001           +9      TRA    *+2
+00541  0020 00 0 00546   10001          +10      TRA    GN)070
+00542  0774 00 7 00545   10001          +11      AXT    *+3,7
+00543  0634 00 4 01473   10001          +12      SXA    DEPARTMENT.END,4
+00544  0020 00 0 01474   10001          +13      TRA    DEPARTMENT.END+1
+00545  0020 00 0 00547   10001          +14      TRA    GN)071
+00546  0020 00 0 00563   10001    GN)070         TRA    COMPUTE.PAY
+00547  0441 00 0 01744   10001    GN)071         LDI    CP)+40

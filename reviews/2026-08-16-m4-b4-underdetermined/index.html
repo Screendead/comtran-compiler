@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chunk B4 — two rules one program cannot settle</title>
+<style>
+:root {
+  --paper:#F7F8F6; --raised:#FFFFFF; --ink:#14171A; --muted:#5C6560;
+  --rule:#C9CFC8; --hair:#E1E5DF; --stamp:#B3261E; --stamp-soft:#FBEAE8;
+  --settled:#40685A;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#141715; --raised:#1C201D; --ink:#E7EBE5; --muted:#9AA69D;
+    --rule:#3A423C; --hair:#2A302C; --stamp:#FF7A6B; --stamp-soft:#33201D;
+    --settled:#7FB8A2;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#141715; --raised:#1C201D; --ink:#E7EBE5; --muted:#9AA69D;
+  --rule:#3A423C; --hair:#2A302C; --stamp:#FF7A6B; --stamp-soft:#33201D;
+  --settled:#7FB8A2;
+}
+* { box-sizing:border-box; }
+body {
+  background:var(--paper); color:var(--ink); font-family:var(--serif);
+  font-size:17px; line-height:1.62; margin:0;
+  padding:clamp(1.5rem,4vw,4rem) clamp(1rem,5vw,2rem);
+}
+main { max-width:47rem; margin:0 auto; display:flex; flex-direction:column; gap:2.4rem; }
+h1 { font-size:clamp(1.7rem,4.2vw,2.4rem); line-height:1.16; margin:0; text-wrap:balance;
+     letter-spacing:-0.015em; }
+h2 { font-size:1.32rem; margin:0 0 .2rem; text-wrap:balance; letter-spacing:-0.01em; }
+h3 { font-size:1.02rem; margin:1.6rem 0 .3rem; }
+p, li { margin:0 0 .85rem; }
+li:last-child { margin-bottom:0; }
+ul, ol { padding-left:1.15rem; margin:0 0 .85rem; }
+a { color:var(--ink); text-decoration-color:var(--rule); text-underline-offset:.16em; }
+a:hover { text-decoration-color:var(--stamp); }
+a:focus-visible { outline:2px solid var(--stamp); outline-offset:2px; border-radius:2px; }
+code { font-family:var(--mono); font-size:.87em; background:var(--hair);
+        padding:.08em .3em; border-radius:2px; }
+.eyebrow { font-family:var(--mono); font-size:.7rem; letter-spacing:.16em;
+            text-transform:uppercase; color:var(--muted); margin:0 0 .7rem; }
+header { border-bottom:2px solid var(--ink); padding-bottom:1.4rem; }
+header p.standfirst { font-size:1.06rem; color:var(--muted); margin:.75rem 0 0; }
+section { display:flex; flex-direction:column; gap:.2rem; }
+.answer { background:var(--raised); border:1px solid var(--hair);
+           border-left:3px solid var(--ink); padding:1.15rem 1.3rem; }
+.answer ol { margin:0; padding-left:1.2rem; }
+.answer li { margin-bottom:.5rem; }
+.chip { font-family:var(--mono); font-size:.66rem; letter-spacing:.14em;
+         text-transform:uppercase; padding:.24em .6em; border-radius:2px;
+         border:1px solid currentColor; white-space:nowrap; }
+.chip.decided { color:var(--stamp); background:var(--stamp-soft); }
+.chip.done { color:var(--settled); }
+.itemhead { display:flex; gap:.75rem; align-items:baseline; flex-wrap:wrap;
+             margin-bottom:.35rem; }
+.item { border-top:1px solid var(--rule); padding-top:1.3rem; }
+.item.needs { border-top:2px solid var(--stamp); }
+figure { margin:1rem 0 1.2rem; }
+.plate { background:var(--raised); border:1px solid var(--rule); padding:.55rem;
+          overflow-x:auto; }
+.plate pre { margin:0; font-family:var(--mono); font-size:.78rem; line-height:1.5; }
+figcaption { font-family:var(--mono); font-size:.71rem; line-height:1.5; color:var(--muted);
+              margin-top:.5rem; }
+.opt { border-left:3px solid var(--rule); padding:.15rem 0 .15rem 1rem; margin:0 0 1rem; }
+.opt.pick { border-left-color:var(--stamp); }
+.opt .name { font-family:var(--mono); font-size:.75rem; letter-spacing:.08em;
+              text-transform:uppercase; }
+footer { border-top:1px solid var(--rule); padding-top:1rem; font-size:.85rem;
+          color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+<p class="eyebrow">Review record · 2026-08-16 · chunk B4 · commit b38bd40</p>
+<h1>Two rules one program cannot settle</h1>
+<p class="standfirst">Chunk B4 is the comparison generator: it fills the
+mnemonic, operand and OCTAL columns of every IF, every conditional GO TO
+and the truth function's compare in the 1962 payroll sample, and every
+line it fills matches the listing byte for byte. Six rules carry it.
+Four rest on several sites or on the machine itself. Two do not — one
+site attests each, and a rival formulation fits the same ink. Both are
+taken under the section 12 standing rule, and silence lets them
+stand.</p>
+</header>
+
+<section class="answer">
+<h2>What was decided, in four lines</h2>
+<ol>
+<li><strong>The extraction spill writes result-storage cell 0</strong>
+of the section the walk is in, always — not the first cell the
+statement's parks leave free. One site spills, and it parks nothing, so
+the two rules print the same ink there.</li>
+<li><strong>The subscripted comparand's <code>LAC PI)n,r</code> takes
+the lowest free register</strong> under M4-9's statement allocator —
+not a fixed XR2. One site, and its XR1 is already occupied, so the two
+rules print the same ink there too.</li>
+<li>Each rejected formulation reproduces the 1962 listing exactly as
+well. They part on programs the one surviving sample does not contain,
+so no further scan work would choose between them.</li>
+<li>Each is one commit to overturn, in
+<code>lib/src/codegen/procedure.dart</code>, and nothing outside that
+file depends on either.</li>
+</ol>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>1 · Which result-storage cell the spill writes</h2></div>
+
+<p><strong>The decision.</strong> When both operands of an alphameric
+comparison need extraction, the first extraction spills so the compare
+can read it back. The spill writes cell 0 of the walk's section:
+<code>SLW RS)0</code>, then <code>LAS RS)0</code>.
+<code>_alphamericComparison</code> in <code>procedure.dart</code>
+passes cell 0 at both references, and M4-11 as amended records it.</p>
+
+<p><strong>Why the number matters.</strong> M4-4 as amended reserves
+the cells as constants of the sample — 3, 2, 3 and an undivided 7 — on
+Jack's ruling of 2026-08-15. A rule that skips parked cells could push
+a compare past its section's reservation and refuse a program the
+cell-0 rule compiles.</p>
+
+<p><strong>The evidence.</strong> One site spills in the whole program:
+statement 200, the two-character department compare. Its statement
+parks nothing, so cell 0 and the first free cell coincide there:</p>
+<figure><div class="plate"><pre>200,00  CHECK.NEW.DEPT.  IF CURRENT.DEPT IS NOT EQUAL TO D.DEPT THEN
+                         DO DEPARTMENT.END OTHERWISE GO TO COMPUTE.PAY.
+
+00527  4500 00 0 00047   10001    CHECK.NEW.DEPT CAL    CURRENT.DEPT
+00530  4763 00 0 00022   10000           +1      LGL    18
+00531  4320 00 0 01732   10001           +2      ANA    CP)+30
+00532  0602 00 0 01621   10001           +3      SLW    RS)0
+00533  0535 00 1 01670   10001           +4      LAC    BL)3,1
+00534  7 00000 1 00446   10010           +5      TXL    SYS)294,1,0
+00535  4500 00 1 00000   10000           +6      CAL    2)DEPARTMENT,1
+00536  4320 00 0 01732   10001           +7      ANA    CP)+30
+00537  4340 00 0 01621   10001           +8      LAS    RS)0</pre></div>
+<figcaption>evidence/spill-site.txt — the one spill, LOC 00527 to
+00537.</figcaption></figure>
+
+<p><strong>What would mislead.</strong> B3's park rule numbers cells by
+counting a statement's operands, so a reader could expect the spill to
+enter that count. It does not need to: the spill is dead before any
+park could write — the <code>LAS</code> five words later is its only
+reader, and no park can be emitted inside a compare.</p>
+
+<p><strong>The rejected option.</strong></p>
+<div class="opt">
+<p><span class="name">A — the first cell the statement's parks leave
+free</span><br>
+Extend B3's counting rule to cover spills, so a spilling compare in a
+statement with two parks writes <code>RS)2</code>. Cost: it agrees with
+the one attested site. It parts from the taken rule on an IF whose arms
+also park, where it prints a higher cell and can push the section past
+its reservation. It also makes the spill cell depend on clauses that
+follow the compare, which no reader could see from the compare
+itself.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">B — cell 0, always (taken)</span><br>
+The spill's lifetime is closed inside the compare, so it needs no slot
+in the park count and cannot collide with one. Cell 0 is the least
+machinery: no counting rule reaches across clause boundaries into the
+arms. <strong>To overturn:</strong> one commit at
+<code>_alphamericComparison</code>'s two <code>_resultCell</code>
+calls; the oracle re-checks the site. <strong>What overturns it:</strong>
+a compiled listing whose spilling compare sits in a statement that also
+parks.</p>
+</div>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>2 · Which register the subscripted comparand's prologue takes</h2></div>
+
+<p><strong>The decision.</strong> A subscripted comparand's prologue —
+<code>LAC PI)n,r / TXL SYS)294,r,0</code>, then the compare against
+<code>0,r</code> — takes the lowest free index register under M4-9's
+statement allocator, the same rule the base-locator guards use. The
+register then leaves the locator cache: it holds an element address
+now, not a base. <code>_indicatorPrologue</code> in
+<code>procedure.dart</code> carries it, keyed so an indicator never
+collides with a locator, and M4-11 as amended records it.</p>
+
+<p><strong>The evidence.</strong> One site compares a subscripted
+operand in the whole program: statement 225's table search. XR1 already
+holds <code>BL)2</code> for the located <code>1)RATE</code>, so the
+lowest free register is XR2 — which is also what a fixed-XR2 rule would
+print:</p>
+<figure><div class="plate"><pre>225,00  SEARCH.  IF MASTER RATE GT TABLE.ITEM RATE (INDEX) THEN GO TO
+                 SEARCH.END OTHERWISE ...
+
+01404  0774 00 0 00000   10000    SEARCH         AXT    0
+01405  0535 00 1 01667   10001           +1      LAC    BL)2,1
+01406  7 00000 1 00446   10010           +2      TXL    SYS)294,1,0
+01407  0500 00 1 00004   10000           +3      CLA    1)RATE,1
+01410  0535 00 2 01671   10001           +4      LAC    PI)1,2
+01411  7 00000 2 00446   10010           +5      TXL    SYS)294,2,0
+01412  0340 00 2 00000   10000           +6      CAS    0,2</pre></div>
+<figcaption>evidence/prologue-site.txt — the one subscripted comparand,
+LOC 01404 to 01412.</figcaption></figure>
+
+<p><strong>What would mislead.</strong> The site prints XR2, which
+reads as a convention — "indicators ride in XR2" — until the occupancy
+is checked. XR1 is taken by the locator load two words earlier, so the
+lowest-free rule prints XR2 here for its own reason, and the site
+cannot separate the two rules.</p>
+
+<p><strong>The rejected option.</strong></p>
+<div class="opt">
+<p><span class="name">A — a fixed XR2 for every indicator
+prologue</span><br>
+Cost: it agrees with the one attested site. It parts from the taken
+rule on a compare whose subscripted operand arrives with both registers
+free, where it prints XR2 and the taken rule prints XR1. It also needs
+its own collision rule for a statement whose locator guard wants XR2,
+which M4-9's allocator already settles for free.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">B — M4-9's lowest-free rule (taken)</span><br>
+One allocator, one rule. Three attested locator sites already pin
+lowest-free for the same machine idiom — <code>LAC</code> plus the
+<code>TXL</code> trap — and the prologue composes with it instead of
+adding a second regime. <strong>To overturn:</strong> one commit at
+<code>_indicatorPrologue</code>; the oracle re-checks the site.
+<strong>What overturns it:</strong> a compiled listing whose subscripted
+compare runs with both registers free.</p>
+</div>
+</section>
+
+<footer>
+<p>Record built 2026-08-16 on branch
+<code>review/2026-08-16-m4-b4-underdetermined</code>. The generator is
+commit b38bd40 on <code>m4s2-chunk-b4</code>; the oracle is
+<code>test/object_spine_test.dart</code> at 774 symbolic and 770 octal
+lines. Both items are DECIDED: silence lets them stand, and either is
+one commit to overturn.</p>
+</footer>
+
+</main>
+</body>
+</html>
