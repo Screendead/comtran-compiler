@@ -34,8 +34,10 @@ and the charter disagree, the charter wins.
    session. Make no GIF, and keep no image of a reviewer tab. A
    reviewer tab shows the titles of Jack's other chats. The verbatim
    review on the pull request is the audit trail.
-4. Wait. A review takes minutes. Poll the tab with `read_page` no more
-   than once each minute.
+4. Wait. A review takes minutes. Poll no more than once each minute.
+   `read_page` works on grok.com. claude.ai denies it to the extension,
+   with `screenshot`. Poll that tab with `javascript_tool`: it returns
+   `document.body.innerText`.
 5. If a reviewer stalls or asks a question, send the charter's one
    recovery line. The charter sets the failure limit.
 6. Copy each finished review verbatim. Do not share the chat. Post one
