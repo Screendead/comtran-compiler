@@ -120,6 +120,22 @@ const List<int> resultStorageCells = <int>[3, 2, 3, 7];
 /// The three outcomes of a skip vector, in slot order ([J 90.02.12]).
 enum _Outcome { greater, equal, less }
 
+/// One continuation of a comparison outcome: a transfer to [name] when
+/// the generator holds one, else the word [extra] words past the
+/// vector's end (catalogue 4.8; M4-11 as amended, chunk B1).
+final class _Cont {
+  const _Cont.falls([this.extra = 0]) : name = null;
+  const _Cont.named(String this.name) : extra = 0;
+
+  /// The label the slot transfers to, `null` when the generator holds
+  /// none and the slot prints the relative form.
+  final String? name;
+
+  /// Words past the vector the fall lands: 0 for the next word, 1 when
+  /// the truth function's `SIR` intervenes.
+  final int extra;
+}
+
 /// Where a computed value waits: `MPY` leaves it in the MQ and a chain
 /// leaves it in the accumulator, and the store, the park and the
 /// multiplicative step each choose their word by which it is
@@ -423,6 +439,10 @@ final class _Text {
   /// `SYS)nnn` — a communication cell or a subroutine entry.
   _Sym _sys(int number) => _Sym(() => 'SYS)$number', () => number);
 
+  /// A procedure label as an operand: the written name, its location
+  /// read after the walk so a forward transfer binds (M4-4).
+  _Sym _labelSym(String name) => _Sym(() => name, () => _labelled[name] ?? 0);
+
   /// `CP)+n` — a pool entry, by index and by address.
   _Sym _cp(PoolHandle handle) =>
       _Sym(() => 'CP)+${_layout.indexOf(handle)}', () => _poolAddress(handle));
@@ -641,6 +661,30 @@ final class _Text {
 
   // --- The register cache (notes question 2, settled above) ---------------
 
+  /// The lowest free index register, bound to [key] for the statement.
+  ///
+  /// The lowest free register, not the lowest unused this statement:
+  /// statement 208 takes XR2 for `BL)3` at 00772 because the NET
+  /// sentence left `BL)2` live in XR1.
+  int _assignRegister(int key) => _statementRegisters.putIfAbsent(key, () {
+    for (var candidate = 1; candidate <= 2; candidate++) {
+      if (!_registerHolds.containsKey(candidate) &&
+          !_statementRegisters.containsValue(candidate)) {
+        return candidate;
+      }
+    }
+    // M4-9 assigns XR1 and XR2 and stops; no rule covers a third.
+    _unruled('a third base register in one statement (M4-9)');
+  });
+
+  /// The trap on an unset word: `TXL SYS)294,r,0` ([J 90.02.23]).
+  void _trap(int register) => _emit(
+    mnemonic(Op.txl),
+    formOf(Op.txl),
+    () => 'SYS)294,$register,0',
+    () => typeAWord(Op.txl, tag: register, address: 294),
+  );
+
   /// Emits the guard pair `LAC BL)n,i / TXL SYS)294,i,0` when no
   /// register holds that locator, and records the load. A register
   /// already holding it is reused with no words ([J 90.02.23]).
@@ -649,29 +693,10 @@ final class _Text {
     if (_registerHolds.containsValue(locator)) {
       return;
     }
-    final int register = _statementRegisters.putIfAbsent(locator, () {
-      // The lowest free register, not the lowest unused this statement:
-      // statement 208 takes XR2 for `BL)3` at 00772 because the NET
-      // sentence left `BL)2` live in XR1.
-      for (var candidate = 1; candidate <= 2; candidate++) {
-        if (!_registerHolds.containsKey(candidate) &&
-            !_statementRegisters.containsValue(candidate)) {
-          return candidate;
-        }
-      }
-      // M4-9 assigns XR1 and XR2 and stops; no rule covers a third.
-      _unruled('a third base register in one statement (M4-9)');
-    });
+    final int register = _assignRegister(locator);
     _registerHolds[register] = locator;
     _op(Op.lac, _blockWord(StorageBlock.bl, locator), tag: register);
-    // The guard itself: `TXL SYS)294,i,0` traps an unset locator
-    // ([J 90.02.23]).
-    _emit(
-      mnemonic(Op.txl),
-      formOf(Op.txl),
-      () => 'SYS)294,$register,0',
-      () => typeAWord(Op.txl, tag: register, address: 294),
-    );
+    _trap(register);
   }
 
   /// The guard for [item] when its record is located.
@@ -1015,8 +1040,13 @@ final class _Text {
       if (condition == null) {
         word(); // The TRA.
       } else {
-        // The target's TRA is the true slot of the vector itself.
-        _compare(condition, trueFalls: false, falseFalls: true);
+        // The target's TRA is the true slot of the vector itself, and
+        // the false outcomes fall to the next clause or past the last.
+        _compare(
+          condition,
+          trueTo: _Cont.named(target.name.text),
+          falseTo: const _Cont.falls(),
+        );
       }
     }
   }
@@ -2039,7 +2069,13 @@ final class _Text {
   int _truthFunction(TruthExpr expr) {
     final _Sym one = _cp(_pool.seed(1));
     _senseIndicator(Op.rir, _everyIndicator);
-    _compare(expr.condition, trueFalls: true, falseFalls: false);
+    // The true outcome falls into the `SIR`; the false outcomes land
+    // one word past the vector, on the `PXA` beyond it.
+    _compare(
+      expr.condition,
+      trueTo: const _Cont.falls(),
+      falseTo: const _Cont.falls(1),
+    );
     _senseIndicator(Op.sir, _truthIndicator);
     _pxa();
     _senseIndicator(Op.rft, _truthIndicator);
@@ -2096,20 +2132,24 @@ final class _Text {
   void _if(IfClause clause) {
     final List<String> names =
         semantics.allocation?.clauseNames[clause] ?? const <String>[];
-    _compare(clause.condition, trueFalls: true, falseFalls: false);
+    final bool otherwise = clause.otherwiseArm.isNotEmpty;
+    _compare(
+      clause.condition,
+      trueTo: const _Cont.falls(),
+      // The false outcomes go to the OTHERWISE arm's own label, not to
+      // the join (notes 4.8).
+      falseTo: _Cont.named(otherwise ? names.first : names.last),
+    );
     clause.thenArm.forEach(_clause);
-    if (clause.otherwiseArm.isNotEmpty) {
+    if (otherwise) {
       if (!_endsInGoTo(clause.thenArm)) {
-        word(); // The THEN-arm join transfer (notes 3.3).
+        // The THEN-arm join transfer (notes 3.3).
+        _op(Op.tra, _labelSym(names.last));
       }
-      if (names.isNotEmpty) {
-        label(names.first); // The OTHERWISE arm's own label (M3-8).
-      }
+      label(names.first); // The OTHERWISE arm's own label (M3-8).
       clause.otherwiseArm.forEach(_clause);
     }
-    if (names.isNotEmpty) {
-      label(names.last); // The join, on whatever word follows.
-    }
+    label(names.last); // The join, on whatever word follows.
   }
 
   /// A THEN arm that is itself a GO TO gets no join transfer
@@ -2123,13 +2163,12 @@ final class _Text {
       );
 
   /// One comparison: the operand preparations, the compare, and the
-  /// skip vector. [trueFalls] and [falseFalls] say which continuation
-  /// is the next word to be emitted, which is what decides whether
-  /// slot 3 drops (catalogue 4.8).
+  /// skip vector. [trueTo] and [falseTo] carry each outcome's
+  /// continuation into the vector's slots (catalogue 4.8).
   void _compare(
     CondExpr condition, {
-    required bool trueFalls,
-    required bool falseFalls,
+    required _Cont trueTo,
+    required _Cont falseTo,
   }) {
     if (condition is! Relation) {
       _unruled('a compound or condition-name comparison (no sample instance)');
@@ -2150,8 +2189,8 @@ final class _Text {
         storage,
         relation,
         rightInAccumulator,
-        trueFalls: trueFalls,
-        falseFalls: falseFalls,
+        trueTo: trueTo,
+        falseTo: falseTo,
       );
     } else {
       _numericComparison(
@@ -2159,8 +2198,8 @@ final class _Text {
         storage,
         relation,
         rightInAccumulator,
-        trueFalls: trueFalls,
-        falseFalls: falseFalls,
+        trueTo: trueTo,
+        falseTo: falseTo,
       );
     }
   }
@@ -2190,13 +2229,12 @@ final class _Text {
     ArithExpr storage,
     Relation relation,
     bool mirrored, {
-    required bool trueFalls,
-    required bool falseFalls,
+    required _Cont trueTo,
+    required _Cont falseTo,
   }) {
     switch (acc) {
       case LiteralOperand(:final literal) when _literalValue(literal).$1 != 0:
-        _numericLiteral(literal);
-        word(); // CLA CP)+nn.
+        _unruled('a nonzero literal comparand (no sample instance)');
       // Only a zero figurative reaches the zero build: legality bars
       // the others against a numeric operand (msg 82,00), and one that
       // slipped through would take the default refusal below.
@@ -2207,46 +2245,68 @@ final class _Text {
       case NameOperand(:final name):
         final DataItem item = _decimal(_item(name)!);
         if (name.subscripts.isNotEmpty) {
-          words(2); // The positional-indicator prologue.
-        } else {
-          _loadBaseOf(item);
+          _unruled('a subscripted accumulator comparand (no sample instance)');
         }
-        word(); // CLA.
+        _loadBaseOf(item);
+        _opItem(Op.cla, item);
       default:
         _unruled('a comparison of ${acc.runtimeType}');
     }
     switch (storage) {
       case LiteralOperand(:final literal):
-        _numericLiteral(literal); // CAS CP)+nn.
+        _op(Op.cas, _cp(_numericLiteral(literal)));
       case NameOperand(:final name):
         final DataItem item = _decimal(_item(name)!);
         if (name.subscripts.isNotEmpty) {
-          words(2); // The positional-indicator prologue.
+          final int register = _indicatorPrologue(item);
+          // The element the indicator addresses: `CAS 0,r`, the word
+          // the register alone reaches (the attested 01412).
+          _emit(
+            mnemonic(Op.cas),
+            formOf(Op.cas),
+            () => '0,$register',
+            () => typeBWord(Op.cas, tag: register),
+          );
         } else {
           _loadBaseOf(item);
+          _opItem(Op.cas, item);
         }
       default:
         _unruled('a comparison of ${storage.runtimeType}');
     }
-    word(); // CAS or LAS.
-    words(
-      _vector(relation, mirrored, trueFalls: trueFalls, falseFalls: falseFalls),
-    );
+    _vector(relation, mirrored, trueTo: trueTo, falseTo: falseTo);
+  }
+
+  /// The positional-indicator prologue of a subscripted comparand:
+  /// `LAC PI)n,r / TXL SYS)294,r,0` (the attested 01410–01411). The
+  /// register map keys the indicator negated, so it never collides
+  /// with a locator, and the register leaves the cache: it holds the
+  /// element address now, not a base.
+  int _indicatorPrologue(DataItem array) {
+    final int indicator = _indicator(array);
+    final int register = _assignRegister(-indicator);
+    _registerHolds.remove(register);
+    _op(Op.lac, _blockWord(StorageBlock.pi, indicator), tag: register);
+    _trap(register);
+    return register;
   }
 
   bool _zero(Token figurative) => figurative.text.startsWith('ZERO');
 
-  /// The zero side of a numeric comparison: aligned to the storage
-  /// operand's scale when they differ, one plain load otherwise.
+  /// The zero side of a numeric comparison, built and scaled to the
+  /// storage operand: `LDQ` the pooled zero, `MPY` the scale, `XCA`
+  /// (the attested 00656–00660 and 01241–01243). Both attested sites
+  /// scale, so the unscaled variant has no generated form.
   void _zeroBuild(ArithExpr storage) {
     final int deficit = _operandScale(storage);
-    _pool.seed(0);
-    if (deficit > 0) {
-      _pool.machineWord(_pow10(deficit));
-      words(3);
-    } else {
-      word();
+    if (deficit == 0) {
+      _unruled('an unscaled zero comparand (no sample instance)');
     }
+    final _Sym zero = _cp(_pool.seed(0));
+    final _Sym scale = _cp(_pool.machineWord(_pow10(deficit)));
+    _op(Op.ldq, zero);
+    _op(Op.mpy, scale);
+    _xca();
   }
 
   int _operandScale(ArithExpr operand) => switch (operand) {
@@ -2264,13 +2324,16 @@ final class _Text {
     ArithExpr storage,
     Relation relation,
     bool mirrored, {
-    required bool trueFalls,
-    required bool falseFalls,
+    required _Cont trueTo,
+    required _Cont falseTo,
   }) {
     // Both attested operands are alphameric (statement 200); a class
     // mix rides in below the stop severity (msg 107,00) and refuses.
     for (final operand in <ArithExpr>[acc, storage]) {
       if (operand case NameOperand(:final name)) {
+        if (name.subscripts.isNotEmpty) {
+          _unruled('a subscripted alphameric comparand (no sample instance)');
+        }
         final FieldClass fieldClass = _moveClass(_item(name)!);
         if (fieldClass != FieldClass.alphameric) {
           _unruled(
@@ -2280,78 +2343,100 @@ final class _Text {
         }
       }
     }
-    final int storageExtraction = _extractionCost(storage);
+    // Every attested pair compares equal lengths inside one word. The
+    // D3.3 fold and the D5.3 truncation each wait for a site, and the
+    // longer field takes the SYS)162 path M4-11 leaves to a later
+    // chunk, the compound-condition precedent.
+    if (_compareChars(acc) != _compareChars(storage)) {
+      _unruled('an unequal-length alphameric comparison (no sample instance)');
+    }
+    if (_compareChars(acc) > 6) {
+      _unruled('a comparison past one word (M4-11, the SYS)162 boundary)');
+    }
     switch (acc) {
       case FigurativeOperand(word: final figurative):
         if (!figurative.text.startsWith('HIGH')) {
           _unruled('this figurative comparison (no sample instance)');
         }
-        _pool.machineWord(_highValueWord);
-        word(); // CLA CP)+nn.
+        _op(Op.cal, _cp(_pool.machineWord(_highValueWord)));
       case NameOperand(:final name):
         _loadBaseOf(_item(name)!);
-        word(); // CLA.
-        words(_emitExtraction(name));
+        _opItem(Op.cal, _item(name)!);
+        _emitExtraction(name);
       default:
         _unruled('a comparison of ${acc.runtimeType}');
     }
-    if (storageExtraction == 0) {
+    var flip = mirrored;
+    if (!_extracted(storage)) {
       if (storage case NameOperand(:final name)) {
         _loadBaseOf(_item(name)!);
+        _opItem(Op.las, _item(name)!);
       } else {
         // A literal or figurative here would need a pool word no
         // sample site attests.
         _unruled('a comparison of ${storage.runtimeType}');
       }
-      word(); // CAS or LAS against the field itself.
     } else {
-      word(); // The spill to a result-storage cell.
       final operand = storage as NameOperand;
+      _op(Op.slw, _resultCell(0)); // The spill (the attested RS)0).
       _loadBaseOf(_item(operand.name)!);
-      word(); // CLA.
-      words(_emitExtraction(operand.name));
-      word(); // CAS against the spilled cell.
+      _opItem(Op.cal, _item(operand.name)!);
+      _emitExtraction(operand.name);
+      _op(Op.las, _resultCell(0));
+      // The spill swaps the machine's sides: the accumulator now holds
+      // the storage operand and the cell the spilled one, so the
+      // outcomes mirror (LAS reads the accumulator against storage —
+      // 22-6528-4, external).
+      flip = !flip;
     }
-    words(
-      _vector(relation, mirrored, trueFalls: trueFalls, falseFalls: falseFalls),
-    );
+    _vector(relation, flip, trueTo: trueTo, falseTo: falseTo);
   }
 
   /// `OCT 747474747474` — the attested HIGH.VALUE word, `CP)+23`.
   static const int _highValueWord = 0xF3CF3CF3C;
 
-  int _extractionCost(ArithExpr operand) {
+  /// The character length a comparand compares: its field's, or the
+  /// full word of a figurative constant.
+  int _compareChars(ArithExpr operand) => switch (operand) {
+    NameOperand(:final name) => _sem(_item(name)!).storageChars,
+    _ => 6,
+  };
+
+  bool _extracted(ArithExpr operand) {
     if (operand case NameOperand(:final name)) {
       final ItemSemantics sem = _sem(_item(name)!);
-      return (sem.byte != 0 ? 1 : 0) + (sem.storageChars < 6 ? 1 : 0);
+      return sem.byte != 0 || sem.storageChars < 6;
     }
-    return 0;
+    return false;
   }
 
-  /// Emits the extraction and pools its mask: the field sits at the low
-  /// end after `LGL`, so the mask extracts characters 0 on (the
-  /// attested `CP)+30`, shared by both operands of statement 200).
-  int _emitExtraction(NameReference name) {
+  /// The extraction: `LGL` six bits a character brings the field to
+  /// character 0, and the mask extracts characters 0 on (the attested
+  /// `LGL 18` and `CP)+30`, shared by both operands of statement 200).
+  void _emitExtraction(NameReference name) {
     final ItemSemantics sem = _sem(_item(name)!);
-    var cost = 0;
     if (sem.byte != 0) {
-      cost++; // LGL.
+      _shift(Op.lgl, 6 * sem.byte);
     }
     if (sem.storageChars < 6) {
-      _pool.machineWord(_extractMask(0, sem.storageChars - 1));
-      cost++; // ANA.
+      _op(
+        Op.ana,
+        _cp(_pool.machineWord(_extractMask(0, sem.storageChars - 1))),
+      );
     }
-    return cost;
   }
 
-  /// The vector: three one-word slots for greater, equal and less, and
-  /// only slot 3 can drop — when the less outcome's continuation is the
-  /// next word to be emitted (catalogue 4.8).
-  int _vector(
+  /// The vector: one `TRA` slot per outcome in greater, equal, less
+  /// order ([J 90.02.12]), each printing its continuation's symbol
+  /// when the generator holds one and the relative form otherwise
+  /// (M4-11 as amended, chunk B1). Only the trailing slot can drop —
+  /// when the less continuation is the next word to be emitted
+  /// (catalogue 4.8).
+  void _vector(
     Relation relation,
     bool mirrored, {
-    required bool trueFalls,
-    required bool falseFalls,
+    required _Cont trueTo,
+    required _Cont falseTo,
   }) {
     Set<_Outcome> trueSet = switch (relation.op) {
       RelationOp.greater => {_Outcome.greater},
@@ -2371,9 +2456,22 @@ final class _Text {
     if (relation.negated) {
       trueSet = _Outcome.values.toSet().difference(trueSet);
     }
-    final bool lessIsTrue = trueSet.contains(_Outcome.less);
-    final lessFalls = lessIsTrue ? trueFalls : falseFalls;
-    return lessFalls ? 2 : 3;
+    final slots = <_Cont>[
+      for (final _Outcome outcome in _Outcome.values)
+        trueSet.contains(outcome) ? trueTo : falseTo,
+    ];
+    final _Cont less = slots.last;
+    final count = less.name == null && less.extra == 0 ? 2 : 3;
+    for (var i = 0; i < count; i++) {
+      final String? name = slots[i].name;
+      if (name != null) {
+        _op(Op.tra, _labelSym(name));
+        continue;
+      }
+      final int distance = count + slots[i].extra - i;
+      final int target = _location + distance;
+      _op(Op.tra, _Sym(() => '*+$distance', () => target));
+    }
   }
 
   int _naturalScale(ArithExpr expr) => switch (expr) {

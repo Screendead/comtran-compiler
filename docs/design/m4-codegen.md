@@ -48,18 +48,15 @@ M4 executes I/O-free programs.
   The Oracles section at the end of this record holds each stage's oracle.
 
   **Amended 2026-08-09, stage 2 (Jack's call). Stage 2 is not one pull
-  request.** Its oracle needs a blind pass over nineteen page scans, the
-  most expensive evidence work on the roadmap. One pull request puts that
-  whole pass at risk of a usage limit. Stage 2 therefore splits into
+  request.** Its oracle needs a blind pass over nineteen page scans, too
+  much to put at risk in one pull request, so stage 2 splits into
   chunks. Each chunk is green alone, and each is worth merging alone.
   Stages 1, 3, and 4 do not change.
 
-  Phase A built the target listing before any generator ran, in chunks A0
-  to A8, and closed on 2026-08-10 with all eighteen object pages verified
-  against their scans. The target holds listing pages 8 to 25, PDF
-  pp. 199 to 216. Page 7, PDF p. 198, carries the loader control cards on
-  no LOC/OCTAL/CNTRL grid, and stage 3 both generates that page and takes
-  it as its own oracle, so its verification goes with stage 3.
+  Phase A built the target listing before any generator ran: listing
+  pages 8 to 25, PDF pp. 199 to 216, scan-verified. Page 7, PDF p. 198,
+  carries the loader control cards on no LOC/OCTAL/CNTRL grid; stage 3
+  generates that page and takes it as its own oracle.
 
   Phase B generates, and it sizes before it fills:
 
@@ -75,10 +72,8 @@ M4 executes I/O-free programs.
   | B8 | The diagnostics — msg 942 widened (M4-5), ids 946 and 947 reserved (M4-18), and the D10.2 stop shape M4-2 defers to here. |
 
   B1 comes first: no site matches byte for byte until every unit before
-  it carries the right word count. Its oracle is the LOC column and the
-  label field of the whole target, matched line for line, the other
-  columns still empty. B2 to B6 then each match their own attested
-  sites, LOC included.
+  it carries the right word count. B2 to B6 then each match their own
+  attested sites, LOC included.
 
 
 ## Pipeline position and the text model
@@ -90,22 +85,17 @@ M4 executes I/O-free programs.
   follows D10.2 exactly: it catches `StopCompilation` itself, returns a
   partial result with a `stopped` flag, and the driver skips it when an
   earlier phase stopped.
-  **Amended 2026-08-05, stage 1.** Stage 1 builds the storage map from
-  facts the semantic layer already validated, so it detects no error and
-  reports no diagnostic. Its stop shape was therefore unreachable: no
-  input could enter the `catch`. CLAUDE.md section 11 bans code
-  that is neither exercised nor tested, and it outranks this record, so
-  stage 1 ships without the shape. `runCodegen(SemanticResult) →
-  CodegenResult` takes no diagnostic sink. The stop shape above binds
-  stage 2, whose verb generators are the first code here that can detect
-  an error; it arrives with them, sink and all. The driver's skip of a
-  stopped earlier phase is unaffected and still holds.
-  **Amended 2026-08-15, chunk B1.** B1 does detect one failure: a valid
-  shape the sample never reaches, no generated form attested, none
-  invented. The refusal is this recovery's, not the program's — no
-  [J 90.04] message covers it — so it bypasses the sink: the sizers
-  throw `UnrecoveredShape`, the driver scopes it to the job, and later
-  jobs compile ([J 90.04.02]).
+  **Amended 2026-08-05 and 2026-08-15, stages 1 and 2.** Stage 1 built
+  the map from facts the semantic layer had validated and could detect
+  no error, so under CLAUDE.md section 11, which outranks this record,
+  it shipped without the stop shape. `runCodegen(SemanticResult) →
+  CodegenResult` takes no diagnostic sink; the sink arrives at chunk B8
+  with the first program error this phase can detect. The stage 2
+  refusals are not that error: a valid shape the sample never attests
+  fails in the recovery, not in the program — no [J 90.04] message
+  covers it — so the refusal bypasses the sink. The generator throws
+  `UnrecoveredShape`, the driver scopes it to the job, and later jobs
+  compile ([J 90.04.02]).
   The phase re-resolves nothing: data references
   come from `dataResolutions`, CORRESPONDING pairs from
   `correspondingPairs`, storage facts from `ItemSemantics`, initial words
@@ -160,12 +150,9 @@ M4 executes I/O-free programs.
   `BL)` is one word per base locator — BL)1 for the IOCS label area, one
   per located-record buffer pointer (M3-11); `PI)` is one word per
   positional indicator (M3-20's counter).
-  **Amended 2026-08-05, stage 1.** Stage 1 does not carry `TS) BSS 7`.
-  Jack's call: build the layout rule, and leave each size to the stage
-  that can derive it. The verb generators size result storage, temporary
-  storage, the positional indicators, and the constant pool, so stage 1
-  leaves all four empty and stage 2 fills them. Stage 1 derives `BL)`
-  alone, and gets the sample's attested 3.
+  **Amended 2026-08-05, stage 1 (Jack's call).** Stage 1 derives `BL)`
+  alone — the sample's attested 3 — and leaves each other size to the
+  stage that can derive it.
   **Amended 2026-08-10, chunk B1. `TS)` takes the attested 7 as a
   constant, and no rule is invented for it. Jack's call.** The 2026-08-05
   amendment left the size "to the stage that can derive it". No stage
@@ -258,12 +245,11 @@ M4 executes I/O-free programs.
   and INSPREM (POS) subscript bases.
   **Amended 2026-08-11, chunk B1. The provisional gap mechanism is
   refuted; the headline stands.** The first working rule (cut, spent)
-  explained an unprinted name by a word that falls through or
-  takes an in-line form. Such a word would still
-  print its name: two names on one word print on two lines throughout the
-  sample, `GN)076` over `GN)077` at LOC 01217 and `GN)082` over
-  `SEARCH.END` at 01472, so the printer hides no name and an unprinted one
-  was never bound. The pass walks the text in ascending object address and
+  read the unprinted names as bound but unprinted; the printer hides
+  none — two names
+  on one word print on two lines, `GN)076` over `GN)077` at LOC 01217
+  and `GN)082` over `SEARCH.END` at 01472 — so an unprinted name was
+  never bound. The pass walks the text in ascending object address and
   gives each machinery site one contiguous run. Statement 206's `DO … FOR`
   takes 084 to 088 and binds 085, 086 and 088; statement 208's `FILE` of a
   buffered record takes 089 and 090 and binds 089; each subscripted
@@ -290,20 +276,14 @@ M4 executes I/O-free programs.
   the twelve-digit octal repeated in the operand field; an uninitialized
   run prints one `BSS n`; a right-justified internal field prints its
   `BSS` per M3-6's reservation. The exact interleaving of labels, `OCT`,
-  and `BSS` lines is pinned against the region golden in stage 1; this
-  entry records the principles, and the golden records the answer. The
-  region golden is transcription-checked against the page scans before it
-  is committed (the M3-22 discipline, two pages).
-- **M4-7.1. The stage-1 golden holds 91 rows** (Jack's call,
-  2026-08-05). The golden runs from `USE 0` through LOC 00164. It does
-  not hold `USE 1` or `BGN 2,PI)1`. Both carry Location Counter 1's
-  origin, which follows the procedure text, so no stage without verb
-  generation can compute them. Chunk B1 prepends the two rows.
-  Before the golden was committed, the 89 body rows were diffed against
-  the 90.05 transcription. The M3 storage output already reproduces
-  every LOC value, every `OCT` and `BSS` row, and every label, with no
-  mismatch. The storage map is therefore a print problem at M4, not a
-  derivation problem.
+  and `BSS` lines is pinned against the region golden; this entry
+  records the principles, and the golden records the answer.
+- **M4-7.1. The stage-1 golden held 91 rows** (Jack's call,
+  2026-08-05): `USE 0` through LOC 00164, without the two counter-1
+  head rows, whose origin no stage without verb generation can compute.
+  Chunk B1 prepended them. The 89 body rows were diffed against the
+  90.05 transcription before commit, with no mismatch: the storage map
+  is a print problem at M4, not a derivation problem.
 
 ## The symbolic listing pages
 
@@ -658,10 +638,12 @@ M4 executes I/O-free programs.
   - **The skip vector (ours, from the eleven attested sites — six `CAS`,
     five `LAS`):** after the compare, emit one `TRA` slot per outcome in
     the order greater, equal, less, each targeting that outcome's
-    continuation. Elide the trailing slot — at most one — when its
-    target is the word immediately after the vector; an interior slot
-    with that target prints the relative form instead (`TRA *+1` at
-    statement 219, LOC 01306; `TRA *+3` at statement 203). GT with both
+    continuation. A slot prints a symbol when the generator holds a
+    name for its target — the written WHEN target, an arm label — and
+    the relative form `TRA *+n` otherwise (`TRA *+1` at statement 220,
+    LOC 01306; `TRA *+3` at statement 203). Elide the trailing slot —
+    at most one — when it falls through to the word directly after the
+    vector. GT with both
     arms: three slots (`TRA *+3 / TRA otherwise / TRA otherwise` — the
     false outcomes transfer to the OTHERWISE arm's own label, GN)072 at
     statement 203, not to the join). NOT EQUAL:
@@ -703,20 +685,43 @@ M4 executes I/O-free programs.
   - **AND, OR, NOT** compile as short-circuit chains of compare-and-branch
     to the arm labels; no boolean value is materialized. Unexercised in
     the sample; ours.
-  **Amended 2026-08-11, chunk B1. The relative form is chosen by symbol,
-  not by position, and one site attribution is corrected.** This entry
-  makes an interior slot print `TRA *+n` when its target is the word
-  after the vector. Statement 215 falsifies that: the slots at LOC 01245
+  **Amended 2026-08-11, chunk B1. The symbol rule above is this
+  amendment's correction.** The first form chose the relative print by
+  position — a slot printed `*+n` when its target was the word after
+  the vector — and statement 215 falsifies it: the slots at LOC 01245
   and 01246 both target 01250, the word after the vector is 01247, and
-  both print the relative form. The rule is that a slot prints relative
-  when the generator holds no name for its target, and the only name it
-  holds is the written target of the WHEN or the arm. One site
-  discriminates, so the correction rests on one site. The `TRA *+1` this
-  entry cites at LOC 01306 belongs to statement 220; statement 219 is a
-  MOVE and compiles no compare. Every other part of the rule is confirmed
-  site by site, and the reason only a trailing slot can be elided is that
-  the three slots sit at fixed displacements from the compare, in
-  [J 90.02.12]'s own HIGH, EQUAL and LOW order.
+  both print relative. One site discriminates, so the correction rests
+  on one site. The same pass moved the `TRA *+1` citation from
+  statement 219, a MOVE, to statement 220. Only the trailing slot can
+  elide because the three slots sit at fixed displacements from the
+  compare, in [J 90.02.12]'s own HIGH, EQUAL and LOW order.
+  **Amended 2026-08-16, chunk B4. The generator fills the eleven
+  sites.** Six rules the fill fixed:
+  - **The zero build** (the catalogue's L(A) = 3): `LDQ` the pooled
+    zero, `MPY` the power of ten that raises it to the storage
+    operand's scale, `XCA` (statements 205 and 215).
+  - **The extraction shift** is six bits a character (statement 200's
+    `LGL 18`, one site).
+  - **The spill** writes result-storage cell 0 of the walk's section
+    (statement 200's `RS)0`, one site).
+  - **The spill mirrors the outcomes.** `LAS` reads the accumulator
+    against storage, and after the spill the accumulator holds the
+    second operand (derived — 22-6528-4, external). The one site is a
+    symmetric NOT EQUAL and cannot show the swap.
+  - **The subscripted comparand's prologue** is `LAC PI)n,r /
+    TXL SYS)294,r,0`, the register the lowest free one under M4-9's
+    rule and dropped from the locator cache; the compare addresses the
+    element as `0,r` (statement 225, one site).
+  - **A truth function's false outcomes** land one word past the
+    vector, over the `SIR` (statement 215's `*+3` and `*+2`).
+  The one-site cell and register choices are underdetermined; the
+  chunk B4 record holds the rejected formulations. Six unattested
+  variants refuse (M4-2 as amended): a nonzero literal comparand, a
+  subscripted accumulator comparand, an unscaled zero, a subscripted
+  alphameric comparand, an unequal-length pair — the D3.3 fold and the
+  D5.3 truncation each wait for a site — and a comparand past one
+  word: the SYS)162 boundary stays unbuilt beside AND, OR and NOT, the
+  compound-condition precedent.
 
 ## GO TO
 
