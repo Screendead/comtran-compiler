@@ -577,7 +577,7 @@ M4 executes I/O-free programs.
      MPY EXEMPTIONS,1`.
   f. **Five more shapes refuse**, each legal COMTRAN the sample never
      reaches, each throwing `UnrecoveredShape` under M4-2 as amended.
-     `test/codegen_refusal_test.dart` pins one program per site. Four
+     `test/codegen_refusal_test.dart` pins one program per site. Three
      other conditions cannot arise; the code asserts them.
 
   Items (d) and (e) are underdetermined: one sample attests each, and
