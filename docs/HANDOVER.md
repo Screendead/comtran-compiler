@@ -49,7 +49,7 @@ Terms that appear without expansion:
 | M3 — the semantic layer | Done 2026-08-05 (stages 1–2 2026-08-04; stage 3, the listing extension, 2026-08-05) | `docs/design/m3-data.md`, `lib/src/data/` |
 | M4 decision walk (M4-1 to M4-21) | Done 2026-08-05 | `docs/design/m4-codegen.md` |
 | M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
-| M4 stage 2 — core-verb text | Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunk B1, the address spine, done 2026-08-15 — every LOC and offset of the object listing matches the target; B2 next | `test/fixtures/90.05-object-listing.target`, `test/fixtures/90.05-object-code-notes.md` |
+| M4 stage 2 — core-verb text | Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunk B1, the address spine, done 2026-08-15; chunk B2, the MOVE generator, done 2026-08-16 — every mnemonic, operand and word the MOVE sites and the guards print matches the target; B3 next | `test/fixtures/90.05-object-listing.target`, `test/fixtures/90.05-object-code-notes.md` |
 | M4 stages 3–4, M5, M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); hardens in M4 stage 4 | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -62,7 +62,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1080 Dart tests pass, measured 2026-08-15, and 154 extension
+Test baseline: 1095 Dart tests pass, measured 2026-08-16, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -77,15 +77,24 @@ for byte.
 
 ## The next task — M4 stage 2
 
-M4 stage 1 closed 2026-08-05, and stage 2's chunk B1 closed 2026-08-15.
+M4 stage 1 closed 2026-08-05, stage 2's chunk B1 closed 2026-08-15, and
+chunk B2 closed 2026-08-16.
 `lib/src/codegen/` holds the text model (M4-3), the program image
 (M4-4), the storage-map print (M4-7), the `--emit-code` dump (M4-19),
-and the B1 sizing generator (`procedure.dart`, `pool.dart`,
-`blocks.dart`). The generator sizes and places every unit of the
-object program. `test/object_spine_test.dart` matches the whole LOC
-and offset spine line for line against the verified target. The golden
-`test/goldens/90.05-payroll.storage-map` holds the full B1 render. The
-91 stage-1 rows are in it, unchanged.
+the encode table (`encode.dart`), and the generator itself
+(`procedure.dart`, `pool.dart`, `blocks.dart`). The generator sizes and
+places every unit of the object program, and it fills the words of
+every MOVE and every base-register guard.
+
+`test/object_spine_test.dart` is the chunk oracle, and it is monotone.
+It reads three columns against the verified target: the LOC and label
+spine on every line, the mnemonic and operand on every line a generator
+owns, and the OCTAL word on every line that carries one. It pins the
+last two counts, at 552 and 550 lines. Each later verb chunk raises
+them, and no chunk may lower one: a column that stops being generated
+fails the test rather than passing unread. The golden
+`test/goldens/90.05-payroll.storage-map` holds the whole render, and
+its 91 stage-1 rows and its data region are unchanged since B1.
 
 Stage 2 generates the core-verb text and the full symbolic listing. Its
 oracle is the full listing diff, PDF pp. 198–216, byte for byte, after a
@@ -100,14 +109,21 @@ unit in the program before it fills any word. `docs/design/m4-codegen.md`
 M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
 holds the verify-first order and the target file.
 
-**Phase A is complete, and Phase B's chunk B1 is done.** All eighteen
-object pages are scan-verified, and the B1 generator reproduces the
-listing's whole address spine. The catalogue that drove the sizing is
+**Phase A is complete, and Phase B's chunks B1 and B2 are done.** All
+eighteen object pages are scan-verified, the B1 generator reproduces the
+listing's whole address spine, and B2 fills the columns of the MOVE
+sites and the guards. The catalogue that drove the sizing is
 `test/fixtures/90.05-object-code-notes.md`; the RS) reservation is
 pinned as constants of the sample by Jack's ruling of 2026-08-15 (M4-4
-as amended; the chunk B1 review record). The next task is chunk B2, the
-first verb generator, which starts filling the blank columns of the
-spine — mnemonics, operands, octal — against the same target.
+as amended; the chunk B1 review record).
+
+B2 added six rules to M4-9: the encode table, the guard's use-point
+placement, the lowest-free-register allocation, the CORRESPONDING
+emission order, the two-factor `LDQ` selection, and five refusals. Two of
+them are underdetermined by the one sample program, and the record
+`review/2026-08-16-m4-b2-underdetermined` holds the rejected
+formulations. The next task is chunk B3, the SET and arithmetic
+generator, against the same target.
 
 Chunks A7 and A8 read each page **twice**, by two readers who did not know of each
 other, and compared the two readings before either met the target. Ten

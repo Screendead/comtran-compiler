@@ -129,6 +129,75 @@ final class Pictorial {
   /// (J 02.05.05).
   late final int fCount = _count(_Kind.f);
 
+  /// Whether a written `.` appears. The implied point `V` is a separate
+  /// position and does not set it (J 02.05.05; J 90.02.17 Note 1).
+  late final bool hasPoint = _elements.any(
+    ((_Kind, int) e) => e.$1 == _Kind.period,
+  );
+
+  late final bool hasComma = _elements.any(
+    ((_Kind, int) e) => e.$1 == _Kind.comma,
+  );
+
+  late final bool hasDollar = _elements.any(
+    ((_Kind, int) e) => e.$1 == _Kind.dollar,
+  );
+
+  late final bool hasAsterisk = _elements.any(
+    ((_Kind, int) e) => e.$1 == _Kind.star,
+  );
+
+  static bool _isDigit(_Kind kind) =>
+      kind == _Kind.nine ||
+      kind == _Kind.eight ||
+      kind == _Kind.star ||
+      kind == _Kind.overpunch;
+
+  /// Digit positions left of the real or implied decimal point — the
+  /// control word's decrement (J 90.02.17 Note 2). With neither point
+  /// present, every digit position counts.
+  late final int digitsBeforePoint = _digitsBefore(
+    (_Kind kind) => kind == _Kind.period || kind == _Kind.v,
+  );
+
+  /// Digit positions left of the first comma, zero with no comma — the
+  /// control word's prefix (J 90.02.17 Note 2).
+  late final int digitsBeforeComma = hasComma
+      ? _digitsBefore((_Kind kind) => kind == _Kind.comma)
+      : 0;
+
+  int _digitsBefore(bool Function(_Kind) stop) {
+    var digits = 0;
+    for (final (_Kind kind, int count) in _elements) {
+      if (kind == _Kind.f || stop(kind)) {
+        break;
+      }
+      if (_isDigit(kind)) {
+        digits += count;
+      }
+    }
+    return digits;
+  }
+
+  /// The leading run of `*` or `8` positions — the control word's
+  /// address (J 90.02.17 Note 2). A leading `$`, `+` or `-` position
+  /// precedes the run and does not end it.
+  late final int leadingProtected = _leadingProtected();
+
+  int _leadingProtected() {
+    var protected = 0;
+    for (final (_Kind kind, int count) in _elements) {
+      if (kind == _Kind.star || kind == _Kind.eight) {
+        protected += count;
+        continue;
+      }
+      if (_isDigit(kind) || kind == _Kind.v || kind == _Kind.period) {
+        break;
+      }
+    }
+    return protected;
+  }
+
   /// Edit characters outside the scientific repertoire — `8 * , $`
   /// (the chart admits `9 (n) F . V + -` for scientific decimal,
   /// J 02.05.05).

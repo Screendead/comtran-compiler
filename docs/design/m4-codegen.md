@@ -197,20 +197,17 @@ M4 executes I/O-free programs.
   **Amended 2026-08-10, chunk B1. `TS)` takes the attested 7 as a
   constant, and no rule is invented for it. Jack's call.** The 2026-08-05
   amendment left the size "to the stage that can derive it". No stage
-  can: an eleven-agent hunt over both manuals refuted seven readings and
-  left two that one sample cannot separate. `docs/HANDOVER.md` holds the
-  hunt. Three findings decide it:
-  - **The sample refutes demand-driven sizing.** No word of the object
-    program addresses any of the seven cells, so a compiler that sized
-    temporary storage by use would have printed `TS) BSS 0`.
-  - **Reserve-and-never-reference is this compiler's habit.** Over-
-    reservation tracks how well [J 90.02] documents each rule: `PI)` has
-    an exact rule and uses all 3 words, `RS)` a worst-case rule and uses
-    5 of 30, `TS)` no rule and uses none of 7.
-  - **A fitted rule would be worse than a constant.** One cell per file
-    returns 7, and sections-plus-one returns 7. Either presents a guess
-    as a derivation and then sizes every other program confidently and
-    wrongly. **Do not implement either, or any other rule returning 7.**
+  can: a hunt over both manuals refuted seven readings and left two that
+  one sample cannot separate, and `docs/HANDOVER.md` holds it. No word
+  of the object program addresses any of the seven cells, so a compiler
+  that sized temporary storage by use would have printed `TS) BSS 0`.
+  Over-reservation is this compiler's habit, and it tracks how well
+  [J 90.02] documents each rule: `PI)` has an exact rule and uses all 3
+  words, `RS)` a worst-case rule and uses 5 of 30, `TS)` no rule and
+  uses none of 7. Both surviving readings return 7 — one cell per file,
+  and sections plus one. Either presents a guess as a derivation and
+  then sizes every other program confidently and wrongly. **Do not
+  implement either, or any other rule returning 7.**
   For any program but the sample our size is therefore unverifiable, and
   that is stated rather than hidden. One artifact overturns this entry:
   the storage map of a second compiled listing.
@@ -346,49 +343,37 @@ M4 executes I/O-free programs.
 ## The symbolic listing pages
 
 - **M4-8. One geometry, scan-measured.** The 90.05 transcription renders
-  the object listing in two incompatible column conventions (lines
-  669–1258 versus 1279–1851 of the transcription) — label at column 38
-  versus 36, the `+n` offset left-aligned at 46 versus right-aligned
-  ending at 44, mnemonic at 54 versus 48, and a four-space page indent in
-  the second range only. These are artifacts of two transcription passes
-  over one continuous printout, not compiler behavior: the M4-20 item (g)
-  measurement finds one printed geometry on pages from both ranges,
-  constant to half a character cell. Measured from the LOC column's first
-  digit as print column 0: LOC at 0 (five digits), the OCTAL word at
-  7–21, CNTRL at 25–29, labels at 34, the `+n` offset right-aligned
-  ending at column 42, the mnemonic at 49, the operand at 56. A labeled
-  line prints no `+n`, and a long label overruns the offset zone. The
-  page head prints on the same grid — DATE at 0, PAGE at 83. The golden
-  is therefore built from the transcription's *content* and the scans'
-  *geometry*, never from the transcription's columns. The transcription
-  itself is never edited (it is read-only), and the golden is not
-  "regularised" against it — the scan measurement decides.
+  the object listing in two incompatible column conventions, an artifact
+  of two transcription passes over one continuous printout; M4-20 item
+  (g) below measures one printed geometry on pages from both ranges.
+  Measured from the LOC column's first digit as print column 0: LOC at
+  0 (five digits), the
+  OCTAL word at 7–21, CNTRL at 25–29, labels at 34, the `+n` offset
+  right-aligned ending at column 42, the mnemonic at 49, the operand at
+  56. A labeled line prints no `+n`, and a long label overruns the
+  offset zone. The page head prints on the same grid — DATE at 0, PAGE
+  at 83. The golden is therefore built from the transcription's
+  *content* and the scans' *geometry*, never from its columns. The
+  transcription is read-only and the golden is never "regularised"
+  against it: the scan measurement decides.
   Line-form rules the transcription attests and the printer implements:
   - Three OCTAL renderings: twelve solid digits for `OCT` words;
     `OOOO FF T AAAAA` for type-B instructions; `P DDDDD T AAAAA` for
     prefix-type words (PZE, MZE, TXI, TXH, TXL, IOST, BSS, USE, ORG).
-    *Amended 2026-08-09, and confirmed on scan 2026-08-10 in chunk A7: a
+    *Amended 2026-08-09, confirmed on scan 2026-08-10 in chunk A7: a
     fourth rendering, `OOOO FF DDDDDD`, prints the low 18 bits as one
     group where the type-B form splits a tag from an address. Three
     sites carry it, all on listing page 20: `RIR 777777` at LOC 01240,
     `SIR 000001` at 01247, `RFT 000001` at 01251. Their operand is one
-    18-bit sense-indicator mask, and the print does not split it. Two
-    readers of PDF p. 211, neither knowing of the other, print all
-    three, so stage 2 may depend on it.*
+    18-bit sense-indicator mask, which the print does not split.*
   - The CNTRL column prints the word's 5-bit object-deck control group
     (M4-16). `USE`, `BSS`, and `ORG` lines print CNTRL 00001 with their
     control word in the OCTAL column (the `OP A` form of [J 90.03.03]);
     `BGN` prints its LOC only — no OCTAL, no CNTRL; the end-of-text line
     prints 01111.
   - A name of 15 or more characters prints alone and pushes the
-    instruction to the next line: the 15-character INTERNAL.TOTALS
-    breaks while 14-character names print inline, matching the
-    15-column label field. [J 90.02.02] says "exceeds 15" of statement
-    names; the attested break is at 15 exactly, and the print governs.
-    The pushed instruction prints at the normal mnemonic and operand
-    columns, every other field blank (both attested sites).
-    Two labels on one word print one label per
-    line, the word on the last (six attested sites).
+    instruction to the next line (M4-8.1). Two labels on one word print
+    one label per line, the word on the last (six attested sites).
   - An `EQU` line prints where the assembler first needs the symbol — out
     of location order — with the equated value in the LOC column, no
     OCTAL, no CNTRL. The `+n` offset counter resets at every line that
@@ -409,15 +394,10 @@ M4 executes I/O-free programs.
   - Page furniture: the `LOC OCTAL CNTRL SYMBOLIC` column header prints
     once, on the first object page.
     **Amended 2026-08-10, chunks A2 to A8, and this closes the blank
-    count.** The conversion held one blank line after every page head but
-    PDF p. 208, which M4-20 item (e) had already corrected to two. All
-    eighteen object pages are now measured against their scans. Seventeen
-    hold two blank lines after the head and listing page 8 holds three, so
-    no page holds the single blank the conversion held.
-    The conversion carries all eighteen, the seventeen corrected chunk by
-    chunk under Jack's option B, and
-    `tool/object_listing_target_source.dart` holds the
-    map. `test/fixtures/90.05-object-listing-notes.md` holds the per-page
+    count.** Seventeen object pages hold two blank lines after the head
+    and listing page 8 holds three. The conversion carries all eighteen,
+    `tool/object_listing_target_source.dart` holds the map, and
+    `test/fixtures/90.05-object-listing-notes.md` holds the per-page
     measurement and the per-chunk history this entry no longer repeats.
     No blank line separates routines, the storage map
     from the code, or the pool from the end-of-text line. The
@@ -425,9 +405,8 @@ M4 executes I/O-free programs.
     `THE LAST LOADER CONTROL CARD PUNCHED IS`, the `*CTEND` card, and
     `DONE`.
     **Amended 2026-08-10, chunk A8: the three closing lines do not print on
-    the object grid, and two print to the left of it.** Both readers of PDF
-    p. 216 measured the three, and they agree. Taking the LOC column as
-    print column 0, as the rest of this entry does,
+    the object grid, and two print to the left of it.** Taking the LOC
+    column as print column 0, as the rest of this entry does,
     `THE LAST LOADER CONTROL CARD PUNCHED IS` prints at column −6, the
     `*CTEND` card prints at column 0, and `DONE` prints at column −5. The
     loader writes these lines, not the compiler's listing formatter, which
@@ -440,23 +419,15 @@ M4 executes I/O-free programs.
   **Amended 2026-08-09, stage 2. The page frame is pinned to the byte,**
   on the scans, field by field. Item (g)'s one geometry is unchanged;
   this adds precision to it. The column header prints `LOC` at 1,
-  `OCTAL` at 12, `CNTRL` at 25 and `SYMBOLIC` at 58, which is the
-  stage-1 reading; the transcription held 0, 11, 26 and 54, wrong at all
-  four, and is corrected 2026-08-09 under Jack's authorization. The
-  header's grid origin is the LOC column's first digit, so `LOC` sits one
-  column right of the digits below it; the correction adds that column
-  and does not restore the flattened left margin, which M1-15 records.
-  The page head is the source listing's head unchanged, so stage 2
-  calls the builder in `lib/src/listing/listing.dart` and writes no
-  second template; `m1-front-end.md` M1-16 as amended holds the measured
-  columns and the evidence. It also refuted the head this project
-  printed, and the golden listing carries the correction.
+  `OCTAL` at 12, `CNTRL` at 25 and `SYMBOLIC` at 58. The header's grid
+  origin is the LOC column's first digit, so `LOC` sits one column right
+  of the digits below it. The page head is the source listing's head
+  unchanged, so stage 2 calls the builder in
+  `lib/src/listing/listing.dart` and writes no second template;
+  `m1-front-end.md` M1-16 as amended holds the measured columns and the
+  evidence.
   **Amended again 2026-08-09, stage 2. The target is verified before any
-  code generates against it** (Jack's call, with M4-1's chunking). The
-  verification is blind in the M3-22 pattern: a reader transcribes the
-  scan without the target's content. The transcription
-  supplies content, the scans supply geometry, and a scan measurement
-  decides a disagreement.
+  code generates against it** (Jack's call, with M4-1's chunking).
   The target file is `test/fixtures/90.05-object-listing.target`. It is
   scaffolding, not a second oracle. Jack's ruling of 2026-08-09: the
   golden stays the oracle of record, and the target buys resumability
@@ -470,27 +441,25 @@ M4 executes I/O-free programs.
   header at 4 and a blank at 5, and prints 52, ending in slot 57.
   Listing page 25 blanks slots 1 and 2, prints 45 content lines, blanks
   slot 48, and prints the three closing lines at 49 to 51, where the
-  listing ends. The notes table counts those three lines as content and
-  so gives that page 48. Stage 2 therefore lays out an object
-  page by the frame and never by a line count. The frame has no
-  exception: listing page 19, the one page whose transcription said 54
-  content lines, prints 55, because the transcription had joined two
-  printed lines into one under an over-long label (M4-8.1).
+  listing ends. Stage 2 therefore lays out an object page by the frame
+  and never by a line count.
   `test/fixtures/90.05-object-listing-notes.md` holds the per-page table.
 
 - **M4-8.1. An over-long label pushes its instruction to the next line.**
   *Recovered from the print 2026-08-10, chunk A6; Jack's ruling the same
-  day.* The label field ends at print column 48 and the mnemonic column is
-  49. Where a label reaches column 49, the 1962 printer put the
-  instruction on the following line, at the ordinary mnemonic and operand
-  columns, and left the label alone on its own. Stage 2 must do the same,
-  or the listing diff fails on that page.
+  day.* The label field is fifteen columns from print column 34, and the
+  mnemonic column is 49. Where a label reaches column 49, the 1962
+  printer put the instruction on the following line, at the ordinary
+  mnemonic and operand columns with every other field blank, and left
+  the label alone on its own. [J 90.02.02] says "exceeds 15" of
+  statement names; the attested break is at 15 exactly, and the print
+  governs. The 15-character INTERNAL.TOTALS breaks and every
+  14-character name prints inline.
 
-  One site in the program exercises the rule: `WITHOLDING.TAX.ROUTINE` at
-  LOC 01220 on listing page 19, which is 22 characters. Three other labels
-  reach column 49 and each stands alone on its line with no instruction to
-  displace, so they settle nothing about the wrap and are consistent with
-  it.
+  One site in the program displaces a real instruction: the
+  22-character `WITHOLDING.TAX.ROUTINE` at LOC 01220 on listing page 19.
+  Three other labels reach column 49 with no instruction to displace, so
+  they settle nothing.
 
   Nothing in either manual states this behaviour. It is read off the
   artifact, which makes it an M4-8 geometry fact and not a language fact:
@@ -546,7 +515,10 @@ M4 executes I/O-free programs.
      top-level pair before the pairs inside a matched group (statement
      221's attested unit order) — and a MOVPAK kill of the register
      cache defers to the expansion's end (statement 221's chain against
-     statement 220's reload).
+     statement 220's reload). **Item (d) of the chunk B2 amendment below
+     replaces "breadth-first" with the full order**, because that word
+     named the levels and did not say how two pairs at one level break a
+     tie.
   5. **Multiple targets**: one independent sequence per target, no shared
      setup (attested at statement 188's two receivers; D4.8's store
      independence is the same rule on SET).
@@ -572,6 +544,46 @@ M4 executes I/O-free programs.
   (both descriptors in the calling sequence, resume 3,4), SYS)180 (target
   only, 2,4), SYS)181 (source only, 2,4), SYS)182 (both preset, 1,4) —
   resume offset is parameter-word count plus one ([J 90.02.14]–15).
+  **Amended 2026-08-16, chunk B2, the first verb generator.** B2 fills
+  the mnemonic, operand and OCTAL columns of every MOVE the sample
+  compiles and of the base-register guards. Six rules, each pinned at
+  the diff:
+
+  a. **The octal comes from the emulator's table.**
+     `lib/src/codegen/encode.dart` imports `decode.dart` and states no
+     operation code of its own, so the OCTAL column has one authority.
+     `test/encode_test.dart` asserts the two directions entry by entry.
+  b. **A guard sits at the word that uses its operand**, not ahead of
+     the sequence. The NET sentence pins it: the guard for
+     `1)BONDEDUCTION` sits at LOC 00727, between the fifth `SUB` and
+     its own word, and not before the `CLA` at LOC 00722.
+  c. **A base load takes the lowest free register**, and a register an
+     earlier sentence left live is not free. Statement 208 takes XR2
+     for `BL)3` at LOC 00772, because the NET sentence left `BL)2` in
+     XR1. A statement that needs a third base register refuses.
+  d. **CORRESPONDING emits level-major.** A pair matched at a
+     receiver's own level emits before every pair matched inside a
+     matched group. The receivers keep the clause's order. Within one
+     receiver the matched groups emit in reverse description order:
+     statement 208 fills `PAYRECORD DATE` at LOC 01006 to 01025 ahead
+     of `PAYRECORD EMPLOYEE.NUMBER` at 01026, although the description
+     gives `EMPLOYEE.NUMBER` first. The level rule is load-bearing at
+     statement 221, where the `NAME` pair dispatches through MOVPAK and
+     a pair after that dispatch would re-guard.
+  e. **A two-factor product loads the literal into the Q register.**
+     Where neither factor is a literal, `LDQ` takes the right factor
+     and `MPY` the left. Three sites attest it: `LDQ CP)+6 /
+     MPY 3)HOURS`, `LDQ 1)RATE,1 / MPY 3)HOURS`, and `LDQ CP)+12 /
+     MPY EXEMPTIONS,1`.
+  f. **Five more shapes refuse**, each legal COMTRAN the sample never
+     reaches, each throwing `UnrecoveredShape` under M4-2 as amended.
+     `test/codegen_refusal_test.dart` pins one program per site. Three
+     other conditions cannot arise; the code asserts them.
+
+  Items (d) and (e) are underdetermined: one sample attests each, and
+  other formulations agree with it. Both are taken under the section
+  12 standing rule and recorded `DECIDED`, with the formulations they
+  beat, on branch `review/2026-08-16-m4-b2-underdetermined`.
 
 ## SET and arithmetic
 
@@ -933,12 +945,11 @@ M4 executes I/O-free programs.
     identical `0 00000 0 00134`: `PZE RETPREM-2` and `PZE INSPREM-2`,
     decrement zero on both, though RETPREM occupies characters 3–5. The
     decrement column is live on the same page (`PZE INS.PREM,,3` prints
-    00003), so the zeros are deliberate ink. Consequence, recorded: the
-    EQU'd subscript-base words are byte-blind — the byte selection for
-    the RETPREM (POS) and INSPREM (POS) lookups lives in the generated
-    lookup code, not in the base word — and the reproduced pool prints
-    the two identical words. This closes the review backlog's RETPREM
-    pointer anomaly: nothing is mis-transcribed.
+    00003), so the zeros are deliberate ink. The EQU'd subscript-base
+    words are therefore byte-blind: the byte selection for the RETPREM
+    (POS) and INSPREM (POS) lookups lives in the generated lookup code,
+    and the reproduced pool prints the two identical words. This closes
+    the review backlog's RETPREM pointer anomaly.
   - **(b) LOC 01612 (PDF p. 215) — a transcription error, corrected
     2026-08-05 under Jack's authorization.** The print reads
     `CLA 5)NETPAY`; the transcription's `4)NETPAY` misread the 5. The
@@ -963,13 +974,10 @@ M4 executes I/O-free programs.
     `+1`.
   - **(e) The PDF p. 208 page head — a transcription error, corrected
     2026-08-05 under Jack's authorization.** The print is one head line
-    in the normal order (`DATE … ID. CT PUBLICATIONS … PAGE 17`),
-    followed by two blank lines; the page is scanned with a one-degree
-    tilt that drops the right half of the line by two thirds of a line
-    pitch, and the transcription split it into two transposed lines. The
-    golden prints one line. The correction gives the line PDF p. 209's
-    field grid, per item (g). It restores a reading, not a column: take
-    columns from the scans (M1-15), and read its two blank lines as this
+    in the normal order, followed by two blank lines. A one-degree scan
+    tilt drops the right half of the line, and the transcription split
+    it into two transposed lines. The golden prints one line, on
+    PDF p. 209's field grid, per item (g). Its two blank lines are this
     page's alone.
   - **(f) The GET descriptor mnemonic — the two artifacts genuinely
     differ.** The listing prints `IOCTN*` (read at three sites on PDF

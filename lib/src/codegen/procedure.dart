@@ -1,10 +1,13 @@
-/// The procedure text (M4-1 chunk B1): every word the procedure
-/// division generates, sized and placed.
+/// The procedure text (M4-1 chunks B1 and B2): every word the procedure
+/// division generates, sized and placed, and — for the move family —
+/// written.
 ///
-/// Chunk B1 is the address spine. It decides how many words each clause
-/// takes and where each one sits; it decides nothing about what the
-/// words hold. The mnemonics and operands arrive with the verb
-/// generators, B2 to B6, and fill the columns these units leave blank.
+/// Chunk B1 laid the address spine: how many words each clause takes and
+/// where each one sits. Chunk B2 fills the move family's mnemonics,
+/// operands and object words: every shape the MOVE verb reaches, the
+/// MOVPAK descriptor prologue, and the base-locator guard pair wherever
+/// it fires. Every other family still emits a bare word, and B3 to B6
+/// fill them.
 /// The sizing rules are the shape catalogue of
 /// `test/fixtures/90.05-object-code-notes.md`; each family below names
 /// its catalogue section.
@@ -24,9 +27,13 @@ import '../ast/procedure_ast.dart';
 import '../chars/char_code.dart';
 import '../data/data_map.dart';
 import '../data/dictionary.dart';
+import '../data/pictorial.dart';
+import '../emulator/decode.dart';
+import '../emulator/word.dart';
 import '../lexer/procedure_lexer.dart';
 import '../lexer/token.dart';
 import '../parser/parser.dart';
+import 'encode.dart';
 import 'image.dart';
 import 'pool.dart';
 import 'text_model.dart';
@@ -99,6 +106,27 @@ Never _unruled(String what) => throw UnrecoveredShape(what);
 /// The three outcomes of a skip vector, in slot order ([J 90.02.12]).
 enum _Outcome { greater, equal, less }
 
+/// One symbolic address: the text the operand column prints and the
+/// value the address field punches.
+///
+/// Both are thunks because a pool entry has no index until the whole
+/// text has run — the pool is not in first-need order, and its address
+/// follows the text (M4-4).
+final class _Sym {
+  const _Sym(this.text, this.value);
+
+  final String Function() text;
+  final int Function() value;
+}
+
+/// One reference to a data item: the name the listing prints, the
+/// address field, and the index register the reference is tagged with.
+///
+/// An item inside a located record is addressed relative to its record
+/// and reached through a base register; every other item carries the
+/// absolute address of its transmitted area (M4-9).
+typedef _Ref = ({String text, int address, int tag});
+
 /// The emitter: one word at a time, in program order.
 final class _Text {
   _Text(this.semantics, {required int origin, this.image})
@@ -141,6 +169,11 @@ final class _Text {
   /// reached, or a pool address that follows the whole text. Each entry
   /// patches one unit after the walk ends.
   final List<(int, int Function())> _fixups = <(int, int Function())>[];
+
+  /// Deferred operand text and object words, one entry per written
+  /// unit, patched with [_fixups] after the walk ends (M4-4).
+  final List<(int, String Function(), int Function())> _text =
+      <(int, String Function(), int Function())>[];
 
   /// Procedure names at least one DO (or bare-name AT END) calls: these
   /// paragraphs carry a return cell (catalogue 4.1 — call-site-driven).
@@ -196,7 +229,7 @@ final class _Text {
     _registerHolds.clear();
   }
 
-  /// Emits one object word.
+  /// Emits one object word, its columns left to a later chunk.
   void word() {
     final List<String> names = _take(); // Before the location advances.
     _units.add(
@@ -215,6 +248,128 @@ final class _Text {
       word();
     }
   }
+
+  /// Emits one written object word: [operation] now, the operand text
+  /// and the 36-bit word after the walk (M4-4).
+  void _emit(
+    String operation,
+    WordForm form,
+    String Function() operand,
+    int Function() word,
+  ) {
+    final List<String> names = _take();
+    _text.add((_units.length, operand, word));
+    _units.add(
+      AssemblyUnit(
+        operation: operation,
+        operand: '',
+        location: _location++,
+        labels: names,
+        form: form,
+      ),
+    );
+  }
+
+  /// A type-B instruction against [address], tagged with [tag]. A zero
+  /// tag prints nothing: the attested `CAL BL)2` against `CAL BL)2,1`.
+  void _op(Op op, _Sym address, {int tag = 0}) => _emit(
+    mnemonic(op),
+    formOf(op),
+    () => tag == 0 ? address.text() : '${address.text()},$tag',
+    () => typeBWord(op, tag: tag, address: address.value()),
+  );
+
+  /// A type-B instruction against [item], guarded by the caller.
+  void _opItem(Op op, DataItem item, {int plus = 0}) {
+    final _Ref ref = _ref(item, plus: plus);
+    _emit(
+      mnemonic(op),
+      formOf(op),
+      () => ref.tag == 0 ? ref.text : '${ref.text},${ref.tag}',
+      () => typeBWord(op, tag: ref.tag, address: ref.address),
+    );
+  }
+
+  /// A shift: the distance rides in the address field and prints
+  /// decimal (the attested `ARS 18` against octal `00022`).
+  void _shift(Op op, int distance) => _emit(
+    mnemonic(op),
+    formOf(op),
+    () => '$distance',
+    () => typeBWord(op, address: distance),
+  );
+
+  /// `COM`, whose `+0760` sub-operation rides in the address field and
+  /// prints nothing ([J 90.02.02]; the emulator's decision ED-3).
+  void _com() => _emit(
+    mnemonic(Op.com),
+    formOf(Op.com),
+    () => '',
+    () => typeBWord(Op.com, address: comSubOperation),
+  );
+
+  /// `AXT n,1` — the digit count an edited store converts
+  /// ([J 90.02.30]).
+  void _axt(int count, int register) => _emit(
+    mnemonic(Op.axt),
+    formOf(Op.axt),
+    () => '$count,$register',
+    () => typeBWord(Op.axt, tag: register, address: count),
+  );
+
+  /// A MOVPAK entry, `TSX SYS)nnn,4` ([J 90.02.15]).
+  void _tsx(int sys) => _emit(
+    mnemonic(Op.tsx),
+    formOf(Op.tsx),
+    () => 'SYS)$sys,4',
+    () => typeBWord(Op.tsx, tag: 4, address: sys),
+  );
+
+  /// A MOVPAK step or fill call, `TXI SYS)nnn,1,count`
+  /// ([J 90.02.16]). The decrement prints decimal, as the listing
+  /// does at LOC 01146 for the octal `00014`.
+  void _txi(int sys, int decrement) => _emit(
+    mnemonic(Op.txi),
+    formOf(Op.txi),
+    () => 'SYS)$sys,1,$decrement',
+    () => typeAWord(Op.txi, tag: 1, decrement: decrement, address: sys),
+  );
+
+  /// The in-line address word `PZE LOC,,BYTE` ([J 90.02.14]). All 25
+  /// attested sites name a fixed location, so the word takes no tag and
+  /// the located form has none (catalogue 4.3).
+  void _pze(DataItem item) {
+    // The test precedes [_ref]: a located reference reads its record's
+    // base register, and no caller guards one for this word.
+    if (_located(item)) {
+      _unruled('an in-line address word for a located item (catalogue 4.3)');
+    }
+    final _Ref ref = _ref(item);
+    final int byte = _sem(item).byte;
+    _emit(
+      'PZE',
+      WordForm.prefix,
+      () => '${ref.text},,$byte',
+      () => pzeWord(decrement: byte, address: ref.address),
+    );
+  }
+
+  /// An in-line constant word, printed as its twelve octal digits.
+  void _oct(int value) =>
+      _emit('OCT', WordForm.solid, () => Word36.octal(value), () => value);
+
+  /// `SYS)nnn` — a communication cell or a subroutine entry.
+  _Sym _sys(int number) => _Sym(() => 'SYS)$number', () => number);
+
+  /// `CP)+n` — a pool entry, by index and by address.
+  _Sym _cp(PoolHandle handle) =>
+      _Sym(() => 'CP)+${_layout.indexOf(handle)}', () => _poolAddress(handle));
+
+  /// `BL)n` or `PI)n` — one word of a Location Counter 1 block.
+  _Sym _blockWord(StorageBlock block, int number) => _Sym(
+    () => '${block.symbol}$number',
+    () => image?.symbolAddress(block, number) ?? 0,
+  );
 
   /// Emits an `EQU` line at the head of the machinery block that needs
   /// it, printing [value] in the LOC column and taking no word of its
@@ -252,6 +407,18 @@ final class _Text {
 
   ProcedureText result() {
     _layout = _pool.layout();
+    for (final (int index, String Function() operand, int Function() word)
+        in _text) {
+      final AssemblyUnit unit = _units[index];
+      _units[index] = AssemblyUnit(
+        operation: unit.operation,
+        operand: operand(),
+        location: unit.location,
+        labels: unit.labels,
+        word: word(),
+        form: unit.form,
+      );
+    }
     for (final (int index, int Function() value) in _fixups) {
       final AssemblyUnit unit = _units[index];
       _units[index] = AssemblyUnit(
@@ -259,6 +426,8 @@ final class _Text {
         operand: unit.operand,
         location: value(),
         labels: unit.labels,
+        word: unit.word,
+        form: unit.form,
       );
     }
     return ProcedureText(
@@ -287,6 +456,63 @@ final class _Text {
   bool _located(DataItem item) {
     final DataItem? record = _recordOf(item);
     return record != null && _baseLocators.containsKey(record);
+  }
+
+  /// The first word of each transmitted area, on Location Counter 0.
+  /// The areas run from word zero in declaration order, and the
+  /// procedure text follows them (M3-6; M4-4).
+  late final Map<DataItem, int> _areaOrigins = () {
+    final origins = Map<DataItem, int>.identity();
+    var origin = 0;
+    for (final AreaInfo area in semantics.areas) {
+      origins[area.root] = origin;
+      origin += area.extentWords;
+    }
+    return origins;
+  }();
+
+  /// One reference to [item], [plus] words on from its first word.
+  ///
+  /// A located item is addressed from its record's base register, so its
+  /// address is the record-relative word; every other item carries its
+  /// area's origin. Every root outside a located record that reserves a
+  /// character is a transmitted area, so the origin is there. The `+n`
+  /// suffix is the attested printed form at `3)EMPLOYEE.NUMBER+1`
+  /// (M4-9).
+  _Ref _ref(DataItem item, {int plus = 0}) {
+    final ItemSemantics sem = _sem(item);
+    final String text = plus == 0
+        ? _printedName(item)
+        : '${_printedName(item)}+$plus';
+    final DataItem? record = _recordOf(item);
+    final int? locator = record == null ? null : _baseLocators[record];
+    if (locator != null) {
+      return (text: text, address: sem.word + plus, tag: _registerOf(locator));
+    }
+    final int origin = _areaOrigins[sem.spaceRoot]!;
+    return (text: text, address: origin + sem.word + plus, tag: 0);
+  }
+
+  /// The index register holding [locator]. Every located reference is
+  /// guarded before it is emitted, so the cache always holds one.
+  int _registerOf(int locator) => _registerHolds.entries
+      .firstWhere((MapEntry<int, int> held) => held.value == locator)
+      .key;
+
+  /// The `PI)n` of a subscripted reference to [array].
+  ///
+  /// The indicator list keys on the array and the written subscript
+  /// notation together, and codegen holds no copy of the notation, so
+  /// two indicators over one array have no rule here (M3-20; M4-9).
+  int _indicator(DataItem array) {
+    final numbers = <int>[
+      for (var i = 0; i < semantics.positionalIndicators.length; i++)
+        if (identical(semantics.positionalIndicators[i].$1, array)) i + 1,
+    ];
+    if (numbers.length != 1) {
+      _unruled('two positional indicators over one array (no sample instance)');
+    }
+    return numbers.single;
   }
 
   /// A group moves and compares as an alphameric field (D3.3).
@@ -321,14 +547,28 @@ final class _Text {
       return;
     }
     final int register = _statementRegisters.putIfAbsent(locator, () {
-      if (_statementRegisters.length >= 2) {
-        // M4-9 assigns XR1 and XR2 and stops; no rule covers a third.
-        _unruled('a third base register in one statement (M4-9)');
+      // The lowest free register, not the lowest unused this statement:
+      // statement 208 takes XR2 for `BL)3` at 00772 because the NET
+      // sentence left `BL)2` live in XR1.
+      for (var candidate = 1; candidate <= 2; candidate++) {
+        if (!_registerHolds.containsKey(candidate) &&
+            !_statementRegisters.containsValue(candidate)) {
+          return candidate;
+        }
       }
-      return _statementRegisters.length + 1;
+      // M4-9 assigns XR1 and XR2 and stops; no rule covers a third.
+      _unruled('a third base register in one statement (M4-9)');
     });
     _registerHolds[register] = locator;
-    words(2);
+    _op(Op.lac, _blockWord(StorageBlock.bl, locator), tag: register);
+    // The guard itself: `TXL SYS)294,i,0` traps an unset locator
+    // ([J 90.02.23]).
+    _emit(
+      mnemonic(Op.txl),
+      formOf(Op.txl),
+      () => 'SYS)294,$register,0',
+      () => typeAWord(Op.txl, tag: register, address: 294),
+    );
   }
 
   /// The guard for [item] when its record is located.
@@ -357,10 +597,16 @@ final class _Text {
   bool _inCorresponding = false;
   bool _killPending = false;
 
-  void _correspondingUnits(List<(DataItem, DataItem)> pairs) {
+  void _correspondingUnits(
+    List<NameReference> targets,
+    List<(DataItem, DataItem)> pairs,
+  ) {
     _inCorresponding = true;
     _killPending = false;
-    for (final (DataItem source, DataItem target) in _breadthFirst(pairs)) {
+    for (final (DataItem source, DataItem target) in _emissionOrder(
+      targets,
+      pairs,
+    )) {
       _moveUnit(source, target);
     }
     _inCorresponding = false;
@@ -400,12 +646,18 @@ final class _Text {
   PoolHandle _descriptor(DataItem item) =>
       _pool.descriptor('${_printedName(item)},,${_sem(item).byte}');
 
+  /// The MOVPAK source pointer and target pointer ([J 90.02.11]).
+  static const int _sourceCell = 132;
+  static const int _targetCell = 133;
+
   /// Emits the descriptor prologue of one memory operand — the words
   /// that set its `SYS)132`/`SYS)133` cell (catalogue 4.3). The located
   /// form's `CAL BL)n` carries no guard and touches no register.
-  void _setup(DataItem item, {bool subscripted = false}) {
+  void _setup(DataItem item, {required bool target, bool subscripted = false}) {
+    final _Sym cell = _sys(target ? _targetCell : _sourceCell);
     if (subscripted) {
-      words(2); // LDI PI)n / STI.
+      _op(Op.ldi, _blockWord(StorageBlock.pi, _indicator(item)));
+      _op(Op.sti, cell);
       return;
     }
     if (_located(item)) {
@@ -414,12 +666,17 @@ final class _Text {
       // J 90.01.01, the binder's record classification), so this
       // descriptor's byte offset is a compile-time constant.
       assert(!_sem(item).variableLength, 'the binder bars this shape');
-      _descriptor(item);
-      words(3); // CAL BL)n / ACL CP)+nn / SLW.
+      final PoolHandle descriptor = _descriptor(item);
+      _op(
+        Op.cal,
+        _blockWord(StorageBlock.bl, _baseLocators[_recordOf(item)!]!),
+      );
+      _op(Op.acl, _cp(descriptor));
+      _op(Op.slw, cell);
       return;
     }
-    _descriptor(item);
-    words(2); // LDI CP)+nn / STI.
+    _op(Op.ldi, _cp(_descriptor(item)));
+    _op(Op.sti, cell);
   }
 
   /// A numeric literal's pool word: the written digits with the point
@@ -804,7 +1061,10 @@ final class _Text {
 
   void _move(MoveClause clause) {
     if (clause.corresponding) {
-      _correspondingUnits(semantics.correspondingPairs[clause] ?? const []);
+      _correspondingUnits(
+        clause.targets,
+        semantics.correspondingPairs[clause] ?? const [],
+      );
       return;
     }
     for (final NameReference target in clause.targets) {
@@ -827,12 +1087,24 @@ final class _Text {
     }
   }
 
-  /// The matched pairs in emission order: a top-level pair before the
-  /// pairs inside a matched group. Statement 221 attests it — `DATE`
+  /// The matched pairs in emission order. Two rules, both from the
+  /// sample.
+  ///
+  /// A pair matched at a receiver's own level emits before every pair
+  /// matched inside a matched group. Statement 221 attests it — `DATE`
   /// and `BONDENOMINATION` emit ahead of `DAT`'s `EMPLOYEE.NUMBER` and
   /// `NAME` — and it is load-bearing there: the `NAME` pair dispatches
   /// through MOVPAK, and any pair after a dispatch would re-guard.
-  List<(DataItem, DataItem)> _breadthFirst(List<(DataItem, DataItem)> pairs) {
+  ///
+  /// Within one receiver the matched groups emit in reverse description
+  /// order. Statement 208 attests it: `PAYRECORD DATE` fills 01006 to
+  /// 01025 ahead of `PAYRECORD EMPLOYEE.NUMBER` at 01026, though
+  /// `EMPLOYEE.NUMBER` is described first. The receivers themselves
+  /// keep the clause's order (M4-9).
+  List<(DataItem, DataItem)> _emissionOrder(
+    List<NameReference> targets,
+    List<(DataItem, DataItem)> pairs,
+  ) {
     int depth(DataItem item) {
       var steps = 0;
       for (
@@ -845,15 +1117,45 @@ final class _Text {
       return steps;
     }
 
-    final List<(int, int, (DataItem, DataItem))> keyed =
-        [
-          for (var i = 0; i < pairs.length; i++)
-            (depth(pairs[i].$2), i, pairs[i]),
-        ]..sort(
-          (a, b) => a.$1 != b.$1 ? a.$1.compareTo(b.$1) : a.$2.compareTo(b.$2),
-        );
-    return [for (final (_, _, pair) in keyed) pair];
+    final receiver = <int>[
+      for (final (_, DataItem target) in pairs) _receiverIndex(targets, target),
+    ];
+    // A matched group's pairs are consecutive and share a source
+    // parent, so the run's first index names the group.
+    final group = List<int>.filled(pairs.length, 0);
+    for (var i = 0; i < pairs.length; i++) {
+      group[i] =
+          i > 0 &&
+              receiver[i] == receiver[i - 1] &&
+              identical(pairs[i].$1.parent, pairs[i - 1].$1.parent)
+          ? group[i - 1]
+          : i;
+    }
+
+    final List<int> order = [for (var i = 0; i < pairs.length; i++) i]
+      ..sort((a, b) {
+        final int byDepth = depth(pairs[a].$2).compareTo(depth(pairs[b].$2));
+        if (byDepth != 0) {
+          return byDepth;
+        }
+        if (receiver[a] != receiver[b]) {
+          return receiver[a].compareTo(receiver[b]);
+        }
+        return group[a] != group[b]
+            ? group[b].compareTo(group[a])
+            : a.compareTo(b);
+      });
+    return [for (final int i in order) pairs[i]];
   }
+
+  /// Which of [targets] holds [item]. The matcher builds every pair
+  /// under one receiver, so the search always finds one.
+  int _receiverIndex(List<NameReference> targets, DataItem item) =>
+      Iterable<int>.generate(targets.length).firstWhere((int i) {
+        final DataItem? receiver = _item(targets[i]);
+        return receiver != null &&
+            ancestorsOf(item).any((DataItem each) => identical(each, receiver));
+      });
 
   /// One source-to-target unit, selected by the two field classes
   /// ([J 90.02.15] to [J 90.02.19], [J 90.02.30]).
@@ -879,20 +1181,112 @@ final class _Text {
         _internalMove(source, target, sourceSubscripted: sourceSubscripted);
       case (FieldClass.externalDecimal, FieldClass.edited) ||
           (FieldClass.edited, FieldClass.edited):
-        _setup(target, subscripted: targetSubscripted); // Target cell first.
-        _setup(source, subscripted: sourceSubscripted);
-        words(1 + 5); // TSX SYS)182, then the edit run (catalogue 4.6).
-        _movpakClears();
+        _editRun(
+          source,
+          target,
+          fromEdited: from == FieldClass.edited,
+          sourceSubscripted: sourceSubscripted,
+          targetSubscripted: targetSubscripted,
+        );
       case (FieldClass.externalDecimal, FieldClass.internalDecimal):
-        _setup(source, subscripted: sourceSubscripted);
-        words(2); // The convert call.
+        _setup(source, subscripted: sourceSubscripted, target: false);
+        _tsx(182);
+        _txi(184, _sem(source).digits); // The complete call ([J 90.02.16]).
         _loadBaseOf(target);
-        word(); // The store.
+        _opItem(Op.sto, target);
         _movpakClears();
       default:
         _unruled('a move of ${from.name} to ${to.name} (notes section 7)');
     }
   }
+
+  /// The memory-to-edited move: the two pointers, the MOVPAK entry, the
+  /// head with its control word, one step per stretch of target digits,
+  /// and the terminator ([J 90.02.16] to [J 90.02.19]; catalogue 4.6).
+  void _editRun(
+    DataItem source,
+    DataItem target, {
+    required bool fromEdited,
+    required bool sourceSubscripted,
+    required bool targetSubscripted,
+  }) {
+    _setup(target, subscripted: targetSubscripted, target: true);
+    _setup(source, subscripted: sourceSubscripted, target: false);
+    _tsx(182);
+    _txi(fromEdited ? 190 : 185, _editControl(target));
+    _oct(_controlWord(target));
+    _editSteps(source, target, fromEdited: fromEdited);
+    _txi(fromEdited ? 226 : 225, _sem(target).digits);
+    _movpakClears();
+  }
+
+  /// The steps between the head and the terminator: leading zeros, the
+  /// move itself, then trailing zeros ([J 90.02.17]).
+  ///
+  /// A source wider than the target on either side needs the overflow
+  /// test and the bypass steps, and no site emits either, so the two
+  /// step numbers the manual offers cannot be told apart (catalogue 4.6;
+  /// M4-2 as amended).
+  void _editSteps(
+    DataItem source,
+    DataItem target, {
+    required bool fromEdited,
+  }) {
+    final ItemSemantics s = _sem(source);
+    final ItemSemantics t = _sem(target);
+    final int sourceInteger = s.digits - s.fractionDigits;
+    final int targetInteger = t.digits - t.fractionDigits;
+    if (sourceInteger > targetInteger || s.fractionDigits > t.fractionDigits) {
+      _unruled('an edit run that bypasses source digits (no sample instance)');
+    }
+    if (targetInteger > sourceInteger) {
+      _txi(fromEdited ? 214 : 212, targetInteger - sourceInteger);
+    }
+    _txi(fromEdited ? 198 : 193, s.digits);
+    if (t.fractionDigits > s.fractionDigits) {
+      _txi(fromEdited ? 216 : 211, t.fractionDigits - s.fractionDigits);
+    }
+  }
+
+  /// The TARGET-EDIT-CONTROL bits of [target] ([J 90.02.17] Note 1).
+  int _editControl(DataItem target) {
+    final Pictorial shape = _editedShape(target);
+    return (shape.hasAsterisk ? 0x01 : 0) |
+        (shape.hasComma ? 0x02 : 0) |
+        (shape.hasPoint ? 0x04 : 0) |
+        (shape.hasDollar ? 0x08 : 0) |
+        (target.blankWhenZero ? 0x10 : 0);
+  }
+
+  /// The TARGET-CONTROL-WORD of [target] ([J 90.02.17] Note 2).
+  int _controlWord(DataItem target) {
+    final Pictorial shape = _editedShape(target);
+    if (shape.digitsBeforeComma > 7) {
+      // The prefix is three bits wide, so a longer group ahead of the
+      // first comma has no word to punch.
+      _unruled('an edited field with eight digits before its first comma');
+    }
+    return (shape.digitsBeforeComma << 33) |
+        (shape.digitsBeforePoint << 18) |
+        (_signCode(shape.sign) << 15) |
+        shape.leadingProtected;
+  }
+
+  /// The pictorial of an edited target. A field is edited because its
+  /// pictorial holds an edit character, so the measurement is there.
+  Pictorial _editedShape(DataItem target) => _sem(target).shape!;
+
+  /// TARGET-SIGN-CONVENTION, the control word's tag ([J 90.02.17]
+  /// Note 2's seven values).
+  int _signCode(SignConvention sign) => switch (sign) {
+    SignConvention.none => 0,
+    SignConvention.overpunchMinus => 1,
+    SignConvention.overpunchPlus => 2,
+    SignConvention.minusTrailing => 3,
+    SignConvention.plusTrailing => 4,
+    SignConvention.minusLeading => 5,
+    SignConvention.plusLeading => 6,
+  };
 
   /// The register-source edited store (catalogue 4.6): the 25 `SYS)180`
   /// sites, a load and the constant five-word call, with the digit-split
@@ -906,16 +1300,35 @@ final class _Text {
       _unruled('a subscripted edited-store source (no sample instance)');
     }
     _loadBaseOf(source);
-    word(); // CLA.
+    _opItem(Op.cla, source);
     final ItemSemantics s = _sem(source);
     final ItemSemantics t = _sem(target);
     if (s.digits > t.digits) {
       // The split divisor is 10 to the target's digit count — the one
       // value all three attested sites share, `CP)+24`.
-      _pool.machineWord(_pow10(t.digits));
-      words(2); // The digit-split divide.
+      final PoolHandle divisor = _pool.machineWord(_pow10(t.digits));
+      _shift(Op.lrs, 35);
+      _op(Op.dvp, _cp(divisor));
     }
-    words(5); // TSX SYS)180 / PZE T / TXI SYS)267 / OCT / AXT.
+    _tsx(180);
+    _pze(target);
+    final int control = _editControl(target);
+    if (control == 0) {
+      // The one site whose edit control computes to zero punches a real
+      // transfer where every other punches the step's `TXI`, and prints
+      // the three-field operand either way (notes 6.2 item 15, LOC
+      // 01327).
+      _emit(
+        mnemonic(Op.tra),
+        formOf(Op.tra),
+        () => 'SYS)267,0,0',
+        () => typeBWord(Op.tra, address: 267),
+      );
+    } else {
+      _txi(267, control);
+    }
+    _oct(_controlWord(target));
+    _axt(t.digits, 1);
     _movpakClears();
   }
 
@@ -937,8 +1350,9 @@ final class _Text {
       _unruled('an internal-decimal move off its trigger (catalogue 4.6)');
     }
     _loadBaseOf(source);
+    _opItem(Op.cla, source);
     _loadBaseOf(target);
-    words(2); // CLA / STO.
+    _opItem(Op.sto, target);
   }
 
   /// A store into a subscript variable recomputes every positional
@@ -978,12 +1392,33 @@ final class _Text {
     if (target.subscripts.isNotEmpty) {
       _unruled('a subscripted figurative target (notes section 7)');
     }
-    _setup(_item(target)!);
-    words(2);
+    final DataItem item = _item(target)!;
+    _setup(item, target: true);
+    _tsx(182);
+    // The count is the target's storage extent, not its digit count
+    // (notes 6.1 item 22).
+    final int extent = _sem(item).storageChars;
     if (_highOrLow(figurative)) {
-      word();
+      _txi(245, extent);
+      _oct(_fillWord(figurative));
+      _movpakClears();
+      return;
     }
+    // The parser admits four figurative families (`figurativeConstants`),
+    // and HIGH and LOW are above, so the rest is ZERO or BLANK.
+    _txi(_zero(figurative) ? 244 : 243, extent);
     _movpakClears();
+  }
+
+  /// The six characters `SYS)245` inserts ([J 90.02.26]). HIGH.VALUE in
+  /// the native sequence is the attested `747474747474`; the other
+  /// three fill words of the collating table have no site and no rule
+  /// reproduces them (notes 6.1 item 20).
+  int _fillWord(Token figurative) {
+    if (!figurative.text.startsWith('HIGH')) {
+      _unruled('the LOW.VALUE fill word (notes 6.1 item 20)');
+    }
+    return _highValueWord;
   }
 
   /// The literal insert: the mask insert with a pool cell for a source,
@@ -994,10 +1429,16 @@ final class _Text {
     if (t.byte + length > 6) {
       _unruled('an in-line literal past one word (notes section 7)');
     }
-    _pool.machineWord(_clearMask(t.byte, t.byte + length - 1));
-    _alphamericLiteral(literal, offset: t.byte);
+    final PoolHandle clear = _pool.machineWord(
+      _clearMask(t.byte, t.byte + length - 1),
+    );
+    final PoolHandle word = _alphamericLiteral(literal, offset: t.byte);
+    _op(Op.cal, _cp(clear));
     _loadBaseOf(target);
-    words(5);
+    _opItem(Op.ans, target);
+    _com();
+    _op(Op.ana, _cp(word));
+    _opItem(Op.ors, target);
   }
 
   /// The in-line boundary (catalogue 4.5): equal storage lengths, the
@@ -1013,34 +1454,119 @@ final class _Text {
       _dispatch(source, target);
       return;
     }
-    _loadBaseOf(source);
-    _loadBaseOf(target);
     final int sB = s.byte;
     final int tB = t.byte;
     if (length % 6 == 0 && sB == 0 && tB == 0) {
       // The gate above caps the source inside one word, so the
       // whole-word move is always exactly one: CAL / SLW. The
       // multi-word form has no site (notes section 7).
-      words(2);
+      _loadBaseOf(source);
+      _opItem(Op.cal, source);
+      _loadBaseOf(target);
+      _opItem(Op.slw, target);
     } else if (tB + length <= 6) {
       if (sB == tB) {
-        _pool.machineWord(_clearMask(tB, tB + length - 1));
-        words(5); // The mask insert.
+        _maskInsert(source, target, length);
       } else if (tB == 0 && sB + length == 6) {
-        words(5); // The accumulator shift chain.
+        _accumulatorChain(source, target, length);
       } else if (tB + length == 6) {
-        words(6); // The MQ shift chain.
+        _mqChain(source, target);
       } else if (tB > 0) {
-        _pool
-          ..machineWord(_clearMask(tB, tB + length - 1))
-          ..machineWord(_extractMask(tB, tB + length - 1));
-        words(6); // The shifted mask insert.
+        _shiftedMaskInsert(source, target, length);
       } else {
         _unruled('an in-line move outside the four triggers (notes 4.5)');
       }
     } else {
-      words(11); // The two-word chain.
+      _twoWordChain(source, target, length);
     }
+  }
+
+  /// The mask insert: clear the target's characters, complement the
+  /// mask to select them, and OR the source's in (catalogue 4.5).
+  ///
+  /// The source is the field itself, which is an addition to M4-9 —
+  /// attested twice and stated nowhere (notes 6.2 item 13).
+  void _maskInsert(DataItem source, DataItem target, int length) {
+    final int tB = _sem(target).byte;
+    final PoolHandle clear = _pool.machineWord(_clearMask(tB, tB + length - 1));
+    _op(Op.cal, _cp(clear));
+    _loadBaseOf(target);
+    _opItem(Op.ans, target);
+    _com();
+    _loadBaseOf(source);
+    _opItem(Op.ana, source);
+    _opItem(Op.ors, target);
+  }
+
+  /// The shifted mask insert: the mask insert with the source aligned
+  /// to the target's byte position first, which costs a second pool
+  /// word because `COM` no longer makes the select mask (catalogue 4.5).
+  void _shiftedMaskInsert(DataItem source, DataItem target, int length) {
+    final int sB = _sem(source).byte;
+    final int tB = _sem(target).byte;
+    final PoolHandle clear = _pool.machineWord(_clearMask(tB, tB + length - 1));
+    final PoolHandle extract = _pool.machineWord(
+      _extractMask(tB, tB + length - 1),
+    );
+    _op(Op.cal, _cp(clear));
+    _loadBaseOf(target);
+    _opItem(Op.ans, target);
+    _loadBaseOf(source);
+    _opItem(Op.cal, source);
+    final int distance = 6 * (tB - sB);
+    _shift(distance > 0 ? Op.ars : Op.als, distance.abs());
+    _op(Op.ana, _cp(extract));
+    _opItem(Op.ors, target);
+  }
+
+  /// The accumulator shift chain: the target's kept characters ride in
+  /// the MQ across the source load, then shift back (catalogue 4.5).
+  void _accumulatorChain(DataItem source, DataItem target, int length) {
+    final int kept = 6 * (6 - length);
+    _loadBaseOf(target);
+    _opItem(Op.cal, target);
+    _shift(Op.lgr, kept);
+    _loadBaseOf(source);
+    _opItem(Op.cal, source);
+    _shift(Op.lgl, kept);
+    _opItem(Op.slw, target);
+  }
+
+  /// The MQ shift chain: the target's characters run low in the word,
+  /// so the assembly happens in the MQ and the kept characters ride in
+  /// the accumulator (catalogue 4.5).
+  void _mqChain(DataItem source, DataItem target) {
+    final int kept = 6 * _sem(target).byte;
+    _loadBaseOf(target);
+    _opItem(Op.ldq, target);
+    _shift(Op.lgl, kept);
+    _loadBaseOf(source);
+    _opItem(Op.ldq, source);
+    _shift(Op.rql, 6 * _sem(source).byte);
+    _shift(Op.lgr, kept);
+    _opItem(Op.stq, target);
+  }
+
+  /// The two-word chain: the target spans a word boundary, so each of
+  /// its words is rebuilt in turn (catalogue 4.5). The six shift
+  /// distances follow from the two byte positions and the length, and
+  /// three sites with three distinct geometries confirm them.
+  void _twoWordChain(DataItem source, DataItem target, int length) {
+    final int head = 6 - _sem(target).byte; // Characters in the first word.
+    final int tail = length - head;
+    _loadBaseOf(target);
+    _opItem(Op.cal, target);
+    _loadBaseOf(source);
+    _opItem(Op.ldq, source);
+    _shift(Op.rql, 6 * _sem(source).byte);
+    _shift(Op.ars, 6 * head);
+    _shift(Op.lgl, 6 * head);
+    _opItem(Op.slw, target);
+    _shift(Op.lgl, 6 * tail);
+    _opItem(Op.ldq, target, plus: 1);
+    _shift(Op.rql, 6 * tail);
+    _shift(Op.lgl, 6 * (6 - tail));
+    _opItem(Op.slw, target, plus: 1);
   }
 
   /// The MOVPAK dispatch, target cell before source cell, then the
@@ -1049,15 +1575,16 @@ final class _Text {
   /// observation over five sites, not a derivation, and the notes say
   /// not to promote it silently (M4-9 as amended).
   void _dispatch(DataItem source, DataItem target) {
-    _setup(target);
-    _setup(source);
-    word(); // TSX SYS)182,4.
+    _setup(target, target: true);
+    _setup(source, target: false);
+    _tsx(182);
     final int from = _sem(source).storageChars;
     final int to = _sem(target).storageChars;
     if (from == to) {
-      word();
+      _txi(239, from);
     } else if (from < to) {
-      words(2);
+      _txi(240, from);
+      _txi(241, to - from);
     } else {
       _unruled('an alphameric mover with the longer source (notes 3.3)');
     }
@@ -1102,7 +1629,7 @@ final class _Text {
       if (_sem(source).fieldClass == FieldClass.edited) {
         // The non-binary operand fetch: the register convert of
         // catalogue 4.6, plus one word to park (catalogue 4.7).
-        _setup(source);
+        _setup(source, target: false);
         words(1 + 3);
         word(); // The park.
         _movpakClears();
@@ -1163,6 +1690,12 @@ final class _Text {
       final int scale = _naturalScale(term);
       chainScale = scale > chainScale ? scale : chainScale;
     }
+    // One entry per term: the item whose base register that term's own
+    // word must load, `null` where the assembly reads a parked value or
+    // a pool word. The NET sentence pins the placement: the guard for
+    // `1)BONDEDUCTION` sits at 00727, between the fifth `SUB` and its
+    // own, not ahead of the `CLA` at 00722.
+    final fetched = <DataItem?>[];
     for (final term in terms) {
       // The sample's chains never subscript a term, so the multi-term
       // arms refuse one exactly as the single-term arm above does.
@@ -1170,9 +1703,14 @@ final class _Text {
         _unruled('a subscripted chain operand (no sample instance)');
       }
       final int deficit = chainScale - _naturalScale(term);
+      fetched.add(
+        term is NameOperand && deficit == 0
+            ? _decimal(_item(term.name)!)
+            : null,
+      );
       switch (term) {
-        case NameOperand(:final name) when deficit == 0:
-          _loadBaseOf(_decimal(_item(name)!)); // Fetched in place.
+        case NameOperand() when deficit == 0:
+          break; // Fetched in place, guarded at its own word below.
         case LiteralOperand(:final literal) when deficit == 0:
           _numericLiteral(literal);
         case NameOperand() || LiteralOperand():
@@ -1203,7 +1741,13 @@ final class _Text {
           _unruled('a chain of ${term.runtimeType} (no sample instance)');
       }
     }
-    words(terms.length); // The assembly: one CLA, then ADD or SUB each.
+    // The assembly: one CLA, then ADD or SUB each.
+    for (final item in fetched) {
+      if (item != null) {
+        _loadBaseOf(item);
+      }
+      word();
+    }
     return chainScale;
   }
 
@@ -1231,9 +1775,17 @@ final class _Text {
     final bool leftLeaf = left is NameOperand || left is LiteralOperand;
     final bool rightLeaf = right is NameOperand || right is LiteralOperand;
     if (leftLeaf && rightLeaf) {
-      _leafOperand(left);
-      _leafOperand(right);
-      words(2); // LDQ / MPY.
+      final DataItem? first = _leafOperand(left);
+      final DataItem? second = _leafOperand(right);
+      // `MPY` takes a name wherever one factor is a literal, so the
+      // `LDQ` takes the literal — `LDQ CP)+12 / MPY EXEMPTIONS,1` at
+      // 01221 — and the right factor when neither is one, as
+      // `LDQ 1)RATE,1 / MPY 3)HOURS` at 00641 shows.
+      final leftLoads = left is LiteralOperand;
+      _guarded(leftLoads ? first : second);
+      word(); // LDQ.
+      _guarded(leftLoads ? second : first);
+      word(); // MPY.
       return _naturalScale(left) + _naturalScale(right);
     }
     if (!leftLeaf && !rightLeaf) {
@@ -1246,22 +1798,35 @@ final class _Text {
       BinaryExpr() => _chain(complex),
       _ => _unruled('a factor of ${complex.runtimeType}'),
     };
-    _leafOperand(leaf);
-    words(2); // The step onto the finished value.
+    final DataItem? item = _leafOperand(leaf);
+    // The step onto the finished value: `XCA`, then the factor's word.
+    word();
+    _guarded(item);
+    word();
     return scale + _naturalScale(leaf);
   }
 
-  void _leafOperand(ArithExpr leaf) {
+  /// Prepares [leaf] as a factor and returns the item its own word
+  /// addresses, `null` for a literal — the pool word needs no guard.
+  DataItem? _leafOperand(ArithExpr leaf) {
     switch (leaf) {
       case LiteralOperand(:final literal):
         _numericLiteral(literal);
+        return null;
       case NameOperand(:final name):
         if (name.subscripts.isNotEmpty) {
           _unruled('a subscripted factor (no sample instance)');
         }
-        _loadBaseOf(_decimal(_item(name)!));
+        return _decimal(_item(name)!);
       default:
         _unruled('a factor of ${leaf.runtimeType}');
+    }
+  }
+
+  /// The guard [item] needs at the word that addresses it.
+  void _guarded(DataItem? item) {
+    if (item != null) {
+      _loadBaseOf(item);
     }
   }
 

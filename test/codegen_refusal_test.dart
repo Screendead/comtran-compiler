@@ -1,8 +1,8 @@
-/// Chunk B1's refusal sites (M4-2 as amended 2026-08-15): a valid
-/// shape the sample never reaches has no attested generated form, so
-/// the sizers throw [UnrecoveredShape] rather than invent one. Every
-/// site a valid program reaches is pinned here, one program per site;
-/// the driver's per-job scoping of the refusal is in
+/// The refusal sites of chunks B1 and B2 (M4-2 as amended 2026-08-15):
+/// a valid shape the sample never reaches has no attested generated
+/// form, so the sizers throw [UnrecoveredShape] rather than invent one.
+/// Every site a valid program reaches is pinned here, one program per
+/// site; the driver's per-job scoping of the refusal is in
 /// `driver_test.dart`.
 library;
 
@@ -537,6 +537,79 @@ void main() {
           flagged: ['98,00'],
         ),
         'a positional indicator with no repeated ancestor',
+      );
+    });
+  });
+
+  group('the B2 refusal sites (M4-9)', () {
+    test('an in-line address word for a located item', () {
+      expect(
+        _refuses(
+          ['            MOVE NUM TO IEDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+            dataCard(name: 'IEDT', level: '2', description: r'$889.99'),
+          ],
+          environment: [
+            environmentCard(
+              name: 'TAPE1',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+            ),
+          ],
+        ),
+        'an in-line address word for a located item (catalogue 4.3)',
+      );
+    });
+
+    test('two positional indicators over one array', () {
+      expect(
+        _refuses(
+          [
+            '            MOVE ETAB ECEL (IDX) TO EDT.',
+            '            MOVE ETAB ECEL (IDY) TO EDT.',
+          ],
+          data: [
+            ..._data(),
+            dataCard(name: 'ETAB', level: '1', quantity: '12'),
+            dataCard(name: 'ECEL', level: '2', mode: 'E', description: '999'),
+          ],
+        ),
+        'two positional indicators over one array (no sample instance)',
+      );
+    });
+
+    test('an edit run that bypasses source digits', () {
+      expect(
+        _refuses(
+          ['            MOVE WIDE TO EDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'WIDE', level: '1', mode: 'E', description: '99999'),
+          ],
+        ),
+        'an edit run that bypasses source digits (no sample instance)',
+      );
+    });
+
+    test('an edited field with eight digits before its first comma', () {
+      expect(
+        _refuses(
+          ['            MOVE EXT TO BIGEDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'BIGEDT', level: '1', description: '99999999,99'),
+          ],
+        ),
+        'an edited field with eight digits before its first comma',
+      );
+    });
+
+    test('the LOW.VALUE fill word', () {
+      expect(
+        _refuses(['            MOVE LOW.VALUE TO ALF.']),
+        'the LOW.VALUE fill word (notes 6.1 item 20)',
       );
     });
   });
