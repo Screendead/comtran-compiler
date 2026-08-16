@@ -35,13 +35,21 @@ and the charter disagree, the charter wins.
    reviewer tab shows the titles of Jack's other chats. The verbatim
    review on the pull request is the audit trail.
 4. Wait. A review takes minutes. Poll no more than once each minute.
-   `read_page` works on grok.com. claude.ai denies it to the extension,
-   with `screenshot`. Poll that tab with `javascript_tool`: it returns
-   `document.body.innerText`.
+   Poll with `read_page` and `filter: "interactive"`. It works on
+   grok.com and on claude.ai. A "Stop response" button means the
+   reviewer still writes. `read_page` truncates each text node near 100
+   characters, so it gives the verdict line but no verbatim review. If a
+   surface denies `read_page`, fall back to `javascript_tool`, which
+   returns `document.body.innerText`. Keep that call to one plain read.
+   The harness classifier blocks a call that encodes or enumerates the
+   page text. After one such block, each later `javascript_tool` call on
+   that tab fails.
 5. If a reviewer stalls or asks a question, send the charter's one
    recovery line. The charter sets the failure limit.
-6. Copy each finished review verbatim. Do not share the chat. Post one
-   PR comment per review:
+6. Copy each finished review with the message's own copy button, then
+   read the clipboard with `pbpaste`. This gives the exact markdown. It
+   discards what Jack had on the clipboard, so tell him. Do not share
+   the chat. Post one PR comment per review:
 
        ## External review — round <N> — <reviewer>
 
