@@ -11,12 +11,17 @@ and the charter disagree, the charter wins.
 
 ## Preconditions
 
-1. The pull request is open, the section 4 gate passed locally, and CI
+1. The pull request needs the loop. Run
+   `git diff --name-only master...HEAD`. The loop runs only when a path
+   starts with `lib/` or `test/goldens/`, or is a `.target` file under
+   `test/fixtures/`. Any other pull request is routine maintenance:
+   report it to Jack and wait for his merge.
+2. The pull request is open, the section 4 gate passed locally, and CI
    is green on the head.
-2. Chrome runs on this machine with logged-in sessions for grok.com and
+3. Chrome runs on this machine with logged-in sessions for grok.com and
    the Anthropic reviewer's surface. Start it with
    `open -a "Google Chrome"` if it is not running.
-3. Load the Claude-in-Chrome tools in one ToolSearch batch.
+4. Load the Claude-in-Chrome tools in one ToolSearch batch.
 
 ## A round
 

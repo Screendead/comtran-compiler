@@ -1,7 +1,12 @@
 # The external-review charter
 
-Two reviewers from two model families review every pull request from M4
-stage 2 on. Jack can waive the review for one pull request; his
+Two reviewers from two model families review the compiler work. A pull
+request needs the loop when its branch changes a file under `lib/` or
+under `test/goldens/`, or an object-code target under `test/fixtures/`.
+Every other pull request is routine maintenance. It skips the loop and
+merges on Jack's instruction (his call, 2026-08-16: "only the actual
+hard codegen stuff needs the two-reviewers; routine maintenance does
+not"). Jack can also waive the review for one pull request; his
 instruction to merge is such a waiver. He named the reviewers and their
 configurations on 2026-08-16:
 
