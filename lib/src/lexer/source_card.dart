@@ -61,18 +61,17 @@ final class SourceCard {
   /// The text of columns [from]..[to] (inclusive) with unreadable columns
   /// rendered as blanks. For the ungated serial and identification fields
   /// (D9.10: never part of the language text).
-  String textRange(int from, int to) => _render(from, to, (int column) => ' ');
+  String textRange(int from, int to) => _render(from, to, ' ');
 
   /// The internal scan text of columns [from]..[to]: an unreadable punched
   /// column reads as the digit zero (decision D9.10 — "replace it with the
   /// digit zero in the internal text").
-  String internalText(int from, int to) =>
-      _render(from, to, (int column) => '0');
+  String internalText(int from, int to) => _render(from, to, '0');
 
-  String _render(int from, int to, String Function(int) unreadable) {
+  String _render(int from, int to, String unreadable) {
     final buffer = StringBuffer();
     for (int c = _checkColumn(from); c <= _checkColumn(to); c++) {
-      buffer.write(glyphAt(c) ?? (isPunched(c) ? unreadable(c) : ' '));
+      buffer.write(glyphAt(c) ?? (isPunched(c) ? unreadable : ' '));
     }
     return buffer.toString();
   }

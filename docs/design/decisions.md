@@ -16,7 +16,9 @@ definition: (F p. N) / (J xx.xx.xx) / ([J 90.05] listing, PDF p. NNN).*
   (D9.7/D9.6 — hard-enforce the printed numbers) are **resolved**; D4.1
   (MOVPAK round-step emission), deferred 2026-08-02, was **locked by Jack's
   call 2026-08-04**: a SET store through a step-list package rounds, a MOVE
-  store truncates. No M0 deferral remains.
+  store truncates. No M0 deferral remains. D4.14 back-fills entry 8.5.4-n,
+  which joined the catalog after the walk: Jack's call of 2026-08-04,
+  recorded 2026-08-16. The slate now holds 85 records.
 - **D10 (correctness-review decisions): recorded 2026-08-03**, during the
   remediation of the 2026-08-03 correctness review.
 - **D11 (M2 stage 3, the job stream): recorded 2026-08-03**, before the
@@ -89,6 +91,7 @@ Every other row points at its own record.
 | [D4.11](#d411--move-blanks-into-editedexternal-fields--doubtful-yet-compiles-clean) | MOVE BLANKS into edited/external fields — "doubtful" yet compiles clean | Amended |
 | [D4.12](#d412--corresponding-matching-f-name-only-vs-j-qualifier-chain) | CORRESPONDING matching: F name-only vs J qualifier-chain | Amended |
 | [D4.13](#d413--call-non-unique-oldname-and-qualified-synonyms) | CALL: non-unique old.name and qualified synonyms | Locked |
+| [D4.14](#d414--integer-against-a-trailing-s-scaled-field) | "Integer" against a trailing-S scaled field | Jack's call |
 | **[D5 — Control flow (§8.5.5)](#d5--control-flow-855)** | | |
 | [D5.1](#d51--do--for-termination-is-an-equality-test) | DO … FOR termination is an equality test | Locked |
 | [D5.2](#d52--two-index-do-indexname1-is-set-to-p1--q1) | Two-index DO: "index.name.1 is set to p.1 + q.1" | Locked |
@@ -259,8 +262,10 @@ optional `--pedantic` mode, clearly marked non-historical.
 the §8.4 severity/conformance decisions, drafted per subsection, independently
 and adversarially verified against the definition and the page scans, then
 repaired — every blocker and correction applied and re-verified against the
-manuals and the 90.05 listing before adoption. 84 records: D1–D8 mirror
-§8.5.1–§8.5.8 (68 entries); D9 covers §8.4.*
+manuals and the 90.05 listing before adoption. The walk recorded 84: D1–D8
+mirror §8.5.1–§8.5.8, then 68 entries; D9 covers §8.4. Entry 8.5.4-n
+(2026-08-04) grew the catalog to 69, and D4.14 (recorded 2026-08-16)
+back-fills its record: 85 records now.*
 
 *Reading key. A record's **Decision** states what our compiler, emulator, or
 runtime does; **Oracle** names the evidence that tests it ("listing-diff" =
@@ -706,6 +711,22 @@ record built on it.*
 **Oracle.** listing-diff against the source-program listing ([J 90.05] listing, PDF p. 195 — the sample's CALL entries and the clean compilation); decision-conformance only for the three rejection paths (non-unique (old.name), subscripted (old.name), qualified synonym).
 
 *Citations:* ([F p. 59], pp. 91–94; [J 02.04.04]–05; [J 90.01.01] i; [J 90.05] listing PDF p. 195); ([J 02.04.05] §5 for uniqueness and the subscript prohibition; [J 90.04.01] msgs 101, 166); Open Question 56 ([F p. 59]; [J 02.04.04]–05)
+
+### D4.14 — "Integer" against a trailing-S scaled field
+
+**Status.** Jack's call.
+
+> **Resolved by Jack, 2026-08-04** (the PR #60 review round). Entry 8.5.4-n joined the catalog that day, two days after the D1–D8 walk, so the walk holds no record for it. This record back-fills the slate on 2026-08-16. It changes no decision: it binds what the 2026-08-04 call decided and what M3 stage 2 already implements.
+
+**Decision.** "Integer" carries two senses. The subscript sense is mechanical: a subscript variable with fraction or scale positions is rejected with msg 31, and a trailing-S scale is rejected with the rest. FIND/PLACE LENGTH IN takes the same sense: msgs 111/112 name the format ("IMPROPER DATA FORMAT"), and a scaled field cannot state an arbitrary length. The assigned GO TO index takes the value sense: a trailing-S field passes, because its values are whole; msg 130 fires only on true fraction positions, and the integral part serves. Code generation indexes by the raw stored digits and never adds a scaling step.
+
+**Rationale.** The attested lookup indexes by the raw stored digits with no scaling step (`LDQ POS / MPY CP)+13` — [J 90.05] listing, PDF p. 213, LOC 01421–01432), and [F p. 75] has the subscript "used within the system to count individual items", so the stored digits must equal the value. A trailing-S field stores a thousandth of its value ([F p. 80]), so its stored digits do not. [F p. 49]'s assigned GO TO rule speaks only of the index's value ("the value of the index will always be an integer in the range 1 to n"), which a trailing-S field satisfies; msg 130's recovery clause has nothing to truncate there. No field in either manual is declared with `S`, so the case is unattested. The definition's §8.5.4-n holds the evidence trail.
+
+**Implementation.** Landed with M3 stage 2 (M3-20, "Subscript reference checks", `docs/design/m3-data.md`): msg 31 bars a trailing-S subscript variable, and the transfers triage passes a trailing-S assigned GO TO index. M4 code generation must index by the stored digits and never invent a scaling step.
+
+**Oracle.** decision-conformance only: no field in the 90.05 sample carries `S`, so the listing-diff is silent on every branch.
+
+*Citations:* ([F p. 31], p. 49, p. 75, p. 80; [J 90.04.01] msgs 31, 111, 112, 129, 130; [J 90.05] listing PDF p. 213); §8.5.4-n; M3-20 (`docs/design/m3-data.md`)
 
 ## D5 — Control flow (§8.5.5)
 
@@ -1685,6 +1706,7 @@ The deferred sites stay with their owning milestones, so the flag's coverage is 
 [F p. 27]: ../../comtran-manuals/F28-8043/02-language-structure.md#divisions
 [F p. 28]: ../../comtran-manuals/F28-8043/02-language-structure.md#punctuation-and-spacing
 [F p. 30]: ../../comtran-manuals/F28-8043/02-language-structure.md#lists-tables-and-subscripts
+[F p. 31]: ../../comtran-manuals/F28-8043/02-language-structure.md#subscripts
 [F p. 34]: ../../comtran-manuals/F28-8043/02-language-structure.md#functions
 [F p. 37]: ../../comtran-manuals/F28-8043/03-procedure-description.md#commands
 [F p. 40]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-get-command
@@ -1705,6 +1727,7 @@ The deferred sites stay with their owning milestones, so the flag's coverage is 
 [F p. 75]: ../../comtran-manuals/F28-8043/04-data-description.md#tables
 [F p. 77]: ../../comtran-manuals/F28-8043/04-data-description.md#copy
 [F p. 79]: ../../comtran-manuals/F28-8043/04-data-description.md#justify-col-37
+[F p. 80]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
 [F p. 83]: ../../comtran-manuals/F28-8043/04-data-description.md#quantities-specified-in-named-fields
 [F p. 107]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
 [F p. 109]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#list-of-commercial-translator-commands

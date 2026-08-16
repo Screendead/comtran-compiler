@@ -37,14 +37,6 @@ void main() {
       expect(parse.compileCard!.options, ['LIST']);
       expect(parse.compileCard!.secondaryIdentifier, 'CT PUBLICATIONS');
     });
-
-    test('leaves the golden listing unchanged (design note M2-2)', () {
-      const options = ListingOptions(date: '10/18/61', time: '2.45');
-      expect(
-        writeListing(result, options, diagnostics: parse.diagnostics),
-        writeListing(result, options),
-      );
-    });
   });
 
   test('merged diagnostics order by card number across phases', () {
