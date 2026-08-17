@@ -1,4 +1,4 @@
-/// The refusal sites of chunks B1 through B5 (M4-2 as amended
+/// The refusal sites of chunks B1 through B6 (M4-2 as amended
 /// 2026-08-15):
 /// a valid shape the sample never reaches has no attested generated
 /// form, so the sizers throw [UnrecoveredShape] rather than invent one.
@@ -930,4 +930,220 @@ void main() {
       }
     });
   });
+
+  group('the B6 refusal sites (M4-2 as amended)', () {
+    test('STOP n', () {
+      expect(_refuses(['            STOP 5.']), 'STOP n (notes section 7)');
+    });
+
+    test('an OPEN naming files', () {
+      expect(
+        _refuses(
+          ['            OPEN TAPE1.'],
+          data: _records(),
+          environment: [_input()],
+        ),
+        'an OPEN naming files (notes section 7)',
+      );
+    });
+
+    test('a CLOSE naming files', () {
+      expect(
+        _refuses(
+          ['            CLOSE TAPE1.'],
+          data: _records(),
+          environment: [_input()],
+        ),
+        'a CLOSE naming files (notes section 7)',
+      );
+    });
+
+    test('GET RECORD FROM', () {
+      expect(
+        _refuses(
+          ['            GET RECORD FROM TAPE1, AT END RTN.'],
+          data: _records(),
+          environment: [_input()],
+        ),
+        'GET RECORD FROM (no sample instance)',
+      );
+    });
+
+    test('a GET with no AT END', () {
+      expect(
+        _refuses(
+          ['            GET IREC.'],
+          data: _records(),
+          environment: [_input()],
+        ),
+        'a GET with no AT END (notes section 7)',
+      );
+    });
+
+    test('a GET of a name no FILE card lists', () {
+      expect(
+        _refuses(
+          ['            GET NUM, AT END RTN.'],
+          data: _records(),
+          environment: [_input()],
+          flagged: ['16,00', '198,00'],
+        ),
+        'a GET of a name no FILE card lists (no sample instance)',
+      );
+    });
+
+    test('a GET record on two input files', () {
+      expect(
+        _refuses(
+          ['            GET IREC, AT END RTN.'],
+          data: _records(),
+          environment: [
+            _input(),
+            environmentCard(
+              name: 'TAPE3',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+            ),
+          ],
+          flagged: ['11,00'],
+        ),
+        'a GET record on 2 input files (no sample instance)',
+      );
+    });
+
+    test('a GET of a transmitted record', () {
+      // CARD forces the transmit mode (J 02.07.03).
+      expect(
+        _refuses(
+          ['            GET IREC, AT END RTN.'],
+          data: _records(),
+          environment: [
+            environmentCard(
+              name: 'TAPE1',
+              type: 'FILE',
+              options: 'INPUT,BCD,CARD,IREC,BLOCKSIZE 24',
+            ),
+          ],
+        ),
+        'a GET of a transmitted record (no sample instance)',
+      );
+    });
+
+    test('a GET from a file declaring ON ERROR', () {
+      expect(
+        _refuses(
+          ['            GET IREC, AT END RTN.'],
+          data: _records(),
+          environment: [
+            environmentCard(
+              name: 'TAPE1',
+              type: 'FILE',
+              options: 'INPUT,IREC,BLOCKSIZE 5,ON ERROR RTN',
+            ),
+          ],
+        ),
+        'a GET from a file declaring ON ERROR (notes section 7)',
+      );
+    });
+
+    test('a GET where two FILE cards share a name', () {
+      expect(
+        _refuses(
+          ['            GET IREC, AT END RTN.'],
+          data: _records(),
+          environment: [
+            _input(),
+            environmentCard(
+              name: 'TAPE1',
+              type: 'FILE',
+              options: 'OUTPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+            ),
+          ],
+          flagged: ['198,00'],
+        ),
+        'a GET where two FILE cards share a name (no sample instance)',
+      );
+    });
+
+    test('FILE record IN file', () {
+      expect(
+        _refuses(
+          ['            FILE OREC IN TAPE2.'],
+          data: _records(),
+          environment: [_output()],
+        ),
+        'FILE record IN file (no sample instance)',
+      );
+    });
+
+    test('a FILE of a name no FILE card lists', () {
+      expect(
+        _refuses(
+          ['            FILE NUM.'],
+          data: _records(),
+          environment: [_output()],
+          flagged: ['16,00', '198,00'],
+        ),
+        'a FILE of a name no FILE card lists (no sample instance)',
+      );
+    });
+
+    test('a FILE record on no output file', () {
+      expect(
+        _refuses(
+          ['            FILE IREC.'],
+          data: _records(),
+          environment: [_input()],
+          flagged: ['19,00', '198,00'],
+        ),
+        'a FILE record on 0 output files (no sample instance)',
+      );
+    });
+
+    test('a FILE where two FILE cards share a name', () {
+      expect(
+        _refuses(
+          ['            FILE OREC.'],
+          data: _records(),
+          environment: [
+            _output(),
+            environmentCard(
+              name: 'TAPE2',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,OREC,BLOCKSIZE 5',
+            ),
+          ],
+          flagged: ['198,00'],
+        ),
+        'a FILE where two FILE cards share a name (no sample instance)',
+      );
+    });
+  });
 }
+
+/// Two one-field records and a flat item, for the input-output probes.
+List<String> _records() => [
+  dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+  dataCard(name: 'FLD', level: '2', description: 'A(6)'),
+  dataCard(name: 'OREC', level: '1', type: 'RECORD'),
+  dataCard(name: 'OFLD', level: '2', description: 'A(6)'),
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+];
+
+String _input() => environmentCard(
+  name: 'TAPE1',
+  type: 'FILE',
+  options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+);
+
+String _output() => environmentCard(
+  name: 'TAPE2',
+  type: 'FILE',
+  options: 'OUTPUT,BCD,TAPE,OREC,BLOCKSIZE 5',
+);

@@ -71,11 +71,6 @@ M4 executes I/O-free programs.
   | B7 | The close-out — the `USE 1` and `BGN 2,PI)1` head rows, the four block sizes, the constant pool, the page furniture, and the full listing diff. |
   | B8 | The diagnostics — msg 942 widened (M4-5), ids 946 and 947 reserved (M4-18), and the D10.2 stop shape M4-2 defers to here. |
 
-  B1 comes first: no site matches byte for byte until every unit before
-  it carries the right word count. B2 to B6 then each match their own
-  attested sites, LOC included.
-
-
 ## Pipeline position and the text model
 
 - **M4-2. A separate phase over `SemanticResult`.** The code generator is
@@ -812,16 +807,15 @@ M4 executes I/O-free programs.
   `PZE CP)+a,,CP)+b` words carrying the statement stamp and the
   words ` STOP ` / ` RUN  `; the implicit close-all pair
   `TSX SYS)177,4 / PZE IOC)1`; then `TXI IOC)40,0` — no halt
-  instruction. The sample's leading SYS)177 pair at LOC 00517/00520
-  belongs to the source's separate `CLOSE ALL FILES` clause (M4-15's
-  shape), not to STOP RUN (D2.7). STOP n emits the
-  SYS)178 call with type NNN and no close-all and no monitor transfer;
-  the halt lives in the SYS)178 handler (D2.7). The statement stamp is a
-  pool pair: the statement number in BCD, then a comma, two digits, and
-  three blanks. Each GET sequence opens with it as a tag-0 no-op,
+  instruction. The sample's SYS)177 pair at LOC 00517/00520 is
+  the source's separate `CLOSE ALL FILES` clause (M4-15's shape), not
+  STOP RUN's (D2.7). STOP n has no sample site and refuses (notes
+  section 7); its D2.7 reading (the SYS)178 call alone, the halt in the
+  handler) stands unbuilt. The statement stamp is a pool pair: the
+  statement number in BCD, a comma, two digits, and three blanks. Each
+  GET sequence opens with it as a tag-0 no-op,
   `TXH CP)+a,0,CP)+b`; SYS)178's parameters carry it; no other statement
   emits one (five attested sites, statements 188, 190, 191, 194 and 199).
-  Omitting one would shift every following address.
   **Amended 2026-08-15, Jack's ruling (the chunk B1 review record). The
   two digits take a fitted rule.** They are the zero-based ordinal of the
   stamping clause within its statement, where each target of a
@@ -838,17 +832,21 @@ M4 executes I/O-free programs.
   run. The shapes: the run frame opens with `TSX SYS)175,4 / PZE IOC)1`
   (open all) at the entry word GN)000; GET is the stamp word, then
   `TSX IOC)8,4 / PZE file,,SYS)260 / PZE atEnd,,SYS)283 /` the buffer
-  descriptor word `BL)n,,len`, then the AT END out-of-line block per D6.6
-  (SYS)265 in place of the AT END exit when the clause is absent; the
-  ON ERROR decrement per the file's environment); FILE of a
-  working-storage record is `TSX IOC)9,4 / PZE file,,0 / IOST record,,len`;
+  descriptor word `BL)n,,len`, then the AT END out-of-line block per
+  D6.6; FILE of a working-storage record is
+  `TSX IOC)9,4 / PZE file,,0 / IOST record,,len`;
   FILE of a located record patches its own IOST word first —
   `LXA BL)n,4 / SXA GN)a,4` then the call, GN)a labeling the IOST word
   (attested, statement 208). CLOSE ALL FILES is the SYS)177 pair. The
-  per-file bindings codegen needs (which BL serves which file, record
-  lengths) come from the environment binder; `SemanticResult` exposes what
-  M4 needs (the binder's per-file maps are internal today — stage 2 adds
-  the exposure).
+  record's file lists are public since M3-11; the `04000 + k` ordinal
+  reads off the FILE cards: no new binder exposure.
+  **Amended 2026-08-17, chunk B6.** Every other I/O form refuses (M4-2
+  as amended): OPEN or CLOSE naming files (notes section 7), GET RECORD
+  FROM, GET with no AT END (SYS)265 unattested), GET from a file
+  declaring ON ERROR (the SYS)283 replacement is unknown), GET of a
+  transmitted record, and FILE record IN file. A GET or FILE refuses
+  off the roster, on other than one matching file, or where two FILE
+  cards share a name.
 
 ## The object deck and the loader cards
 
