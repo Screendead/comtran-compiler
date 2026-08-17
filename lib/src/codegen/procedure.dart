@@ -467,7 +467,9 @@ final class _Text {
     control: ControlGroup.constantWord,
   );
 
-  /// A MOVPAK entry, `TSX SYS)nnn,4` ([J 90.02.15]).
+  /// A system-subroutine entry, `TSX SYS)nnn,4`: the MOVPAK entries
+  /// and the open, close and STOP entries ([J 90.02.14] to
+  /// [J 90.02.19]).
   void _tsx(int sys) => _emit(
     mnemonic(Op.tsx),
     formOf(Op.tsx),
@@ -527,7 +529,7 @@ final class _Text {
 
   /// A calling-sequence parameter pair, `PZE first,,second`: the first
   /// operand in the address field, the second in the decrement
-  /// ([J 90.02.09]; the notes, section 2.6).
+  /// ([J 90.02.14]; [J 90.02.28]; the notes, section 2.6).
   void _pzePair(_Sym first, _Sym second) => _emit(
     'PZE',
     WordForm.prefix,
@@ -537,7 +539,7 @@ final class _Text {
   );
 
   /// The whole-file-set parameter of OPEN and CLOSE, `PZE IOC)1`
-  /// ([J 90.02.13]).
+  /// ([J 90.02.08]; [J 90.02.14]).
   void _pzeIoc1() => _emit(
     'PZE',
     WordForm.prefix,
@@ -1192,7 +1194,7 @@ final class _Text {
         if (!allFiles) {
           _unruled('an OPEN naming files (notes section 7)');
         }
-        _tsx(175); // [J 90.02.13].
+        _tsx(175); // [J 90.02.14].
         _pzeIoc1();
         _callClears();
       case CloseClause(:final allFiles):
@@ -1263,7 +1265,7 @@ final class _Text {
     );
     final PoolHandle stopWord = _pool.machineWord(_bcdWord(' STOP '));
     final PoolHandle runWord = _pool.machineWord(_bcdWord(' RUN  '));
-    _tsx(178); // The halt entry ([J 90.02.09]).
+    _tsx(178); // The halt entry ([J 90.02.14]).
     _pzePair(_cp(number), _cp(comma));
     _pzePair(_cp(stopWord), _cp(runWord));
     _tsx(177); // The close-all of [J 90.02.14] rides inside STOP RUN.
