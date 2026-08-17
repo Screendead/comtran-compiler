@@ -8,6 +8,7 @@
 /// content here and never geometry.
 library;
 
+import '../listing/listing.dart';
 import 'text_model.dart';
 
 /// Print columns, counted from the LOC column's first digit as zero.
@@ -27,14 +28,14 @@ const int _offsetEnd = 42;
 const int _labelWidth = _operation - _label;
 
 /// [value] as the five octal digits a LOC or address column prints.
-String octal5(int value) => value.toRadixString(8).padLeft(5, '0');
+String _octal5(int value) => value.toRadixString(8).padLeft(5, '0');
 
 /// One line with every field at its measured column. An omitted field
 /// prints nothing and takes no column.
 ///
 /// The caller decides when a long label pushes the instruction to its own
 /// line, and calls this twice.
-String objectListingLine({
+String _objectListingLine({
   String loc = '',
   String octal = '',
   String control = '',
@@ -54,7 +55,7 @@ String objectListingLine({
 
 /// The `LOC OCTAL CNTRL SYMBOLIC` header, which prints once on the first
 /// object page (M4-8 as amended 2026-08-09).
-String objectListingHeader() => _line([
+String _objectListingHeader() => _line([
   (1, 'LOC'),
   (12, 'OCTAL'),
   (25, 'CNTRL'),
@@ -97,11 +98,53 @@ List<String> renderObjectLines(Iterable<AssemblyUnit> units) {
   return out;
 }
 
+/// Renders [units] as the printed object pages, numbered from
+/// [firstPage] — page 8 in the sample, after six source pages and the
+/// loader-card page.
+///
+/// Every page holds 58 print lines (measured across pages 8 to 25 of
+/// the scan): the head, three blank lines, the column header and one
+/// more blank on the first page, two blank lines on every later one,
+/// and content in the rest. The LOC column prints at the head's DATE
+/// column, eight columns in (M4-8). The pagination is mechanical — no
+/// row breaks a page early. The document ends at the end-of-text line:
+/// the three closing lines under it are the loader's, not this
+/// formatter's, and land with the deck writer (M4-8 as amended).
+String writeObjectListing(
+  List<AssemblyUnit> units, {
+  required ListingOptions options,
+  required String id,
+  required int firstPage,
+}) {
+  final List<String> lines = renderObjectLines(units);
+  const margin = '        ';
+  final out = StringBuffer();
+  var line = 0;
+  for (var page = firstPage; line < lines.length; page++) {
+    out
+      ..writeln(listingPageHead(options, id: id, page: page))
+      ..writeln()
+      ..writeln();
+    var slots = 55;
+    if (page == firstPage) {
+      out
+        ..writeln()
+        ..writeln('$margin${_objectListingHeader()}')
+        ..writeln();
+      slots = 52;
+    }
+    for (var n = 0; n < slots && line < lines.length; n++, line++) {
+      out.writeln('$margin${lines[line]}'.trimRight());
+    }
+  }
+  return out.toString();
+}
+
 List<String> _unit(AssemblyUnit unit, String offset) {
   final int? location = unit.location;
   final int? word = unit.word;
   final int? control = unit.control;
-  final String loc = location == null ? '' : octal5(location);
+  final String loc = location == null ? '' : _octal5(location);
   final String octal = word == null ? '' : octalColumn(word, unit.form);
   final String cntrl = control == null ? '' : controlColumn(control);
 
@@ -109,13 +152,13 @@ List<String> _unit(AssemblyUnit unit, String offset) {
   // Every label but the last prints alone against the LOC, the word
   // falling to the last (M4-8; the attested GN)000 over START).
   for (var i = 0; i + 1 < unit.labels.length; i++) {
-    out.add(objectListingLine(loc: loc, label: unit.labels[i]));
+    out.add(_objectListingLine(loc: loc, label: unit.labels[i]));
   }
   final String label = unit.labels.isEmpty ? '' : unit.labels.last;
   if (label.length >= _labelWidth) {
     out
       ..add(
-        objectListingLine(
+        _objectListingLine(
           loc: loc,
           octal: octal,
           control: cntrl,
@@ -124,11 +167,11 @@ List<String> _unit(AssemblyUnit unit, String offset) {
         ),
       )
       ..add(
-        objectListingLine(operation: unit.operation, operand: unit.operand),
+        _objectListingLine(operation: unit.operation, operand: unit.operand),
       );
   } else {
     out.add(
-      objectListingLine(
+      _objectListingLine(
         loc: loc,
         octal: octal,
         control: cntrl,

@@ -74,7 +74,7 @@ void main() {
         result,
         _sampleOptions,
         annotations: semantics.allocation!.annotations,
-      );
+      ).text;
       expect(
         listing,
         File('test/goldens/90.05-payroll.listing').readAsStringSync(),
@@ -113,7 +113,7 @@ void main() {
       final String listing = writeListing(
         result,
         const ListingOptions(date: '08/03/26', time: '1.00'),
-      );
+      ).text;
       expect(listing, contains('THE FOLLOWING ERRORS WERE DETECTED'));
       expect(listing, contains('NUMBER   CODE   MESSAGE'));
       // The stray card is not a numbered statement: 9999,99.
@@ -133,7 +133,7 @@ void main() {
       final String listing = writeListing(
         result,
         const ListingOptions(date: '08/03/26', time: '1.00'),
-      );
+      ).text;
       expect(listing, contains('NO ERRORS WERE DETECTED DURING COMPILATION'));
       expect(listing, isNot(contains('SEVERITY LIMIT')));
     });
@@ -160,13 +160,13 @@ void main() {
         final String listing = writeListing(
           result,
           const ListingOptions(date: '08/03/26', time: '1.00'),
-        );
+        ).text;
         expect(listing, contains(r"MOVE A$B TO 'C?D'."));
       },
     );
 
     test('long output repeats the page head with advancing numbers', () {
-      final String listing = writeListing(_payroll(), _sampleOptions);
+      final String listing = writeListing(_payroll(), _sampleOptions).text;
       final Iterable<String> heads = listing
           .split('\n')
           .where((String line) => line.contains('DATE 10/18/61'));

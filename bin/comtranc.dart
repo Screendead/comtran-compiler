@@ -43,9 +43,12 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
                       write the listing; stdout is unchanged
   --emit-code[=PATH]
                       write the assembly text model's dump
+  --emit-object[=PATH]
+                      write the printed object listing
   -A, --emit-all      write every stage dump
-  -c -s -p -S -l -g   the short emit flags, one letter per stage above,
-                      bundleable: -cpsSlg is the full set. A dump without
+  -c -s -p -S -l -g -o
+                      the short emit flags, one letter per stage above,
+                      bundleable: -cpsSlgo is the full set. A dump without
                       PATH lands next to the deck, the deck's extension
                       replaced by the stage name: `payroll.ctd -p`
                       writes `payroll.parse`.
@@ -61,6 +64,7 @@ const List<String> _emitStages = [
   'semantics',
   'listing',
   'code',
+  'object',
 ];
 
 /// The one-letter emit flags. A short flag always takes the default
@@ -72,6 +76,7 @@ const Map<String, String> _emitLetters = {
   'S': 'semantics',
   'l': 'listing',
   'g': 'code',
+  'o': 'object',
 };
 
 void main(List<String> arguments) {
@@ -203,16 +208,40 @@ int _run(List<String> arguments) {
     final StringBuffer? listing = emitPaths.containsKey('listing')
         ? StringBuffer()
         : null;
+    final StringBuffer? object = emitPaths.containsKey('object')
+        ? StringBuffer()
+        : null;
     var refused = false;
     for (final (int index, JobCompilation job) in deck.jobs.indexed) {
-      final String page = writeListing(
+      final ({String text, int pages}) page = writeListing(
         job.frontEnd,
         options,
         diagnostics: job.diagnostics,
         annotations: job.semantics?.allocation?.annotations,
       );
-      listing?.write(page);
-      stdout.write(page);
+      listing?.write(page.text);
+      stdout.write(page.text);
+      if (object != null) {
+        final CodegenResult? codegen = job.codegen;
+        if (codegen == null) {
+          // The attested dump takes no job headers — each section opens
+          // with its own page head — so a dead job prints its one
+          // marker line in sequence (D10.2; M4-2 as amended).
+          object.writeln(codeStageMarker(job.unrecovered?.shape));
+        } else {
+          // The object pages follow the job's source pages and its
+          // loader-card page, which stage 3 will count rather than
+          // assume one.
+          object.write(
+            writeObjectListing(
+              codegen.units,
+              options: options,
+              id: listingId(job.frontEnd),
+              firstPage: page.pages + 2,
+            ),
+          );
+        }
+      }
       if (explain) {
         job.diagnostics.forEach(stderr.writeln);
       }
@@ -232,6 +261,7 @@ int _run(List<String> arguments) {
     _emit(emitPaths['semantics'], () => emitSemantics(deck));
     _emit(emitPaths['listing'], () => listing!.toString());
     _emit(emitPaths['code'], () => emitCode(deck));
+    _emit(emitPaths['object'], () => object!.toString());
     // Severity 5 stops a job (J 90.04.02); lower severities still
     // produce output. A refusal fails the run the same way.
     return deck.maxSeverity >= 5 || refused ? 1 : 0;

@@ -87,12 +87,19 @@ CodegenResult runCodegen(SemanticResult semantics) {
       ...data,
       ...text.units,
       ...pointerInitialization(image),
-      ...outOfLineBlocks(image),
-      // The end-of-text line: the entry point the object deck's 01111
-      // control group carries (D2.1). Its word and its operand are the
-      // object deck's, which is stage 3's (M4-16); the `START` pseudo-op
-      // itself is structural, and the line prints no offset.
-      AssemblyUnit(operation: 'START', operand: '', location: dataWords),
+      ...outOfLineBlocks(image, text.poolUnits),
+      // The end-of-text line ([J 90.03.04]): the word's address field
+      // holds the relative program entry point — `GN)000`, the name
+      // the procedure walk binds to its first text word (D2.1). The
+      // manual leaves the prefix open; the attested word 500000000165
+      // carries the `MON` prefix, printed solid.
+      AssemblyUnit(
+        operation: 'START',
+        operand: 'GN)000',
+        location: dataWords,
+        word: counterWord(CounterOp.relativeOrigin, dataWords),
+        control: ControlGroup.endOfText,
+      ),
     ],
     image: image,
   );

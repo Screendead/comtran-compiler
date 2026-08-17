@@ -42,6 +42,7 @@ final class ProcedureText {
     required this.units,
     required this.words,
     required this.poolWords,
+    required this.poolUnits,
   });
 
   /// The assembly units, program order.
@@ -52,6 +53,11 @@ final class ProcedureText {
 
   /// The constant pool's entry count after layout (M4-4).
   final int poolWords;
+
+  /// The pool's printed lines in layout order, one per entry, placed at
+  /// their `CP)` addresses — empty on the measuring pass, which has no
+  /// addresses to place them at.
+  final List<AssemblyUnit> poolUnits;
 }
 
 /// Generates the procedure text of [semantics], the first word at
@@ -151,10 +157,15 @@ typedef _Value = ({int scale, _Register register});
 /// text has run — the pool is not in first-need order, and its address
 /// follows the text (M4-4).
 final class _Sym {
-  const _Sym(this.text, this.value);
+  const _Sym(this.text, this.value, this.relocation);
 
   final String Function() text;
   final int Function() value;
+
+  /// What the loader does to a field holding this address
+  /// ([J 90.03.04]): a class is fixed at the reference, never
+  /// address-dependent, so it is a value and not a thunk.
+  final Relocation relocation;
 }
 
 /// One reference to a data item: the name the listing prints, the
@@ -162,8 +173,10 @@ final class _Sym {
 ///
 /// An item inside a located record is addressed relative to its record
 /// and reached through a base register; every other item carries the
-/// absolute address of its transmitted area (M4-9).
-typedef _Ref = ({String text, int address, int tag});
+/// absolute address of its transmitted area (M4-9). A located address
+/// is a displacement the loader leaves alone, so its relocation class
+/// is constant; a transmitted address is relative ([J 90.03.04]).
+typedef _Ref = ({String text, int address, int tag, Relocation relocation});
 
 /// The emitter: one word at a time, in program order.
 final class _Text {
@@ -335,14 +348,17 @@ final class _Text {
     _registerHolds.clear();
   }
 
-  /// Emits one written object word: [operation] now, the operand text
-  /// and the 36-bit word after the walk (M4-4).
+  /// Emits one written object word: [operation] and [control] now, the
+  /// operand text and the 36-bit word after the walk (M4-4). Every
+  /// caller knows each field's relocation class at the reference, so
+  /// the control group alone needs no thunk.
   void _emit(
     String operation,
     WordForm form,
     String Function() operand,
-    int Function() word,
-  ) {
+    int Function() word, {
+    required int control,
+  }) {
     final List<String> names = _take();
     _text.add((_units.length, operand, word));
     _units.add(
@@ -351,6 +367,7 @@ final class _Text {
         operand: '',
         location: _location++,
         labels: names,
+        control: control,
         form: form,
       ),
     );
@@ -363,6 +380,7 @@ final class _Text {
     formOf(op),
     () => tag == 0 ? address.text() : '${address.text()},$tag',
     () => typeBWord(op, tag: tag, address: address.value()),
+    control: standardControl(Relocation.constant, address.relocation),
   );
 
   /// A type-B instruction through [address] indirectly: the starred
@@ -373,6 +391,7 @@ final class _Text {
     formOf(op),
     address.text,
     () => typeBWord(op, address: address.value(), indirect: true),
+    control: standardControl(Relocation.constant, address.relocation),
   );
 
   /// A type-B instruction against [item], guarded by the caller.
@@ -383,6 +402,7 @@ final class _Text {
       formOf(op),
       () => ref.tag == 0 ? ref.text : '${ref.text},${ref.tag}',
       () => typeBWord(op, tag: ref.tag, address: ref.address),
+      control: standardControl(Relocation.constant, ref.relocation),
     );
   }
 
@@ -393,6 +413,7 @@ final class _Text {
     formOf(op),
     () => '$distance',
     () => typeBWord(op, address: distance),
+    control: ControlGroup.constantWord,
   );
 
   /// `XCA`, which exchanges the accumulator and the MQ whole and so
@@ -402,6 +423,7 @@ final class _Text {
     formOf(Op.xca),
     () => '',
     () => typeBWord(Op.xca),
+    control: ControlGroup.constantWord,
   );
 
   /// `PXA 0,0` — the truth function's clear of the accumulator, which
@@ -411,6 +433,7 @@ final class _Text {
     formOf(Op.pxa),
     () => '0,0',
     () => typeBWord(Op.pxa),
+    control: ControlGroup.constantWord,
   );
 
   /// `RIR`, `SIR` or `RFT`: one 18-bit mask over the sense indicators,
@@ -421,6 +444,7 @@ final class _Text {
     formOf(op),
     () => mask.toRadixString(8).padLeft(6, '0'),
     () => indicatorWord(op, mask),
+    control: ControlGroup.constantWord,
   );
 
   /// `COM`, whose `+0760` sub-operation rides in the address field and
@@ -430,6 +454,7 @@ final class _Text {
     formOf(Op.com),
     () => '',
     () => typeBWord(Op.com, address: comSubOperation),
+    control: ControlGroup.constantWord,
   );
 
   /// `AXT n,1` — the digit count an edited store converts
@@ -439,14 +464,18 @@ final class _Text {
     formOf(Op.axt),
     () => '$count,$register',
     () => typeBWord(Op.axt, tag: register, address: count),
+    control: ControlGroup.constantWord,
   );
 
-  /// A MOVPAK entry, `TSX SYS)nnn,4` ([J 90.02.15]).
+  /// A system-subroutine entry, `TSX SYS)nnn,4`: the MOVPAK entries
+  /// and the open, close and STOP entries ([J 90.02.14] and
+  /// [J 90.02.15]).
   void _tsx(int sys) => _emit(
     mnemonic(Op.tsx),
     formOf(Op.tsx),
     () => 'SYS)$sys,4',
     () => typeBWord(Op.tsx, tag: 4, address: sys),
+    control: standardControl(Relocation.constant, Relocation.system),
   );
 
   /// An input-output package entry, `TSX IOC)n,4` (catalogue 4.2).
@@ -455,6 +484,7 @@ final class _Text {
     formOf(Op.tsx),
     () => 'IOC)$entry,4',
     () => typeBWord(Op.tsx, tag: 4, address: entry),
+    control: standardControl(Relocation.constant, Relocation.system),
   );
 
   /// A MOVPAK step or fill call, `TXI SYS)nnn,1,count`
@@ -465,6 +495,7 @@ final class _Text {
     formOf(Op.txi),
     () => 'SYS)$sys,1,$decrement',
     () => typeAWord(Op.txi, tag: 1, decrement: decrement, address: sys),
+    control: standardControl(Relocation.constant, Relocation.system),
   );
 
   /// The in-line address word `PZE LOC,,BYTE` ([J 90.02.14]). All 25
@@ -483,40 +514,54 @@ final class _Text {
       WordForm.prefix,
       () => '${ref.text},,$byte',
       () => pzeWord(decrement: byte, address: ref.address),
+      control: standardControl(Relocation.constant, ref.relocation),
     );
   }
 
   /// An in-line constant word, printed as its twelve octal digits.
-  void _oct(int value) =>
-      _emit('OCT', WordForm.solid, () => Word36.octal(value), () => value);
+  void _oct(int value) => _emit(
+    'OCT',
+    WordForm.solid,
+    () => Word36.octal(value),
+    () => value,
+    control: ControlGroup.constantWord,
+  );
 
   /// A calling-sequence parameter pair, `PZE first,,second`: the first
   /// operand in the address field, the second in the decrement
-  /// ([J 90.02.09]; the notes, section 2.6).
+  /// ([J 90.02.14]; [J 90.02.28]; the notes, section 2.6).
   void _pzePair(_Sym first, _Sym second) => _emit(
     'PZE',
     WordForm.prefix,
     () => '${first.text()},,${second.text()}',
     () => pzeWord(decrement: second.value(), address: first.value()),
+    control: standardControl(second.relocation, first.relocation),
   );
 
   /// The whole-file-set parameter of OPEN and CLOSE, `PZE IOC)1`
-  /// ([J 90.02.13]).
-  void _pzeIoc1() =>
-      _emit('PZE', WordForm.prefix, () => 'IOC)1', () => pzeWord(address: 1));
+  /// ([J 90.02.08]; [J 90.02.14]).
+  void _pzeIoc1() => _emit(
+    'PZE',
+    WordForm.prefix,
+    () => 'IOC)1',
+    () => pzeWord(address: 1),
+    control: standardControl(Relocation.constant, Relocation.system),
+  );
 
   /// `SYS)nnn` — a communication cell or a subroutine entry.
-  _Sym _sys(int number) => _Sym(() => 'SYS)$number', () => number);
+  _Sym _sys(int number) =>
+      _Sym(() => 'SYS)$number', () => number, Relocation.system);
 
   /// A file as an operand: the punched name over the address
   /// `04000 + k` octal, `k` the file's one-based declaration ordinal
   /// (the notes, section 2.6).
   _Sym _fileSym(String name) =>
-      _Sym(() => name, () => 0x800 + _fileOrdinals[name]!);
+      _Sym(() => name, () => 0x800 + _fileOrdinals[name]!, Relocation.system);
 
   /// A procedure label as an operand: the written name, its location
   /// read after the walk so a forward transfer binds (M4-4).
-  _Sym _labelSym(String name) => _Sym(() => name, () => _labelled[name] ?? 0);
+  _Sym _labelSym(String name) =>
+      _Sym(() => name, () => _labelled[name] ?? 0, Relocation.relative);
 
   /// Refuses a target the deferred binder cannot resolve: an undefined
   /// name and a two-word D2.5 reference each fall to address 0, where
@@ -534,13 +579,17 @@ final class _Text {
   }
 
   /// `CP)+n` — a pool entry, by index and by address.
-  _Sym _cp(PoolHandle handle) =>
-      _Sym(() => 'CP)+${_layout.indexOf(handle)}', () => _poolAddress(handle));
+  _Sym _cp(PoolHandle handle) => _Sym(
+    () => 'CP)+${_layout.indexOf(handle)}',
+    () => _poolAddress(handle),
+    Relocation.relative,
+  );
 
   /// `BL)n` or `PI)n` — one word of a Location Counter 1 block.
   _Sym _blockWord(StorageBlock block, int number) => _Sym(
     () => '${block.symbol}$number',
     () => image?.symbolAddress(block, number) ?? 0,
+    Relocation.relative,
   );
 
   /// `RS)n` or `k.RS)n` — one result-storage cell of the section the
@@ -566,7 +615,7 @@ final class _Text {
         '${offset ? '+0' : ''}';
     final int address =
         (image?.originOf(StorageBlock.rs) ?? 0) + word + 2 * cell;
-    return _Sym(() => text, () => address);
+    return _Sym(() => text, () => address, Relocation.relative);
   }
 
   /// Emits an `EQU` line at the head of the machinery block that needs
@@ -630,6 +679,7 @@ final class _Text {
         location: unit.location,
         labels: unit.labels,
         word: word(),
+        control: unit.control,
         form: unit.form,
       );
     }
@@ -641,6 +691,7 @@ final class _Text {
         location: unit.location,
         labels: unit.labels,
         word: unit.word,
+        control: unit.control,
         form: unit.form,
       );
     }
@@ -652,13 +703,31 @@ final class _Text {
         location: value(),
         labels: unit.labels,
         word: unit.word,
+        control: unit.control,
         form: unit.form,
       );
     }
+    final ProgramImage? placed = image;
     return ProcedureText(
       units: _units,
       words: _location - _origin,
       poolWords: _layout.length,
+      poolUnits: <AssemblyUnit>[
+        if (placed != null)
+          // An `OCT` entry echoes its word as its operand; a `PZE` entry
+          // prints the operand it keys on. The head entry carries the
+          // block's `CP)` name and every later line prints `+NN` alone.
+          for (final (int index, PoolRow row) in _layout.rows.indexed)
+            AssemblyUnit(
+              operation: row.key is int ? 'OCT' : 'PZE',
+              operand: row.key is int ? Word36.octal(row.word) : '${row.key}',
+              location: placed.poolAddress(index),
+              labels: index == 0 ? const <String>['CP)'] : const <String>[],
+              word: row.word,
+              control: row.control,
+              form: row.key is int ? WordForm.solid : WordForm.prefix,
+            ),
+      ],
     );
   }
 
@@ -696,26 +765,43 @@ final class _Text {
     return origins;
   }();
 
+  /// The address field a reference to [item] punches, [plus] words on
+  /// from its first word, with its relocation class.
+  ///
+  /// A located item's address is the record-relative word, a
+  /// displacement the loader leaves alone; every other item carries its
+  /// area's origin, a relative location. Every root outside a located
+  /// record that reserves a character is a transmitted area, so the
+  /// origin is there.
+  (int, Relocation) _dataAddress(DataItem item, {int plus = 0}) {
+    final ItemSemantics sem = _sem(item);
+    if (_located(item)) {
+      return (sem.word + plus, Relocation.constant);
+    }
+    return (
+      _areaOrigins[sem.spaceRoot]! + sem.word + plus,
+      Relocation.relative,
+    );
+  }
+
   /// One reference to [item], [plus] words on from its first word.
   ///
-  /// A located item is addressed from its record's base register, so its
-  /// address is the record-relative word; every other item carries its
-  /// area's origin. Every root outside a located record that reserves a
-  /// character is a transmitted area, so the origin is there. The `+n`
-  /// suffix is the attested printed form at `3)EMPLOYEE.NUMBER+1`
-  /// (M4-9).
+  /// A located item is addressed from its record's base register, whose
+  /// tag the caller guards before emitting. The `+n` suffix is the
+  /// attested printed form at `3)EMPLOYEE.NUMBER+1` (M4-9).
   _Ref _ref(DataItem item, {int plus = 0}) {
-    final ItemSemantics sem = _sem(item);
     final String text = plus == 0
         ? _printedName(item)
         : '${_printedName(item)}+$plus';
     final DataItem? record = _recordOf(item);
     final int? locator = record == null ? null : _baseLocators[record];
-    if (locator != null) {
-      return (text: text, address: sem.word + plus, tag: _registerOf(locator));
-    }
-    final int origin = _areaOrigins[sem.spaceRoot]!;
-    return (text: text, address: origin + sem.word + plus, tag: 0);
+    final (int address, Relocation relocation) = _dataAddress(item, plus: plus);
+    return (
+      text: text,
+      address: address,
+      tag: locator == null ? 0 : _registerOf(locator),
+      relocation: relocation,
+    );
   }
 
   /// The index register holding [locator]. Every located reference is
@@ -785,6 +871,7 @@ final class _Text {
     formOf(Op.txl),
     () => 'SYS)294,$register,0',
     () => typeAWord(Op.txl, tag: register, address: 294),
+    control: standardControl(Relocation.constant, Relocation.system),
   );
 
   /// Emits the guard pair `LAC BL)n,i / TXL SYS)294,i,0` when no
@@ -872,9 +959,18 @@ final class _Text {
   }
 
   /// The descriptor key `NAME,,byte` — the printed symbolic operand,
-  /// which is what a `PZE` entry keys on (catalogue 5.2).
-  PoolHandle _descriptor(DataItem item) =>
-      _pool.descriptor('${_printedName(item)},,${_sem(item).byte}');
+  /// which is what a `PZE` entry keys on (catalogue 5.2). The entry's
+  /// word carries the byte in the decrement and the item's address in
+  /// the address field.
+  PoolHandle _descriptor(DataItem item) {
+    final int byte = _sem(item).byte;
+    final (int address, Relocation relocation) = _dataAddress(item);
+    return _pool.descriptor(
+      '${_printedName(item)},,$byte',
+      word: pzeWord(decrement: byte, address: address),
+      control: standardControl(Relocation.constant, relocation),
+    );
+  }
 
   /// The MOVPAK source pointer and target pointer ([J 90.02.11]).
   static const int _sourceCell = 132;
@@ -1026,7 +1122,7 @@ final class _Text {
         label(name);
         if (_doTargets.contains(name) && !_beginsSection(sentence)) {
           // The call-site-driven return cell (catalogue 4.1).
-          _op(Op.axt, _Sym(() => '0', () => 0));
+          _op(Op.axt, _Sym(() => '0', () => 0, Relocation.constant));
           _openParagraph = name;
         }
       }
@@ -1091,14 +1187,14 @@ final class _Text {
         _openSection = _sentenceLabel;
         _section += 1;
         // Every section carries a return cell (catalogue 4.1).
-        _op(Op.axt, _Sym(() => '0', () => 0));
+        _op(Op.axt, _Sym(() => '0', () => 0, Relocation.constant));
       case EndClause():
         _endClause(clause);
       case OpenClause(:final allFiles):
         if (!allFiles) {
           _unruled('an OPEN naming files (notes section 7)');
         }
-        _tsx(175); // [J 90.02.13].
+        _tsx(175); // [J 90.02.14].
         _pzeIoc1();
         _callClears();
       case CloseClause(:final allFiles):
@@ -1169,7 +1265,7 @@ final class _Text {
     );
     final PoolHandle stopWord = _pool.machineWord(_bcdWord(' STOP '));
     final PoolHandle runWord = _pool.machineWord(_bcdWord(' RUN  '));
-    _tsx(178); // The halt entry ([J 90.02.09]).
+    _tsx(178); // The halt entry ([J 90.02.14]).
     _pzePair(_cp(number), _cp(comma));
     _pzePair(_cp(stopWord), _cp(runWord));
     _tsx(177); // The close-all of [J 90.02.14] rides inside STOP RUN.
@@ -1180,6 +1276,7 @@ final class _Text {
       formOf(Op.txi),
       () => 'IOC)40,0',
       () => typeAWord(Op.txi, address: 40),
+      control: standardControl(Relocation.constant, Relocation.system),
     );
     _callClears();
   }
@@ -1230,15 +1327,18 @@ final class _Text {
   void _callTriple(NameReference procedure) {
     _checkTarget(procedure);
     final int here = _location;
-    _op(Op.axt, _Sym(() => '*+3', () => here + 3), tag: 7);
+    _op(Op.axt, _Sym(() => '*+3', () => here + 3, Relocation.relative), tag: 7);
     _op(Op.sxa, _labelSym(procedure.text), tag: 4);
     _op(Op.tra, _entrySym(procedure));
   }
 
   /// `P+1` — a called procedure's first instruction, one word past its
   /// return cell (catalogue 4.1).
-  _Sym _entrySym(NameReference procedure) =>
-      _Sym(() => '${procedure.text}+1', () => _procedureEntry(procedure) + 1);
+  _Sym _entrySym(NameReference procedure) => _Sym(
+    () => '${procedure.text}+1',
+    () => _procedureEntry(procedure) + 1,
+    Relocation.relative,
+  );
 
   /// DO FOR (catalogue 4.1): 11 + 5·M words, M the positional
   /// indicators the loop index drives; a five-name later-pass run,
@@ -1283,14 +1383,16 @@ final class _Text {
     final strides = <PoolHandle>[];
     for (final (DataItem item, _) in driven) {
       strides.add(_tableStride(item));
-      _pool.base('${_printedName(item)}+0');
+      _subscriptBase(item);
     }
     _generated += 1; // The first name of the run is never bound (M4-6).
     final String bodyEntry = _mint();
     final String increment = _mint();
     _generated += 1; // The fourth is never bound either (M4-6).
     final String tableBase = _mint();
-    final PoolHandle base = _pool.base(_tableBaseKey(driven));
+    final PoolHandle base = driven.isEmpty
+        ? _unruled('a DO FOR driving no indicator')
+        : _subscriptBase(driven.first.$1);
     final _Sym baseCell = _cp(base);
     equ(tableBase, baseCell.value, operand: baseCell.text);
     // The prologue (the attested 00702): patch the cell to the
@@ -1300,7 +1402,7 @@ final class _Text {
     _op(Op.cla, _cp(bounds[0]));
     _opItem(Op.sto, indexItem);
     for (final (DataItem item, _) in driven) {
-      _op(Op.cla, _Sym(() => tableBase, baseCell.value));
+      _op(Op.cla, _Sym(() => tableBase, baseCell.value, Relocation.relative));
       _op(Op.sto, _blockWord(StorageBlock.pi, _indicator(item)));
     }
     final _Sym entry = _entrySym(clause.procedure);
@@ -1326,13 +1428,20 @@ final class _Text {
     }
     _op(Op.cla, _cp(bounds[2]));
     _opItem(Op.sub, indexItem);
-    _op(Op.tpl, _Sym(() => bodyEntry, entry.value));
+    _op(Op.tpl, _Sym(() => bodyEntry, entry.value, Relocation.relative));
     _callClears();
   }
 
-  String _tableBaseKey(List<(DataItem, String)> driven) => driven.isEmpty
-      ? _unruled('a DO FOR driving no indicator')
-      : '${_printedName(driven.first.$1)}+0';
+  /// The subscript base `NAME+0`, the entry a positional indicator is
+  /// set from: the item's own first word.
+  PoolHandle _subscriptBase(DataItem item) {
+    final (int address, Relocation relocation) = _dataAddress(item);
+    return _pool.base(
+      '${_printedName(item)}+0',
+      word: pzeWord(address: address),
+      control: standardControl(Relocation.constant, relocation),
+    );
+  }
 
   /// The stride: the repeated ancestor's element words (catalogue 5.3,
   /// the STR entry). A positional indicator names the referenced field,
@@ -1396,6 +1505,7 @@ final class _Text {
       WordForm.prefix,
       () => '${cell.text()},,$length',
       () => (5 << 33) | (length << 18) | (6 << 15) | cell.value(),
+      control: standardControl(Relocation.constant, cell.relocation),
     );
   }
 
@@ -1408,6 +1518,7 @@ final class _Text {
     WordForm.prefix,
     () => '$name,,$length',
     () => (7 << 33) | (length << 18) | address(),
+    control: standardControl(Relocation.constant, Relocation.relative),
   );
 
   void _get(GetClause clause) {
@@ -1460,6 +1571,7 @@ final class _Text {
         decrement: _cp(comma).value(),
         address: _cp(number).value(),
       ),
+      control: standardControl(Relocation.relative, Relocation.relative),
     );
     _tsxIoc(8);
     _pzePair(_fileSym(file), _sys(260));
@@ -1505,12 +1617,12 @@ final class _Text {
       _op(Op.lxa, _blockWord(StorageBlock.bl, locator), tag: 4);
       _op(Op.sxa, _labelSym(patched), tag: 4);
       _tsxIoc(9);
-      _pzePair(_fileSym(file), _Sym(() => '0', () => 0));
+      _pzePair(_fileSym(file), _Sym(() => '0', () => 0, Relocation.constant));
       label(patched);
       _iost(_printedName(info.item), length, () => 0);
     } else {
       _tsxIoc(9);
-      _pzePair(_fileSym(file), _Sym(() => '0', () => 0));
+      _pzePair(_fileSym(file), _Sym(() => '0', () => 0, Relocation.constant));
       final _Ref ref = _ref(info.item);
       _iost(ref.text, length, () => ref.address);
     }
@@ -1783,6 +1895,7 @@ final class _Text {
         formOf(Op.tra),
         () => 'SYS)267,0,0',
         () => typeBWord(Op.tra, address: 267),
+        control: standardControl(Relocation.constant, Relocation.system),
       );
     } else {
       _txi(267, control);
@@ -1834,8 +1947,20 @@ final class _Text {
     final blocks = <(PoolHandle stride, _Sym base, DataItem table)>[];
     for (final table in driven) {
       final PoolHandle stride = _tableStride(table);
+      final int strideWords = _strideWords(table);
+      final (int address, Relocation relocation) = _dataAddress(
+        table,
+        plus: -strideWords,
+      );
+      if (address < 0) {
+        // The 15-bit address field would wrap a negative base to a
+        // wrong word, silently.
+        _unruled('a table base ahead of address zero (no sample instance)');
+      }
       final PoolHandle base = _pool.base(
-        '${_printedName(table)}-${_strideWords(table)}',
+        '${_printedName(table)}-$strideWords',
+        word: pzeWord(address: address),
+        control: standardControl(Relocation.constant, relocation),
       );
       final String bound = _mint();
       _generated += 1; // The pair's second name is never bound (M4-6).
@@ -1847,7 +1972,11 @@ final class _Text {
         // 6.2 item 32).
         operand: () => _cp(base).text(),
       );
-      blocks.add((stride, _Sym(() => bound, () => _poolAddress(base)), table));
+      blocks.add((
+        stride,
+        _Sym(() => bound, () => _poolAddress(base), Relocation.relative),
+        table,
+      ));
     }
     // The subscript variable is the value; the block scales it by the
     // table's stride and offsets it by the table's base.
@@ -2587,7 +2716,11 @@ final class _Text {
           final int register = _indicatorPrologue(item);
           // The element the indicator addresses: `CAS 0,r`, the word
           // the register alone reaches (the attested 01412).
-          _op(Op.cas, _Sym(() => '0', () => 0), tag: register);
+          _op(
+            Op.cas,
+            _Sym(() => '0', () => 0, Relocation.constant),
+            tag: register,
+          );
         } else {
           _loadBaseOf(item);
           _opItem(Op.cas, item);
@@ -2791,7 +2924,7 @@ final class _Text {
       }
       final int distance = count + slots[i].extra - i;
       final int target = _location + distance;
-      _op(Op.tra, _Sym(() => '*+$distance', () => target));
+      _op(Op.tra, _Sym(() => '*+$distance', () => target, Relocation.relative));
     }
   }
 

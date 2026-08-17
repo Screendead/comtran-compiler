@@ -45,7 +45,11 @@ void main() {
       // Each job's listing starts at page 1.
       for (final JobCompilation job in deck.jobs) {
         expect(
-          writeListing(job.frontEnd, _options, diagnostics: job.diagnostics),
+          writeListing(
+            job.frontEnd,
+            _options,
+            diagnostics: job.diagnostics,
+          ).text,
           contains('PAGE  1'),
         );
       }
@@ -228,7 +232,7 @@ void main() {
         job.frontEnd,
         _options,
         diagnostics: job.diagnostics,
-      );
+      ).text;
       expect(listing, contains('9999,99    3    CARD FOLLOWS THE *FINISH'));
       // The tail card is ignored: it is not echoed as source.
       expect(listing, isNot(contains('LATE CARD')));
@@ -320,7 +324,7 @@ void main() {
         job.frontEnd,
         _options,
         diagnostics: job.diagnostics,
-      );
+      ).text;
       expect(
         listing,
         contains('9999,99    5    END OF FILE ON JOB TAPE WITHOUT *FINISH'),

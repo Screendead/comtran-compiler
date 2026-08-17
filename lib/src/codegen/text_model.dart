@@ -29,6 +29,20 @@ enum WordForm {
   indicator,
 }
 
+/// A field's relocation class in a standard word's control group
+/// `1 AB CD` ([J 90.03.04]). The enum index is the two-bit code. The
+/// fourth code, `11` a complex expression, no generator emits.
+enum Relocation {
+  /// `00`: the field is a constant the loader leaves alone.
+  constant,
+
+  /// `01`: the field is a relative location the loader relocates.
+  relative,
+
+  /// `10`: the field is a system reference number.
+  system,
+}
+
 /// The 5-bit control groups of [J 90.03.04].
 abstract final class ControlGroup {
   /// A standard data word `1 AB CD` with a constant decrement and a
@@ -38,7 +52,16 @@ abstract final class ControlGroup {
   /// A location counter control entry, whose word reads `OP A`; the
   /// CNTRL column prints `00001`.
   static const int locationCounter = 0x01;
+
+  /// The end-of-text entry, whose address field holds the relative
+  /// program entry point; the CNTRL column prints `01111`.
+  static const int endOfText = 0x0F;
 }
+
+/// The control group of a standard word `1 AB CD`: [decrement] fills AB
+/// and [address] CD ([J 90.03.04]).
+int standardControl(Relocation decrement, Relocation address) =>
+    ControlGroup.constantWord | (decrement.index << 2) | address.index;
 
 /// The `OP` of a location counter control entry ([J 90.03.04]), named by
 /// the prefix digit the OCTAL column prints.

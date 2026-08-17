@@ -19,3 +19,9 @@ const String stageNotReached = '* STOPPED BEFORE THIS STAGE';
 /// The last line of a job's section when the stage itself stopped
 /// mid-run (D10.2): the section above it is truncated, not complete.
 const String stageStopped = '* STOPPED IN THIS STAGE';
+
+/// The one marker line for a job that reached code generation and got
+/// no text: [stageNotReached] when an earlier stop kept the generator
+/// from running, the refused [shape] when the generator declined one.
+String codeStageMarker(String? shape) =>
+    shape == null ? stageNotReached : '* NOT RECOVERED: $shape';

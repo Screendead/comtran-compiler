@@ -1,5 +1,5 @@
 /// The `--emit` stage dumps (`docs/design/emit-stages.md`): the three
-/// committed reconstruction goldens, the two attested dumps, and the
+/// committed reconstruction goldens, the three attested dumps, and the
 /// stopped-stage line.
 ///
 /// Regenerate the goldens with one command, from the repository root:
@@ -66,6 +66,7 @@ void main() {
       for (final String stage in ['cards', 'scan', 'parse', 'semantics'])
         '--emit-$stage=${dumps.path}/$stage',
       '--emit-listing=${dumps.path}/listing',
+      '--emit-object=${dumps.path}/object',
     ]);
   });
 
@@ -79,13 +80,17 @@ void main() {
       expect(dump('semantics'), golden('semantics'));
     });
 
-    test('the attested dumps reproduce the mirror and the listing', () {
+    test('the attested dumps reproduce the mirror and the listings', () {
       expect(
         dump('cards'),
         File('test/fixtures/90.05-payroll-job.ct').readAsStringSync(),
       );
       expect(dump('listing'), golden('listing'));
       expect(run.stdout, golden('listing'));
+      // The object pages start at PAGE 8, so this also pins the first
+      // page the driver computes after six source pages and the one
+      // loader-card page stage 3 will count rather than assume.
+      expect(dump('object'), golden('storage-map'));
     });
 
     test('the flags change neither output stream nor the exit code', () {
@@ -280,5 +285,55 @@ void main() {
     );
     expect(deck.jobs.single.semantics!.stopped, isTrue);
     expect(_jobSection(emitSemantics(deck), 1).last, stageStopped);
+  });
+
+  test('the object dump prints one marker line per dead job', () {
+    // Job 1 stops in the front end (D7.9), job 2 reaches the generator
+    // and refuses (DISPLAY, [J 90.01.01]), and job 3 compiles. The
+    // attested dump takes no job headers, so the two markers print in
+    // sequence and job 3 opens with its own page head.
+    final List<String> lines = [
+      r'$CMPLE BAD',
+      '      *DATA',
+      dataCard(level: '2', description: "'${'A' * 33}", continued: true),
+      dataCard(description: 'B' * 34, continued: true),
+      dataCard(description: 'C' * 34, continued: true),
+      dataCard(description: "${'D' * 25}'"),
+      '      *FINISH',
+      r'$CMPLE UGLY',
+      '      *PROCEDURE',
+      '            DISPLAY 45.',
+      '            STOP RUN.',
+      '      *FINISH',
+      r'$CMPLE GOOD',
+      '      *PROCEDURE',
+      '            STOP RUN.',
+      '      *FINISH',
+    ];
+    final Directory dir = Directory.systemTemp.createTempSync(
+      'comtran-emit-object',
+    );
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final deck = '${dir.path}/jobs.ctd';
+    File(
+      deck,
+    ).writeAsBytesSync(encodeCanon(mirrorToDeck('${lines.join('\n')}\n')));
+    final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
+      'run',
+      'comtran:comtranc',
+      deck,
+      '--date=10/18/61',
+      '--time=2.45',
+      '--emit-object=${dir.path}/object',
+    ]);
+    // The stop and the refusal each fail the run (J 90.04.02).
+    expect(run.exitCode, 1, reason: '${run.stderr}');
+    final List<String> dump = File('${dir.path}/object').readAsLinesSync();
+    expect(dump[0], stageNotReached);
+    expect(dump[1], '* NOT RECOVERED: DISPLAY ([J 90.01.01])');
+    // Job 3's one source page and its loader-card page put its object
+    // listing at PAGE 3.
+    expect(dump[2], contains('PAGE  3'));
+    expect(dump.last, endsWith('START  GN)000'));
   });
 }

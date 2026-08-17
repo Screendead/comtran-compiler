@@ -70,10 +70,11 @@ The path is optional on every flag. The listing on stdout does not change.
 | `--emit-semantics[=<path>]` | `-S` | semantic layer | reconstruction | golden: `test/goldens/90.05-payroll.semantics`, plus the M3-14 fixture values |
 | `--emit-listing[=<path>]` | `-l` | listing | attested | the golden listing |
 | `--emit-code[=<path>]` | `-g` | assembly text model | reconstruction | golden: `test/goldens/90.05-payroll.code` |
+| `--emit-object[=<path>]` | `-o` | object listing | attested | golden: `test/goldens/90.05-payroll.storage-map` |
 
 Jack added the short surface 2026-08-05. M4 stage 1 added `--emit-code`
-the same day, under M4-19. The one-letter flags bundle:
-`-cpsSlg` is the full set. `-A` and `--emit-all` request every stage. A
+the same day, under M4-19. Chunk B7 added `--emit-object`, under M4-8.
+The one-letter flags bundle: `-cpsSlgo` is the full set. `-A` and `--emit-all` request every stage. A
 flag without a path writes the default file: the deck's path with its
 extension replaced by the stage name, next to the deck. So
 `payroll.ctd -p` writes `payroll.parse`. A short flag always takes
@@ -107,6 +108,14 @@ equals the deck path is refused: the dump would overwrite the canon.
   fields: the octal LOC, the labels, the operation, the operand, the
   octal word, and the 5-bit control group. A field the unit leaves
   blank prints empty, so every row holds five tabs (M4-19).
+
+- The object dump is the printed object listing (M4-8). Each job's
+  section opens with its own page head, so the dump takes no `* JOB`
+  lines. Its first page number is the job's source pages plus two: one
+  loader-card page, which stage 3 will count rather than assume. The
+  dump ends at the end-of-text line; the loader's closing lines land
+  at stage 3. A dead job prints one marker line in sequence: the D10.2
+  stop line, or `* NOT RECOVERED` and the refused shape.
 
 These text forms are renderings, not intermediate representations. M4 stays
 free to add its own stages — `--emit-deck` and `--emit-loader` land at

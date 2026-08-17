@@ -331,7 +331,7 @@ WebCompilation compileText(String typed) {
         webListingOptions,
         diagnostics: job.diagnostics,
         annotations: job.semantics?.allocation?.annotations,
-      ),
+      ).text,
     );
     for (final Diagnostic d in job.diagnostics) {
       diagnostics.add(
