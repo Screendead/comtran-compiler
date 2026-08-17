@@ -209,7 +209,12 @@ final class _Text {
         continue;
       }
       for (final EnvironmentCard card in group.cards) {
-        if (card is FileCard && !_fileCards.containsKey(card.spec.name)) {
+        if (card is! FileCard) {
+          continue;
+        }
+        if (_fileCards.containsKey(card.spec.name)) {
+          _duplicateFiles.add(card.spec.name);
+        } else {
           _fileOrdinals[card.spec.name] = _fileCards.length + 1;
           _fileCards[card.spec.name] = card;
         }
@@ -263,6 +268,11 @@ final class _Text {
 
   /// Each file's FILE card, for the options the calls depend on.
   final Map<String, FileCard> _fileCards = <String, FileCard>{};
+
+  /// Names two FILE cards declare. No diagnostic bars the duplicate
+  /// upstream, and a second card makes every later ordinal ambiguous,
+  /// so any GET or FILE in such a program refuses (M4-2 as amended).
+  final Set<String> _duplicateFiles = <String>{};
 
   /// The index-register cache: which locator each register holds. A
   /// label or a section entry clears the whole cache, a subroutine call
@@ -1414,6 +1424,9 @@ final class _Text {
     if (info == null) {
       _unruled('a GET of a name no FILE card lists (no sample instance)');
     }
+    if (_duplicateFiles.isNotEmpty) {
+      _unruled('a GET where two FILE cards share a name (no sample instance)');
+    }
     if (info.inputFiles.length != 1) {
       // Zero files, or the two-input-file program behind msg 11.
       _unruled(
@@ -1470,6 +1483,9 @@ final class _Text {
     final RecordInfo? info = _rosterRecord(clause.record.text);
     if (info == null) {
       _unruled('a FILE of a name no FILE card lists (no sample instance)');
+    }
+    if (_duplicateFiles.isNotEmpty) {
+      _unruled('a FILE where two FILE cards share a name (no sample instance)');
     }
     if (info.outputFiles.length != 1) {
       _unruled(

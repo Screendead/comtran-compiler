@@ -1046,6 +1046,25 @@ void main() {
       );
     });
 
+    test('a GET where two FILE cards share a name', () {
+      expect(
+        _refuses(
+          ['            GET IREC, AT END RTN.'],
+          data: _records(),
+          environment: [
+            _input(),
+            environmentCard(
+              name: 'TAPE1',
+              type: 'FILE',
+              options: 'OUTPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+            ),
+          ],
+          flagged: ['198,00'],
+        ),
+        'a GET where two FILE cards share a name (no sample instance)',
+      );
+    });
+
     test('FILE record IN file', () {
       expect(
         _refuses(
@@ -1078,6 +1097,25 @@ void main() {
           flagged: ['19,00', '198,00'],
         ),
         'a FILE record on 0 output files (no sample instance)',
+      );
+    });
+
+    test('a FILE where two FILE cards share a name', () {
+      expect(
+        _refuses(
+          ['            FILE OREC.'],
+          data: _records(),
+          environment: [
+            _output(),
+            environmentCard(
+              name: 'TAPE2',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,OREC,BLOCKSIZE 5',
+            ),
+          ],
+          flagged: ['198,00'],
+        ),
+        'a FILE where two FILE cards share a name (no sample instance)',
       );
     });
   });

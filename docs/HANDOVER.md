@@ -171,8 +171,8 @@ B6 filled the last bare-sized sites:
 - the eight FILE calls, the located self-patching pair included;
 - the STOP RUN close-down.
 
-The amendments to M4-14 and M4-15 record twelve more refusals; messages
-16, 19 and 11 stand in front of four of them. The spine counts rose to
+The amendments to M4-14 and M4-15 record fourteen more refusals;
+messages 16, 19 and 11 stand in front of four of them. The spine counts rose to
 900 symbolic and 894 octal. The next task is chunk B7: the close-out —
 the `USE 1` and `BGN 2,PI)1` head rows, the four block sizes, the
 constant pool, the page furniture, and the full listing diff (M4-8),

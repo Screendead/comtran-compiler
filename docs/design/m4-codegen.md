@@ -809,12 +809,12 @@ M4 executes I/O-free programs.
   `PZE CP)+a,,CP)+b` words carrying the statement stamp and the
   words ` STOP ` / ` RUN  `; the implicit close-all pair
   `TSX SYS)177,4 / PZE IOC)1`; then `TXI IOC)40,0` — no halt
-  instruction. The sample's leading SYS)177 pair at LOC 00517/00520 is
+  instruction. The sample's SYS)177 pair at LOC 00517/00520 is
   the source's separate `CLOSE ALL FILES` clause (M4-15's shape), not
   STOP RUN's (D2.7). STOP n has no sample site and refuses (notes
   section 7); its D2.7 reading (the SYS)178 call alone, the halt in the
   handler) stands unbuilt. The statement stamp is a pool pair: the
-  statement number in BCD, then a comma, two digits, and three blanks. Each GET sequence opens with it as a tag-0 no-op,
+  statement number in BCD, a comma, two digits, and three blanks. Each GET sequence opens with it as a tag-0 no-op,
   `TXH CP)+a,0,CP)+b`; SYS)178's parameters carry it; no other statement
   emits one (five attested sites, statements 188, 190, 191, 194 and 199).
   **Amended 2026-08-15, Jack's ruling (the chunk B1 review record). The
@@ -839,16 +839,15 @@ M4 executes I/O-free programs.
   FILE of a located record patches its own IOST word first —
   `LXA BL)n,4 / SXA GN)a,4` then the call, GN)a labeling the IOST word
   (attested, statement 208). CLOSE ALL FILES is the SYS)177 pair. The
-  record's file lists are public since M3-11 and the `04000 + k` file
-  ordinal reads off the parsed FILE cards, so B6 added no binder
-  exposure.
+  record's file lists are public since M3-11; the `04000 + k` ordinal
+  reads off the parsed FILE cards: no new binder exposure.
   **Amended 2026-08-17, chunk B6.** Every other I/O form refuses (M4-2
   as amended; notes section 7): OPEN or
   CLOSE naming files, GET RECORD FROM, GET with no AT END (SYS)265
   unattested), GET from a file declaring ON ERROR (the SYS)283
   replacement is unknown), GET of a transmitted record, FILE record IN
-  file, and a GET or FILE record off the roster or on other than one
-  matching file.
+  file, and a GET or FILE record off the roster, on other than one
+  matching file, or where two FILE cards share a name.
 
 ## The object deck and the loader cards
 
