@@ -690,7 +690,7 @@ void main() {
         result,
         options,
         diagnostics: parse.diagnostics,
-      );
+      ).text;
       expect(listing, contains('   1,00    3    ILLEGAL SENTENCE STRUCTURE'));
     });
 
@@ -711,7 +711,7 @@ void main() {
         result,
         options,
         diagnostics: parse.diagnostics,
-      );
+      ).text;
       expect(listing, contains('   1,01    3    CONSECUTIVE'));
     });
   });

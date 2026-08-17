@@ -94,12 +94,36 @@ String diagnosticStatementNumber(FrontEndResult result, Diagnostic diagnostic) {
 /// passes the merged front-end-plus-parser list (`ParseResult`,
 /// design note M2-2); with `null` the front end's own list prints.
 /// [annotations] fills the LOC column and the generated names (M3-8).
-String writeListing(
+///
+/// The `pages` field counts the pages written: the 1962 printout
+/// numbers its later sections — the loader page and the object
+/// listing — after the last source page, so the count is part of the
+/// result.
+({String text, int pages}) writeListing(
   FrontEndResult result,
   ListingOptions options, {
   List<Diagnostic>? diagnostics,
   ListingAnnotations? annotations,
 }) => _ListingWriter(result, options, diagnostics, annotations).write();
+
+/// The page head every section of the printout carries, at the
+/// far-left margin: the object listing (M4-8) reuses this builder, so
+/// stage 2 writes no second template.
+String listingPageHead(
+  ListingOptions options, {
+  required String id,
+  required int page,
+}) =>
+    '        DATE ${options.date}  TIME  ${options.time}  '
+    'ACCOUNT ${options.account.padRight(20)}ID. ${id.padRight(24)}'
+    'PAGE  $page';
+
+/// The head's ID field: compile-card columns 55 to 72, or blank
+/// without a compile card.
+String listingId(FrontEndResult result) {
+  final SourceCard? compileCard = result.program.compileCard;
+  return compileCard == null ? '' : compileCard.textRange(55, 72).trim();
+}
 
 final class _ListingWriter {
   _ListingWriter(
@@ -140,7 +164,7 @@ final class _ListingWriter {
   int _page = 0;
   int _linesOnPage = 0;
 
-  String write() {
+  ({String text, int pages}) write() {
     _newPage();
     final SourceCard? compileCard = result.program.compileCard;
     if (compileCard != null) {
@@ -180,7 +204,7 @@ final class _ListingWriter {
     _line('  CTE');
     _line('');
     _diagnosticBlock();
-    return _out.toString();
+    return (text: _out.toString(), pages: _page);
   }
 
   String _sourceLine(SourceCard card, Division? division) {
@@ -294,12 +318,6 @@ final class _ListingWriter {
     _linesOnPage = 0;
   }
 
-  String _pageHead() {
-    final String id = result.program.compileCard == null
-        ? ''
-        : result.program.compileCard!.textRange(55, 72).trim();
-    return '        DATE ${options.date}  TIME  ${options.time}  '
-        'ACCOUNT ${options.account.padRight(20)}ID. ${id.padRight(24)}'
-        'PAGE  $_page';
-  }
+  String _pageHead() =>
+      listingPageHead(options, id: listingId(result), page: _page);
 }

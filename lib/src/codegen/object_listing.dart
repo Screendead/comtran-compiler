@@ -8,6 +8,7 @@
 /// content here and never geometry.
 library;
 
+import '../listing/listing.dart';
 import 'text_model.dart';
 
 /// Print columns, counted from the LOC column's first digit as zero.
@@ -95,6 +96,48 @@ List<String> renderObjectLines(Iterable<AssemblyUnit> units) {
     out.addAll(_unit(unit, resets ? '' : '+$offset'));
   }
   return out;
+}
+
+/// Renders [units] as the printed object pages, numbered from
+/// [firstPage] — page 8 in the sample, after six source pages and the
+/// loader-card page.
+///
+/// Every page holds 58 print lines (measured across pages 8 to 25 of
+/// the scan): the head, three blank lines, the column header and one
+/// more blank on the first page, two blank lines on every later one,
+/// and content in the rest. The LOC column prints at the head's DATE
+/// column, eight columns in (M4-8). The pagination is mechanical — no
+/// row breaks a page early. The document ends at the end-of-text line:
+/// the three closing lines under it are the loader's, not this
+/// formatter's, and land with the deck writer (M4-8 as amended).
+String writeObjectListing(
+  List<AssemblyUnit> units, {
+  required ListingOptions options,
+  required String id,
+  required int firstPage,
+}) {
+  final List<String> lines = renderObjectLines(units);
+  const margin = '        ';
+  final out = StringBuffer();
+  var line = 0;
+  for (var page = firstPage; line < lines.length; page++) {
+    out
+      ..writeln(listingPageHead(options, id: id, page: page))
+      ..writeln()
+      ..writeln();
+    var slots = 55;
+    if (page == firstPage) {
+      out
+        ..writeln()
+        ..writeln('$margin${objectListingHeader()}')
+        ..writeln();
+      slots = 52;
+    }
+    for (var n = 0; n < slots && line < lines.length; n++, line++) {
+      out.writeln('$margin${lines[line]}'.trimRight());
+    }
+  }
+  return out.toString();
 }
 
 List<String> _unit(AssemblyUnit unit, String offset) {

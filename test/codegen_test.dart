@@ -139,14 +139,27 @@ void main() {
     });
   });
 
-  group('the storage map (M4-7)', () {
+  group('the object listing (M4-7; M4-8)', () {
+    late JobCompilation job;
     late CodegenResult result;
 
-    setUpAll(() => result = runCodegen(_payrollSemantics()));
+    setUpAll(() {
+      job = compileDeck(loadJobDeck()).jobs.single;
+      result = runCodegen(job.semantics!);
+    });
 
     test('reproduces the committed golden byte for byte', () {
+      // The golden is the whole printed document, pages 8 to 25 — the
+      // 977 scan-verified content rows under the measured page frame —
+      // ending at the end-of-text line: the three closing lines under
+      // it are the loader's (M4-8 as amended, chunk B7).
       expect(
-        '${renderObjectLines(result.units).join('\n')}\n',
+        writeObjectListing(
+          result.units,
+          options: const ListingOptions(date: '10/18/61', time: '2.45'),
+          id: listingId(job.frontEnd),
+          firstPage: 8,
+        ),
         File('test/goldens/90.05-payroll.storage-map').readAsStringSync(),
       );
     });

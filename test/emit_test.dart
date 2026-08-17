@@ -1,5 +1,5 @@
 /// The `--emit` stage dumps (`docs/design/emit-stages.md`): the three
-/// committed reconstruction goldens, the two attested dumps, and the
+/// committed reconstruction goldens, the three attested dumps, and the
 /// stopped-stage line.
 ///
 /// Regenerate the goldens with one command, from the repository root:
@@ -66,6 +66,7 @@ void main() {
       for (final String stage in ['cards', 'scan', 'parse', 'semantics'])
         '--emit-$stage=${dumps.path}/$stage',
       '--emit-listing=${dumps.path}/listing',
+      '--emit-object=${dumps.path}/object',
     ]);
   });
 
@@ -79,13 +80,17 @@ void main() {
       expect(dump('semantics'), golden('semantics'));
     });
 
-    test('the attested dumps reproduce the mirror and the listing', () {
+    test('the attested dumps reproduce the mirror and the listings', () {
       expect(
         dump('cards'),
         File('test/fixtures/90.05-payroll-job.ct').readAsStringSync(),
       );
       expect(dump('listing'), golden('listing'));
       expect(run.stdout, golden('listing'));
+      // The object pages start at PAGE 8, so this also pins the first
+      // page the driver computes after six source pages and the one
+      // loader-card page stage 3 will count rather than assume.
+      expect(dump('object'), golden('storage-map'));
     });
 
     test('the flags change neither output stream nor the exit code', () {
