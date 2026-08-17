@@ -69,22 +69,14 @@ String _operation(List<String> lines, int i) =>
 String _symbolicField(List<String> lines, int i) =>
     _slice(lines[i], 49).trimRight();
 
-/// The OCTAL zone of line [i]'s instruction, read from the line above
-/// where a wrapped name took it. The zone stops at column 25, where
-/// CNTRL begins: the loader control field is stage 3's (M4-16).
+/// The OCTAL and CNTRL zone of line [i]'s instruction, read from the
+/// line above where a wrapped name took it. Chunk B7 fills the control
+/// groups, so the zone runs through the CNTRL column.
 String _octalField(List<String> lines, int i) => _slice(
   lines[i > 0 && _wrapped(lines[i - 1]) ? i - 1 : i],
   7,
-  25,
+  34,
 ).trimRight();
-
-/// Operations B1 places whose operand a later chunk fills: the entry
-/// point belongs to stage 3.
-///
-/// An `EQU` carries no object word, so its operand is the only column a
-/// chunk can fill, and the filter reads one only once it is filled: B3
-/// owns the two subscript equates and B5 the loop and DO equates.
-const Set<String> _laterChunks = <String>{'START'};
 
 List<String> _generate() {
   final SemanticResult semantics = compileDeck(
@@ -148,13 +140,15 @@ void main() {
         _symbolicField,
         filled: (List<String> lines, int i) {
           final String operation = _operation(lines, i);
-          if (operation.isEmpty || _laterChunks.contains(operation)) {
+          if (operation.isEmpty) {
             return false;
           }
+          // An `EQU` carries no object word, so its operand is the only
+          // column a chunk can fill; a bare one is not yet generated.
           return operation != 'EQU' || _symbolicField(lines, i) != 'EQU';
         },
       ),
-      900,
+      966,
     );
   });
 
@@ -165,7 +159,7 @@ void main() {
         filled: (List<String> lines, int i) =>
             _octalField(lines, i).isNotEmpty && !_wrapped(lines[i]),
       ),
-      894,
+      961,
     );
   });
 }
