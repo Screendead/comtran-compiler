@@ -255,8 +255,7 @@ M4 executes I/O-free programs.
   table-base EQU heads the DO FOR block, the body-entry EQU stands
   before the prologue's last word, and a subscript store prints both
   recomputation EQUs, then the update blocks, in reverse
-  first-reference order. The label field matched the target byte for
-  byte.
+  first-reference order. A base ahead of address zero refuses (B7).
 
 ## The storage-map print
 
@@ -946,7 +945,7 @@ M4 executes I/O-free programs.
   the reconstruction label. The deck dump writes the punch-level binary
   card file; its text rendering is the listing's own OCTAL/CNTRL columns,
   so no separate text form is invented. The letters extend the existing
-  bundle (`-cpsSlgdL`; `-A` takes all).
+  bundle (`-cpsSlgodL`; `-A` takes all).
 
 ## Scan readings and erratum candidates
 

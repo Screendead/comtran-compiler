@@ -90,9 +90,9 @@ pool, and the end-of-text line.
 The golden `test/goldens/90.05-payroll.storage-map` is now the whole
 printed document, pages 8 to 25 at the head's margin, and it is the
 oracle of record. B7 matched it against the scan-verified target byte
-for byte — every head, blank, header and content line, the 977 content
-rows and every CNTRL value — then deleted the target, its generator,
-and the monotone spine test that carried chunks B1 to B6.
+for byte: every head, blank, header and content line, all 977 content
+rows and every CNTRL value. It then deleted the target, its generator,
+and the spine test that carried chunks B1 to B6.
 
 Stage 2 generates the core-verb text and the full symbolic listing.
 Its oracle is the full listing diff, byte for byte, after the blind
@@ -212,7 +212,7 @@ state:
 
 - The two head rows stage 1 could not compute, `USE 1` and
   `BGN 2,PI)1`. Both carry Location Counter 1's origin, which follows
-  the procedure text (M4-7.1). Done (B1; B7 filled their words).
+  the procedure text (M4-7.1). Done (B1).
 - The four block sizes stage 1 leaves empty: result storage, temporary
   storage, the positional indicators, and the constant pool. The verb
   generators size three of them. Stage 1 derives `BL)` alone, and gets

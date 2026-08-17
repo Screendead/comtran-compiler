@@ -13,11 +13,11 @@ import 'text_model.dart';
 
 /// The `USE N` row: a location counter discontinuity, whose control word
 /// carries the counter's origin ([J 90.02.02]).
-AssemblyUnit _use(int counter, {int? origin}) => AssemblyUnit(
+AssemblyUnit _use(int counter, {required int origin}) => AssemblyUnit(
   operation: 'USE',
   operand: '$counter',
-  word: origin == null ? null : counterWord(CounterOp.relativeOrigin, origin),
-  control: origin == null ? null : ControlGroup.locationCounter,
+  word: counterWord(CounterOp.relativeOrigin, origin),
+  control: ControlGroup.locationCounter,
   form: WordForm.prefix,
 );
 

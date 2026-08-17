@@ -48,7 +48,7 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
   -A, --emit-all      write every stage dump
   -c -s -p -S -l -g -o
                       the short emit flags, one letter per stage above,
-                      bundleable: -cpsSlg is the full set. A dump without
+                      bundleable: -cpsSlgo is the full set. A dump without
                       PATH lands next to the deck, the deck's extension
                       replaced by the stage name: `payroll.ctd -p`
                       writes `payroll.parse`.
@@ -227,12 +227,7 @@ int _run(List<String> arguments) {
           // The attested dump takes no job headers — each section opens
           // with its own page head — so a dead job prints its one
           // marker line in sequence (D10.2; M4-2 as amended).
-          final UnrecoveredShape? refusal = job.unrecovered;
-          object.writeln(
-            refusal == null
-                ? stageNotReached
-                : '* NOT RECOVERED: ${refusal.shape}',
-          );
+          object.writeln(codeStageMarker(job.unrecovered?.shape));
         } else {
           // The object pages follow the job's source pages and its
           // loader-card page, which stage 3 will count rather than

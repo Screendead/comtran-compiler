@@ -468,8 +468,8 @@ final class _Text {
   );
 
   /// A system-subroutine entry, `TSX SYS)nnn,4`: the MOVPAK entries
-  /// and the open, close and STOP entries ([J 90.02.14] to
-  /// [J 90.02.19]).
+  /// and the open, close and STOP entries ([J 90.02.14] and
+  /// [J 90.02.15]).
   void _tsx(int sys) => _emit(
     mnemonic(Op.tsx),
     formOf(Op.tsx),
@@ -1952,6 +1952,11 @@ final class _Text {
         table,
         plus: -strideWords,
       );
+      if (address < 0) {
+        // The 15-bit address field would wrap a negative base to a
+        // wrong word, silently.
+        _unruled('a table base ahead of address zero (no sample instance)');
+      }
       final PoolHandle base = _pool.base(
         '${_printedName(table)}-$strideWords',
         word: pzeWord(address: address),

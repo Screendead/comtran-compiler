@@ -286,4 +286,54 @@ void main() {
     expect(deck.jobs.single.semantics!.stopped, isTrue);
     expect(_jobSection(emitSemantics(deck), 1).last, stageStopped);
   });
+
+  test('the object dump prints one marker line per dead job', () {
+    // Job 1 stops in the front end (D7.9), job 2 reaches the generator
+    // and refuses (DISPLAY, [J 90.01.01]), and job 3 compiles. The
+    // attested dump takes no job headers, so the two markers print in
+    // sequence and job 3 opens with its own page head.
+    final List<String> lines = [
+      r'$CMPLE BAD',
+      '      *DATA',
+      dataCard(level: '2', description: "'${'A' * 33}", continued: true),
+      dataCard(description: 'B' * 34, continued: true),
+      dataCard(description: 'C' * 34, continued: true),
+      dataCard(description: "${'D' * 25}'"),
+      '      *FINISH',
+      r'$CMPLE UGLY',
+      '      *PROCEDURE',
+      '            DISPLAY 45.',
+      '            STOP RUN.',
+      '      *FINISH',
+      r'$CMPLE GOOD',
+      '      *PROCEDURE',
+      '            STOP RUN.',
+      '      *FINISH',
+    ];
+    final Directory dir = Directory.systemTemp.createTempSync(
+      'comtran-emit-object',
+    );
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final deck = '${dir.path}/jobs.ctd';
+    File(
+      deck,
+    ).writeAsBytesSync(encodeCanon(mirrorToDeck('${lines.join('\n')}\n')));
+    final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
+      'run',
+      'comtran:comtranc',
+      deck,
+      '--date=10/18/61',
+      '--time=2.45',
+      '--emit-object=${dir.path}/object',
+    ]);
+    // The stop and the refusal each fail the run (J 90.04.02).
+    expect(run.exitCode, 1, reason: '${run.stderr}');
+    final List<String> dump = File('${dir.path}/object').readAsLinesSync();
+    expect(dump[0], stageNotReached);
+    expect(dump[1], '* NOT RECOVERED: DISPLAY ([J 90.01.01])');
+    // Job 3's one source page and its loader-card page put its object
+    // listing at PAGE 3.
+    expect(dump[2], contains('PAGE  3'));
+    expect(dump.last, endsWith('START  GN)000'));
+  });
 }

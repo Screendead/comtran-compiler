@@ -28,14 +28,14 @@ const int _offsetEnd = 42;
 const int _labelWidth = _operation - _label;
 
 /// [value] as the five octal digits a LOC or address column prints.
-String octal5(int value) => value.toRadixString(8).padLeft(5, '0');
+String _octal5(int value) => value.toRadixString(8).padLeft(5, '0');
 
 /// One line with every field at its measured column. An omitted field
 /// prints nothing and takes no column.
 ///
 /// The caller decides when a long label pushes the instruction to its own
 /// line, and calls this twice.
-String objectListingLine({
+String _objectListingLine({
   String loc = '',
   String octal = '',
   String control = '',
@@ -55,7 +55,7 @@ String objectListingLine({
 
 /// The `LOC OCTAL CNTRL SYMBOLIC` header, which prints once on the first
 /// object page (M4-8 as amended 2026-08-09).
-String objectListingHeader() => _line([
+String _objectListingHeader() => _line([
   (1, 'LOC'),
   (12, 'OCTAL'),
   (25, 'CNTRL'),
@@ -129,7 +129,7 @@ String writeObjectListing(
     if (page == firstPage) {
       out
         ..writeln()
-        ..writeln('$margin${objectListingHeader()}')
+        ..writeln('$margin${_objectListingHeader()}')
         ..writeln();
       slots = 52;
     }
@@ -144,7 +144,7 @@ List<String> _unit(AssemblyUnit unit, String offset) {
   final int? location = unit.location;
   final int? word = unit.word;
   final int? control = unit.control;
-  final String loc = location == null ? '' : octal5(location);
+  final String loc = location == null ? '' : _octal5(location);
   final String octal = word == null ? '' : octalColumn(word, unit.form);
   final String cntrl = control == null ? '' : controlColumn(control);
 
@@ -152,13 +152,13 @@ List<String> _unit(AssemblyUnit unit, String offset) {
   // Every label but the last prints alone against the LOC, the word
   // falling to the last (M4-8; the attested GN)000 over START).
   for (var i = 0; i + 1 < unit.labels.length; i++) {
-    out.add(objectListingLine(loc: loc, label: unit.labels[i]));
+    out.add(_objectListingLine(loc: loc, label: unit.labels[i]));
   }
   final String label = unit.labels.isEmpty ? '' : unit.labels.last;
   if (label.length >= _labelWidth) {
     out
       ..add(
-        objectListingLine(
+        _objectListingLine(
           loc: loc,
           octal: octal,
           control: cntrl,
@@ -167,11 +167,11 @@ List<String> _unit(AssemblyUnit unit, String offset) {
         ),
       )
       ..add(
-        objectListingLine(operation: unit.operation, operand: unit.operand),
+        _objectListingLine(operation: unit.operation, operand: unit.operand),
       );
   } else {
     out.add(
-      objectListingLine(
+      _objectListingLine(
         loc: loc,
         octal: octal,
         control: cntrl,

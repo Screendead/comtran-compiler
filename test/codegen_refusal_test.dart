@@ -1119,6 +1119,47 @@ void main() {
       );
     });
   });
+
+  group('the B7 refusal site (M4-6)', () {
+    test('a table base ahead of address zero', () {
+      // A repeated group opening the program puts its member at word
+      // 0, so the recomputation base `ITEM-1` would go negative and
+      // the 15-bit address field would wrap it silently.
+      expect(
+        _refuses(
+          [
+            '            IF OUT GT ITEM (SUB) THEN STOP RUN.',
+            '            MOVE OUT TO SUB.',
+          ],
+          data: [
+            dataCard(name: 'TAB', level: '1', quantity: '12'),
+            dataCard(
+              name: 'ITEM',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '99',
+            ),
+            dataCard(
+              name: 'SUB',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '99',
+            ),
+            dataCard(
+              name: 'OUT',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '99',
+            ),
+          ],
+        ),
+        'a table base ahead of address zero (no sample instance)',
+      );
+    });
+  });
 }
 
 /// Two one-field records and a flat item, for the input-output probes.
