@@ -1,13 +1,10 @@
-/// The procedure text (M4-1 chunks B1 and B2): every word the procedure
-/// division generates, sized and placed, and — for the move family —
-/// written.
+/// The procedure text (M4-1 chunks B1 to B6): every word the procedure
+/// division generates, sized, placed and written.
 ///
 /// Chunk B1 laid the address spine: how many words each clause takes and
-/// where each one sits. Chunk B2 fills the move family's mnemonics,
-/// operands and object words: every shape the MOVE verb reaches, the
-/// MOVPAK descriptor prologue, and the base-locator guard pair wherever
-/// it fires. Every other family still emits a bare word, and B3 to B6
-/// fill them.
+/// where each one sits. Chunks B2 to B6 filled the mnemonics, operands
+/// and object words of every family the spine sized — the last of them
+/// the input-output frame and the STOP RUN close-down.
 /// The sizing rules are the shape catalogue of
 /// `test/fixtures/90.05-object-code-notes.md`; each family below names
 /// its catalogue section.
@@ -23,6 +20,7 @@
 library;
 
 import '../ast/data_ast.dart';
+import '../ast/environment_ast.dart';
 import '../ast/procedure_ast.dart';
 import '../chars/char_code.dart';
 import '../data/data_map.dart';
@@ -206,6 +204,17 @@ final class _Text {
         _baseLocators[record.item] = bl++;
       }
     }
+    for (final ParsedGroup group in semantics.parse.groups) {
+      if (group is! ParsedEnvironmentGroup) {
+        continue;
+      }
+      for (final EnvironmentCard card in group.cards) {
+        if (card is FileCard && !_fileCards.containsKey(card.spec.name)) {
+          _fileOrdinals[card.spec.name] = _fileCards.length + 1;
+          _fileCards[card.spec.name] = card;
+        }
+      }
+    }
   }
 
   final SemanticResult semantics;
@@ -246,6 +255,14 @@ final class _Text {
 
   /// The base locator serving each located record, `BL)2` on (M4-4).
   final Map<DataItem, int> _baseLocators = <DataItem, int>{};
+
+  /// Each file's one-based declaration ordinal `k`, whose calling
+  /// sequences address the file as `04000 + k` (the notes, section
+  /// 2.6).
+  final Map<String, int> _fileOrdinals = <String, int>{};
+
+  /// Each file's FILE card, for the options the calls depend on.
+  final Map<String, FileCard> _fileCards = <String, FileCard>{};
 
   /// The index-register cache: which locator each register holds. A
   /// label or a section entry clears the whole cache, a subroutine call
@@ -306,26 +323,6 @@ final class _Text {
   void label(String name) {
     _pending.add(name);
     _registerHolds.clear();
-  }
-
-  /// Emits one object word, its columns left to a later chunk.
-  void word() {
-    final List<String> names = _take(); // Before the location advances.
-    _units.add(
-      AssemblyUnit(
-        operation: '',
-        operand: '',
-        location: _location++,
-        labels: names,
-      ),
-    );
-  }
-
-  /// Emits [count] object words.
-  void words(int count) {
-    for (var i = 0; i < count; i++) {
-      word();
-    }
   }
 
   /// Emits one written object word: [operation] now, the operand text
@@ -442,6 +439,14 @@ final class _Text {
     () => typeBWord(Op.tsx, tag: 4, address: sys),
   );
 
+  /// An input-output package entry, `TSX IOC)n,4` (catalogue 4.2).
+  void _tsxIoc(int entry) => _emit(
+    mnemonic(Op.tsx),
+    formOf(Op.tsx),
+    () => 'IOC)$entry,4',
+    () => typeBWord(Op.tsx, tag: 4, address: entry),
+  );
+
   /// A MOVPAK step or fill call, `TXI SYS)nnn,1,count`
   /// ([J 90.02.16]). The decrement prints decimal, as the listing
   /// does at LOC 01146 for the octal `00014`.
@@ -475,8 +480,29 @@ final class _Text {
   void _oct(int value) =>
       _emit('OCT', WordForm.solid, () => Word36.octal(value), () => value);
 
+  /// A calling-sequence parameter pair, `PZE first,,second`: the first
+  /// operand in the address field, the second in the decrement
+  /// ([J 90.02.09]; the notes, section 2.6).
+  void _pzePair(_Sym first, _Sym second) => _emit(
+    'PZE',
+    WordForm.prefix,
+    () => '${first.text()},,${second.text()}',
+    () => pzeWord(decrement: second.value(), address: first.value()),
+  );
+
+  /// The whole-file-set parameter of OPEN and CLOSE, `PZE IOC)1`
+  /// ([J 90.02.13]).
+  void _pzeIoc1() =>
+      _emit('PZE', WordForm.prefix, () => 'IOC)1', () => pzeWord(address: 1));
+
   /// `SYS)nnn` — a communication cell or a subroutine entry.
   _Sym _sys(int number) => _Sym(() => 'SYS)$number', () => number);
+
+  /// A file as an operand: the punched name over the address
+  /// `04000 + k` octal, `k` the file's one-based declaration ordinal
+  /// (the notes, section 2.6).
+  _Sym _fileSym(String name) =>
+      _Sym(() => name, () => 0x800 + _fileOrdinals[name]!);
 
   /// A procedure label as an operand: the written name, its location
   /// read after the walk so a forward transfer binds (M4-4).
@@ -928,11 +954,15 @@ final class _Text {
 
   /// The statement stamp's two pool words (M4-14): the statement number
   /// in BCD, and the comma-digits-blanks word under the fitted clause
-  /// rule (M4-14 as amended 2026-08-15).
-  void _stamp(int statement, int clauseOrdinal) {
-    _pool.machineWord(_bcdWord('$statement'.padLeft(6)));
+  /// rule (M4-14 as amended 2026-08-15). The frame words carry the
+  /// number in their address field and the comma word in their
+  /// decrement (the attested `TXH CP)+14,0,CP)+15`).
+  (PoolHandle, PoolHandle) _stamp(int statement, int clauseOrdinal) {
+    final PoolHandle number = _pool.machineWord(
+      _bcdWord('$statement'.padLeft(6)),
+    );
     final String digits = '$clauseOrdinal'.padLeft(2, '0');
-    _pool.machineWord(_bcdWord(',$digits   '));
+    return (number, _pool.machineWord(_bcdWord(',$digits   ')));
   }
 
   int _bcdWord(String six) {
@@ -1054,11 +1084,19 @@ final class _Text {
         _op(Op.axt, _Sym(() => '0', () => 0));
       case EndClause():
         _endClause(clause);
-      case OpenClause(:final allFiles, :final files):
-        words(allFiles ? 2 : 2 * files.length); // [J 90.02.13].
+      case OpenClause(:final allFiles):
+        if (!allFiles) {
+          _unruled('an OPEN naming files (notes section 7)');
+        }
+        _tsx(175); // [J 90.02.13].
+        _pzeIoc1();
         _callClears();
-      case CloseClause(:final allFiles, :final files):
-        words(allFiles ? 2 : 2 * files.length); // [J 90.02.14].
+      case CloseClause(:final allFiles):
+        if (!allFiles) {
+          _unruled('a CLOSE naming files (notes section 7)');
+        }
+        _tsx(177); // [J 90.02.14].
+        _pzeIoc1();
         _callClears();
       case StopClause(:final run):
         _stop(clause, run: run);
@@ -1113,19 +1151,26 @@ final class _Text {
 
   void _stop(StopClause clause, {required bool run}) {
     if (!run) {
-      // STOP n: the SYS)178 call alone, no close-all and no monitor
-      // transfer (M4-14; D2.7). SYS)178's parameters carry the
-      // statement stamp, so the pair pools here too (M4-14).
-      _stamp(_statement, _ordinals[clause] ?? 0);
-      words(3);
-      _callClears();
-      return;
+      _unruled('STOP n (notes section 7)');
     }
-    _stamp(_statement, _ordinals[clause] ?? 0);
-    _pool
-      ..machineWord(_bcdWord(' STOP '))
-      ..machineWord(_bcdWord(' RUN  '));
-    words(6); // TSX SYS)178 / two PZE / TSX SYS)177 / PZE / TXI IOC)40.
+    final (PoolHandle number, PoolHandle comma) = _stamp(
+      _statement,
+      _ordinals[clause] ?? 0,
+    );
+    final PoolHandle stopWord = _pool.machineWord(_bcdWord(' STOP '));
+    final PoolHandle runWord = _pool.machineWord(_bcdWord(' RUN  '));
+    _tsx(178); // The halt entry ([J 90.02.09]).
+    _pzePair(_cp(number), _cp(comma));
+    _pzePair(_cp(stopWord), _cp(runWord));
+    _tsx(177); // The close-all of [J 90.02.14] rides inside STOP RUN.
+    _pzeIoc1();
+    _emit(
+      // The monitor return; a zero decrement prints none.
+      mnemonic(Op.txi),
+      formOf(Op.txi),
+      () => 'IOC)40,0',
+      () => typeAWord(Op.txi, address: 40),
+    );
     _callClears();
   }
 
@@ -1306,50 +1351,152 @@ final class _Text {
 
   // --- Input and output (catalogue 4.2) -----------------------------------
 
-  void _get(GetClause clause) {
-    _stamp(_statement, _ordinals[clause] ?? 0);
-    final AtEndClause? atEnd = clause.atEnd;
-    words(5); // Stamp, TSX IOC)8, two PZE, the buffer descriptor.
-    if (atEnd == null) {
-      _callClears();
-      return; // E = 0: SYS)265 rides in the fourth word ([J 90.02.29]).
+  /// The roster record [name] references. A GET or FILE record
+  /// resolves through the environment binder, not the data resolver,
+  /// so the roster is matched by name (M3-11).
+  RecordInfo? _rosterRecord(String name) {
+    for (final RecordInfo each in semantics.records) {
+      if (each.name == name) {
+        return each;
+      }
     }
+    return null;
+  }
+
+  /// The record's extent in whole words — the length the transmitting
+  /// calls carry, never the BLOCKSIZE (the notes, section 2.6): its
+  /// area's for a transmitted record, its character extent rounded up
+  /// for a located one, which takes no area.
+  int _recordWords(DataItem record) {
+    for (final AreaInfo area in semantics.areas) {
+      if (identical(area.root, record)) {
+        return area.extentWords;
+      }
+    }
+    return (_sem(record).storageChars + 5) ~/ 6;
+  }
+
+  /// The input buffer descriptor, `IOCTN* BL)n,,words`: prefix 5, the
+  /// extent in the decrement, tag 6, the base locator in the address
+  /// (the attested `5 00017 6 01667`; M4-20 item f).
+  void _ioctn(int locator, int length) {
+    final _Sym cell = _blockWord(StorageBlock.bl, locator);
+    _emit(
+      'IOCTN*',
+      WordForm.prefix,
+      () => '${cell.text()},,$length',
+      () => (5 << 33) | (length << 18) | (6 << 15) | cell.value(),
+    );
+  }
+
+  /// The output record descriptor, `IOST record,,words`: prefix 7, the
+  /// extent in the decrement, the record's first word in the address —
+  /// zero for a located record, whose word the LXA/SXA pair patches at
+  /// run time (the attested `7 00017 0 00000` under GN)089).
+  void _iost(String name, int length, int Function() address) => _emit(
+    'IOST',
+    WordForm.prefix,
+    () => '$name,,$length',
+    () => (7 << 33) | (length << 18) | address(),
+  );
+
+  void _get(GetClause clause) {
+    if (clause.recordFrom) {
+      _unruled('GET RECORD FROM (no sample instance)');
+    }
+    final AtEndClause? atEnd = clause.atEnd;
+    if (atEnd == null) {
+      // E = 0: SYS)265 rides in the exit word ([J 90.02.29]), which no
+      // sample site attests filled.
+      _unruled('a GET with no AT END (notes section 7)');
+    }
+    final RecordInfo? info = _rosterRecord(clause.name.text);
+    if (info == null) {
+      _unruled('a GET of a name no FILE card lists (no sample instance)');
+    }
+    if (info.inputFiles.length != 1) {
+      // Zero files, or the two-input-file program behind msg 11.
+      _unruled(
+        'a GET record on ${info.inputFiles.length} input files '
+        '(no sample instance)',
+      );
+    }
+    final int? locator = _baseLocators[info.item];
+    if (locator == null) {
+      _unruled('a GET of a transmitted record (no sample instance)');
+    }
+    final String file = info.inputFiles.single;
+    if (_fileCards[file]!.onError != null) {
+      // ON ERROR replaces the SYS)283 exit with an unknown word (the
+      // notes, section 7).
+      _unruled('a GET from a file declaring ON ERROR (notes section 7)');
+    }
+    final (PoolHandle number, PoolHandle comma) = _stamp(
+      _statement,
+      _ordinals[clause] ?? 0,
+    );
     final List<String> names =
         semantics.allocation?.clauseNames[clause] ?? const <String>[];
-    word(); // The TRA over the block.
-    if (names.isNotEmpty) {
-      label(names.first);
-    }
+    _emit(
+      // The stamp rides ahead of the call, prefixed TXH (M4-14).
+      mnemonic(Op.txh),
+      formOf(Op.txh),
+      () => '${_cp(number).text()},0,${_cp(comma).text()}',
+      () => typeAWord(
+        Op.txh,
+        decrement: _cp(comma).value(),
+        address: _cp(number).value(),
+      ),
+    );
+    _tsxIoc(8);
+    _pzePair(_fileSym(file), _sys(260));
+    _pzePair(_labelSym(names[0]), _sys(283));
+    _ioctn(locator, _recordWords(info.item));
+    _op(Op.tra, _labelSym(names[1])); // Over the block, to the join.
+    label(names[0]);
     if (atEnd.bareName != null) {
       _callTriple(atEnd.bareName!); // D6.6: compiled as DO name.
     } else if (atEnd.statement != null) {
       _clause(atEnd.statement!);
     }
     _callClears();
-    if (names.length > 1) {
-      label(names[1]); // The join, on the resume word.
-    }
+    label(names[1]); // The join, on the resume word.
   }
 
   void _file(FileClause clause) {
-    // A FILE's record reference resolves through the environment binder,
-    // not the data resolver, so the roster is matched by name (M3-11).
-    DataItem? record;
-    for (final RecordInfo each in semantics.records) {
-      if (each.name == clause.record.text) {
-        record = each.item;
-        break;
-      }
+    if (clause.inFile != null) {
+      _unruled('FILE record IN file (no sample instance)');
     }
-    if (record != null && _baseLocators.containsKey(record)) {
+    final RecordInfo? info = _rosterRecord(clause.record.text);
+    if (info == null) {
+      _unruled('a FILE of a name no FILE card lists (no sample instance)');
+    }
+    if (info.outputFiles.length != 1) {
+      _unruled(
+        'a FILE record on ${info.outputFiles.length} output files '
+        '(no sample instance)',
+      );
+    }
+    final String file = info.outputFiles.single;
+    final int length = _recordWords(info.item);
+    final int? locator = _baseLocators[info.item];
+    if (locator != null) {
+      // A located record's descriptor takes its address at run time:
+      // the LXA/SXA pair writes the buffer word over the IOST's zero
+      // address field (catalogue 4.2).
       final String patched = _mint();
       _generated += 1; // The pair's second name is never bound (M4-6).
-      words(2); // LXA BL)n,4 / SXA GN)a,4.
-      words(2); // TSX IOC)9,4 / PZE file.
+      _op(Op.lxa, _blockWord(StorageBlock.bl, locator), tag: 4);
+      _op(Op.sxa, _labelSym(patched), tag: 4);
+      _tsxIoc(9);
+      _pzePair(_fileSym(file), _Sym(() => '0', () => 0));
       label(patched);
-      word(); // The IOST word the pair patches, GN)a on it.
+      _iost(_printedName(info.item), length, () => 0);
     } else {
-      words(3); // TSX IOC)9,4 / PZE file / IOST record,,len.
+      _tsxIoc(9);
+      _pzePair(_fileSym(file), _Sym(() => '0', () => 0));
+      final _Ref ref = _ref(info.item);
+      _iost(ref.text, length, () => ref.address);
     }
     _callClears();
   }
