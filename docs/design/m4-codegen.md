@@ -138,7 +138,9 @@ M4 executes I/O-free programs.
     CP at 01674).
   - **Location Counter 2** — pointer-word initialization: an `ORG` to the
     pointer block and the pre-determined constants (the sample: `ORG BL)1`,
-    then `PZE IOC)29 / PZE 0 / PZE 0`).
+    then `PZE IOC)29 / PZE 0 / PZE 0`). Its `USE 2` word prints `MON PI)1`:
+    counter 2 holds only the `BL)` block, so its end is `PI)`'s origin —
+    two readings, one value (B7).
   Block sizing rules: `RS)` is the sum over sections of the maximum result
   storage each section uses ([J 90.02.03]) — cells two words each, D4.8's
   inference from the listing's LOC values, not stated by J;
@@ -253,8 +255,8 @@ M4 executes I/O-free programs.
   table-base EQU heads the DO FOR block, the body-entry EQU stands
   before the prologue's last word, and a subscript store prints both
   recomputation EQUs, then the update blocks, in reverse
-  first-reference order. The spine oracle reads the label field byte
-  for byte against the target.
+  first-reference order. The label field matched the target byte for
+  byte.
 
 ## The storage-map print
 
@@ -322,19 +324,20 @@ M4 executes I/O-free programs.
     numbering declarations of that spelling in data-division source order
     ([J 90.02.02]); a unique name prints bare. `DictionaryEntry.encounter`
     already carries the ordinal.
-  - `SYS)n` and `IOC)n` print the decimal n in the address field, flagged
-    external in CNTRL. A file name prints as 04000 plus its loader-card
-    file number.
+  - `SYS)n` and `IOC)n` print the decimal n in the address field; a file
+    name prints as 04000 plus its loader-card file number. Both flag
+    system reference in CNTRL; labels, `CP)`, block words, `*±n`, and
+    transmitted items flag relative; written values, counts, and located
+    displacements flag constant (B7; 977 rows verified).
   Page scans differ in horizontal registration. Measure each page
   against its own LOC column, never against another page.
   - Page furniture: the `LOC OCTAL CNTRL SYMBOLIC` column header prints
     once, on the first object page.
     **Amended 2026-08-10, chunks A2 to A8, and this closes the blank
     count.** Seventeen object pages hold two blank lines after the head
-    and listing page 8 holds three. The conversion carries all eighteen,
-    `tool/object_listing_target_source.dart` holds the map, and
+    and listing page 8 holds three. The conversion carries all eighteen, and
     `test/fixtures/90.05-object-listing-notes.md` holds the per-page
-    measurement and the per-chunk history this entry no longer repeats.
+    measurement.
     No blank line separates routines, the storage map
     from the code, or the pool from the end-of-text line. The
     listing closes with that line, one blank line,
@@ -347,11 +350,9 @@ M4 executes I/O-free programs.
     `*CTEND` card prints at column 0, and `DONE` prints at column −5. The
     loader writes these lines, not the compiler's listing formatter, which
     is why they do not share its margin.
-    **The target cannot express a negative column, so it prints all three
-    at column 0 and is knowingly wrong on two of them.** Whatever stage
-    emits the trailer takes its geometry from this entry, never from the
-    target. Chunk B7 deletes the target; it must not first promote this
-    into the golden.
+    **The golden ends at the end-of-text line: the loader's three
+    closing lines land with the deck writer, which takes their geometry
+    from this entry** (chunk B7).
   **Amended 2026-08-09, stage 2. The page frame is pinned to the byte,**
   on the scans, field by field. Item (g)'s one geometry is unchanged;
   this adds precision to it. The column header prints `LOC` at 1,
@@ -362,13 +363,12 @@ M4 executes I/O-free programs.
   `lib/src/listing/listing.dart` and writes no second template;
   `m1-front-end.md` M1-16 as amended holds the measured columns and the
   evidence.
-  **Amended again 2026-08-09, stage 2. The target is verified before any
-  code generates against it** (Jack's call, with M4-1's chunking).
-  The target file is `test/fixtures/90.05-object-listing.target`. It is
-  scaffolding, not a second oracle. Jack's ruling of 2026-08-09: the
-  golden stays the oracle of record, and the target buys resumability
-  alone. B7 deletes it, once `test/goldens/90.05-payroll.storage-map` has
-  grown into the whole object listing.
+  **Amended again 2026-08-09, stage 2; closed by chunk B7.** A
+  scan-verified target carried the chunks (Jack's call, with M4-1's
+  chunking): the golden stayed the oracle, the target bought
+  resumability. B7 grew `test/goldens/90.05-payroll.storage-map` into
+  the whole document at the head's margin, matched it against the
+  target byte for byte, and deleted target, generator, and tests.
   **Amended 2026-08-09 to 2026-08-10, chunks A3 to A8, and this closes
   the frame. The page body is a frame of 57 line slots,** with the head
   as slot 0, and all eighteen object pages hold it. Stage 2 therefore

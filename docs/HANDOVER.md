@@ -49,7 +49,7 @@ Terms that appear without expansion:
 | M3 — the semantic layer | Done 2026-08-05 (stages 1–2 2026-08-04; stage 3, the listing extension, 2026-08-05) | `docs/design/m3-data.md`, `lib/src/data/` |
 | M4 decision walk (M4-1 to M4-21) | Done 2026-08-05 | `docs/design/m4-codegen.md` |
 | M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
-| M4 stage 2 — core-verb text | Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunk B1, the address spine, done 2026-08-15; chunks B2 to B6, the verb generators, done 2026-08-16 and 2026-08-17 — every mnemonic, operand and word of the procedure text matches the target; the block words and the constant pool wait for B7 | `test/fixtures/90.05-object-listing.target`, `test/fixtures/90.05-object-code-notes.md` |
+| M4 stage 2 — core-verb text | Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, remains | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
 | M4 stages 3–4, M5, M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); hardens in M4 stage 4 | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -78,39 +78,36 @@ for byte.
 ## The next task — M4 stage 2
 
 M4 stage 1 closed 2026-08-05, stage 2's chunk B1 closed 2026-08-15,
-chunks B2 to B5 closed 2026-08-16, and chunk B6 closed 2026-08-17.
-`lib/src/codegen/` holds the text model (M4-3), the program image
-(M4-4), the storage-map print (M4-7), the `--emit-code` dump (M4-19),
-the encode table (`encode.dart`), and the generator itself
-(`procedure.dart`, `pool.dart`, `blocks.dart`). The generator sizes
-and places every unit of the object program and fills the whole
-procedure text; the block words and the constant pool print bare until
-chunk B7 fills them.
+chunks B2 to B5 closed 2026-08-16, and chunks B6 and B7 closed
+2026-08-17. `lib/src/codegen/` holds the text model (M4-3), the
+program image (M4-4), the object-listing writer (M4-7; M4-8), the
+`--emit-code` and `--emit-object` dumps (M4-19; M4-8), the encode
+table (`encode.dart`), and the generator itself (`procedure.dart`,
+`pool.dart`, `blocks.dart`). The generator fills every word of the
+object program: the procedure text, the block words, the constant
+pool, and the end-of-text line.
 
-`test/object_spine_test.dart` is the chunk oracle, and it is monotone.
-It reads three columns against the verified target: the LOC and label
-spine on every line, the mnemonic and operand on every line a generator
-owns, and the OCTAL word on every line that carries one. It pins the
-two column counts. Each later chunk raises
-them, and no chunk may lower one: a column that stops being generated
-fails the test rather than passing unread. The golden
-`test/goldens/90.05-payroll.storage-map` holds the whole render, and
-its 91 stage-1 rows and its data region are unchanged since B1.
+The golden `test/goldens/90.05-payroll.storage-map` is now the whole
+printed document, pages 8 to 25 at the head's margin, and it is the
+oracle of record. B7 matched it against the scan-verified target byte
+for byte — every head, blank, header and content line, the 977 content
+rows and every CNTRL value — then deleted the target, its generator,
+and the monotone spine test that carried chunks B1 to B6.
 
-Stage 2 generates the core-verb text and the full symbolic listing. Its
-oracle is the full listing diff, PDF pp. 198–216, byte for byte, after a
-blind scan verification pass over about nineteen pages (M4-8; the M3-22
-pattern). Plan for the cost: this pass is the most token-hungry task on
-the roadmap.
+Stage 2 generates the core-verb text and the full symbolic listing.
+Its oracle is the full listing diff, byte for byte, after the blind
+scan verification pass (M4-8; the M3-22 pattern). Both have run: the
+scan pass closed Phase A, and the pp. 199–216 diff ran clean at B7.
+Page 198, the loader-card page, is stage 3's (M4-1).
 
 Stage 2 is chunked, by Jack's call of 2026-08-09, so a usage limit costs
 one chunk and not the stage. Phase A builds and verifies the target
 listing before any generator runs. Phase B generates, and it sizes every
 unit in the program before it fills any word. `docs/design/m4-codegen.md`
 M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
-holds the verify-first order and the target file.
+holds the verify-first order. The target itself is retired (B7).
 
-**Phase A is complete, and Phase B's chunks B1 to B6 are done.** All
+**Phase A is complete, and Phase B's chunks B1 to B7 are done.** All
 eighteen object pages are scan-verified, the B1 generator reproduces the
 listing's whole address spine, B2 fills the columns of the MOVE sites
 and the guards, B3 fills the columns of the arithmetic, B4 fills
@@ -173,11 +170,18 @@ B6 filled the last bare-sized sites:
 - the STOP RUN close-down.
 
 The amendments to M4-14 and M4-15 record fourteen more refusals;
-messages 16, 19 and 11 stand in front of four of them. The spine counts rose to
-900 symbolic and 894 octal. The next task is chunk B7: the close-out —
-the `USE 1` and `BGN 2,PI)1` head rows, the four block sizes, the
-constant pool, the page furniture, and the full listing diff (M4-8),
-against the same target.
+messages 16, 19 and 11 stand in front of four of them. The spine
+counts rose to 900 symbolic and 894 octal.
+
+B7 closed the stage's print work: every control group under M4-16's
+class rule, the `USE 2` and `BL)` pointer words, the 62 constant-pool
+words, the end-of-text line, and the paginated writer behind
+`--emit-object`. The acceptance diff ran clean — the whole document
+against the target, byte for byte — and the target, its generator and
+its tests are deleted. The next task is chunk B8: the diagnostics —
+msg 942 widens to the eight generated-name classes (M4-5), ids 946
+and 947 take their pedantic sites (M4-18), and the D10.2 stop shape
+M4-2 defers to that chunk.
 
 Chunks A7 and A8 read each page **twice**, by two readers who did not know of each
 other, and compared the two readings before either met the target. Ten
@@ -203,11 +207,12 @@ once, shared one, and collided over a working file.
 on the chunk A4 flaw. Chunks A5 to A8 gave every concurrent reader its own
 directory and none collided.
 
-What stage 2 must add, beyond the verb generators:
+What stage 2 had to add beyond the verb generators, with each item's
+state:
 
 - The two head rows stage 1 could not compute, `USE 1` and
   `BGN 2,PI)1`. Both carry Location Counter 1's origin, which follows
-  the procedure text (M4-7.1).
+  the procedure text (M4-7.1). Done (B1; B7 filled their words).
 - The four block sizes stage 1 leaves empty: result storage, temporary
   storage, the positional indicators, and the constant pool. The verb
   generators size three of them. Stage 1 derives `BL)` alone, and gets
@@ -218,7 +223,7 @@ What stage 2 must add, beyond the verb generators:
   holds the reasoning and forbids inventing a rule that returns 7. All
   four sizes enter `blockWords` together in chunk B1, because
   `ProgramImage.originOf` sums the blocks ahead of its argument and
-  sizing one alone moves every origin below it.
+  sizing one alone moves every origin below it. Done (B1).
 
   The hunt is worth not repeating. Its central negatives: no word of the
   object program addresses any of the seven cells, which refutes
@@ -237,14 +242,15 @@ What stage 2 must add, beyond the verb generators:
   `LOC OCTAL CNTRL SYMBOLIC` column header are measured to the byte and
   pinned (M4-8 as amended 2026-08-09). The head is the source listing's
   own head, so stage 2 calls the existing builder in
-  `lib/src/listing/listing.dart`.
+  `lib/src/listing/listing.dart`. Done (B7).
 - The later-pass GN allocation rule (GN)084 on). Stage 2 pins it
   instruction by instruction during the listing diff (M4-6). A design
-  that assumes a dense counter is wrong by construction.
+  that assumes a dense counter is wrong by construction. Done (B1;
+  M4-6 as amended holds the three fitted placements).
 - Msg 942 widens to the eight generated-name classes with one combined
   tally (M4-5). Ids 946 and 947 are reserved for the D5.1 and D5.7
   pedantic sites, pedantic-only at C1 and C2 (M4-18); D6.1 to D6.5 stay
-  deferred to M5 (D11.4).
+  deferred to M5 (D11.4). Remains: chunk B8.
 - The emit surface gains `--emit-deck` (`-d`) and `--emit-loader` (`-L`)
   at stage 3, under `emit-stages.md`'s conventions, which M4-19 adopts
   unamended.
@@ -314,8 +320,8 @@ binds work outside the definition.
   conversion renders all three at the location column, and its left margins
   are documented non-facts (M1-15), so a flattened offset is nothing to
   correct. `docs/design/m4-codegen.md` M4-8 as amended carries the measured
-  columns, and warns that the target renders two of the three wrongly
-  because its grid cannot express a negative column.
+  columns; the golden ends at the end-of-text line, and the stage-3 deck
+  writer takes the trailer geometry from that entry.
 
   Twenty-nine corrections are authorized and
   applied. The most recent two, on 2026-08-10, are chunk A8's blank counts;
