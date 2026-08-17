@@ -178,6 +178,18 @@ final class _Text {
         continue;
       }
       for (final Sentence sentence in group.sentences) {
+        if (!semantics.capacityDeletedSentences.contains(sentence)) {
+          final String? label = sentence.scan.label;
+          if (label != null) {
+            _labels.add(label);
+          }
+        }
+        if (_beginsSection(sentence)) {
+          final String? label = sentence.scan.label;
+          if (label != null) {
+            _sections.add(label);
+          }
+        }
         for (final Clause clause in clauseTree(sentence.clauses)) {
           if (clause case DoClause(:final procedure)) {
             _doTargets.add(procedure.text);
@@ -223,6 +235,15 @@ final class _Text {
   /// paragraphs carry a return cell (catalogue 4.1 — call-site-driven).
   final Set<String> _doTargets = <String>{};
 
+  /// Section names: every section carries a return cell whether or not
+  /// a DO addresses it (catalogue 4.1).
+  final Set<String> _sections = <String>{};
+
+  /// Every label the walk will bind, gathered before it: the deferred
+  /// binder resolves an unbound name to address 0, so a reference must
+  /// refuse ahead of it.
+  final Set<String> _labels = <String>{};
+
   /// The base locator serving each located record, `BL)2` on (M4-4).
   final Map<DataItem, int> _baseLocators = <DataItem, int>{};
 
@@ -244,12 +265,15 @@ final class _Text {
   int _location;
   int _generated;
 
-  /// The label of the open DO-called paragraph, closed by a terminal
-  /// return at the next labelled sentence (catalogue 4.1).
-  bool _openParagraph = false;
+  /// The open DO-called paragraph, closed by a terminal return at the
+  /// next labelled sentence or at its END (catalogue 4.1). The return
+  /// transfers through the paragraph's own cell, so the name rides
+  /// here from the label that opened it.
+  String? _openParagraph;
 
-  /// Whether a section is open; its END emits the terminal return.
-  bool _openSection = false;
+  /// The open section; its END emits the terminal return through the
+  /// section's cell.
+  String? _openSection;
 
   /// Which section the walk is in, counting from 1 at the first BEGIN
   /// SECTION. Sections are sequential, never nested, so the counter never
@@ -267,6 +291,11 @@ final class _Text {
     final List<String> names = _pending;
     _pending = <String>[];
     for (final name in names) {
+      if (_labelled.containsKey(name)) {
+        // Rebinding keeps only the later address, against D2.5's
+        // section scoping, and no sample label repeats.
+        _unruled('a procedure name defined twice (no sample instance)');
+      }
       _labelled[name] = _location;
     }
     return names;
@@ -327,6 +356,16 @@ final class _Text {
     formOf(op),
     () => tag == 0 ? address.text() : '${address.text()},$tag',
     () => typeBWord(op, tag: tag, address: address.value()),
+  );
+
+  /// A type-B instruction through [address] indirectly: the starred
+  /// mnemonic, and the two flag bits in the word — the attested
+  /// `TRA*   END.OF.MASTERS` against octal `0020 60 0 00331`.
+  void _opIndirect(Op op, _Sym address) => _emit(
+    '${mnemonic(op)}*',
+    formOf(op),
+    address.text,
+    () => typeBWord(op, address: address.value(), indirect: true),
   );
 
   /// A type-B instruction against [item], guarded by the caller.
@@ -443,6 +482,21 @@ final class _Text {
   /// read after the walk so a forward transfer binds (M4-4).
   _Sym _labelSym(String name) => _Sym(() => name, () => _labelled[name] ?? 0);
 
+  /// Refuses a target the deferred binder cannot resolve: an undefined
+  /// name and a two-word D2.5 reference each fall to address 0, where
+  /// msgs 127 and 188 record the 1962 bypass instead.
+  void _checkTarget(NameReference name) {
+    if (name.words.length > 1) {
+      _unruled('a two-word procedure reference (D2.5; no sample instance)');
+    }
+    if (!_labels.contains(name.text)) {
+      _unruled(
+        'a transfer or call to an undefined procedure '
+        '(behind msgs 127 and 188)',
+      );
+    }
+  }
+
   /// `CP)+n` — a pool entry, by index and by address.
   _Sym _cp(PoolHandle handle) =>
       _Sym(() => 'CP)+${_layout.indexOf(handle)}', () => _poolAddress(handle));
@@ -518,6 +572,18 @@ final class _Text {
   late final PoolLayout _layout;
 
   ProcedureText result() {
+    if (_pending.isNotEmpty) {
+      // A trailing label on a no-word sentence (NOTE, CALL, ENTER)
+      // never reaches the binder: no attested print, and a reference
+      // to it would punch address 0 past the _labels guard.
+      _unruled('a label bound to no word (no sample instance)');
+    }
+    if (_openParagraph != null || _openSection != null) {
+      // The two attested closes are the next label and a written END
+      // (GN)067; catalogue 4.1); no sample procedure runs to the end
+      // of the text still open.
+      _unruled('a procedure open at the end of the text (no sample instance)');
+    }
     _layout = _pool.layout();
     for (final (int index, String Function() operand, int Function() word)
         in _text) {
@@ -907,15 +973,21 @@ final class _Text {
       _statementRegisters.clear();
       final ProcedureSentence scan = sentence.scan;
       final String? name = scan.label;
+      _sentenceLabel = name;
       if (name != null) {
-        if (_openParagraph) {
-          word(); // The previous paragraph's terminal return.
-          _openParagraph = false;
+        final String? open = _openParagraph;
+        if (open != null) {
+          // The previous paragraph's terminal return: the attested
+          // GN)067, named by the IF join label still pending when
+          // END.OF.DETAILS's label closes END.OF.MASTERS.
+          _opIndirect(Op.tra, _labelSym(open));
+          _openParagraph = null;
         }
         label(name);
         if (_doTargets.contains(name) && !_beginsSection(sentence)) {
-          word(); // The call-site-driven return cell (catalogue 4.1).
-          _openParagraph = true;
+          // The call-site-driven return cell (catalogue 4.1).
+          _op(Op.axt, _Sym(() => '0', () => 0));
+          _openParagraph = name;
         }
       }
       _statement = _statementNumberOf(scan);
@@ -929,6 +1001,10 @@ final class _Text {
 
   int _statement = 0;
   Map<Clause, int> _ordinals = const <Clause, int>{};
+
+  /// The label of the sentence the walk is in, which names the section
+  /// a `BEGIN SECTION` clause opens.
+  String? _sentenceLabel;
 
   int _statementNumberOf(ProcedureSentence scan) {
     final String? number = semantics
@@ -961,9 +1037,21 @@ final class _Text {
       case CallClause() || NoteClause() || EnterClause():
         break; // No object word (F p. 59; J 02.04.02.01).
       case BeginSectionClause():
-        _openSection = true;
+        if (_sentenceLabel == null) {
+          _unruled('an unnamed section (no sample instance)');
+        }
+        if (_openSection != null) {
+          // Overwriting the open name would drop its return; every
+          // sample section ends before the next begins.
+          _unruled(
+            'a section beginning inside an open section '
+            '(no sample instance)',
+          );
+        }
+        _openSection = _sentenceLabel;
         _section += 1;
-        word(); // Every section carries a return cell (catalogue 4.1).
+        // Every section carries a return cell (catalogue 4.1).
+        _op(Op.axt, _Sym(() => '0', () => 0));
       case EndClause():
         _endClause(clause);
       case OpenClause(:final allFiles, :final files):
@@ -1004,10 +1092,20 @@ final class _Text {
     if (names != null) {
       label(names.single); // GN)077, GN)078, GN)083 (M3-8).
     }
-    if (_openSection || _openParagraph) {
-      word(); // The terminal return (catalogue 4.1).
-      _openSection = false;
-      _openParagraph = false;
+    if (_openParagraph != null && _openSection != null) {
+      // The one return this END sizes cannot name both cells.
+      _unruled(
+        'an END inside an open paragraph and an open section '
+        '(no sample instance)',
+      );
+    }
+    final String? open = _openParagraph ?? _openSection;
+    if (open != null) {
+      // The terminal return (catalogue 4.1), indirect through the
+      // cell of the procedure the END closes.
+      _opIndirect(Op.tra, _labelSym(open));
+      _openSection = null;
+      _openParagraph = null;
     }
   }
 
@@ -1036,9 +1134,16 @@ final class _Text {
       _unruled('the assigned GO TO (M4-12; no sample instance)');
     }
     for (final GoToTarget target in clause.targets) {
+      _checkTarget(target.name);
+      if (_doTargets.contains(target.name.text) ||
+          _sections.contains(target.name.text)) {
+        // A celled target: no rule picks the cell against the word
+        // after it, and every attested target is cell-less.
+        _unruled('a GO TO naming a celled procedure (M4-12)');
+      }
       final CondExpr? condition = target.when;
       if (condition == null) {
-        word(); // The TRA.
+        _op(Op.tra, _labelSym(target.name.text));
       } else {
         // The target's TRA is the true slot of the vector itself, and
         // the false outcomes fall to the next clause or past the last.
@@ -1058,12 +1163,27 @@ final class _Text {
       _unruled('DO EXACTLY / USING / GIVING (notes section 7)');
     }
     if (clause.indices.isEmpty) {
-      words(3); // AXT *+3,7 / SXA cell,4 / TRA proc+1.
+      _callTriple(clause.procedure);
       _callClears();
       return;
     }
     _doFor(clause);
   }
+
+  /// The call `AXT *+3,7 / SXA P,4 / TRA P+1` (the attested 00370):
+  /// return address into 7, through the cell, into the body.
+  void _callTriple(NameReference procedure) {
+    _checkTarget(procedure);
+    final int here = _location;
+    _op(Op.axt, _Sym(() => '*+3', () => here + 3), tag: 7);
+    _op(Op.sxa, _labelSym(procedure.text), tag: 4);
+    _op(Op.tra, _entrySym(procedure));
+  }
+
+  /// `P+1` — a called procedure's first instruction, one word past its
+  /// return cell (catalogue 4.1).
+  _Sym _entrySym(NameReference procedure) =>
+      _Sym(() => '${procedure.text}+1', () => _procedureEntry(procedure) + 1);
 
   /// DO FOR (catalogue 4.1): 11 + 5·M words, M the positional
   /// indicators the loop index drives; a five-name later-pass run,
@@ -1073,19 +1193,31 @@ final class _Text {
     if (clause.indices.length > 1) {
       _unruled('a multi-index DO (notes section 7)');
     }
+    _checkTarget(clause.procedure);
     final DoIndex index = clause.indices.single;
     final DataItem? indexItem = _item(index.index);
-    if (indexItem != null) {
-      _decimal(indexItem);
+    if (indexItem == null) {
+      _unruled('a DO FOR index with no data definition (no sample instance)');
+    }
+    _decimal(indexItem);
+    if (_located(indexItem)) {
+      // The expansion reads and stores the index with no base load
+      // in its word count.
+      _unruled('a located DO FOR index (no sample instance)');
     }
     final driven = <(DataItem, String)>[
       for (final (DataItem, String) each in semantics.positionalIndicators)
         if (each.$2 == index.index.text) each,
     ];
-    final int m = driven.length;
+    if (driven.length > 1) {
+      // The M4-6 name run is fitted to one driven indicator; no rule
+      // derives the run for two.
+      _unruled('a DO FOR driving two indicators (M4-6; no sample instance)');
+    }
+    final bounds = <PoolHandle>[];
     for (final bound in <ArithExpr>[index.from, index.by, index.to]) {
       if (bound case LiteralOperand(:final literal)) {
-        _numericLiteral(literal);
+        bounds.add(_numericLiteral(literal));
       } else {
         // A field-name or signed bound is legal (F pp. 50-51; D10.7)
         // but the sample's bounds are all plain literals, so neither
@@ -1093,8 +1225,9 @@ final class _Text {
         _unruled('a DO FOR bound of ${bound.runtimeType} (no sample instance)');
       }
     }
+    final strides = <PoolHandle>[];
     for (final (DataItem item, _) in driven) {
-      _tableStride(item);
+      strides.add(_tableStride(item));
       _pool.base('${_printedName(item)}+0');
     }
     _generated += 1; // The first name of the run is never bound (M4-6).
@@ -1103,12 +1236,42 @@ final class _Text {
     _generated += 1; // The fourth is never bound either (M4-6).
     final String tableBase = _mint();
     final PoolHandle base = _pool.base(_tableBaseKey(driven));
-    equ(tableBase, () => _poolAddress(base));
-    words(4 + 2 * m); // The prologue, to its transfer into the body.
-    equ(bodyEntry, () => _procedureEntry(clause.procedure) + 1);
-    word(); // The transfer the EQU line precedes (the attested 00710).
+    final _Sym baseCell = _cp(base);
+    equ(tableBase, baseCell.value, operand: baseCell.text);
+    // The prologue (the attested 00702): patch the cell to the
+    // increment block, then set the index and each indicator off.
+    _op(Op.axt, _labelSym(increment), tag: 4);
+    _op(Op.sxa, _labelSym(clause.procedure.text), tag: 4);
+    _op(Op.cla, _cp(bounds[0]));
+    _opItem(Op.sto, indexItem);
+    for (final (DataItem item, _) in driven) {
+      _op(Op.cla, _Sym(() => tableBase, baseCell.value));
+      _op(Op.sto, _blockWord(StorageBlock.pi, _indicator(item)));
+    }
+    final _Sym entry = _entrySym(clause.procedure);
+    equ(bodyEntry, entry.value, operand: entry.text);
+    // The transfer the EQU line precedes (the attested 00710), in the
+    // `P+1` print; the back edge below prints the EQU name against
+    // the same address.
+    _op(Op.tra, entry);
     label(increment);
-    words(6 + 3 * m); // The increment block.
+    // The increment block: step the index, step each indicator by its
+    // stride, and take the D5.1 magnitude exit.
+    _opItem(Op.cla, indexItem);
+    _op(Op.add, _cp(bounds[1]));
+    _opItem(Op.sto, indexItem);
+    for (var i = 0; i < driven.length; i++) {
+      final _Sym indicator = _blockWord(
+        StorageBlock.pi,
+        _indicator(driven[i].$1),
+      );
+      _op(Op.cla, _cp(strides[i]));
+      _op(Op.add, indicator);
+      _op(Op.sto, indicator);
+    }
+    _op(Op.cla, _cp(bounds[2]));
+    _opItem(Op.sub, indexItem);
+    _op(Op.tpl, _Sym(() => bodyEntry, entry.value));
     _callClears();
   }
 
@@ -1158,7 +1321,7 @@ final class _Text {
       label(names.first);
     }
     if (atEnd.bareName != null) {
-      words(3); // The plain-DO triple, unchanged.
+      _callTriple(atEnd.bareName!); // D6.6: compiled as DO name.
     } else if (atEnd.statement != null) {
       _clause(atEnd.statement!);
     }
@@ -2261,12 +2424,7 @@ final class _Text {
           final int register = _indicatorPrologue(item);
           // The element the indicator addresses: `CAS 0,r`, the word
           // the register alone reaches (the attested 01412).
-          _emit(
-            mnemonic(Op.cas),
-            formOf(Op.cas),
-            () => '0,$register',
-            () => typeBWord(Op.cas, tag: register),
-          );
+          _op(Op.cas, _Sym(() => '0', () => 0), tag: register);
         } else {
           _loadBaseOf(item);
           _opItem(Op.cas, item);

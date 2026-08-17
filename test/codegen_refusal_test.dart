@@ -1,4 +1,5 @@
-/// The refusal sites of chunks B1 and B2 (M4-2 as amended 2026-08-15):
+/// The refusal sites of chunks B1 through B5 (M4-2 as amended
+/// 2026-08-15):
 /// a valid shape the sample never reaches has no attested generated
 /// form, so the sizers throw [UnrecoveredShape] rather than invent one.
 /// Every site a valid program reaches is pinned here, one program per
@@ -714,6 +715,219 @@ void main() {
         _refuses(['            IF LONG = LONG THEN STOP RUN.']),
         'a comparison past one word (M4-11, the SYS)162 boundary)',
       );
+    });
+  });
+
+  group('the B5 refusal sites (M4-12, M4-13)', () {
+    test('a GO TO naming a DO-called procedure', () {
+      // Msg 128 says the 1962 compiler bypassed the transfer, and no
+      // listing site shows the bypass's object form, so the shape
+      // stays unrecovered behind the message.
+      expect(
+        _refuses(
+          ['            DO RTN.', '            GO TO RTN.'],
+          flagged: ['128,00'],
+        ),
+        'a GO TO naming a celled procedure (M4-12)',
+      );
+    });
+
+    test('a GO TO naming a section', () {
+      // A section carries a cell even with no DO, and this shape
+      // reaches the sizers with no diagnostic at all.
+      expect(
+        _refuses([
+          '            GO TO SEC.',
+          '      SEC.  BEGIN SECTION.',
+          '            SET NUM = NUM + NUM.',
+          '            END SEC.',
+        ]),
+        'a GO TO naming a celled procedure (M4-12)',
+      );
+    });
+
+    test('a section beginning inside an open section', () {
+      expect(
+        _refuses([
+          '      S1.   BEGIN SECTION.',
+          '            SET NUM = NUM + NUM.',
+          '      S2.   BEGIN SECTION.',
+          '            SET NUM = NUM + NUM.',
+          '            END S2.',
+        ]),
+        'a section beginning inside an open section (no sample instance)',
+      );
+    });
+
+    test('an END inside an open paragraph and an open section', () {
+      expect(
+        _refuses([
+          '      SEC.  BEGIN SECTION.',
+          '            DO INNER.',
+          '      INNER.  SET NUM = NUM + NUM.',
+          '            END SEC.',
+        ]),
+        'an END inside an open paragraph and an open section '
+        '(no sample instance)',
+      );
+    });
+
+    test('an unnamed section', () {
+      expect(
+        _refuses(['            BEGIN SECTION.']),
+        'an unnamed section (no sample instance)',
+      );
+    });
+
+    test('a DO FOR index with no data definition', () {
+      expect(
+        _refuses(['            DO RTN FOR ZZZ = 1(1)12.'], flagged: ['108,00']),
+        'a DO FOR index with no data definition (no sample instance)',
+      );
+    });
+
+    test('a located DO FOR index', () {
+      expect(
+        _refuses(
+          ['            DO RTN FOR LIDX = 1(1)12.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'LREC', level: '1', type: 'RECORD'),
+            dataCard(
+              name: 'LIDX',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '99',
+            ),
+          ],
+          environment: [
+            environmentCard(
+              name: 'TAPE1',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,LREC,BLOCKSIZE 5',
+            ),
+          ],
+        ),
+        'a located DO FOR index (no sample instance)',
+      );
+    });
+
+    test('a DO FOR driving two indicators', () {
+      expect(
+        _refuses(
+          [
+            '            IF NUM = TAB CELL (IDX) THEN STOP RUN.',
+            '            IF NUM = TAB2 CEL2 (IDX) THEN STOP RUN.',
+            '            DO RTN FOR IDX = 1(1)12.',
+          ],
+          data: [
+            ..._data(),
+            dataCard(name: 'TAB2', level: '1', quantity: '12'),
+            dataCard(
+              name: 'CEL2',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+          ],
+        ),
+        'a DO FOR driving two indicators (M4-6; no sample instance)',
+      );
+    });
+
+    test('a transfer to an undefined procedure', () {
+      // Msg 127 says the 1962 compiler bypassed the transfer; the
+      // deferred binder would punch address 0 instead.
+      expect(
+        _refuses(['            GO TO AWAY.'], flagged: ['127,00']),
+        'a transfer or call to an undefined procedure '
+        '(behind msgs 127 and 188)',
+      );
+    });
+
+    test('a call of an undefined procedure', () {
+      expect(
+        _refuses(['            DO AWAY.'], flagged: ['188,00']),
+        'a transfer or call to an undefined procedure '
+        '(behind msgs 127 and 188)',
+      );
+    });
+
+    test('a two-word procedure reference', () {
+      // The D2.5 section-qualified form is valid upstream
+      // (transfer_checks_test.dart) but the binder holds single-word
+      // labels only.
+      expect(
+        _refuses([
+          '            GO TO S X.',
+          '      S.    BEGIN SECTION.',
+          '      X.    SET NUM = NUM + NUM.',
+          '            END S.',
+        ]),
+        'a two-word procedure reference (D2.5; no sample instance)',
+      );
+    });
+
+    test('a procedure name defined twice', () {
+      // D2.5 scopes the two X labels to their sections; the flat
+      // binder would keep only the later address.
+      expect(
+        _refuses([
+          '      S1.   BEGIN SECTION.',
+          '      X.    SET NUM = NUM + NUM.',
+          '            END S1.',
+          '      S2.   BEGIN SECTION.',
+          '      X.    SET NUM = NUM + TOT.',
+          '            END S2.',
+        ]),
+        'a procedure name defined twice (no sample instance)',
+      );
+    });
+
+    test('a label bound to no word', () {
+      // NOTE emits no word, so a trailing labelled NOTE never reaches
+      // the binder; no _tail, whose words would take the label.
+      final SemanticResult semantics = runJob(
+        data: _data(),
+        procedure: [
+          '            GO TO X.',
+          '            STOP RUN.',
+          '      X.    NOTE DONE.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      expect(semantics.stopped, isFalse);
+      try {
+        runCodegen(semantics);
+        fail('generated code without refusing');
+      } on UnrecoveredShape catch (refusal) {
+        expect(refusal.shape, 'a label bound to no word (no sample instance)');
+      }
+    });
+
+    test('a procedure open at the end of the text', () {
+      // No _tail here: its label would close the paragraph.
+      final SemanticResult semantics = runJob(
+        data: _data(),
+        procedure: [
+          '            DO PARA.',
+          '            STOP RUN.',
+          '      PARA.  SET NUM = NUM + NUM.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      expect(semantics.stopped, isFalse);
+      try {
+        runCodegen(semantics);
+        fail('generated code without refusing');
+      } on UnrecoveredShape catch (refusal) {
+        expect(
+          refusal.shape,
+          'a procedure open at the end of the text (no sample instance)',
+        );
+      }
     });
   });
 }

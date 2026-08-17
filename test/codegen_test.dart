@@ -179,4 +179,62 @@ void main() {
       );
     });
   });
+
+  group('the B5 shapes the sample never reaches', () {
+    test('AT END with a bare name compiles as DO name (D6.6)', () {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+          dataCard(name: 'FLD', level: '2', description: 'A(6)'),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          '            GET IREC, AT END WRAP.UP.',
+          '            STOP RUN.',
+          '      WRAP.UP.  STOP RUN.',
+          '            END.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final String text = renderObjectLines(
+        runCodegen(semantics).units,
+      ).join('\n');
+      expect(text, contains('AXT    *+3,7'));
+      expect(text, contains('SXA    WRAP.UP,4'));
+      expect(text, contains('TRA    WRAP.UP+1'));
+      expect(text, contains('WRAP.UP        AXT    0'));
+    });
+
+    test('an END with a paragraph open returns through its cell', () {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+        ],
+        procedure: [
+          '            DO PARA.',
+          '            STOP RUN.',
+          '      PARA.  SET NUM = NUM + NUM.',
+          '            END.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final String text = renderObjectLines(
+        runCodegen(semantics).units,
+      ).join('\n');
+      expect(text, contains('PARA           AXT    0'));
+      expect(text, contains('TRA*   PARA'));
+    });
+  });
 }

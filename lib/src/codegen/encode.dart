@@ -85,8 +85,12 @@ WordForm formOf(Op op) => switch (op) {
 };
 
 /// A type-B instruction word: the operation field, then tag and address.
-int typeBWord(Op op, {int tag = 0, int address = 0}) =>
+/// [indirect] sets the flag bits of positions 12 and 13, which the
+/// OCTAL column prints as the group `60` (the attested `TRA*` at LOC
+/// 00350).
+int typeBWord(Op op, {int tag = 0, int address = 0, bool indirect = false}) =>
     (operationFields[op]! << 24) |
+    ((indirect ? 3 : 0) << 22) |
     ((tag & 7) << 15) |
     (address & Word36.fieldMask15);
 
