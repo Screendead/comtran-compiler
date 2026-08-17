@@ -71,8 +71,6 @@ M4 executes I/O-free programs.
   | B7 | The close-out — the `USE 1` and `BGN 2,PI)1` head rows, the four block sizes, the constant pool, the page furniture, and the full listing diff. |
   | B8 | The diagnostics — msg 942 widened (M4-5), ids 946 and 947 reserved (M4-18), and the D10.2 stop shape M4-2 defers to here. |
 
-
-
 ## Pipeline position and the text model
 
 - **M4-2. A separate phase over `SemanticResult`.** The code generator is
@@ -814,7 +812,8 @@ M4 executes I/O-free programs.
   STOP RUN's (D2.7). STOP n has no sample site and refuses (notes
   section 7); its D2.7 reading (the SYS)178 call alone, the halt in the
   handler) stands unbuilt. The statement stamp is a pool pair: the
-  statement number in BCD, a comma, two digits, and three blanks. Each GET sequence opens with it as a tag-0 no-op,
+  statement number in BCD, a comma, two digits, and three blanks. Each
+  GET sequence opens with it as a tag-0 no-op,
   `TXH CP)+a,0,CP)+b`; SYS)178's parameters carry it; no other statement
   emits one (five attested sites, statements 188, 190, 191, 194 and 199).
   **Amended 2026-08-15, Jack's ruling (the chunk B1 review record). The
@@ -840,14 +839,14 @@ M4 executes I/O-free programs.
   `LXA BL)n,4 / SXA GN)a,4` then the call, GN)a labeling the IOST word
   (attested, statement 208). CLOSE ALL FILES is the SYS)177 pair. The
   record's file lists are public since M3-11; the `04000 + k` ordinal
-  reads off the parsed FILE cards: no new binder exposure.
+  reads off the FILE cards: no new binder exposure.
   **Amended 2026-08-17, chunk B6.** Every other I/O form refuses (M4-2
-  as amended; notes section 7): OPEN or
-  CLOSE naming files, GET RECORD FROM, GET with no AT END (SYS)265
-  unattested), GET from a file declaring ON ERROR (the SYS)283
-  replacement is unknown), GET of a transmitted record, FILE record IN
-  file, and a GET or FILE record off the roster, on other than one
-  matching file, or where two FILE cards share a name.
+  as amended): OPEN or CLOSE naming files (notes section 7), GET RECORD
+  FROM, GET with no AT END (SYS)265 unattested), GET from a file
+  declaring ON ERROR (the SYS)283 replacement is unknown), GET of a
+  transmitted record, and FILE record IN file. A GET or FILE refuses
+  off the roster, on other than one matching file, or where two FILE
+  cards share a name.
 
 ## The object deck and the loader cards
 

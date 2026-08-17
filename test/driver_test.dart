@@ -25,10 +25,10 @@ void main() {
           '      *FINISH',
           r'$CMPLE JOBB',
           '      *PROCEDURE',
-          // STOP n, not DISPLAY: codegen has no attested DISPLAY shape
-          // and refuses to invent one (chunk B1; the notes, section 7).
-          '            STOP 7.',
-          '            STOP RUN.',
+          // Attested shapes only (B2, B6): the happy path must reach
+          // codegen without a refusal.
+          '            GO TO LAST.',
+          '      LAST.  STOP RUN.',
           '      *FINISH',
         ]),
       );
@@ -36,6 +36,8 @@ void main() {
       expect(deck.maxSeverity, 0);
       final JobCompilation second = deck.jobs[1];
       expect(second.diagnostics, isEmpty);
+      expect(second.unrecovered, isNull);
+      expect(second.codegen, isNotNull);
       expect(second.frontEnd.statementCount, 2);
       // The numbering restarts at 1,00 per job (D11.2): card 3 is the
       // second job's first sentence.

@@ -49,7 +49,7 @@ Terms that appear without expansion:
 | M3 — the semantic layer | Done 2026-08-05 (stages 1–2 2026-08-04; stage 3, the listing extension, 2026-08-05) | `docs/design/m3-data.md`, `lib/src/data/` |
 | M4 decision walk (M4-1 to M4-21) | Done 2026-08-05 | `docs/design/m4-codegen.md` |
 | M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
-| M4 stage 2 — core-verb text | Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunk B1, the address spine, done 2026-08-15; chunks B2 to B6, the verb generators, done 2026-08-16 and 2026-08-17 — every mnemonic, operand and word of every sized site matches the target, and no bare word remains; B7 next | `test/fixtures/90.05-object-listing.target`, `test/fixtures/90.05-object-code-notes.md` |
+| M4 stage 2 — core-verb text | Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunk B1, the address spine, done 2026-08-15; chunks B2 to B6, the verb generators, done 2026-08-16 and 2026-08-17 — every mnemonic, operand and word of the procedure text matches the target; the block words and the constant pool wait for B7 | `test/fixtures/90.05-object-listing.target`, `test/fixtures/90.05-object-code-notes.md` |
 | M4 stages 3–4, M5, M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); hardens in M4 stage 4 | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -82,15 +82,16 @@ chunks B2 to B5 closed 2026-08-16, and chunk B6 closed 2026-08-17.
 `lib/src/codegen/` holds the text model (M4-3), the program image
 (M4-4), the storage-map print (M4-7), the `--emit-code` dump (M4-19),
 the encode table (`encode.dart`), and the generator itself
-(`procedure.dart`, `pool.dart`, `blocks.dart`). The generator sizes,
-places and fills every unit of the object program: no bare word
-remains.
+(`procedure.dart`, `pool.dart`, `blocks.dart`). The generator sizes
+and places every unit of the object program and fills the whole
+procedure text; the block words and the constant pool print bare until
+chunk B7 fills them.
 
 `test/object_spine_test.dart` is the chunk oracle, and it is monotone.
 It reads three columns against the verified target: the LOC and label
 spine on every line, the mnemonic and operand on every line a generator
 owns, and the OCTAL word on every line that carries one. It pins the
-two column counts. Each later verb chunk raises
+two column counts. Each later chunk raises
 them, and no chunk may lower one: a column that stops being generated
 fails the test rather than passing unread. The golden
 `test/goldens/90.05-payroll.storage-map` holds the whole render, and
