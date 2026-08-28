@@ -73,19 +73,20 @@ List<String> _procedure(List<String> sentences) => [
 
 void main() {
   group('the name tally (M4-5; msg 942)', () {
-    // The generator's fixed names: the five block heads, `BL)1`,
-    // `IOC)29`, and the two pool seeds — nine, entered ahead of the
-    // first sentence. `STOP RUN` then enters its two stamp words, the
-    // ` STOP ` and ` RUN  ` words, SYS)178, SYS)177, IOC)1 and IOC)40.
+    // The generator's fixed names: the five block heads, the head
+    // row's `PI)1`, `BL)1`, `IOC)29`, and the two pool seeds — ten,
+    // entered ahead of the first sentence. `STOP RUN` then enters its
+    // two stamp words, the ` STOP ` and ` RUN  ` words, SYS)178,
+    // SYS)177, IOC)1 and IOC)40.
     test('the 3501st name of the program crosses in the generator', () {
-      // 3490 programmer names and GN)000 make 3491; the nine fixed
+      // 3489 programmer names and GN)000 make 3490; the ten fixed
       // names make 3500; the stamp's first word is the 3501st.
-      final JobCompilation job = _compile(_namesThenStop(3490));
+      final JobCompilation job = _compile(_namesThenStop(3489));
       expect(_ids(job), ['942,00']);
       final Diagnostic capacity = job.diagnostics.single;
-      expect(capacity.card?.cardNumber, 3493, reason: 'the STOP RUN card');
+      expect(capacity.card?.cardNumber, 3492, reason: 'the STOP RUN card');
       expect(job.semantics!.stopped, isFalse);
-      expect(job.semantics!.nameCount, 3491);
+      expect(job.semantics!.nameCount, 3490);
       expect(job.codegen!.stopped, isTrue);
       expect(job.codegen!.units, isEmpty);
       expect(job.codegen!.image, isNull);
@@ -94,9 +95,9 @@ void main() {
     });
 
     test('a fixed name crossing the limit reports against no statement', () {
-      // 3491 programmer names and GN)000 make 3492: the ninth fixed
+      // 3490 programmer names and GN)000 make 3491: the tenth fixed
       // name is the 3501st, and no statement owns it (D11.3).
-      final JobCompilation job = _compile(_namesThenStop(3491));
+      final JobCompilation job = _compile(_namesThenStop(3490));
       expect(_ids(job), ['942,00']);
       expect(job.diagnostics.single.card, isNull);
       expect(job.codegen!.stopped, isTrue);
@@ -127,7 +128,7 @@ void main() {
     test('a SYS) or IOC) number counts once, not per use', () {
       // Two STOP RUNs share every generated name but the second's
       // statement-number word: the second frame enters one name, not
-      // its eight. 3481 names, GN)000 and the nine fixed names make
+      // its eight. 3480 names, GN)000 and the ten fixed names make
       // 3491; the first frame's eight make 3499; the second frame's
       // one makes 3500 and compiles. One more programmer name and the
       // second frame's word is the 3501st.
@@ -140,12 +141,12 @@ void main() {
         '            STOP RUN.',
         '      *FINISH',
       ];
-      final JobCompilation full = _compile(twoStops(3481));
+      final JobCompilation full = _compile(twoStops(3480));
       expect(full.diagnostics, isEmpty);
       expect(full.codegen!.stopped, isFalse);
-      final JobCompilation over = _compile(twoStops(3482));
+      final JobCompilation over = _compile(twoStops(3481));
       expect(_ids(over), ['942,00']);
-      expect(over.diagnostics.single.card?.cardNumber, 3486);
+      expect(over.diagnostics.single.card?.cardNumber, 3485);
     });
   });
 
@@ -181,10 +182,16 @@ void main() {
       expect(over.codegen!.stopped, isTrue);
     });
 
-    test('--no-table-limits lifts the counter', () {
+    test('--no-table-limits lifts the counter and changes nothing else', () {
       final JobCompilation job = _compile(literals(495), tableLimits: false);
       expect(job.diagnostics, isEmpty);
       expect(job.codegen!.image!.blockWords[StorageBlock.cp], 501);
+      // The D9.7 oracle: under the limit, the switch changes no output.
+      final full = '${literals(494).join('\n')}\n';
+      expect(
+        emitCode(compileDeck(mirrorToDeck(full), tableLimits: false)),
+        emitCode(compileDeck(mirrorToDeck(full))),
+      );
     });
   });
 
@@ -327,7 +334,7 @@ void main() {
     test('a generator stop never starves the next job (J 90.04.02)', () {
       final List<String> lines = [
         r'$CMPLE FULL',
-        ..._namesThenStop(3490),
+        ..._namesThenStop(3489),
         r'$CMPLE GOOD',
         '      *PROCEDURE',
         '            STOP RUN.',

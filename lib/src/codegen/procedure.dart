@@ -221,10 +221,12 @@ final class _Text {
       _generated = semantics.allocation?.generatedCount ?? 0 {
     _pool = ConstantPool(onEntry: _poolEntry);
     // Every program's fixed names: the five block heads, printed at
-    // `BSS 0` too, and the pointer block's `BL)1` and `IOC)29` (M4-4).
+    // `BSS 0` too, the head row's `PI)1`, and the pointer block's
+    // `BL)1` and `IOC)29` (M4-4).
     for (final StorageBlock block in StorageBlock.values) {
       _name(block.symbol);
     }
+    _name('PI)1');
     _name('BL)1');
     _name('IOC)29');
     for (final ParsedGroup group in semantics.parse.groups) {
@@ -752,6 +754,8 @@ final class _Text {
     checks.names.enter(_card);
     _poolEntries += 1;
     if (checks.tableLimits && _poolEntries == constantPoolCapacity + 1) {
+      // The seeds are entries 1 and 2, so the 501st is created inside
+      // a sentence, after the walk anchored one.
       _report(msgConstantPoolOverflow, card: _card, clause: _clauseNumber);
     }
   }
@@ -766,11 +770,13 @@ final class _Text {
     int clause = 0,
     List<String> operands = const <String>[],
   }) {
-    final SourceCard? anchor = at?.card ?? card;
-    final diagnostic = anchor == null
-        ? Diagnostic.wholeProgram(message, operands: operands)
-        : Diagnostic(message, anchor, column: at?.column, operands: operands);
-    if (anchor != null && clause > 0) {
+    final diagnostic = Diagnostic(
+      message,
+      at?.card ?? card!,
+      column: at?.column,
+      operands: operands,
+    );
+    if (clause > 0) {
       diagnostic.clause = clause;
     }
     checks!.diagnostics.add(diagnostic);

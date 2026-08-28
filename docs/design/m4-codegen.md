@@ -230,10 +230,10 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   A SYS) or IOC) reference counts once per distinct number referenced, not
   per use (ours; the table is a name dictionary).
   **Amended 2026-08-28, chunk B8.** A name is each distinct generated
-  symbol the text defines or references — block heads, `BL)1`,
+  symbol the text defines or references — block heads, `PI)1`, `BL)1`,
   `IOC)29`, pool entries (seeds included), SYS) and IOC) numbers,
   result cells by section, `PI)n` and `BL)n` words, bound later-pass
-  GN names. The nine fixed names report at 9999,99. Rejected readings:
+  GN names. Ten fixed names report at 9999,99. Rejected readings:
   `review/2026-08-28-m4-b8-underdetermined`.
 - **M4-6. The later-pass GN numbers (GN)084 on).** M3-23 allocates the
   source-order labels through GN)083 and hands the rest to M4: the
