@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chunk B8 — seven rules the diagnostics had to settle</title>
+<style>
+:root {
+  --paper:#F7F8F6; --raised:#FFFFFF; --ink:#14171A; --muted:#5C6560;
+  --rule:#C9CFC8; --hair:#E1E5DF; --stamp:#B3261E; --stamp-soft:#FBEAE8;
+  --settled:#40685A;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#141715; --raised:#1C201D; --ink:#E7EBE5; --muted:#9AA69D;
+    --rule:#3A423C; --hair:#2A302C; --stamp:#FF7A6B; --stamp-soft:#33201D;
+    --settled:#7FB8A2;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#141715; --raised:#1C201D; --ink:#E7EBE5; --muted:#9AA69D;
+  --rule:#3A423C; --hair:#2A302C; --stamp:#FF7A6B; --stamp-soft:#33201D;
+  --settled:#7FB8A2;
+}
+* { box-sizing:border-box; }
+body {
+  background:var(--paper); color:var(--ink); font-family:var(--serif);
+  font-size:17px; line-height:1.62; margin:0;
+  padding:clamp(1.5rem,4vw,4rem) clamp(1rem,5vw,2rem);
+}
+main { max-width:47rem; margin:0 auto; display:flex; flex-direction:column; gap:2.4rem; }
+h1 { font-size:clamp(1.7rem,4.2vw,2.4rem); line-height:1.16; margin:0; text-wrap:balance;
+     letter-spacing:-0.015em; }
+h2 { font-size:1.32rem; margin:0 0 .2rem; text-wrap:balance; letter-spacing:-0.01em; }
+h3 { font-size:1.02rem; margin:1.6rem 0 .3rem; }
+p, li { margin:0 0 .85rem; }
+li:last-child { margin-bottom:0; }
+ul, ol { padding-left:1.15rem; margin:0 0 .85rem; }
+a { color:var(--ink); text-decoration-color:var(--rule); text-underline-offset:.16em; }
+a:hover { text-decoration-color:var(--stamp); }
+a:focus-visible { outline:2px solid var(--stamp); outline-offset:2px; border-radius:2px; }
+code { font-family:var(--mono); font-size:.87em; background:var(--hair);
+        padding:.08em .3em; border-radius:2px; }
+.eyebrow { font-family:var(--mono); font-size:.7rem; letter-spacing:.16em;
+            text-transform:uppercase; color:var(--muted); margin:0 0 .7rem; }
+header { border-bottom:2px solid var(--ink); padding-bottom:1.4rem; }
+header p.standfirst { font-size:1.06rem; color:var(--muted); margin:.75rem 0 0; }
+section { display:flex; flex-direction:column; gap:.2rem; }
+.answer { background:var(--raised); border:1px solid var(--hair);
+           border-left:3px solid var(--ink); padding:1.15rem 1.3rem; }
+.answer ol { margin:0 0 .85rem; padding-left:1.2rem; }
+.answer li { margin-bottom:.5rem; }
+.answer p:last-child { margin-bottom:0; }
+.chip { font-family:var(--mono); font-size:.66rem; letter-spacing:.14em;
+         text-transform:uppercase; padding:.24em .6em; border-radius:2px;
+         border:1px solid currentColor; white-space:nowrap; }
+.chip.decided { color:var(--stamp); background:var(--stamp-soft); }
+.chip.done { color:var(--settled); }
+.itemhead { display:flex; gap:.75rem; align-items:baseline; flex-wrap:wrap;
+             margin-bottom:.35rem; }
+.item { border-top:1px solid var(--rule); padding-top:1.3rem; }
+.item.needs { border-top:2px solid var(--stamp); }
+figure { margin:1rem 0 1.2rem; }
+.plate { background:var(--raised); border:1px solid var(--rule); padding:.55rem;
+          overflow-x:auto; }
+.plate pre { margin:0; font-family:var(--mono); font-size:.78rem; line-height:1.5; }
+figcaption { font-family:var(--mono); font-size:.71rem; line-height:1.5; color:var(--muted);
+              margin-top:.5rem; }
+table { border-collapse:collapse; font-size:.92rem; margin:.6rem 0 1rem;
+        font-variant-numeric:tabular-nums; }
+th, td { text-align:left; padding:.3rem .7rem .3rem 0; vertical-align:top;
+         border-bottom:1px solid var(--hair); }
+th { font-family:var(--mono); font-size:.7rem; letter-spacing:.1em;
+     text-transform:uppercase; color:var(--muted); font-weight:normal; }
+td.n { text-align:right; font-family:var(--mono); font-size:.85rem; }
+.opt { border-left:3px solid var(--rule); padding:.15rem 0 .15rem 1rem; margin:0 0 1rem; }
+.opt.pick { border-left-color:var(--stamp); }
+.opt .name { font-family:var(--mono); font-size:.75rem; letter-spacing:.08em;
+              text-transform:uppercase; }
+footer { border-top:1px solid var(--rule); padding-top:1rem; font-size:.85rem;
+          color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+<p class="eyebrow">Review record · 2026-08-28 · chunk B8 · commits 8219b6f and f38ea63</p>
+<h1>Seven rules the diagnostics had to settle</h1>
+<p class="standfirst">Chunk B8 gives the code generator its diagnostics.
+It widens msg 942 to the generated names and counts the constant pool
+for msg 172. It adds the two <code>--pedantic</code> notes 946 and 947,
+and gives the phase the D10.2 stop. The 1962 sample draws none of them, so
+no listing decides their shape. The records that ask for the chunk leave
+seven rules open, and each has one viable reading. All seven are taken
+under the section 12 standing rule, and silence lets them stand.</p>
+</header>
+
+<section class="answer">
+<h2>What was decided, in seven lines</h2>
+<ol>
+<li><strong>A name is one distinct generated symbol</strong> the object
+text defines or references, for the msg 942 tally. One counter runs
+across the resolver, the allocator and the generator. Ten fixed names
+enter ahead of the first sentence.</li>
+<li><strong>Msg 172, the constant-pool overflow, lands in chunk B8.</strong>
+The 501st pool entry draws it at severity 5, and the two seeds count.</li>
+<li><strong>Msg 946 is silent only when q &gt; 0, p ≤ r, and q divides
+r − p.</strong> A descending loop such as <code>12(-1)1</code> notes,
+because the decoded exit runs its body once.</li>
+<li><strong>Msg 947 reads the generator's own DO graph.</strong> One note
+per offending call site; a DO on the main line never notes.</li>
+<li><strong>A severity 5 in the generator returns
+<code>CodegenResult.stopped()</code></strong>: no assembly units and no
+program image. Both dumps print the stopped line.</li>
+<li><strong>Diagnostics ride on the measuring pass</strong>, so a note
+survives a refusal thrown on that pass.</li>
+<li><strong>The allocator's crossing leaves the LOC and GN columns
+blank</strong>, as every semantic stop does.</li>
+</ol>
+<p>Each is one commit to overturn, in
+<code>lib/src/codegen/procedure.dart</code>, <code>codegen.dart</code> or
+<code>lib/src/data/</code>. <code>test/codegen_diagnostics_test.dart</code>
+pins every number quoted below, and no golden moves: the sample stays far
+below both limits and draws neither note. One count was corrected
+before this record was pushed: item 1 says which, and who caught it.
+The record asks nothing and authorizes nothing; the B8 pull request
+waits for Jack.</p>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>1 · What one generated name is, for the msg 942 tally</h2></div>
+
+<p><strong>The decision.</strong> [J 90.01.05] item a) counts "all
+program names whether defined by the programmer or generated by the
+Compiler" in one 3500-name dictionary. M4-5 binds the eight classes of
+[J 90.02.03] to that count. It does not say what one generated name is.
+The chunk counts every distinct generated symbol the object text defines
+or references:</p>
+<ul>
+<li>the five block heads <code>RS)</code>, <code>TS)</code>,
+<code>BL)</code>, <code>PI)</code> and <code>CP)</code>;</li>
+<li>the head row's <code>PI)1</code>, and the pointer block's
+<code>BL)1</code> and <code>IOC)29</code>;</li>
+<li>every constant-pool entry, the two seeds included, as one
+<code>CP)+NN</code> name (D8.8);</li>
+<li>each <code>SYS)</code> and <code>IOC)</code> number once, however
+many uses;</li>
+<li>each result-storage cell by section: <code>RS)0</code>,
+<code>2.RS)1</code>;</li>
+<li>each <code>PI)n</code> and <code>BL)n</code> word referenced;</li>
+<li>each later-pass <code>GN)</code> name that binds.</li>
+</ul>
+<p>The tally is one counter continued across the phases. The resolver's
+programmer names come first: one entry per dictionary occurrence,
+exactly as before. The allocator's source-order <code>GN)</code> names
+and <code>GN)000</code> follow. The generator's symbols come last. The
+ten fixed names every program carries enter ahead of the first
+sentence. When one of them is the 3501st, the message reports at
+9999,99, the statement number of an error no statement owns (D11.3).
+<a href="https://github.com/Screendead/comtran-compiler/blob/f38ea63d887daa81b5476ab44e788522e7f88bb8/lib/src/data/name_tally.dart"><code>name_tally.dart</code></a>
+holds the counter, and
+<a href="https://github.com/Screendead/comtran-compiler/blob/f38ea63d887daa81b5476ab44e788522e7f88bb8/lib/src/codegen/procedure.dart#L740-L745"><code>_name</code></a>
+in <code>procedure.dart</code> enters each symbol once.</p>
+
+<p><strong>Why the definition matters.</strong> D9.7 checks each limit on
+increment, so the diagnostic points at the statement that crossed it.
+The definition of a name fixes which statement that is. It also fixes
+whether a program of 3490 names compiles at all.</p>
+
+<p><strong>The evidence.</strong> The tally sites, and the constructor's
+ten fixed names:</p>
+<figure><div class="plate"><pre>_Text(this.semantics, {required int origin, this.image, this.checks})
+  : _origin = origin,
+    _location = origin,
+    _generated = semantics.allocation?.generatedCount ?? 0 {
+  _pool = ConstantPool(onEntry: _poolEntry);
+  // Every program's fixed names: the five block heads, printed at
+  // `BSS 0` too, the head row's `PI)1`, and the pointer block's
+  // `BL)1` and `IOC)29` (M4-4).
+  for (final StorageBlock block in StorageBlock.values) {
+    _name(block.symbol);
+  }
+  _name('PI)1');
+  _name('BL)1');
+  _name('IOC)29');
+  ...
+/// Enters [symbol] in the name tally the first time the text writes
+/// it (M4-5): every generated class counts once per distinct name.
+void _name(String symbol) {
+  final CodegenChecks? checks = this.checks;
+  if (checks != null &amp;&amp; _names.add(symbol)) {
+    checks.names.enter(_card);
+  }
+}</pre></div>
+<figcaption>evidence/1-name-tally.diff and evidence/1b-fixed-names-fix.diff
+— procedure.dart at f38ea63, lines 218 to 231 and 738 to 745.</figcaption></figure>
+
+<p>The tests pin the count with a program of one-character fields and one
+<code>STOP RUN</code>. The stop frame enters eight generator names: its
+two stamp words, the <code>STOP</code> and <code>RUN</code> machine
+words, <code>SYS)178</code>, <code>SYS)177</code>, <code>IOC)1</code> and
+<code>IOC)40</code>.</p>
+<table>
+<tr><th>Programmer names</th><th>Count at the generator's entry</th><th>Result</th></tr>
+<tr><td class="n">3489</td><td>3489 + GN)000 + ten fixed = 3500</td><td>the stamp's first word is the 3501st; 942 at the <code>STOP RUN</code> card, 3492</td></tr>
+<tr><td class="n">3490</td><td>3491 + nine fixed = 3500</td><td>the tenth fixed name is the 3501st; 942 at 9999,99, no card</td></tr>
+<tr><td class="n">3480, two stops</td><td>3491 + the first frame's eight = 3499, the second frame's one = 3500</td><td>compiles: the second frame shares seven names with the first</td></tr>
+<tr><td class="n">3481, two stops</td><td>3500 before the second frame</td><td>the second frame's word is the 3501st; 942 at card 3485</td></tr>
+</table>
+
+<p><strong>The correction.</strong> Commit 8219b6f entered nine fixed
+names and missed <code>PI)1</code>. The head row <code>BGN 2,PI)1</code>
+writes that name for every program
+(<a href="https://github.com/Screendead/comtran-compiler/blob/f38ea63d887daa81b5476ab44e788522e7f88bb8/lib/src/codegen/blocks.dart#L44-L45"><code>counterHead</code></a>
+in <code>blocks.dart</code>), so the definition above counted it and the
+constructor did not. The chunk's internal adversarial review caught it,
+not the author. Commit f38ea63 adds the tenth name and moves every
+pinned number above by one. The table holds the numbers of that
+commit.</p>
+
+<p><strong>What would mislead.</strong> The storage map prints
+<code>RS) BSS 30</code> and <code>TS) BSS 7</code>, and a reader could
+enter 30 and 7 names for them. The <code>BSS</code> operand counts
+words, not items (M4-4 as amended). No word of the object program
+addresses <code>TS)</code>, so the block defines one name: its head.
+The later-pass counter misleads the same way. The sample's run ends at
+GN)093 and prints 084 and 087 nowhere. M4-6 as amended found the
+printer hides nothing, so an unprinted name was never bound.
+<a href="https://github.com/Screendead/comtran-compiler/blob/f38ea63d887daa81b5476ab44e788522e7f88bb8/lib/src/codegen/procedure.dart#L732-L736"><code>_mint</code></a>
+enters the name it returns; the four skipped numbers at lines
+<a href="https://github.com/Screendead/comtran-compiler/blob/f38ea63d887daa81b5476ab44e788522e7f88bb8/lib/src/codegen/procedure.dart#L1535">1535</a>,
+<a href="https://github.com/Screendead/comtran-compiler/blob/f38ea63d887daa81b5476ab44e788522e7f88bb8/lib/src/codegen/procedure.dart#L1538">1538</a>,
+<a href="https://github.com/Screendead/comtran-compiler/blob/f38ea63d887daa81b5476ab44e788522e7f88bb8/lib/src/codegen/procedure.dart#L1851">1851</a>
+and
+<a href="https://github.com/Screendead/comtran-compiler/blob/f38ea63d887daa81b5476ab44e788522e7f88bb8/lib/src/codegen/procedure.dart#L2202">2202</a>
+advance the counter and enter nothing.</p>
+
+<p><strong>The rejected options.</strong></p>
+<div class="opt">
+<p><span class="name">A — count the words each block reserves</span><br>
+<code>RS)</code> enters 30 and <code>TS)</code> 7 for the sample. Cost:
+the count parts from the manual's own word. A dictionary holds names,
+and <code>BSS 7</code> names one. The crossing then moves with the size
+of a program's blocks, which grow with its sections, not with its
+names. M4-4 as amended refutes the reading: the operand counts words,
+and <code>TS)</code> is never addressed.</p>
+</div>
+<div class="opt">
+<p><span class="name">B — count every minted <code>GN)</code> number</span><br>
+The sample enters 084 and 087, two names the text never binds. Cost:
+M4-6 as amended found an unprinted name was never bound, so it is no
+name in the text. A later reader would take the count as two names
+the dictionary held, which the print refutes.</p>
+</div>
+<div class="opt">
+<p><span class="name">C — leave the <code>CP)</code> constants out</span><br>
+[J 90.01.05] item k) gives the constants a table of their own, 500
+entries, so a reader could keep them out of the 3500. Cost: a constant
+is a name by [J 90.02.03]: "In the case of constants (CP references),
+the designation CP)+NN is used". M4-5 names CP among the eight
+classes. A design record outranks the code (CLAUDE.md section 6). The
+taken rule therefore counts each pool entry twice: once in the name
+tally and once in the pool counter. A program near both limits can draw
+942 for a constant. That double count is recorded here, not hidden.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">D — every distinct symbol the text defines or references (taken)</span><br>
+The dictionary is a name table. A symbol the text writes is a name,
+whether the print shows it at a definition or at a reference. One rule
+covers the eight classes, and the resolver's count stays exactly as it
+was. <strong>To overturn:</strong> one commit at the <code>_name</code>
+call sites in <code>procedure.dart</code>; the crossing moves by a
+handful of names per program, and
+<code>test/codegen_diagnostics_test.dart</code> re-pins it. No golden
+moves. <strong>What overturns it:</strong> a second compiled listing
+whose dictionary count prints, or a period note on what the 1962
+dictionary held.</p>
+</div>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>2 · Msg 172, the constant-pool overflow, lands in chunk B8</h2></div>
+
+<p><strong>The decision.</strong> M4-18 lists msg 172 under the code
+generator. The B8 row of M4-1's chunk table names msg 942, ids 946 and
+947 and the stop shape, and does not name 172. The chunk takes it. The
+pool has been complete since chunk B7. Stage 3, the deck, and stage 4,
+the machine, have no diagnostics chunk. D9.7 requires the check on
+increment at the point of overflow. The pool's registration is that
+point:
+<a href="https://github.com/Screendead/comtran-compiler/blob/8219b6ff860e95f680bd8626d121564c1fb7e769/lib/src/codegen/pool.dart#L59-L64"><code>ConstantPool</code></a>
+calls back once per entry created, the seeds included. The 501st entry
+draws 172 at severity 5. The seeds count because they hold pool words.
+<code>CP)+0</code> and <code>CP)+1</code> print in the pool of every
+program. <code>--no-table-limits</code> lifts the counter with the rest
+of the D9.7 class.</p>
+
+<p><strong>The evidence.</strong> The registration choke point:</p>
+<figure><div class="plate"><pre>ConstantPool({this._onEntry}) {
+  _literals[0] = (-1, 0);
+  _literals[1] = (-1, 1);
+  _onEntry?.call();
+  _onEntry?.call();
+}
+...
+T _created&lt;T&gt;(T entry) {
+  _onEntry?.call();
+  return entry;
+}
+...
+/// One new pool entry: a `CP)+NN` name for the tally (M4-5; D8.8),
+/// and the 501st draws msg 172 ([J 90.01.05] item k; D9.7).
+void _poolEntry() {
+  final CodegenChecks? checks = this.checks;
+  if (checks == null) {
+    return;
+  }
+  checks.names.enter(_card);
+  _poolEntries += 1;
+  if (checks.tableLimits &amp;&amp; _poolEntries == constantPoolCapacity + 1) {
+    _report(msgConstantPoolOverflow, card: _card, clause: _clauseNumber);
+  }
+}</pre></div>
+<figcaption>evidence/2-pool-counter.diff — pool.dart at 8219b6f, lines
+59 to 64 and 95 to 98, and procedure.dart, lines 745 to 757.</figcaption></figure>
+
+<p>The test writes <code>SET N = k</code> for k from 2 upward, then
+<code>STOP RUN</code>. The seeds 0 and 1, 494 written literals and the
+stop's four machine words fill the pool at 500 exactly. That program
+compiles with a <code>CP)</code> block of 500 words. One more literal
+makes the stop's <code>RUN</code> word the 501st entry. It draws 172 at
+severity 5, at the <code>STOP RUN</code> card, 499, clause 1, and the
+generator stops. Under <code>--no-table-limits</code> the same program compiles
+with a block of 501.</p>
+
+<p><strong>What would mislead.</strong> The chunk table is the roadmap a
+reader consults first, and its B8 row does not name 172. A reader who
+trusts the row alone expects the counter in a later stage. M4-18 is the
+message inventory, and it places 172 in this stage. The row lists the
+work the chunk was split for; the inventory lists the messages the
+stage owes.</p>
+
+<p><strong>The rejected option.</strong></p>
+<div class="opt">
+<p><span class="name">A — defer msg 172 to stage 3</span><br>
+Cost: stage 2 closes with the counter ownerless, and the checklist row
+stays <code>reserved</code>. Stage 3 encodes the deck from a pool the
+generator has already laid out. A check there runs after the phase
+that overflowed, against D9.7's check-on-increment rule. The diagnostic
+would then point at no statement.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">B — the counter at the pool's registration, in B8 (taken)</span><br>
+The pool exists, the sink exists, and the overflow point is one
+function. <strong>To overturn:</strong> one commit removing the
+<code>onEntry</code> callback and the checklist row's test; the 500
+boundary test goes with it. <strong>What overturns it:</strong> a
+period note that the 1962 constant table was checked elsewhere than at
+entry.</p>
+</div>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>3 · The msg 946 rule</h2></div>
+
+<p><strong>The decision.</strong> With constant p, q and r, the note is
+silent exactly when q &gt; 0, p ≤ r, and q divides r − p. Every other
+triple draws 946: a zero q, a negative q, p above r, and a q that does
+not divide r − p. D5.1's implementation note and M4-18 both say
+"wrong-signed". The chunk reads that word against the decoded magnitude
+exit of D5.1 as amended, <code>loop while r − i ≥ 0</code>. A negative
+q never steps toward r. With p ≤ r the loop never terminates; with p
+&gt; r the body runs once and exits. So a descending loop like
+<code>12(-1)1</code> notes. A constant is a numeric literal or one under
+a minus. A field-name bound is not constant and draws nothing. One
+message text covers the four conditions.
+<a href="https://github.com/Screendead/comtran-compiler/blob/8219b6ff860e95f680bd8626d121564c1fb7e769/lib/src/codegen/procedure.dart#L1592-L1629"><code>_noteConstantParameters</code></a>
+and <code>_constantBound</code> carry it.</p>
+
+<p><strong>The evidence.</strong> The one condition:</p>
+<figure><div class="plate"><pre>final int scale = [p.$2, q.$2, r.$2].reduce(math.max);
+int scaled((int, int) bound) =&gt;
+    bound.$1 * math.pow(10, scale - bound.$2).toInt();
+final int from = scaled(p);
+final int by = scaled(q);
+final int to = scaled(r);
+if (by &gt; 0 &amp;&amp; from &lt;= to &amp;&amp; (to - from) % by == 0) {
+  return;
+}
+_report(
+  msgLoopParametersDoNotStep,
+  at: index.index.anchor,
+  clause: _clauseNumber,
+  operands: &lt;String&gt;[index.index.text],
+);</pre></div>
+<figcaption>evidence/3-msg-946.diff — procedure.dart at 8219b6f, lines
+1599 to 1613.</figcaption></figure>
+
+<p>The test drives <code>DO RTN FOR IDX = p(q)r</code> over a
+twelve-element table under <code>--pedantic</code>:</p>
+<table>
+<tr><th>Parameters</th><th>Result</th></tr>
+<tr><td><code>1(1)12</code>, <code>2(5)12</code>, <code>12(1)12</code>, <code>+1(+1)12</code></td><td>silent</td></tr>
+<tr><td><code>1(0)12</code>, <code>12(1)1</code>, <code>1(5)12</code>, <code>1(2)12</code></td><td>946 at severity 1, card 7, clause 1, operand <code>IDX</code>; default mode silent</td></tr>
+<tr><td><code>1(-1)12</code></td><td>946, then the generator refuses the signed bound; default mode keeps the refusal alone</td></tr>
+<tr><td><code>NUM(1)12</code></td><td>silent: a field-name bound is not constant</td></tr>
+</table>
+<p>The negative arm has one pinned case, <code>1(-1)12</code>. The
+generator refuses any signed bound as a shape with no sample instance
+(M4-13's chunk B5 refusals). So a descending loop notes and then
+refuses too. The note is the only record the listing keeps of such a
+loop; item 6 says why it survives the refusal.</p>
+
+<p><strong>What would mislead.</strong> D5.1's implementation note was
+written under the equality exit, and it says "q has the wrong sign". A
+reader takes "wrong" as "against the direction from p to r", which is
+F's macro expansion. The amendment of 2026-08-05 changed the exit: the
+loop now runs while r − i ≥ 0. Under that exit a descending loop has no
+direction to be wrong against. It runs the body once when p &gt; r, and
+forever when p ≤ r. <code>12(-1)1</code> is the surprising case: the
+programmer expects twelve passes, and the decoded exit gives one.</p>
+
+<p><strong>The rejected options.</strong></p>
+<div class="opt">
+<p><span class="name">A — F's direction reading</span><br>
+q is wrong-signed only when its sign differs from that of r − p. Cost:
+<code>12(-1)1</code> is then silent, although the decoded exit runs its
+body once and leaves the loop. The note passes over the case the decode
+made surprising, and a later reader takes the silence as a working
+loop. The reading also fits the exit the record no longer holds.</p>
+</div>
+<div class="opt">
+<p><span class="name">B — three ids, one per condition</span><br>
+Cost: M4-18 reserves one id, 946, for the D5.1 note. Three ids need an
+amendment to M4-18 and two more checklist rows for one family of
+conditions. The listing gains nothing a reader can act on: the fix is
+the same, rewrite the parameters.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">C — silent only when q &gt; 0, p ≤ r and q divides r − p (taken)</span><br>
+The condition is the decoded exit's own: the index steps from p to r
+exactly, or it does not. <strong>To overturn:</strong> one commit at
+the one condition in <code>_noteConstantParameters</code> and one test
+row. <strong>What overturns it:</strong> a period source that shows the
+1962 compiler's own check, or a ruling that the note follows F's
+expansion, not the decoded exit.</p>
+</div>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>4 · The msg 947 containment model</h2></div>
+
+<p><strong>The decision.</strong> D5.7 asks for "static cycle detection
+over the DO call graph". A graph needs a rule for which procedure a DO
+belongs to, and the record gives none. The chunk takes the generator's
+own walk state. A DO, or an <code>AT END DO</code>, belongs to the DO'd
+paragraph and the section open around it. Those are
+<code>_openParagraph</code> and <code>_openSection</code>, the same
+state the return cells use. A call notes when its target can reach, through the graph, one of the
+procedures open around it, itself included. One note per offending call
+site, so a two-procedure cycle notes at both DOs. A DO outside every
+DO'd procedure, on the main line, never notes.
+<a href="https://github.com/Screendead/comtran-compiler/blob/8219b6ff860e95f680bd8626d121564c1fb7e769/lib/src/codegen/procedure.dart#L1578-L1585"><code>_doEdge</code></a>
+records each site during the walk, and
+<a href="https://github.com/Screendead/comtran-compiler/blob/8219b6ff860e95f680bd8626d121564c1fb7e769/lib/src/codegen/procedure.dart#L1635-L1661"><code>_noteReentrantCalls</code></a>
+reads the graph after it.</p>
+
+<p><strong>The evidence.</strong> The edge and the check:</p>
+<figure><div class="plate"><pre>void _doEdge(NameReference procedure, int clause) {
+  _doEdges.add((
+    callers: &lt;String&gt;[?_openParagraph, ?_openSection],
+    target: procedure.text,
+    at: procedure.anchor,
+    clause: clause,
+  ));
+}
+...
+for (final _DoEdge edge in _doEdges) {
+  final reachable = &lt;String&gt;{edge.target};
+  final queue = &lt;String&gt;[edge.target];
+  while (queue.isNotEmpty) {
+    for (final String target in calls[queue.removeLast()] ?? const {}) {
+      if (reachable.add(target)) {
+        queue.add(target);
+      }
+    }
+  }
+  if (edge.callers.any(reachable.contains)) {
+    _report(
+      msgDoReentersActiveProcedure,
+      at: edge.at,
+      clause: edge.clause,
+      operands: &lt;String&gt;[edge.target],
+    );
+  }
+}</pre></div>
+<figcaption>evidence/4-msg-947.diff — procedure.dart at 8219b6f, lines
+1578 to 1585 and 1642 to 1660.</figcaption></figure>
+
+<table>
+<tr><th>Program</th><th>Result under <code>--pedantic</code></th></tr>
+<tr><td><code>START. DO P.</code> then <code>P. DO Q.</code> and <code>Q. DO P.</code></td><td>947 twice, severity 2: at card 6 naming <code>Q</code>, at card 7 naming <code>P</code>; the main line's <code>DO P</code> is silent</td></tr>
+<tr><td>a section <code>S</code> whose inner paragraph <code>P</code> writes <code>DO S</code></td><td>one note, at card 7</td></tr>
+<tr><td><code>P. GET IREC, AT END DO P.</code></td><td>one note, at card 9</td></tr>
+<tr><td><code>P. DO Q.</code> and <code>Q. SET N = 1.</code></td><td>silent: nesting without a cycle</td></tr>
+</table>
+<p>Default mode draws nothing in each case, and the code dump is the
+same in both modes (D11.4).</p>
+
+<p><strong>What would mislead.</strong> A reader could expect the graph
+over the parser's paragraphs. This compiler has no parsed paragraph: a
+DO'd label's span runs to the next label or its END, which is the walk's
+own state (M4-13). A GO TO-only target takes no cell and opens no span,
+so it is no node. "Cycle" also misleads: a two-procedure cycle is one
+cycle and two lost returns, one at each <code>SXA</code>.</p>
+
+<p><strong>The rejected options.</strong></p>
+<div class="opt">
+<p><span class="name">A — one note per cycle</span><br>
+Cost: the programmer reads one site and misses the other, and both
+sites overwrite a pending return. The listing then reports one of two
+faults.</p>
+</div>
+<div class="opt">
+<p><span class="name">B — a flow-sensitive model through GO TO chains</span><br>
+Cost: D5.7 asks for static detection over the DO graph and no more. A
+GO TO reading invents a control-flow analysis no record asks for, and
+the section 12 rule allows no invention beyond the record. A GO TO out
+of a DO'd procedure is D5.4's own matter.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">C — the walk's own containment, one note per site (taken)</span><br>
+The state that places the return cells is the state that knows which
+returns a call can lose. <strong>To overturn:</strong> one commit at
+<code>_doEdge</code> and <code>_noteReentrantCalls</code>; four tests.
+<strong>What overturns it:</strong> a ruling that D5.7's graph should
+follow GO TO, or a period source for the 1962 compiler's own check.</p>
+</div>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>5 · The stop shape</h2></div>
+
+<p><strong>The decision.</strong> D10.2 has each phase catch
+<code>StopCompilation</code> itself and return a partial result with a
+<code>stopped</code> flag; M4-2 defers the generator's shape to this
+chunk. A severity 5 inside the generator returns
+<a href="https://github.com/Screendead/comtran-compiler/blob/8219b6ff860e95f680bd8626d121564c1fb7e769/lib/src/codegen/codegen.dart#L51-L54"><code>CodegenResult.stopped()</code></a>:
+no assembly units, a <code>null</code> image, <code>stopped</code> true.
+The driver keeps the diagnostics recorded up to the stop from the sink
+and merges them into the job's card-ordered block (M2-2).
+<code>--emit-code</code> closes the empty <code>* TEXT</code> section
+with the stopped line, and <code>--emit-object</code> prints the same
+line in place of the object pages. [J 90.04.02]: a severity 5 "causes
+the compiler to stop compiling. It then proceeds to the next job." The
+1962 compiler produced no object program past a severity 5, so there
+are no object pages to print.</p>
+
+<p><strong>The evidence.</strong> The catch and the return:</p>
+<figure><div class="plate"><pre>ProcedureText text;
+try {
+  text = generateProcedure(semantics, origin: dataWords, checks: checks);
+} on StopCompilation {
+  // A severity-5 diagnostic stops the phase at the point of
+  // detection (D9.1); the capacity checks (D9.7, C5) are this
+  // path's producers.
+  return const CodegenResult.stopped();
+}</pre></div>
+<figcaption>evidence/5-stop-shape.diff — codegen.dart at 8219b6f, lines
+104 to 112.</figcaption></figure>
+
+<p>The test compiles a two-job deck. The first job crosses 3500 names in
+the generator: 942, <code>stopped</code> true, no units, no image, and
+the deck's severity is 5. The second job compiles clean. The code dump
+prints the first job's header, <code>* TEXT</code>, then
+<code>* STOPPED IN THIS STAGE</code>, and the second job whole.</p>
+
+<p><strong>What would mislead.</strong> D10.2 says a phase "returns its
+partial result", and for the front end that result is the source echo
+up to the stop. A reader could expect the generator's partial text in
+the same way. The words placed before the stop are not a program. The
+pool follows the whole text, so no <code>CP)+NN</code> has an address;
+no <code>EQU</code> has a value; no block has an origin. The generator's
+partial result is its diagnostics, and the sink already holds them.</p>
+
+<p><strong>The rejected option.</strong></p>
+<div class="opt">
+<p><span class="name">A — keep the words placed before the stop as a partial text</span><br>
+Cost: the units carry unresolved addresses, so a layout the stop never
+reached must be invented to print them. A later reader of the dump
+takes the fragment for object text. The 1962 listing never printed
+one.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">B — no text, no image, the stopped line (taken)</span><br>
+The shape every earlier phase already has, and the one [J 90.04.02]
+describes. <strong>To overturn:</strong> one commit at
+<code>CodegenResult.stopped</code> and the two emit sites.
+<strong>What overturns it:</strong> a period listing that prints object
+text after a severity 5.</p>
+</div>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>6 · Diagnostics ride on the measuring pass</h2></div>
+
+<p><strong>The decision.</strong> The generator walks the text twice
+(M4-4 as amended): pass one measures, pass two places.
+<a href="https://github.com/Screendead/comtran-compiler/blob/8219b6ff860e95f680bd8626d121564c1fb7e769/lib/src/codegen/procedure.dart#L75-L91"><code>CodegenChecks</code></a>
+— the sink, the tally and the pedantic switch — rides on pass one only,
+and pass two carries none. So nothing reports twice. The decisive
+consequence: a refusal, <code>UnrecoveredShape</code>, throws from the
+sizers on the measuring pass, and a note emitted ahead of it survives.
+<code>DO RTN FOR IDX = 1(-1)12</code> under <code>--pedantic</code>
+records 946 at the DO and then refuses the signed bound. The note
+prints in the listing, and default mode keeps the refusal alone.</p>
+
+<p><strong>The evidence.</strong> The two calls:</p>
+<figure><div class="plate"><pre>ProcedureText text;
+try {
+  text = generateProcedure(semantics, origin: dataWords, checks: checks);
+} on StopCompilation {
+  ...
+}
+final image = ProgramImage(...);
+text = generateProcedure(semantics, origin: dataWords, image: image);</pre></div>
+<figcaption>evidence/6-measuring-pass.diff — codegen.dart at 8219b6f,
+lines 104 to 123: <code>checks</code> on the first call, <code>image</code>
+on the second.</figcaption></figure>
+
+<p>The test 'a negative step notes ahead of the refusal it then draws'
+pins it. The job's diagnostics are <code>['946,00']</code>. The refusal
+names <code>a DO FOR bound of UnaryExpr</code>, and <code>codegen</code>
+is <code>null</code>. Default mode records nothing.</p>
+
+<p><strong>What would mislead.</strong> Pass two knows every address, and
+a reader could think a diagnostic needs one. None does. Every note
+anchors on a card and an M2-6 clause number, and the capacity messages
+anchor on the sentence the walk is in.</p>
+
+<p><strong>The rejected options.</strong></p>
+<div class="opt">
+<p><span class="name">A — the placing pass</span><br>
+Cost: a program that refuses on pass one never reaches pass two, so
+the negative-step arm of 946 is unreachable. CLAUDE.md section 11 then
+bans that arm as code no run reaches, and the listing keeps no record
+of a loop that never terminates.</p>
+</div>
+<div class="opt">
+<p><span class="name">B — both passes, with a second mechanism to drop the repeat</span><br>
+Cost: a de-duplication rule for diagnostics that gains nothing, since
+pass two reports nothing pass one did not.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">C — the measuring pass only (taken)</span><br>
+The first walk sees every site, and it is the walk a refusal ends.
+<strong>To overturn:</strong> one commit at <code>runCodegen</code>'s two
+<code>generateProcedure</code> calls. <strong>What overturns it:</strong>
+a diagnostic that needs an object address, which no record asks for.</p>
+</div>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>7 · The allocator crossing leaves the LOC and GN columns blank</h2></div>
+
+<p><strong>The decision.</strong> When the 3501st name is the allocator's,
+<code>GN)000</code> or a source-order generated label, the semantic
+layer stops at that entry.
+<a href="https://github.com/Screendead/comtran-compiler/blob/8219b6ff860e95f680bd8626d121564c1fb7e769/lib/src/data/semantics.dart#L102-L110"><code>allocateDictionary</code></a>
+runs inside the semantic layer's <code>StopCompilation</code> net, so
+<code>allocation</code> stays <code>null</code>. The listing prints
+blank LOC and GN columns, as it does for every semantic stop (M3-8;
+D10.2), and the code generator does not run.</p>
+
+<p><strong>The evidence.</strong> The three allocator entries and the
+net:</p>
+<figure><div class="plate"><pre>DictionaryAllocation allocateDictionary(ParseResult parse, {NameTally? names}) {
+  ...
+    for (var i = 0; i &lt; count; i++) {
+      names?.enter(clause.anchor.card);
+    }
+  ...
+      names?.enter(entry.cards.first);
+      printName(entry.cards.first, name);
+  ...
+          programEntryWord = take(1);
+          names?.enter(sentences.first.scan.cards.first);
+          printName(sentences.first.scan.cards.first, 'GN)000');
+...
+    // The allocator runs last: a stopped phase prints blank LOC and GN
+    // columns, like M1 (M3-8; D10.2).
+    allocation = allocateDictionary(parse, names: resolver.names);
+  } on StopCompilation {</pre></div>
+<figcaption>evidence/7-allocator-crossing.diff — allocator.dart at
+8219b6f, lines 93 to 158, and semantics.dart, lines 103 to 106.</figcaption></figure>
+
+<p>The test declares 3500 one-character fields. The program entry's own
+name, <code>GN)000</code>, is the 3501st, entered at the first procedure
+sentence: 942 at card 3503, <code>semantics.stopped</code> true,
+<code>allocation</code> <code>null</code>, <code>codegen</code>
+<code>null</code>.</p>
+
+<p><strong>What would mislead.</strong> The crossing happens inside the
+allocator, the phase that prints the LOC column, so a reader expects the
+column filled up to the crossing. M3-8's print is one model: the
+annotations return whole at the end of the allocation, and a thrown
+stop discards the return value. That is D10.2's own rationale for the
+phase-internal catch. A stop in the resolver leaves the columns blank
+the same way.</p>
+
+<p><strong>The rejected option.</strong></p>
+<div class="opt">
+<p><span class="name">A — complete the allocation after the stop and print the columns</span><br>
+Cost: D10.2 stops each phase at the point of detection, with later work
+undone. A filled column after a severity 5 would be the first phase to
+print work past its stop. The listing would then differ between a stop
+in the resolver and a stop in the allocator, for no reason either
+manual gives.</p>
+</div>
+<div class="opt pick">
+<p><span class="name">B — the columns stay blank (taken)</span><br>
+One rule for every semantic stop. <strong>To overturn:</strong> one
+commit in <code>semantics.dart</code>, a catch around the allocator
+alone that keeps its annotations. <strong>What overturns it:</strong> a
+period listing that prints dictionary addresses past a severity 5.</p>
+</div>
+</section>
+
+<footer>
+<p>Record built 2026-08-28 on branch
+<code>review/2026-08-28-m4-b8-underdetermined</code>. The generator is
+commit 8219b6f on <code>m4s2-chunk-b8</code>, with the internal
+review's correction at f38ea63; each caption names the commit it
+quotes. The pins are <code>test/codegen_diagnostics_test.dart</code> at
+f38ea63, 18 tests. All seven items are DECIDED: silence lets them stand, and each is
+one commit to overturn.</p>
+</footer>
+
+</main>
+</body>
+</html>

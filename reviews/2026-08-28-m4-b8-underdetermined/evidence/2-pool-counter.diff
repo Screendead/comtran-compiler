@@ -1,0 +1,187 @@
+# 2-pool-counter.diff: hunks of commit 8219b6ff860e95f680bd8626d121564c1fb7e769
+diff --git a/lib/src/codegen/pool.dart b/lib/src/codegen/pool.dart
+index c95608e..5af69cf 100644
+--- a/lib/src/codegen/pool.dart
++++ b/lib/src/codegen/pool.dart
+@@ -15,6 +15,10 @@ import 'dart:collection';
+ 
+ import 'text_model.dart';
+ 
++/// The printed capacity of the constant pool ([J 90.01.05] item k):
++/// the 501st entry draws msg 172 (D9.7).
++const int constantPoolCapacity = 500;
++
+ /// The four sub-pools, in their frozen concatenation order (M4-4).
+ enum SubPool {
+   /// The values written in the PROCEDURE source, plus the subscript
+@@ -50,12 +54,17 @@ final class PoolHandle {
+ final class ConstantPool {
+   /// The seeded head: indices 0 and 1 hold the integers 0 and 1 ahead
+   /// of every source literal (the notes, section 6.2 item 37 — pinned
+-  /// at the diff).
+-  ConstantPool() {
++  /// at the diff). The callback runs once per entry created, the seeds
++  /// included: the msg 942 and 172 counters check on increment (D9.7).
++  ConstantPool({this._onEntry}) {
+     _literals[0] = (-1, 0);
+     _literals[1] = (-1, 1);
++    _onEntry?.call();
++    _onEntry?.call();
+   }
+ 
++  final void Function()? _onEntry;
++
+   /// Written literals, keyed on the word value; the position of the
+   /// earliest source appearance orders them. The seeds sort ahead of
+   /// every card and the strides behind, so a written 0 or 1 merges
+@@ -78,11 +87,16 @@ final class ConstantPool {
+     _literals.update(
+       bits,
+       ((int, int) first) => first.compareTo(at) <= 0 ? first : at,
+-      ifAbsent: () => at,
++      ifAbsent: () => _created(at),
+     );
+     return PoolHandle._(SubPool.literals, bits);
+   }
+ 
++  T _created<T>(T entry) {
++    _onEntry?.call();
++    return entry;
++  }
++
+   /// A seed's handle. The entries exist from construction; this only
+   /// names one for a machinery reference (the zero build, the truth
+   /// function's true value, the DO FOR unit bounds).
+@@ -100,13 +114,15 @@ final class ConstantPool {
+     _literals.update(
+       words,
+       ((int, int) first) => first.compareTo(at) <= 0 ? first : at,
+-      ifAbsent: () => at,
++      ifAbsent: () => _created(at),
+     );
+     return PoolHandle._(SubPool.literals, words);
+   }
+ 
+   PoolHandle machineWord(int bits) {
+-    _machineWords.add(bits);
++    if (_machineWords.add(bits)) {
++      _onEntry?.call();
++    }
+     return PoolHandle._(SubPool.machineWords, bits);
+   }
+ 
+@@ -124,7 +140,7 @@ final class ConstantPool {
+     return PoolHandle._(SubPool.descriptors, operand);
+   }
+ 
+-  static void _register(
++  void _register(
+     LinkedHashMap<String, (int, int)> subPool,
+     String operand,
+     int word,
+@@ -134,7 +150,7 @@ final class ConstantPool {
+       subPool[operand] == null || subPool[operand] == (word, control),
+       'one operand, two words: $operand',
+     );
+-    subPool[operand] ??= (word, control);
++    subPool.putIfAbsent(operand, () => _created((word, control)));
+   }
+ 
+   /// Concatenates the four sub-pools and assigns every entry its index.
+diff --git a/lib/src/codegen/codegen_messages.dart b/lib/src/codegen/codegen_messages.dart
+new file mode 100644
+index 0000000..2b17b5d
+--- /dev/null
++++ b/lib/src/codegen/codegen_messages.dart
+@@ -0,0 +1,31 @@
++/// The code generator's messages (M4-18): one catalog entry the pool
++/// counter draws, and two of ours behind `--pedantic`.
++library;
++
++import '../lexer/messages.dart';
++
++/// `172,00` — the constant pool past its printed 500 entries
++/// ([J 90.01.05] item k; D9.7).
++const Message msgConstantPoolOverflow = Message(
++  '172,00',
++  'CONSTANT POOL OVERFLOW.',
++);
++
++/// Ours — `--pedantic` only: constant DO FOR parameters whose index
++/// never steps from p to r exactly under the decoded magnitude exit — a
++/// zero or negative q, p above r, or a q that does not divide r − p
++/// (D5.1; M4-13).
++const Message msgLoopParametersDoNotStep = Message.ours(
++  '946,00',
++  "-DO- ... -FOR- 'NAME.1' PARAMETERS DO NOT STEP FROM THE INITIAL TO "
++      'THE TERMINAL VALUE. ACCEPTED. (NON-HISTORICAL.)',
++);
++
++/// Ours — `--pedantic` only: a DO whose procedure can DO its way back
++/// into a procedure already active, which overwrites the pending
++/// return in the one-word cell (D5.7; M4-13).
++const Message msgDoReentersActiveProcedure = Message.ours(
++  '947,00',
++  "-DO- OF 'NAME.1' CAN RE-ENTER AN ACTIVE PROCEDURE. THE PENDING "
++      'RETURN IS LOST. (NON-HISTORICAL.)',
++);
+diff --git a/lib/src/codegen/procedure.dart b/lib/src/codegen/procedure.dart
+index 6b4e703..3e2b4b4 100644
+--- a/lib/src/codegen/procedure.dart
++++ b/lib/src/codegen/procedure.dart
+@@ -646,7 +727,54 @@ final class _Text {
+   }
+ 
+   /// The next later-pass generated name (M4-6 — the sample's GN)084 on).
+-  String _mint() => 'GN)${(++_generated).toString().padLeft(3, '0')}';
++  String _mint() {
++    final name = 'GN)${(++_generated).toString().padLeft(3, '0')}';
++    _name(name);
++    return name;
++  }
++
++  /// Enters [symbol] in the name tally the first time the text writes
++  /// it (M4-5): every generated class counts once per distinct name.
++  void _name(String symbol) {
++    final CodegenChecks? checks = this.checks;
++    if (checks != null && _names.add(symbol)) {
++      checks.names.enter(_card);
++    }
++  }
++
++  /// One new pool entry: a `CP)+NN` name for the tally (M4-5; D8.8),
++  /// and the 501st draws msg 172 ([J 90.01.05] item k; D9.7).
++  void _poolEntry() {
++    final CodegenChecks? checks = this.checks;
++    if (checks == null) {
++      return;
++    }
++    checks.names.enter(_card);
++    _poolEntries += 1;
++    if (checks.tableLimits && _poolEntries == constantPoolCapacity + 1) {
++      _report(msgConstantPoolOverflow, card: _card, clause: _clauseNumber);
++    }
++  }
++
++  /// Reports [message] on the measuring pass, at [at] when a token
++  /// anchors it and at [card] otherwise, carrying the M2-6 clause
++  /// number [clause] when the site is inside one.
++  void _report(
++    Message message, {
++    Token? at,
++    SourceCard? card,
++    int clause = 0,
++    List<String> operands = const <String>[],
++  }) {
++    final SourceCard? anchor = at?.card ?? card;
++    final diagnostic = anchor == null
++        ? Diagnostic.wholeProgram(message, operands: operands)
++        : Diagnostic(message, anchor, column: at?.column, operands: operands);
++    if (anchor != null && clause > 0) {
++      diagnostic.clause = clause;
++    }
++    checks!.diagnostics.add(diagnostic);
++  }
+ 
+   /// The pool address of [handle], or zero on the measuring pass.
+   int _poolAddress(PoolHandle handle) {

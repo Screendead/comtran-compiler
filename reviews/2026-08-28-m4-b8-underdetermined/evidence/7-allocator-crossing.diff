@@ -1,0 +1,73 @@
+# 7-allocator-crossing.diff: hunks of commit 8219b6ff860e95f680bd8626d121564c1fb7e769
+diff --git a/lib/src/data/allocator.dart b/lib/src/data/allocator.dart
+index 102744b..f56459b 100644
+--- a/lib/src/data/allocator.dart
++++ b/lib/src/data/allocator.dart
+@@ -34,6 +34,7 @@ import '../lexer/source_card.dart';
+ import '../lexer/token.dart';
+ import '../listing/listing.dart';
+ import '../parser/parser.dart';
++import 'name_tally.dart';
+ 
+ /// The LOC counter's start: octal 71175 (M3-8, the base the sample's
+ /// print shows).
+@@ -86,8 +87,10 @@ final class DictionaryAllocation {
+   final ListingAnnotations annotations;
+ }
+ 
+-/// Allocates the dictionary for [parse] (M3-8).
+-DictionaryAllocation allocateDictionary(ParseResult parse) {
++/// Allocates the dictionary for [parse] (M3-8). Every generated name
++/// enters [names], the count the resolver's programmer names started
++/// (M4-5); a direct caller with no count to continue passes none.
++DictionaryAllocation allocateDictionary(ParseResult parse, {NameTally? names}) {
+   final generatedNames = <DataItem, String>{};
+   final dataWords = <DataItem, int>{};
+   final synonymWords = <Token, int>{};
+@@ -121,6 +124,9 @@ DictionaryAllocation allocateDictionary(ParseResult parse) {
+     clauseNames[clause] = <String>[
+       for (var i = 0; i < count; i++) _gnName(++generated),
+     ];
++    for (var i = 0; i < count; i++) {
++      names?.enter(clause.anchor.card);
++    }
+     take(count);
+   }
+ 
+@@ -132,6 +138,7 @@ DictionaryAllocation allocateDictionary(ParseResult parse) {
+       generated++;
+       final String name = _gnName(generated);
+       generatedNames[item] = name;
++      names?.enter(entry.cards.first);
+       printName(entry.cards.first, name);
+     } else {
+       printLoc(_nameCompletionCard(entry), first);
+@@ -147,6 +154,7 @@ DictionaryAllocation allocateDictionary(ParseResult parse) {
+       case ParsedProcedureGroup(:final List<Sentence> sentences):
+         if (programEntryWord == null && sentences.isNotEmpty) {
+           programEntryWord = take(1);
++          names?.enter(sentences.first.scan.cards.first);
+           printName(sentences.first.scan.cards.first, 'GN)000');
+         }
+         for (final sentence in sentences) {
+diff --git a/lib/src/data/semantics.dart b/lib/src/data/semantics.dart
+index 16c377c..5112681 100644
+--- a/lib/src/data/semantics.dart
++++ b/lib/src/data/semantics.dart
+@@ -102,7 +102,7 @@ SemanticResult runSemantics(
+     ).check(environmentCards, procedureGroups);
+     // The allocator runs last: a stopped phase prints blank LOC and GN
+     // columns, like M1 (M3-8; D10.2).
+-    allocation = allocateDictionary(parse);
++    allocation = allocateDictionary(parse, names: resolver.names);
+   } on StopCompilation {
+     // A severity-5 diagnostic stops the phase at the point of
+     // detection (D9.1); everything mapped and diagnosed so far stands.
+@@ -121,6 +121,7 @@ SemanticResult runSemantics(
+     keysConditions: resolver.keysConditions,
+     positionalIndicators: resolver.positionalIndicators.toList(),
+     capacityDeletedSentences: resolver.deletedSentences,
++    nameCount: resolver.names.count,
+     semanticDiagnostics: List.unmodifiable(diagnostics.sublist(first)),
+     stopped: stopped,
+   );

@@ -1,0 +1,110 @@
+# 3-msg-946.diff: hunks of commit 8219b6ff860e95f680bd8626d121564c1fb7e769
+diff --git a/lib/src/codegen/procedure.dart b/lib/src/codegen/procedure.dart
+index 6b4e703..3e2b4b4 100644
+--- a/lib/src/codegen/procedure.dart
++++ b/lib/src/codegen/procedure.dart
+@@ -1309,6 +1446,10 @@ final class _Text {
+   }
+ 
+   void _do(DoClause clause) {
++    _doEdge(clause.procedure, clause.clause);
++    if (checks?.pedantic ?? false) {
++      clause.indices.forEach(_noteConstantParameters);
++    }
+     if (clause.exactlyTimes != null ||
+         clause.usingArguments.isNotEmpty ||
+         clause.givingResults.isNotEmpty) {
+@@ -1432,6 +1573,93 @@ final class _Text {
+     _callClears();
+   }
+ 
++  /// Records a DO of [procedure] from the paragraph and section open
++  /// around it (D5.7): the ones whose returns this call could lose.
++  void _doEdge(NameReference procedure, int clause) {
++    _doEdges.add((
++      callers: <String>[?_openParagraph, ?_openSection],
++      target: procedure.text,
++      at: procedure.anchor,
++      clause: clause,
++    ));
++  }
++
++  /// The D5.1 note (msg 946; M4-13): constant p, q and r whose index
++  /// never steps from p to r exactly. Under the decoded magnitude exit
++  /// that is every triple but q > 0, p ≤ r, and q dividing r − p: a
++  /// zero or negative q with p ≤ r never terminates, p > r runs the
++  /// body once, and an overshooting q exits past r.
++  void _noteConstantParameters(DoIndex index) {
++    final (int, int)? p = _constantBound(index.from);
++    final (int, int)? q = _constantBound(index.by);
++    final (int, int)? r = _constantBound(index.to);
++    if (p == null || q == null || r == null) {
++      return;
++    }
++    final int scale = [p.$2, q.$2, r.$2].reduce(math.max);
++    int scaled((int, int) bound) =>
++        bound.$1 * math.pow(10, scale - bound.$2).toInt();
++    final int from = scaled(p);
++    final int by = scaled(q);
++    final int to = scaled(r);
++    if (by > 0 && from <= to && (to - from) % by == 0) {
++      return;
++    }
++    _report(
++      msgLoopParametersDoNotStep,
++      at: index.index.anchor,
++      clause: _clauseNumber,
++      operands: <String>[index.index.text],
++    );
++  }
++
++  /// A compile-time constant bound as digits and scale: a numeric
++  /// literal, or one under a minus. A name or any other form is not
++  /// constant, and the note leaves it alone (D5.1).
++  (int, int)? _constantBound(ArithExpr bound) => switch (bound) {
++    LiteralOperand(:final literal)
++        when literal.kind == TokenKind.numericLiteral =>
++      _literalValue(literal),
++    UnaryExpr(:final operator, operand: LiteralOperand(:final literal))
++        when operator.text == '-' && literal.kind == TokenKind.numericLiteral =>
++      switch (_literalValue(literal)) {
++        (final int digits, final int scale) => (-digits, scale),
++      },
++    _ => null,
++  };
++
++  /// The D5.7 note (msg 947; M4-13), after the walk: a DO whose
++  /// procedure can reach, through the DO chain, a procedure still open
++  /// around the call — itself included — would overwrite that
++  /// procedure's pending return. Static, over the text's own nesting.
++  void _noteReentrantCalls() {
++    final calls = <String, Set<String>>{};
++    for (final _DoEdge edge in _doEdges) {
++      for (final String caller in edge.callers) {
++        calls.putIfAbsent(caller, () => <String>{}).add(edge.target);
++      }
++    }
++    for (final _DoEdge edge in _doEdges) {
++      final reachable = <String>{edge.target};
++      final queue = <String>[edge.target];
++      while (queue.isNotEmpty) {
++        for (final String target in calls[queue.removeLast()] ?? const {}) {
++          if (reachable.add(target)) {
++            queue.add(target);
++          }
++        }
++      }
++      if (edge.callers.any(reachable.contains)) {
++        _report(
++          msgDoReentersActiveProcedure,
++          at: edge.at,
++          clause: edge.clause,
++          operands: <String>[edge.target],
++        );
++      }
++    }
++  }
++
+   /// The subscript base `NAME+0`, the entry a positional indicator is
+   /// set from: the item's own first word.
+   PoolHandle _subscriptBase(DataItem item) {

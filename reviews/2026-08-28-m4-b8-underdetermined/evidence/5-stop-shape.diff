@@ -1,0 +1,202 @@
+# 5-stop-shape.diff: hunks of commit 8219b6ff860e95f680bd8626d121564c1fb7e769
+diff --git a/lib/src/codegen/codegen.dart b/lib/src/codegen/codegen.dart
+index 70dbc7c..720a819 100644
+--- a/lib/src/codegen/codegen.dart
++++ b/lib/src/codegen/codegen.dart
+@@ -13,6 +13,7 @@
+ library;
+ 
+ import '../data/data_map.dart';
++import '../lexer/diagnostic.dart';
+ import 'blocks.dart';
+ import 'image.dart';
+ import 'procedure.dart';
+@@ -40,24 +41,49 @@ final int resultStorageWords =
+ 
+ /// The code generator's result over one job.
+ final class CodegenResult {
+-  CodegenResult({required this.units, required this.image});
++  CodegenResult({required this.units, required ProgramImage this.image})
++    : stopped = false;
++
++  /// The result of a phase a severity-5 diagnostic stopped (D10.2): no
++  /// text and no layout. The 1962 compiler produced no object program
++  /// past a severity 5 ([J 90.04.02]), and the words placed before the
++  /// stop are not one either.
++  const CodegenResult.stopped()
++    : units = const <AssemblyUnit>[],
++      image = null,
++      stopped = true;
+ 
+   /// The assembly text, program order.
+   final List<AssemblyUnit> units;
+ 
+-  /// The address layout the text is bound against.
+-  final ProgramImage image;
++  /// The address layout the text is bound against, or `null` when the
++  /// phase stopped.
++  final ProgramImage? image;
++
++  /// Whether a severity-5 diagnostic stopped the phase (D10.2).
++  final bool stopped;
+ }
+ 
+ /// Generates the object text of [semantics].
+ ///
+-/// The phase takes no diagnostic sink, because the one failure it can
+-/// detect is not a diagnostic: a valid source shape the sample never
+-/// reaches has no attested generated form, and none is invented. The
+-/// sizers throw [UnrecoveredShape] at such a shape and the driver
+-/// scopes the refusal to the job (M4-2 as amended 2026-08-15). The
+-/// diagnostic sink arrives with chunk B8 (M4-1).
+-CodegenResult runCodegen(SemanticResult semantics) {
++/// Diagnostics go to [sink] when one is given — the compilation's one
++/// [DiagnosticSink] (D9.1), shared with the earlier phases by the
++/// driver. The function catches [StopCompilation] itself and returns
++/// [CodegenResult.stopped] (D10.2; M4-2). [pedantic] adds the D5.1
++/// and D5.7 notes and changes nothing else (D11.4); [tableLimits]
++/// false is the non-historical `--no-table-limits` switch, which
++/// silences the name tally and the pool counter (D9.7).
++///
++/// A refusal is not a diagnostic: a valid source shape the sample
++/// never reaches has no attested generated form, and none is invented.
++/// The sizers throw [UnrecoveredShape] at such a shape and the driver
++/// scopes the refusal to the job (M4-2 as amended 2026-08-15).
++CodegenResult runCodegen(
++  SemanticResult semantics, {
++  DiagnosticSink? sink,
++  bool pedantic = false,
++  bool tableLimits = true,
++}) {
+   final List<AssemblyUnit> data = storageMapUnits(semantics);
+   final int dataWords = semantics.areas.fold(
+     0,
+@@ -67,8 +93,23 @@ CodegenResult runCodegen(SemanticResult semantics) {
+   // Two passes over the procedure text. The text's own addresses need
+   // nothing but its order, but an `EQU` line prints an equated value in
+   // the LOC column, and the values it equates are pool addresses, which
+-  // follow the whole text. Pass one measures; pass two places.
+-  ProcedureText text = generateProcedure(semantics, origin: dataWords);
++  // follow the whole text. Pass one measures and diagnoses; pass two
++  // places.
++  final checks = CodegenChecks(
++    sink ?? DiagnosticSink(),
++    pedantic: pedantic,
++    tableLimits: tableLimits,
++    nameCount: semantics.nameCount,
++  );
++  ProcedureText text;
++  try {
++    text = generateProcedure(semantics, origin: dataWords, checks: checks);
++  } on StopCompilation {
++    // A severity-5 diagnostic stops the phase at the point of
++    // detection (D9.1); the capacity checks (D9.7, C5) are this
++    // path's producers.
++    return const CodegenResult.stopped();
++  }
+   final image = ProgramImage(
+     inlineWords: dataWords + text.words,
+     blockWords: <StorageBlock, int>{
+diff --git a/lib/src/driver/driver.dart b/lib/src/driver/driver.dart
+index 204dbce..c1a0773 100644
+--- a/lib/src/driver/driver.dart
++++ b/lib/src/driver/driver.dart
+@@ -41,8 +41,9 @@ final class JobCompilation {
+   /// stopped (D10.2: the driver skips the phase).
+   final SemanticResult? semantics;
+ 
+-  /// The generated object text, or `null` when an earlier phase
+-  /// stopped (M4-2; D10.2) or code generation refused ([unrecovered]).
++  /// The generated object text — stopped when its own severity 5
++  /// stopped it — or `null` when an earlier phase stopped (M4-2; D10.2)
++  /// or code generation refused ([unrecovered]).
+   final CodegenResult? codegen;
+ 
+   /// The code generator's refusal, or `null`. A refusal is this
+@@ -55,9 +56,10 @@ final class JobCompilation {
+   /// job's severity.
+   final DiagnosticSink sink;
+ 
+-  /// The diagnostics the job's listing prints: the merged front-end and
+-  /// parser block (M2-2), then any tail 903s, then 132 when the deck
+-  /// ended inside this job.
++  /// The diagnostics the job's listing prints: every phase's rows
++  /// merged into one card-ordered block (M2-2), the code generator's
++  /// included, then any tail 903s, then 132 when the deck ended inside
++  /// this job.
+   final List<Diagnostic> diagnostics;
+ }
+ 
+@@ -126,19 +128,28 @@ DeckCompilation compileDeck(
+     // A refusal — a valid shape with no attested generated form — stops
+     // this job's code generation only: the refusal is this recovery's
+     // gap, not a 1962 diagnostic, so it enters no sink and the next job
+-    // still compiles (M4-2 as amended; J 90.04.02).
++    // still compiles (M4-2 as amended; J 90.04.02). The rows the
++    // generator recorded ahead of a refusal or a stop stay in the sink,
++    // so the listing takes the generator's block from there.
+     CodegenResult? codegen;
+     UnrecoveredShape? unrecovered;
++    List<Diagnostic> phases =
++        semantics?.diagnostics ?? parse?.diagnostics ?? frontEnd.diagnostics;
+     if (semantics != null && !semantics.stopped) {
++      final int first = sink.length;
+       try {
+-        codegen = runCodegen(semantics);
++        codegen = runCodegen(
++          semantics,
++          sink: sink,
++          pedantic: pedantic,
++          tableLimits: tableLimits,
++        );
+       } on UnrecoveredShape catch (refusal) {
+         unrecovered = refusal;
+       }
++      phases = mergeDiagnosticPhases(phases, sink.sublist(first));
+     }
+-    final diagnostics = <Diagnostic>[
+-      ...semantics?.diagnostics ?? parse?.diagnostics ?? frontEnd.diagnostics,
+-    ];
++    final diagnostics = <Diagnostic>[...phases];
+     for (var j = 0; j < slice.ignoredTail.length; j++) {
+       // The single-job tail (D11.1 rule d). Card numbers continue past
+       // the job's own, so the block keeps card order (M2-2); the cards
+diff --git a/lib/src/emit/emit_code.dart b/lib/src/emit/emit_code.dart
+index d70072b..ff12e3a 100644
+--- a/lib/src/emit/emit_code.dart
++++ b/lib/src/emit/emit_code.dart
+@@ -9,7 +9,8 @@
+ /// digits, the word twelve solid octal digits (`WordForm.solid`, not
+ /// the listing's spaced OCTAL forms), and the control group prints
+ /// through [controlColumn]. A job whose code generator never ran
+-/// prints [stageNotReached].
++/// prints [stageNotReached]; one whose generator stopped ends its
++/// section with [stageStopped] (D10.2).
+ library;
+ 
+ import '../codegen/codegen.dart';
+@@ -34,6 +35,9 @@ String emitCode(DeckCompilation deck) {
+     for (final AssemblyUnit unit in codegen.units) {
+       out.writeln(_row(unit));
+     }
++    if (codegen.stopped) {
++      out.writeln(stageStopped);
++    }
+   }
+   return out.toString();
+ }
+diff --git a/bin/comtranc.dart b/bin/comtranc.dart
+index 500bf4a..f17392e 100644
+--- a/bin/comtranc.dart
++++ b/bin/comtranc.dart
+@@ -228,6 +228,10 @@ int _run(List<String> arguments) {
+           // with its own page head — so a dead job prints its one
+           // marker line in sequence (D10.2; M4-2 as amended).
+           object.writeln(codeStageMarker(job.unrecovered?.shape));
++        } else if (codegen.stopped) {
++          // A severity 5 in the generator: no object program, so no
++          // object pages (J 90.04.02; D10.2).
++          object.writeln(stageStopped);
+         } else {
+           // The object pages follow the job's source pages and its
+           // loader-card page, which stage 3 will count rather than

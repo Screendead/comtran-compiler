@@ -1,0 +1,113 @@
+# 6-measuring-pass.diff: hunks of commit 8219b6ff860e95f680bd8626d121564c1fb7e769
+diff --git a/lib/src/codegen/procedure.dart b/lib/src/codegen/procedure.dart
+index 6b4e703..3e2b4b4 100644
+--- a/lib/src/codegen/procedure.dart
++++ b/lib/src/codegen/procedure.dart
+@@ -60,17 +67,41 @@ final class ProcedureText {
+   final List<AssemblyUnit> poolUnits;
+ }
+ 
++/// What the measuring pass diagnoses (M4-18): the sink the notes and
++/// the capacity stops enter, and the name tally continued from the
++/// semantic layer (M4-5). The placing pass carries none — it repeats
++/// the walk, and a diagnostic reported twice would print twice — and
++/// nothing diagnosed needs an address.
++final class CodegenChecks {
++  CodegenChecks(
++    this.diagnostics, {
++    required this.pedantic,
++    required this.tableLimits,
++    required int nameCount,
++  }) : names = NameTally(
++         diagnostics,
++         tableLimits: tableLimits,
++         count: nameCount,
++       );
++
++  final List<Diagnostic> diagnostics;
++  final bool pedantic;
++  final bool tableLimits;
++  final NameTally names;
++}
++
+ /// Generates the procedure text of [semantics], the first word at
+ /// [origin].
+ ///
+ /// [image] is `null` on the measuring pass, when no address past the
+-/// text is known yet.
++/// text is known yet; [checks] rides on that pass alone.
+ ProcedureText generateProcedure(
+   SemanticResult semantics, {
+   required int origin,
+   ProgramImage? image,
++  CodegenChecks? checks,
+ }) {
+-  final text = _Text(semantics, origin: origin, image: image);
++  final text = _Text(semantics, origin: origin, image: image, checks: checks);
+   var entry = true;
+   for (final ParsedGroup group in semantics.parse.groups) {
+     if (group is ParsedProcedureGroup) {
+diff --git a/lib/src/codegen/codegen.dart b/lib/src/codegen/codegen.dart
+index 70dbc7c..720a819 100644
+--- a/lib/src/codegen/codegen.dart
++++ b/lib/src/codegen/codegen.dart
+@@ -40,24 +41,49 @@ final int resultStorageWords =
+ 
+ /// The code generator's result over one job.
+ final class CodegenResult {
+-  CodegenResult({required this.units, required this.image});
++  CodegenResult({required this.units, required ProgramImage this.image})
++    : stopped = false;
++
++  /// The result of a phase a severity-5 diagnostic stopped (D10.2): no
++  /// text and no layout. The 1962 compiler produced no object program
++  /// past a severity 5 ([J 90.04.02]), and the words placed before the
++  /// stop are not one either.
++  const CodegenResult.stopped()
++    : units = const <AssemblyUnit>[],
++      image = null,
++      stopped = true;
+ 
+   /// The assembly text, program order.
+   final List<AssemblyUnit> units;
+ 
+-  /// The address layout the text is bound against.
+-  final ProgramImage image;
++  /// The address layout the text is bound against, or `null` when the
++  /// phase stopped.
++  final ProgramImage? image;
++
++  /// Whether a severity-5 diagnostic stopped the phase (D10.2).
++  final bool stopped;
+ }
+ 
+ /// Generates the object text of [semantics].
+ ///
+-/// The phase takes no diagnostic sink, because the one failure it can
+-/// detect is not a diagnostic: a valid source shape the sample never
+-/// reaches has no attested generated form, and none is invented. The
+-/// sizers throw [UnrecoveredShape] at such a shape and the driver
+-/// scopes the refusal to the job (M4-2 as amended 2026-08-15). The
+-/// diagnostic sink arrives with chunk B8 (M4-1).
+-CodegenResult runCodegen(SemanticResult semantics) {
++/// Diagnostics go to [sink] when one is given — the compilation's one
++/// [DiagnosticSink] (D9.1), shared with the earlier phases by the
++/// driver. The function catches [StopCompilation] itself and returns
++/// [CodegenResult.stopped] (D10.2; M4-2). [pedantic] adds the D5.1
++/// and D5.7 notes and changes nothing else (D11.4); [tableLimits]
++/// false is the non-historical `--no-table-limits` switch, which
++/// silences the name tally and the pool counter (D9.7).
++///
++/// A refusal is not a diagnostic: a valid source shape the sample
++/// never reaches has no attested generated form, and none is invented.
++/// The sizers throw [UnrecoveredShape] at such a shape and the driver
++/// scopes the refusal to the job (M4-2 as amended 2026-08-15).
++CodegenResult runCodegen(
++  SemanticResult semantics, {
++  DiagnosticSink? sink,
++  bool pedantic = false,
++  bool tableLimits = true,
++}) {
+   final List<AssemblyUnit> data = storageMapUnits(semantics);
+   final int dataWords = semantics.areas.fold(
+     0,

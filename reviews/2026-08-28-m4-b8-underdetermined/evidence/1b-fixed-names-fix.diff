@@ -1,0 +1,161 @@
+# 1b-fixed-names-fix.diff: hunks of commit f38ea63d887daa81b5476ab44e788522e7f88bb8
+diff --git a/lib/src/codegen/procedure.dart b/lib/src/codegen/procedure.dart
+index 3e2b4b4..2ba6c5a 100644
+--- a/lib/src/codegen/procedure.dart
++++ b/lib/src/codegen/procedure.dart
+@@ -221,10 +221,12 @@ final class _Text {
+       _generated = semantics.allocation?.generatedCount ?? 0 {
+     _pool = ConstantPool(onEntry: _poolEntry);
+     // Every program's fixed names: the five block heads, printed at
+-    // `BSS 0` too, and the pointer block's `BL)1` and `IOC)29` (M4-4).
++    // `BSS 0` too, the head row's `PI)1`, and the pointer block's
++    // `BL)1` and `IOC)29` (M4-4).
+     for (final StorageBlock block in StorageBlock.values) {
+       _name(block.symbol);
+     }
++    _name('PI)1');
+     _name('BL)1');
+     _name('IOC)29');
+     for (final ParsedGroup group in semantics.parse.groups) {
+@@ -752,6 +754,8 @@ final class _Text {
+     checks.names.enter(_card);
+     _poolEntries += 1;
+     if (checks.tableLimits && _poolEntries == constantPoolCapacity + 1) {
++      // The seeds are entries 1 and 2, so the 501st is created inside
++      // a sentence, after the walk anchored one.
+       _report(msgConstantPoolOverflow, card: _card, clause: _clauseNumber);
+     }
+   }
+@@ -766,11 +770,13 @@ final class _Text {
+     int clause = 0,
+     List<String> operands = const <String>[],
+   }) {
+-    final SourceCard? anchor = at?.card ?? card;
+-    final diagnostic = anchor == null
+-        ? Diagnostic.wholeProgram(message, operands: operands)
+-        : Diagnostic(message, anchor, column: at?.column, operands: operands);
+-    if (anchor != null && clause > 0) {
++    final diagnostic = Diagnostic(
++      message,
++      at?.card ?? card!,
++      column: at?.column,
++      operands: operands,
++    );
++    if (clause > 0) {
+       diagnostic.clause = clause;
+     }
+     checks!.diagnostics.add(diagnostic);
+diff --git a/test/codegen_diagnostics_test.dart b/test/codegen_diagnostics_test.dart
+index 00b68af..e8a6313 100644
+--- a/test/codegen_diagnostics_test.dart
++++ b/test/codegen_diagnostics_test.dart
+@@ -73,19 +73,20 @@ List<String> _procedure(List<String> sentences) => [
+ 
+ void main() {
+   group('the name tally (M4-5; msg 942)', () {
+-    // The generator's fixed names: the five block heads, `BL)1`,
+-    // `IOC)29`, and the two pool seeds — nine, entered ahead of the
+-    // first sentence. `STOP RUN` then enters its two stamp words, the
+-    // ` STOP ` and ` RUN  ` words, SYS)178, SYS)177, IOC)1 and IOC)40.
++    // The generator's fixed names: the five block heads, the head
++    // row's `PI)1`, `BL)1`, `IOC)29`, and the two pool seeds — ten,
++    // entered ahead of the first sentence. `STOP RUN` then enters its
++    // two stamp words, the ` STOP ` and ` RUN  ` words, SYS)178,
++    // SYS)177, IOC)1 and IOC)40.
+     test('the 3501st name of the program crosses in the generator', () {
+-      // 3490 programmer names and GN)000 make 3491; the nine fixed
++      // 3489 programmer names and GN)000 make 3490; the ten fixed
+       // names make 3500; the stamp's first word is the 3501st.
+-      final JobCompilation job = _compile(_namesThenStop(3490));
++      final JobCompilation job = _compile(_namesThenStop(3489));
+       expect(_ids(job), ['942,00']);
+       final Diagnostic capacity = job.diagnostics.single;
+-      expect(capacity.card?.cardNumber, 3493, reason: 'the STOP RUN card');
++      expect(capacity.card?.cardNumber, 3492, reason: 'the STOP RUN card');
+       expect(job.semantics!.stopped, isFalse);
+-      expect(job.semantics!.nameCount, 3491);
++      expect(job.semantics!.nameCount, 3490);
+       expect(job.codegen!.stopped, isTrue);
+       expect(job.codegen!.units, isEmpty);
+       expect(job.codegen!.image, isNull);
+@@ -94,9 +95,9 @@ void main() {
+     });
+ 
+     test('a fixed name crossing the limit reports against no statement', () {
+-      // 3491 programmer names and GN)000 make 3492: the ninth fixed
++      // 3490 programmer names and GN)000 make 3491: the tenth fixed
+       // name is the 3501st, and no statement owns it (D11.3).
+-      final JobCompilation job = _compile(_namesThenStop(3491));
++      final JobCompilation job = _compile(_namesThenStop(3490));
+       expect(_ids(job), ['942,00']);
+       expect(job.diagnostics.single.card, isNull);
+       expect(job.codegen!.stopped, isTrue);
+@@ -127,7 +128,7 @@ void main() {
+     test('a SYS) or IOC) number counts once, not per use', () {
+       // Two STOP RUNs share every generated name but the second's
+       // statement-number word: the second frame enters one name, not
+-      // its eight. 3481 names, GN)000 and the nine fixed names make
++      // its eight. 3480 names, GN)000 and the ten fixed names make
+       // 3491; the first frame's eight make 3499; the second frame's
+       // one makes 3500 and compiles. One more programmer name and the
+       // second frame's word is the 3501st.
+@@ -140,12 +141,12 @@ void main() {
+         '            STOP RUN.',
+         '      *FINISH',
+       ];
+-      final JobCompilation full = _compile(twoStops(3481));
++      final JobCompilation full = _compile(twoStops(3480));
+       expect(full.diagnostics, isEmpty);
+       expect(full.codegen!.stopped, isFalse);
+-      final JobCompilation over = _compile(twoStops(3482));
++      final JobCompilation over = _compile(twoStops(3481));
+       expect(_ids(over), ['942,00']);
+-      expect(over.diagnostics.single.card?.cardNumber, 3486);
++      expect(over.diagnostics.single.card?.cardNumber, 3485);
+     });
+   });
+ 
+@@ -181,10 +182,16 @@ void main() {
+       expect(over.codegen!.stopped, isTrue);
+     });
+ 
+-    test('--no-table-limits lifts the counter', () {
++    test('--no-table-limits lifts the counter and changes nothing else', () {
+       final JobCompilation job = _compile(literals(495), tableLimits: false);
+       expect(job.diagnostics, isEmpty);
+       expect(job.codegen!.image!.blockWords[StorageBlock.cp], 501);
++      // The D9.7 oracle: under the limit, the switch changes no output.
++      final full = '${literals(494).join('\n')}\n';
++      expect(
++        emitCode(compileDeck(mirrorToDeck(full), tableLimits: false)),
++        emitCode(compileDeck(mirrorToDeck(full))),
++      );
+     });
+   });
+ 
+@@ -327,7 +334,7 @@ void main() {
+     test('a generator stop never starves the next job (J 90.04.02)', () {
+       final List<String> lines = [
+         r'$CMPLE FULL',
+-        ..._namesThenStop(3490),
++        ..._namesThenStop(3489),
+         r'$CMPLE GOOD',
+         '      *PROCEDURE',
+         '            STOP RUN.',
+diff --git a/docs/design/m4-codegen.md b/docs/design/m4-codegen.md
+index f4e613c..296db04 100644
+--- a/docs/design/m4-codegen.md
++++ b/docs/design/m4-codegen.md
+@@ -230,10 +230,10 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
+   A SYS) or IOC) reference counts once per distinct number referenced, not
+   per use (ours; the table is a name dictionary).
+   **Amended 2026-08-28, chunk B8.** A name is each distinct generated
+-  symbol the text defines or references — block heads, `BL)1`,
++  symbol the text defines or references — block heads, `PI)1`, `BL)1`,
+   `IOC)29`, pool entries (seeds included), SYS) and IOC) numbers,
+   result cells by section, `PI)n` and `BL)n` words, bound later-pass
+-  GN names. The nine fixed names report at 9999,99. Rejected readings:
++  GN names. Ten fixed names report at 9999,99. Rejected readings:
+   `review/2026-08-28-m4-b8-underdetermined`.
+ - **M4-6. The later-pass GN numbers (GN)084 on).** M3-23 allocates the
+   source-order labels through GN)083 and hands the rest to M4: the
