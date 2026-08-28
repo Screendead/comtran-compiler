@@ -102,7 +102,7 @@ SemanticResult runSemantics(
     ).check(environmentCards, procedureGroups);
     // The allocator runs last: a stopped phase prints blank LOC and GN
     // columns, like M1 (M3-8; D10.2).
-    allocation = allocateDictionary(parse);
+    allocation = allocateDictionary(parse, names: resolver.names);
   } on StopCompilation {
     // A severity-5 diagnostic stops the phase at the point of
     // detection (D9.1); everything mapped and diagnosed so far stands.
@@ -121,6 +121,7 @@ SemanticResult runSemantics(
     keysConditions: resolver.keysConditions,
     positionalIndicators: resolver.positionalIndicators.toList(),
     capacityDeletedSentences: resolver.deletedSentences,
+    nameCount: resolver.names.count,
     semanticDiagnostics: List.unmodifiable(diagnostics.sublist(first)),
     stopped: stopped,
   );

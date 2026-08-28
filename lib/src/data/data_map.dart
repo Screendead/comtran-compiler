@@ -253,6 +253,7 @@ final class SemanticResult {
     required this.keysConditions,
     required this.positionalIndicators,
     required this.capacityDeletedSentences,
+    required this.nameCount,
     required this.semanticDiagnostics,
     required this.stopped,
   });
@@ -297,6 +298,10 @@ final class SemanticResult {
   /// overflowed the per-sentence table, so M4 generates nothing for
   /// them (M3-20).
   final Set<Sentence> capacityDeletedSentences;
+
+  /// The names the job has entered so far — the programmer's and the
+  /// allocator's — which the code generator's tally continues (M4-5).
+  final int nameCount;
 
   /// The semantic layer's own diagnostics, in detection order.
   final List<Diagnostic> semanticDiagnostics;

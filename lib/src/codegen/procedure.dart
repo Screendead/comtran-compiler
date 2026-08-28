@@ -19,18 +19,25 @@
 /// generator patches every deferred value after its walk ends (M4-4).
 library;
 
+import 'dart:math' as math;
+
 import '../ast/data_ast.dart';
 import '../ast/environment_ast.dart';
 import '../ast/procedure_ast.dart';
 import '../chars/char_code.dart';
 import '../data/data_map.dart';
 import '../data/dictionary.dart';
+import '../data/name_tally.dart';
 import '../data/pictorial.dart';
 import '../emulator/decode.dart';
 import '../emulator/word.dart';
+import '../lexer/diagnostic.dart';
+import '../lexer/messages.dart';
 import '../lexer/procedure_lexer.dart';
+import '../lexer/source_card.dart';
 import '../lexer/token.dart';
 import '../parser/parser.dart';
+import 'codegen_messages.dart';
 import 'encode.dart';
 import 'image.dart';
 import 'pool.dart';
@@ -60,17 +67,41 @@ final class ProcedureText {
   final List<AssemblyUnit> poolUnits;
 }
 
+/// What the measuring pass diagnoses (M4-18): the sink the notes and
+/// the capacity stops enter, and the name tally continued from the
+/// semantic layer (M4-5). The placing pass carries none — it repeats
+/// the walk, and a diagnostic reported twice would print twice — and
+/// nothing diagnosed needs an address.
+final class CodegenChecks {
+  CodegenChecks(
+    this.diagnostics, {
+    required this.pedantic,
+    required this.tableLimits,
+    required int nameCount,
+  }) : names = NameTally(
+         diagnostics,
+         tableLimits: tableLimits,
+         count: nameCount,
+       );
+
+  final List<Diagnostic> diagnostics;
+  final bool pedantic;
+  final bool tableLimits;
+  final NameTally names;
+}
+
 /// Generates the procedure text of [semantics], the first word at
 /// [origin].
 ///
 /// [image] is `null` on the measuring pass, when no address past the
-/// text is known yet.
+/// text is known yet; [checks] rides on that pass alone.
 ProcedureText generateProcedure(
   SemanticResult semantics, {
   required int origin,
   ProgramImage? image,
+  CodegenChecks? checks,
 }) {
-  final text = _Text(semantics, origin: origin, image: image);
+  final text = _Text(semantics, origin: origin, image: image, checks: checks);
   var entry = true;
   for (final ParsedGroup group in semantics.parse.groups) {
     if (group is ParsedProcedureGroup) {
@@ -178,12 +209,24 @@ final class _Sym {
 /// is constant; a transmitted address is relative ([J 90.03.04]).
 typedef _Ref = ({String text, int address, int tag, Relocation relocation});
 
+/// One DO call site: the procedures open around it, the procedure it
+/// names, and where to report a re-entry (D5.7).
+typedef _DoEdge = ({List<String> callers, String target, Token at, int clause});
+
 /// The emitter: one word at a time, in program order.
 final class _Text {
-  _Text(this.semantics, {required int origin, this.image})
+  _Text(this.semantics, {required int origin, this.image, this.checks})
     : _origin = origin,
       _location = origin,
       _generated = semantics.allocation?.generatedCount ?? 0 {
+    _pool = ConstantPool(onEntry: _poolEntry);
+    // Every program's fixed names: the five block heads, printed at
+    // `BSS 0` too, and the pointer block's `BL)1` and `IOC)29` (M4-4).
+    for (final StorageBlock block in StorageBlock.values) {
+      _name(block.symbol);
+    }
+    _name('BL)1');
+    _name('IOC)29');
     for (final ParsedGroup group in semantics.parse.groups) {
       if (group is! ParsedProcedureGroup) {
         continue;
@@ -240,9 +283,29 @@ final class _Text {
   /// The address layout, on the placing pass only.
   final ProgramImage? image;
 
+  /// The diagnostics and the name tally, on the measuring pass only.
+  final CodegenChecks? checks;
+
   final int _origin;
   final List<AssemblyUnit> _units = <AssemblyUnit>[];
-  final ConstantPool _pool = ConstantPool();
+  late final ConstantPool _pool;
+
+  /// The first card of the sentence the walk is in, the anchor of a
+  /// diagnostic no token owns; `null` ahead of the first sentence.
+  SourceCard? _card;
+
+  /// The M2-6 clause number of the clause the walk is in, 0 outside one.
+  int _clauseNumber = 0;
+
+  /// The distinct generated symbols entered so far (M4-5): a SYS) or
+  /// IOC) number counts once, not per use.
+  final Set<String> _names = <String>{};
+
+  int _poolEntries = 0;
+
+  /// Every DO call site with the procedures open around it, for the
+  /// D5.7 re-entry check after the walk.
+  final List<_DoEdge> _doEdges = <_DoEdge>[];
 
   /// Deferred LOC values: an `EQU` prints an address the walk has not
   /// reached, or a pool address that follows the whole text. Each entry
@@ -470,33 +533,42 @@ final class _Text {
   /// A system-subroutine entry, `TSX SYS)nnn,4`: the MOVPAK entries
   /// and the open, close and STOP entries ([J 90.02.14] and
   /// [J 90.02.15]).
-  void _tsx(int sys) => _emit(
-    mnemonic(Op.tsx),
-    formOf(Op.tsx),
-    () => 'SYS)$sys,4',
-    () => typeBWord(Op.tsx, tag: 4, address: sys),
-    control: standardControl(Relocation.constant, Relocation.system),
-  );
+  void _tsx(int sys) {
+    _name('SYS)$sys');
+    _emit(
+      mnemonic(Op.tsx),
+      formOf(Op.tsx),
+      () => 'SYS)$sys,4',
+      () => typeBWord(Op.tsx, tag: 4, address: sys),
+      control: standardControl(Relocation.constant, Relocation.system),
+    );
+  }
 
   /// An input-output package entry, `TSX IOC)n,4` (catalogue 4.2).
-  void _tsxIoc(int entry) => _emit(
-    mnemonic(Op.tsx),
-    formOf(Op.tsx),
-    () => 'IOC)$entry,4',
-    () => typeBWord(Op.tsx, tag: 4, address: entry),
-    control: standardControl(Relocation.constant, Relocation.system),
-  );
+  void _tsxIoc(int entry) {
+    _name('IOC)$entry');
+    _emit(
+      mnemonic(Op.tsx),
+      formOf(Op.tsx),
+      () => 'IOC)$entry,4',
+      () => typeBWord(Op.tsx, tag: 4, address: entry),
+      control: standardControl(Relocation.constant, Relocation.system),
+    );
+  }
 
   /// A MOVPAK step or fill call, `TXI SYS)nnn,1,count`
   /// ([J 90.02.16]). The decrement prints decimal, as the listing
   /// does at LOC 01146 for the octal `00014`.
-  void _txi(int sys, int decrement) => _emit(
-    mnemonic(Op.txi),
-    formOf(Op.txi),
-    () => 'SYS)$sys,1,$decrement',
-    () => typeAWord(Op.txi, tag: 1, decrement: decrement, address: sys),
-    control: standardControl(Relocation.constant, Relocation.system),
-  );
+  void _txi(int sys, int decrement) {
+    _name('SYS)$sys');
+    _emit(
+      mnemonic(Op.txi),
+      formOf(Op.txi),
+      () => 'SYS)$sys,1,$decrement',
+      () => typeAWord(Op.txi, tag: 1, decrement: decrement, address: sys),
+      control: standardControl(Relocation.constant, Relocation.system),
+    );
+  }
 
   /// The in-line address word `PZE LOC,,BYTE` ([J 90.02.14]). All 25
   /// attested sites name a fixed location, so the word takes no tag and
@@ -540,17 +612,22 @@ final class _Text {
 
   /// The whole-file-set parameter of OPEN and CLOSE, `PZE IOC)1`
   /// ([J 90.02.08]; [J 90.02.14]).
-  void _pzeIoc1() => _emit(
-    'PZE',
-    WordForm.prefix,
-    () => 'IOC)1',
-    () => pzeWord(address: 1),
-    control: standardControl(Relocation.constant, Relocation.system),
-  );
+  void _pzeIoc1() {
+    _name('IOC)1');
+    _emit(
+      'PZE',
+      WordForm.prefix,
+      () => 'IOC)1',
+      () => pzeWord(address: 1),
+      control: standardControl(Relocation.constant, Relocation.system),
+    );
+  }
 
   /// `SYS)nnn` — a communication cell or a subroutine entry.
-  _Sym _sys(int number) =>
-      _Sym(() => 'SYS)$number', () => number, Relocation.system);
+  _Sym _sys(int number) {
+    _name('SYS)$number');
+    return _Sym(() => 'SYS)$number', () => number, Relocation.system);
+  }
 
   /// A file as an operand: the punched name over the address
   /// `04000 + k` octal, `k` the file's one-based declaration ordinal
@@ -586,11 +663,14 @@ final class _Text {
   );
 
   /// `BL)n` or `PI)n` — one word of a Location Counter 1 block.
-  _Sym _blockWord(StorageBlock block, int number) => _Sym(
-    () => '${block.symbol}$number',
-    () => image?.symbolAddress(block, number) ?? 0,
-    Relocation.relative,
-  );
+  _Sym _blockWord(StorageBlock block, int number) {
+    _name('${block.symbol}$number');
+    return _Sym(
+      () => '${block.symbol}$number',
+      () => image?.symbolAddress(block, number) ?? 0,
+      Relocation.relative,
+    );
+  }
 
   /// `RS)n` or `k.RS)n` — one result-storage cell of the section the
   /// walk is in, two words a cell (D4.8).
@@ -610,9 +690,10 @@ final class _Text {
     for (var i = 0; i < section; i++) {
       word += 2 * resultStorageCells[i];
     }
-    final text =
-        '${section == 0 ? '' : '$section.'}${StorageBlock.rs.symbol}$cell'
-        '${offset ? '+0' : ''}';
+    final name =
+        '${section == 0 ? '' : '$section.'}${StorageBlock.rs.symbol}$cell';
+    _name(name);
+    final text = '$name${offset ? '+0' : ''}';
     final int address =
         (image?.originOf(StorageBlock.rs) ?? 0) + word + 2 * cell;
     return _Sym(() => text, () => address, Relocation.relative);
@@ -646,7 +727,54 @@ final class _Text {
   }
 
   /// The next later-pass generated name (M4-6 — the sample's GN)084 on).
-  String _mint() => 'GN)${(++_generated).toString().padLeft(3, '0')}';
+  String _mint() {
+    final name = 'GN)${(++_generated).toString().padLeft(3, '0')}';
+    _name(name);
+    return name;
+  }
+
+  /// Enters [symbol] in the name tally the first time the text writes
+  /// it (M4-5): every generated class counts once per distinct name.
+  void _name(String symbol) {
+    final CodegenChecks? checks = this.checks;
+    if (checks != null && _names.add(symbol)) {
+      checks.names.enter(_card);
+    }
+  }
+
+  /// One new pool entry: a `CP)+NN` name for the tally (M4-5; D8.8),
+  /// and the 501st draws msg 172 ([J 90.01.05] item k; D9.7).
+  void _poolEntry() {
+    final CodegenChecks? checks = this.checks;
+    if (checks == null) {
+      return;
+    }
+    checks.names.enter(_card);
+    _poolEntries += 1;
+    if (checks.tableLimits && _poolEntries == constantPoolCapacity + 1) {
+      _report(msgConstantPoolOverflow, card: _card, clause: _clauseNumber);
+    }
+  }
+
+  /// Reports [message] on the measuring pass, at [at] when a token
+  /// anchors it and at [card] otherwise, carrying the M2-6 clause
+  /// number [clause] when the site is inside one.
+  void _report(
+    Message message, {
+    Token? at,
+    SourceCard? card,
+    int clause = 0,
+    List<String> operands = const <String>[],
+  }) {
+    final SourceCard? anchor = at?.card ?? card;
+    final diagnostic = anchor == null
+        ? Diagnostic.wholeProgram(message, operands: operands)
+        : Diagnostic(message, anchor, column: at?.column, operands: operands);
+    if (anchor != null && clause > 0) {
+      diagnostic.clause = clause;
+    }
+    checks!.diagnostics.add(diagnostic);
+  }
 
   /// The pool address of [handle], or zero on the measuring pass.
   int _poolAddress(PoolHandle handle) {
@@ -657,6 +785,9 @@ final class _Text {
   late final PoolLayout _layout;
 
   ProcedureText result() {
+    if (checks?.pedantic ?? false) {
+      _noteReentrantCalls();
+    }
     if (_pending.isNotEmpty) {
       // A trailing label on a no-word sentence (NOTE, CALL, ENTER)
       // never reaches the binder: no attested print, and a reference
@@ -866,13 +997,16 @@ final class _Text {
   });
 
   /// The trap on an unset word: `TXL SYS)294,r,0` ([J 90.02.23]).
-  void _trap(int register) => _emit(
-    mnemonic(Op.txl),
-    formOf(Op.txl),
-    () => 'SYS)294,$register,0',
-    () => typeAWord(Op.txl, tag: register, address: 294),
-    control: standardControl(Relocation.constant, Relocation.system),
-  );
+  void _trap(int register) {
+    _name('SYS)294');
+    _emit(
+      mnemonic(Op.txl),
+      formOf(Op.txl),
+      () => 'SYS)294,$register,0',
+      () => typeAWord(Op.txl, tag: register, address: 294),
+      control: standardControl(Relocation.constant, Relocation.system),
+    );
+  }
 
   /// Emits the guard pair `LAC BL)n,i / TXL SYS)294,i,0` when no
   /// register holds that locator, and records the load. A register
@@ -1108,6 +1242,7 @@ final class _Text {
       }
       _statementRegisters.clear();
       final ProcedureSentence scan = sentence.scan;
+      _card = scan.cards.first;
       final String? name = scan.label;
       _sentenceLabel = name;
       if (name != null) {
@@ -1169,6 +1304,7 @@ final class _Text {
   // --- Clause dispatch ----------------------------------------------------
 
   void _clause(Clause clause) {
+    _clauseNumber = clause.clause;
     switch (clause) {
       case CallClause() || NoteClause() || EnterClause():
         break; // No object word (F p. 59; J 02.04.02.01).
@@ -1270,6 +1406,7 @@ final class _Text {
     _pzePair(_cp(stopWord), _cp(runWord));
     _tsx(177); // The close-all of [J 90.02.14] rides inside STOP RUN.
     _pzeIoc1();
+    _name('IOC)40');
     _emit(
       // The monitor return; a zero decrement prints none.
       mnemonic(Op.txi),
@@ -1309,6 +1446,10 @@ final class _Text {
   }
 
   void _do(DoClause clause) {
+    _doEdge(clause.procedure, clause.clause);
+    if (checks?.pedantic ?? false) {
+      clause.indices.forEach(_noteConstantParameters);
+    }
     if (clause.exactlyTimes != null ||
         clause.usingArguments.isNotEmpty ||
         clause.givingResults.isNotEmpty) {
@@ -1430,6 +1571,93 @@ final class _Text {
     _opItem(Op.sub, indexItem);
     _op(Op.tpl, _Sym(() => bodyEntry, entry.value, Relocation.relative));
     _callClears();
+  }
+
+  /// Records a DO of [procedure] from the paragraph and section open
+  /// around it (D5.7): the ones whose returns this call could lose.
+  void _doEdge(NameReference procedure, int clause) {
+    _doEdges.add((
+      callers: <String>[?_openParagraph, ?_openSection],
+      target: procedure.text,
+      at: procedure.anchor,
+      clause: clause,
+    ));
+  }
+
+  /// The D5.1 note (msg 946; M4-13): constant p, q and r whose index
+  /// never steps from p to r exactly. Under the decoded magnitude exit
+  /// that is every triple but q > 0, p ≤ r, and q dividing r − p: a
+  /// zero or negative q with p ≤ r never terminates, p > r runs the
+  /// body once, and an overshooting q exits past r.
+  void _noteConstantParameters(DoIndex index) {
+    final (int, int)? p = _constantBound(index.from);
+    final (int, int)? q = _constantBound(index.by);
+    final (int, int)? r = _constantBound(index.to);
+    if (p == null || q == null || r == null) {
+      return;
+    }
+    final int scale = [p.$2, q.$2, r.$2].reduce(math.max);
+    int scaled((int, int) bound) =>
+        bound.$1 * math.pow(10, scale - bound.$2).toInt();
+    final int from = scaled(p);
+    final int by = scaled(q);
+    final int to = scaled(r);
+    if (by > 0 && from <= to && (to - from) % by == 0) {
+      return;
+    }
+    _report(
+      msgLoopParametersDoNotStep,
+      at: index.index.anchor,
+      clause: _clauseNumber,
+      operands: <String>[index.index.text],
+    );
+  }
+
+  /// A compile-time constant bound as digits and scale: a numeric
+  /// literal, or one under a minus. A name or any other form is not
+  /// constant, and the note leaves it alone (D5.1).
+  (int, int)? _constantBound(ArithExpr bound) => switch (bound) {
+    LiteralOperand(:final literal)
+        when literal.kind == TokenKind.numericLiteral =>
+      _literalValue(literal),
+    UnaryExpr(:final operator, operand: LiteralOperand(:final literal))
+        when operator.text == '-' && literal.kind == TokenKind.numericLiteral =>
+      switch (_literalValue(literal)) {
+        (final int digits, final int scale) => (-digits, scale),
+      },
+    _ => null,
+  };
+
+  /// The D5.7 note (msg 947; M4-13), after the walk: a DO whose
+  /// procedure can reach, through the DO chain, a procedure still open
+  /// around the call — itself included — would overwrite that
+  /// procedure's pending return. Static, over the text's own nesting.
+  void _noteReentrantCalls() {
+    final calls = <String, Set<String>>{};
+    for (final _DoEdge edge in _doEdges) {
+      for (final String caller in edge.callers) {
+        calls.putIfAbsent(caller, () => <String>{}).add(edge.target);
+      }
+    }
+    for (final _DoEdge edge in _doEdges) {
+      final reachable = <String>{edge.target};
+      final queue = <String>[edge.target];
+      while (queue.isNotEmpty) {
+        for (final String target in calls[queue.removeLast()] ?? const {}) {
+          if (reachable.add(target)) {
+            queue.add(target);
+          }
+        }
+      }
+      if (edge.callers.any(reachable.contains)) {
+        _report(
+          msgDoReentersActiveProcedure,
+          at: edge.at,
+          clause: edge.clause,
+          operands: <String>[edge.target],
+        );
+      }
+    }
   }
 
   /// The subscript base `NAME+0`, the entry a positional indicator is
@@ -1580,6 +1808,7 @@ final class _Text {
     _op(Op.tra, _labelSym(names[1])); // Over the block, to the join.
     label(names[0]);
     if (atEnd.bareName != null) {
+      _doEdge(atEnd.bareName!, clause.clause);
       _callTriple(atEnd.bareName!); // D6.6: compiled as DO name.
     } else if (atEnd.statement != null) {
       _clause(atEnd.statement!);
@@ -1890,6 +2119,7 @@ final class _Text {
       // transfer where every other punches the step's `TXI`, and prints
       // the three-field operand either way (notes 6.2 item 15, LOC
       // 01327).
+      _name('SYS)267');
       _emit(
         mnemonic(Op.tra),
         formOf(Op.tra),

@@ -228,6 +228,10 @@ int _run(List<String> arguments) {
           // with its own page head — so a dead job prints its one
           // marker line in sequence (D10.2; M4-2 as amended).
           object.writeln(codeStageMarker(job.unrecovered?.shape));
+        } else if (codegen.stopped) {
+          // A severity 5 in the generator: no object program, so no
+          // object pages (J 90.04.02; D10.2).
+          object.writeln(stageStopped);
         } else {
           // The object pages follow the job's source pages and its
           // loader-card page, which stage 3 will count rather than

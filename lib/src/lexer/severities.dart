@@ -732,4 +732,10 @@ const Map<String, int> messageSeverities = {
   // C1 (ours, --pedantic only, D4.13; M3-21): the CALL is accepted
   // unchanged; advisory.
   '945,00': 1,
+  // C1 (ours, --pedantic only, D5.1; M4-18): the loop is generated as
+  // written and the decoded exit decides its run; advisory.
+  '946,00': 1,
+  // C2 (ours, --pedantic only, D5.7; M4-18): an error by that record's
+  // own word - the pending return is lost at run time.
+  '947,00': 2,
 };
