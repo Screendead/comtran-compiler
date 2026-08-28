@@ -21,9 +21,8 @@ deck, and the loader cards. The oracle is the 90.05 compilation listing,
 PDF pp. 198–216 — the loader-card page, the storage map, and the symbolic
 listing — diffed byte for byte (D0.3). M4 also hardens the emulator into a
 machine: a loader places the deck in core, and a dispatch layer runs the
-SYS)/IOC) handlers the core verbs call. The 90.05 sample itself first
-runs at M6, the acceptance milestone, after M5 lands the IOCS handlers;
-M4 executes I/O-free programs.
+SYS)/IOC) handlers the core verbs call. The 90.05 sample first runs at
+M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
 
 ## Scope and stages
 
@@ -49,9 +48,8 @@ M4 executes I/O-free programs.
 
   **Amended 2026-08-09, stage 2 (Jack's call). Stage 2 is not one pull
   request.** Its oracle needs a blind pass over nineteen page scans, too
-  much to put at risk in one pull request, so stage 2 splits into
-  chunks. Each chunk is green alone, and each is worth merging alone.
-  Stages 1, 3, and 4 do not change.
+  much to risk in one pull request, so stage 2 splits into chunks, each
+  green and mergeable alone. Stages 1, 3, and 4 do not change.
 
   Phase A built the target listing before any generator ran: listing
   pages 8 to 25, PDF pp. 199 to 216, scan-verified. Page 7, PDF p. 198,
@@ -69,7 +67,7 @@ M4 executes I/O-free programs.
   | B5 | GO TO and DO (M4-12, M4-13). |
   | B6 | STOP with the statement stamps (M4-14), and the I/O shapes (M4-15). |
   | B7 | The close-out — the `USE 1` and `BGN 2,PI)1` head rows, the four block sizes, the constant pool, the page furniture, and the full listing diff. |
-  | B8 | The diagnostics — msg 942 widened (M4-5), ids 946 and 947 reserved (M4-18), and the D10.2 stop shape M4-2 defers to here. |
+  | B8 | The diagnostics — msg 942 widened (M4-5), msgs 172, 946 and 947 (M4-18), and the D10.2 stop shape M4-2 defers to here. |
 
 ## Pipeline position and the text model
 
@@ -83,14 +81,15 @@ M4 executes I/O-free programs.
   **Amended 2026-08-05 and 2026-08-15, stages 1 and 2.** Stage 1 built
   the map from validated semantic facts and could detect no error, so
   under CLAUDE.md section 11, which outranks this record, it shipped
-  without the stop shape. The phase takes no diagnostic sink; the
-  sink arrives at chunk B8
-  with the first program error this phase can detect. The stage 2
-  refusals are not that error: a valid shape the sample never attests
+  without the stop shape. Chunk B8 (2026-08-28) added the sink and the
+  stop: a severity 5 returns no text and no image; the driver keeps the
+  rows recorded before it. The stage 2
+  refusals are not diagnostics: a valid shape the sample never attests
   fails in the recovery, not in the program — no [J 90.04] message
   covers it — so the refusal bypasses the sink. The generator throws
   `UnrecoveredShape`, the driver scopes it to the job, and later jobs
-  compile ([J 90.04.02]).
+  compile ([J 90.04.02]). Diagnostics ride on the measuring pass alone;
+  the placing pass repeats the walk.
   The phase re-resolves nothing: data references
   come from `dataResolutions`, CORRESPONDING pairs from
   `correspondingPairs`, storage facts from `ItemSemantics`, initial words
@@ -111,8 +110,8 @@ M4 executes I/O-free programs.
   BGN, PZE, MZE, MON, IOST, and
   the GET descriptor word `IOCTN*` (the listing's spelling; M4-20
   item f). No modern
-  intermediate form is invented; `emit-stages.md` bars one without a design
-  record, and this entry is that record — the decision is to have none.
+  intermediate form is invented: `emit-stages.md` bars one without a design
+  record, and this entry records the decision to have none.
   Assembly then binds symbols to locations and renders each unit three
   ways, from one source of truth: the 36-bit object word plus its 5-bit
   control group (the deck, M4-16), the printed OCTAL and CNTRL columns
@@ -230,6 +229,12 @@ M4 executes I/O-free programs.
   site feed; the M3 allocator's separate GN counter folds into it.
   A SYS) or IOC) reference counts once per distinct number referenced, not
   per use (ours; the table is a name dictionary).
+  **Amended 2026-08-28, chunk B8.** A name is each distinct generated
+  symbol the text defines or references — block heads, `BL)1`,
+  `IOC)29`, pool entries (seeds included), SYS) and IOC) numbers,
+  result cells by section, `PI)n` and `BL)n` words, bound later-pass
+  GN names. The nine fixed names report at 9999,99. Rejected readings:
+  `review/2026-08-28-m4-b8-underdetermined`.
 - **M4-6. The later-pass GN numbers (GN)084 on).** M3-23 allocates the
   source-order labels through GN)083 and hands the rest to M4: the
   generated-label counter continues from 084 in a later pass, in source
@@ -267,15 +272,15 @@ M4 executes I/O-free programs.
   label field on its first word; a constant-bearing word prints `OCT` with
   the twelve-digit octal repeated in the operand field; an uninitialized
   run prints one `BSS n`; a right-justified internal field prints its
-  `BSS` per M3-6's reservation. The exact interleaving of labels, `OCT`,
-  and `BSS` lines is pinned against the region golden; this entry
-  records the principles, and the golden records the answer.
+  `BSS` per M3-6's reservation. The interleaving of labels, `OCT`, and
+  `BSS` lines is pinned by the golden: this entry records the
+  principles, the golden the answer.
 - **M4-7.1. The stage-1 golden held 91 rows** (Jack's call,
   2026-08-05): `USE 0` through LOC 00164, without the two counter-1
   head rows, whose origin no stage without verb generation can compute.
-  Chunk B1 prepended them. The 89 body rows were diffed against the
-  90.05 transcription before commit, with no mismatch: the storage map
-  is a print problem at M4, not a derivation problem.
+  Chunk B1 prepended them. The 89 body rows diffed clean against the
+  90.05 transcription before commit: the storage map is a print
+  problem, not a derivation problem.
 
 ## The symbolic listing pages
 
@@ -781,9 +786,12 @@ M4 executes I/O-free programs.
   - Recursion is unguarded: a second activation overwrites the cell;
     the emulator reproduces the wild return (D5.7). Non-recursive
     nesting is unrestricted.
-  - `--pedantic` sites (D11.4; ids from M4-18): constant p, q, r whose
-    (r − p) is not a whole multiple of q, or q zero or wrong-signed
-    (D5.1); a static cycle in the DO call graph (D5.7).
+  - `--pedantic` sites (D11.4; ids from M4-18; chunk B8):
+    msg 946 for constant p, q, r unless q > 0, p ≤ r, and q divides
+    r − p — any other triple loops, runs once, or overshoots under the
+    decoded exit (D5.1); msg 947 for a DO whose target reaches, through
+    the DO graph, a procedure open around the call (D5.7), one note per
+    call.
   **Amended 2026-08-16, chunk B5. The generator fills the linkage.**
   The fill added:
   - The return's flag bits print as octal group 60 (LOC 00350).
@@ -872,10 +880,9 @@ M4 executes I/O-free programs.
   end-of-file card are not the compiler's ([J 03.00]). Our loader (D0.3)
   reads the symbolic cards and the text section, resolves the control
   groups, places the program at a chosen origin, maps SYS)/IOC) references
-  to dispatch addresses, and enters at the entry point the 01111
-  end-of-text word carries in its address (D2.1); the
-  round trip — emit, load, compare memory against the listing's word
-  image — is the stage-3 oracle. `--emit-deck` writes the punch-level
+  to dispatch addresses, and enters at the address of the 01111
+  end-of-text word (D2.1); the round trip — emit, load, compare memory
+  against the listing's word image — is the stage-3 oracle. `--emit-deck` writes the punch-level
   card file; `--emit-loader` writes the symbolic card text.
 
 ## The machine assembly and the runtime boundary
@@ -894,38 +901,36 @@ M4 executes I/O-free programs.
   not code), MOVPAK entire (SYS)179–258, 267–282), the base-locator
   guard SYS)294 — plus the run-frame stubs SYS)174–178 (open and close,
   one file and all, and the display routine) and IOC)1, IOC)40, enough
-  to run an I/O-free program end to end and to execute STOP. M5 lands
+  to run an I/O-free program to its STOP. M5 lands
   IOCS: IOC)2–17, 29, 46, 53, 54 and SYS)260–266, 283, and 286–296
   less the already-landed 294. Each handler implements its [J 90.02]
   contract and is unit-tested against it (D0.3). Handlers keep the
-  documented printed inconsistencies as recorded defects, not silent
-  fixes: SYS)231–234 follow their own entries (overpunch test), not the
-  family lists' overflow naming (D4.2's note).
+  printed inconsistencies as recorded defects, not silent fixes:
+  SYS)231–234 follow their own entries (overpunch test), not the family
+  lists' overflow naming (D4.2's note).
 
 ## Diagnostics
 
 - **M4-18. The message inventory.** The codegen and assembly stage
   enforces:
   - **Msg 173** (C5): a generated reference names an undefined GN) or
-    SYS) symbol — an integrity check over the compiler's own output,
-    wired into symbol resolution before deck output (D9.13).
+    SYS) symbol — an integrity check on the compiler's own output, at
+    symbol resolution before deck output (D9.13).
   - **Msg 174** (C1): a generated SYS) reference carries no number; zero
     assumed (D9.13).
-  - **Msg 69** (C5): illegal internal code reaches assembly — the
-    assembly-stage assertion of D9.15, reporting a compiler bug in 1962
-    form.
+  - **Msg 69** (C5): illegal internal code reaches assembly — D9.15's
+    assembly-stage assertion, a compiler bug in 1962 form.
   - **Msg 172** (C5): the constant pool passes 500 entries (D9.7;
-    [J 90.01.05] item k). `--no-table-limits` lifts it with the rest of the
-    D9.7 class.
+    [J 90.01.05] item k), counted per entry created, seeds included
+    (chunk B8). `--no-table-limits` lifts it with the rest of
+    the D9.7 class.
   - **Msg 942** widens to the eight-class tally (M4-5).
   - **New non-historical ids**, continuing M3's sequence from 946
-    (M3-21; D9.7's pattern), both `--pedantic`-only under D11.4's
-    invariant — the mode adds diagnostics and changes nothing else, and
-    the 921/922 precedent shows a pedantic-only id may carry an error
-    class: **946** (C1) the D5.1 constant-parameter note (q zero,
-    wrong-signed, or (r − p) not a whole multiple of q); **947** (C2;
-    the class is ours) the D5.7 DO-call-graph cycle, an error by that
-    record's own word.
+    (M3-21; D9.7's pattern), both `--pedantic`-only (D11.4; the 921/922
+    precedent allows an error class): **946** (C1) the D5.1
+    constant-parameter note; **947** (C2; the class is ours) the D5.7
+    DO-call-graph cycle, an error by that record's own word. Both
+    landed at chunk B8 (M4-13); the checklist holds the texts.
   No diagnostic attaches to rounding, to the compile-time comparison
   folds, or to the assigned GO TO's range fall-through (attested
   silences).
@@ -941,44 +946,42 @@ M4 executes I/O-free programs.
   | `--emit-deck[=<path>]` | `-d` | object deck | attested format, no surviving byte image | 90.03 conformance tests; the load round trip |
   | `--emit-loader[=<path>]` | `-L` | loader symbolic cards | attested | the listing's page 198 lines |
 
-  The code dump renders the text model one unit per line and opens with
-  the reconstruction label. The deck dump writes the punch-level binary
-  card file; its text rendering is the listing's own OCTAL/CNTRL columns,
-  so no separate text form is invented. The letters extend the existing
-  bundle (`-cpsSlgodL`; `-A` takes all).
+  The code dump renders the text model one unit per line under the
+  reconstruction label. The deck dump writes the punch-level binary
+  card file; its text rendering is the listing's OCTAL/CNTRL columns,
+  so no text form is invented. The letters extend the bundle
+  (`-cpsSlgodL`; `-A` takes all).
 
 ## Scan readings and erratum candidates
 
-- **M4-20. The stage-0 scan checks (2026-08-05).** The dossier work
-  behind this walk flagged readings the design depends on. Each was
-  measured on the page scans before this record was committed, at 8× to
-  40× magnification with per-glyph comparison against known glyphs on the
-  same page. A reading that contradicts the transcription becomes an
-  erratum candidate in HANDOVER, waiting for Jack's authorization; the
-  transcription itself is not edited. The verdicts, all read certain:
+- **M4-20. The stage-0 scan checks (2026-08-05).** The dossier flagged
+  readings the design depends on. Each was measured on the page scans
+  before this record was committed, at 8× to 40× with per-glyph
+  comparison against known glyphs on the page. A reading against the
+  transcription becomes an erratum candidate in HANDOVER for Jack's
+  authorization; the transcription is not edited. The verdicts, all
+  certain:
   - **(a) CP)+38's decrement (PDF p. 216) — the transcription is right,
     and the print is the surprise.** Both descriptor words print the
-    identical `0 00000 0 00134`: `PZE RETPREM-2` and `PZE INSPREM-2`,
+    same `0 00000 0 00134`: `PZE RETPREM-2` and `PZE INSPREM-2`,
     decrement zero on both, though RETPREM occupies characters 3–5. The
     decrement column is live on the same page (`PZE INS.PREM,,3` prints
     00003), so the zeros are deliberate ink. The EQU'd subscript-base
-    words are therefore byte-blind, the byte selection lives in the
-    generated lookup code, and the reproduced pool prints the two
-    identical words. This closes the review backlog's RETPREM pointer
-    anomaly.
+    words are therefore byte-blind; the byte selection lives in the
+    generated lookup code, and the pool prints the two identical words.
+    This closes the review backlog's RETPREM pointer anomaly.
   - **(b) LOC 01612 (PDF p. 215) — a transcription error, corrected
     2026-08-05 under Jack's authorization.** The print reads
     `CLA 5)NETPAY`; the transcription's `4)NETPAY` misread the 5. The
-    listing corroborates the scan on its own: the correctly transcribed
-    octal address 00133 pairs with `5)NETPAY` at both other sites that
-    reference it, LOC 00423 and LOC 01614. The golden prints
-    `5)NETPAY`.
+    listing corroborates the scan: the correctly transcribed octal
+    address 00133 pairs with `5)NETPAY` at its two other reference
+    sites, LOC 00423 and LOC 01614. The golden prints `5)NETPAY`.
   - **(c) LOC 01327 (PDF p. 212) — confirmed as printed.** The word is
     `TRA SYS)267,0,0`, octal `0020 00 0 00413`, inside a SYS)180
     sequence where every parallel site prints `TXI SYS)267,1,n`. The
-    1962 ink is unambiguous, so the listing reproduces it byte for byte.
-    The execution reading is deferred to M6, when the sample first runs;
-    the finding amends this entry.
+    ink is unambiguous, so the listing reproduces it byte for byte. The
+    execution reading waits for M6, when the sample first runs; the
+    finding amends this entry.
   - **(d) LOC 00702 (PDF p. 206) — confirmed verbatim.** The label-only
     `GN)075` line, the out-of-order `GN)088 EQU CP)+37` line between it
     and the instruction, and the unlabeled `AXT GN)086,4` word printing
@@ -986,24 +989,24 @@ M4 executes I/O-free programs.
     offset-counter reset.
   - **(e) The PDF p. 208 page head — a transcription error, corrected
     2026-08-05 under Jack's authorization.** The print is one head line
-    in the normal order, followed by two blank lines. A one-degree scan
-    tilt drops the right half of the line, and the transcription split
-    it into two transposed lines. The golden prints one line, on
-    PDF p. 209's field grid, per item (g).
+    in the normal order, then two blank lines. A one-degree scan tilt
+    drops the line's right half, and the transcription split it into
+    two transposed lines. The golden prints one line, on PDF p. 209's
+    grid, per item (g).
   - **(f) The GET descriptor mnemonic — the two artifacts genuinely
     differ.** The listing prints `IOCTN*` (read at three sites on PDF
     p. 201; the fourth glyph is a T at 40×, against a D control glyph
     from GET.DETAIL); the typeset [J 90.02.04] prints `IOCDN*`. Each
-    transcription is faithful to its own source, so neither is an
-    erratum. The compiler emits the listing's `IOCTN*`, and the
-    divergence is recorded here rather than in the definition because it
-    is a print fact, not a language fact.
+    transcription is faithful to its source, so neither is an erratum.
+    The compiler emits the listing's `IOCTN*`; the divergence is a print
+    fact, not a language fact, so it is recorded here and not in the
+    definition.
   - **(g) The column geometry (PDF pp. 203 and 212) — one geometry.**
     Pages from both transcription ranges print identical grids, the
-    M4-8 table, constant to half a character cell; the apparent two
-    conventions came from opposite scan distortions, and the pasted
-    listing block sits at a different offset on each manual page — page
-    furniture, not print.
+    M4-8 table, constant to half a cell; the apparent two conventions
+    came from opposite scan distortions, and the pasted listing block
+    sits at a different offset on each manual page — furniture, not
+    print.
 
 ## Open Question dispositions
 
@@ -1012,9 +1015,9 @@ M4 executes I/O-free programs.
   entry cited with it holds the shape:
   - **Q37**, the index after a completed loop: normal exit leaves i at
     the first value past r, r + q when q divides r − p exactly, and a
-    GO TO out leaves the last increment's value (M4-13). §8.5.5-a takes
-    the matching annotation: the compiled exit is a magnitude test, and
-    F's printed expansion stays the manual's text.
+    GO TO out leaves the last increment's value (M4-13). §8.5.5-a is
+    annotated to match: the compiled exit is a magnitude test; F's
+    expansion stays the manual's text.
   - **Q26 residue**: the ACL half-adjust runs away from zero for
     negatives by 7090 semantics, no negative case is attested, so the
     reading stays flagged inference, and rounding cannot arm SYS)130
@@ -1024,8 +1027,7 @@ M4 executes I/O-free programs.
     test. The language questions stay open, pointing here.
   - **Q31**: SYS)131 is set by the numeric movers and read by nothing,
     reproduced exactly (D4.3). **Q33**: multi-target stores run left to
-    right in written order, observable only on REDEF overlap, ours
-    (D4.8). **Q34**: DO USING/GIVING transfers are MOVEs, so they take
+    right, observable only on REDEF overlap, ours (D4.8). **Q34**: DO USING/GIVING transfers are MOVEs, so they take
     full MOVE editing (M3-19). **Q36**: named q and r are re-read each
     pass by the increment block and literals bake into the pool (M4-13).
     **Q24**: no object-time check on a QUANTITY IN value against its
@@ -1042,10 +1044,9 @@ M4 executes I/O-free programs.
   the M3-22-pattern blind scan verification of pp. 199–216 (p. 198 is
   stage 3's, per M4-1); the 90.05 job deck compiles
   clean in default mode, and `--pedantic` adds only the three 943 notes
-  (ours, non-historical — the sample's own doubtful blank-moves, D11.4
-  as amended) plus any new 946/947 sites the deck triggers (it triggers
-  none: statement 206's parameters divide evenly, and the DO graph is
-  acyclic).
+  (the sample's own doubtful blank-moves, D11.4 as amended) and no 946
+  or 947 note: statement 206's parameters divide and the DO graph is
+  acyclic.
 - Stage 3: the loader-card page inside the listing diff; 90.03
   conformance tests on the deck; the load round trip against the
   listing's word image.
@@ -1053,8 +1054,8 @@ M4 executes I/O-free programs.
   constructed I/O-free decks with storage assertions.
 - Error paths: constructed decks per message, asserting id, severity,
   statement number, and recovery (the M2 oracle pattern).
-- Decision conformance: each M4-N and each D-slate call named above gets
-  a test that cites it.
+- Decision conformance: each M4-N and D-slate call above gets a test
+  that cites it.
 
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 

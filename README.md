@@ -77,9 +77,10 @@ and verified. Then the compiler, which is partly built.
 
 Today the card reader, the lexer, the listing, the parsers for all three
 divisions, the job-stream driver, and the Data Description semantic layer all
-work. Code generation prints the storage map; it does not generate procedure
-text yet. [`docs/HANDOVER.md`](docs/HANDOVER.md) holds the live state and the
-next task.
+work. Code generation fills every word of the object program and prints the
+whole object listing of the 1962 sample byte for byte; the object deck and the
+loader cards come next. [`docs/HANDOVER.md`](docs/HANDOVER.md) holds the live
+state and the next task.
 
 To see it run, with the Dart SDK installed:
 

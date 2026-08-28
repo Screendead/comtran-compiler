@@ -745,6 +745,8 @@ record built on it.*
 
 *Amended 2026-08-05 (M4 decision walk, `docs/design/m4-codegen.md` M4-13 — the pre-committed decode).* The statement 206,00 increment block is decoded: `CLA INDEX / ADD CP)+1 / STO INDEX / CLA CP)+13 / ADD PI)1 / STO PI)1 / CLA CP)+8 / SUB INDEX / TPL GN)085` at LOC 00711–00721 ([J 90.05] listing, PDF pp. 206–207), with CP)+1 = 1, CP)+8 = 12 = r, and CP)+13 the positional-indicator stride, all read from the printed pool. The block forms r − i after the increment and branches on sign — the exact shape this record named as the magnitude exit. The record flips as pre-committed: the generated loop exits on the first i > r (`loop while r − i >= 0`). A zero difference transfers, because equal magnitudes with unlike signs keep the original accumulator sign (external: 22-6528-4 p. 20) and the accumulator holds r, plus — so the body runs for i = r. Normal exit therefore leaves i at the first value past r — r + q when q divides r − p exactly — superseding this record's "i holds r at normal exit" sentence; the abandoned-loop value stands unchanged. Overshoot and p > r now terminate; a zero or wrong-signed q with p ≤ r still never terminates, and the emulator reproduces that. The equality reading stays one line away behind the codegen switch.
 
+*Amended 2026-08-28 (M4 stage 2 chunk B8, `docs/design/m4-codegen.md` M4-13).* The `--pedantic` note of this record's Implementation is msg 946 (C1, non-historical). It fires for constant p, q and r unless q > 0, p ≤ r, and q divides r − p. "Wrong-signed" is read against the decoded exit: a negative q never steps toward r — with p ≤ r the loop never terminates, with p > r the body runs once — so a descending loop notes whatever the direction from p to r. A field-name parameter is not constant and draws nothing. The review record `review/2026-08-28-m4-b8-underdetermined` holds the rejected direction reading.
+
 ### D5.2 — Two-index DO: "index.name.1 is set to p.1 + q.1"
 
 **Status.** Locked; amended 2026-08-05 — the exit test follows D5.1 as amended (see below).
@@ -824,6 +826,8 @@ record built on it.*
 **Oracle.** listing-diff for the linkage shape (head cell `AXT 0`, `SXA P,4`, `TRA P+1`, `TRA* P`; [J 90.05] listing, PDF pp. 202–203); decision-conformance only for recursive behavior.
 
 *Citations:* (F pp. 50, 53; [J 90.01.05] f); ([J 90.02.01]–06, 90.02.11; [J 02.08.03]); Open Question 40 ([J 90.05] listing, PDF pp. 195–196, 201–203, 205–207, 210–213, 215)
+
+*Amended 2026-08-28 (M4 stage 2 chunk B8, `docs/design/m4-codegen.md` M4-13).* The static cycle detection of this record's Implementation is msg 947 (C2, non-historical, `--pedantic` only). A DO — an `AT END DO` included — notes when its procedure can reach, through the DO call graph, the paragraph or section open around the call, itself included; one note per such call. The graph is the generator's own nesting state, static over the text.
 
 ## D6 — Input/output (§8.5.6)
 
