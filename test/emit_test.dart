@@ -289,9 +289,10 @@ void main() {
 
   test('the object dump prints one marker line per dead job', () {
     // Job 1 stops in the front end (D7.9), job 2 reaches the generator
-    // and refuses (DISPLAY, [J 90.01.01]), and job 3 compiles. The
-    // attested dump takes no job headers, so the two markers print in
-    // sequence and job 3 opens with its own page head.
+    // and refuses (DISPLAY, [J 90.01.01]), job 3 stops inside the
+    // generator (msg 172, the 501st pool entry; D9.7), and job 4
+    // compiles. The attested dump takes no job headers, so the three
+    // markers print in sequence and job 4 opens with its own page head.
     final List<String> lines = [
       r'$CMPLE BAD',
       '      *DATA',
@@ -303,6 +304,19 @@ void main() {
       r'$CMPLE UGLY',
       '      *PROCEDURE',
       '            DISPLAY 45.',
+      '            STOP RUN.',
+      '      *FINISH',
+      r'$CMPLE FULL',
+      '      *DATA',
+      dataCard(
+        name: 'N',
+        level: '1',
+        mode: 'I',
+        justify: 'R',
+        description: '999',
+      ),
+      '      *PROCEDURE',
+      for (var k = 2; k < 497; k++) '            SET N = $k.',
       '            STOP RUN.',
       '      *FINISH',
       r'$CMPLE GOOD',
@@ -331,9 +345,10 @@ void main() {
     final List<String> dump = File('${dir.path}/object').readAsLinesSync();
     expect(dump[0], stageNotReached);
     expect(dump[1], '* NOT RECOVERED: DISPLAY ([J 90.01.01])');
-    // Job 3's one source page and its loader-card page put its object
+    expect(dump[2], stageStopped);
+    // Job 4's one source page and its loader-card page put its object
     // listing at PAGE 3.
-    expect(dump[2], contains('PAGE  3'));
+    expect(dump[3], contains('PAGE  3'));
     expect(dump.last, endsWith('START  GN)000'));
   });
 }

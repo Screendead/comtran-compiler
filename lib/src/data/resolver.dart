@@ -22,6 +22,7 @@ import 'data_messages.dart';
 import 'dictionary.dart';
 import 'images.dart';
 import 'mapper.dart';
+import 'name_tally.dart';
 import 'pictorial.dart';
 import 'subscripts.dart';
 
@@ -32,7 +33,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
     this.mapper, {
     this.pedantic = false,
     this.tableLimits = true,
-  });
+  }) : names = NameTally(diagnostics, tableLimits: tableLimits);
 
   final DataMapper mapper;
   final bool pedantic;
@@ -40,6 +41,10 @@ final class NameResolver extends ClauseWalk with OperandWalk {
   /// False under `--no-table-limits` (D9.7): the capacity counters
   /// stay silent.
   final bool tableLimits;
+
+  /// The job's one name count (M4-5): every dictionary entry feeds it
+  /// here, and the allocator and the code generator continue it.
+  final NameTally names;
 
   /// The job's dictionary (M3-8; M3-17).
   final Dictionary dictionary = Dictionary();
@@ -252,11 +257,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
       sentence: sentence,
       section: section,
     );
-    if (tableLimits && dictionary.entries.length == 3501) {
-      // D9.7's other message-less limit: the internal dictionary,
-      // "Appox-Max" 3500 names (J 90.01.05).
-      diagnostics.reportAt(msgDictionaryCapacity, anchor);
-    }
+    names.enter(anchor);
   }
 
   void _checkListThreeShadows() {

@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-08-16. Audience: the next agent, or Jack. This file is the
+*Updated 2026-08-28. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -49,7 +49,7 @@ Terms that appear without expansion:
 | M3 — the semantic layer | Done 2026-08-05 (stages 1–2 2026-08-04; stage 3, the listing extension, 2026-08-05) | `docs/design/m3-data.md`, `lib/src/data/` |
 | M4 decision walk (M4-1 to M4-21) | Done 2026-08-05 | `docs/design/m4-codegen.md` |
 | M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
-| M4 stage 2 — core-verb text | Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, remains | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
+| M4 stage 2 — core-verb text | Done 2026-08-28. Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, done 2026-08-28 | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
 | M4 stages 3–4, M5, M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); hardens in M4 stage 4 | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -62,7 +62,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1107 Dart tests pass, measured 2026-08-16, and 154 extension
+Test baseline: 1143 Dart tests pass, measured 2026-08-28, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -75,11 +75,25 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — M4 stage 2
+## The next task — M4 stage 3
 
-M4 stage 1 closed 2026-08-05, stage 2's chunk B1 closed 2026-08-15,
-chunks B2 to B5 closed 2026-08-16, and chunks B6 and B7 closed
-2026-08-17. `lib/src/codegen/` holds the text model (M4-3), the
+**M4 stage 2 is complete.** Stage 1 closed 2026-08-05, stage 2's
+chunk B1 closed 2026-08-15, chunks B2 to B5 closed 2026-08-16, chunks
+B6 and B7 closed 2026-08-17, and chunk B8 closed 2026-08-28. The next
+task is stage 3, the object deck and the loader cards (M4-16; M4-19):
+
+- the 90.03 text encoding;
+- the `*FILE`, `*SPEC`, `*CTEXT` and `*CTEND` cards;
+- `--emit-deck` and `--emit-loader`;
+- our loader.
+
+Its oracle is the loader-card page, listing page 7 at PDF p. 198,
+inside the listing diff. The load round trip against the listing's
+word image is the second oracle. M4-8 as amended holds the measured
+columns of the three closing lines the deck writer prints after the
+end-of-text line.
+
+`lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
 `--emit-code` and `--emit-object` dumps (M4-19; M4-8), the encode
 table (`encode.dart`), and the generator itself (`procedure.dart`,
@@ -178,10 +192,21 @@ class rule, the `USE 2` and `BL)` pointer words, the 62 constant-pool
 words, the end-of-text line, and the paginated writer behind
 `--emit-object`. The acceptance diff ran clean — the whole document
 against the target, byte for byte — and the target, its generator and
-its tests are deleted. The next task is chunk B8: the diagnostics —
-msg 942 widens to the eight generated-name classes (M4-5), ids 946
-and 947 take their pedantic sites (M4-18), and the D10.2 stop shape
-M4-2 defers to that chunk.
+its tests are deleted.
+
+B8 closed the stage with the generator's diagnostics (M4-18). The
+generator takes the job's sink and stops on a severity 5 like every
+earlier phase (M4-2; D10.2): no text and no image, and the rows
+recorded before the stop print. Msg 942 counts the eight generated
+classes with the programmer names in one tally, continued across the
+resolver, the allocator and the generator (M4-5 as amended). Msg 172
+counts the constant pool, seeds included (D9.7). Under `--pedantic`,
+msg 946 notes constant DO FOR parameters that never step from p to r
+under the decoded exit (D5.1). Msg 947 notes a DO that can re-enter a
+procedure open around it (D5.7). The sample draws neither. Seven of
+the chunk's calls are underdetermined by the one sample program. The
+record `review/2026-08-28-m4-b8-underdetermined` holds the rejected
+formulations.
 
 Chunks A7 and A8 read each page **twice**, by two readers who did not know of each
 other, and compared the two readings before either met the target. Ten
@@ -250,7 +275,7 @@ state:
 - Msg 942 widens to the eight generated-name classes with one combined
   tally (M4-5). Ids 946 and 947 are reserved for the D5.1 and D5.7
   pedantic sites, pedantic-only at C1 and C2 (M4-18); D6.1 to D6.5 stay
-  deferred to M5 (D11.4). Remains: chunk B8.
+  deferred to M5 (D11.4). Done (B8).
 - The emit surface gains `--emit-deck` (`-d`) and `--emit-loader` (`-L`)
   at stage 3, under `emit-stages.md`'s conventions, which M4-19 adopts
   unamended.
@@ -449,9 +474,8 @@ PDF p. 217. It makes every milestone below testable at once.
   follows the verified Q40 return-cell semantics, non-reentrancy included.
   Arithmetic follows §4.3 and the Q26–Q28 annotations. The emulator core
   (`docs/design/emulator.md`) hardens here. The msg 942 dictionary counter
-  takes the compiler-generated names here too: [J 90.01.05] item a) counts
-  them with the programmer names, and M3 counts programmer names alone
-  (M3-21).
+  took the compiler-generated names at stage 2, chunk B8: [J 90.01.05]
+  item a) counts them with the programmer names (M3-21; M4-5).
 - **M5 — I/O runtime**: OPEN, CLOSE, GET, and FILE; buffering and locate mode;
   AT END and ON ERROR per Q41; labels per Q45 and Q46 at the M0-chosen fidelity;
   DISPLAY and report output.

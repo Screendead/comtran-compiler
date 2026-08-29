@@ -15,6 +15,10 @@ import 'dart:collection';
 
 import 'text_model.dart';
 
+/// The printed capacity of the constant pool ([J 90.01.05] item k):
+/// the 501st entry draws msg 172 (D9.7).
+const int constantPoolCapacity = 500;
+
 /// The four sub-pools, in their frozen concatenation order (M4-4).
 enum SubPool {
   /// The values written in the PROCEDURE source, plus the subscript
@@ -50,11 +54,16 @@ final class PoolHandle {
 final class ConstantPool {
   /// The seeded head: indices 0 and 1 hold the integers 0 and 1 ahead
   /// of every source literal (the notes, section 6.2 item 37 — pinned
-  /// at the diff).
-  ConstantPool() {
+  /// at the diff). The callback runs once per entry created, the seeds
+  /// included: the msg 942 and 172 counters check on increment (D9.7).
+  ConstantPool({this._onEntry}) {
     _literals[0] = (-1, 0);
     _literals[1] = (-1, 1);
+    _onEntry?.call();
+    _onEntry?.call();
   }
+
+  final void Function()? _onEntry;
 
   /// Written literals, keyed on the word value; the position of the
   /// earliest source appearance orders them. The seeds sort ahead of
@@ -78,9 +87,14 @@ final class ConstantPool {
     _literals.update(
       bits,
       ((int, int) first) => first.compareTo(at) <= 0 ? first : at,
-      ifAbsent: () => at,
+      ifAbsent: () => _created(at),
     );
     return PoolHandle._(SubPool.literals, bits);
+  }
+
+  T _created<T>(T entry) {
+    _onEntry?.call();
+    return entry;
   }
 
   /// A seed's handle. The entries exist from construction; this only
@@ -100,13 +114,15 @@ final class ConstantPool {
     _literals.update(
       words,
       ((int, int) first) => first.compareTo(at) <= 0 ? first : at,
-      ifAbsent: () => at,
+      ifAbsent: () => _created(at),
     );
     return PoolHandle._(SubPool.literals, words);
   }
 
   PoolHandle machineWord(int bits) {
-    _machineWords.add(bits);
+    if (_machineWords.add(bits)) {
+      _onEntry?.call();
+    }
     return PoolHandle._(SubPool.machineWords, bits);
   }
 
@@ -124,7 +140,7 @@ final class ConstantPool {
     return PoolHandle._(SubPool.descriptors, operand);
   }
 
-  static void _register(
+  void _register(
     LinkedHashMap<String, (int, int)> subPool,
     String operand,
     int word,
@@ -134,7 +150,7 @@ final class ConstantPool {
       subPool[operand] == null || subPool[operand] == (word, control),
       'one operand, two words: $operand',
     );
-    subPool[operand] ??= (word, control);
+    subPool.putIfAbsent(operand, () => _created((word, control)));
   }
 
   /// Concatenates the four sub-pools and assigns every entry its index.

@@ -166,7 +166,7 @@ void main() {
 
     test('the phase generates the whole of Location Counter 0', () {
       // The data region and the procedure text: LOC 00000 through 01620.
-      expect(result.image.inlineWords, _octal('1621'));
+      expect(result.image!.inlineWords, _octal('1621'));
     });
 
     test('the +n offset counts units, not addresses', () {

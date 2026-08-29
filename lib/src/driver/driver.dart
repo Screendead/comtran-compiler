@@ -41,8 +41,9 @@ final class JobCompilation {
   /// stopped (D10.2: the driver skips the phase).
   final SemanticResult? semantics;
 
-  /// The generated object text, or `null` when an earlier phase
-  /// stopped (M4-2; D10.2) or code generation refused ([unrecovered]).
+  /// The generated object text — stopped when its own severity 5
+  /// stopped it — or `null` when an earlier phase stopped (M4-2; D10.2)
+  /// or code generation refused ([unrecovered]).
   final CodegenResult? codegen;
 
   /// The code generator's refusal, or `null`. A refusal is this
@@ -55,9 +56,10 @@ final class JobCompilation {
   /// job's severity.
   final DiagnosticSink sink;
 
-  /// The diagnostics the job's listing prints: the merged front-end and
-  /// parser block (M2-2), then any tail 903s, then 132 when the deck
-  /// ended inside this job.
+  /// The diagnostics the job's listing prints: every phase's rows
+  /// merged into one card-ordered block (M2-2), the code generator's
+  /// included, then any tail 903s, then 132 when the deck ended inside
+  /// this job.
   final List<Diagnostic> diagnostics;
 }
 
@@ -126,19 +128,28 @@ DeckCompilation compileDeck(
     // A refusal — a valid shape with no attested generated form — stops
     // this job's code generation only: the refusal is this recovery's
     // gap, not a 1962 diagnostic, so it enters no sink and the next job
-    // still compiles (M4-2 as amended; J 90.04.02).
+    // still compiles (M4-2 as amended; J 90.04.02). The rows the
+    // generator recorded ahead of a refusal or a stop stay in the sink,
+    // so the listing takes the generator's block from there.
     CodegenResult? codegen;
     UnrecoveredShape? unrecovered;
+    List<Diagnostic> phases =
+        semantics?.diagnostics ?? parse?.diagnostics ?? frontEnd.diagnostics;
     if (semantics != null && !semantics.stopped) {
+      final int first = sink.length;
       try {
-        codegen = runCodegen(semantics);
+        codegen = runCodegen(
+          semantics,
+          sink: sink,
+          pedantic: pedantic,
+          tableLimits: tableLimits,
+        );
       } on UnrecoveredShape catch (refusal) {
         unrecovered = refusal;
       }
+      phases = mergeDiagnosticPhases(phases, sink.sublist(first));
     }
-    final diagnostics = <Diagnostic>[
-      ...semantics?.diagnostics ?? parse?.diagnostics ?? frontEnd.diagnostics,
-    ];
+    final diagnostics = <Diagnostic>[...phases];
     for (var j = 0; j < slice.ignoredTail.length; j++) {
       // The single-job tail (D11.1 rule d). Card numbers continue past
       // the job's own, so the block keeps card order (M2-2); the cards

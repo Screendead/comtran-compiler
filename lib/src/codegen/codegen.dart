@@ -13,6 +13,7 @@
 library;
 
 import '../data/data_map.dart';
+import '../lexer/diagnostic.dart';
 import 'blocks.dart';
 import 'image.dart';
 import 'procedure.dart';
@@ -40,24 +41,49 @@ final int resultStorageWords =
 
 /// The code generator's result over one job.
 final class CodegenResult {
-  CodegenResult({required this.units, required this.image});
+  CodegenResult({required this.units, required ProgramImage this.image})
+    : stopped = false;
+
+  /// The result of a phase a severity-5 diagnostic stopped (D10.2): no
+  /// text and no layout. The 1962 compiler produced no object program
+  /// past a severity 5 ([J 90.04.02]), and the words placed before the
+  /// stop are not one either.
+  const CodegenResult.stopped()
+    : units = const <AssemblyUnit>[],
+      image = null,
+      stopped = true;
 
   /// The assembly text, program order.
   final List<AssemblyUnit> units;
 
-  /// The address layout the text is bound against.
-  final ProgramImage image;
+  /// The address layout the text is bound against, or `null` when the
+  /// phase stopped.
+  final ProgramImage? image;
+
+  /// Whether a severity-5 diagnostic stopped the phase (D10.2).
+  final bool stopped;
 }
 
 /// Generates the object text of [semantics].
 ///
-/// The phase takes no diagnostic sink, because the one failure it can
-/// detect is not a diagnostic: a valid source shape the sample never
-/// reaches has no attested generated form, and none is invented. The
-/// sizers throw [UnrecoveredShape] at such a shape and the driver
-/// scopes the refusal to the job (M4-2 as amended 2026-08-15). The
-/// diagnostic sink arrives with chunk B8 (M4-1).
-CodegenResult runCodegen(SemanticResult semantics) {
+/// Diagnostics go to [sink] when one is given — the compilation's one
+/// [DiagnosticSink] (D9.1), shared with the earlier phases by the
+/// driver. The function catches [StopCompilation] itself and returns
+/// [CodegenResult.stopped] (D10.2; M4-2). [pedantic] adds the D5.1
+/// and D5.7 notes and changes nothing else (D11.4); [tableLimits]
+/// false is the non-historical `--no-table-limits` switch, which
+/// silences the name tally and the pool counter (D9.7).
+///
+/// A refusal is not a diagnostic: a valid source shape the sample
+/// never reaches has no attested generated form, and none is invented.
+/// The sizers throw [UnrecoveredShape] at such a shape and the driver
+/// scopes the refusal to the job (M4-2 as amended 2026-08-15).
+CodegenResult runCodegen(
+  SemanticResult semantics, {
+  DiagnosticSink? sink,
+  bool pedantic = false,
+  bool tableLimits = true,
+}) {
   final List<AssemblyUnit> data = storageMapUnits(semantics);
   final int dataWords = semantics.areas.fold(
     0,
@@ -67,8 +93,23 @@ CodegenResult runCodegen(SemanticResult semantics) {
   // Two passes over the procedure text. The text's own addresses need
   // nothing but its order, but an `EQU` line prints an equated value in
   // the LOC column, and the values it equates are pool addresses, which
-  // follow the whole text. Pass one measures; pass two places.
-  ProcedureText text = generateProcedure(semantics, origin: dataWords);
+  // follow the whole text. Pass one measures and diagnoses; pass two
+  // places.
+  final checks = CodegenChecks(
+    sink ?? DiagnosticSink(),
+    pedantic: pedantic,
+    tableLimits: tableLimits,
+    nameCount: semantics.nameCount,
+  );
+  ProcedureText text;
+  try {
+    text = generateProcedure(semantics, origin: dataWords, checks: checks);
+  } on StopCompilation {
+    // A severity-5 diagnostic stops the phase at the point of
+    // detection (D9.1); the capacity checks (D9.7, C5) are this
+    // path's producers.
+    return const CodegenResult.stopped();
+  }
   final image = ProgramImage(
     inlineWords: dataWords + text.words,
     blockWords: <StorageBlock, int>{

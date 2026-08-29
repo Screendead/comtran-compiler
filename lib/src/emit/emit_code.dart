@@ -9,7 +9,8 @@
 /// digits, the word twelve solid octal digits (`WordForm.solid`, not
 /// the listing's spaced OCTAL forms), and the control group prints
 /// through [controlColumn]. A job whose code generator never ran
-/// prints [stageNotReached].
+/// prints [stageNotReached]; one whose generator stopped ends its
+/// section with [stageStopped] (D10.2).
 library;
 
 import '../codegen/codegen.dart';
@@ -33,6 +34,9 @@ String emitCode(DeckCompilation deck) {
     out.writeln('* TEXT');
     for (final AssemblyUnit unit in codegen.units) {
       out.writeln(_row(unit));
+    }
+    if (codegen.stopped) {
+      out.writeln(stageStopped);
     }
   }
   return out.toString();
