@@ -2,14 +2,12 @@
 /// counter draws, and two of ours behind `--pedantic`.
 library;
 
+import '../lexer/message_catalog.dart';
 import '../lexer/messages.dart';
 
 /// `172,00` — the constant pool past its printed 500 entries
 /// ([J 90.01.05] item k; D9.7).
-const Message msgConstantPoolOverflow = Message(
-  '172,00',
-  'CONSTANT POOL OVERFLOW.',
-);
+final Message msgConstantPoolOverflow = messageCatalog['172,00']!;
 
 /// Ours — `--pedantic` only: constant DO FOR parameters whose index
 /// never steps from p to r exactly under the decoded magnitude exit — a

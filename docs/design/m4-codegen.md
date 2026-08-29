@@ -48,8 +48,9 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
 
   **Amended 2026-08-09, stage 2 (Jack's call). Stage 2 is not one pull
   request.** Its oracle needs a blind pass over nineteen page scans, too
-  much to risk in one pull request, so stage 2 splits into chunks, each
-  green and mergeable alone. Stages 1, 3, and 4 do not change.
+  much to risk in one pull request. Stage 2 therefore splits into
+  chunks, each green and mergeable alone. Stages 1, 3, and 4 do not
+  change.
 
   Phase A built the target listing before any generator ran: listing
   pages 8 to 25, PDF pp. 199 to 216, scan-verified. Page 7, PDF p. 198,
@@ -82,7 +83,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   the map from validated semantic facts and could detect no error, so
   under CLAUDE.md section 11, which outranks this record, it shipped
   without the stop shape. Chunk B8 (2026-08-28) added the sink and the
-  stop: a severity 5 returns no text and no image; the driver keeps the
+  stop: a severity 5 returns no text and no image; the driver keeps
   rows recorded before it. The stage 2
   refusals are not diagnostics: a valid shape the sample never attests
   fails in the recovery, not in the program — no [J 90.04] message

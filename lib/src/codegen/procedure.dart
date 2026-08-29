@@ -103,16 +103,24 @@ ProcedureText generateProcedure(
 }) {
   final text = _Text(semantics, origin: origin, image: image, checks: checks);
   var entry = true;
-  for (final ParsedGroup group in semantics.parse.groups) {
-    if (group is ParsedProcedureGroup) {
-      if (entry) {
-        text.label('GN)000'); // The entry word's name (D2.1; M3-8).
-        entry = false;
+  try {
+    for (final ParsedGroup group in semantics.parse.groups) {
+      if (group is ParsedProcedureGroup) {
+        if (entry) {
+          text.label('GN)000'); // The entry word's name (D2.1; M3-8).
+          entry = false;
+        }
+        text.sentences(group.sentences);
       }
-      text.sentences(group.sentences);
     }
+    return text.result();
+  } on UnrecoveredShape {
+    // The DO edges gathered before a refusal are real edges of the
+    // program, so the re-entries they close still note, as a 946
+    // recorded before a refusal does (D11.4).
+    text.noteReentrantCalls();
+    rethrow;
   }
-  return text.result();
 }
 
 /// A refusal of this recovery, not a diagnostic of the program.
@@ -308,6 +316,8 @@ final class _Text {
   /// Every DO call site with the procedures open around it, for the
   /// D5.7 re-entry check after the walk.
   final List<_DoEdge> _doEdges = <_DoEdge>[];
+
+  bool _reentryNoted = false;
 
   /// Deferred LOC values: an `EQU` prints an address the walk has not
   /// reached, or a pool address that follows the whole text. Each entry
@@ -791,9 +801,7 @@ final class _Text {
   late final PoolLayout _layout;
 
   ProcedureText result() {
-    if (checks?.pedantic ?? false) {
-      _noteReentrantCalls();
-    }
+    noteReentrantCalls();
     if (_pending.isNotEmpty) {
       // A trailing label on a no-word sentence (NOTE, CALL, ENTER)
       // never reaches the binder: no attested print, and a reference
@@ -1638,7 +1646,12 @@ final class _Text {
   /// procedure can reach, through the DO chain, a procedure still open
   /// around the call — itself included — would overwrite that
   /// procedure's pending return. Static, over the text's own nesting.
-  void _noteReentrantCalls() {
+  /// Runs once: the walk's end and a refusal both call it.
+  void noteReentrantCalls() {
+    if (!(checks?.pedantic ?? false) || _reentryNoted) {
+      return;
+    }
+    _reentryNoted = true;
     final calls = <String, Set<String>>{};
     for (final _DoEdge edge in _doEdges) {
       for (final String caller in edge.callers) {

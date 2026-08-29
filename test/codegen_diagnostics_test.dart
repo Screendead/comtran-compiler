@@ -123,6 +123,12 @@ void main() {
       expect(job.semantics!.nameCount, 3501);
       expect(job.codegen!.stopped, isFalse);
       expect(job.codegen!.units, isNotEmpty);
+      // The D9.7 oracle: under the limit, the switch changes no output.
+      final small = '${_namesThenStop(10).join('\n')}\n';
+      expect(
+        emitCode(compileDeck(mirrorToDeck(small), tableLimits: false)),
+        emitCode(compileDeck(mirrorToDeck(small))),
+      );
     });
 
     test('a SYS) or IOC) number counts once, not per use', () {
@@ -313,6 +319,25 @@ void main() {
       ], pedantic: true);
       expect(_ids(job), ['947,00']);
       expect(job.diagnostics.single.card?.cardNumber, 9);
+    });
+
+    test('the notes survive a refusal later in the text', () {
+      // The edges gathered before the refusal are real edges, so the
+      // cycle they close notes ahead of the refusal, as 946 does.
+      final JobCompilation job = _compile(
+        _procedure([
+          '      START.  DO P.',
+          '            GO TO LAST.',
+          '      P.  DO Q.',
+          '      Q.  DO P.',
+          "      LAST.  DISPLAY 'DONE'.",
+          '            STOP RUN.',
+        ]),
+        pedantic: true,
+      );
+      expect(_ids(job), ['947,00', '947,00']);
+      expect(job.unrecovered?.shape, 'DISPLAY ([J 90.01.01])');
+      expect(job.codegen, isNull);
     });
 
     test('nested non-recursive DOs are silent (D5.7)', () {
