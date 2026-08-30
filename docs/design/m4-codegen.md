@@ -885,6 +885,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   end-of-text word (D2.1); the round trip — emit, load, compare memory
   against the listing's word image — is the stage-3 oracle. `--emit-deck` writes the punch-level
   card file; `--emit-loader` writes the symbolic card text.
+  **Amended 2026-08-30. Landed;** `loader.md` holds the byte-level
+  calls.
 
 ## The machine assembly and the runtime boundary
 
@@ -1046,8 +1048,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   stage 3's, per M4-1); the 90.05 job deck compiles
   clean in default mode, and `--pedantic` adds only the three 943 notes
   (the sample's own doubtful blank-moves, D11.4 as amended) and no 946
-  or 947 note: statement 206's parameters divide and the DO graph is
-  acyclic.
+  or 947 note.
 - Stage 3: the loader-card page inside the listing diff; 90.03
   conformance tests on the deck; the load round trip against the
   listing's word image.

@@ -15,6 +15,7 @@ library;
 import '../data/data_map.dart';
 import '../lexer/diagnostic.dart';
 import 'blocks.dart';
+import 'control_cards.dart';
 import 'image.dart';
 import 'procedure.dart';
 import 'storage_map.dart';
@@ -41,8 +42,11 @@ final int resultStorageWords =
 
 /// The code generator's result over one job.
 final class CodegenResult {
-  CodegenResult({required this.units, required ProgramImage this.image})
-    : stopped = false;
+  CodegenResult({
+    required this.units,
+    required ProgramImage this.image,
+    required this.controlCards,
+  }) : stopped = false;
 
   /// The result of a phase a severity-5 diagnostic stopped (D10.2): no
   /// text and no layout. The 1962 compiler produced no object program
@@ -51,10 +55,15 @@ final class CodegenResult {
   const CodegenResult.stopped()
     : units = const <AssemblyUnit>[],
       image = null,
+      controlCards = const <String>[],
       stopped = true;
 
   /// The assembly text, program order.
   final List<AssemblyUnit> units;
+
+  /// The `*FILE` and `*SPEC` cards, columns 1 to 72, deck order
+  /// (M4-16; [J 90.08]).
+  final List<String> controlCards;
 
   /// The address layout the text is bound against, or `null` when the
   /// phase stopped.
@@ -110,6 +119,10 @@ CodegenResult runCodegen(
     // path's producers.
     return const CodegenResult.stopped();
   }
+  // The loader cards refuse an option with no attested column character
+  // the way the walk refuses a shape (M4-2 as amended), after the
+  // measuring pass so its rows are already in the sink.
+  final List<String> cards = controlCards(semantics.parse);
   final image = ProgramImage(
     inlineWords: dataWords + text.words,
     blockWords: <StorageBlock, int>{
@@ -143,5 +156,6 @@ CodegenResult runCodegen(
       ),
     ],
     image: image,
+    controlCards: cards,
   );
 }

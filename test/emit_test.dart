@@ -67,6 +67,8 @@ void main() {
         '--emit-$stage=${dumps.path}/$stage',
       '--emit-listing=${dumps.path}/listing',
       '--emit-object=${dumps.path}/object',
+      '--emit-deck=${dumps.path}/deck',
+      '--emit-loader=${dumps.path}/loader',
     ]);
   });
 
@@ -87,10 +89,14 @@ void main() {
       );
       expect(dump('listing'), golden('listing'));
       expect(run.stdout, golden('listing'));
-      // The object pages start at PAGE 8, so this also pins the first
-      // page the driver computes after six source pages and the one
-      // loader-card page stage 3 will count rather than assume.
+      // The document opens at PAGE 7, so this also pins the first page
+      // the driver computes after six source pages.
       expect(dump('object'), golden('storage-map'));
+      expect(dump('loader'), golden('loader'));
+      expect(
+        File('${dumps.path}/deck').readAsBytesSync(),
+        File('test/goldens/90.05-payroll.deck').readAsBytesSync(),
+      );
     });
 
     test('the flags change neither output stream nor the exit code', () {
@@ -124,8 +130,16 @@ void main() {
     });
   });
 
-  test('a malformed emit flag is a usage error', () {
-    for (final flag in ['--emit-parse=', '--emit-all=x', '-x', '-cx']) {
+  test('a malformed emit flag, date or time is a usage error', () {
+    // The `*CTEXT` card's fields hold `mm/dd/yy` and `h.hh` only.
+    for (final flag in [
+      '--emit-parse=',
+      '--emit-all=x',
+      '-x',
+      '-cx',
+      '--date=2026-08-30',
+      '--time=2.4',
+    ]) {
       final ProcessResult run = _compile([flag]);
       expect(run.exitCode, 2, reason: flag);
       expect(run.stdout, isEmpty, reason: flag);
@@ -158,10 +172,17 @@ void main() {
           ...options,
         ]);
 
-    test('the -cpsSl bundle writes all five dumps next to the deck', () {
-      final ProcessResult run = compile(const ['-cpsSl']);
+    test('the -cpsSldL bundle writes all seven dumps next to the deck', () {
+      final ProcessResult run = compile(const ['-cpsSldL']);
       expect(run.exitCode, 0, reason: '${run.stderr}');
-      for (final stage in ['cards', 'scan', 'semantics', 'listing']) {
+      for (final stage in [
+        'cards',
+        'scan',
+        'semantics',
+        'listing',
+        'deck',
+        'loader',
+      ]) {
         expect(File('${dir.path}/payroll.$stage').existsSync(), isTrue);
       }
       expect(
@@ -339,6 +360,8 @@ void main() {
       '--date=10/18/61',
       '--time=2.45',
       '--emit-object=${dir.path}/object',
+      '--emit-loader=${dir.path}/loader',
+      '--emit-deck=${dir.path}/deck',
     ]);
     // The stop and the refusal each fail the run (J 90.04.02).
     expect(run.exitCode, 1, reason: '${run.stderr}');
@@ -346,9 +369,31 @@ void main() {
     expect(dump[0], stageNotReached);
     expect(dump[1], '* NOT RECOVERED: DISPLAY ([J 90.01.01])');
     expect(dump[2], stageStopped);
-    // Job 4's one source page and its loader-card page put its object
-    // listing at PAGE 3.
-    expect(dump[3], contains('PAGE  3'));
-    expect(dump.last, endsWith('START  GN)000'));
+    // Job 4's one source page puts its loader-card page at PAGE 2 and
+    // its object listing at PAGE 3; the closing lines end the document.
+    expect(dump[3], contains('PAGE  2'));
+    expect(dump, contains(contains('PAGE  3')));
+    expect(dump[dump.length - 2], startsWith('  GOOD  *CTEND'));
+    expect(dump.last, '   DONE');
+    // The loader dump keeps the job sections; the deck holds only the
+    // cards job 4 punched.
+    final List<String> loader = File('${dir.path}/loader').readAsLinesSync();
+    expect(loader.sublist(0, 8), [
+      '* JOB 1',
+      stageNotReached,
+      '',
+      '* JOB 2',
+      '* NOT RECOVERED: DISPLAY ([J 90.01.01])',
+      '',
+      '* JOB 3',
+      stageStopped,
+    ]);
+    expect(loader[9], '* JOB 4');
+    expect(loader[10], startsWith('GOOD  *CTEXT'));
+    final List<CardImage> punched = decodeCanon(
+      File('${dir.path}/deck').readAsBytesSync(),
+    );
+    expect(deckToMirror([punched.first]), startsWith('GOOD  *CTEXT'));
+    expect(loadDeck(punched, resolve: (SystemReference r) => r.code).entry, 0);
   });
 }

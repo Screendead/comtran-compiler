@@ -98,46 +98,88 @@ List<String> renderObjectLines(Iterable<AssemblyUnit> units) {
   return out;
 }
 
-/// Renders [units] as the printed object pages, numbered from
-/// [firstPage] — page 8 in the sample, after six source pages and the
-/// loader-card page.
+/// Renders the printed document that follows the source pages (M4-8;
+/// M4-16), numbered from [firstPage] — page 7 in the sample, after six
+/// source pages: the loader-card page, the object pages, and the
+/// closing lines.
 ///
-/// Every page holds 58 print lines (measured across pages 8 to 25 of
-/// the scan): the head, three blank lines, the column header and one
-/// more blank on the first page, two blank lines on every later one,
-/// and content in the rest. The LOC column prints at the head's DATE
-/// column, eight columns in (M4-8). The pagination is mechanical — no
-/// row breaks a page early. The document ends at the end-of-text line:
-/// the three closing lines under it are the loader's, not this
-/// formatter's, and land with the deck writer (M4-8 as amended).
+/// Every page holds 58 print lines (measured across pages 7 to 25 of
+/// the scan): the head, two blank lines, and 55 content lines; the
+/// first object page spends three of its content lines on a blank, the
+/// column header, and a blank. The loader-card page's content is its
+/// message line, a blank, and one line per card in [loaderCards]. The
+/// object pages end at the end-of-text line, then one blank and the
+/// three closing lines: the deck writer's, not the listing
+/// formatter's, which is why they leave its margin — the message lines
+/// and the cards print from six columns left of the LOC column, `DONE`
+/// from five (M4-8 as amended). The pagination is mechanical — no row
+/// breaks a page early.
 String writeObjectListing(
   List<AssemblyUnit> units, {
+  required List<String> loaderCards,
+  required String lastCard,
   required ListingOptions options,
   required String id,
   required int firstPage,
 }) {
-  final List<String> lines = renderObjectLines(units);
   const margin = '        ';
+  const cardMargin = '  ';
+  final loader = <String>[
+    '${cardMargin}THE FOLLOWING LOADER CONTROL CARDS PRECEDE THE BINARY DECK.',
+    '',
+    for (final String card in loaderCards) '$cardMargin$card',
+  ];
+  final object = <String>[
+    for (final String line in renderObjectLines(units)) '$margin$line',
+    '',
+    '${cardMargin}THE LAST LOADER CONTROL CARD PUNCHED IS',
+    '$cardMargin$lastCard',
+    '   DONE',
+  ];
   final out = StringBuffer();
+  final int page = _pages(out, loader, options, id, firstPage, header: '');
+  _pages(
+    out,
+    object,
+    options,
+    id,
+    page,
+    header: '$margin${_objectListingHeader()}',
+  );
+  return out.toString();
+}
+
+/// Writes [lines] as pages from [firstPage] and returns the page number
+/// after the last. A non-empty [header] prints on the first page,
+/// between two blank lines.
+int _pages(
+  StringBuffer out,
+  List<String> lines,
+  ListingOptions options,
+  String id,
+  int firstPage, {
+  required String header,
+}) {
   var line = 0;
-  for (var page = firstPage; line < lines.length; page++) {
+  var page = firstPage;
+  for (; line < lines.length; page++) {
     out
       ..writeln(listingPageHead(options, id: id, page: page))
       ..writeln()
       ..writeln();
     var slots = 55;
-    if (page == firstPage) {
+    if (header.isNotEmpty && page == firstPage) {
       out
         ..writeln()
-        ..writeln('$margin${_objectListingHeader()}')
+        ..writeln(header)
         ..writeln();
       slots = 52;
     }
     for (var n = 0; n < slots && line < lines.length; n++, line++) {
-      out.writeln('$margin${lines[line]}'.trimRight());
+      out.writeln(lines[line].trimRight());
     }
   }
-  return out.toString();
+  return page;
 }
 
 List<String> _unit(AssemblyUnit unit, String offset) {

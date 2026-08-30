@@ -110,6 +110,36 @@ void main() {
       expect(deck.jobs[1].codegen, isNotNull);
     });
 
+    test('a loader-card refusal is scoped to its job the same way', () {
+      // SEQ has no attested *FILE column character (LD-1), and the
+      // refusal comes after the measuring pass, so the job's rows stay.
+      final DeckCompilation deck = compileDeck(
+        _deck([
+          r'$CMPLE JOBA',
+          '      *DATA',
+          dataCard(name: 'REC', level: '1', type: 'RECORD'),
+          dataCard(name: 'F', level: '2', description: 'A(6)'),
+          '      *ENVIRONMENT',
+          environmentCard(
+            name: 'INF',
+            type: 'FILE',
+            options: 'INPUT,TAPE,REC,BLOCKSIZE 5',
+          ),
+          environmentCard(type: 'SPECIF', options: 'INF,SEQ'),
+          '      *PROCEDURE',
+          '            STOP RUN.',
+          '      *FINISH',
+          r'$CMPLE JOBB',
+          '      *PROCEDURE',
+          '            STOP RUN.',
+          '      *FINISH',
+        ]),
+      );
+      expect(deck.jobs[0].unrecovered?.shape, contains('SPECIF SEQ'));
+      expect(deck.jobs[0].codegen, isNull);
+      expect(deck.jobs[1].codegen, isNotNull);
+    });
+
     test('a job closed by a compile card is accepted silently', () {
       // The recorded leniency (D11.1 rule e); --pedantic warns later.
       final DeckCompilation deck = compileDeck(
