@@ -64,7 +64,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1178 Dart tests pass, measured 2026-08-30, and 154 extension
+Test baseline: 1179 Dart tests pass, measured 2026-08-30, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -107,9 +107,10 @@ holds the control cards (LD-1); `lib/src/loader/` holds the deck writer
 `lib/src/emit/emit_deck.dart` holds the `--emit-deck` and
 `--emit-loader` dumps.
 
-The golden `test/goldens/90.05-payroll.storage-map` is now the whole
-printed document, pages 8 to 25 at the head's margin, and it is the
-oracle of record. B7 matched it against the scan-verified target byte
+The golden `test/goldens/90.05-payroll.storage-map` is the whole
+printed document after the source pages — pages 7 to 25 and the
+closing lines since stage 3 — and it is the oracle of record. B7
+matched pages 8 to 25 against the scan-verified target byte
 for byte: every head, blank, header and content line, all 977 content
 rows and every CNTRL value. It then deleted the target, its generator,
 and the spine test that carried chunks B1 to B6.

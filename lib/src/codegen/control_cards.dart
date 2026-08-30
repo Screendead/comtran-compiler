@@ -76,6 +76,14 @@ String fileControlCard(
       'a SPECIF CKSUMS option (no attested *FILE character; J 90.08.01)',
     );
   }
+  // A name holds up to 30 characters; the card field, columns 55 to
+  // 72, holds 18, and no rule for a longer one is attested (LD-1).
+  if (file.spec.name.length > 18) {
+    _unruled(
+      "a file name '${file.spec.name}' of more than eighteen characters "
+      '(no *FILE field holds it; J 03.02.02)',
+    );
+  }
   // The parser accepts six characters; the card fields hold four, and
   // every unit form of J 03.02.03 fits them (LD-1).
   for (final String? unit in [specif?.unit1, specif?.unit2]) {

@@ -13,7 +13,7 @@ card only. The file number is the card's one-based ordinal, the `k` of
 the calling sequences' `04000 + k` (`test/fixtures/90.05-object-code-notes.md`,
 section 2.6). `lib/src/codegen/control_cards.dart` holds the one rule.
 
-The fields follow [J 90.08.01] and [J 90.08.02]. This record settles eight points the manuals leave open:
+The fields follow [J 90.08.01] and [J 90.08.02]. This record settles nine points the manuals leave open:
 
 - **The file name starts at column 55.** [J 90.08.01] says 54 and
   [J 03.02.02] says 55. The page scan (PDF p. 198) puts `INPUTMASTER` at
@@ -45,6 +45,10 @@ The fields follow [J 90.08.01] and [J 90.08.02]. This record settles eight point
   parser accepts six characters. The card fields hold four
   ([J 03.02.02]), and every unit form of [J 03.02.03] fits four. A longer
   literal has no field, and the compiler refuses the job.
+- **A file name longer than eighteen characters refuses.** A name holds
+  up to 30 characters (definition section 1). The name field, columns
+  55 to 72, holds 18. No manual says what the compiler punched for a
+  longer name, and the compiler refuses the job.
 - **The `*SPEC` blocksize field holds four digits.** [J 03.02.05] calls
   the blocksize "normally a number (0-999)"; [J 02.06.04] allows 9999,
   and D7.1 reads the loader manual's range as a slip. The four columns
@@ -60,19 +64,19 @@ $CMPLE card's, verbatim (D7.11), and blank for a *COMPILE card.
 ## LD-2. The relative binary deck
 
 The deck writer punches the text section only (D7.10), at 19 data words
-a card ([J 90.03.03]). The print gives one cross-check of the card count:
-`*CTEXT` is serial 15 and `*CTEND` serial 67, so 51 text cards lie between
-them, and the sample's 961 deck words at 19 a card are 51 cards. At 18 a
+a card ([J 90.03.03]). The print gives one cross-check of the card count.
+`*CTEXT` is serial 15 and `*CTEND` is serial 67, so 51 text cards lie
+between them. The sample's 961 deck words at 19 a card are 51 cards. At 18 a
 card they are 54; at 20, 49.
 
-Word 1 follows [J 90.03.01]. The word count is the count from word 3, so a
+Word 1 follows [J 90.03.01]. The word count is the count from word 3. A
 full card counts 22, the "22 word" of the card's name. The
 checksum-control bit is clear: the loader verifies.
 
 **The checksum sums word 1 and words 3 through 2 + count, the control
 words included.** [J 90.03.01] says "word 1 and all data words on the
 card", and J 90.03.03 calls words 6 on the "data words" of a text card.
-Two readings follow. This record takes the wider one: a loader has one
+Two readings follow. This record takes the wider one. A loader has one
 checksum routine for every section, and it sums the words the count
 names. The narrower reading skips words 3 to 5 and needs section-specific
 loader code. The trailing zero words make "3 to 24" and "3 to 2 + count"
@@ -89,10 +93,10 @@ sequence in word 1 counts from zero.
 and punches as decimal digits ending at column 80.** The print attests
 15 and 67 at card columns 79 to 80, measured. The 67 proves that the
 counter advances across the 51 binary cards. It does not prove that the
-1962 compiler punched the digits on those cards, and no byte image
-survives to settle it. The deck writer punches them. The loader reads
-columns 1 to 72 of a binary card, so the choice costs it nothing, and one
-line reverses it.
+1962 compiler punched the digits on those cards. No byte image survives
+to settle it. The deck writer punches them. The loader reads columns 1
+to 72 of a binary card, so the choice costs it nothing. One line
+reverses it.
 
 ## LD-3. Our loader
 

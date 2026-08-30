@@ -17,8 +17,13 @@ List<String> _cards(List<String> environment, {String compile = ''}) {
       dataCard(name: 'F', level: '2', description: 'A(6)'),
     ],
     environment: environment,
+    procedure: const ['            STOP RUN.'],
     compile: compile,
   );
+  // A SPECIF option list past the fixture's 41 columns truncates
+  // silently and draws a format diagnostic; no test here may rest on
+  // one.
+  expect(result.parse.parserDiagnostics, isEmpty);
   return controlCards(result.parse);
 }
 
@@ -70,8 +75,9 @@ void main() {
       );
       // No type character is attested for a checkpoint file; the
       // column stays blank and column 35 marks the file (LD-1; D7.2).
+      // A checkpoint file "may have no other usage" (J 02.06.03).
       final String checkpoint = _cards([
-        _file('CHECKPOINT,TAPE,REC,BLOCKSIZE 5'),
+        _file('CHECKPOINT'),
         ..._specif(['CHECKC']),
       ]).first;
       expect(checkpoint[27], ' ');
@@ -82,16 +88,16 @@ void main() {
       final String card = _cards([
         _file('OUTPUT,TAPE,REC,BLOCKSIZE 5'),
         ..._specif([
-          "UNIT1 'A(1)',UNIT2 '*',LOW,DEFER,OPENF,",
-          "MULTI,LABELS,SERIAL 'S1234',REEL '0002',",
-          'RETAIN 30,LOW',
+          "UNIT1 'A(1)',UNIT2 '*',LOW,DEFER,",
+          "OPENF,MULTI,LABELS,SERIAL 'S1234',",
+          "REEL '0002',RETAIN 30,LOW",
         ]),
       ]).first;
       expect(card.substring(16, 25), ' A(1)*   ');
       // OPENF on a labeled file: search the label (L); LOW after LABELS
       // is the label density; a quoted literal punches left-aligned and
       // a number right-aligned.
-      expect(card.substring(27, 35), 'P LDL   ');
+      expect(card.substring(27, 35), 'PLLDL   ');
       expect(card.substring(37, 53), '0002  S1234   30');
     });
 
@@ -111,6 +117,31 @@ void main() {
       expect(labeled[28], ' ');
       expect(labeled[31], 'S');
       expect(labeled[34], 'F');
+    });
+
+    test('a file name longer than its eighteen columns refuses', () {
+      // A name past one card's 16 columns continues on the next card
+      // (J 02.03.01, section 2.b).
+      List<String> named(String letter, int length) => [
+        environmentCard(
+          name: letter * 16,
+          type: 'FILE',
+          options: 'INPUT,TAPE,REC,BLOCKSIZE 5',
+          continued: true,
+        ),
+        environmentCard(name: letter * (length - 16)),
+      ];
+      expect(
+        () => _cards(named('A', 19)),
+        throwsA(
+          isA<UnrecoveredShape>().having(
+            (UnrecoveredShape e) => e.shape,
+            'shape',
+            contains("file name '${'A' * 19}'"),
+          ),
+        ),
+      );
+      expect(_cards(named('B', 18)).first, endsWith(' ${'B' * 18}'));
     });
 
     test('a unit literal longer than its four columns refuses', () {

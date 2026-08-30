@@ -885,8 +885,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   end-of-text word (D2.1); the round trip — emit, load, compare memory
   against the listing's word image — is the stage-3 oracle. `--emit-deck` writes the punch-level
   card file; `--emit-loader` writes the symbolic card text.
-  **Amended 2026-08-30, stage 3. Landed;** `loader.md` LD-1 to LD-4
-  hold the byte-level calls.
+  **Amended 2026-08-30. Landed;** `loader.md` holds the byte-level
+  calls.
 
 ## The machine assembly and the runtime boundary
 
@@ -964,13 +964,15 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   transcription becomes an erratum candidate in HANDOVER for Jack's
   authorization; the transcription is not edited. The verdicts, all
   certain:
-  - **(a) CP)+38's decrement (PDF p. 216) — the transcription is
-    right.** `PZE RETPREM-2` and `PZE INSPREM-2` both print
-    `0 00000 0 00134`, decrement zero, though RETPREM occupies
-    characters 3–5; the decrement column is live on the page
-    (`PZE INS.PREM,,3` prints 00003), so the zeros are deliberate ink.
-    The subscript-base words are byte-blind: the lookup code selects
-    the byte. This closes the backlog's RETPREM anomaly.
+  - **(a) CP)+38's decrement (PDF p. 216) — the transcription is right,
+    and the print is the surprise.** Both descriptor words print the
+    same `0 00000 0 00134`: `PZE RETPREM-2` and `PZE INSPREM-2`,
+    decrement zero on both, though RETPREM occupies characters 3–5. The
+    decrement column is live on the same page (`PZE INS.PREM,,3` prints
+    00003), so the zeros are deliberate ink. The EQU'd subscript-base
+    words are therefore byte-blind; the byte selection lives in the
+    generated lookup code, and the pool prints the two identical words.
+    This closes the review backlog's RETPREM pointer anomaly.
   - **(b) LOC 01612 (PDF p. 215) — a transcription error, corrected
     2026-08-05 under Jack's authorization.** The print reads
     `CLA 5)NETPAY`; the transcription's `4)NETPAY` misread the 5. The
@@ -989,10 +991,11 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
     `+1`: all as transcribed, which is the attested ink behind M4-8's
     offset-counter reset.
   - **(e) The PDF p. 208 page head — a transcription error, corrected
-    2026-08-05 under Jack's authorization.** The print is one head
-    line, then two blank lines; a one-degree tilt dropped its right
-    half and the transcription split it into two transposed lines. The
-    golden prints one line on PDF p. 209's grid (item g).
+    2026-08-05 under Jack's authorization.** The print is one head line
+    in the normal order, then two blank lines. A one-degree scan tilt
+    drops the line's right half, and the transcription split it into
+    two transposed lines. The golden prints one line, on PDF p. 209's
+    grid, per item (g).
   - **(f) The GET descriptor mnemonic — the two artifacts genuinely
     differ.** The listing prints `IOCTN*` (read at three sites on PDF
     p. 201; the fourth glyph is a T at 40×, against a D control glyph
@@ -1002,10 +1005,11 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
     fact, not a language fact, so it is recorded here and not in the
     definition.
   - **(g) The column geometry (PDF pp. 203 and 212) — one geometry.**
-    Both transcription ranges print the M4-8 grid, constant to half a
-    cell; the two apparent conventions came from opposite scan
-    distortions and the block's offset on each manual page —
-    furniture, not print.
+    Pages from both transcription ranges print identical grids, the
+    M4-8 table, constant to half a cell; the apparent two conventions
+    came from opposite scan distortions, and the pasted listing block
+    sits at a different offset on each manual page — furniture, not
+    print.
 
 ## Open Question dispositions
 
@@ -1044,8 +1048,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   stage 3's, per M4-1); the 90.05 job deck compiles
   clean in default mode, and `--pedantic` adds only the three 943 notes
   (the sample's own doubtful blank-moves, D11.4 as amended) and no 946
-  or 947 note: statement 206's parameters divide and the DO graph is
-  acyclic.
+  or 947 note.
 - Stage 3: the loader-card page inside the listing diff; 90.03
   conformance tests on the deck; the load round trip against the
   listing's word image.
