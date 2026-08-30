@@ -13,9 +13,9 @@ import '../cards/card_image.dart';
 import '../cards/text_codec.dart';
 import '../chars/char_code.dart';
 import '../codegen/codegen.dart';
+import '../codegen/control_cards.dart';
 import '../codegen/text_model.dart';
 import '../emulator/word.dart';
-import 'control_cards.dart';
 
 /// Data words per text card ([J 90.03.03]): the count the `*CTEND`
 /// serial attests, 51 cards for the sample's 961 words.

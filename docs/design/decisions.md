@@ -361,7 +361,7 @@ record built on it.*
 
 *Citations:* [J 90.04.01] msgs 141-143; [J 90.02.01]-02; [J 90.03.03]-04; [J 03.02.08]; [J 90.05] listing PDF p. 195
 
-*Amended 2026-08-30 (M4 stage 3, `docs/design/loader.md` LD-3).* The loader consumes the 01111 entry as decided. The generator names the first *PROCEDURE sentence as the entry point of every program; the labeled PROGRAM.START path is not yet honored, and waits for stage 4, where a program first runs.
+*Amended 2026-08-30 (M4 stage 3, `docs/design/loader.md` LD-3).* The loader consumes the 01111 entry as decided. The generator names the first *PROCEDURE sentence as the entry point of every program. It does not yet honor a labeled PROGRAM.START; that path waits for stage 4, where a program first runs.
 
 ### D2.2 — Division ordering and interleaving
 

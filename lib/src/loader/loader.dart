@@ -347,7 +347,8 @@ final class _Loader {
       0 => SystemReference(file: false, number: code & 0x7FF),
       1 => SystemReference(file: true, number: code & 0x7FF),
       _ => throw LoadError(
-        'system reference type ${(code >> 11).toRadixString(2)}',
+        'system reference type '
+        '${(code >> 11).toRadixString(2).padLeft(4, '0')}',
         card: _card,
       ),
     };

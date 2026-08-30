@@ -8,8 +8,8 @@
 library;
 
 import '../ast/environment_ast.dart';
-import '../codegen/procedure.dart' show UnrecoveredShape;
 import '../parser/parser.dart';
+import 'procedure.dart' show UnrecoveredShape;
 
 /// The FILE cards of [parse] in declaration order, every card of a name
 /// after its first dropped. The file number `k` is a card's one-based
@@ -75,6 +75,16 @@ String fileControlCard(
     _unruled(
       'a SPECIF CKSUMS option (no attested *FILE character; J 90.08.01)',
     );
+  }
+  // The parser accepts six characters; the card fields hold four, and
+  // every unit form of J 03.02.03 fits them (LD-1).
+  for (final String? unit in [specif?.unit1, specif?.unit2]) {
+    if (unit != null && unit.length > 4) {
+      _unruled(
+        "a UNIT literal '$unit' of more than four characters (no *FILE "
+        'field holds it; J 03.02.02)',
+      );
+    }
   }
   // A checkpoint file has no type character: [J 90.08.01] lists the
   // three I/O usages only, and column 35 marks the file (D7.2; LD-1).

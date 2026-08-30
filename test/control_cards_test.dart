@@ -113,6 +113,22 @@ void main() {
       expect(labeled[34], 'F');
     });
 
+    test('a unit literal longer than its four columns refuses', () {
+      expect(
+        () => _cards([
+          _file('INPUT,TAPE,REC,BLOCKSIZE 5'),
+          ..._specif(["UNIT1 'A(1)',UNIT2 'ABCDE'"]),
+        ]),
+        throwsA(
+          isA<UnrecoveredShape>().having(
+            (UnrecoveredShape e) => e.shape,
+            'shape',
+            contains("UNIT literal 'ABCDE'"),
+          ),
+        ),
+      );
+    });
+
     test('SEQ and CKSUMS refuse: no column character is attested', () {
       for (final option in ['SEQ', 'CKSUMS']) {
         expect(

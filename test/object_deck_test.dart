@@ -114,7 +114,10 @@ void main() {
         expect(deckTypeOf(header), textDeckType);
         expect(sequenceOf(header), i - 15);
         final int count = wordCountOf(header);
-        expect(count, i < 65 ? 22 : 3 + 961 - 50 * 19);
+        // The last card holds the 11 words past 50 full cards.
+        expect(count, i < 65 ? 22 : 14);
+        // The span the sum covers is LD-2's decision; the sum itself is
+        // pinned above.
         expect(words[1], logicalSum([header, ...words.sublist(2, 2 + count)]));
         expect(
           unpackControlGroups(words.sublist(2, 5))[count - 3],

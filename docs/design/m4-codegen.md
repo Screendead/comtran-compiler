@@ -885,10 +885,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   end-of-text word (D2.1); the round trip — emit, load, compare memory
   against the listing's word image — is the stage-3 oracle. `--emit-deck` writes the punch-level
   card file; `--emit-loader` writes the symbolic card text.
-  **Amended 2026-08-30, stage 3. Landed.** `loader.md` LD-1 to LD-4
-  hold the byte-level calls: the checksum span, the deck-wide serial,
-  the control-card characters the manual leaves open, and the loader's
-  one pass.
+  **Amended 2026-08-30, stage 3. Landed;** `loader.md` LD-1 to LD-4
+  hold the byte-level calls.
 
 ## The machine assembly and the runtime boundary
 
@@ -970,9 +968,9 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
     right.** `PZE RETPREM-2` and `PZE INSPREM-2` both print
     `0 00000 0 00134`, decrement zero, though RETPREM occupies
     characters 3–5; the decrement column is live on the page
-    (`PZE INS.PREM,,3` prints 00003). The subscript-base words are
-    byte-blind: the lookup code selects the byte. This closes the
-    backlog's RETPREM anomaly.
+    (`PZE INS.PREM,,3` prints 00003), so the zeros are deliberate ink.
+    The subscript-base words are byte-blind: the lookup code selects
+    the byte. This closes the backlog's RETPREM anomaly.
   - **(b) LOC 01612 (PDF p. 215) — a transcription error, corrected
     2026-08-05 under Jack's authorization.** The print reads
     `CLA 5)NETPAY`; the transcription's `4)NETPAY` misread the 5. The
@@ -993,8 +991,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   - **(e) The PDF p. 208 page head — a transcription error, corrected
     2026-08-05 under Jack's authorization.** The print is one head
     line, then two blank lines; a one-degree tilt dropped its right
-    half and the transcription split it in two. The golden prints one
-    line on PDF p. 209's grid (item g).
+    half and the transcription split it into two transposed lines. The
+    golden prints one line on PDF p. 209's grid (item g).
   - **(f) The GET descriptor mnemonic — the two artifacts genuinely
     differ.** The listing prints `IOCTN*` (read at three sites on PDF
     p. 201; the fourth glyph is a T at 40×, against a D control glyph

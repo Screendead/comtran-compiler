@@ -318,7 +318,7 @@ void main() {
       refuses((word: 0, control: 0x02), 'control group 00010');
       refuses((word: 0, control: 0x0E), 'control group 01110');
       refuses((word: 0, control: 0x13), 'complex expression');
-      refuses((word: 0x1000, control: 0x12), 'system reference type 10');
+      refuses((word: 0x1000, control: 0x12), 'system reference type 0010');
       refuses((word: 0x7FFF, control: 0x11), 'outside core', origin: 1);
     });
 

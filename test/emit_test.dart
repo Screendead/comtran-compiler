@@ -130,8 +130,16 @@ void main() {
     });
   });
 
-  test('a malformed emit flag is a usage error', () {
-    for (final flag in ['--emit-parse=', '--emit-all=x', '-x', '-cx']) {
+  test('a malformed emit flag, date or time is a usage error', () {
+    // The `*CTEXT` card's fields hold `mm/dd/yy` and `h.hh` only.
+    for (final flag in [
+      '--emit-parse=',
+      '--emit-all=x',
+      '-x',
+      '-cx',
+      '--date=2026-08-30',
+      '--time=2.4',
+    ]) {
       final ProcessResult run = _compile([flag]);
       expect(run.exitCode, 2, reason: flag);
       expect(run.stdout, isEmpty, reason: flag);

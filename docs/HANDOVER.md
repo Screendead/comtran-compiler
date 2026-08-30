@@ -64,7 +64,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1177 Dart tests pass, measured 2026-08-30, and 154 extension
+Test baseline: 1178 Dart tests pass, measured 2026-08-30, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -101,8 +101,9 @@ program image (M4-4), the object-listing writer (M4-7; M4-8), the
 table (`encode.dart`), and the generator itself (`procedure.dart`,
 `pool.dart`, `blocks.dart`). The generator fills every word of the
 object program: the procedure text, the block words, the constant
-pool, and the end-of-text line. `lib/src/loader/` holds the control
-cards (LD-1), the deck writer (LD-2) and the loader (LD-3);
+pool, and the end-of-text line. `lib/src/codegen/control_cards.dart`
+holds the control cards (LD-1); `lib/src/loader/` holds the deck writer
+(LD-2) and the loader (LD-3);
 `lib/src/emit/emit_deck.dart` holds the `--emit-deck` and
 `--emit-loader` dumps.
 
@@ -298,11 +299,11 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **One candidate is open, since 2026-08-30:** the
+  authorization. **One candidate is open, since 2026-08-30.** The
   transcription of PDF p. 198 reads `*SPEC  05` on its twelfth card,
-  file 6's, where the scan reads `06` — the `*FILE  06` line above it
-  prints the same weak-topped 6 (`docs/design/loader.md` LD-4; the
-  review record of 2026-08-30 holds the crop). Jack's call of 2026-08-09 took
+  file 6's. The scan reads `06`: the `*FILE  06` line above it prints
+  the same weak-topped 6 (`docs/design/loader.md` LD-4; the review
+  record of 2026-08-30 holds the crop). Jack's call of 2026-08-09 took
   option B: each chunk authorizes its own pages as it lands, and no set
   waits for the end of the scan pass. Chunks A2 to A4 measured seven
   object pages that print more blank lines between the head and the first

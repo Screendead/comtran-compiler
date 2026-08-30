@@ -174,7 +174,11 @@ int _run(List<String> arguments) {
       return 2;
     }
   }
-  if (deckPath == null) {
+  // The `*CTEXT` card holds six date digits and a five-column time
+  // (J 03.02.09; LD-1), so the head's forms are the only ones accepted.
+  if (deckPath == null ||
+      date != null && !RegExp(r'^\d\d/\d\d/\d\d$').hasMatch(date) ||
+      time != null && !RegExp(r'^\d{1,2}\.\d\d$').hasMatch(time)) {
     stderr.write(_usage);
     return 2;
   }
