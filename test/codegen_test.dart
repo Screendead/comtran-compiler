@@ -149,16 +149,21 @@ void main() {
     });
 
     test('reproduces the committed golden byte for byte', () {
-      // The golden is the whole printed document, pages 8 to 25 — the
-      // 977 scan-verified content rows under the measured page frame —
-      // ending at the end-of-text line: the three closing lines under
-      // it are the loader's (M4-8 as amended, chunk B7).
+      // The golden is the whole printed document after the source
+      // pages, pages 7 to 25: the loader-card page, the 977
+      // scan-verified content rows under the measured page frame, the
+      // end-of-text line, and the deck writer's three closing lines
+      // (M4-8 as amended; M4-16).
+      const options = ListingOptions(date: '10/18/61', time: '2.45');
+      final JobDeck deck = jobDeck(job, options)!;
       expect(
         writeObjectListing(
           result.units,
-          options: const ListingOptions(date: '10/18/61', time: '2.45'),
+          loaderCards: deck.cardsBeforeText,
+          lastCard: deck.lastCard,
+          options: options,
           id: listingId(job.frontEnd),
-          firstPage: 8,
+          firstPage: 7,
         ),
         File('test/goldens/90.05-payroll.storage-map').readAsStringSync(),
       );

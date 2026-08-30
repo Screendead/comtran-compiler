@@ -36,8 +36,10 @@ SemanticResult runJob({
   List<String> procedure = const [],
   bool pedantic = false,
   bool tableLimits = true,
+  String compile = '',
 }) {
   final lines = [
+    if (compile.isNotEmpty) compile,
     '      *DATA',
     ...data,
     if (environment.isNotEmpty) '      *ENVIRONMENT',

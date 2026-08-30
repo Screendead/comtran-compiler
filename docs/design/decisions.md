@@ -361,6 +361,8 @@ record built on it.*
 
 *Citations:* [J 90.04.01] msgs 141-143; [J 90.02.01]-02; [J 90.03.03]-04; [J 03.02.08]; [J 90.05] listing PDF p. 195
 
+*Amended 2026-08-30 (M4 stage 3, `docs/design/loader.md` LD-3).* The loader consumes the 01111 entry as decided. The generator names the first *PROCEDURE sentence as the entry point of every program; the labeled PROGRAM.START path is not yet honored, and waits for stage 4, where a program first runs.
+
 ### D2.2 — Division ordering and interleaving
 
 **Status.** Locked.
@@ -939,6 +941,8 @@ record built on it.*
 
 *Citations:* ([J 03.02.05]; [J 02.06.04]; [J 90.08.02]; [J 90.05] listing, PDF p. 198)
 
+*Amended 2026-08-30 (M4 stage 3, `docs/design/loader.md` LD-1).* The blocksize punches right-justified in columns 17 to 20, and the 90.05 pairs reproduce PDF p. 198. The over-9999 diagnostic landed earlier, at M3: msg 931 (non-historical) in the environment binder.
+
 ### D7.2 — "SPECIF CHKS" in Appendix 90.08
 
 **Status.** Locked.
@@ -951,6 +955,8 @@ record built on it.*
 **Oracle.** decision-conformance only
 
 *Citations:* ([J 90.08.01]; [J 02.06.11]; [J 02.06.04]; images/page-219.png)
+
+*Amended 2026-08-30 (M4 stage 3, `docs/design/loader.md` LD-1).* Column 35 lands as decided: `C` needs CHECKPOINT and CHECKC together, `F` needs OUTPUT, CHECKF and a label. A checkpoint file's type column, 28, stays blank: [J 90.08.01] gives no character for it.
 
 ### D7.3 — Who assigns the default BUFFERCOUNT
 
@@ -1058,6 +1064,8 @@ record built on it.*
 
 *Citations:* ([J 02.02.01]; [J 90.01.04]–05; [J 90.03.01]; [J 90.05] listing, PDF p. 198)
 
+*Amended 2026-08-30 (M4 stage 3, `docs/design/loader.md` LD-2 and LD-3).* Landed: the deck writer punches the text section alone, and the loader refuses a card of deck type 001, 010 or 011 rather than skip it. It accepts the sections' absence, as this record requires, and nothing more.
+
 ### D7.11 — Deck.name with imbedded blanks
 
 **Status.** Jack's call, 2026-08-02. It binds.
@@ -1072,6 +1080,8 @@ record built on it.*
 **Oracle.** manual example (citation)
 
 *Citations:* ([J 02.01.01]; [J 90.01.05])
+
+*Amended 2026-08-30 (M4 stage 3, `docs/design/loader.md` LD-1 and LD-3).* Landed on both sides: the cards carry the name verbatim in columns 1 to 6, and the loader refuses a deck whose `*CTEXT` deck.name has an imbedded blank.
 
 ### D7.12 — *COMPILE vs $CMPLE
 

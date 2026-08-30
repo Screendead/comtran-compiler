@@ -44,11 +44,17 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
   --emit-code[=PATH]
                       write the assembly text model's dump
   --emit-object[=PATH]
-                      write the printed object listing
+                      write the printed object listing, loader-card
+                      page and closing lines included
+  --emit-deck[=PATH]
+                      write the object deck, punch level, in the canon
+                      container (J 90.03; D0.5)
+  --emit-loader[=PATH]
+                      write the loader symbolic control cards as text
   -A, --emit-all      write every stage dump
-  -c -s -p -S -l -g -o
+  -c -s -p -S -l -g -o -d -L
                       the short emit flags, one letter per stage above,
-                      bundleable: -cpsSlgo is the full set. A dump without
+                      bundleable: -cpsSlgodL is the full set. A dump without
                       PATH lands next to the deck, the deck's extension
                       replaced by the stage name: `payroll.ctd -p`
                       writes `payroll.parse`.
@@ -65,6 +71,8 @@ const List<String> _emitStages = [
   'listing',
   'code',
   'object',
+  'deck',
+  'loader',
 ];
 
 /// The one-letter emit flags. A short flag always takes the default
@@ -77,6 +85,8 @@ const Map<String, String> _emitLetters = {
   'l': 'listing',
   'g': 'code',
   'o': 'object',
+  'd': 'deck',
+  'L': 'loader',
 };
 
 void main(List<String> arguments) {
@@ -233,15 +243,18 @@ int _run(List<String> arguments) {
           // object pages (J 90.04.02; D10.2).
           object.writeln(stageStopped);
         } else {
-          // The object pages follow the job's source pages and its
-          // loader-card page, which stage 3 will count rather than
-          // assume one.
+          // The loader-card page follows the job's source pages, and
+          // the deck writer's lines come from the deck it punches, so
+          // the print and the cards cannot differ.
+          final JobDeck punched = jobDeck(job, options)!;
           object.write(
             writeObjectListing(
               codegen.units,
+              loaderCards: punched.cardsBeforeText,
+              lastCard: punched.lastCard,
               options: options,
               id: listingId(job.frontEnd),
-              firstPage: page.pages + 2,
+              firstPage: page.pages + 1,
             ),
           );
         }
@@ -266,6 +279,10 @@ int _run(List<String> arguments) {
     _emit(emitPaths['listing'], () => listing!.toString());
     _emit(emitPaths['code'], () => emitCode(deck));
     _emit(emitPaths['object'], () => object!.toString());
+    _emit(emitPaths['loader'], () => emitLoader(deck, options));
+    if (emitPaths['deck'] case final String path) {
+      File(path).writeAsBytesSync(emitDeck(deck, options));
+    }
     // Severity 5 stops a job (J 90.04.02); lower severities still
     // produce output. A refusal fails the run the same way.
     return deck.maxSeverity >= 5 || refused ? 1 : 0;

@@ -16,8 +16,9 @@ State, in one line: the card reader, the three division scanners, the listing,
 the parsers for all three divisions, and the job-stream driver work; code
 generation fills every word of the object program, prints the whole object
 listing of the 1962 sample byte for byte, and issues its diagnostics; the
-object deck and the loader cards come next. Read `docs/HANDOVER.md` for the
-live state and the next task.
+deck writer punches the object deck and the loader cards, and our loader
+reads them back; the machine assembly comes next. Read `docs/HANDOVER.md`
+for the live state and the next task.
 
 ## 3. Repository map
 

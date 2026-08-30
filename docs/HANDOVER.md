@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-08-28. Audience: the next agent, or Jack. This file is the
+*Updated 2026-08-30. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -18,6 +18,7 @@ home.
 | `Dn` and `Dn.n` | A binding design decision record | `docs/design/decisions.md` |
 | `M1-n`, `M2-n` | A design entry inside one milestone's note | `docs/design/m1-front-end.md`, `docs/design/m2-parser.md` |
 | `ED-n` | An emulator design decision | `docs/design/emulator.md` |
+| `LD-n` | A deck-writer or loader design decision | `docs/design/loader.md` |
 | `C1` to `C5` | A diagnostic severity class from D9.2 | `docs/design/severity-notes.md` |
 | `Qn` | An Open Question number | The Open Questions list in `docs/comtran-language-definition.md` |
 | `On` and `Rn` | An improvement candidate, and a rejected one | `docs/opportunities.md`. Binding on nothing. |
@@ -50,7 +51,8 @@ Terms that appear without expansion:
 | M4 decision walk (M4-1 to M4-21) | Done 2026-08-05 | `docs/design/m4-codegen.md` |
 | M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
 | M4 stage 2 — core-verb text | Done 2026-08-28. Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, done 2026-08-28 | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
-| M4 stages 3–4, M5, M6 | Not started | — |
+| M4 stage 3 — the object deck and the loader | Done 2026-08-30: the deck writer, our loader, `--emit-deck` and `--emit-loader`, and the object golden grown to the whole of PDF pp. 198–216 | `docs/design/loader.md`, `lib/src/loader/` |
+| M4 stage 4, M5, M6 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); hardens in M4 stage 4 | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -62,7 +64,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1143 Dart tests pass, measured 2026-08-28, and 154 extension
+Test baseline: 1177 Dart tests pass, measured 2026-08-30, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -75,23 +77,23 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — M4 stage 3
+## The next task — M4 stage 4
 
-**M4 stage 2 is complete.** Stage 1 closed 2026-08-05, stage 2's
-chunk B1 closed 2026-08-15, chunks B2 to B5 closed 2026-08-16, chunks
-B6 and B7 closed 2026-08-17, and chunk B8 closed 2026-08-28. The next
-task is stage 3, the object deck and the loader cards (M4-16; M4-19):
+**M4 stage 3 is complete (2026-08-30).** The deck writer punches the
+`*FILE` and `*SPEC` cards, `*CTEXT`, the text section and `*CTEND`
+(LD-1; LD-2); our loader reads the deck back and places it at a chosen
+origin (LD-3); `--emit-object` prints the loader-card page and the
+closing lines, so the object golden is the whole of PDF pp. 198 to 216
+(LD-4). `docs/design/loader.md` holds the decisions. The next task is
+stage 4, the machine assembly (M4-17): the dispatch layer, the compute
+handlers, and execution tests for I/O-free programs. Its oracles are the
+per-handler D0.3 contract tests and end-to-end runs of constructed decks
+with storage assertions. Two items wait for it:
 
-- the 90.03 text encoding;
-- the `*FILE`, `*SPEC`, `*CTEXT` and `*CTEND` cards;
-- `--emit-deck` and `--emit-loader`;
-- our loader.
-
-Its oracle is the loader-card page, listing page 7 at PDF p. 198,
-inside the listing diff. The load round trip against the listing's
-word image is the second oracle. M4-8 as amended holds the measured
-columns of the three closing lines the deck writer prints after the
-end-of-text line.
+- the loader returns the words by address; stage 4 writes them into
+  `MachineState` and enters at the entry point (LD-3);
+- a labeled PROGRAM.START does not yet name the entry point: the
+  end-of-text entry names `GN)000` for every program (D2.1; LD-3).
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
@@ -99,7 +101,10 @@ program image (M4-4), the object-listing writer (M4-7; M4-8), the
 table (`encode.dart`), and the generator itself (`procedure.dart`,
 `pool.dart`, `blocks.dart`). The generator fills every word of the
 object program: the procedure text, the block words, the constant
-pool, and the end-of-text line.
+pool, and the end-of-text line. `lib/src/loader/` holds the control
+cards (LD-1), the deck writer (LD-2) and the loader (LD-3);
+`lib/src/emit/emit_deck.dart` holds the `--emit-deck` and
+`--emit-loader` dumps.
 
 The golden `test/goldens/90.05-payroll.storage-map` is now the whole
 printed document, pages 8 to 25 at the head's margin, and it is the
@@ -112,7 +117,7 @@ Stage 2 generates the core-verb text and the full symbolic listing.
 Its oracle is the full listing diff, byte for byte, after the blind
 scan verification pass (M4-8; the M3-22 pattern). Both have run: the
 scan pass closed Phase A, and the pp. 199–216 diff ran clean at B7.
-Page 198, the loader-card page, is stage 3's (M4-1).
+Page 198, the loader-card page, landed at stage 3 (LD-4).
 
 Stage 2 is chunked, by Jack's call of 2026-08-09, so a usage limit costs
 one chunk and not the stage. Phase A builds and verifies the target
@@ -278,7 +283,7 @@ state:
   deferred to M5 (D11.4). Done (B8).
 - The emit surface gains `--emit-deck` (`-d`) and `--emit-loader` (`-L`)
   at stage 3, under `emit-stages.md`'s conventions, which M4-19 adopts
-  unamended.
+  unamended. Done (stage 3, 2026-08-30).
 
 ## Rules that bind future work
 
@@ -293,7 +298,11 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **No candidate is open.** Jack's call of 2026-08-09 took
+  authorization. **One candidate is open, since 2026-08-30:** the
+  transcription of PDF p. 198 reads `*SPEC  05` on its twelfth card,
+  file 6's, where the scan reads `06` — the `*FILE  06` line above it
+  prints the same weak-topped 6 (`docs/design/loader.md` LD-4; the
+  review record of 2026-08-30 holds the crop). Jack's call of 2026-08-09 took
   option B: each chunk authorizes its own pages as it lands, and no set
   waits for the end of the scan pass. Chunks A2 to A4 measured seven
   object pages that print more blank lines between the head and the first
