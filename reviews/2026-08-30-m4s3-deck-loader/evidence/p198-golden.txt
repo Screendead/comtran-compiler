@@ -1,0 +1,20 @@
+        DATE 10/18/61  TIME  2.45  ACCOUNT                     ID. CT PUBLICATIONS         PAGE  7
+
+
+  THE FOLLOWING LOADER CONTROL CARDS PRECEDE THE BINARY DECK.
+
+        *FILE  01 *D1        I HB                       INPUTMASTER              1
+        *SPEC  01  300    N R                                                    2
+        *FILE  02 *C1        P HB                       OUTPUTMASTER             3
+        *SPEC  02  300    N R                                                    4
+        *FILE  03 *C2        I LD                       DETAILFILE               5
+        *SPEC  03    3    N R                                                    6
+        *FILE  04 *D2        P LD                       CHECKFILE                7
+        *SPEC  04   20    N R                                                    8
+        *FILE  05 *D3        P LD                       PAYFILE                  9
+        *SPEC  05   20    N R                                                   10
+        *FILE  06 *C3        P LD                       BONDORDERFILE           11
+        *SPEC  06    6    N R                                                   12
+        *FILE  07 *D4        P LD                       ERRORFILE               13
+        *SPEC  07    6    N R                                                   14
+        *CTEXT             DATE 101861 TIME   2.45      CT PUBLICATIONS         15
