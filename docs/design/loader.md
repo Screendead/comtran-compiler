@@ -135,15 +135,16 @@ type `0000` is a system reference and `0001` a file reference
 ([J 90.03.05]); the other types are refused. The dispatch table is M4-17's
 and the file blocks are M5's, so no address is fixed here. The loader
 returns the words by absolute address, the entry point, the files it
-read, and the cards it consumed. No program run reads the result yet:
-stage 4 reads `origin`, `entry` and `words`; M5's IOCS reads `deckName`
+read, and the cards it consumed. **Amended 2026-09-06 (M4 stage 4,
+`runtime.md` RT-1). A program run reads the result.** `Machine` writes
+`words` into `MachineState` and enters at `entry`. It gives `origin` as
+4096, the first address above the runtime area; M5's IOCS reads `deckName`
 and the `LoaderFile` fields, the number, name, type, mode, density,
 units, blocksize and open and close options; a caller that loads a
 second deck reads `cardsRead`; a resolver that keeps the raw code, as
 the round-trip test's does, reads `SystemReference.code`. The tests
-read them all. The machine assembly stage writes the
-words into `MachineState` and runs; that is the plan CLAUDE.md
-section 11 asks for.
+read them all. `runtime.md` RT-1 holds the machine assembly that runs
+the result.
 
 The round trip is the stage-3 oracle. At origin zero, with the raw
 15-bit code as each resolved address, memory equals the listing's word

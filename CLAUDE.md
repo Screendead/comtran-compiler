@@ -24,7 +24,7 @@ for the live state and the next task.
 
 | Path | What it holds |
 |---|---|
-| `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `data`, `codegen`, `loader`, `driver`, `listing`, `emit`, `emulator`, and `mcp` |
+| `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `data`, `codegen`, `loader`, `driver`, `listing`, `emit`, `emulator`, `runtime`, and `mcp` |
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), `deckmcp.dart` (the MCP server) |
 | `test/` | The Dart tests, plus `test/goldens/`, `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its mirror, and the keying notes) |
 | `tool/` | Dart generators for this package |
