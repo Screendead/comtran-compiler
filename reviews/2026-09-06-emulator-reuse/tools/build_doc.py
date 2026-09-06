@@ -198,6 +198,20 @@ assembled and listed, and that is worth more than the question that found
 it.</p>
 </header>
 
+<section class="ask">
+<span class="label">This record is inside the seal boundary</span>
+<p>The evidence below quotes the 1963 archive that decision D0.9 now seals: the
+MOVPAK excerpt, the instruction census, the per-cell counts and the origin
+constants. That is deliberate. This record is the evidence for D0.9, so D0.9
+lists these excerpts in its contamination boundary and names the record as
+being inside it, not as a breach. Review branches cannot be rewritten, so it
+stands as written.</p>
+<p><strong>It is not a licence to read more.</strong> Until M7 opens, nothing
+in the repository may read or search the archive for any answer. Read
+<code>CLAUDE.md</code> section 9 and <code>docs/design/decisions.md</code> D0.9
+before you act on anything here.</p>
+</section>
+
 <section class="ruling">
 <p class="eyebrow">Jack's ruling &middot; 2026-09-06</p>
 <p><strong>Item 1 is confirmed and item 2 is overruled, in the direction of
