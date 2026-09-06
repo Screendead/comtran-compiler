@@ -65,7 +65,7 @@ final class _Movpak {
   };
 
   /// SYS)180 and SYS)182, the two dispatch entries the generator emits
-  /// ([J 90.02.14]). SYS)180 carries one in-line `PZE LOC,,BYTE` for the
+  /// ([J 90.02.15]). SYS)180 carries one in-line `PZE LOC,,BYTE` for the
   /// target and resumes at `2,4`; SYS)182 carries none and resumes at
   /// `1,4`. Both leave the instruction counter on the family head, which
   /// the CPU then executes.
@@ -162,7 +162,7 @@ final class _Movpak {
 
   /// SYS)239 moves NUMBER-OF-CHARACTERS-TO-MOVE characters and ends the
   /// move; SYS)240 moves them and leaves SYS)241 to fill the target's
-  /// excess ([J 90.02.23]).
+  /// excess ([J 90.02.25]).
   RunOutcome? _move(int entry, {required bool ends}) {
     final (_Session session, int count) = _step(entry);
     for (var i = 0; i < count; i++) {
@@ -178,7 +178,7 @@ final class _Movpak {
   }
 
   /// SYS)241, SYS)243 and SYS)244 each write [character] as many times
-  /// as the count, then end the move ([J 90.02.24] to [J 90.02.26]).
+  /// as the count, then end the move ([J 90.02.25], [J 90.02.26]).
   /// SYS)241 completes the SYS)240 pair, so it refuses any other [head].
   RunOutcome? _fill(int entry, int character, {int? head}) {
     final (_Session session, int count) = _step(entry);
