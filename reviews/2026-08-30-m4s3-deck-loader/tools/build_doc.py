@@ -98,6 +98,10 @@ figure {{ margin:1rem 0 1.2rem; }}
 /* Scan plates keep a white ground in both themes: the scans are black ink on
    white paper, and inverting them lies about the artifact. */
 .plate.scan {{ background:#FFFFFF; }}
+.ruling {{ background:var(--raised); border:1px solid var(--hair);
+           border-left:3px solid var(--settled); padding:1.15rem 1.3rem; }}
+.ruling p:last-child {{ margin-bottom:0; }}
+.ruling .eyebrow {{ color:var(--settled); }}
 .plate pre {{ margin:0; font-family:var(--mono); font-size:.78rem; line-height:1.5; }}
 .plate img {{ display:block; max-width:100%; height:auto; image-rendering:crisp-edges; }}
 figcaption {{ font-family:var(--mono); font-size:.71rem; line-height:1.5; color:var(--muted);
@@ -139,6 +143,20 @@ is now PDF pp. 198 to 216 entire. Seven rules had one viable reading and were
 taken under the section 12 standing rule. One asks for your authorization. Three
 are here for the account.</p>
 </header>
+
+<section class="ruling">
+<p class="eyebrow">Jack's ruling &middot; 2026-09-06</p>
+<p><strong>Item 8 is authorized.</strong> Jack read the plate and answered:
+"yes, that is certainly a <code>*SPEC 06</code> after reviewing with my own
+eyes." The transcription of PDF p. 198 now reads <code>*SPEC  06</code> on its
+twelfth card, and the typographic note of
+<code>comtran-manuals/J28-6169/90.05-sample-program.md</code> carries what it
+said before, the correction, and the date. It is the thirtieth authorized
+correction to a conversion.</p>
+<p>The seven <span class="chip decided">Decided</span> items stand: he
+overturned none. The chips below are left as they were put to him, so the
+record shows the question as well as the answer.</p>
+</section>
 
 <section class="answer">
 <h2>What happened, in eleven lines</h2>
