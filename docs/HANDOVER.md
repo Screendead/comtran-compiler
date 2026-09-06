@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-08-30. Audience: the next agent, or Jack. This file is the
+*Updated 2026-09-06. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -300,11 +300,13 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **One candidate is open, since 2026-08-30.** The
-  transcription of PDF p. 198 reads `*SPEC  05` on its twelfth card,
-  file 6's. The scan reads `06`: the `*FILE  06` line above it prints
-  the same weak-topped 6 (`docs/design/loader.md` LD-4; the review
-  record of 2026-08-30 holds the crop). Jack's call of 2026-08-09 took
+  authorization. **No candidate is open.** The one candidate that was,
+  opened 2026-08-30, closed on 2026-09-06: the transcription of PDF
+  p. 198 read `*SPEC  05` on its twelfth card, file 6's, where the scan
+  reads `06` — the `*FILE  06` line above it prints the same weak-topped
+  6 (`docs/design/loader.md` LD-4; the review record of 2026-08-30 holds
+  the crop). Jack read the crop and authorized the correction, and the
+  conversion now reads `06`. Jack's call of 2026-08-09 took
   option B: each chunk authorizes its own pages as it lands, and no set
   waits for the end of the scan pass. Chunks A2 to A4 measured seven
   object pages that print more blank lines between the head and the first
@@ -359,8 +361,9 @@ binds work outside the definition.
   columns; the golden ends at the end-of-text line, and the stage-3 deck
   writer takes the trailer geometry from that entry.
 
-  Twenty-nine corrections are authorized and
-  applied. The most recent two, on 2026-08-10, are chunk A8's blank counts;
+  Thirty corrections are authorized and
+  applied. The most recent, on 2026-09-06, is the `*SPEC  06` character on
+  PDF p. 198 above. The two before it, on 2026-08-10, are chunk A8's blank counts;
   the three before those are chunk A7's blank counts, also 2026-08-10; the three before those are chunk A6's two blank counts and its
   one content correction, also 2026-08-10; the three before those are chunk
   A5's object-page blank counts, also 2026-08-10; the seven before those,
