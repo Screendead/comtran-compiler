@@ -172,11 +172,11 @@ mechanical. The closing lines follow the end-of-text line after one
 blank: the message at −6, the `*CTEND` card from −6, and `DONE` at −5
 (M4-8 as amended). They paginate with the object lines.
 
-The transcription of PDF p. 198 reads `*SPEC  05` on its twelfth card,
-file 6's `*SPEC` card. The scan reads `06`: the `*FILE  06` line above it
-prints the same glyph, a 6 whose top stroke is weak, and the transcriber
-read it as 6 on one line and 5 on the other. The golden prints `06`. The
-transcription is an erratum candidate in `docs/HANDOVER.md`, and the
+The twelfth card of PDF p. 198 is file 6's `*SPEC` card. The scan reads
+`06`: the `*FILE  06` line above it prints the same glyph, a 6 whose top
+stroke is weak, and the transcriber read it as 6 on one line and 5 on the
+other. The golden prints `06`. The transcription read `*SPEC  05` until
+2026-09-06, when Jack authorized the correction; it now reads `06`. The
 review record of 2026-08-30 holds the crop.
 
 `--emit-loader` writes one `* JOB n` section per job with the symbolic
