@@ -908,10 +908,10 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   to run an I/O-free program to its STOP. M5 lands
   IOCS: IOC)2–17, 29, 46, 53, 54 and SYS)260–266, 283, and 286–296
   less the already-landed 294. Each handler implements its [J 90.02]
-  contract and is unit-tested against it (D0.3). Handlers keep the
-  printed inconsistencies as recorded defects, not silent fixes:
-  SYS)231–234 follow their own entries (overpunch test), not the family
-  lists' overflow naming (D4.2's note).
+  contract and is unit-tested against it (D0.3).
+  **Amended 2026-09-06. Landed in part.** Stage 4 built 28 entries and
+  `comtranc --run`. `runtime.md` RT-1 holds the list, the rule that each
+  remaining entry lands with its first emitter, and the SYS)130 note.
 
 ## Diagnostics
 

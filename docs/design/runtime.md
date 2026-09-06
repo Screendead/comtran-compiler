@@ -93,6 +93,57 @@ punched, and prints the display lines after the listing. CLAUDE.md
 section 11 asks for a caller, and that flag is it. An unimplemented
 entry prints its message and fails the run.
 
+`endOfJob` alone leaves the exit status at 0. An error exit and an
+exhausted budget each fail the job. The budget prints one line on the
+error stream and names itself. The error exit prints no line of the
+tool's own, because SYS)294 has already printed the monitor's message
+on the display (RT-2).
+
+### The stage-4 set and what waits
+
+M4-17 charters about 130 runtime entries. Stage 4 built the entries an
+I/O-free program reaches, and no others:
+
+| Where | Entries |
+|---|---|
+| the run frame (RT-2) | SYS)175, 177, 178, 294, and IOC)40 |
+| the MOVPAK entries (RT-3) | SYS)180 and SYS)182 |
+| the non-edited members (RT-4) | SYS)184, 239, 240, 241, 243, 244, 245, 268, 269, 275 |
+| the edited family (RT-5) | SYS)185, 190, 193, 198, 211, 212, 214, 216, 225, 226, 267 |
+
+That is 28 handlers, plus the four cells RT-2 names: SYS)132, SYS)133,
+IOC)1 and IOC)29.
+
+**Each remaining entry lands with the codegen shape that first emits
+it. Design decision.** CLAUDE.md section 11 bans a handler that no test
+asserts on and no run reaches. It permits a tested handler with no
+caller, on a recorded plan. This paragraph is that plan, and it covers
+every entry M4-17 names above.
+
+Two entries can never get an emitter. Our generator declines SYS)179
+and SYS)181 at all thirteen sites the manual permits them, and pays 29
+extra words to do it (`test/fixtures/90.05-object-code-notes.md`, the
+descriptors list, item 2).
+
+The project has taken this course twice before. Stage 1 shipped its
+storage map with no stop shape, because it could detect no error, and
+chunk B8 added the shape with the first diagnostic (M4-2 as amended).
+The SYS)162 boundary stays unbuilt beside AND, OR and NOT, because no
+comparand passes one word (M4-11).
+
+**No reachable handler arms SYS)130.** D4.2 gives that cell to the
+counted overflow-test steps SYS)195, 196, 199, 201, 203, 204, 270, 277
+and 281. Our generator emits none of them, so no run has written the
+cell. The M7 diff pass must read it as unexercised, and not as tested
+and found zero.
+
+**The narrow set is a judgment call, and Jack can overturn it.** A
+wider set was legal. Section 11 permits a tested handler with no
+caller, and a plan such as this one is the record it asks for. The
+stage kept to the narrow set because no run in this repository reaches
+the other entries today: the I/O entries wait for M5, and no emitted
+word calls the rest.
+
 ## RT-2. The run frame
 
 `lib/src/runtime/monitor.dart` holds the entries an I/O-free program

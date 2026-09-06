@@ -53,8 +53,9 @@ Terms that appear without expansion:
 | M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
 | M4 stage 2 — core-verb text | Done 2026-08-28. Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, done 2026-08-28 | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
 | M4 stage 3 — the object deck and the loader | Done 2026-08-30: the deck writer, our loader, `--emit-deck` and `--emit-loader`, and the object golden grown to the whole of PDF pp. 198–216 | `docs/design/loader.md`, `lib/src/loader/` |
-| M4 stage 4, M5, M6, M7 | Not started | — |
-| M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); hardens in M4 stage 4 | `lib/src/emulator/` |
+| M4 stage 4 — the machine assembly | Done 2026-09-06: the machine, the run frame, the 23 reachable MOVPAK entries, and `--run` | `docs/design/runtime.md`, `lib/src/runtime/` |
+| M5, M6, M7 | Not started | — |
+| M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
 | T3 MCP server and skill | Done 2026-08-03 (PR #8) | `bin/deckmcp.dart`, `.claude/skills/comtran-decks/` |
@@ -65,12 +66,13 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1179 Dart tests pass, measured 2026-08-30, and 154 extension
+Test baseline: 1242 Dart tests pass, measured 2026-09-06, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
-manual's own payroll sample through the front end, the parser, and the
-semantic layer. The job deck is the 293-card artifact plus one reconstructed
+manual's own payroll sample through every phase to the object deck. Add
+`--run` and the object program runs as far as its first GET, which M5 lands.
+The job deck is the 293-card artifact plus one reconstructed
 *FINISH card (D11.3); the raw artifact alone is an incomplete job and draws
 message 132. The compile prints the listing, numbered 1,00 to 229,00 exactly
 as the 1962 compile numbered it, with zero diagnostics. Under `--pedantic` it
@@ -78,23 +80,58 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — M4 stage 4
+## The next task — M5
 
-**M4 stage 3 is complete (2026-08-30).** The deck writer punches the
-`*FILE` and `*SPEC` cards, `*CTEXT`, the text section and `*CTEND`
-(LD-1; LD-2); our loader reads the deck back and places it at a chosen
-origin (LD-3); `--emit-object` prints the loader-card page and the
-closing lines, so the object golden is the whole of PDF pp. 198 to 216
-(LD-4). `docs/design/loader.md` holds the decisions. The next task is
-stage 4, the machine assembly (M4-17): the dispatch layer, the compute
-handlers, and execution tests for I/O-free programs. Its oracles are the
-per-handler D0.3 contract tests and end-to-end runs of constructed decks
-with storage assertions. Two items wait for it:
+**M4 is complete (2026-09-06).** Stage 3 landed the deck writer and our
+loader (LD-1 to LD-4), and stage 4 landed the machine assembly (M4-17).
+`lib/src/runtime/` holds three files: the machine, which loads an object
+deck at address 4096 and treats every address below it as a runtime
+entry (RT-1); the run frame SYS)175, 177, 178, 294 and IOC)40 (RT-2); and 23
+MOVPAK entries and members (RT-3 to RT-5). `comtranc --run` runs each
+job's punched deck and prints its display lines.
+`docs/design/runtime.md` holds the decisions. Its RT-1 holds the list of
+the 28 entries stage 4 built and the rule for the rest.
 
-- the loader returns the words by address; stage 4 writes them into
-  `MachineState` and enters at the entry point (LD-3);
-- a labeled PROGRAM.START does not yet name the entry point: the
-  end-of-text entry names `GN)000` for every program (D2.1; LD-3).
+An I/O-free program now runs end to end. The 90.05 sample loads its 936
+words, opens an empty file list, fills its work areas through MOVPAK,
+and stops at IOC)8, its first GET. That stop is the M4 to M5 boundary,
+and `test/runtime/machine_test.dart` asserts it.
+
+Both carried items are closed. The machine writes the loader's words
+into `MachineState` and enters at the entry point (LD-3). A labeled
+PROGRAM.START now names that entry point, and `GN)000` stays on the
+first procedure word (D2.1 as amended 2026-09-06).
+
+**The next task is M5, the I/O runtime.** It lands the IOCS entries
+M4-17 leaves: IOC)2 to 17, 29, 46, 53 and 54, and SYS)260 to 266, 283,
+and 286 to 296 less the landed 294. D0.7 sets the level. I/O is emulated
+at the IOCS level, a tape file is a binary tape image, and the card
+reader, the punch and the printer surface as files at the emulator
+boundary. D6.1 to D6.7 hold the I/O decisions M5 implements. The
+boundary test flips when IOC)8 gets its handler: the sample then runs
+past its first GET.
+
+### Codegen defects the runtime exposed
+
+The stage-4 runtime made three codegen defects visible for the first
+time. None is fixed on the stage-4 branch, and each fix is a codegen
+change. Take them before M5 or beside it. Whether a site refuses the
+shape or handles it is Jack's call.
+
+1. **A MOVE does not align scales on two paths.** `_editedStore`
+   (`lib/src/codegen/procedure.dart`:2146) compares digit counts alone,
+   and the external-to-internal path (:2028) compares nothing.
+   `MOVE NUM (999) TO EDT ($8889.99)` renders 123 as `$1.23`. [F p. 42]
+   says a MOVE aligns by the decimal point, and `_internalMove` refuses
+   the same mismatch (:2204).
+2. **An edited ADD source is not scale-aligned.** `_addPair` refuses a
+   pair of unequal scales (:2585). The edited-source branch of `_add`
+   (:2521) skips that check.
+3. **An `S` position in a numeric source is counted as a stored
+   character.** `ItemSemantics.digits` counts the `S` fillers and
+   `storageChars` does not. Three sites punch the digit count where the
+   handler reads characters: :2028, :2079 and :2557. The handler then
+   reads past the field.
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
@@ -485,11 +522,12 @@ PDF p. 217. It makes every milestone below testable at once.
   evidence), REDEF, QUANTITY, the dictionary and name resolution, and the
   listing's GN)nnn and LOC columns. M3's own decisions:
   `docs/design/m3-data.md`.
-- **M4 — Core-verb code generation** (stage 1 done 2026-08-05, the
-  assembly model and the storage-map print): MOVE, SET, IF, WHEN, GO TO, and DO. DO
+- **M4 — Core-verb code generation — DONE 2026-09-06**: MOVE, SET, IF,
+  WHEN, GO TO, and DO. DO
   follows the verified Q40 return-cell semantics, non-reentrancy included.
-  Arithmetic follows §4.3 and the Q26–Q28 annotations. The emulator core
-  (`docs/design/emulator.md`) hardens here. The msg 942 dictionary counter
+  Arithmetic follows §4.3 and the Q26–Q28 annotations. Stage 4 wrapped the
+  emulator core in a machine that runs the object program
+  (`docs/design/runtime.md`). The msg 942 dictionary counter
   took the compiler-generated names at stage 2, chunk B8: [J 90.01.05]
   item a) counts them with the programmer names (M3-21; M4-5).
 - **M5 — I/O runtime**: OPEN, CLOSE, GET, and FILE; buffering and locate mode;
@@ -784,8 +822,8 @@ artifact's own key and invents none. This phase needs the structured emit
 surface, under the rule above.
 
 **W4 — teach and run.** The tutorial page, with the W1 editor and no second
-editor. The run button waits for M5 and M6, because no program runs before
-them.
+editor. The run button waits for M5 and M6, because the sample does not run
+before them.
 
 ### Later, and not scheduled
 
@@ -799,7 +837,7 @@ evidence tier of a rule, shown where the compiler acts on it (O3).
 
 | Cut | Reason |
 |---|---|
-| The run button, before M5 and M6 | Nothing executes yet. Do not build a stub. |
+| The run button, before M5 and M6 | The sample stops at its first GET. Do not build a stub. |
 | The tutorial, before W4 | It is writing, and it is the one part no artifact in this repository can generate. |
 | A second editor for the tutorial page | Two editors mean two column rules, and two places to get a card column wrong. |
 | The choice between the terminal and the punchcard | They are not alternatives. The punch grid shows one input card; the terminal holds the deck text and the compiler output. |
@@ -850,6 +888,7 @@ this project's own decision (Open Question 65).
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
 [F p. 12]: ../comtran-manuals/F28-8043/02-language-structure.md#underlying-principles
+[F p. 42]: ../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.05.05]: ../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card
