@@ -439,11 +439,221 @@ rule above, and every mover case crosses a word boundary. The same file
 runs two compiled programs to the end of the job: one over the four
 movers, and one over both converts.
 
+## RT-5. The edited-field renderer
+
+An edited field is a character image of a number: digit positions, and
+the insertion characters between them ([J 02.05.05]). Three MOVPAK
+members write one — SYS)185 from an external decimal source, SYS)190
+from another edited field, and SYS)267 from the accumulator. All three
+end in one renderer, `_render` in `lib/src/runtime/movpak.dart`.
+
+### What the renderer is given
+
+| Name | Where from |
+|---|---|
+| the target pointer | the cell `SYS)133` (RT-4). It carries no length |
+| TARGET-EDIT-CONTROL | the family head's decrement: octal 01 asterisk, 02 comma, 04 point, 10 dollar, 20 Blank When Zero ([J 90.02.17] Note 1) |
+| TARGET-CONTROL-WORD | the `OCT` word behind the head: prefix the digits ahead of the first comma, decrement the digits ahead of the real or implied point, tag the sign convention, address the leading run of `8` or `*` ([J 90.02.17] Note 2) |
+| the digit count | the terminator's TARGET-NUMERIC-LENGTH, or SYS)267's `AXT` address |
+| the digits | built by the steps, or converted from the accumulator |
+| the sign | the accumulator's, or plus |
+
+### The character length is derived
+
+No parameter word carries the target's character length. The renderer
+lays out one cell per character the two words call for, and the count
+of those cells is the length:
+
+- one leading sign cell under convention 5 or 6;
+- one dollar cell when the dollar bit is set;
+- the integer digits, with a comma cell before each digit the prefix
+  and the three-digit grouping name;
+- one point cell when the point bit is set;
+- the fraction digits;
+- one trailing sign cell under convention 3 or 4.
+
+The design pass verified that count against 23 field placements in
+four record layouts of the 90.05 sample: the byte offset of each
+`PZE LOC,,BYTE` pointer only comes out right if every field is as long
+as the derivation says. `V` reserves no position and `.` reserves one,
+which is why the edit control separates them.
+
+### The suppression rule
+
+Suppression reaches the first significant digit and no further, and the
+control word's address field bounds it:
+
+    suppressed = min(address, index of the first non-zero integer digit)
+
+With every integer digit zero the second term is the integer count.
+Digit cells below `suppressed` take the fill — an asterisk when the
+asterisk bit is set, a blank otherwise ([F p. 80]). A comma cell ahead of
+a suppressed digit takes the fill too. The point and the fraction
+digits are never suppressed.
+
+The address field is what stops a `9` from suppressing. [F p. 81] gives
+`88999` the range 000 to 99999, so its minimum image keeps three
+printed zeros, and it gives `$888,888.99` the minimum `$.00` and
+`****.99` the minimum `****.00`.
+
+### The floating dollar
+
+The dollar floats to the last filled cell ahead of the first printing
+cell when the dollar bit is set, the asterisk bit is clear, and the
+address field is not zero. "It will be placed immediately to the left
+of the first significant digit remaining" ([F p. 80]). The report page
+`images/page-217.png` prints `$294.12` into `$8889.99` with no gap,
+which a fixed dollar cannot produce.
+
+A comma cell is a candidate landing place. That is the only reading of
+[F p. 80]'s remark that a comma "may be replaced by a blank, asterisk, or
+dollar sign".
+
+### The eight attested renderings
+
+Every one is reproduced by `test/runtime/movpak_edit_test.dart`.
+
+| Pictorial | Value | Image | Oracle |
+|---|---|---|---|
+| `8889.9` | 0040.0 | `␢␢40.0` | page-217, the hours column |
+| `8889.99` | 0000.00 | `␢␢␢0.00` | page-217, a zero amount |
+| `88889.99` | 00037.50 | `␢␢␢37.50` | page-217, the last column |
+| `899V99` | 03750 | `␢3750` | page-217, BONDORDERFILE |
+| `$8889.99` | 0294.12 | `␢$294.12` | page-217, CHECKFILE |
+| `88999` | 00000 | `␢␢000` | [F p. 81] range table |
+| `****.99` | 0000.00 | `****.00` | [F p. 81] range table |
+| `$888,888.99` | 000000.00 | `␢␢␢␢␢␢␢$.00` | [F p. 81] range table |
+
+### Blank When Zero
+
+The edit control's octal 20 bit is the Description clause (D3.2). "The
+field is to be replaced with blanks" ([J 02.05.07]).
+
+**The whole image goes blank, and the test is over the digits. Design
+decision.** The manual names the field, not its digit positions, so the
+insertion characters go too. No sample site sets the bit, and no
+unsealed evidence survives (D0.9).
+
+### The sign conventions
+
+Only convention 0 is attested: no target pictorial in the sample
+carries a sign. **The other six are a design decision**, taken from F
+p. 80's two rules — a plus position always prints, and a minus position
+is blank on a positive value.
+
+| Tag | Cell | Negative | Positive |
+|---|---|---|---|
+| 0 | none | — | — |
+| 1 overpunch minus | none | 11 punch on the last digit | the plain digit |
+| 2 overpunch plus | none | 11 punch | 12 punch |
+| 3 right minus | after the fraction | `-` | blank |
+| 4 right plus | after the fraction | `-` | `+` |
+| 5 left minus | before everything | `-` | blank |
+| 6 left plus | before everything | `-` | `+` |
+
+An overpunched zero is the 12-0 or 11-0 punch, octal 32 or 52 (D0.6).
+
+**A left sign sits ahead of the dollar, and an overpunch rides the last
+digit cell whatever suppression left there. Design decision.** [F p. 80]
+leaves both placements open. No unsealed evidence survives (D0.9).
+
+### The heads, the steps and the terminators
+
+The digit string is built left to right, and the terminator renders it
+([J 90.02.17], [J 90.02.19]).
+
+| Member | 185 | 190 | What it does |
+|---|---|---|---|
+| head | 185 | 190 | parks the edit control and the control word |
+| leading zeros | 212 | 214 | appends the count in zero digits |
+| move | 193 | 198 | appends the count from the source |
+| trailing zeros | 211 | 216 | appends the count in zero digits |
+| terminator | 225 | 226 | renders, writes, and ends the move |
+
+SYS)193 reads an external decimal source: a digit contributes its
+value, a blank contributes 0 ([J 02.05.05] note 3), and anything else
+is an improper data condition (D4.3). SYS)198 reads an edited source
+through the reader of RT-4, so a blank and an asterisk are digit
+positions worth 0 and the insertion characters are stepped over.
+
+**Neither move step reads the source's sign, so a rendered value is
+positive. Design decision.** The manual gives the sign-examining steps
+their own numbers — SYS)228, SYS)232 and SYS)236 for SYS)185, SYS)230,
+SYS)234 and SYS)238 for SYS)190 — and the generator emits none of them.
+An overpunch a plain move meets is therefore an improper data
+condition.
+
+The terminator's count must equal the digits the steps built. A step
+list that misses it is a broken object program, so the handler throws.
+
+### SYS)267, the accumulator to an edited field
+
+`TXI SYS)267,1,edit / OCT control / AXT digits,1` ([J 90.02.30]). The
+handler reads the count from the `AXT` word's address field, converts
+the accumulator to that many decimal digits, renders, and returns to
+the `AXT` for the CPU to execute (RT-3).
+
+**The source is the accumulator alone, never the AC-MQ pair.** Two
+lines of evidence agree. Twenty-two of the twenty-five sites load with
+`CLA` and leave the MQ holding whatever the last multiply or divide
+left. The other three split the digits with `LRS 35 / DVP`, which
+parks the excess in the MQ on purpose (D4.1(c)); to read the pair would
+undo the split.
+
+**A value of more digits than the count drops its high-order digits,
+and arms nothing.** That is the discard the split performs, and [F p. 42]
+describes it for MOVE: alignment "may involve the dropping of leading
+digits". D4.2 fixes that no reachable handler arms `SYS)130`.
+
+### What the compiler refuses
+
+Three edited pictorials reach no control word, so codegen refuses them
+(`m4-codegen.md` M4-9 item (f)):
+
+- an `S` position, because it is a digit the field represents and does
+  not store ([F p. 80]) while every MOVPAK count is a digit count;
+- a suppression character behind the leading run, because the address
+  field carries the leading run alone;
+- irregular comma grouping, because the prefix carries the first
+  comma's offset alone.
+
+### Open items
+
+| Item | What no unsealed source settles (D0.9) |
+|---|---|
+| an edited source carrying insertion characters | no parameter word describes the source, so a suppressed comma and a suppressed digit are the same blank. The reader of RT-4 classifies characters instead |
+| a target of more than ten digits | SYS)267 would need the AC-MQ pair, whose split radix is unfixed. No site exceeds seven |
+| a leading run mixing `8` and `*` | one address field cannot say which cells take a blank and which an asterisk. The compiler accepts it today |
+| the sign of a rendered zero | [J 02.04.07] scopes its unsigned-zero rule to comparison |
+| a round step inside a render | SYS)220 and SYS)222 are entered by a bare `TRA`, and no site emits either (D4.1(e)) |
+| where the image is built | our renderer builds it in Dart and writes the target once, at the terminator. No emitted word can see the difference |
+
+### Rejected readings
+
+| Reading | What refutes it |
+|---|---|
+| The character length is the sum of the step counts | LOC 00605 sums to 5 against the 6-character target `8889.9`, and SYS)267 emits no steps at all |
+| The pointer cell carries the length | `CP)+53` is `PZE HRS,,5`: a word address and a byte, and nothing else ([J 90.05] listing) |
+| The control word's address is the digit count | `899V99` has five digits and punches address 1 (LOC 01327) |
+| The control word's decrement counts characters left of the point | `$8889.99` punches decrement 4, and five characters stand left of its point (LOC 01146) |
+| `V` sets the decimal-point bit | `899V99` punches edit control 0, and the report prints `3750` with no point |
+| The dollar sign is fixed | `$294.12` on page-217 shows no gap ahead of its digits |
+| An `8` blanks every zero in its run | [F p. 81] gives `88999` the minimum image `␢␢000` |
+| A `9` position suppresses | the same range table, and page-217's `0.00` columns |
+| SYS)267 reads the AC-MQ pair as one value | the twenty-two `CLA` sites leave the MQ stale, and D4.1(c) discards the excess quotient |
+| The `TRA` form of the store selects another routine | both forms name address 00413 ([J 90.05] listing, LOC 01327) |
+| An overpunched zero is the zone over digit 0 | that is a bare `+` or `-`; row 0 carries the zero (D0.6) |
+
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
+[F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
+[F p. 80]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
+[F p. 81]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
 [J 02.04.03]: ../../comtran-manuals/J28-6169/02-compiler.md#2-display
+[J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
 [J 02.05.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.05.06]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
+[J 02.05.07]: ../../comtran-manuals/J28-6169/02-compiler.md#2-constants
 [J 05.06.04]: ../../comtran-manuals/J28-6169/05-systems-operation.md#b-loader-1
 [J 90.02.10]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
 [J 90.02.11]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
@@ -452,6 +662,7 @@ movers, and one over both converts.
 [J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.16]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.17]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.19]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.25]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.26]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.30]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
