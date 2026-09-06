@@ -56,6 +56,7 @@ Every other row points at its own record.
 | [D0.6](#d0--top-level-slate-jacks-calls-locked-2026-08-02) | Character set and collating | Locked |
 | [D0.7](#d0--top-level-slate-jacks-calls-locked-2026-08-02) | Files, tape, labels, PATTERN | Locked |
 | [D0.8](#d0--top-level-slate-jacks-calls-locked-2026-08-02) | Reconstruction target: the field-test compiler as attested | Locked |
+| [D0.9](#d0--top-level-slate-jacks-calls-locked-2026-08-02) | The 1963 processor source is sealed until M7 opens | Locked |
 | **[D1 — Lexical (§8.5.1)](#d1--lexical-851)** | | |
 | [D1.1](#d11--quotation-mark-inside-a-quoted-constant) | Quotation mark inside a quoted constant | Locked |
 | [D1.2](#d12--maximum-numeric-constantliteral-length-under-j) | Maximum numeric constant/literal length under J | Locked |
@@ -167,7 +168,9 @@ Every other row points at its own record.
 
 ## D0 — Top-level slate (Jack's calls, locked 2026-08-02)
 
-**Status.** Every item in this section is locked.
+**Status.** Every item in this section is locked. The heading date is the date
+of D0.1 to D0.8. D0.9 was added on 2026-09-06 and is locked from that date; the
+heading keeps its original wording because every index row links to it.
 **D0.1 Target language: J.** The implemented language is J28-6169 (January 1962
 field-test language). F-only features are documented-but-unimplemented. Where F
 and J diverge, J governs (definition §8.3).
@@ -190,6 +193,10 @@ tests as the primary oracle mechanism.
   and documented register/memory side effects — and each unit-tested against
   that contract. Any routine is individually replaceable by real 7090 code if
   authentic code ever surfaces; the contracts and tests then validate the find.
+  *Amended 2026-09-06 (Jack's call). The "machine code is lost" premise is
+  false for the July 1963 version, which survives. D0.9 records the find. This
+  decision is unchanged: the reconstruction continues from the manuals, and the
+  surviving code is sealed until M7 opens.*
 - Codegen conformance oracle: our compilation of `test/fixtures/90.05-payroll.ct`
   is diffed against the 1962 compilation listing ([J 90.05], PDF pp. 198–216).
 - Rejected: LLVM and emit-C backends (nothing 1962-observable in their output);
@@ -255,6 +262,100 @@ documents lenient compiler behavior (e.g. accepting an omitted procedure-name
 period with "no diagnostic message", [J 90.01.03]), the default mode reproduces
 it. Written-language strictness beyond attested behavior lives behind an
 optional `--pedantic` mode, clearly marked non-historical.
+
+**D0.9 The 1963 processor source is sealed until the reconstruction closes.**
+*Added 2026-09-06 on Jack's instruction. It extends the slate; the eight
+records above are unchanged.*
+
+**The find.** A survey of existing 7090 emulators found that the Commercial
+Translator survives as assembler source. David Pitts distributes a recovered
+IBSYS archive beside his `s709` emulator. Its readme says the contents came
+from the IBSYS tapes of Paul Pierce. The archive holds fourteen subsystem
+directories. One of them, `CT/`, holds one IBSYS job of four steps:
+
+| Step | Words | Content |
+|---|---|---|
+| 1 | 857 | The CT monitor |
+| 2 | 4,744 | IOCS Version 'C' |
+| 3 | 4,190, plus overlay phases and a 10,424-word loader | The compiler, July 1963 |
+| 4 | — | 40 object-time subroutine decks: the SYS) and IOC) runtime library |
+
+The listing beside it carries 26,409 lines that hold a location and an octal
+word.
+
+**The archive URL is deliberately not printed here.** A pull-request diff goes
+to two external reviewers who can fetch a URL. The review record named in the
+citations holds the address, the byte count and the checksum evidence.
+
+**What it changes.** D0.3 says the runtime library machine code is lost. That
+is false for the July 1963 version. D0.3 anticipated the event: "Any routine is
+individually replaceable by real 7090 code if authentic code ever surfaces."
+
+**Decision.** The reconstruction continues from the manuals alone. D0.1, D0.3
+and D0.8 stand without change. M7 runs the diff pass. The seal ends when M7
+opens, and not before.
+
+Jack attached one qualification on 2026-09-06. His goal is to revive COMTRAN,
+not one version of it. The January 1962 target is incidental: those manuals
+were the sources he could find when the project began. So the 1963 archive is a
+second witness to the same subject, not a rival target.
+
+**Scope of the seal.** Four rules:
+
+1. The seal covers the whole recovered archive. It covers source, assembly
+   listings, object files, and every sibling subsystem directory. IOCS is
+   inside the seal, and D0.7 does not exempt it.
+2. Read nothing in the archive for any answer to any question in this
+   repository. This holds until M7 opens.
+3. Download and checksum work for M7 tooling is permitted. Reading content is
+   not.
+4. To name the seal is not to read it. A record may say that evidence exists
+   and is sealed until M7. That sentence is required where a record would
+   otherwise assert that no evidence survives.
+
+**Rationale.** An unchecked reconstruction from the manuals is a demonstration.
+No reader can measure it. A reconstruction held apart from a surviving
+implementation, and then compared, is a measured result. Each agreement is
+evidence that the method works. Each difference is one of two findings: a real
+change between January 1962 and July 1963, or an error in our recovery. One
+lookup ends that measurement for good.
+
+**The contamination boundary.** The survey of 2026-09-06 examined the archive
+before this record existed. It saw:
+
+- the archive readme, and the names of the fourteen subsystem directories;
+- the four step boundaries of the `CT/` job, and their headers;
+- the names of the 40 object-time subroutine decks;
+- the six phase letters of the compiler, their comment headers, and the
+  sub-program names those headers list;
+- four `COUNT` card values, and five origin constants;
+- 28 lines of MOVPAK, which include a prologue, a loop entry, and a
+  conditional error transfer;
+- one assembled line of MOVPAK from the listing;
+- the cross-reference lines that give names to `SYS)130`, `SYS)131`, `SYS)177`,
+  `SYS)178`, `SYS)180` and `SYS)294`;
+- occurrence counts for twelve `SYS)` cells;
+- a count, by mnemonic, of the instructions the runtime library uses;
+- the first four lines of the object file, and the build command.
+
+**What that costs, stated plainly.** The seal is intact for the compiler and
+for 39 of the 40 runtime decks. Two things are not intact. MOVPAK is partly
+contaminated: 28 lines of its logic were read. Open Question 31 has had a hint,
+because the occurrence count for `SYS)131` bears on whether anything reads that
+cell. Treat both as contaminated at M7, and say so in the diff pass. Do not
+present either as a blind result.
+
+**If the seal breaks again**, add to the list above and say why. Do not remove
+an entry.
+
+**The review record is inside the boundary, not outside it.** The record named
+below quotes the excerpts listed above. It is the evidence for this decision
+and it is not a breach. Review branches are append-only and cannot be
+rewritten, so the record stands as it is.
+
+*Citations:* D0.1; D0.3; D0.4; D0.8; Open Question 31; `docs/opportunities.md`
+(Jack's instruction of 2026-08-05); review record
+`review/2026-09-06-emulator-reuse`
 
 ## D1–D9 — the §8.5 walk and the §8.4 conformance decisions
 
@@ -542,7 +643,7 @@ record built on it.*
 
 (d) Emission rule for the five MOVPAK round steps — Jack's call, 2026-08-04, under D0.4, keyed to Open Question 26 still-open item (3), amendable. J supplies five round step-subroutines and no algorithm: SYS)219 (with SYS)183), SYS)220 (with SYS)185), SYS)221 (with SYS)189), SYS)222 (with SYS)190), SYS)274 (with SYS)268). Our rule: codegen emits the serving package's round step when a SET store routed through one of those five step-list packages must discard low-order digits and TRUNCATED is not written; a MOVE store emits no round step and no `ACL`, so a MOVE truncates. The step's position in the emitted sequence is also our choice: the printed lists are menus, not orderings — "Immediately following the TXI instruction will be two or more of the following instructions" ([J 90.02.16]), and the scans print list entries after the terminator line — so we emit the round step at the position of the rounding character. Four grounds carry the rule. First, it keeps F's two statements apart: [F p. 44] makes rounding the SET default, while [F p. 42] says only that MOVE alignment "may involve the dropping of leading digits or low-order digits". Second, the opt-out fits: TRUNCATED is writable on SET and ADD only ([F p. 44], p. 47), and no ROUNDED word exists in either manual, so rounding can only be a default, and this rule puts the off-switch exactly where rounding is. Third, it keeps the five round steps reachable. Their families take character sources only, and an arithmetic result reaches its store as internal decimal in the accumulator, so the one store that can enter them is a copy-shaped SET between character-numeric fields. The copy-shaped SET is a real statement form — [J 02.04.05] shows its alphameric case, which routes through the alphabetic movers and cannot round. Whether codegen routes a numeric copy through the character families is an M4 choice; this rule keeps the round steps live there, where reading (iii) kills all five. Fourth, as period context only (external: *Report to the Conference on Data Systems Languages — Initial Specifications for COBOL*, DoD, April 1960, pp. V-15–16, V-28–29, bitsavers): COBOL-60 has the same polarity — its arithmetic verbs round unless UNROUNDED is written, and its MOVE aligns "with truncation or zero fill on either end as required", with no rounding option. ADD needs no separate rule: an ADD result always reaches its store as an internal-decimal value in the accumulator, so its stores take the arithmetic path of (a) — the inline `ACL` is its default rounding, [F p. 47] makes TRUNCATED "equally applicable to the ADD command", and (b) covers the suppression — and no ADD store enters a step-list package. The rule is consistent with the sample, vacuously: verified 2026-08-04, none of the sample's 51 MOVPAK calls discards a low-order digit, so the sample cannot separate the readings. The alternative reading stays on record as the amendment: the round step is emitted whenever any step-list package must discard low-order digits, MOVE included. Its premise — Open Question 26 called the round-carrying packages "the four MOVE-serving packages" — is a label, not a finding: the same step-list families serve move-shaped SET stores and operand-side fetches (annotated there 2026-08-04). Under the amendment, MOVE would round with no opt-out.
 
-(e) MOVPAK round-step handler internals — design decision under D0.4, no evidence survives. The rule at the rounding character position. If the digit being discarded is 5 or greater, add 1 into the retained low-order digit of the target magnitude, and propagate the decimal carry leftward through the target digit positions. The sign is neither read nor changed, so the adjustment is away from zero. A carry out of the high-order digit position is dropped. The appendix gives the step no repetition count and does not state whether its effect is confined to one position, and [J 90.02.18] prints "Round current characters" (plural) for SYS)221 — the one place the manual hints at a wider scope. The single-position choice is amendable on that hint.
+(e) MOVPAK round-step handler internals — design decision under D0.4, no unsealed evidence survives (MOVPAK survives in the sealed 1963 archive; D0.9, and read it at M7, not before). The rule at the rounding character position. If the digit being discarded is 5 or greater, add 1 into the retained low-order digit of the target magnitude, and propagate the decimal carry leftward through the target digit positions. The sign is neither read nor changed, so the adjustment is away from zero. A carry out of the high-order digit position is dropped. The appendix gives the step no repetition count and does not state whether its effect is confined to one position, and [J 90.02.18] prints "Round current characters" (plural) for SYS)221 — the one place the manual hints at a wider scope. The single-position choice is amendable on that hint.
 
 (f) Overflow. On the arithmetic path, rounding cannot raise the language-level overflow condition and cannot set SYS)130: the rounded quotient is stored by a bare `STQ` with no MOVPAK call anywhere in the sequence, so no cell can be armed there (attested). For a MOVPAK round step, a rounding carry out of the high-order digit position does not set SYS)130 in our runtime — design decision under D0.4, because SYS)130's wording is scoped by subroutine rather than by cause, so the case is "neither asserted nor excluded" (Open Question 26 still-open item (2)). See the overflow record.
 
@@ -570,7 +671,7 @@ record built on it.*
 ### D4.3 — Invalid characters in a numeric field at object time
 
 **Status.** Locked.
-**Decision.** There is no program-level reaction and no object-time message. Arming set: the numeric MOVPAK members — SYS)183–238, SYS)246–258 and SYS)267–282 — set communication cell SYS)131 non-zero when they meet an improper data condition, and then continue; the alphabetic and figurative-constant movers SYS)239–245 do not set it. What counts as "an improper data condition" is unresolved, so the trigger is a design decision under D0.4 and is amendable: for external-decimal and edited sources, a character that is not a valid digit — or, in a sign position, not a valid overpunch sign — arms the cell. Scientific-decimal sources are exempt from that test. J allows them free-form content: "For the source fields of the scientific decimal type, a free form of data is allowed within the limits of the field". Its worked examples contain embedded blanks, signs and decimal points ([J 02.04.04] e). Our scientific-decimal converts therefore parse by that free-form rule. They arm the cell only when the field cannot be parsed at all under it. The value used for an invalid character is fixed by design decision (no evidence survives): the low-order four bits of the 6-bit BCD character are taken as the digit value, and zone bits that are not a documented overpunch sign are ignored. Nothing reads, prints from, or clears SYS)131; the cell stays sticky. No verb option can request a reaction: the only condition options are ON OVERFLOW (SET/ADD, single result field) and the FILE-card ON ERROR (unrecoverable redundancy, block checksum, block sequence only). The GET-path length-control-word check SYS)261/263 keeps its own separate behavior — it prints its message and exits to the CT Monitor — and is never used as the MOVE/arithmetic reaction. Compile-time diagnostics (msgs 25, 67, 111, 112, 120, 182) are unchanged and unrelated.
+**Decision.** There is no program-level reaction and no object-time message. Arming set: the numeric MOVPAK members — SYS)183–238, SYS)246–258 and SYS)267–282 — set communication cell SYS)131 non-zero when they meet an improper data condition, and then continue; the alphabetic and figurative-constant movers SYS)239–245 do not set it. What counts as "an improper data condition" is unresolved, so the trigger is a design decision under D0.4 and is amendable: for external-decimal and edited sources, a character that is not a valid digit — or, in a sign position, not a valid overpunch sign — arms the cell. Scientific-decimal sources are exempt from that test. J allows them free-form content: "For the source fields of the scientific decimal type, a free form of data is allowed within the limits of the field". Its worked examples contain embedded blanks, signs and decimal points ([J 02.04.04] e). Our scientific-decimal converts therefore parse by that free-form rule. They arm the cell only when the field cannot be parsed at all under it. The value used for an invalid character is fixed by design decision (no unsealed evidence survives; the 1963 movers are in the sealed archive, D0.9): the low-order four bits of the 6-bit BCD character are taken as the digit value, and zone bits that are not a documented overpunch sign are ignored. Nothing reads, prints from, or clears SYS)131; the cell stays sticky. No verb option can request a reaction: the only condition options are ON OVERFLOW (SET/ADD, single result field) and the FILE-card ON ERROR (unrecoverable redundancy, block checksum, block sequence only). The GET-path length-control-word check SYS)261/263 keeps its own separate behavior — it prints its message and exits to the CT Monitor — and is never used as the MOVE/arithmetic reaction. Compile-time diagnostics (msgs 25, 67, 111, 112, 120, 182) are unchanged and unrelated.
 
 **Rationale.** Neither manual defines a program-level reaction, and the field-test sample converts a card-punched external-decimal field straight into pay arithmetic through SYS)184 with no check ([J 90.05] listing, PDF pp. 192, 196, 205). SYS)131 is documented only as being set on "an improper data condition" ([J 90.02.10]), and no appendix entry reads or clears it. Open Question 31 bounds the arming set to the numeric MOVPAK members and makes the trigger its leading still-open item, stating that it "cannot simply be 'any non-digit'" because of the scientific-decimal free-form rule; the record therefore scopes the test by source class and marks the whole rule amendable.
 

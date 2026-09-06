@@ -12,7 +12,7 @@ home.
 
 | Prefix | What it names | Where the series lives |
 |---|---|---|
-| `M0` to `M6` | A compiler milestone | The roadmap below |
+| `M0` to `M7` | A compiler milestone | The roadmap below |
 | `T1` to `T4` | A parallel tooling task | The tooling track below |
 | `W1` to `W4` | A phase of the public website | The web track below |
 | `Dn` and `Dn.n` | A binding design decision record | `docs/design/decisions.md` |
@@ -41,6 +41,7 @@ Terms that appear without expansion:
 |---|---|---|
 | Language definition | Complete and verified | `docs/comtran-language-definition.md` |
 | M0 design decisions (85 records) | Locked 2026-08-02; D4.14 back-filled 2026-08-16 | `docs/design/decisions.md` |
+| The 1963 processor source | Found 2026-09-06; sealed until M7 opens; M7 diffs our reconstruction against it | `docs/design/decisions.md` D0.9 |
 | Punch-level deck format | Frozen | `docs/design/deck-format.md` |
 | 90.05 canon deck (293 cards) | Authoritative; its mirror is CI-slaved | `test/fixtures/90.05-payroll.ctd` |
 | M1 front end | Done 2026-08-03 | `lib/src/lexer/`, `lib/src/listing/` |
@@ -52,7 +53,7 @@ Terms that appear without expansion:
 | M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
 | M4 stage 2 — core-verb text | Done 2026-08-28. Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, done 2026-08-28 | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
 | M4 stage 3 — the object deck and the loader | Done 2026-08-30: the deck writer, our loader, `--emit-deck` and `--emit-loader`, and the object golden grown to the whole of PDF pp. 198–216 | `docs/design/loader.md`, `lib/src/loader/` |
-| M4 stage 4, M5, M6 | Not started | — |
+| M4 stage 4, M5, M6, M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); hardens in M4 stage 4 | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -442,7 +443,8 @@ only surviving COMTRAN program with known-correct output — the printed report,
 PDF p. 217. It makes every milestone below testable at once.
 
 - **M0 — Commitments** (`docs/design/decisions.md`) — **DONE 2026-08-02.** The
-  D0 slate is locked:
+  D0 slate is locked. D0.9 extends it on 2026-09-06 and seals the 1963
+  processor source until M7 opens. The other eight records are unchanged:
   - The target language is J.
   - The implementation language is Dart.
   - The backend emits real 7090 object code, and our own emulator runs it. The
@@ -496,6 +498,11 @@ PDF p. 217. It makes every milestone below testable at once.
 - **M6 — Acceptance**: compile and run the 90.05 payroll sample end to end, and
   reproduce its printed report output (PDF p. 217). Then take a second corpus —
   F's payroll example with the documented F/J divergences applied (§9.8).
+- **M7 — The diff pass**: the seal ends when this milestone opens. Assemble the
+  1963 processor, and diff our reconstruction against it. Each difference is one
+  of two findings: a real change between January 1962 and July 1963, or an error
+  in our recovery. Treat MOVPAK and Open Question 31 as contaminated; D0.9 says
+  why. That result is the project's headline finding (D0.9).
 - **Parked, unscheduled — the dangling-continuation diagnostic.** The Data
   and Environment scanners accept a dangling continuation in silence: a
   punched column 72 on a division's last card draws no diagnostic
@@ -507,7 +514,7 @@ PDF p. 217. It makes every milestone below testable at once.
 ## Parallel tooling track
 
 The tooling track shares the compiler's card-image core. It blocks nothing in
-M2 to M6.
+M2 to M7.
 
 - **T1 — Deck CLI** (`deckconv`) — **DONE 2026-08-03.** It converts canon to
   text mirror and back, regenerates mirrors, and checks freshness. It is wired

@@ -215,6 +215,38 @@ Where to look for language-definition material:
 - A change to a conversion needs Jack's explicit authorization. HANDOVER lists
   the erratum candidates that wait for it.
 
+### The sealed source (D0.9)
+
+The 1963 Commercial Translator survives, compiler and runtime library both, in
+a recovered IBSYS archive. **Do not read it, and do not search it, for any
+answer to any question in this repository.** The seal ends when M7 opens.
+
+The seal is not a doubt about the archive. The archive is genuine, and it is
+the best evidence this project will ever hold. The seal exists because the
+result depends on it. The project reconstructs COMTRAN from the manuals, and M7
+then measures the distance between that reconstruction and the surviving
+processor. One lookup before M7 destroys the measurement, for every later
+reader as well as for us.
+
+Five rules follow:
+
+1. The seal covers the whole archive. Source, listings, object files, and every
+   sibling subsystem directory are inside it. IOCS is inside it too.
+2. Before M7, cite nothing from the archive. This binds design records, Open
+   Questions, emulator rules, and runtime handler contracts.
+3. To name the seal is not to read it. Write "evidence exists and is sealed
+   until M7" where a record would otherwise say that no evidence survives.
+4. Downloading and checksumming for M7 tooling is permitted. Reading content is
+   not.
+5. If a task appears to need the archive, it does not. Use the manuals, and
+   record the gap as an Open Question.
+
+`docs/design/decisions.md` D0.9 holds the find, the decision, and the boundary
+list of what was read before the seal. The review record
+`review/2026-09-06-emulator-reuse` is the evidence for D0.9 and quotes those
+excerpts. It is inside the boundary and it is not a breach. **A quotation from
+the archive anywhere else is a broken seal: stop and tell Jack.**
+
 ## 10. Generated files
 
 Do not edit these by hand:

@@ -516,6 +516,14 @@ record on non-termination, the MOVPAK communication cells — and each would hav
 to become an observation of somebody else's simulator instead. **Do not amend
 D0.3 without Jack's explicit instruction.**
 
+*Amended 2026-09-06, on Jack's instruction.* **Our own emulator stays, and D0.3
+is not amended.** A third-party emulator destroys the diagnostic validation that
+is the only reason to want one. `dart:ffi` does not compile to WebAssembly
+either, so an embedded emulator forfeits the browser run target
+`docs/HANDOVER.md` names. A survey of existing 7090 emulators raised this option
+again, and the same survey found the 1963 processor source.
+`docs/design/decisions.md` D0.9 seals that source until M7 opens.
+
 ### R3 — Product-readiness and adoption metrics
 
 Stars, forks and issue counts measure a different kind of project. The
