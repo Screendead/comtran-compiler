@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import '../emulator/asm.dart';
 import '../support/deck_fixtures.dart';
-import 'movpak_support.dart';
+import 'runtime_support.dart';
 
 /// TARGET-CONTROL-WORD ([J 90.02.17] Note 2): the digits ahead of the
 /// first comma, the digits ahead of the real or implied point, the sign
@@ -46,20 +46,15 @@ Machine store(
 }
 
 /// An edit run behind `TSX SYS)182,4`: the head, its control word, the
-/// steps, and the terminator ([J 90.05] listing, LOC 00605).
-Machine editRun(List<int> words, {List<int> sourceImage = const <int>[]}) {
-  final Machine subject = machine(<int, int>{
-    sourceCell: pze(sourceArea, 0),
-    targetCell: pze(targetArea, 0),
-    start: tsx(182),
-    for (var i = 0; i < words.length; i++) start + 1 + i: words[i],
-    start + 1 + words.length: endOfJob,
-    for (var i = 0; i < sourceImage.length; i++) sourceArea + i: sourceImage[i],
-    for (var i = 0; i < 3; i++) targetArea + i: characters('ZZZZZZ'),
-  });
-  expect(subject.run(maxSteps: 40).outcome, RunOutcome.endOfJob);
-  return subject;
-}
+/// steps, and the terminator ([J 90.05] listing, LOC 00605). The three
+/// target words are the image the renderer writes into.
+Machine editRun(List<int> words, {List<int> sourceImage = const <int>[]}) =>
+    dispatch(
+      words: words,
+      sourceImage: sourceImage,
+      targetImage: List<int>.filled(3, characters('ZZZZZZ')),
+      maxSteps: 40,
+    );
 
 /// The image the renderer wrote: the target's characters up to the fill
 /// no member touched.

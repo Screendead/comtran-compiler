@@ -1,5 +1,6 @@
-/// Shared fixtures for the MOVPAK tests: a machine over hand-built
-/// words, and the calling-sequence words the generator emits.
+/// Shared fixtures for the runtime tests: a machine over hand-built
+/// words, the calling-sequence words the generator emits, and the
+/// MOVPAK dispatch every member case runs behind.
 library;
 
 import 'package:comtran/comtran.dart';
@@ -65,6 +66,9 @@ const int targetArea = start + 0x110;
 /// [location] (`lib/src/emulator/cpu.dart`).
 int link(int location) => (0x8000 - location) & Word36.fieldMask15;
 
+/// One machine word, written the way the listing prints it.
+int octal(String digits) => int.parse(digits, radix: 8);
+
 /// `TXI IOC)40,0`, the end-of-job return that closes every program
 /// below ([J 90.02.10]). Its tag is 0, so it touches no index register.
 final int endOfJob = typeA(1, address: 40);
@@ -93,6 +97,29 @@ int codeAt(Machine subject, int word, int i) =>
 String glyphsAt(Machine subject, int word, int count) => <String>[
   for (var i = 0; i < count; i++) glyphFromBcd(codeAt(subject, word, i)) ?? '?',
 ].join();
+
+/// Runs [words] behind `TSX SYS)182,4` with both pointer cells preset,
+/// over the source and target images, and ends at `TXI IOC)40,0`.
+Machine dispatch({
+  required List<int> words,
+  int sourceByte = 0,
+  int targetByte = 0,
+  List<int> sourceImage = const <int>[],
+  List<int> targetImage = const <int>[],
+  int maxSteps = 30,
+}) {
+  final Machine subject = machine(<int, int>{
+    sourceCell: pze(sourceArea, sourceByte),
+    targetCell: pze(targetArea, targetByte),
+    start: tsx(182),
+    for (var i = 0; i < words.length; i++) start + 1 + i: words[i],
+    start + 1 + words.length: endOfJob,
+    for (var i = 0; i < sourceImage.length; i++) sourceArea + i: sourceImage[i],
+    for (var i = 0; i < targetImage.length; i++) targetArea + i: targetImage[i],
+  });
+  expect(subject.run(maxSteps: maxSteps).outcome, RunOutcome.endOfJob);
+  return subject;
+}
 
 const ListingOptions _listing = ListingOptions(date: '10/18/61', time: '2.45');
 

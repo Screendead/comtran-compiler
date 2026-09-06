@@ -8,7 +8,7 @@ import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
 import '../emulator/asm.dart';
-import 'movpak_support.dart';
+import 'runtime_support.dart';
 
 void main() {
   group('the word shapes of RT-3', () {
@@ -153,6 +153,29 @@ void main() {
           start + 2: 0,
           start + 3: txi(212, 2),
           start + 4: txi(225, 7),
+        }).run(maxSteps: 8),
+        throwsA(isA<StateError>()),
+      );
+      expect(
+        () => machine(<int, int>{
+          start: tsx(182),
+          start + 1: txi(268, 1),
+          start + 2: txi(269, 3),
+          start + 3: txi(275, 5),
+        }).run(maxSteps: 8),
+        throwsA(isA<StateError>()),
+        reason: 'SYS)275',
+      );
+    });
+
+    test('a control word naming more integer digits than the steps built', () {
+      expect(
+        () => machine(<int, int>{
+          start: tsx(182),
+          start + 1: txi(185, 0),
+          start + 2: typeA(0, decrement: 5), // TARGET-CONTROL-WORD
+          start + 3: txi(212, 2),
+          start + 4: txi(225, 2),
         }).run(maxSteps: 8),
         throwsA(isA<StateError>()),
       );

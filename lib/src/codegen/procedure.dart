@@ -2151,10 +2151,15 @@ final class _Text {
     if (subscripted) {
       _unruled('a subscripted edited-store source (no sample instance)');
     }
-    _loadBaseOf(source);
-    _opItem(Op.cla, source);
     final ItemSemantics s = _sem(source);
     final ItemSemantics t = _sem(target);
+    if (s.doublePrecision) {
+      // The load is one `CLA`, which reads the accumulator's word alone
+      // (`docs/design/runtime.md` RT-4).
+      _unruled('an edited store of more than 10 digits (RT-4)');
+    }
+    _loadBaseOf(source);
+    _opItem(Op.cla, source);
     if (s.digits > t.digits) {
       // The split divisor is 10 to the target's digit count — the one
       // value all three attested sites share, `CP)+24`.

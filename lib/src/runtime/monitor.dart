@@ -74,12 +74,9 @@ String _stopLine(String text) =>
 /// character first.
 String _characters(Machine machine, int address) {
   final int word = machine.state.read(address);
-  final out = StringBuffer();
-  for (var i = 5; i >= 0; i--) {
-    // The generator builds every pool word from Set H glyphs
-    // (`lib/src/codegen/procedure.dart`), so the inverse is total.
-    final String glyph = glyphFromBcd((word >> (i * 6)) & 0x3F)!;
-    out.write(glyph);
-  }
-  return out.toString();
+  // The generator builds every pool word from Set H glyphs
+  // (`lib/src/codegen/procedure.dart`), so the inverse is total.
+  return <String>[
+    for (var i = 5; i >= 0; i--) glyphFromBcd((word >> (i * 6)) & 0x3F)!,
+  ].join();
 }

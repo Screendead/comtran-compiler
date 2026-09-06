@@ -185,6 +185,11 @@ final class _Movpak {
   RunOutcome? _editedLength() {
     final (_Session session, int count) = _step(275);
     _singlePrecision(275, count);
+    if (session.digits.length != count) {
+      throw StateError(
+        'SYS)275 over ${session.digits.length} digits of $count',
+      );
+    }
     _toAccumulator(session);
     _end(session);
     return null;
@@ -208,9 +213,7 @@ final class _Movpak {
   /// ([J 90.02.17], [J 90.02.19]).
   RunOutcome? _zeroDigits(int entry) {
     final (_Session session, int count) = _step(entry);
-    for (var i = 0; i < count; i++) {
-      session.digits.add(0);
-    }
+    session.digits.addAll(List.filled(count, 0));
     _next(session);
     return null;
   }
@@ -414,14 +417,20 @@ void _render(
   final int convention = Word36.tag(control);
   final int protected = Word36.address(control);
   final int fill = edit & _editAsterisk != 0 ? _bcdAsterisk : bcdBlank;
+  if (digits.length < integer) {
+    throw StateError(
+      'a control word of $integer integer digits over '
+      '${digits.length}',
+    );
+  }
 
   // Suppression reaches the first significant digit and no further, and
   // the protected run bounds it: a 9 outside that run prints its zero
   // ([F p. 80], [F p. 81]).
-  var significant = 0;
-  while (significant < integer && digits[significant] == 0) {
-    significant++;
-  }
+  final int significant = digits
+      .take(integer)
+      .takeWhile((int d) => d == 0)
+      .length;
   final suppressed = protected < significant ? protected : significant;
 
   final image = <int>[];
@@ -443,6 +452,9 @@ void _render(
       image.add(k <= suppressed ? fill : _bcdComma);
     }
     lastDigit = image.length;
+    // D0.6 gives the digits 0 to 9 the BCD codes 0 to 9
+    // (`lib/src/chars/char_code.dart`), so a digit value is its own
+    // character code, here and at the `bcd <= 9` test of `_character`.
     image.add(k < suppressed ? fill : digits[k]);
   }
   if (edit & _editPoint != 0) {

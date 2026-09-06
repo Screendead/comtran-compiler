@@ -89,7 +89,5 @@ export 'src/parser/parser.dart';
 export 'src/parser/parser_messages.dart';
 export 'src/parser/procedure_parser.dart';
 export 'src/runtime/machine.dart';
-export 'src/runtime/monitor.dart';
-export 'src/runtime/movpak.dart';
 export 'src/version.dart';
 export 'src/web/web_compile.dart';

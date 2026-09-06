@@ -7,29 +7,7 @@ import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
 import '../support/deck_fixtures.dart';
-import 'movpak_support.dart';
-
-/// Runs [words] behind `TSX SYS)182,4` with both pointer cells preset,
-/// over the source and target images, and ends at `TXI IOC)40,0`.
-Machine dispatch({
-  required List<int> words,
-  int sourceByte = 0,
-  int targetByte = 0,
-  List<int> sourceImage = const <int>[],
-  List<int> targetImage = const <int>[],
-}) {
-  final Machine subject = machine(<int, int>{
-    sourceCell: pze(sourceArea, sourceByte),
-    targetCell: pze(targetArea, targetByte),
-    start: tsx(182),
-    for (var i = 0; i < words.length; i++) start + 1 + i: words[i],
-    start + 1 + words.length: endOfJob,
-    for (var i = 0; i < sourceImage.length; i++) sourceArea + i: sourceImage[i],
-    for (var i = 0; i < targetImage.length; i++) targetArea + i: targetImage[i],
-  });
-  expect(subject.run(maxSteps: 30).outcome, RunOutcome.endOfJob);
-  return subject;
-}
+import 'runtime_support.dart';
 
 void main() {
   group('the pointer cells (J 90.02.11)', () {

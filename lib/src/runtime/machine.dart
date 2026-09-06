@@ -60,18 +60,9 @@ final class UnimplementedRuntimeEntry implements Exception {
 
 /// What one run produced.
 final class RunResult {
-  const RunResult({
-    required this.outcome,
-    required this.steps,
-    required this.display,
-  });
+  const RunResult({required this.outcome, required this.display});
 
   final RunOutcome outcome;
-
-  /// The instructions and runtime entries the run executed. `maxSteps`
-  /// bounds this count, so a program that only calls handlers is
-  /// bounded too.
-  final int steps;
 
   /// The on-line printer's lines, in order ([J 05.06.04]).
   final List<String> display;
@@ -127,7 +118,9 @@ final class Machine {
     _display.add(line);
   }
 
-  /// Runs until a handler ends the job or [maxSteps] is reached.
+  /// Runs until a handler ends the job or [maxSteps] is reached. A
+  /// runtime entry counts as one step, so a program that only calls
+  /// handlers is bounded too.
   ///
   /// Throws [UnimplementedRuntimeEntry] when control reaches a runtime
   /// address with no handler, and every exception the CPU throws (§7 of
@@ -149,7 +142,6 @@ final class Machine {
     }
     return RunResult(
       outcome: outcome ?? RunOutcome.stepLimit,
-      steps: steps,
       display: List.unmodifiable(_display),
     );
   }

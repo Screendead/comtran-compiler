@@ -303,10 +303,14 @@ void main() {
     });
 
     test('a labelled section takes it', () {
+      // The section leaves through its own STOP RUN, so the program
+      // runs to the end of the job; `test/runtime/machine_test.dart`
+      // runs it.
       expectEntryOnProgramStart(<String>[
         '            GO TO WRAP.UP.',
         '      PROGRAM.START.  BEGIN SECTION.',
-        '            SET NUM = NUM + NUM.',
+        '            SET NUM = NUM + 1.',
+        '            STOP RUN.',
         '            END PROGRAM.START.',
         '      WRAP.UP.  STOP RUN.',
       ]);

@@ -11,12 +11,9 @@ import 'package:test/test.dart';
 
 import '../emulator/asm.dart';
 import '../support/deck_fixtures.dart';
-
-int _octal(String digits) => int.parse(digits, radix: 8);
+import 'runtime_support.dart';
 
 const ListingOptions _options = ListingOptions(date: '10/18/61', time: '2.45');
-
-const int _start = Machine.programOrigin;
 
 /// An I/O-free program: one `SET` over two internal-decimal fields, then
 /// `STOP RUN`.
@@ -39,6 +36,27 @@ final List<String> _source = <String>[
   '      *PROCEDURE',
   '      START.  SET TOT = NUM + 1.',
   '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A program whose entry point is a labelled section (D2.1). The `GO TO`
+/// ahead of the section runs only if the entry lands on `GN)000`.
+final List<String> _section = <String>[
+  '      *DATA',
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  '      *PROCEDURE',
+  '            GO TO WRAP.UP.',
+  '      PROGRAM.START.  BEGIN SECTION.',
+  '            SET NUM = NUM + 1.',
+  '            STOP RUN.',
+  '            END PROGRAM.START.',
+  '      WRAP.UP.  STOP RUN.',
   '      *FINISH',
 ];
 
@@ -104,23 +122,10 @@ ProcessResult _compileAndRun(List<String> source) {
 
 void main() {
   group('the dispatch rule', () {
-    Machine machine(Map<int, int> words) => Machine(
-      LoadedProgram(
-        deckName: '',
-        origin: Machine.programOrigin,
-        entry: _start,
-        words: words,
-        files: const <LoaderFile>[],
-        cardsRead: 0,
-      ),
-    );
-
     test('an entry with no handler names itself', () {
       // `TSX IOC)8,4`, the GET of M5 (M4-17).
       expect(
-        () => machine({
-          _start: typeB(0x03C, address: 8, tag: 4),
-        }).run(maxSteps: 4),
+        () => machine({start: tsx(8)}).run(maxSteps: 4),
         throwsA(
           isA<UnimplementedRuntimeEntry>().having(
             (UnimplementedRuntimeEntry e) => e.toString(),
@@ -135,27 +140,26 @@ void main() {
       // D5.1 as amended: the emulator reproduces non-termination, so
       // the cap is the caller's and the run returns.
       final RunResult result = machine({
-        _start: typeB(0x010, address: _start), // TRA *
+        start: typeB(0x010, address: start), // TRA *
       }).run(maxSteps: 50);
       expect(result.outcome, RunOutcome.stepLimit);
-      expect(result.steps, 50);
     });
   });
 
   group('the 90.05 sample', () {
     test('loads at the origin and stops at the first entry M4 lacks', () {
       final JobCompilation job = compileDeck(loadJobDeck()).jobs.single;
-      final machine = Machine.load(jobDeck(job, _options)!.cards);
-      expect(machine.program.words, hasLength(936));
-      expect(machine.program.origin, Machine.programOrigin);
-      expect(machine.program.entry, Machine.programOrigin + _octal('165'));
-      expect(machine.state.ic, machine.program.entry);
+      final subject = Machine.load(jobDeck(job, _options)!.cards);
+      expect(subject.program.words, hasLength(936));
+      expect(subject.program.origin, Machine.programOrigin);
+      expect(subject.program.entry, Machine.programOrigin + octal('165'));
+      expect(subject.state.ic, subject.program.entry);
       // The sample calls open-all, which finds an empty file list while
       // M5 owns IOC)1 (RT-2), fills its work areas through MOVPAK, and
       // then reads its first record. IOC)8 is the GET, and it is the M4
       // to M5 boundary (M4-17).
       expect(
-        () => machine.run(maxSteps: 1000),
+        () => subject.run(maxSteps: 1000),
         throwsA(
           isA<UnimplementedRuntimeEntry>().having(
             (UnimplementedRuntimeEntry e) => e.number,
@@ -183,8 +187,8 @@ void main() {
       final JobCompilation job = compileDeck(
         mirrorToDeck('${_source.join('\n')}\n'),
       ).jobs.single;
-      final machine = Machine.load(jobDeck(job, _options)!.cards);
-      final RunResult result = machine.run(maxSteps: 1000);
+      final subject = Machine.load(jobDeck(job, _options)!.cards);
+      final RunResult result = subject.run(maxSteps: 1000);
       expect(result.outcome, RunOutcome.endOfJob);
       expect(result.display, <String>['AT 4,00 STOP RUN']);
       final AssemblyUnit total = job.codegen!.units.firstWhere(
@@ -192,13 +196,21 @@ void main() {
       );
       // `SET TOT = NUM + 1` generates CLA, ADD, STO with no MOVPAK, and
       // NUM's reserved cell reads +0 (ED-6).
-      expect(machine.state.read(Machine.programOrigin + total.location!), 1);
+      expect(subject.state.read(Machine.programOrigin + total.location!), 1);
     });
 
     test('comtranc --run prints the display after the listing', () {
       final ProcessResult run = _compileAndRun(_source);
       expect(run.exitCode, 0, reason: '${run.stderr}');
       expect(run.stdout, contains('AT 4,00 STOP RUN'));
+    });
+
+    test('a labelled section runs from the entry point it takes', () {
+      // `test/codegen_test.dart` pins the entry word on PROGRAM.START.
+      // NUM reads 1 only if the run entered the section: the `GO TO`
+      // ahead of it reaches STOP RUN over an untouched cell (ED-6).
+      final (JobCompilation job, Machine subject) = compiled(_section);
+      expect(subject.state.read(addressOf(job, 'NUM')), 1);
     });
   });
 
