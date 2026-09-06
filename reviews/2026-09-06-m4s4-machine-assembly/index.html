@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stage 4 &mdash; the machine runs, and two questions wait</title>
+<style>
+:root {
+  --paper:#F7F8F6; --raised:#FFFFFF; --ink:#14171A; --muted:#5C6560;
+  --rule:#C9CFC8; --hair:#E1E5DF; --stamp:#B3261E; --stamp-soft:#FBEAE8;
+  --settled:#40685A;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#141715; --raised:#1C201D; --ink:#E7EBE5; --muted:#9AA69D;
+    --rule:#3A423C; --hair:#2A302C; --stamp:#FF7A6B; --stamp-soft:#33201D;
+    --settled:#7FB8A2;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#141715; --raised:#1C201D; --ink:#E7EBE5; --muted:#9AA69D;
+  --rule:#3A423C; --hair:#2A302C; --stamp:#FF7A6B; --stamp-soft:#33201D;
+  --settled:#7FB8A2;
+}
+* { box-sizing:border-box; }
+body {
+  background:var(--paper); color:var(--ink); font-family:var(--serif);
+  font-size:17px; line-height:1.62; margin:0;
+  padding:clamp(1.5rem,4vw,4rem) clamp(1rem,5vw,2rem);
+}
+main { max-width:47rem; margin:0 auto; display:flex; flex-direction:column; gap:2.4rem; }
+h1 { font-size:clamp(1.7rem,4.2vw,2.4rem); line-height:1.16; margin:0; text-wrap:balance;
+     letter-spacing:-0.015em; }
+h2 { font-size:1.32rem; margin:0 0 .2rem; text-wrap:balance; letter-spacing:-0.01em; }
+h3 { font-size:1.02rem; margin:1.6rem 0 .3rem; }
+p, li { margin:0 0 .85rem; }
+li:last-child { margin-bottom:0; }
+ul, ol { padding-left:1.15rem; margin:0 0 .85rem; }
+a { color:var(--ink); text-decoration-color:var(--rule); text-underline-offset:.16em; }
+a:hover { text-decoration-color:var(--stamp); }
+a:focus-visible { outline:2px solid var(--stamp); outline-offset:2px; border-radius:2px; }
+code { font-family:var(--mono); font-size:.87em; background:var(--hair);
+        padding:.08em .3em; border-radius:2px; }
+.eyebrow { font-family:var(--mono); font-size:.7rem; letter-spacing:.16em;
+            text-transform:uppercase; color:var(--muted); margin:0 0 .7rem; }
+header { border-bottom:2px solid var(--ink); padding-bottom:1.4rem; }
+header p.standfirst { font-size:1.06rem; color:var(--muted); margin:.75rem 0 0; }
+section { display:flex; flex-direction:column; gap:.2rem; }
+.answer { background:var(--raised); border:1px solid var(--hair);
+           border-left:3px solid var(--ink); padding:1.15rem 1.3rem; }
+.answer ol { margin:0 0 .85rem; padding-left:1.2rem; }
+.answer li { margin-bottom:.5rem; }
+.answer p:last-child { margin-bottom:0; }
+.chip { font-family:var(--mono); font-size:.66rem; letter-spacing:.14em;
+         text-transform:uppercase; padding:.24em .6em; border-radius:2px;
+         border:1px solid currentColor; white-space:nowrap; }
+.chip.decided { color:var(--stamp); background:var(--stamp-soft); }
+.chip.call { color:var(--stamp); background:var(--stamp-soft); }
+.chip.done { color:var(--settled); }
+.itemhead { display:flex; gap:.75rem; align-items:baseline; flex-wrap:wrap;
+             margin-bottom:.35rem; }
+.item { border-top:1px solid var(--rule); padding-top:1.3rem; }
+.item.needs { border-top:2px solid var(--stamp); }
+figure { margin:1rem 0 1.2rem; }
+.plate { background:var(--raised); border:1px solid var(--rule); padding:.55rem;
+          overflow-x:auto; }
+.plate pre { margin:0; font-family:var(--mono); font-size:.78rem; line-height:1.5; }
+figcaption { font-family:var(--mono); font-size:.71rem; line-height:1.5; color:var(--muted);
+              margin-top:.5rem; }
+.scroll { overflow-x:auto; margin:.5rem 0 1rem; }
+table { border-collapse:collapse; font-size:.92rem; margin:.6rem 0 1rem;
+        font-variant-numeric:tabular-nums; }
+th, td { text-align:left; padding:.3rem .7rem .3rem 0; vertical-align:top;
+         border-bottom:1px solid var(--hair); }
+th { font-family:var(--mono); font-size:.7rem; letter-spacing:.1em;
+     text-transform:uppercase; color:var(--muted); font-weight:normal; }
+td.n { text-align:right; font-family:var(--mono); font-size:.85rem; white-space:nowrap; }
+.opt { border-left:3px solid var(--rule); padding:.15rem 0 .15rem 1rem; margin:0 0 1rem; }
+.opt.pick { border-left-color:var(--stamp); }
+.opt .name { font-family:var(--mono); font-size:.75rem; letter-spacing:.08em;
+              text-transform:uppercase; }
+.ask { background:var(--stamp-soft); border:1px solid var(--stamp); padding:.9rem 1.1rem;
+        margin:.9rem 0 0; }
+.ask p { margin:0 0 .5rem; }
+.ask p:last-child { margin:0; }
+.ask .label { font-family:var(--mono); font-size:.68rem; letter-spacing:.14em;
+               text-transform:uppercase; color:var(--stamp); display:block; margin-bottom:.3rem; }
+footer { border-top:1px solid var(--rule); padding-top:1rem; font-size:.85rem;
+          color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+<p class="eyebrow">Review record &middot; 2026-09-06 &middot; M4 stage 4 &middot; commit 842649e</p>
+<h1>The machine runs, and two questions wait for you</h1>
+<p class="standfirst">Stage 4 builds the machine that executes a loaded object
+program, and the library handlers that stand under it. The 1962 payroll sample
+now loads its 936 words, opens an empty file list, fills its work areas, and
+stops at its first GET, which M5 owns. <code>comtranc --run</code> is the flag
+that runs it. Four items were decided without stopping, under the standing rule
+of CLAUDE.md section 12: three of the stage's calls, and the dispositions of its
+three reviews. Two wait for you. Three are here for the account.</p>
+</header>
+
+<section class="answer">
+<h2>What happened, in eight lines</h2>
+<ol>
+<li><strong>Stage 4 built 28 of the roughly 130 library entries the design
+record charters</strong> &mdash; the ones a program with no input or output
+reaches &mdash; plus four communication cells. The wider set was legal and was
+not taken. It is a judgment call, not a rule.</li>
+<li><strong>Fifteen runtime design decisions were taken without stopping.</strong>
+Each is written into <code>docs/design/runtime.md</code> as an entry RT-1 to
+RT-5, with the reading it beat.</li>
+<li><strong>Six records were amended, and one document's word budget was
+raised</strong> from 8,000 words to 9,000. A budget raise is a governance
+change, so it is called out by name.</li>
+<li><strong>Five code-generator defects wait for your call.</strong> The runtime
+made them visible; the object code was always wrong. My recommendation is to
+refuse all five in one small follow-up pull request now.</li>
+<li><strong>A program with two PROGRAM.START labels compiles to nothing.</strong>
+Decision record D2.1 says the first label wins and compilation continues; the
+generator refuses any procedure name defined twice. Your call.</li>
+<li><strong>PROGRAM.START on a section is legal and runs off the end.</strong>
+Control leaves through an unwritten return cell and transfers to address 0.
+Recorded so no later reader files it as a bug.</li>
+<li><strong>The M4 to M5 boundary is one exception at IOC)8</strong>, the GET.
+A test asserts it, and <code>comtranc --run</code> exits 1 there.</li>
+<li><strong>The stage ran as parallel agents over one afternoon</strong>, with a
+session usage limit in the middle that three of them were recovered from on
+disk rather than re-run.</li>
+</ol>
+<p>Items 1 to 3 and item 9 are <strong>DECIDED</strong> under the CLAUDE.md
+section 12 standing rule: silence lets them stand. Items 2, 3 and 9 are one pull
+request each to overturn; item 1 is a milestone of handler writing. Items 4 and 5 are <strong>YOUR CALL</strong>, and neither blocks the
+stage-4 pull request. Items 6 to 8 are <strong>SETTLED</strong> and ask
+nothing. A ninth section holds the findings of the three independent reviews
+and what was done about each.</p>
+<p>The stage-4 branch changes files under <code>lib/</code>, so its pull request
+needs the two-family loop of EXTERNAL-REVIEW.md and merges on convergence, not
+on routine maintenance.</p>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>1 &middot; Stage 4 built 28 entries, not 130</h2></div>
+
+<p><strong>The decision.</strong> The design record M4-17 charters about 130
+library entries. A library entry is a numbered subroutine or communication cell
+that generated code calls by number: <code>SYS)175</code> is one, and
+<code>IOC)40</code> is another. Stage 4 built the entries an input-free and
+output-free program actually reaches, and nothing else.</p>
+
+<p><strong>What M4-17 charters.</strong> Its own words, in
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/design/m4-codegen.md">docs/design/m4-codegen.md</a>: "M4 lands the compute set
+&mdash; the cells and flags SYS)128&ndash;134, the scaling, exponent, and
+comparison routines SYS)155&ndash;173 &hellip;, MOVPAK entire
+(SYS)179&ndash;258, 267&ndash;282), the base-locator guard SYS)294 &mdash; plus
+the run-frame stubs SYS)174&ndash;178 &hellip; and IOC)1, IOC)40". That is 130
+numbers.</p>
+
+<p><strong>What stage 4 built.</strong> The table is RT-1's, under the heading
+"The stage-4 set and what waits":</p>
+
+<div class="scroll">
+<table>
+<tr><th>Where</th><th>Entries</th><th>Count</th></tr>
+<tr><td>the run frame (RT-2)</td><td>SYS)175, 177, 178, 294, and IOC)40</td><td class="n">5</td></tr>
+<tr><td>the MOVPAK dispatch entries (RT-3)</td><td>SYS)180 and SYS)182</td><td class="n">2</td></tr>
+<tr><td>the non-edited members (RT-4)</td><td>SYS)184, 239, 240, 241, 243, 244, 245, 268, 269, 275</td><td class="n">10</td></tr>
+<tr><td>the edited family (RT-5)</td><td>SYS)185, 190, 193, 198, 211, 212, 214, 216, 225, 226, 267</td><td class="n">11</td></tr>
+</table>
+</div>
+
+<p>Twenty-eight handlers, plus four cells that need no handler because they are
+memory and generated code reads and writes them with ordinary instructions:
+<code>SYS)132</code>, <code>SYS)133</code>, <code>IOC)1</code> and
+<code>IOC)29</code>.</p>
+
+<h3>The three courses, and what each costs</h3>
+
+<div class="opt pick"><p class="name">A &mdash; the narrow set. Taken.</p>
+<p>Build only what a run reaches. <strong>What it costs:</strong> the M7 diff
+pass gets a narrower comparison. M7 opens the sealed 1963 processor and measures
+our reconstruction against it; an entry we never wrote is an entry with no
+reconstruction to measure. <strong>What it costs to reverse:</strong> build the
+missing entries later from the same manual contracts. Nothing is thrown
+away.</p></div>
+
+<div class="opt"><p class="name">B &mdash; the whole M4-17 set</p>
+<p>Write all 130 now as tested handlers with no caller. CLAUDE.md section 11
+permits that: its table marks the not-exercised, tested case
+<em>permitted</em>, provided "the code needs a concrete plan to get a caller.
+Record the plan in the design record that asks for the code." RT-1 carries that
+plan already, so the route was open.</p>
+<p><strong>What it costs:</strong> 102 handlers written from manual contracts
+that do not describe the algorithm. The three contract reports in
+<code>evidence/</code> grade each entry against a printed key &mdash;
+<code>evidence/s4-contracts-b1.md</code> line 87: "<strong>FULL</strong> = the
+entry states its calling sequence, its effect, and where control resumes.
+<strong>PARTIAL</strong> = class pair and parameter encodings stated, algorithm
+not. <strong>NAME-ONLY</strong> = the entry body states only the family pairing".
+PARTIAL is the common verdict. Eight entries grade FULL, and every one of
+them has its <em>protocol</em> printed rather than its algorithm: the two pointer cells <code>SYS)132</code> and
+<code>SYS)133</code>, which are memory and have no algorithm; the four MOVPAK
+dispatch entries <code>SYS)179</code> to <code>SYS)182</code>, whose whole
+content is which pointer cell the calling sequence sets; and the two figurative
+movers <code>SYS)243</code> and <code>SYS)244</code>, which write one repeated
+character.</p>
+<p>Two further costs. The only test such a handler can carry is a
+decision-conformance test, which asserts what we decided and nothing else, so
+102 handlers would add 102 tests that check our own reasoning against itself.
+And REVIEW.md humanness finding 3 &mdash; "Dead weight that the section 11
+blocker does not already catch: code a test asserts on but no run reaches"
+&mdash; would attach to every one of them.</p>
+<p><strong>What it costs to reverse:</strong> deleting a hundred handlers and a
+hundred tests, and re-deleting them each time a reviewer asks why they are
+there.</p></div>
+
+<div class="opt"><p class="name">C &mdash; the narrow set plus all of MOVPAK</p>
+<p>MOVPAK is the move-and-convert package, SYS)179 to 258 and 267 to 282: 96 of
+the 130. Course C is course B minus the scaling and comparison routines. It
+carries the same costs at nearly the same size.</p></div>
+
+<p><strong>Two entries can never get an emitter under any course.</strong> Our
+generator declines <code>SYS)179</code> and <code>SYS)181</code> at all thirteen
+sites the manual permits them, and pays 29 extra words of object code to do it.
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/test/fixtures/90.05-object-code-notes.md">test/fixtures/90.05-object-code-notes.md</a>,
+descriptors list item 2, states the rule: "the dispatch selection rule:
+<code>SYS)180</code> when the source is a register, <code>SYS)182</code>
+otherwise, and never <code>SYS)179</code> or <code>SYS)181</code>."</p>
+
+<h3>Why A, and what kind of decision it is</h3>
+
+<p>The project has stopped at the same line twice before. Stage 1 shipped its
+storage map with no stop shape because it could detect no error, and chunk B8
+added the shape with the first diagnostic (M4-2 as amended). The
+<code>SYS)162</code> comparison boundary stays unbuilt beside AND, OR and NOT,
+because no comparand in the sample passes one word (M4-11).</p>
+
+<p><strong>This is a judgment call and not a section 11 ruling.</strong> Section
+11 bans code that is neither exercised nor tested. Course B would have been
+tested, so section 11 did not forbid it. RT-1 says so in its own words: "The
+narrow set is a judgment call, and Jack can overturn it. A wider set was
+legal." A second reviewing model, consulted on the plan before any code was
+written, said the same. Overturning it costs one milestone of handler writing,
+not a rewrite.</p>
+
+<h3>One consequence for M7, recorded now</h3>
+
+<p><strong>No handler that a run reaches arms <code>SYS)130</code>.</strong>
+Decision record D4.2 gives that cell to nine counted overflow-test steps &mdash;
+SYS)195, 196, 199, 201, 203, 204, 270, 277 and 281. Our generator emits none of
+them, so no run has ever written the cell. The M7 diff pass must read
+<code>SYS)130</code> as unexercised, and not as tested and found zero. RT-1
+carries this note so that a later reader cannot mistake the silence for a
+result.</p>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>2 &middot; Fifteen runtime decisions, taken without stopping</h2></div>
+
+<p><strong>The decision.</strong> Each row below had one course that the
+evidence and the existing records left open, so it was taken under the section
+12 standing rule rather than put to you. Every one is written into
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/design/runtime.md">docs/design/runtime.md</a> at the entry named in the last
+column, with the same reasoning at more length. Each binds the code.</p>
+
+<div class="scroll">
+<table>
+<tr><th>The decision</th><th>The reading it beat</th><th>Where</th></tr>
+
+<tr><td>A runtime reference keeps its own 15-bit number as its address, and the
+program loads at 4096 (octal 10000).</td>
+<td>No manual states an origin. Any origin inside the runtime area would need a
+lookup for each step where one comparison now serves.</td>
+<td>RT-1</td></tr>
+
+<tr><td>The dispatcher decides before each step: below 4096 it runs a Dart
+handler, above it the CPU. Three outcomes end a run &mdash; end of job, error
+exit, step limit.</td>
+<td>An exhausted step budget as a diagnostic. D5.1 as amended makes a
+non-terminating loop a reproduced result, so the machine returns the outcome and
+never throws for it.</td>
+<td>RT-1</td></tr>
+
+<tr><td>The CPU executes each <code>TXI</code> step word of a MOVPAK call. The
+entry zeroes index register 1; each step reads the count from it and zeroes it
+again.</td>
+<td>MOVPAK reads the step list through a cursor of its own and never lets the
+CPU see it. Program-invisible either way, and rejected on cost: the execute
+model reuses the CPU and needs no second interpreter. What cell the 1962 MOVPAK
+kept for the cursor: no unsealed evidence survives (D0.9).</td>
+<td>RT-3</td></tr>
+
+<tr><td>The <code>AXT</code> word that closes a <code>SYS)267</code> call is
+executed by the CPU, not consumed by the handler.</td>
+<td>The handler consumes it. That would falsify the claim
+<code>lib/src/codegen/procedure.dart</code> builds its register-cache model on:
+that the trailing <code>AXT</code> is the call's only register write.</td>
+<td>RT-3</td></tr>
+
+<tr><td><code>SYS)267</code> reads the accumulator alone, never the
+accumulator&ndash;MQ pair.</td>
+<td>Reading the pair. Twenty-two of the 25 sites load with <code>CLA</code> and
+leave the MQ stale; the other three split the digits with <code>LRS 35</code>
+and <code>DVP</code>, which parks the excess in the MQ on purpose and discards
+it (D4.1 part c).</td>
+<td>RT-5</td></tr>
+
+<tr><td>The character length of an edited image is derived from the two control
+words, one cell per character they call for.</td>
+<td>The sum of the step counts, and the pointer cell carrying a length. Both are
+refuted at attested sites. The derivation is checked against 23 field placements
+across four record layouts.</td>
+<td>RT-5</td></tr>
+
+<tr><td>Suppression reaches <em>min</em>(control-word address, index of the
+first non-zero integer digit), and the dollar sign floats to the last filled
+cell ahead of the first printing one.</td>
+<td>A fixed dollar. The report page <code>images/page-217.png</code> prints
+<code>$294.12</code> into the pictorial <code>$8889.99</code> with no gap, which
+a fixed dollar cannot produce.</td>
+<td>RT-5</td></tr>
+
+<tr><td>The six signed conventions, tags 1 to 6, follow F p. 80's two rules: a
+plus position always prints, and a minus position is blank on a positive
+value.</td>
+<td>Unattested. No target pictorial in the sample carries a sign, so only tag 0
+is proved. A left sign sitting ahead of the dollar, and an overpunch riding the
+last digit cell, are decisions inside the decision, and [F p. 80] leaves both
+placements open. No unsealed evidence survives (D0.9).</td>
+<td>RT-5</td></tr>
+
+<tr><td>Blank When Zero blanks the whole image, insertion characters
+included.</td>
+<td>Blanking only the digit positions. [J 02.05.07] names the field, not its
+digits. No sample site sets the bit, and no unsealed evidence survives
+(D0.9).</td>
+<td>RT-5</td></tr>
+
+<tr><td><code>SYS)245</code> cycles the six characters of its in-line word over
+whatever count it is given.</td>
+<td>Any rule that stops at six. Both attested sites carry six copies of one
+character, so neither separates cycling from its rivals, and a count other than
+six is reachable through the figurative fill. No unsealed evidence survives
+(D0.9).</td>
+<td>RT-4</td></tr>
+
+<tr><td><code>SYS)269</code> and <code>SYS)198</code> count digit positions, and
+an asterisk is a digit position.</td>
+<td>Counting storage characters, which would under-consume a source such as
+<code>$8,889.99</code>. On the asterisk this departs from a note in one of the
+two design passes, which lists the asterisk twice &mdash;
+<code>evidence/design-conversions.md</code> line 391 puts it among "suppressed
+positions (the <code>8</code> and <code>*</code> positions)" and then among "the
+insertion characters <code>. , $ * + -</code>". RT-4 follows
+[J 90.02.17] Note 2, where the control word counts the asterisks beside the
+<code>8</code>'s and the <code>9</code>'s.</td>
+<td>RT-4</td></tr>
+
+<tr><td>The pointer-cell reader decodes the <code>PZE</code> form only.</td>
+<td>A prefix test for the <code>MZE</code> and <code>MON</code> forms the manual
+also prints. Our generator emits neither, and section 11 bars a branch no run
+reaches.</td>
+<td>RT-4</td></tr>
+
+<tr><td>The pointers a call advances are not written back to their cells.</td>
+<td>Writing them back. No unsealed evidence survives (D0.9), and every emitted
+site presets both cells before the next call, so no emitted word can see the
+difference.</td>
+<td>RT-4</td></tr>
+
+<tr><td>The STOP line reads <code>AT 199,14 STOP RUN</code>; the base-locator
+guard's line reads <code>BASE LOCATOR NOT LOADED</code>.</td>
+<td>[J 05.06.04] gives the form "AT xxxxx,yy STOP nnnnnn" and no rule for the
+blank padding in the four constant-pool words; [J 90.02.33] says the guard
+"prints an error message" and prints no text. Both messages went to an on-line
+printer whose sheets neither manual reproduces. No unsealed evidence survives
+(D0.9). <a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/comtran-language-definition.md">Open Question 76</a> of the language definition carries
+the gap and now names this answer.</td>
+<td>RT-2</td></tr>
+
+<tr><td><code>comtranc --run</code> exits non-zero on an error exit and on an
+exhausted budget. End of job alone leaves the status at 0.</td>
+<td>Treating the budget as a clean stop. The budget prints one line on the error
+stream and names itself; the error exit prints nothing of the tool's own,
+because the guard has already printed the monitor's message.</td>
+<td>RT-1</td></tr>
+</table>
+</div>
+
+<p><strong>One number in RT-3 is wrong.</strong> It writes "One of the 26
+<code>SYS)267</code> sites punches <code>TRA SYS)267,0,0</code>". The sample has
+25 <code>SYS)267</code> sites, 24 <code>TXI</code> words and that one
+<code>TRA</code>; 26 is the count of <code>SYS)182</code> sites. Counted in
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/test/goldens/90.05-payroll.code">test/goldens/90.05-payroll.code</a>,
+where <code>SYS)267</code> stands on 25 lines and <code>SYS)182</code> on 26.
+RT-5 already writes 25 correctly, and the table above uses 25. The fix is two
+characters in <code>docs/design/runtime.md</code>. It belongs in the branch's
+fix pass, not in a review record, so it is listed here and left there.</p>
+
+<p><strong>What an overturn costs.</strong> Every row is confined to
+<code>lib/src/runtime/</code> and its tests. None changes an emitted word, so
+none can move the object listing golden, which is the acceptance oracle for the
+front end and the generator. The branch corroborates that:
+<code>git diff --stat</code> over its whole range shows no file under
+<code>test/goldens/</code> and none under <code>test/fixtures/</code> touched at
+all. Each row is one handler and its decision-conformance test to redo.</p>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>3 &middot; Six records amended, and a word budget raised</h2></div>
+
+<p><strong>The decision.</strong> Stage 4 amended six records that stood before
+it started, and raised one document's word budget. CLAUDE.md section 6 requires
+an explicit, cited edit rather than a silent one; each amendment is dated
+2026-09-06 and carries its evidence. They are listed here so you can read them
+as a set. The budget raise is the one that is a governance change, and it is
+last.</p>
+
+<h3>D4.3 &mdash; the blank and the edit characters no longer arm the cell</h3>
+
+<p>D4.3 governs what a numeric handler does with a character that is not a
+digit: it sets communication cell <code>SYS)131</code> and continues. The
+amendment exempts two classes. Its words, in
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/design/decisions.md">docs/design/decisions.md</a>: "The trigger exempts two
+classes of character. A blank never arms the cell, in any position. An edit
+insertion character never arms it either. The [J 02.05.05] field-type chart is
+the ground for both exemptions. It admits 'digits and leading blanks' in an
+external decimal field (note 3). It gives an edited field the format characters
+<code>8 * . , $ + -</code>."</p>
+
+<p>The amendment says plainly why it is not a peer collision: "D4.3 already
+marks the trigger a design decision under D0.4, and it leaves 'an improper data
+condition' unresolved." Without the exemption the trigger would arm the cell on
+data the chart declares legal.</p>
+
+<h3>D2.1 &mdash; a labeled PROGRAM.START now names the entry point</h3>
+
+<p>D2.1 is the entry-point record. Before stage 4 the generator named the first
+procedure sentence for every program. The amendment makes a statement or section
+labeled <code>PROGRAM.START</code> the entry, and settles a second question with
+it: the generated name <code>GN)000</code> does not move.</p>
+
+<p>Two manual facts carry it, both quoted in the amendment. [J 02.02]
+subsection B.1.c shows a generated name "in the name field of Procedure
+statements or Data entries unnamed by the programmer" &mdash; a statement
+labeled PROGRAM.START carries a programmer's name, so no generated name can
+print on it. [J 90.02.01] then keeps the two ideas apart: it measures the
+location column "from the first word of the object program (not necessarily
+PROGRAM.START)".</p>
+
+<h3>LD-3 &mdash; the loader's carried gap is closed</h3>
+
+<p>The stage-3 record left one item for stage 4. Its amendment, in
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/design/loader.md">docs/design/loader.md</a>: "The gap is closed. The
+end-of-text entry names a labeled PROGRAM.START and holds that word's address. A
+program without the label keeps <code>GN)000</code> and the first procedure
+word."</p>
+
+<h3>M4-17 &mdash; landed in part, and one sentence deleted to pay for it</h3>
+
+<p>M4-17 gains: "<strong>Amended 2026-09-06. Landed in part.</strong> Stage 4
+built 28 entries and <code>comtranc --run</code>."</p>
+
+<p><strong>The part that needs your eye.</strong> To make room, four passages
+in the same file were deleted or shortened. The one worth naming is M4-17's own
+last sentence, which read:</p>
+
+<figure><div class="plate"><pre>Handlers keep the printed inconsistencies as recorded defects, not
+silent fixes: SYS)231&ndash;234 follow their own entries (overpunch test),
+not the family lists' overflow naming (D4.2's note).</pre></div>
+<figcaption>docs/design/m4-codegen.md, deleted 2026-09-06.</figcaption></figure>
+
+<p>The rule survives, because D4.2's Implementation paragraph carries it in its
+own words: "Note the printed inconsistency preserved in J: SYS)231&ndash;234
+occupy the test slot in the family lists but their own entries print
+NUMBER-OF-CHARACTERS-TO-TEST-FOR-OVERPUNCH; our handlers follow the individual
+entries (overpunch) and the calling-sequence position is recorded as a printed
+defect." The other three are smaller and lose no rule: a sentence in M4-9 item
+(a) naming the test that asserts the encode table both ways, a rewording of
+M4-9 item 4 that says the same thing shorter, and a rewording of the
+underdetermined-items note that follows item (f). <strong>If you would rather
+have paid the budget somewhere else, say so and it moves.</strong></p>
+
+<h3>M4-9 item (f) and M4-10 &mdash; the refusal counts</h3>
+
+<p>M4-9 item (f) goes from five refusals to nine; M4-10 goes from two to three.
+The four new refusals in item (f) are an external-decimal convert past ten
+digits, and three edited targets that no control word can carry &mdash; an
+<code>S</code> position, a suppression character behind the leading run, and
+irregular comma grouping. M4-10's new one is an edited ADD source past ten
+digits. Each throws <code>UnrecoveredShape</code> under M4-2 as amended, and
+<code>test/codegen_refusal_test.dart</code> pins one program per site.</p>
+
+<h3>The word budget &mdash; a governance change, flagged</h3>
+
+<p><a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/test/doc_weight_test.dart">test/doc_weight_test.dart</a> caps
+the words in each document under <code>docs/</code>. Stage 4 added one line to
+it:</p>
+
+<figure><div class="plate"><pre>const Map&lt;String, int&gt; budgets = &lt;String, int&gt;&#123;
+  'docs/comtran-language-definition.md': 115000,
+  'docs/design/decisions.md': 50000,
++ 'docs/HANDOVER.md': 9000,
+  'docs/design/m3-data.md': 9000,</pre></div>
+<figcaption>test/doc_weight_test.dart, the one added line. HANDOVER had no entry
+before, so it ran on the 8,000-word default.</figcaption></figure>
+
+<p>The numbers make the choice concrete. <code>docs/HANDOVER.md</code> now holds
+8,208 words against that 8,000 default, so the stage either cut 208 words of
+project state or raised the cap; it raised it, to 9,000.
+<code>docs/design/m4-codegen.md</code> holds 9,999 words against 10,000, and
+that budget carries your lock: "Locked by Jack, 2026-08-09. This number never
+rises again. A stage 2 amendment that needs room pays for it by deleting prose
+from the same record." That lock is why M4-17's sentence was deleted rather than
+appended to.</p>
+
+<div class="ask"><span class="label">Worth a moment</span>
+<p>The HANDOVER default carries no such lock, so raising it broke no written
+rule. It is still a governance change made without asking, and the same
+reasoning would raise it again next milestone. If you want HANDOVER under the
+same "never rises again" lock the generator record has, say so and the number
+freezes at 9,000.</p></div>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip call">Your call</span>
+<h2>4 &middot; Five code-generator defects the runtime exposed</h2></div>
+
+<p><strong>These defects predate this branch.</strong> The object code was
+always wrong at these five sites. Nothing could see it before, because nothing
+ran the object code. The runtime is the first reader, and it made them visible.
+None is fixed on this branch, and each fix is a change to the generator, not to
+the runtime.</p>
+
+<p>Line numbers below are as of the commit this record links to. Each site is
+quoted, so a later edit that moves a line still leaves the site
+identifiable.</p>
+
+<h3>Defect 1 &mdash; MOVE does not align by the decimal point on two paths</h3>
+
+<p>[F p. 42] makes a MOVE align its operands by the decimal point. Two of the
+generator's paths do not.</p>
+
+<p>The internal-decimal-to-edited path, <code>_editedStore</code> at
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/lib/src/codegen/procedure.dart#L2146"><code>procedure.dart:2146</code></a>, compares digit
+counts and never fraction digits:</p>
+
+<figure><div class="plate"><pre>final ItemSemantics s = _sem(source);
+final ItemSemantics t = _sem(target);
+if (s.digits &gt; t.digits) &#123;
+  // The split divisor is 10 to the target's digit count ...</pre></div>
+<figcaption>procedure.dart:2156-2159. The only comparison is on total digits.</figcaption></figure>
+
+<p>A compile shows the effect. A four-line program declares <code>NUM</code> as
+an internal decimal <code>999</code> &mdash; mode <code>I</code>, which the
+example needs and the HANDOVER list omits &mdash; and <code>EDT</code> as
+<code>$8889.99</code>, then sets <code>NUM</code> to 123 and moves it:</p>
+
+<figure><div class="plate"><pre>00003  0500 00 0 00071   10001    X              CLA    CP)+2
+00004  0601 00 0 00000   10001           +1      STO    NUM
+00005  0500 00 0 00000   10001    Z              CLA    NUM
+00006  0074 00 4 00264   10010           +1      TSX    SYS)180,4
+00007  0 00000 0 00001   10001           +2      PZE    EDT,,0
+00010  1 00014 1 00413   10010           +3      TXI    SYS)267,1,12
+00011  000004000003      10000           +4      OCT    000004000003
+00012  0774 00 1 00006   10000           +5      AXT    6,1</pre></div>
+<figcaption>comtranc --emit-object. CP)+2 is octal 173, which is 123. The value
+is loaded raw and handed to the renderer as six digits, so a stored 123 becomes
+000123.</figcaption></figure>
+
+<p>Running the program and reading the two words of <code>EDT</code> out of core
+gives the image, not a derivation of it:</p>
+
+<figure><div class="plate"><pre>[___$1.230000]</pre></div>
+<figcaption>Twelve characters, two words, each underscore a blank. The eight
+cells of the field read <code>&#9251;&#9251;&#9251;$1.23</code>, and the
+trailing <code>0000</code> is the rest of the second word, which the move never
+touches. Correct is <code>$123.00</code>: [F p. 42] aligns a MOVE by the decimal
+point.</figcaption></figure>
+
+<p>The second path is external decimal to internal decimal, at
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/lib/src/codegen/procedure.dart#L2026"><code>procedure.dart:2026-2031</code></a>, which compares
+nothing at all:</p>
+
+<figure><div class="plate"><pre>_setup(source, subscripted: sourceSubscripted, target: false);
+_tsx(182);
+_txi(184, _sem(source).digits); // The complete call ([J 90.02.16]).
+_loadBaseOf(target);
+_opItem(Op.sto, target);
+_movpakClears();</pre></div>
+<figcaption>procedure.dart:2026-2031. <code>SYS)184</code> returns the digit
+string as a binary integer and is told no scale, so the target's scale is
+lost.</figcaption></figure>
+
+<p>The generator's own third path refuses the mismatch that these two accept.
+<code>_internalMove</code> at
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/lib/src/codegen/procedure.dart#L2209"><code>procedure.dart:2209</code></a> throws
+<code>an internal-decimal move off its trigger (catalogue 4.6)</code> when the
+fraction digits differ. So the repository already holds both answers.</p>
+
+<p><strong>One correction to <a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/HANDOVER.md">docs/HANDOVER.md</a>.</strong>
+Its list gives the example as "<code>MOVE NUM (999) TO EDT ($8889.99)</code> renders 123
+as <code>$1.23</code>" without saying what <code>NUM</code> is. The example
+holds only when <code>NUM</code> is an <em>internal</em> decimal. The
+external-decimal-to-edited path, <code>_editSteps</code> at
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/lib/src/codegen/procedure.dart#L2064"><code>procedure.dart:2064</code></a>, aligns
+correctly: it emits leading zeros for the integer difference and trailing zeros
+for the fraction difference.</p>
+
+<h3>Defect 2 &mdash; an edited ADD source skips the scale check</h3>
+
+<p><code>_addPair</code> at
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/lib/src/codegen/procedure.dart#L2588"><code>procedure.dart:2588-2591</code></a> refuses a pair
+of unequal scales:</p>
+
+<figure><div class="plate"><pre>void _addPair(DataItem source, DataItem target) &#123;
+  if (_sem(source).fractionDigits != _sem(target).fractionDigits) &#123;
+    _unruled('an ADD pair of unequal scales (notes section 7)');
+  &#125;</pre></div>
+<figcaption>procedure.dart:2583-2586.</figcaption></figure>
+
+<p>The edited-source branch of <code>_add</code>, at
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/lib/src/codegen/procedure.dart#L2526"><code>procedure.dart:2526</code></a>
+(<code>if (_sem(source).fieldClass == FieldClass.edited)</code>), returns before
+reaching <code>_addPair</code>. It converts the source, parks it, and adds it to
+each target with no scale test at all.</p>
+
+<h3>Defect 3 &mdash; an <code>S</code> position is counted as a stored character</h3>
+
+<p>An <code>S</code> in a pictorial is a digit the field represents and does not
+store. The two counts differ by design.
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/lib/src/data/data_map.dart">data_map.dart</a> documents
+<code>digits</code> as "Digits the field represents, <code>S</code> fillers
+included", while
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/lib/src/data/pictorial.dart">pictorial.dart</a> documents
+<code>storageChars</code> as "Storage positions: one per format character except
+<code>V</code>, <code>S</code>, and <code>F</code>".</p>
+
+<p>Three call sites hand a MOVPAK handler the digit count where the handler
+reads characters off the source cursor: <code>procedure.dart:2028</code>
+(<code>_txi(184, _sem(source).digits)</code>),
+<code>:2079</code> (<code>_txi(fromEdited ? 198 : 193, s.digits)</code>), and
+<code>:2557</code> (<code>final int digits = _sem(source).digits;</code>, which
+feeds both <code>SYS)269</code> and <code>SYS)275</code>). With an
+<code>S</code> in the source the handler reads past the end of the field.</p>
+
+<p>The generator already refuses an <code>S</code> in an edited <em>target</em>
+(M4-9 item (f), new on this branch). It does not refuse one in a numeric
+source.</p>
+
+<h3>Defect 4 &mdash; the SYS)184 path stores through a clobbered register</h3>
+
+<p>In the six lines quoted under defect 1, <code>_loadBaseOf(target)</code> and
+the store run <em>before</em> <code>_movpakClears()</code>.
+<code>_movpakClears</code> is what tells the generator that a MOVPAK call has
+destroyed index register 1, and <code>_loadBase</code> emits nothing when its
+cache still believes the register holds what it wants:</p>
+
+<figure><div class="plate"><pre>void _loadBase(DataItem record) &#123;
+  final int locator = _baseLocators[record]!;
+  if (_registerHolds.containsValue(locator)) &#123;
+    return;
+  &#125;</pre></div>
+<figcaption>procedure.dart:1036-1040. The early return is the bug's other
+half.</figcaption></figure>
+
+<p>So a target whose record sits behind a base locator already held in index
+register 1 gets no reload, and its <code>STO</code> addresses through the
+register that <code>TXI SYS)184,1,n</code> has just overwritten with the digit
+count. The conversions design pass found it and left it alone, at
+<code>evidence/design-conversions.md</code> section G.8: "Codegen observation,
+out of scope, no fix here. &hellip; No sample site is located on that path, so
+listing-diff cannot show it."</p>
+
+<h3>Defect 5 &mdash; a leading run that mixes <code>8</code> and <code>*</code></h3>
+
+<p>The control word has one address field for the leading run of suppressed
+positions. It says how many cells suppress. It cannot say which of them take a
+blank and which take an asterisk. RT-5 lists this among its open items: "a
+leading run mixing <code>8</code> and <code>*</code> &mdash; one address field
+cannot say which cells take a blank and which an asterisk. The compiler accepts
+it today."</p>
+
+<p>It does. A program whose target is <code>$8*89.99</code> compiles with
+<code>NO ERRORS WERE DETECTED DURING COMPILATION</code> and exit status 0:</p>
+
+<figure><div class="plate"><pre>00010  1 00015 1 00413   10010           +5      TXI    SYS)267,1,13
+00011  000004000003      10000           +6      OCT    000004000003</pre></div>
+<figcaption>Edit control 13 sets the asterisk, point and dollar bits. The
+control word gives decrement 4, the integer digits, and address 3, the leading
+run &mdash; three cells, with no way to say that the middle one is the
+asterisk.</figcaption></figure>
+
+<h3>The three courses, on all five</h3>
+
+<div class="opt pick"><p class="name">Refuse all five now, in one small pull request</p>
+<p>This is the M4-2 doctrine as amended: an unattested shape fails in the
+recovery, not in the program. Each defect becomes an
+<code>UnrecoveredShape</code> with one pinned program in
+<code>test/codegen_refusal_test.dart</code>, exactly like the nine refusals
+M4-9 item (f) already carries. <strong>What it costs:</strong> five legal
+COMTRAN programs stop compiling that compile today, all five to wrong object
+code. <strong>What it leaves unbuilt:</strong> real scale alignment on MOVE.
+<strong>What a later reader is misled about:</strong> nothing &mdash; a refusal
+names itself. <strong>To reverse:</strong> delete a guard.</p></div>
+
+<div class="opt"><p class="name">Implement the alignment as a generator chunk</p>
+<p>D4.1 part (d) as amended already says a MOVE store truncates and a SET store
+through a step-list package rounds, so the rounding rule exists and only the
+alignment is missing. <strong>What it costs:</strong> a shift-and-scale tail on
+two paths with no attested site to check it against, so the oracle is
+decision-conformance alone. <strong>What it leaves unbuilt:</strong> nothing.
+<strong>What a later reader is misled about:</strong> the M7 diff would compare
+an invented alignment against the real one and read any difference as a 1962-to-1963
+change. <strong>To reverse:</strong> delete the tail and add the refusal
+instead.</p></div>
+
+<div class="opt"><p class="name">Leave all five</p>
+<p><strong>What it costs:</strong> the compiler silently emits object code that
+computes the wrong answer, which is the one failure mode this project cannot
+afford: every later oracle is a comparison against the 1962 print.
+<strong>What a later reader is misled about:</strong> a clean compile would read
+as a correct compile. <strong>To reverse:</strong> free, but the wrong results
+in between are not recoverable.</p></div>
+
+<div class="ask"><span class="label">What I need from you</span>
+<p>My recommendation: <strong>refuse all five in one follow-up pull request
+now</strong>, then take MOVE alignment as a generator chunk before M6's second
+corpus, where a program that needs it will actually exist. That keeps the
+compiler honest today and defers the invention until there is something to check
+it against.</p>
+<p><strong>Defect 4 has two courses of its own, and I do not think the choice
+is obvious.</strong> (a) <em>Refuse a located target on the
+<code>SYS)184</code> path.</em> Every located target on the
+external-decimal-to-internal-decimal move stops compiling; no sample site is
+one, so nothing the repository compiles changes. (b) <em>Reorder the two
+lines,</em> so the path clears the register cache before it reloads the base,
+which is the order every other MOVPAK call already takes: RT-3's register
+contract says a MOVPAK member destroys index register 1, and
+<code>_movpakClears()</code> is how the generator is told. On this reading the
+reorder is the generator following its own recorded rule rather than inventing
+one. It emits a <code>LAC</code>/<code>TXL</code> guard pair at a site no sample
+exercises, so its only oracle is decision conformance, and it moves no word of
+the 90.05 object listing &mdash; G.8 again: "No sample site is located on that
+path." I lean to (a) with the other four, because it is the smaller claim, but
+(b) is defensible and I would not argue against it.</p>
+<p>Nothing here blocks the stage-4 pull request. The defects are older than the
+branch.</p></div>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip call">Your call</span>
+<h2>5 &middot; A program with two PROGRAM.START labels compiles to nothing</h2></div>
+
+<p><strong>The collision.</strong> Two records say different things about the
+same program, and no rank in CLAUDE.md section 6 covers a design record against
+another design record.</p>
+
+<p>D2.1 says the program keeps going: "At most one PROGRAM.START is allowed per
+program (msg 141 'MORE THAN ONE -PROGRAM.START-. FIRST USED.' on a second
+occurrence, <strong>first one wins, compilation continues</strong>)".</p>
+
+<p>The generator says it does not. Every name a sentence carries goes through
+<code>_take</code> at
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/lib/src/codegen/procedure.dart#L407"><code>procedure.dart:407-419</code></a>:</p>
+
+<figure><div class="plate"><pre>for (final name in names) &#123;
+  if (_labelled.containsKey(name)) &#123;
+    // Rebinding keeps only the later address, against D2.5's
+    // section scoping, and no sample label repeats.
+    _unruled('a procedure name defined twice (no sample instance)');
+  &#125;
+  _labelled[name] = _location;
+&#125;</pre></div>
+<figcaption>procedure.dart:410-417. The refusal is D2.5's, about section-scoped
+names in general. It is not a PROGRAM.START rule.</figcaption></figure>
+
+<p><strong>What actually happens.</strong> A two-label program compiled through
+<code>comtranc</code>:</p>
+
+<figure><div class="plate"><pre>   3,00    1    MORE THAN ONE -PROGRAM.START-. FIRST USED.
+   3,00    3    'PROGRAM.START' IS NOT UNIQUE IN THIS SECTION.
+
+SEVERITY LIMIT WAS NOT REACHED
+error: job 1: unrecovered shape: a procedure name defined twice (no sample instance)</pre></div>
+<figcaption>The compiler diagnoses the duplicate twice &mdash; message 141 from
+the parser at severity 1, message 166 ("'NAME.1' IS NOT UNIQUE IN THIS SECTION."
+in the catalogue) from the name resolver at severity 3 &mdash; reports that the
+severity limit was not reached, and then produces no object text at all. The
+process exits 1.</figcaption></figure>
+
+<h3>The three courses</h3>
+
+<div class="opt pick"><p class="name">Keep the refusal, and annotate D2.1</p>
+<p>M4-2 as amended is the doctrine: where the sample attests no shape, the
+recovery fails rather than inventing one. D2.1 gains a sentence saying the
+generator refuses the continue path. <strong>What it costs:</strong> a program
+D2.1 promises to compile does not compile. <strong>What a later reader is misled
+about:</strong> nothing, once D2.1 carries the note; today D2.1 misleads.
+<strong>To reverse:</strong> one guard and one sentence.</p></div>
+
+<div class="opt"><p class="name">Honour first-wins for PROGRAM.START alone</p>
+<p>Special-case the one reserved name: bind the first occurrence, ignore the
+second. <strong>What it costs:</strong> a special case in the label binder that
+one program in the world exercises, and no attested object code to check it
+against. <strong>What it leaves unbuilt:</strong> nothing.
+<strong>To reverse:</strong> delete the special case.</p></div>
+
+<div class="opt"><p class="name">Honour first-wins for every duplicate label</p>
+<p><strong>This one breaks a locked record.</strong> The comment at the refusal
+site says why: "Rebinding keeps only the later address, <strong>against D2.5's
+section scoping</strong>". D2.5 scopes a procedure name to its section, so two
+sections may each legally hold a label <code>X</code>. The generator's label
+table is flat. Making it keep the first binding would quietly send every
+reference to the second <code>X</code> to the first one's address, and the
+program would run the wrong code with no diagnostic. The honest version of this
+option is not "first wins" but "give the binder D2.5's scoping", which is a
+larger piece of work than stage 4 or this pull request.</p></div>
+
+<div class="ask"><span class="label">What I need from you</span>
+<p>My recommendation: <strong>keep the refusal and annotate D2.1.</strong> Two
+PROGRAM.START labels is a programmer error that the compiler already reports
+twice, no sample attests the continue path, and inventing object code for it
+would put an unattested shape into the M7 comparison.</p>
+<p>If you would rather D2.1 be honoured as written, the second option is the
+small one. The third needs a scoped binder first and should not ride on this
+question.</p></div>
+</section>
+
+<section class="item">
+<div class="itemhead"><span class="chip done">Settled</span>
+<h2>6 &middot; PROGRAM.START on a section runs off the end of the section</h2></div>
+
+<p>D2.1 lets <code>PROGRAM.START</code> label a statement <em>or</em> a section
+&mdash; message 142 fires only when it labels neither. No sample program does
+it, so the shape is legal and unattested. Recorded here so that no later reader
+files the behaviour as a bug.</p>
+
+<p><strong>What the object code does.</strong> A section's first word is its
+return cell, an <code>AXT 0</code> that a caller fills in with its own return
+address. Naming the section as the entry point makes that cell the first word
+executed:</p>
+
+<figure><div class="plate"><pre>00001                             GN)000
+00001  0774 00 0 00000   10000    PROGRAM.START  AXT    0
+00002  0500 00 0 00000   10001    X              CLA    NUM
+00003  0400 00 0 00000   10001           +1      ADD    NUM
+00004  0601 00 0 00000   10001           +2      STO    NUM
+00005  0020 60 0 00001   10001    GN)001         TRA*   PROGRAM.START
+00006  0774 00 0 00000   10000    B              AXT    0
+&hellip;
+00001  500000000001      01111                   START  PROGRAM.START</pre></div>
+<figcaption>comtranc --emit-object, on a program whose PROGRAM.START section
+holds one SET and whose STOP RUN sits in a second section. The end-of-text
+<code>START</code> entry names the section. Its <code>END</code> at
+<code>GN)001</code> returns indirectly through the entry word, whose address
+field is 0.</figcaption></figure>
+
+<p>Reaching the section's <code>END</code> therefore transfers to address 0. A
+program that stops inside the section never gets there: a
+<code>PROGRAM.START</code> section holding a <code>STOP RUN</code> runs cleanly
+and prints its stop line. A program that falls out of the section does this:</p>
+
+<figure><div class="plate"><pre>  NO ERRORS WERE DETECTED DURING COMPILATION
+error: job 1: unimplemented runtime entry IOC)0</pre></div>
+<figcaption>comtranc --run, exit status 1. Address 0 is below 4096, so the
+dispatcher treats it as a library entry, finds no handler for number 0, and
+names it as an IOC) entry under [J 90.02.07]'s Type 1
+range.</figcaption></figure>
+
+<p><strong>No change.</strong> The transfer to address 0 is what the object code
+does, on our machine or any other: the generator emits the same words either
+way. What a 1962 monitor held at address 0, and what it did when a program
+transferred there, is not in either manual, and the surviving 1963 processor is
+sealed until M7 (D0.9). Our machine's refusal is a clear failure rather than a
+silent one, which is the most a reconstruction can offer here.</p>
+</section>
+
+<section class="item">
+<div class="itemhead"><span class="chip done">Settled</span>
+<h2>7 &middot; Where M4 stops and M5 begins</h2></div>
+
+<p>The 1962 payroll sample now runs. It loads 936 words at address 4096 and
+enters at 4213 &mdash; octal 10000 and 10165, which is the location the 1962
+listing itself gives. It calls open-all, which finds an empty file list because
+nothing writes the file-list cell at load time and core starts at plus zero. It
+fills its work areas through the move package. It then reaches <code>IOC)8</code>,
+the GET, and stops with a typed exception that names the entry.</p>
+
+<p><a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/test/runtime/machine_test.dart">test/runtime/machine_test.dart</a>
+asserts every step of that:</p>
+
+<figure><div class="plate"><pre>expect(machine.program.words, hasLength(936));
+expect(machine.program.origin, Machine.programOrigin);
+expect(machine.program.entry, Machine.programOrigin + _octal('165'));
+expect(machine.state.ic, machine.program.entry);
+...
+expect(
+  () =&gt; machine.run(maxSteps: 1000),
+  throwsA(
+    isA&lt;UnimplementedRuntimeEntry&gt;().having(
+      (UnimplementedRuntimeEntry e) =&gt; e.number, 'number', 8,
+    ),
+  ),
+);</pre></div>
+<figcaption>test/runtime/machine_test.dart. A second test runs
+<code>comtranc --run</code> as a process and asserts exit code 1 and the
+message on the error stream.</figcaption></figure>
+
+<p><strong>What M5 lands</strong>, from M4-17: the input-output entries
+IOC)2 to 17, 29, 46, 53 and 54, and SYS)260 to 266, 283, and 286 to 296 less the
+294 stage 4 already built. The boundary test flips when <code>IOC)8</code> gets
+its handler, and the sample runs past its first GET.</p>
+</section>
+
+<section class="item">
+<div class="itemhead"><span class="chip done">Settled</span>
+<h2>8 &middot; How the stage was built</h2></div>
+
+<p>Recorded for the account, because one part of it is unusual.</p>
+
+<p><strong>Before any code.</strong> The plan was put to a second reviewing
+model and revised. Seven reader agents then mapped the ground and extracted the
+library contracts from the manual's appendix 90.02. Their reports are
+<code>evidence/s4-emulator.md</code>, <code>s4-loader.md</code>,
+<code>s4-codegen-calls.md</code>, <code>s4-decisions.md</code>, and the three
+contract reports <code>s4-contracts-a.md</code>, <code>s4-contracts-b1.md</code>
+and <code>s4-contracts-b2.md</code>. Two read-only design passes then settled the
+algorithms before a handler was written:
+<code>evidence/design-edited-fields.md</code> and
+<code>evidence/design-conversions.md</code>.</p>
+
+<p><strong>The implementation, and the usage limit.</strong> Round one ran four
+agents in parallel. Three were cut off by a session usage limit at 15:43 and
+were <em>recovered from their finished work on disk</em> rather than re-run: the
+emulator work was already committed and its remaining tree was intact, both
+design documents were complete files, and the PROGRAM.START change was complete
+in its own worktree. The commit dates corroborate the shape of the afternoon:
+<code>90be5b4</code> "Run a loaded program on the emulator" authored 15:40,
+<code>c93f1ed</code> "Name a labeled PROGRAM.START as the object program's entry
+point" authored 15:31 and committed 16:03, and the pair <code>d76d1f0</code> and
+<code>f472f35</code> at 16:00. The 15:43 cutoff itself and the recovery decision
+are the orchestrating session's account, not a repository fact.</p>
+
+<p><strong>After the limit.</strong> One finishing agent, then two agents on the
+move package, then one documentation pass. Then three independent reviews
+&mdash; code, documents, and an over-engineering pass &mdash; each starting with
+fresh context and reading the diff and the repository, never the authors' plans.
+The code review met the same usage limit once and was re-run from the start.
+Its findings, and the other two reviews', go in the next section.</p>
+</section>
+
+<section class="item needs">
+<div class="itemhead"><span class="chip decided">Decided</span>
+<h2>9 &middot; Review findings and dispositions</h2></div>
+
+<p><strong>The decision.</strong> Three independent reviews read the branch at
+commit <a href="https://github.com/Screendead/comtran-compiler/commit/810b35d2d0339ac793a4da51c25831d323c5097c">810b35d</a>: an over-engineering pass over the whole
+diff, an adversarial review of the documents, and an adversarial review of the
+code. Each started with fresh context and read the diff and the repository,
+never the authors' plans. Together they raised 33 findings; several are the same
+defect seen by two reviews, so the fix pass carried 24 items. I triaged every
+finding and accepted all but one. The fixes landed as three commits on the
+branch: <a href="https://github.com/Screendead/comtran-compiler/commit/9f3b69fbedf13e41c94bd3389344c731b4b5e2a9">9f3b69f</a> for the code and the tests,
+<a href="https://github.com/Screendead/comtran-compiler/commit/2b4d886757b6f39685726b25eddbed7045b4fb6e">2b4d886</a> for the documents, and
+<a href="https://github.com/Screendead/comtran-compiler/commit/842649e4b062c039da36b01a8763e2328e8bd979">842649e</a> for the manual citations in the runtime comments.
+The dispositions below are mine, under the CLAUDE.md section 12 standing rule:
+silence lets them stand.</p>
+
+<h3>The over-engineering review &mdash; seven cuts</h3>
+
+<div class="scroll">
+<table>
+<tr><th>What the review said</th><th>What was done</th></tr>
+
+<tr><td><code>lib/comtran.dart:92-93</code>. "delete: exports of
+<code>src/runtime/monitor.dart</code> and <code>src/runtime/movpak.dart</code>"
+&mdash; their one caller is <code>machine.dart</code>, which imports them
+directly. The code review's nit 2 names the same two lines.</td>
+<td>Both exports dropped.
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/lib/comtran.dart">lib/comtran.dart</a> still exports
+<code>machine.dart</code>.</td></tr>
+
+<tr><td><code>test/runtime/monitor_test.dart:17-26</code> and <code>:30</code>.
+"a third and second copy of the machine fixture", byte-identical to
+<code>machine_test.dart:107-116</code> and
+<code>movpak_support.dart:22-32</code>. The code review's nit 1 names the same
+duplication.</td>
+<td><code>movpak_support.dart</code> renamed
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/test/runtime/runtime_support.dart">test/runtime/runtime_support.dart</a>.
+The monitor and machine tests now take <code>machine()</code>,
+<code>tsx()</code>, <code>start</code> and a new <code>octal()</code> from it;
+their private copies are gone.</td></tr>
+
+<tr><td><code>test/runtime/movpak_edit_test.dart:50-62</code>. "yagni:
+<code>editRun</code> rebuilds <code>dispatch</code>."</td>
+<td><code>dispatch</code> moved into the shared support file with a
+<code>maxSteps</code> parameter. <code>editRun</code> is now a four-line call
+into it.</td></tr>
+
+<tr><td><code>lib/src/runtime/machine.dart:64-70</code>. "delete:
+<code>RunResult.steps</code>" &mdash;
+<code>machine_test.dart:141</code>'s <code>expect(result.steps, 50)</code> is a
+tautology, because the loop exits when the step count reaches the budget and the
+line above already asserts that outcome.</td>
+<td>The field, its constructor parameter, its doc comment and all three asserts
+deleted. The constraint the field carried &mdash; a runtime entry counts as one
+step, so a program that only calls handlers is bounded too &mdash; moved into
+<code>run()</code>'s doc comment.</td></tr>
+
+<tr><td><code>lib/src/runtime/movpak.dart:211-213</code>. "stdlib:" the
+zero-filling <code>for</code> loop.</td>
+<td><code>session.digits.addAll(List.filled(count, 0));</code></td></tr>
+
+<tr><td><code>lib/src/runtime/movpak.dart:421-425</code>. "shrink: the
+leading-zero scan".</td>
+<td><code>digits.take(integer).takeWhile((int d) =&gt; d == 0).length</code>,
+with the ternary after it kept.</td></tr>
+
+<tr><td><code>lib/src/runtime/monitor.dart:77-84</code>. "shrink: the
+<code>StringBuffer</code> loop in <code>_characters</code>" &mdash; the
+collection-for plus <code>join</code> the repository already uses.</td>
+<td>Done, with its constraint comment kept.</td></tr>
+</table>
+</div>
+
+<h3>The documents review &mdash; five blockers</h3>
+
+<p>All five are evidence errors: a citation or a stated rule that does not match
+what it points at. Every one was applied.</p>
+
+<div class="scroll">
+<table>
+<tr><th>What the review said</th><th>What was done</th></tr>
+
+<tr><td><strong>1.</strong> Six <code>[J 90.02.10]</code> citations in
+<code>docs/design/runtime.md</code> (<code>:30</code>, <code>:67</code>,
+<code>:81</code>, <code>:152</code>, <code>:177</code>, <code>:207</code>) "name
+a page that carries none of the claims". The quoted text is verbatim, but from
+three other pages.</td>
+<td>The Type 1 and Type 2 ranges now cite <code>[J 90.02.07]</code>, IOC)40
+<code>[J 90.02.09]</code>, and IOC)1 <code>[J 90.02.08]</code>. RT-4's pointer
+pair is split: <code>SYS)132</code> to <code>[J 90.02.10]</code> and
+<code>SYS)133</code> to <code>[J 90.02.11]</code>. Each verified against the
+section markers of the manual conversion.</td></tr>
+
+<tr><td><strong>2.</strong> <code>runtime.md:341</code> and <code>:471</code>
+cite <code>[J 02.04.03]</code> for SYS)241's trailing blanks. That page is the
+MOVE conversion schematic and states no justification rule; F p. 42 does.</td>
+<td>Both now cite <code>[F p. 42]</code>. The rank matters here: CLAUDE.md
+section 8 puts J over F, so the wrong code told a reader the higher authority
+settles the question.</td></tr>
+
+<tr><td><strong>3.</strong> <code>runtime.md:382-383</code> presents a narrowed
+manual sentence as the manual's own. SYS)184 "leav[es] results in the AC or
+AC-MQ"; the record said the accumulator.</td>
+<td>The record quotes the manual whole and says our handler refuses the pair.
+RT-5's accumulator-alone rule now also quotes the SYS)267 line it overrides,
+"converts from internal decimal in the AC-MQ".</td></tr>
+
+<tr><td><strong>4.</strong> <code>runtime.md:555-556</code> gives the floating
+dollar three conditions. The code has a fourth, that at least one integer digit
+is suppressed, and it is the one that stops the dollar being erased.</td>
+<td>Rewritten as a four-item list.</td></tr>
+
+<tr><td><strong>5.</strong> <code>docs/design/decisions.md:678</code>, D4.3's
+2026-09-06 amendment: "An edit insertion character never arms it either." The
+code scopes the exemption to an edited source.</td>
+<td>"An edit insertion character never arms it in an edited source
+either."</td></tr>
+</table>
+</div>
+
+<p><strong>Two of the five were more than a citation.</strong> A design record
+outranks the code under CLAUDE.md section 6, so a rule written wider than the
+code is an instruction to a later reader. Blocker 4 as written told that reader
+to delete the <code>suppressed &gt; 0</code> guard, which would erase the dollar
+sign from <code>$1294.12</code>. Blocker 5 told the same reader to delete the
+edited-source guard, which would let a stray point in a card-punched numeric
+field contribute a wrong digit and arm nothing.</p>
+
+<h3>The documents review &mdash; ten advisories</h3>
+
+<div class="scroll">
+<table>
+<tr><th>What the review said</th><th>What was done</th></tr>
+
+<tr><td><strong>1.</strong> RT-3 misdescribes the test file it points at:
+"Two negative cases" where <code>movpak_protocol_test.dart</code> holds five,
+and "one case per row" where the grouping is by word shape.</td>
+<td>"One case per word shape", and six negative cases. Six, not the review's
+five, because the code fixes below for SYS)275 and for the renderer each added a
+case after the review counted.</td></tr>
+
+<tr><td><strong>2.</strong> <code>runtime.md:310</code> says 26
+<code>SYS)267</code> sites; the golden has 25, and RT-5 already said 25.</td>
+<td>25. Section 2 of this record flagged the same number and left it for the fix
+pass. The fix pass made the change.</td></tr>
+
+<tr><td><strong>3.</strong> The MOVE reproducer in
+<code>docs/HANDOVER.md:124</code> and <code>docs/opportunities.md:559</code>
+does not reproduce as written: a picture of <code>999</code> with no mode I is
+external decimal and routes through the edit run, which does align.</td>
+<td>Both now declare <code>NUM</code> in mode I and say why a plain
+<code>999</code> goes elsewhere. Section 4 of this record carries the same
+correction.</td></tr>
+
+<tr><td><strong>4.</strong> Two of three code line cites in HANDOVER name a
+declaration, not the defect: <code>:2146</code> is the signature of
+<code>_editedStore</code>, <code>:2557</code> a local.</td>
+<td>Both re-cited at the digit comparison and at the
+<code>_txi(269, digits)</code> line, and every other line number in
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/HANDOVER.md">docs/HANDOVER.md</a> and
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/opportunities.md">docs/opportunities.md</a> re-verified after
+the code edits moved them.</td></tr>
+
+<tr><td><strong>5.</strong> RT-5's comma rule is off by one against
+<code>movpak.dart:443</code>, which fills when <code>k &lt;= suppressed</code>.
+The record's literal rule puts a comma with nothing printed to its left. The
+code review found the same thing, as its advisory 3.</td>
+<td>"A comma cell takes the fill when the digit before it is
+suppressed."</td></tr>
+
+<tr><td><strong>6.</strong> <code>runtime.md:52-53</code> says
+"<code>MachineState</code> supplies nothing else the handlers need", and the
+handlers read it constantly; <code>:268-269</code> numbers the cursor advance
+after the read of the data word, and RT-3 itself says the read comes
+after the advance.</td>
+<td>"<code>MachineState</code> supplies everything else", and the two steps
+reordered.</td></tr>
+
+<tr><td><strong>7.</strong> <code>runtime.md:376</code>, "Every emitted site
+presets both cells", is broader than the sample supports: the target cell is
+written 22 times against 26 <code>SYS)182</code> calls.</td>
+<td>"Every site that reads a pointer presets it before the call", plus the four
+sites that do not. What the four sites actually do is the fifth deviation
+below.</td></tr>
+
+<tr><td><strong>8.</strong> <code>runtime.md:526-530</code> says a pointer
+"proves" the character count when a pointer gives a start position, names 23
+placements it does not show, and truncates the Blank When Zero quote before its
+condition.</td>
+<td>"Fixes" for "proves"; the 23 placements cited to this record's
+<code>evidence/design-edited-fields.md</code>; the quote restored whole, "when it
+becomes zero".</td></tr>
+
+<tr><td><strong>9.</strong> Two edits to
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/design/m4-codegen.md">docs/design/m4-codegen.md</a> changed a record with no
+amendment stamp, where every other amendment on the branch is dated.</td>
+<td>Both stamped "Amended 2026-09-06 (M4 stage 4)." M4-9 item (a) regained a
+pointer to <code>test/encode_test.dart</code>. Where the second stamp landed is
+the third deviation below.</td></tr>
+
+<tr><td><strong>10.</strong> 24 added sentences run past the 25-word ASD-STE100
+limit of CLAUDE.md section 13. The review listed the worst five.</td>
+<td>All five split into vertical lists or two sentences, in HANDOVER,
+<code>runtime.md</code>, <code>opportunities.md</code> and
+<code>m4-codegen.md</code>. A sixth sentence, outside the review's list, grew
+past the limit during the fix pass and is left over it. That is the fourth
+deviation below, and the one thing in this section that wants your eye.</td></tr>
+</table>
+</div>
+
+<h3>The code review &mdash; six advisories</h3>
+
+<p>The code review returned no blocker. Two of its six advisories say the record
+is wrong and the code is right, which is the reverse of the usual direction and
+is why they are worth reading as a pair with the documents review above.</p>
+
+<div class="scroll">
+<table>
+<tr><th>What the review said</th><th>What was done</th></tr>
+
+<tr><td><strong>A1.</strong> <code>lib/src/runtime/movpak.dart:176</code>.
+RT-4's <code>SYS)269</code> classification omits the overpunch sign the code
+decodes in the low-order position. "The record is the thing that is wrong, not
+the code." A second-order note: "last" is computed per step, not per field.</td>
+<td>RT-4 gains the overpunch bullet and one sentence saying that a run of two
+steps would read the first step's last character as a sign. The generator emits
+one step, and no unsealed evidence says more (D0.9).</td></tr>
+
+<tr><td><strong>A2.</strong> <code>lib/src/codegen/procedure.dart:2155</code>.
+The third accumulator-width path has no refusal, "and <code>--run</code> now
+executes it": a two-word internal-decimal source is read by a one-word
+<code>CLA</code> and renders half the value with no diagnostic.</td>
+<td>The refusal <code>_internalMove</code> already carries added at the head of
+<code>_editedStore</code>, with one pinned program in
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/test/codegen_refusal_test.dart">test/codegen_refusal_test.dart</a>.
+RT-4 now names three paths, and M4-9 item (f) reads ten refusals rather than
+nine.</td></tr>
+
+<tr><td><strong>A3.</strong> The comma boundary at
+<code>movpak.dart:443</code>. Same finding as the documents review's advisory
+5.</td>
+<td>Fixed once, in <a href="https://github.com/Screendead/comtran-compiler/commit/2b4d886757b6f39685726b25eddbed7045b4fb6e">2b4d886</a>.</td></tr>
+
+<tr><td><strong>A4.</strong> <code>movpak.dart:185-191</code>.
+<code>SYS)275</code> does not check that its steps built the digit count it was
+given, while <code>_terminate</code> enforces the same invariant three lines of
+code away. A twelve-digit value silently truncates to 35 bits.</td>
+<td>The same length check added before the value reaches the
+accumulator, naming <code>SYS)275</code>.</td></tr>
+
+<tr><td><strong>A5.</strong> <code>test/codegen_test.dart:305-313</code>. The
+branch's own PROGRAM.START-on-a-section case builds a program that cannot run,
+and nothing runs the section path. "This is not a compiler defect" &mdash;
+falling out of an uncalled section is a program bug, and section 6 of this
+record settles it.</td>
+<td>The section gained a <code>STOP RUN</code> before its <code>END</code>, and
+<code>test/runtime/machine_test.dart</code> now runs the same program end to end
+and asserts the stored result. The changed body is the first deviation
+below.</td></tr>
+
+<tr><td><strong>A6.</strong> <code>movpak.dart:422</code> and <code>:471</code>.
+A malformed control word escapes as a bare <code>RangeError</code>, not the
+<code>StateError</code> naming the entry that every other broken-program
+condition in the file throws.</td>
+<td>One guard at the head of the renderer, naming the condition: the control
+word calls for more integer digits than the run built.</td></tr>
+</table>
+</div>
+
+<h3>The code review &mdash; five nits</h3>
+
+<div class="scroll">
+<table>
+<tr><th>What the review said</th><th>What was done</th></tr>
+
+<tr><td><strong>1.</strong> Repeated ceremony: the <code>LoadedProgram</code>
+builder three times, the octal helper twice.</td>
+<td>The over-engineering review's second cut, above. Fixed there.</td></tr>
+
+<tr><td><strong>2.</strong> Dead exports at
+<code>lib/comtran.dart:92-93</code>.</td>
+<td>The over-engineering review's first cut, above. Fixed there.</td></tr>
+
+<tr><td><strong>3.</strong> <code>lib/src/data/pictorial.dart:229</code>. Four
+conjuncts of the comma check are reachable and untested; the refusal suite
+covers only <code>99,99,99</code>. "No section 11 violation."</td>
+<td>The refusal test is now a five-row loop, adding <code>,999</code>,
+<code>888,.99</code>, <code>888.9,9</code> and <code>888,8888</code>. All five
+reach the sizers and refuse.</td></tr>
+
+<tr><td><strong>4.</strong> <code>movpak.dart:446</code> and <code>:357</code>
+rely on a BCD digit code equalling its own value, and nothing says so where the
+renderer depends on it.</td>
+<td>One comment stating the constraint, naming the D0.6 table in
+<code>lib/src/chars/char_code.dart</code>.</td></tr>
+
+<tr><td><strong>5.</strong> <code>machine.dart:53</code>.
+<code>UnimplementedRuntimeEntry.name</code> would print <code>SYS)2049</code>
+for file reference 1, which RT-1 resolves to address 2049.</td>
+<td><strong>Not applied.</strong> See below.</td></tr>
+</table>
+</div>
+
+<p><strong>The one finding not applied.</strong> The review closes the nit
+itself: "Not reachable: control never transfers to a file reference." A branch
+for that case would therefore be code no run reaches and no test could honestly
+assert on, which CLAUDE.md section 11 bans outright.</p>
+
+<h3>Where the fix pass departed from the brief</h3>
+
+<p>The fix pass was given each accepted finding as an instruction. It flagged
+five places where it did something else, and gave its reason for each. All five
+are accepted. The fourth is the one that is still open, and it is yours.</p>
+
+<p><strong>(a) The test body, not just the terminator.</strong> The brief asked
+for a <code>STOP RUN</code> inside the PROGRAM.START section, keeping the
+program otherwise as it was. The fix pass also changed the body from
+<code>SET NUM = NUM + NUM</code> to <code>SET NUM = NUM + 1</code>. Its reason:
+on an untouched cell, doubling stores zero whether the entry point is right or
+wrong, so the end-to-end assertion would have proved nothing, while
+<code>NUM == 1</code> fails exactly when the entry lands on
+<code>GN)000</code>. <strong>Accepted.</strong> The brief's body proved
+nothing.</p>
+
+<p><strong>(b) A citation range, not one section.</strong> The brief asked for
+<code>[J 90.02.08]</code> on the sentence that names four communication cells.
+The four live in three manual entries: IOC)1 and IOC)29 on 90.02.08,
+<code>SYS)132</code> on 90.02.10, <code>SYS)133</code> on 90.02.11. The record
+now reads <code>[J 90.02.08]</code> to <code>[J 90.02.11]</code>.
+<strong>Accepted.</strong> A single section would mis-cite two of the four.</p>
+
+<p><strong>(c) The stamp landed in M4-20, not M4-10.</strong> The brief put the
+sentence "The execution reading waits for M6" in M4-10 item (c). It is in M4-20
+item (c), the stage-0 scan-check verdict on LOC 01327, and that is where the
+amendment stamp went. <strong>Accepted.</strong> The brief mislabeled the
+section; the fix pass was told to locate each site by its quoted text, and it
+did.</p>
+
+<p><strong>(d) One sentence left over the STE limit.</strong> M4-9 item (f) in
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/design/m4-codegen.md">docs/design/m4-codegen.md</a> now runs 40 words against the
+25-word limit of CLAUDE.md section 13. It ran 35 before this pass.
+<code>m4-codegen.md</code> sits at 9,999 words of the 10,000 you locked on
+2026-08-09, so splitting the sentence costs four words that have to come out of
+the evidence in M4-9 or M4-10. <strong>Accepted, and left for you.</strong> This
+is the one ASD-STE100 deviation the branch carries knowingly: the review counted
+24 added sentences over the limit, named the worst five, and those five are
+split. Your lock says the budget
+"never rises again", so the trade &mdash; four words of evidence against one
+sentence 15 words over &mdash; is yours to weigh, and either way is one small
+edit.</p>
+
+<p><strong>(e) The four sites preset the source, not the target.</strong>
+Advisory 7 described four <code>SYS)182</code> sites as reusing an earlier
+target preset. The fix pass read
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/test/goldens/90.05-payroll.code">test/goldens/90.05-payroll.code</a>
+and found otherwise: their target is a machine register, no member reached there
+reads the target pointer cell, and they preset the source pointer alone. RT-4
+says that instead. <strong>Accepted.</strong> The fix pass's reading of the
+golden is right and the review's was wrong.</p>
+
+<h3>Out of scope of the brief, fixed after it</h3>
+
+<p>The brief scoped the citation corrections to the design records. The fix pass
+found the same three errors in code comments and reported them rather than
+editing outside its instructions. All three are fixed in
+<a href="https://github.com/Screendead/comtran-compiler/commit/842649e4b062c039da36b01a8763e2328e8bd979">842649e</a>, the third fix commit:</p>
+
+<ul>
+<li>The Type 1 and Type 2 number ranges cited <code>[J 90.02.10]</code> where
+the text is on 90.02.07 &mdash; <code>lib/src/runtime/machine.dart:23</code> and
+<code>:52</code>, <code>lib/src/runtime/monitor.dart:4</code>, <code>:8</code>
+and <code>:19</code>, and two group titles in
+<code>test/runtime/monitor_test.dart</code>.</li>
+<li><code>test/runtime/movpak_test.dart:174</code> quoted
+<code>SYS)241</code>'s trailing-blanks rule as <code>(J 02.04.03)</code>. The
+rule is F p. 42, as blocker 2 above.</li>
+<li><code>lib/src/runtime/movpak.dart:452</code> still carried the comma wording
+that advisory 5 superseded.</li>
+</ul>
+
+<p><strong>A note, and not a finding.</strong>
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/test/manual_links_test.dart">test/manual_links_test.dart</a>
+sweeps every markdown file in the repository for a stale manual-link block, and
+the skipped-directories set of
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/tool/linkify_manual_refs.dart">tool/linkify_manual_refs.dart</a>
+does not list <code>reviews/</code>. The sweep therefore walks this record's own
+directory, which is gitignored and on no branch, and fails whenever a record
+draft is on disk. The code review met it and set it aside as a local artifact;
+the fix pass met it too. The gate was run with the record parked outside the
+tree and restored afterwards, and it passes: 1,245 tests, format, analyze, the
+linkifier and the deck check. The fix is one line in the tool, and it waits for
+you because it touches a generator.</p>
+</section>
+
+<footer>
+<p>Record built 2026-09-06 on branch
+<code>review/2026-09-06-m4s4-machine-assembly</code>. Stage 4 is commit
+<a href="https://github.com/Screendead/comtran-compiler/commit/842649e4b062c039da36b01a8763e2328e8bd979">842649e</a> on <code>m4s4-machine-assembly</code>; every link
+above points at that commit. The design record the decisions landed in is
+<a href="https://github.com/Screendead/comtran-compiler/blob/842649e4b062c039da36b01a8763e2328e8bd979/docs/design/runtime.md">docs/design/runtime.md</a>, entries RT-1 to RT-5.
+<code>evidence/</code> holds the two design passes and the seven reader reports
+the stage was built from, and <code>evidence/README.md</code> says what each one
+is. There is no <code>crops/</code> directory: stage 4 puts no question to a page
+scan.</p>
+</footer>
+
+</main>
+</body>
+</html>
