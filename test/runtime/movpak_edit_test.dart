@@ -212,6 +212,19 @@ void main() {
       expect(signed(2, 0), '12C');
     });
 
+    test('an overpunched zero is the 11-0 punch', () {
+      // Row 0 carries the digit zero, so octal 52 is a minus zero and
+      // has no Set H glyph (D0.6).
+      final Machine subject = store(
+        0,
+        control(integer: 3, convention: 1),
+        3,
+        magnitude: 120,
+        sign: 1,
+      );
+      expect(codeAt(subject, targetArea, 2), 0x2A);
+    });
+
     test('a reserved position takes a minus, a plus, or a blank', () {
       // "Plus or minus sign, one of which will always be placed in the
       // space reserved for it"; a minus convention leaves the space
@@ -291,7 +304,7 @@ void main() {
       final (JobCompilation job, Machine subject) = compiled(<String>[
         '      *DATA',
         dataCard(name: 'G1', level: '1'),
-        dataCard(name: 'EXT', level: '2', mode: 'E', description: '999V9'),
+        dataCard(name: 'EXT', level: '2', mode: 'E', description: '999V99'),
         dataCard(name: 'G3', level: '1'),
         dataCard(name: 'ED3', level: '2', description: '899V99'),
         dataCard(
@@ -305,7 +318,7 @@ void main() {
         dataCard(name: 'ED2', level: '1', description: '88889.99'),
         dataCard(name: 'ED4', level: '1', description: '88889.99'),
         '      *PROCEDURE',
-        "      START.  MOVE '1234' TO G1,",
+        "      START.  MOVE '12345' TO G1,",
         "            MOVE '03750' TO G3,",
         '            MOVE EXT TO NUM,',
         '            MOVE NUM TO EDT,',
@@ -314,8 +327,8 @@ void main() {
         '            STOP RUN.',
         '      *FINISH',
       ]);
-      expect(glyphsAt(subject, addressOf(job, 'EDT'), 8), r'  $12.34');
-      expect(glyphsAt(subject, addressOf(job, 'ED2'), 8), '  123.40');
+      expect(glyphsAt(subject, addressOf(job, 'EDT'), 8), r' $123.45');
+      expect(glyphsAt(subject, addressOf(job, 'ED2'), 8), '  123.45');
       expect(glyphsAt(subject, addressOf(job, 'ED4'), 8), '   37.50');
     });
   });

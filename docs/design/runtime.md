@@ -472,11 +472,14 @@ of those cells is the length:
 - the fraction digits;
 - one trailing sign cell under convention 3 or 4.
 
-The design pass verified that count against 23 field placements in
-four record layouts of the 90.05 sample: the byte offset of each
-`PZE LOC,,BYTE` pointer only comes out right if every field is as long
-as the derivation says. `V` reserves no position and `.` reserves one,
-which is why the edit control separates them.
+Each `PZE LOC,,BYTE` pointer of the sample proves the count. `HRS`
+`8889.9` is 6 characters at PAYRECORD 35 to 40, so its pointer is
+`PZE HRS,,5` (LOC 00435). The record's nine fields sum to 117
+characters, and `IOST PAYRECORD,,20` writes 20 words (LOC 00516). Four
+record layouts and 23 placements agree.
+
+`V` reserves no position and `.` reserves one. That is why the edit
+control separates them.
 
 ### The suppression rule
 
@@ -498,12 +501,14 @@ printed zeros, and it gives `$888,888.99` the minimum `$.00` and
 
 ### The floating dollar
 
-The dollar floats to the last filled cell ahead of the first printing
-cell when the dollar bit is set, the asterisk bit is clear, and the
-address field is not zero. "It will be placed immediately to the left
-of the first significant digit remaining" ([F p. 80]). The report page
-`images/page-217.png` prints `$294.12` into `$8889.99` with no gap,
-which a fixed dollar cannot produce.
+The dollar floats when three things hold: the dollar bit is set, the
+asterisk bit is clear, and the address field is not zero. It then goes
+to the last filled cell ahead of the first printing cell. "It will be
+placed immediately to the left of the first significant digit
+remaining" ([F p. 80]).
+
+The report page `images/page-217.png` prints `$294.12` into
+`$8889.99` with no gap. A fixed dollar cannot produce that.
 
 A comma cell is a candidate landing place. That is the only reading of
 [F p. 80]'s remark that a comma "may be replaced by a blank, asterisk, or
@@ -578,10 +583,10 @@ positions worth 0 and the insertion characters are stepped over.
 
 **Neither move step reads the source's sign, so a rendered value is
 positive. Design decision.** The manual gives the sign-examining steps
-their own numbers — SYS)228, SYS)232 and SYS)236 for SYS)185, SYS)230,
-SYS)234 and SYS)238 for SYS)190 — and the generator emits none of them.
-An overpunch a plain move meets is therefore an improper data
-condition.
+their own numbers. They are SYS)228, SYS)232 and SYS)236 under
+SYS)185, and SYS)230, SYS)234 and SYS)238 under SYS)190. The generator
+emits none of them. An overpunch a plain move meets is therefore an
+improper data condition.
 
 The terminator's count must equal the digits the steps built. A step
 list that misses it is a broken object program, so the handler throws.
@@ -595,10 +600,9 @@ the `AXT` for the CPU to execute (RT-3).
 
 **The source is the accumulator alone, never the AC-MQ pair.** Two
 lines of evidence agree. Twenty-two of the twenty-five sites load with
-`CLA` and leave the MQ holding whatever the last multiply or divide
-left. The other three split the digits with `LRS 35 / DVP`, which
-parks the excess in the MQ on purpose (D4.1(c)); to read the pair would
-undo the split.
+`CLA` and leave the MQ stale. The other three split the digits with
+`LRS 35 / DVP`, which parks the excess in the MQ on purpose (D4.1(c)).
+To read the pair would undo that split.
 
 **A value of more digits than the count drops its high-order digits,
 and arms nothing.** That is the discard the split performs, and [F p. 42]
