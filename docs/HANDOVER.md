@@ -84,11 +84,15 @@ for byte.
 
 **M4 is complete (2026-09-06).** Stage 3 landed the deck writer and our
 loader (LD-1 to LD-4), and stage 4 landed the machine assembly (M4-17).
-`lib/src/runtime/` holds three files: the machine, which loads an object
-deck at address 4096 and treats every address below it as a runtime
-entry (RT-1); the run frame SYS)175, 177, 178, 294 and IOC)40 (RT-2); and 23
-MOVPAK entries and members (RT-3 to RT-5). `comtranc --run` runs each
-job's punched deck and prints its display lines.
+`lib/src/runtime/` holds three files:
+
+- the machine, which loads an object deck at address 4096 and treats
+  every address below it as a runtime entry (RT-1);
+- the run frame SYS)175, 177, 178, 294 and IOC)40 (RT-2);
+- 23 MOVPAK entries and members (RT-3 to RT-5).
+
+`comtranc --run` runs each job's punched deck and prints its display
+lines.
 `docs/design/runtime.md` holds the decisions. Its RT-1 holds the list of
 the 28 entries stage 4 built and the rule for the rest.
 
@@ -105,7 +109,7 @@ first procedure word (D2.1 as amended 2026-09-06).
 **The next task is M5, the I/O runtime.** It lands the IOCS entries
 M4-17 leaves: IOC)2 to 17, 29, 46, 53 and 54, and SYS)260 to 266, 283,
 and 286 to 296 less the landed 294. D0.7 sets the level. I/O is emulated
-at the IOCS level, a tape file is a binary tape image, and the card
+at the IOCS level, and a tape file is a binary tape image. The card
 reader, the punch and the printer surface as files at the emulator
 boundary. D6.1 to D6.7 hold the I/O decisions M5 implements. The
 boundary test flips when IOC)8 gets its handler: the sample then runs
@@ -119,18 +123,19 @@ change. Take them before M5 or beside it. Whether a site refuses the
 shape or handles it is Jack's call.
 
 1. **A MOVE does not align scales on two paths.** `_editedStore`
-   (`lib/src/codegen/procedure.dart`:2146) compares digit counts alone,
-   and the external-to-internal path (:2028) compares nothing.
-   `MOVE NUM (999) TO EDT ($8889.99)` renders 123 as `$1.23`. [F p. 42]
-   says a MOVE aligns by the decimal point, and `_internalMove` refuses
-   the same mismatch (:2204).
+   (`lib/src/codegen/procedure.dart`:2163) compares digit counts alone,
+   and the external-to-internal path (:2028) compares nothing. Declare
+   `NUM` in mode I: `MOVE NUM (999) TO EDT ($8889.99)` then renders 123
+   as `$1.23`. A plain 999 is external decimal and takes the aligning
+   edit run instead. [F p. 42] says a MOVE aligns by the decimal point,
+   and `_internalMove` refuses the same mismatch (:2209).
 2. **An edited ADD source is not scale-aligned.** `_addPair` refuses a
-   pair of unequal scales (:2585). The edited-source branch of `_add`
-   (:2521) skips that check.
+   pair of unequal scales (:2590). The edited-source branch of `_add`
+   (:2526) skips that check.
 3. **An `S` position in a numeric source is counted as a stored
    character.** `ItemSemantics.digits` counts the `S` fillers and
    `storageChars` does not. Three sites punch the digit count where the
-   handler reads characters: :2028, :2079 and :2557. The handler then
+   handler reads characters: :2028, :2079 and :2565. The handler then
    reads past the field.
 
 `lib/src/codegen/` holds the text model (M4-3), the

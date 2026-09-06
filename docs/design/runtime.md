@@ -27,9 +27,10 @@ assembles as `0074 00 4 00257`, and 0257 octal is 175
 
 `SYS)n` and `IOC)n` share one number space. The object deck marks both
 with reference type `0000` and carries no discriminator
-([J 90.03.05]). The two ranges do not collide: [J 90.02.10] gives 1 to
-127 to the monitor-resident Type 1 entries, and every number above 127
-to the Type 2 entries the loader brings in.
+([J 90.03.05]). The two ranges do not collide ([J 90.02.07]):
+
+- 1 to 127 is a monitor-resident Type 1 entry.
+- A number above 127 is a Type 2 entry the loader brings in.
 
 **The program loads at address 4096. Design decision.** No manual
 states an origin. 4096 is the first address above the runtime area, so
@@ -49,8 +50,7 @@ D0.3). The machine therefore decides before each instruction:
 
 A handler reads its calling sequence through index register 4 and
 returns to the parameter-word count plus one (M4-17). `Machine`
-supplies both operations, and `MachineState` supplies nothing else the
-handlers need.
+supplies both operations, and `MachineState` supplies everything else.
 
 Registration is a map merge. `monitor.dart` returns the run frame, and
 each later family returns its own entries in the same shape.
@@ -58,13 +58,13 @@ each later family returns its own entries in the same shape.
 ### The run loop and its outcomes
 
 `Machine.run` takes a step budget and returns a `RunResult`: the
-outcome, the step count, and the display lines. A step is one
-instruction or one runtime entry, so the budget bounds every run.
+outcome and the display lines. A step is one instruction or one runtime
+entry, so the budget bounds every run.
 Three outcomes end a run:
 
 | Outcome | What produced it |
 |---|---|
-| `endOfJob` | IOC)40, "the end of job return point" ([J 90.02.10]) |
+| `endOfJob` | IOC)40, "the end of job return point" ([J 90.02.09]) |
 | `errorExit` | SYS)294, which "exits back to the CT Monitor" ([J 90.02.33]) |
 | `stepLimit` | The budget ran out |
 
@@ -78,7 +78,7 @@ a reproduced result, not a diagnostic. The machine therefore returns
 An address below 4096 with no handler throws
 `UnimplementedRuntimeEntry`. The exception names the entry: `SYS)` above
 127 and `IOC)` at or below it, per the Type 1 and Type 2 ranges of
-[J 90.02.10]. A handler that meets work it does not do throws the same
+[J 90.02.07]. A handler that meets work it does not do throws the same
 exception with a reason.
 
 This is the M4 to M5 boundary in one line. The 90.05 sample calls
@@ -149,7 +149,7 @@ word calls the rest.
 `lib/src/runtime/monitor.dart` holds the entries an I/O-free program
 reaches. The cells SYS)132, SYS)133, IOC)1 and IOC)29 need no handler:
 they are memory, and generated code reads and writes them with ordinary
-instructions ([J 90.02.10]).
+instructions ([J 90.02.08] to [J 90.02.11]).
 
 ### SYS)178, the STOP display
 
@@ -174,7 +174,7 @@ each, after the word `AT`. No unsealed evidence survives (D0.9).
 The calling sequence of each is the entry and one word, `PZE IOC)1`
 ([J 90.02.14]). IOC)1 is the cell `PZE L,,N`, which "locates (L) a list
 of files, and designates the number (N) of files in the list"
-([J 90.02.10]). The handler reads N from the cell's decrement.
+([J 90.02.08]). The handler reads N from the cell's decrement.
 
 - N is zero. The handler opens and closes nothing, and returns to `2,4`.
 - N is not zero. Files are M5's. The handler throws
@@ -204,7 +204,7 @@ the language definition records the gap.
 ### IOC)40, the end-of-job return point
 
 `TXI IOC)40,0` transfers to "the end of job return point in the CT
-Monitor communication area for all CT jobs" ([J 90.02.10]). The handler
+Monitor communication area for all CT jobs" ([J 90.02.09]). The handler
 ends the run at `endOfJob`. Control does not return, so the entry takes
 no calling sequence and reads no parameter word.
 
@@ -265,8 +265,8 @@ next word. Each handler does this, in order:
    the handler throws a Dart error. This is not a D4.3 data condition,
    which never throws.
 2. Take the count from index register 1, then clear that register.
-3. Read the data words it owns. It never executes them.
-4. Advance the cursor by one word plus the data words.
+3. Advance the cursor by one word plus the data words.
+4. Read the data words it owns. It never executes them.
 5. Do the work, then set the instruction counter to the cursor.
 
 ### The word shapes
@@ -307,7 +307,7 @@ the CPU execute the word makes that claim true in the emulator. The
 choice is invisible to the program: index register 1 ends at the digit
 count, and the instruction counter ends at `c+3`, under both readings.
 
-One of the 26 SYS)267 sites punches `TRA SYS)267,0,0` instead of the
+One of the 25 SYS)267 sites punches `TRA SYS)267,0,0` instead of the
 step, because its edit control computes to zero ([J 90.05] listing, LOC
 01327). The CPU executes that word with tag 0, so index register 1 keeps
 the 0 the entry wrote, and the handler reads control 0.
@@ -325,11 +325,11 @@ the 0 the entry wrote, and the handler reads control 0.
 - The run frame of RT-2 and the IOCS calls take a full cache clear after
   them, so they may write any register. That licence stops at MOVPAK.
 
-`test/runtime/movpak_protocol_test.dart` holds one case per row of the
-table above. Each case preloads junk into registers 1 and 2, then
+`test/runtime/movpak_protocol_test.dart` holds one case per word shape
+of the table above. Each case preloads junk into registers 1 and 2, then
 asserts the resume address, register 1, register 2, the link in register
-4, and whether the session is still open. Two negative cases assert the
-two broken-program throws.
+4, and whether the session is still open. Six negative cases assert the
+broken-program throws.
 
 ### Rejected readings
 
@@ -338,7 +338,7 @@ two broken-program throws.
 | A step handler reads its count from its own `TXI` word | A `TXI` writes no link, so the routine has no address for that word |
 | Index register 1 is not cleared, and each step subtracts the last count | The sample's step counts run both up and down, so no difference rule recovers them |
 | The terminator's count is the target's character length | `TXI SYS)226,1,7` stands against the 8-character target `88889.99` ([J 90.05] listing) |
-| SYS)241 writes its blanks ahead of the moved characters | [J 02.04.03] left-justifies the data and blanks the excess low-order positions |
+| SYS)241 writes its blanks ahead of the moved characters | [F p. 42] left-justifies the data and blanks the excess low-order positions |
 | SYS)244 writes zero words | Its entry moves zeros "to an alphabetic field" ([J 90.02.26]), and the count 54 is a character count |
 | The SYS)180 address word may be `MZE` or `MON` | `_pze` refuses a located item, and no emitter builds a positional-indicator form |
 | SYS)184's result carries the pictorial's scale | The calling sequence carries one count and no scale ([J 90.02.16]) |
@@ -348,10 +348,10 @@ two broken-program throws.
 
 ### The pointer cells
 
-`SYS)132` holds the source pointer and `SYS)133` the target pointer
-([J 90.02.11]). Each cell holds the word `PZE LOC,,BYTE`: the address
-field is the word address, and the decrement is the byte, 0 to 5
-([J 90.02.14]). Byte 0 is the word's high-order character.
+`SYS)132` holds the source pointer ([J 90.02.10]) and `SYS)133` the
+target pointer ([J 90.02.11]). Each cell holds the word `PZE LOC,,BYTE`:
+the address field is the word address, and the decrement is the byte, 0
+to 5 ([J 90.02.14]). Byte 0 is the word's high-order character.
 
 The cells are core storage, not handler state. Generated code writes
 them with `STI SYS)132` and `SLW SYS)133` ([J 90.05] listing), so a
@@ -373,17 +373,21 @@ located item before it reads anything. A prefix test would duplicate
 that refusal, and CLAUDE.md section 11 bars a branch no run reaches.
 
 **The advanced pointers are not written back. Design decision.** No
-source says whether MOVPAK returns them. Every emitted site presets both
-cells before the next call, so no emitted word can see the difference.
-No unsealed evidence survives (D0.9).
+source says whether MOVPAK returns them. Every site that reads a pointer
+presets it before the call, so no emitted word can see the difference.
+Four `SYS)182` sites preset the source pointer alone: LOC 00574, 01356,
+01447 and 01466. Their target is a register, and no member there reads
+`SYS)133` ([J 90.05] listing). No unsealed evidence survives (D0.9).
 
 ### SYS)184, external decimal to internal decimal
 
-`TXI SYS)184,1,NUMBER-OF-CHARACTERS-TO-CONVERT` converts the source and
-leaves the value in the accumulator ([J 90.02.16]). The value is the
-digit string as a binary integer. The handler is told no scale, and the
-sample's three sites give source and target the same scale, so the
-emitted `LRS` and `DVP` tails of D4.1 carry every alignment.
+`TXI SYS)184,1,NUMBER-OF-CHARACTERS-TO-CONVERT` "converts from external
+decimal to internal decimal leaving results in the AC or AC-MQ"
+([J 90.02.16]). Our handler refuses the pair, under the ten-digit rule
+below. The value is the digit string as a binary integer. The handler is
+told no scale, and the sample's three sites give source and target the
+same scale, so the emitted `LRS` and `DVP` tails of D4.1 carry every
+alignment.
 
 The characters are read one at a time:
 
@@ -427,7 +431,13 @@ classifies each character as it reads it:
   counted, and it arms nothing.
 - An insertion character — the point, the comma, the dollar sign, the
   plus and the minus — is stepped over and is not counted.
+- The low-order position of the step may carry an overpunch sign, read
+  as under SYS)184.
 - Anything else is an improper data condition (D4.3), as under SYS)184.
+
+"Last" is per step, so a run of two SYS)269 steps would read the first
+step's last character as a sign. The generator emits one step, and no
+unsealed evidence says more (D0.9).
 
 **The asterisk is a digit position, not an insertion character. Design
 decision.** The target control word counts the asterisks beside the 8's
@@ -438,7 +448,8 @@ unobservable at the one attested site, whose source holds no asterisk.
 **SYS)275's length is the digit count of the value delivered.** Two
 lines of evidence agree. The terminator's count is the target's digit
 count at every attested site, not its character count. The step counts
-of each edit run sum to the terminator's count.
+of each edit run sum to the terminator's count. The count must equal the
+digits the steps built, so the handler throws when it does not.
 
 ### More than ten digits
 
@@ -448,10 +459,11 @@ the low-order part in the AC ([J 90.02.12]). D4.1(c) records that order.
 Nothing fixes the radix of the split, and no unsealed evidence survives
 (D0.9).
 
-**Codegen refuses more than 10 digits on both paths, and the handler
-throws. Design decision.** The SYS)184 path and the edited fetch each
-park the result with one `STO`, which stores the accumulator alone. The
-refusals are in the M4-9 and M4-10 records. SYS)184 and SYS)275 throw
+**Codegen refuses more than 10 digits on all three paths, and the
+handler throws. Design decision.** The SYS)184 path and the edited fetch
+each park the result with one `STO`. The edited store loads its source
+with one `CLA`. All three read the accumulator alone. The refusals are
+in the M4-9 and M4-10 records. SYS)184 and SYS)275 throw
 `UnimplementedRuntimeEntry` on a count above 10, so the untaken shape
 cannot pass silently.
 
@@ -468,7 +480,7 @@ cannot pass silently.
 
 Every mover writes through the target byte cursor and crosses a word
 boundary freely. SYS)241's blanks go after the moved characters, because
-[J 02.04.03] left-justifies a shorter source and blanks the excess
+[F p. 42] left-justifies a shorter source and blanks the excess
 low-order positions. SYS)241 refuses a session that SYS)240 did not
 open.
 
@@ -523,11 +535,13 @@ of those cells is the length:
 - the fraction digits;
 - one trailing sign cell under convention 3 or 4.
 
-Each `PZE LOC,,BYTE` pointer of the sample proves the count. `HRS`
+Each `PZE LOC,,BYTE` pointer of the sample fixes the count. `HRS`
 `8889.9` is 6 characters at PAYRECORD 35 to 40, so its pointer is
 `PZE HRS,,5` (LOC 00435). The record's nine fields sum to 117
 characters, and `IOST PAYRECORD,,20` writes 20 words (LOC 00516). Four
-record layouts and 23 placements agree.
+record layouts and 23 placements agree. The review record
+`review/2026-09-06-m4s4-machine-assembly` counts them, in
+`evidence/design-edited-fields.md` §0.5.
 
 `V` reserves no position and `.` reserves one. That is why the edit
 control separates them.
@@ -541,9 +555,9 @@ control word's address field bounds it:
 
 With every integer digit zero the second term is the integer count.
 Digit cells below `suppressed` take the fill — an asterisk when the
-asterisk bit is set, a blank otherwise ([F p. 80]). A comma cell ahead of
-a suppressed digit takes the fill too. The point and the fraction
-digits are never suppressed.
+asterisk bit is set, a blank otherwise ([F p. 80]). A comma cell takes
+the fill when the digit before it is suppressed. The point and the
+fraction digits are never suppressed.
 
 The address field is what stops a `9` from suppressing. [F p. 81] gives
 `88999` the range 000 to 99999, so its minimum image keeps three
@@ -552,11 +566,16 @@ printed zeros, and it gives `$888,888.99` the minimum `$.00` and
 
 ### The floating dollar
 
-The dollar floats when three things hold: the dollar bit is set, the
-asterisk bit is clear, and the address field is not zero. It then goes
-to the last filled cell ahead of the first printing cell. "It will be
-placed immediately to the left of the first significant digit
-remaining" ([F p. 80]).
+The dollar floats when four things hold:
+
+- the dollar bit is set;
+- the asterisk bit is clear;
+- the address field is not zero;
+- at least one integer digit is suppressed.
+
+It then goes to the last filled cell ahead of the first printing cell.
+"It will be placed immediately to the left of the first significant
+digit remaining" ([F p. 80]).
 
 The report page `images/page-217.png` prints `$294.12` into
 `$8889.99` with no gap. A fixed dollar cannot produce that.
@@ -582,8 +601,9 @@ Every one is reproduced by `test/runtime/movpak_edit_test.dart`.
 
 ### Blank When Zero
 
-The edit control's octal 20 bit is the Description clause (D3.2). "The
-field is to be replaced with blanks" ([J 02.05.07]).
+The edit control's octal 20 bit is the Description clause (D3.2). The
+clause says "the field is to be replaced with blanks when it becomes
+zero" ([J 02.05.07]).
 
 **The whole image goes blank, and the test is over the digits. Design
 decision.** The manual names the field, not its digit positions, so the
@@ -641,6 +661,8 @@ improper data condition.
 
 The terminator's count must equal the digits the steps built. A step
 list that misses it is a broken object program, so the handler throws.
+So is a control word naming more integer digits than the steps built,
+which the renderer refuses before it writes a cell.
 
 ### SYS)267, the accumulator to an edited field
 
@@ -649,11 +671,12 @@ handler reads the count from the `AXT` word's address field, converts
 the accumulator to that many decimal digits, renders, and returns to
 the `AXT` for the CPU to execute (RT-3).
 
-**The source is the accumulator alone, never the AC-MQ pair.** Two
-lines of evidence agree. Twenty-two of the twenty-five sites load with
-`CLA` and leave the MQ stale. The other three split the digits with
-`LRS 35 / DVP`, which parks the excess in the MQ on purpose (D4.1(c)).
-To read the pair would undo that split.
+**The source is the accumulator alone, never the AC-MQ pair.** This
+overrides the entry, which says SYS)267 "converts from internal decimal
+in the AC-MQ" ([J 90.02.30]). Two lines of evidence agree. Twenty-two of
+the twenty-five sites load with `CLA` and leave the MQ stale. The other
+three split the digits with `LRS 35 / DVP`, which parks the excess in
+the MQ on purpose (D4.1(c)). To read the pair would undo that split.
 
 **A value of more digits than the count drops its high-order digits,
 and arms nothing.** That is the discard the split performs, and [F p. 42]
@@ -704,12 +727,14 @@ Three edited pictorials reach no control word, so codegen refuses them
 [F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [F p. 80]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
 [F p. 81]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
-[J 02.04.03]: ../../comtran-manuals/J28-6169/02-compiler.md#2-display
 [J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
 [J 02.05.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.05.06]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.05.07]: ../../comtran-manuals/J28-6169/02-compiler.md#2-constants
 [J 05.06.04]: ../../comtran-manuals/J28-6169/05-systems-operation.md#b-loader-1
+[J 90.02.07]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.08]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ct-system-subroutines-and-communication-cells
+[J 90.02.09]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
 [J 90.02.10]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
 [J 90.02.11]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.12]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers

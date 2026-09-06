@@ -555,11 +555,12 @@ a research candidate. `docs/HANDOVER.md` holds it under "Codegen defects the
 runtime exposed", with the file and the line of each site.
 
 The first run of the machine assembly, on 2026-09-06, exposed it. A MOVE into
-an edited or an external-decimal target does not align the decimal scales:
-`MOVE NUM (999) TO EDT ($8889.99)` renders 123 as `$1.23`, where [F p. 42] asks
-for `$123.00`. An ADD from an edited source skips the scale check that its
-internal-decimal sibling makes. Jack decides whether each site refuses the
-shape or aligns the scales.
+an edited or an external-decimal target does not align the decimal scales.
+Declare `NUM` in mode I. `MOVE NUM (999) TO EDT ($8889.99)` then renders 123 as
+`$1.23`, where [F p. 42] asks for `$123.00`. A plain 999 is external decimal and
+takes the aligning edit run instead. An ADD from an edited source skips the
+scale check that its internal-decimal sibling makes. Jack decides whether each
+site refuses the shape or aligns the scales.
 
 ### R7 — Count an `S` position as a stored character
 
