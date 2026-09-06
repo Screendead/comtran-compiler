@@ -320,9 +320,9 @@ int _run(List<String> arguments) {
 }
 
 /// Runs job [number]'s object program and prints its display lines
-/// (D0.3; `docs/design/runtime.md` RT-1). Returns false when the run
-/// reached a runtime entry the machine assembly does not implement. A
-/// job with no punched deck runs nothing and fails nothing.
+/// (D0.3; `docs/design/runtime.md` RT-1). Returns false unless the run
+/// reached the end of the job. A job with no punched deck runs nothing
+/// and fails nothing.
 bool _runObjectProgram(JobCompilation job, ListingOptions options, int number) {
   final JobDeck? punched = jobDeck(job, options);
   if (punched == null) {
@@ -333,11 +333,18 @@ bool _runObjectProgram(JobCompilation job, ListingOptions options, int number) {
       punched.cards,
     ).run(maxSteps: _stepBudget);
     result.display.forEach(stdout.writeln);
+    if (result.outcome == RunOutcome.stepLimit) {
+      stderr.writeln(
+        'error: job $number: still running after $_stepBudget steps',
+      );
+    }
+    // An error exit has already printed the monitor's own message on
+    // the display (RT-2), so the tool adds none of its own.
+    return result.outcome == RunOutcome.endOfJob;
   } on UnimplementedRuntimeEntry catch (e) {
     stderr.writeln('error: job $number: $e');
     return false;
   }
-  return true;
 }
 
 /// Writes one `--emit` dump. [render] runs only for a requested dump, so

@@ -1,6 +1,7 @@
 /// The machine assembly (RT-1): the dispatch rule, the step budget, the
 /// 1962 sample at the runtime boundary, one program run end to end, and
-/// the `--run` flag that carries it to the command line.
+/// the `--run` flag that carries it to the command line, outcome by
+/// outcome.
 library;
 
 import 'dart:io';
@@ -40,6 +41,66 @@ final List<String> _source = <String>[
   '            STOP RUN.',
   '      *FINISH',
 ];
+
+/// A program that never reaches its `STOP RUN`.
+final List<String> _loop = <String>[
+  '      *DATA',
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  '      *PROCEDURE',
+  '      START.  GO TO START.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A program that trips the base-locator guard: the comparison loads
+/// `IDX`'s positional indicator, which nothing has set (RT-2).
+final List<String> _guard = <String>[
+  '      *DATA',
+  dataCard(name: 'TAB', level: '1', quantity: '12'),
+  dataCard(
+    name: 'CELL',
+    level: '2',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  dataCard(name: 'IDX', level: '1', mode: 'I', justify: 'R', description: '99'),
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  '      *PROCEDURE',
+  '      START.  IF NUM GT CELL (IDX) THEN GO TO RTN.',
+  '      RTN.  STOP RUN.',
+  '      *FINISH',
+];
+
+/// Punches [source] into a temporary deck and compiles it with `--run`.
+ProcessResult _compileAndRun(List<String> source) {
+  final Directory directory = Directory.systemTemp.createTempSync(
+    'comtran-run',
+  );
+  addTearDown(() => directory.deleteSync(recursive: true));
+  final path = '${directory.path}/job.ctd';
+  File(
+    path,
+  ).writeAsBytesSync(encodeCanon(mirrorToDeck('${source.join('\n')}\n')));
+  return Process.runSync(Platform.resolvedExecutable, [
+    'run',
+    'comtran:comtranc',
+    path,
+    '--run',
+  ]);
+}
 
 void main() {
   group('the dispatch rule', () {
@@ -135,22 +196,27 @@ void main() {
     });
 
     test('comtranc --run prints the display after the listing', () {
-      final Directory directory = Directory.systemTemp.createTempSync(
-        'comtran-run',
-      );
-      addTearDown(() => directory.deleteSync(recursive: true));
-      final path = '${directory.path}/set.ctd';
-      File(
-        path,
-      ).writeAsBytesSync(encodeCanon(mirrorToDeck('${_source.join('\n')}\n')));
-      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
-        'run',
-        'comtran:comtranc',
-        path,
-        '--run',
-      ]);
+      final ProcessResult run = _compileAndRun(_source);
       expect(run.exitCode, 0, reason: '${run.stderr}');
       expect(run.stdout, contains('AT 4,00 STOP RUN'));
+    });
+  });
+
+  group('the --run exit status', () {
+    test('an exhausted budget names the budget and fails the job', () {
+      final ProcessResult run = _compileAndRun(_loop);
+      expect(run.exitCode, 1);
+      expect(
+        run.stderr,
+        contains('error: job 1: still running after 1000000 steps'),
+      );
+    });
+
+    test('an error exit fails the job on the monitor message alone', () {
+      final ProcessResult run = _compileAndRun(_guard);
+      expect(run.exitCode, 1);
+      expect(run.stdout, contains('BASE LOCATOR NOT LOADED'));
+      expect(run.stderr, isNot(contains('error:')));
     });
   });
 }
