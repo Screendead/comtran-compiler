@@ -9,37 +9,6 @@ import 'package:test/test.dart';
 import '../support/deck_fixtures.dart';
 import 'movpak_support.dart';
 
-const ListingOptions _listing = ListingOptions(date: '10/18/61', time: '2.45');
-
-/// Compiles one I/O-free program from its source lines, punches its deck,
-/// loads it, and runs it to the end of the job.
-(JobCompilation, Machine) compiled(List<String> source) {
-  final JobCompilation job = compileDeck(
-    mirrorToDeck('${source.join('\n')}\n'),
-  ).jobs.single;
-  final subject = Machine.load(jobDeck(job, _listing)!.cards);
-  expect(subject.run(maxSteps: 5000).outcome, RunOutcome.endOfJob);
-  return (job, subject);
-}
-
-/// The absolute address of the storage [label] reserves.
-int addressOf(JobCompilation job, String label) =>
-    Machine.programOrigin +
-    job.codegen!.units
-        .firstWhere((AssemblyUnit unit) => unit.labels.contains(label))
-        .location!;
-
-/// The two pointer cells at the addresses the resolver gives them
-/// ([J 90.02.11]).
-const int _sourceCell = 132;
-const int _targetCell = 133;
-
-/// The improper-data condition cell (D4.3).
-const int _conditionCell = 131;
-
-const int _source = start + 0x100;
-const int _target = start + 0x110;
-
 /// Runs [words] behind `TSX SYS)182,4` with both pointer cells preset,
 /// over the source and target images, and ends at `TXI IOC)40,0`.
 Machine dispatch({
@@ -50,13 +19,13 @@ Machine dispatch({
   List<int> targetImage = const <int>[],
 }) {
   final Machine subject = machine(<int, int>{
-    _sourceCell: pze(_source, sourceByte),
-    _targetCell: pze(_target, targetByte),
+    sourceCell: pze(sourceArea, sourceByte),
+    targetCell: pze(targetArea, targetByte),
     start: tsx(182),
     for (var i = 0; i < words.length; i++) start + 1 + i: words[i],
     start + 1 + words.length: endOfJob,
-    for (var i = 0; i < sourceImage.length; i++) _source + i: sourceImage[i],
-    for (var i = 0; i < targetImage.length; i++) _target + i: targetImage[i],
+    for (var i = 0; i < sourceImage.length; i++) sourceArea + i: sourceImage[i],
+    for (var i = 0; i < targetImage.length; i++) targetArea + i: targetImage[i],
   });
   expect(subject.run(maxSteps: 30).outcome, RunOutcome.endOfJob);
   return subject;
@@ -70,15 +39,15 @@ void main() {
       for (final byte in <int>[0, 3]) {
         final Machine subject = machine(<int, int>{
           start: tsx(180),
-          start + 1: pze(_target, byte),
+          start + 1: pze(targetArea, byte),
           start + 2: txi(243, 1),
           start + 3: endOfJob,
-          _target: characters('000000'),
+          targetArea: characters('000000'),
         });
         expect(subject.run(maxSteps: 20).outcome, RunOutcome.endOfJob);
-        expect(subject.state.read(_targetCell), pze(_target, byte));
+        expect(subject.state.read(targetCell), pze(targetArea, byte));
         expect(
-          subject.state.read(_target),
+          subject.state.read(targetArea),
           characters(byte == 0 ? ' 00000' : '000 00'),
           reason: 'byte $byte',
         );
@@ -94,7 +63,7 @@ void main() {
       final Machine subject = convert(characters('123   '), 3);
       expect(subject.state.acMagnitude, 123);
       expect(subject.state.acSign, 0);
-      expect(subject.state.read(_conditionCell), 0);
+      expect(subject.state.read(conditionCell), 0);
     });
 
     test('leading blanks are leading zeros', () {
@@ -102,7 +71,7 @@ void main() {
       // treated as leading zeros" (J 02.05.05 note 3).
       final Machine subject = convert(characters('  3   '), 3);
       expect(subject.state.acMagnitude, 3);
-      expect(subject.state.read(_conditionCell), 0);
+      expect(subject.state.read(conditionCell), 0);
     });
 
     test('the overpunch on the low-order digit carries the sign', () {
@@ -125,7 +94,7 @@ void main() {
       // (octal 33) are the digit 11.
       final Machine subject = convert(characters('1.3   '), 3);
       expect(subject.state.acMagnitude, 213);
-      expect(subject.state.read(_conditionCell), isNot(0));
+      expect(subject.state.read(conditionCell), isNot(0));
     });
 
     test('more than ten digits is unimplemented', () {
@@ -162,7 +131,7 @@ void main() {
         sourceImage: <int>[characters('**123 ')],
       );
       expect(subject.state.acMagnitude, 123);
-      expect(subject.state.read(_conditionCell), 0);
+      expect(subject.state.read(conditionCell), 0);
     });
 
     test('an insertion character is stepped over and not counted', () {
@@ -171,7 +140,7 @@ void main() {
         sourceImage: <int>[characters('1,234 ')],
       );
       expect(subject.state.acMagnitude, 1234);
-      expect(subject.state.read(_conditionCell), 0);
+      expect(subject.state.read(conditionCell), 0);
     });
 
     test('more than ten digits is unimplemented', () {
@@ -196,8 +165,8 @@ void main() {
         sourceImage: <int>[characters('QQABCD'), characters('EFGHQQ')],
         targetImage: <int>[characters('ZZZZZZ'), characters('ZZZZZZ')],
       );
-      expect(subject.state.read(_target), characters('ABCDEF'));
-      expect(subject.state.read(_target + 1), characters('GHZZZZ'));
+      expect(subject.state.read(targetArea), characters('ABCDEF'));
+      expect(subject.state.read(targetArea + 1), characters('GHZZZZ'));
     });
 
     test('SYS)240 and SYS)241 fill the excess with trailing blanks', () {
@@ -210,8 +179,8 @@ void main() {
         sourceImage: <int>[characters('QQABCD')],
         targetImage: <int>[characters('ZZZZZZ'), characters('ZZZZZZ')],
       );
-      expect(subject.state.read(_target), characters('ZZZZAB'));
-      expect(subject.state.read(_target + 1), characters('CD    '));
+      expect(subject.state.read(targetArea), characters('ZZZZAB'));
+      expect(subject.state.read(targetArea + 1), characters('CD    '));
     });
 
     test('SYS)243 writes blanks', () {
@@ -220,8 +189,8 @@ void main() {
         targetByte: 2,
         targetImage: <int>[characters('ZZZZZZ'), characters('ZZZZZZ')],
       );
-      expect(subject.state.read(_target), characters('ZZ    '));
-      expect(subject.state.read(_target + 1), characters('    ZZ'));
+      expect(subject.state.read(targetArea), characters('ZZ    '));
+      expect(subject.state.read(targetArea + 1), characters('    ZZ'));
     });
 
     test('SYS)244 writes the character zero, not a zero word', () {
@@ -230,8 +199,8 @@ void main() {
         targetByte: 2,
         targetImage: <int>[characters('ZZZZZZ'), characters('ZZZZZZ')],
       );
-      expect(subject.state.read(_target), characters('ZZ0000'));
-      expect(subject.state.read(_target + 1), characters('0000ZZ'));
+      expect(subject.state.read(targetArea), characters('ZZ0000'));
+      expect(subject.state.read(targetArea + 1), characters('0000ZZ'));
     });
 
     test('SYS)245 fills from its OCT word and cycles past six', () {
@@ -239,14 +208,14 @@ void main() {
         words: <int>[txi(245, 6), characters('((((((')],
         targetImage: <int>[characters('ZZZZZZ')],
       );
-      expect(exact.state.read(_target), characters('(((((('));
+      expect(exact.state.read(targetArea), characters('(((((('));
       final Machine cycled = dispatch(
         words: <int>[txi(245, 8), characters('ABCDEF')],
         targetByte: 2,
         targetImage: <int>[characters('ZZZZZZ'), characters('ZZZZZZ')],
       );
-      expect(cycled.state.read(_target), characters('ZZABCD'));
-      expect(cycled.state.read(_target + 1), characters('EFABZZ'));
+      expect(cycled.state.read(targetArea), characters('ZZABCD'));
+      expect(cycled.state.read(targetArea + 1), characters('EFABZZ'));
     });
   });
 

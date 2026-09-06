@@ -1,6 +1,7 @@
-/// MOVPAK (`docs/design/runtime.md` RT-3, RT-4): the two dispatch
-/// entries, the step-list protocol under them, and the members that
-/// convert and move characters ([J 90.02.14] to [J 90.02.30]).
+/// MOVPAK (`docs/design/runtime.md` RT-3 to RT-5): the two dispatch
+/// entries, the step-list protocol under them, the members that convert
+/// and move characters, and the edited-field renderer
+/// ([J 90.02.14] to [J 90.02.30]).
 ///
 /// One move is one session. The entry captures the calling sequence and
 /// the two pointer cells, the CPU executes each `TXI SYS)nnn,1,count`
@@ -34,12 +35,30 @@ final int _bcdZero = bcdFromGlyph('0')!;
 final int _bcdAsterisk = bcdFromGlyph('*')!;
 
 /// The characters an edited image carries between its digits
-/// ([J 02.05.05]'s edited row). SYS)269 steps over them and counts none
-/// of them (RT-4).
+/// ([J 02.05.05]'s edited row).
+final int _bcdPoint = bcdFromGlyph('.')!;
+final int _bcdComma = bcdFromGlyph(',')!;
+final int _bcdDollar = bcdFromGlyph(r'$')!;
+final int _bcdPlus = bcdFromGlyph('+')!;
+final int _bcdMinus = bcdFromGlyph('-')!;
+
+/// SYS)269 and SYS)198 step over an insertion character and count none
+/// of them (RT-4, RT-5).
 final Set<int> _insertions = <int>{
-  for (final String glyph in <String>['.', ',', r'$', '+', '-'])
-    bcdFromGlyph(glyph)!,
+  _bcdPoint,
+  _bcdComma,
+  _bcdDollar,
+  _bcdPlus,
+  _bcdMinus,
 };
+
+/// TARGET-EDIT-CONTROL, the decrement of an edited family head
+/// ([J 90.02.17] Note 1).
+const int _editAsterisk = 0x01;
+const int _editComma = 0x02;
+const int _editPoint = 0x04;
+const int _editDollar = 0x08;
+const int _editBlankWhenZero = 0x10;
 
 final class _Movpak {
   _Movpak(this._machine);
@@ -53,12 +72,23 @@ final class _Movpak {
     180: () => _enter(setsTarget: true),
     182: () => _enter(setsTarget: false),
     184: _externalToInternal,
+    185: () => _editedHead(185),
+    190: () => _editedHead(190),
+    193: () => _moveDigits(193, edited: false),
+    198: () => _moveDigits(198, edited: true),
+    211: () => _zeroDigits(211),
+    212: () => _zeroDigits(212),
+    214: () => _zeroDigits(214),
+    216: () => _zeroDigits(216),
+    225: () => _terminate(225),
+    226: () => _terminate(226),
     239: () => _move(239, ends: true),
     240: () => _move(240, ends: false),
     241: () => _fill(241, bcdBlank, head: 240),
     243: () => _fill(243, bcdBlank),
     244: () => _fill(244, _bcdZero),
     245: _fillCharacters,
+    267: _editedStore,
     268: _editedEntry,
     269: _editedDigits,
     275: _editedLength,
@@ -160,6 +190,86 @@ final class _Movpak {
     return null;
   }
 
+  /// SYS)185 and SYS)190 open an edited-target move ([J 90.02.17],
+  /// [J 90.02.19]). The head's decrement is TARGET-EDIT-CONTROL and the
+  /// `OCT` word behind it TARGET-CONTROL-WORD; the terminator renders
+  /// from both.
+  RunOutcome? _editedHead(int entry) {
+    final (_Session session, int edit) = _step(entry, owned: 1);
+    session
+      ..edit = edit
+      ..control = _machine.state.read(session.cursor - 1);
+    _next(session);
+    return null;
+  }
+
+  /// SYS)211, SYS)212, SYS)214 and SYS)216 each append the count in
+  /// zero digits, ahead of the moved digits or behind them
+  /// ([J 90.02.17], [J 90.02.19]).
+  RunOutcome? _zeroDigits(int entry) {
+    final (_Session session, int count) = _step(entry);
+    for (var i = 0; i < count; i++) {
+      session.digits.add(0);
+    }
+    _next(session);
+    return null;
+  }
+
+  /// SYS)193 moves the count in external-decimal digits and SYS)198 the
+  /// count in digit positions of an edited source ([J 90.02.17],
+  /// [J 90.02.19]). Neither carries a sign note, so neither reads the
+  /// source's sign (RT-5).
+  RunOutcome? _moveDigits(int entry, {required bool edited}) {
+    final (_Session session, int count) = _step(entry);
+    _convert(session, count, edited: edited, readsSign: false);
+    _next(session);
+    return null;
+  }
+
+  /// SYS)225 and SYS)226 render the digits the steps built and end the
+  /// move ([J 90.02.17], [J 90.02.19]). TARGET-NUMERIC-LENGTH counts
+  /// them all, so a step list that misses it is a broken object
+  /// program.
+  RunOutcome? _terminate(int entry) {
+    final (_Session session, int count) = _step(entry);
+    if (session.digits.length != count) {
+      throw StateError(
+        'SYS)$entry over ${session.digits.length} digits of $count',
+      );
+    }
+    _render(
+      session.target,
+      edit: session.edit,
+      control: session.control,
+      digits: session.digits,
+      sign: 0,
+    );
+    _end(session);
+    return null;
+  }
+
+  /// SYS)267 renders the accumulator into an edited target and ends the
+  /// move ([J 90.02.30]). Its `OCT` word is TARGET-CONTROL-WORD and its
+  /// `AXT` word's address NUMBER-OF-DIGITS-TO-CONVERT; the CPU executes
+  /// that `AXT` after the handler returns (RT-3).
+  RunOutcome? _editedStore() {
+    final (_Session session, int edit) = _step(267, owned: 1);
+    final MachineState state = _machine.state;
+    final int count = Word36.address(state.read(session.cursor));
+    _render(
+      session.target,
+      edit: edit,
+      control: state.read(session.cursor - 1),
+      // The source is the accumulator alone: SYS)180's `CLA` leaves the
+      // MQ stale, and the divide of D4.1(c) has already dropped the
+      // excess into it (RT-5).
+      digits: _decimalDigits(state.acMagnitude, count),
+      sign: state.acSign,
+    );
+    _end(session);
+    return null;
+  }
+
   /// SYS)239 moves NUMBER-OF-CHARACTERS-TO-MOVE characters and ends the
   /// move; SYS)240 moves them and leaves SYS)241 to fill the target's
   /// excess ([J 90.02.25]).
@@ -207,11 +317,19 @@ final class _Movpak {
     return null;
   }
 
-  /// Reads [count] digit positions from the source and accumulates them
-  /// into the session's binary value. An [edited] source carries
-  /// insertion characters, which are stepped over and not counted
-  /// (RT-4).
-  void _convert(_Session session, int count, {required bool edited}) {
+  /// Reads [count] digit positions from the source and appends them to
+  /// the session's digits. An [edited] source carries insertion
+  /// characters, which are stepped over and not counted (RT-4).
+  ///
+  /// [readsSign] is false for a step that carries no sign note: the
+  /// overpunch it would find is one digit of a longer run, not the
+  /// field's last character (RT-5).
+  void _convert(
+    _Session session,
+    int count, {
+    required bool edited,
+    bool readsSign = true,
+  }) {
     var taken = 0;
     while (taken < count) {
       final int bcd = session.source.read();
@@ -219,13 +337,10 @@ final class _Movpak {
         continue;
       }
       taken++;
-      final (int digit, int sign) = _character(
-        bcd,
-        last: taken == count,
-        edited: edited,
-      );
-      session.value = session.value * 10 + digit;
-      if (taken == count) {
+      final bool last = readsSign && taken == count;
+      final (int digit, int sign) = _character(bcd, last: last, edited: edited);
+      session.digits.add(digit);
+      if (last) {
         session.sign = sign;
       }
     }
@@ -256,7 +371,7 @@ final class _Movpak {
   void _toAccumulator(_Session session) {
     _machine.state
       ..acSign = session.sign
-      ..acMagnitude = session.value;
+      ..acMagnitude = session.digits.fold(0, (int v, int d) => v * 10 + d);
   }
 
   /// More than ten digits is the AC-MQ pair, whose radix no unsealed
@@ -268,6 +383,116 @@ final class _Movpak {
     }
   }
 }
+
+/// [magnitude] as [length] decimal digits, high order first. A longer
+/// value drops its high-order digits, the same discard the digit-split
+/// divide performs, and arms nothing (D4.2; RT-5).
+List<int> _decimalDigits(int magnitude, int length) {
+  final String text = magnitude.toString().padLeft(length, '0');
+  return <int>[
+    for (final int unit in text.substring(text.length - length).codeUnits)
+      unit - 0x30,
+  ];
+}
+
+/// Writes the edited image of [digits] through [target] (RT-5).
+///
+/// [edit] is TARGET-EDIT-CONTROL and [control] TARGET-CONTROL-WORD:
+/// prefix the digits ahead of the first comma, decrement the digits
+/// ahead of the point, tag the sign convention, address the leading run
+/// of protected positions ([J 90.02.17] Note 2). The image is as long
+/// as the cells they call for, which is the target's declared length.
+void _render(
+  _Bytes target, {
+  required int edit,
+  required int control,
+  required List<int> digits,
+  required int sign,
+}) {
+  final int prefix = (control >> 33) & 0x7;
+  final int integer = Word36.decrement(control);
+  final int convention = Word36.tag(control);
+  final int protected = Word36.address(control);
+  final int fill = edit & _editAsterisk != 0 ? _bcdAsterisk : bcdBlank;
+
+  // Suppression reaches the first significant digit and no further, and
+  // the protected run bounds it: a 9 outside that run prints its zero
+  // ([F p. 80], [F p. 81]).
+  var significant = 0;
+  while (significant < integer && digits[significant] == 0) {
+    significant++;
+  }
+  final suppressed = protected < significant ? protected : significant;
+
+  final image = <int>[];
+  var dollarCell = -1;
+  var lastDigit = -1;
+  if (convention == 5 || convention == 6) {
+    image.add(_signCharacter(convention, sign));
+  }
+  if (edit & _editDollar != 0) {
+    dollarCell = image.length;
+    image.add(_bcdDollar);
+  }
+  for (var k = 0; k < integer; k++) {
+    if (edit & _editComma != 0 &&
+        k > 0 &&
+        k >= prefix &&
+        (k - prefix) % 3 == 0) {
+      // A comma ahead of a suppressed digit takes the fill ([F p. 80]).
+      image.add(k <= suppressed ? fill : _bcdComma);
+    }
+    lastDigit = image.length;
+    image.add(k < suppressed ? fill : digits[k]);
+  }
+  if (edit & _editPoint != 0) {
+    image.add(_bcdPoint);
+  }
+  for (var k = integer; k < digits.length; k++) {
+    lastDigit = image.length;
+    image.add(digits[k]);
+  }
+  if (convention == 3 || convention == 4) {
+    image.add(_signCharacter(convention, sign));
+  }
+
+  // "It will be placed immediately to the left of the first significant
+  // digit remaining" ([F p. 80]) — which is the last filled cell, comma
+  // cell included. An asterisk fill leaves no room, so the dollar stays.
+  if (dollarCell >= 0 && fill == bcdBlank && protected > 0 && suppressed > 0) {
+    var float = dollarCell;
+    while (float + 1 < image.length && image[float + 1] == fill) {
+      float++;
+    }
+    image[float] = _bcdDollar;
+    image[dollarCell] = bcdBlank;
+  }
+  if (convention == 1 || convention == 2) {
+    image[lastDigit] = _overpunch(digits.last, convention, sign);
+  }
+  if (edit & _editBlankWhenZero != 0 && digits.every((int d) => d == 0)) {
+    // "The field is to be replaced with blanks" ([J 02.05.07]; D3.2):
+    // the whole image, its insertion characters included (RT-5).
+    image.fillRange(0, image.length, bcdBlank);
+  }
+  image.forEach(target.write);
+}
+
+/// The character of a reserved sign position: a minus for a negative
+/// value, and for a positive one a plus under the two plus conventions
+/// and a blank under the two minus conventions ([F p. 80]; RT-5).
+int _signCharacter(int convention, int sign) => sign == 1
+    ? _bcdMinus
+    : (convention == 4 || convention == 6 ? _bcdPlus : bcdBlank);
+
+/// The last digit under an overpunch convention: the 11 punch for a
+/// negative value, the 12 punch for a positive one under convention 2,
+/// and the plain digit under convention 1. Row 0 carries the digit
+/// zero, so an overpunched zero is octal 32 or 52 (D0.6).
+int _overpunch(int digit, int convention, int sign) =>
+    sign == 0 && convention == 1
+    ? digit
+    : ((sign == 1 ? 2 : 1) << 4) | (digit == 0 ? 10 : digit);
 
 /// One move, from the entry that opened it to the member that ends it.
 final class _Session {
@@ -284,8 +509,14 @@ final class _Session {
   /// ends it.
   int? head;
 
-  /// The digits converted so far, and their sign (0 plus, 1 minus).
-  int value = 0;
+  /// TARGET-EDIT-CONTROL and TARGET-CONTROL-WORD, parked by the edited
+  /// family head for its terminator ([J 90.02.17]).
+  int edit = 0;
+  int control = 0;
+
+  /// The digits read or inserted so far, high order first, and their
+  /// sign (0 plus, 1 minus).
+  final List<int> digits = <int>[];
   int sign = 0;
 }
 

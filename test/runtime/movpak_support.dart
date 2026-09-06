@@ -3,6 +3,7 @@
 library;
 
 import 'package:comtran/comtran.dart';
+import 'package:test/test.dart';
 
 import '../emulator/asm.dart';
 
@@ -46,6 +47,20 @@ int txi(int entry, int count) =>
 /// `PZE LOC,,BYTE`, a pointer cell's contents ([J 90.02.14]).
 int pze(int location, int byte) => typeA(0, decrement: byte, address: location);
 
+/// `AXT n,1`, the digit count that closes a SYS)267 call ([J 90.02.30]).
+int axt(int count) => typeB(0x1FC, address: count, tag: 1);
+
+/// The three MOVPAK cells at the addresses the resolver gives them: the
+/// source pointer, the target pointer ([J 90.02.11]) and the
+/// improper-data condition (D4.3).
+const int sourceCell = 132;
+const int targetCell = 133;
+const int conditionCell = 131;
+
+/// The source and target areas every case below reads and writes.
+const int sourceArea = start + 0x100;
+const int targetArea = start + 0x110;
+
 /// The 15-bit link `TSX` writes into index register 4 from address
 /// [location] (`lib/src/emulator/cpu.dart`).
 int link(int location) => (0x8000 - location) & Word36.fieldMask15;
@@ -67,3 +82,34 @@ int bcdWord(List<int> codes) {
 int characters(String glyphs) => bcdWord(<int>[
   for (final String glyph in glyphs.split('')) bcdFromGlyph(glyph)!,
 ]);
+
+/// The BCD code of character [i] of the field starting at [word], byte 0
+/// being the word's high-order character ([J 90.02.14]).
+int codeAt(Machine subject, int word, int i) =>
+    (subject.state.read(word + i ~/ 6) >> (6 * (5 - i % 6))) & 0x3F;
+
+/// [count] characters of the field starting at [word], as Set H glyphs.
+/// A code with no glyph — an overpunched zero, say — reads `?`.
+String glyphsAt(Machine subject, int word, int count) => <String>[
+  for (var i = 0; i < count; i++) glyphFromBcd(codeAt(subject, word, i)) ?? '?',
+].join();
+
+const ListingOptions _listing = ListingOptions(date: '10/18/61', time: '2.45');
+
+/// Compiles one I/O-free program from its source lines, punches its deck,
+/// loads it, and runs it to the end of the job.
+(JobCompilation, Machine) compiled(List<String> source) {
+  final JobCompilation job = compileDeck(
+    mirrorToDeck('${source.join('\n')}\n'),
+  ).jobs.single;
+  final subject = Machine.load(jobDeck(job, _listing)!.cards);
+  expect(subject.run(maxSteps: 5000).outcome, RunOutcome.endOfJob);
+  return (job, subject);
+}
+
+/// The absolute address of the storage [label] reserves.
+int addressOf(JobCompilation job, String label) =>
+    Machine.programOrigin +
+    job.codegen!.units
+        .firstWhere((AssemblyUnit unit) => unit.labels.contains(label))
+        .location!;

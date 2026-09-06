@@ -51,13 +51,21 @@ void main() {
     });
 
     test('a bare step resumes past itself and keeps the move', () {
-      for (final entry in <int>[240, 268, 269]) {
+      for (final entry in <int>[193, 198, 211, 212, 214, 216, 240, 268, 269]) {
         shape('SYS)$entry', <int>[txi(entry, 1)], 1, ends: false);
       }
     });
 
     test('a terminator resumes past itself and ends the move', () {
-      shape('SYS)275', <int>[txi(275, 0)], 1, ends: true);
+      for (final entry in <int>[225, 226, 275]) {
+        shape('SYS)$entry', <int>[txi(entry, 0)], 1, ends: true);
+      }
+    });
+
+    test('an edited head resumes past its control word', () {
+      for (final entry in <int>[185, 190]) {
+        shape('SYS)$entry', <int>[txi(entry, 4), 0], 1, ends: false);
+      }
     });
 
     test('the mover pair ends on its second word', () {
@@ -66,6 +74,29 @@ void main() {
 
     test('a fill with characters resumes past its OCT word', () {
       shape('SYS)245', <int>[txi(245, 0), characters('((((((')], 1, ends: true);
+    });
+
+    test('the edited store ends on the AXT the CPU then executes', () {
+      // The one shape that leaves index register 1 loaded: the handler
+      // returns to the `AXT`, whose address field it has already read
+      // (RT-3). Its TRA form carries the same address and no tag, so
+      // the edit control it hands over is the 0 the entry left.
+      for (final head in <int>[txi(267, 4), typeB(0x010, address: 267)]) {
+        final Machine subject = machine(<int, int>{
+          start: tsx(180),
+          start + 1: pze(targetArea, 0),
+          start + 2: head,
+          start + 3: 0,
+          start + 4: axt(6),
+          start + 5: txi(243, 0),
+        })..run(maxSteps: 5);
+        final MachineState state = subject.state;
+        expect(state.ic, start + 5);
+        expect(state.xrRead(1), 6);
+        expect(state.xrRead(2), junkLocator);
+        expect(state.xrRead(4), link(start));
+        expect(() => subject.run(maxSteps: 2), throwsA(isA<StateError>()));
+      }
     });
 
     test('an entry leaves the instruction counter on the family head', () {
@@ -110,6 +141,19 @@ void main() {
           start: tsx(182),
           start + 1: tsx(182),
         }).run(maxSteps: 4),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('a terminator whose steps built the wrong digit count', () {
+      expect(
+        () => machine(<int, int>{
+          start: tsx(182),
+          start + 1: txi(185, 4),
+          start + 2: 0,
+          start + 3: txi(212, 2),
+          start + 4: txi(225, 7),
+        }).run(maxSteps: 8),
         throwsA(isA<StateError>()),
       );
     });
