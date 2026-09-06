@@ -198,6 +198,43 @@ final class Pictorial {
     return protected;
   }
 
+  /// Whether every `8` and `*` position lies in the run
+  /// [leadingProtected] measures. The control word's address field
+  /// carries that run alone (J 90.02.17 Note 2), so a suppression
+  /// character behind it reaches no run-time reader.
+  late final bool protectedIsLeading =
+      _count(_Kind.eight) + _count(_Kind.star) == leadingProtected;
+
+  /// Whether [digitsBeforeComma] and [digitsBeforePoint] reproduce the
+  /// commas: the first after the prefix, then one every three digit
+  /// positions through the integer run (J 90.02.17 Note 2). The control
+  /// word carries the first comma's offset alone, so no other grouping
+  /// survives it. True with no comma.
+  late final bool commasFitTheControlWord = _commasFitTheControlWord();
+
+  bool _commasFitTheControlWord() {
+    int next = digitsBeforeComma;
+    var digits = 0;
+    for (final (_Kind kind, int count) in _elements) {
+      if (kind == _Kind.f) {
+        break;
+      }
+      if (kind != _Kind.comma) {
+        if (_isDigit(kind)) {
+          digits += count;
+        }
+        continue;
+      }
+      for (var i = 0; i < count; i++) {
+        if (digits != next || next < 1 || next >= digitsBeforePoint) {
+          return false;
+        }
+        next += 3;
+      }
+    }
+    return !hasComma || next >= digitsBeforePoint;
+  }
+
   /// Edit characters outside the scientific repertoire — `8 * , $`
   /// (the chart admits `9 (n) F . V + -` for scientific decimal,
   /// J 02.05.05).

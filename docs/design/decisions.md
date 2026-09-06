@@ -81,7 +81,7 @@ Every other row points at its own record.
 | **[D4 — Arithmetic and data manipulation (§8.5.4)](#d4--arithmetic-and-data-manipulation-854)** | | |
 | [D4.1](#d41--rounding-threshold-stated-edge-cases-not) | Rounding: threshold stated, edge cases not | Jack's call (part d) |
 | [D4.2](#d42--overflow-with-no-on-overflow-clause) | Overflow with no ON OVERFLOW clause | Locked |
-| [D4.3](#d43--invalid-characters-in-a-numeric-field-at-object-time) | Invalid characters in a numeric field at object time | Locked |
+| [D4.3](#d43--invalid-characters-in-a-numeric-field-at-object-time) | Invalid characters in a numeric field at object time | Amended |
 | [D4.4](#d44--negation-vs-exponentiation) | Negation vs exponentiation | Locked |
 | [D4.5](#d45--parameterfunction-declaration-after-the-removal-of-param-and-funct) | Parameter/function declaration after the removal of PARAM and FUNCT | Locked |
 | [D4.6](#d46--figurative-constant-target-maximum-32766-vs-21) | Figurative-constant target maximum: 32766 vs 2¹⁵−1 | Locked |
@@ -464,6 +464,8 @@ record built on it.*
 
 *Amended 2026-08-30 (M4 stage 3, `docs/design/loader.md` LD-3).* The loader consumes the 01111 entry as decided. The generator names the first *PROCEDURE sentence as the entry point of every program. It does not yet honor a labeled PROGRAM.START; that path waits for stage 4, where a program first runs.
 
+*Amended 2026-09-06 (M4 stage 4).* The generator now honors a labeled PROGRAM.START. The end-of-text entry names that statement or section, and its address field holds the label's word. `GN)000` does not move: it stays the name of the first procedure word. Two manual facts fix that. [J 02.02] subsection B.1.c shows a generated name "in the name field of Procedure statements or Data entries unnamed by the programmer". A statement labeled PROGRAM.START carries a programmer name, so no generated name can print on it. [J 90.02.01] keeps the two ideas apart: it measures the LOC column "from the first word of the object program (not necessarily PROGRAM.START)". The entry point is therefore a separate fact, which the end-of-text entry carries. The M3-8 print model is unchanged. The end-of-text row prints the entry address in its LOC column too. The sample's own row cannot separate that reading from a row that prints the data extent, because both give 00165. The sample's `ORG BL)1` row separates them: it carries the same `MON` prefix from the same encoder, and it prints `01666` in both its LOC column and its address field. A `MON` row therefore prints its address field as its LOC, and the end-of-text row follows it. The LOC column is print-only either way, because the deck writer punches the word and its control group alone.
+
 ### D2.2 — Division ordering and interleaving
 
 **Status.** Locked.
@@ -670,8 +672,10 @@ record built on it.*
 
 ### D4.3 — Invalid characters in a numeric field at object time
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-09-06 — the blank and the edit insertion characters do not arm the cell (see the amendment below).
 **Decision.** There is no program-level reaction and no object-time message. Arming set: the numeric MOVPAK members — SYS)183–238, SYS)246–258 and SYS)267–282 — set communication cell SYS)131 non-zero when they meet an improper data condition, and then continue; the alphabetic and figurative-constant movers SYS)239–245 do not set it. What counts as "an improper data condition" is unresolved, so the trigger is a design decision under D0.4 and is amendable: for external-decimal and edited sources, a character that is not a valid digit — or, in a sign position, not a valid overpunch sign — arms the cell. Scientific-decimal sources are exempt from that test. J allows them free-form content: "For the source fields of the scientific decimal type, a free form of data is allowed within the limits of the field". Its worked examples contain embedded blanks, signs and decimal points ([J 02.04.04] e). Our scientific-decimal converts therefore parse by that free-form rule. They arm the cell only when the field cannot be parsed at all under it. The value used for an invalid character is fixed by design decision (no unsealed evidence survives; the 1963 movers are in the sealed archive, D0.9): the low-order four bits of the 6-bit BCD character are taken as the digit value, and zone bits that are not a documented overpunch sign are ignored. Nothing reads, prints from, or clears SYS)131; the cell stays sticky. No verb option can request a reaction: the only condition options are ON OVERFLOW (SET/ADD, single result field) and the FILE-card ON ERROR (unrecoverable redundancy, block checksum, block sequence only). The GET-path length-control-word check SYS)261/263 keeps its own separate behavior — it prints its message and exits to the CT Monitor — and is never used as the MOVE/arithmetic reaction. Compile-time diagnostics (msgs 25, 67, 111, 112, 120, 182) are unchanged and unrelated.
+
+**Amended (M4 stage 4, 2026-09-06).** The trigger exempts two classes of character. A blank never arms the cell, in any position. An edit insertion character never arms it in an edited source either. The [J 02.05.05] field-type chart is the ground for both exemptions. It admits "digits and leading blanks" in an external decimal field (note 3). It gives an edited field the format characters `8 * . , $ + -`. The editing feature writes those characters into the field, so a reader meets them in legal data. Without the exemption the trigger arms the cell on data the chart declares legal. This is an amendment and not a section 6 peer collision. D4.3 already marks the trigger a design decision under D0.4, and it leaves "an improper data condition" unresolved. The value rule is unchanged: an improper character still contributes its low-order four bits. `docs/design/runtime.md` RT-4 holds the implementation.
 
 **Rationale.** Neither manual defines a program-level reaction, and the field-test sample converts a card-punched external-decimal field straight into pay arithmetic through SYS)184 with no check ([J 90.05] listing, PDF pp. 192, 196, 205). SYS)131 is documented only as being set on "an improper data condition" ([J 90.02.10]), and no appendix entry reads or clears it. Open Question 31 bounds the arming set to the numeric MOVPAK members and makes the trigger its leading still-open item, stating that it "cannot simply be 'any non-digit'" because of the scientific-decimal free-form rule; the record therefore scopes the test by source class and marks the whole rule amendable.
 
@@ -1852,6 +1856,7 @@ The deferred sites stay with their owning milestones, so the flag's coverage is 
 [J 02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0201-compiler-control-cards
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
 [J 02.01.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-cmple-card
+[J 02.02]: ../../comtran-manuals/J28-6169/02-compiler.md#0202-compiler-output
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.03.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0202-compiler-output
 [J 02.03.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-use-of-coding-forms

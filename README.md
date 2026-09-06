@@ -79,8 +79,9 @@ Today the card reader, the lexer, the listing, the parsers for all three
 divisions, the job-stream driver, and the Data Description semantic layer all
 work. Code generation fills every word of the object program and prints the
 whole object listing of the 1962 sample byte for byte; the deck writer punches the
-object deck and the loader cards, our loader reads them back, and the
-machine assembly comes next. [`docs/HANDOVER.md`](docs/HANDOVER.md) holds the live
+object deck and the loader cards, our loader reads them back, and the machine
+assembly executes what comes out. A program that touches no file now compiles
+and runs to its `STOP RUN`. [`docs/HANDOVER.md`](docs/HANDOVER.md) holds the live
 state and the next task.
 
 To see it run, with the Dart SDK installed:
@@ -88,6 +89,7 @@ To see it run, with the Dart SDK installed:
 ```sh
 dart pub get
 dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd
+dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd --run
 ```
 
 The input is the manual's own payroll program, re-keyed as a punch-level card
@@ -95,8 +97,11 @@ deck — 293 cards, every column measured from the page scans, plus one
 reconstructed `*FINISH` card. The output is the listing above, numbered 1,00 to
 229,00 exactly as the 1962 compile numbered it, with zero diagnostics.
 
-The goal is to run it: compile the sample and reproduce the printed report it
-produced in 1961.
+`--run` loads the punched deck into the emulator and starts it. The payroll
+program gets as far as reading its first record and stops there, because the
+tape I/O runtime is the next milestone. The goal is to carry it past that
+point: run the sample to the end and reproduce the printed report it produced
+in 1961.
 
 ## How we know, and what we don't
 

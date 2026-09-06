@@ -1120,6 +1120,119 @@ void main() {
     });
   });
 
+  group('the stage-4 refusal sites (M4-9, M4-10)', () {
+    test('an external-decimal convert of more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            MOVE WIDEE TO WIDEI.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'WIDEE',
+              level: '1',
+              mode: 'E',
+              description: '99999999999',
+            ),
+            dataCard(
+              name: 'WIDEI',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '99999999999',
+            ),
+          ],
+        ),
+        'an external-decimal convert of more than 10 digits (RT-4)',
+      );
+    });
+
+    test('an edited store of more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            MOVE WIDEI TO WIDEDT.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'WIDEI',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '9(12)',
+            ),
+            dataCard(name: 'WIDEDT', level: '1', description: '8889.99'),
+          ],
+        ),
+        'an edited store of more than 10 digits (RT-4)',
+      );
+    });
+
+    test('an edited fetch of more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            ADD WIDEDT TO NUM.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'WIDEDT', level: '1', description: '88888888899.99'),
+          ],
+        ),
+        'an edited fetch of more than 10 digits (RT-4)',
+      );
+    });
+
+    test('an edited field with an S position', () {
+      expect(
+        _refuses(
+          ['            MOVE EXT TO SEDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'SEDT', level: '1', description: '88S.99'),
+          ],
+        ),
+        'an edited field with an S position (RT-5)',
+      );
+    });
+
+    test('an edited field with a suppression character behind its run', () {
+      expect(
+        _refuses(
+          ['            MOVE EXT TO TAILEDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'TAILEDT', level: '1', description: '999.88'),
+          ],
+        ),
+        'an edited field with a suppression character behind its leading '
+        'run (RT-5)',
+      );
+    });
+
+    test('an edited field with irregular comma grouping', () {
+      // One pictorial per conjunct of `commasFitTheControlWord`: a
+      // group of the wrong width, a comma ahead of every digit, a comma
+      // at the point, a comma in the fraction, and a group the last
+      // comma leaves unclosed.
+      for (final pictorial in <String>[
+        '99,99,99',
+        ',999',
+        '888,.99',
+        '888.9,9',
+        '888,8888',
+      ]) {
+        expect(
+          _refuses(
+            ['            MOVE EXT TO ODDEDT.'],
+            data: [
+              ..._data(),
+              dataCard(name: 'ODDEDT', level: '1', description: pictorial),
+            ],
+          ),
+          'an edited field with irregular comma grouping (RT-5)',
+          reason: pictorial,
+        );
+      }
+    });
+  });
+
   group('the B7 refusal site (M4-6)', () {
     test('a table base ahead of address zero', () {
       // A repeated group opening the program puts its member at word
