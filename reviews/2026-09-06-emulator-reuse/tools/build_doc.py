@@ -54,15 +54,28 @@ LST_PLATE = plate(
 )
 
 CELLS_PLATE = plate(
-    """MOVOVF EQU     SYS)130                                   ct.job:59516
-MOVERR EQU     SYS)131                                   ct.job:59517
-       VFD     O6/23,30/BLERR      SYS)294 (BL NOT LOADED ERR) ct.job:31877
-*              CT SUBROUTINE SYS)177                          ct.job:57636
-*              CT SUBROUTINE SYS)178                          ct.job:57837
-MVPAK1 EQU     SYS)180                                   ct.job:57886""",
-    "Cross-references in the recovered source. SYS)130 and SYS)131 are the "
+    """MOVOVF EQU     SYS)130
+MOVERR EQU     SYS)131
+       VFD     O6/23,30/BLERR      SYS)294 (BL NOT LOADED ERR)
+*              CT SUBROUTINE SYS)177
+*              CT SUBROUTINE SYS)178
+MVPAK1 EQU     SYS)180""",
+    "Cross-references in the recovered source, at ct.job lines 59516, 59517, "
+    "31877, 57636, 57837 and 57886 in that order. SYS)130 and SYS)131 are the "
     "two MOVPAK communication cells whose behaviour our decision records "
     "currently settle as our own choice.",
+)
+
+SEGMENTS_PLATE = plate(
+    """segment  lines           words   what it is
+   1       10 -    918     857   709/7090 COMMERCIAL TRANSLATOR MONITOR (VERSION 5)
+   2      922 -   5675    4744   709/7090 IOCS VERSION 'C' (SYSTEM COMPONENT FORM)
+   3     5679 -  55719    4190   7090 COMMERCIAL TRANSLATOR (CT) VERSION V
+                                 + overlays at CTBOVL, debug at CTBDBG
+   4    55728 -  66684      --   40 object-time subroutine decks, compiled by CT""",
+    "The four job steps of CT/ct.job. Segments 1 to 3 are assembled by IBSFAP; "
+    "segment 4 runs under $EXECUTE CT at line 55728. The word counts are the "
+    "COUNT cards at lines 15, 925 and 5682.",
 )
 
 LAS_PLATE = plate(
@@ -133,6 +146,10 @@ section {{ display:flex; flex-direction:column; gap:.2rem; }}
          text-transform:uppercase; padding:.24em .6em; border-radius:2px;
          border:1px solid currentColor; white-space:nowrap; }}
 .chip.call {{ color:var(--stamp); background:var(--stamp-soft); }}
+.ruling {{ background:var(--raised); border:1px solid var(--hair);
+           border-left:3px solid var(--settled); padding:1.15rem 1.3rem; }}
+.ruling p:last-child {{ margin-bottom:0; }}
+.ruling .eyebrow {{ color:var(--settled); }}
 .chip.done {{ color:var(--settled); }}
 .itemhead {{ display:flex; gap:.75rem; align-items:baseline; flex-wrap:wrap;
              margin-bottom:.35rem; }}
@@ -181,6 +198,19 @@ assembled and listed, and that is worth more than the question that found
 it.</p>
 </header>
 
+<section class="ruling">
+<p class="eyebrow">Corrected &middot; 2026-09-06, before this record was read</p>
+<p>Item 2 originally closed with one vague sentence: &ldquo;It also contains
+the processor itself, which is the thing this project reconstructs. I have not
+looked at what that implies and I am not going to guess in this record.&rdquo;
+That left the largest claim in the record unchecked. Roughly 50,000 lines of
+<code>ct.job</code> had not been characterised at all when it was written.</p>
+<p>They have now been read far enough to say what they are, and the claim
+holds: segment 3 is the Commercial Translator compiler, Version V of July 1963.
+Item 2 now carries the job's segment map and a line citation in place of the
+sentence above. Nothing else changed, and the recommendation is unchanged.</p>
+</section>
+
 <section class="answer">
 <h2>What happened, in six lines</h2>
 <ol>
@@ -219,10 +249,12 @@ stage 4 can start on the current plan the moment you say so.</p>
 <div class="itemhead"><span class="chip call">Your call</span>
 <h2>1 &middot; Adopt someone else's 7090? No &mdash; keep ours</h2></div>
 
-<p><strong>What was searched.</strong> Four independent sweeps found six
-distinct projects behind twenty-one names. Ten profiles were built, each
-answering the same six questions from fetched sources; four of the profilers
-built and ran their candidate.</p>
+<p><strong>What was searched.</strong> Four independent sweeps returned
+twenty-one names, which deduplicated to six independent codebases. Ten profiles
+were built, each answering the same six questions from fetched sources; four of
+the profilers built and ran their candidate. The table has seven rows because
+Open SIMH carries the same two CPU modules as classic SIMH and is listed
+separately.</p>
 
 <div class="scroll">
 <table>
@@ -394,9 +426,24 @@ close by decision &mdash; SYS)130 and SYS)131 among them &mdash; and it is
 period IBM evidence, which under section 9 outranks any reading of a manual we
 could make on our own.</p>
 
-<p>It also contains the processor itself, which is the thing this project
-reconstructs. I have not looked at what that implies and I am not going to
-guess in this record.</p>
+<p><strong>It also contains the processor itself.</strong> The first version of
+this record said so vaguely and admitted it had not looked. It has now looked.
+<code>ct.job</code> is one IBSYS job of four steps.</p>
+
+{SEGMENTS_PLATE}
+
+<p>Segment 3 is 50,041 lines headed <code>7090 COMMERCIAL TRANSLATOR (CT)
+VERSION V   JULY 15, 1963</code> at <code>ct.job:5683</code>, with origins for
+a non-overlayed part, an overlayed part and a debug section
+(<code>CTBORG</code>, <code>CTBOVL</code>, <code>CTBDBG</code> at
+<code>:5686-5691</code>). It continues through lettered overlay phases &mdash;
+CB, CC, CI and more &mdash; each repeating that header. That is the compiler
+this project reconstructs, in assembler source. Across the whole listing,
+26,409 lines carry a location and an octal instruction word.</p>
+
+<p>I am not going to guess what that implies for the project, and this record
+does not propose anything about it. It is reported because a later reader
+must not have to rediscover it.</p>
 
 <div class="opt pick">
 <p class="name">Recommended &mdash; treat it as evidence, not as code</p>
@@ -541,7 +588,9 @@ see what was claimed as well as what survived.</p>
 </section>
 
 <footer>
-<p>Materials: <code>evidence/candidate-profiles.md</code> (ten profiles),
+<p>This record was corrected once, on the day it was written and before it was
+read; the banner at the top says what it said before.
+Materials: <code>evidence/candidate-profiles.md</code> (ten profiles),
 <code>evidence/embedding-cost.md</code>,
 <code>evidence/oracle-option.md</code>,
 <code>evidence/adversarial-review.md</code>,

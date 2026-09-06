@@ -135,6 +135,32 @@ The first three groups are the three families `docs/design/emulator.md`
 section 8 puts out of scope. Channel I/O is what decision D0.7 exists to
 avoid.
 
+## The four job steps of ct.job
+
+Added after the first version of this record; the ~50,000 lines of segment 3
+were uncharacterised when it was written.
+
+    segment  lines           words   what it is
+       1       10 -    918     857   709/7090 COMMERCIAL TRANSLATOR MONITOR (VERSION 5)
+       2      922 -   5675    4744   709/7090 IOCS VERSION 'C' (SYSTEM COMPONENT FORM)
+       3     5679 -  55719    4190   7090 COMMERCIAL TRANSLATOR (CT) VERSION V
+                                     + overlays at CTBOVL, debug at CTBDBG
+       4    55728 -  66684      --   40 object-time subroutine decks, run under $EXECUTE CT
+
+Segment 3 header, ct.job:5683:
+
+    * 7090 COMMERCIAL TRANSLATOR (CT) VERSION V          JULY  15, 1963     CB000040
+
+and its origin points, ct.job:5686-5688:
+
+    CTBORG BOOL    13300               ORIGIN OF NON-OVERLAYED PART OF CTB
+    CTBOVL BOOL    70000               ORIGIN OF OVERLAYED PART OF CTB
+    IBSORG BOOL    100                 BASIC MONITOR COMMUNICATION ORIGIN
+
+The same header repeats through lettered overlay phases (CB, CC, CI and
+others) at ct.lst lines 6460, 11131 and 22953 among them. Across the whole
+listing, 26,409 lines carry a location and an octal instruction word.
+
 ## What I did not do
 
 I read headers, the deck table, the SYS)/IOC) cross-references and MOVPAK's
