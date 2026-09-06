@@ -15,6 +15,7 @@ import '../emulator/machine_state.dart';
 import '../emulator/word.dart';
 import '../loader/loader.dart';
 import 'monitor.dart';
+import 'movpak.dart';
 
 /// How a run ended.
 enum RunOutcome {
@@ -105,7 +106,10 @@ final class Machine {
 
   final List<String> _display = [];
   late final Cpu _cpu = Cpu(state);
-  late final Map<int, RuntimeEntry> _handlers = {...runFrame(this)};
+  late final Map<int, RuntimeEntry> _handlers = {
+    ...runFrame(this),
+    ...movpak(this),
+  };
 
   /// Parameter word [k] of the calling sequence in hand: the word at
   /// `k,4`, read as the CPU reads it (M4-17).

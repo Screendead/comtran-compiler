@@ -89,17 +89,17 @@ void main() {
       expect(machine.program.origin, Machine.programOrigin);
       expect(machine.program.entry, Machine.programOrigin + _octal('165'));
       expect(machine.state.ic, machine.program.entry);
-      // The sample calls open-all, which finds an empty list while M5
-      // owns IOC)1 (RT-2), then moves data: the second entry it reaches
-      // is a MOVPAK member. The boundary moves to IOC)8 once MOVPAK
-      // lands (M4-17).
+      // The sample calls open-all, which finds an empty file list while
+      // M5 owns IOC)1 (RT-2), fills its work areas through MOVPAK, and
+      // then reads its first record. IOC)8 is the GET, and it is the M4
+      // to M5 boundary (M4-17).
       expect(
         () => machine.run(maxSteps: 1000),
         throwsA(
           isA<UnimplementedRuntimeEntry>().having(
             (UnimplementedRuntimeEntry e) => e.number,
             'number',
-            182,
+            8,
           ),
         ),
       );
