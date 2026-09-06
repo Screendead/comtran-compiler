@@ -149,7 +149,7 @@ void main() {
 
     test('SYS)240 and SYS)241 fill the excess with trailing blanks', () {
       // "The low-order positions of the receiving area, i.e., the
-      // excess positions, will be filled with blanks" (J 02.04.03).
+      // excess positions, will be filled with blanks" (F p. 42).
       final Machine subject = dispatch(
         words: <int>[txi(240, 4), txi(241, 4)],
         sourceByte: 2,

@@ -1,11 +1,11 @@
 /// The run frame (`docs/design/runtime.md` RT-2): the SYS)/IOC) entries
 /// an I/O-free program reaches — open all, close all, the STOP display,
 /// the base-locator guard, and the monitor's end-of-job return point
-/// ([J 90.02.10]; [J 90.02.14]; [J 90.02.33]).
+/// ([J 90.02.09]; [J 90.02.14]; [J 90.02.33]).
 ///
 /// The communication cells SYS)132, SYS)133, IOC)1 and IOC)29 need no
 /// handler: they are memory, and generated code reads and writes them
-/// with ordinary instructions ([J 90.02.10]).
+/// with ordinary instructions ([J 90.02.08] to [J 90.02.11]).
 library;
 
 import '../chars/char_code.dart';
@@ -16,7 +16,7 @@ import 'machine.dart';
 /// number (M4-17).
 Map<int, RuntimeEntry> runFrame(Machine machine) => <int, RuntimeEntry>{
   // "The end of job return point in the CT Monitor communication area
-  // for all CT jobs" ([J 90.02.10]), entered by `TXI IOC)40,0`.
+  // for all CT jobs" ([J 90.02.09]), entered by `TXI IOC)40,0`.
   40: () => RunOutcome.endOfJob,
   175: () => _files(machine, 175),
   177: () => _files(machine, 177),
@@ -26,7 +26,7 @@ Map<int, RuntimeEntry> runFrame(Machine machine) => <int, RuntimeEntry>{
 
 /// SYS)175 open-all and SYS)177 close-all ([J 90.02.14]). The one
 /// parameter word locates IOC)1, the cell `PZE L,,N` whose decrement
-/// counts the files ([J 90.02.10]). An empty list has nothing to open
+/// counts the files ([J 90.02.08]). An empty list has nothing to open
 /// and nothing to close.
 RunOutcome? _files(Machine machine, int number) {
   final int header = machine.state.read(Word36.address(machine.parameter(1)));

@@ -448,7 +448,8 @@ void _render(
         k > 0 &&
         k >= prefix &&
         (k - prefix) % 3 == 0) {
-      // A comma ahead of a suppressed digit takes the fill ([F p. 80]).
+      // A comma cell takes the fill when the digit before it is
+      // suppressed ([F p. 80]).
       image.add(k <= suppressed ? fill : _bcdComma);
     }
     lastDigit = image.length;

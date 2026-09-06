@@ -49,7 +49,7 @@ void main() {
       final Machine subject = machine({
         start: tsx(175),
         start + 1: typeA(0, address: 1),
-        // IOC)1, the cell `PZE L,,N` ([J 90.02.10]), listing one file.
+        // IOC)1, the cell `PZE L,,N` ([J 90.02.08]), listing one file.
         1: typeA(0, decrement: 1, address: start + 0x100),
       });
       expect(
@@ -82,7 +82,7 @@ void main() {
     });
   });
 
-  group('IOC)40, the end-of-job return point (J 90.02.10)', () {
+  group('IOC)40, the end-of-job return point (J 90.02.09)', () {
     test('ends the job where the transfer lands', () {
       final Machine subject = machine({
         start: typeA(1, address: 40), // TXI IOC)40,0

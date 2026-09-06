@@ -20,7 +20,7 @@ import 'movpak.dart';
 /// How a run ended.
 enum RunOutcome {
   /// `TXI IOC)40,0` reached the monitor's end-of-job return point
-  /// ([J 90.02.10]).
+  /// ([J 90.02.09]).
   endOfJob,
 
   /// A handler exited back to the CT Monitor ([J 90.02.33]).
@@ -49,7 +49,7 @@ final class UnimplementedRuntimeEntry implements Exception {
   final String? detail;
 
   /// `SYS)` above 127 and `IOC)` at or below it: the Type 2 and Type 1
-  /// number ranges ([J 90.02.10]).
+  /// number ranges ([J 90.02.07]).
   String get name => number > 127 ? 'SYS)$number' : 'IOC)$number';
 
   @override
