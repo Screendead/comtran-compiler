@@ -153,6 +153,15 @@ void main() {
         count: 8,
         magnitude: 123445,
       );
+      // With no point and every digit suppressed the dollar floats to
+      // the last cell of the image.
+      renders(
+        r'$888',
+        r'   $',
+        edit: 0x08,
+        word: control(integer: 3, protected: 3),
+        count: 3,
+      );
     });
 
     test('a value past the digit count drops its high-order digits', () {
