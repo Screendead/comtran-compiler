@@ -464,6 +464,8 @@ record built on it.*
 
 *Amended 2026-08-30 (M4 stage 3, `docs/design/loader.md` LD-3).* The loader consumes the 01111 entry as decided. The generator names the first *PROCEDURE sentence as the entry point of every program. It does not yet honor a labeled PROGRAM.START; that path waits for stage 4, where a program first runs.
 
+*Amended 2026-09-06 (M4 stage 4).* The generator now honors a labeled PROGRAM.START. The end-of-text entry names that statement or section, and its address field holds the label's word. `GN)000` does not move: it stays the name of the first procedure word. Two manual facts fix that. [J 02.02] subsection B.1.c shows a generated name "in the name field of Procedure statements or Data entries unnamed by the programmer". A statement labeled PROGRAM.START carries a programmer name, so no generated name can print on it. [J 90.02.01] keeps the two ideas apart: it measures the LOC column "from the first word of the object program (not necessarily PROGRAM.START)". The entry point is therefore a separate fact, which the end-of-text entry carries. The M3-8 print model is unchanged. The end-of-text row prints the entry address in its LOC column too. The sample's own row cannot separate that reading from a row that prints the data extent, because both give 00165. The sample's `ORG BL)1` row separates them: it carries the same `MON` prefix from the same encoder, and it prints `01666` in both its LOC column and its address field. A `MON` row therefore prints its address field as its LOC, and the end-of-text row follows it. The LOC column is print-only either way, because the deck writer punches the word and its control group alone.
+
 ### D2.2 — Division ordering and interleaving
 
 **Status.** Locked.
@@ -1852,6 +1854,7 @@ The deferred sites stay with their owning milestones, so the flag's coverage is 
 [J 02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0201-compiler-control-cards
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
 [J 02.01.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-cmple-card
+[J 02.02]: ../../comtran-manuals/J28-6169/02-compiler.md#0202-compiler-output
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.03.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0202-compiler-output
 [J 02.03.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-use-of-coding-forms

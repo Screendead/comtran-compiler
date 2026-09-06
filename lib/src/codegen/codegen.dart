@@ -143,15 +143,15 @@ CodegenResult runCodegen(
       ...pointerInitialization(image),
       ...outOfLineBlocks(image, text.poolUnits),
       // The end-of-text line ([J 90.03.04]): the word's address field
-      // holds the relative program entry point — `GN)000`, the name
-      // the procedure walk binds to its first text word (D2.1). The
-      // manual leaves the prefix open; the attested word 500000000165
-      // carries the `MON` prefix, printed solid.
+      // holds the relative program entry point, and the LOC column
+      // echoes it (D2.1 as amended 2026-09-06). The manual leaves the
+      // prefix open; the attested word 500000000165 carries the `MON`
+      // prefix, printed solid.
       AssemblyUnit(
         operation: 'START',
-        operand: 'GN)000',
-        location: dataWords,
-        word: counterWord(CounterOp.relativeOrigin, dataWords),
+        operand: text.entry.name,
+        location: text.entry.location,
+        word: counterWord(CounterOp.relativeOrigin, text.entry.location),
         control: ControlGroup.endOfText,
       ),
     ],

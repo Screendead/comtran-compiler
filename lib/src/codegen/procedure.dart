@@ -34,6 +34,7 @@ import '../emulator/word.dart';
 import '../lexer/diagnostic.dart';
 import '../lexer/messages.dart';
 import '../lexer/procedure_lexer.dart';
+import '../lexer/reserved_words.dart';
 import '../lexer/source_card.dart';
 import '../lexer/token.dart';
 import '../parser/parser.dart';
@@ -49,6 +50,7 @@ final class ProcedureText {
   const ProcedureText({
     required this.units,
     required this.words,
+    required this.entry,
     required this.poolWords,
     required this.poolUnits,
   });
@@ -58,6 +60,12 @@ final class ProcedureText {
 
   /// Words the text takes on Location Counter 0.
   final int words;
+
+  /// The object program's entry point, which the end-of-text word names
+  /// and addresses (D2.1): the statement or section labelled
+  /// `PROGRAM.START`, or `GN)000` on the first procedure word where the
+  /// program carries no such label.
+  final ({String name, int location}) entry;
 
   /// The constant pool's entry count after layout (M4-4).
   final int poolWords;
@@ -108,7 +116,10 @@ ProcedureText generateProcedure(
     for (final ParsedGroup group in semantics.parse.groups) {
       if (group is ParsedProcedureGroup) {
         if (entry) {
-          text.label('GN)000'); // The entry word's name (D2.1; M3-8).
+          // The first procedure word's generated name (M3-8), which is
+          // the entry point too unless PROGRAM.START names another word
+          // (D2.1 as amended 2026-09-06).
+          text.label('GN)000');
           entry = false;
         }
         text.sentences(group.sentences);
@@ -844,9 +855,15 @@ final class _Text {
       );
     }
     final ProgramImage? placed = image;
+    final int? start = _labelled[programStartName];
     return ProcedureText(
       units: _units,
       words: _location - _origin,
+      // `GN)000` binds before the first word the text emits, so it
+      // always names `_origin` (D2.1; M3-8).
+      entry: start == null
+          ? (name: 'GN)000', location: _origin)
+          : (name: programStartName, location: start),
       poolWords: _layout.length,
       poolUnits: <AssemblyUnit>[
         if (placed != null)

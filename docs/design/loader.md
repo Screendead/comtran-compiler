@@ -156,6 +156,11 @@ by the origin and the table's addresses land in the system fields.
 name the entry instead. Stage 4, the first stage to run a program, lands
 it.
 
+*Amended 2026-09-06 (M4 stage 4).* The gap is closed. The end-of-text
+entry names a labeled PROGRAM.START and holds that word's address. A
+program without the label keeps `GN)000` and the first procedure word.
+D2.1 as amended holds the evidence.
+
 ## LD-4. The printed document and the dumps
 
 `--emit-object` writes the whole document after the source pages: the
