@@ -154,6 +154,17 @@ void main() {
       expect(subject.state.acSign, 0);
     });
 
+    test('an asterisk is a counted digit position worth zero', () {
+      // The target control word counts the asterisks beside the 8's and
+      // the 9's (J 90.02.17 Note 2), so a reader takes one for a digit.
+      final Machine subject = dispatch(
+        words: <int>[txi(268, 1), txi(269, 5), txi(275, 5)],
+        sourceImage: <int>[characters('**123 ')],
+      );
+      expect(subject.state.acMagnitude, 123);
+      expect(subject.state.read(_conditionCell), 0);
+    });
+
     test('an insertion character is stepped over and not counted', () {
       final Machine subject = dispatch(
         words: <int>[txi(268, 1), txi(269, 4), txi(275, 4)],
