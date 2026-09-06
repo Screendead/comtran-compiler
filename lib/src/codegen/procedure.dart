@@ -2100,6 +2100,15 @@ final class _Text {
       // first comma has no word to punch.
       _unruled('an edited field with eight digits before its first comma');
     }
+    if (!shape.protectedIsLeading) {
+      _unruled(
+        'an edited field with a suppression character behind its '
+        'leading run (RT-5)',
+      );
+    }
+    if (!shape.commasFitTheControlWord) {
+      _unruled('an edited field with irregular comma grouping (RT-5)');
+    }
     return (shape.digitsBeforeComma << 33) |
         (shape.digitsBeforePoint << 18) |
         (_signCode(shape.sign) << 15) |
@@ -2108,7 +2117,16 @@ final class _Text {
 
   /// The pictorial of an edited target. A field is edited because its
   /// pictorial holds an edit character, so the measurement is there.
-  Pictorial _editedShape(DataItem target) => _sem(target).shape!;
+  Pictorial _editedShape(DataItem target) {
+    final Pictorial shape = _sem(target).shape!;
+    if (shape.sCount > 0) {
+      // An `S` is a digit the field represents and does not store
+      // (F p. 80), and every MOVPAK count is a digit count, so the
+      // renderer would write past the field (RT-5).
+      _unruled('an edited field with an S position (RT-5)');
+    }
+    return shape;
+  }
 
   /// TARGET-SIGN-CONVENTION, the control word's tag ([J 90.02.17]
   /// Note 2's seven values).

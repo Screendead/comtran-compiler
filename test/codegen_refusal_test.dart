@@ -1158,6 +1158,46 @@ void main() {
         'an edited fetch of more than 10 digits (RT-4)',
       );
     });
+
+    test('an edited field with an S position', () {
+      expect(
+        _refuses(
+          ['            MOVE EXT TO SEDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'SEDT', level: '1', description: '88S.99'),
+          ],
+        ),
+        'an edited field with an S position (RT-5)',
+      );
+    });
+
+    test('an edited field with a suppression character behind its run', () {
+      expect(
+        _refuses(
+          ['            MOVE EXT TO TAILEDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'TAILEDT', level: '1', description: '999.88'),
+          ],
+        ),
+        'an edited field with a suppression character behind its leading '
+        'run (RT-5)',
+      );
+    });
+
+    test('an edited field with irregular comma grouping', () {
+      expect(
+        _refuses(
+          ['            MOVE EXT TO ODDEDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'ODDEDT', level: '1', description: '99,99,99'),
+          ],
+        ),
+        'an edited field with irregular comma grouping (RT-5)',
+      );
+    });
   });
 
   group('the B7 refusal site (M4-6)', () {

@@ -451,10 +451,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      top-level pair before the pairs inside a matched group (statement
      221's attested unit order) — and a MOVPAK kill of the register
      cache defers to the expansion's end (statement 221's chain against
-     statement 220's reload). **Item (d) of the chunk B2 amendment below
-     replaces "breadth-first" with the full order**, because that word
-     named the levels and did not say how two pairs at one level break a
-     tie.
+     statement 220's reload). **Item (d) below replaces "breadth-first"
+     with the full order**: that word named the levels only.
   5. **Multiple targets**: one independent sequence per target, no shared
      setup (attested at statement 188's two receivers; D4.8's store
      independence is the same rule on SET).
@@ -488,7 +486,6 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   a. **The octal comes from the emulator's table.**
      `lib/src/codegen/encode.dart` imports `decode.dart` and states no
      operation code of its own, so the OCTAL column has one authority.
-     `test/encode_test.dart` asserts the two directions entry by entry.
   b. **A guard sits at the word that uses its operand**, not ahead of
      the sequence. The NET sentence pins it: the guard for
      `1)BONDEDUCTION` sits at LOC 00727, between the fifth `SUB` and
@@ -511,12 +508,14 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      and `MPY` the left. Three sites attest it: `LDQ CP)+6 /
      MPY 3)HOURS`, `LDQ 1)RATE,1 / MPY 3)HOURS`, and `LDQ CP)+12 /
      MPY EXEMPTIONS,1`.
-  f. **Six more shapes refuse**, each legal COMTRAN the sample never
+  f. **Nine more shapes refuse**, each legal COMTRAN the sample never
      reaches, each throwing `UnrecoveredShape` under M4-2 as amended.
      `test/codegen_refusal_test.dart` pins one program per site. Three
-     other conditions cannot arise; the code asserts them. The sixth,
-     added 2026-09-06, is an external-decimal convert past 10 digits
-     (`runtime.md` RT-4).
+     other conditions cannot arise; the code asserts them. Four came on
+     2026-09-06: an external-decimal convert past 10 digits
+     (`runtime.md` RT-4), and three edited targets no control word
+     carries — an `S` position, a suppression character behind the
+     leading run, and irregular comma grouping (RT-5).
 
   Items (d) and (e) are underdetermined. Both are `DECIDED` under the
   section 12 standing rule, and `review/2026-08-16-m4-b2-underdetermined`
