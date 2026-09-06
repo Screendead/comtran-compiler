@@ -1,6 +1,9 @@
 /// The machine assembly (RT-1): the dispatch rule, the step budget, the
-/// 1962 sample at the runtime boundary, and one program run end to end.
+/// 1962 sample at the runtime boundary, one program run end to end, and
+/// the `--run` flag that carries it to the command line.
 library;
+
+import 'dart:io';
 
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
@@ -86,9 +89,10 @@ void main() {
       expect(machine.program.origin, Machine.programOrigin);
       expect(machine.program.entry, Machine.programOrigin + _octal('165'));
       expect(machine.state.ic, machine.program.entry);
-      // The sample opens all files, then moves data: the second entry
-      // it reaches is a MOVPAK member. The boundary moves to IOC)8 once
-      // MOVPAK lands (M4-17).
+      // The sample calls open-all, which finds an empty list while M5
+      // owns IOC)1 (RT-2), then moves data: the second entry it reaches
+      // is a MOVPAK member. The boundary moves to IOC)8 once MOVPAK
+      // lands (M4-17).
       expect(
         () => machine.run(maxSteps: 1000),
         throwsA(
@@ -99,6 +103,17 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('comtranc --run fails on the entry M4 lacks', () {
+      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
+        'run',
+        'comtran:comtranc',
+        jobDeckPath,
+        '--run',
+      ]);
+      expect(run.exitCode, 1);
+      expect(run.stderr, contains('error: job 1: unimplemented runtime entry'));
     });
   });
 
@@ -117,6 +132,25 @@ void main() {
       // `SET TOT = NUM + 1` generates CLA, ADD, STO with no MOVPAK, and
       // NUM's reserved cell reads +0 (ED-6).
       expect(machine.state.read(Machine.programOrigin + total.location!), 1);
+    });
+
+    test('comtranc --run prints the display after the listing', () {
+      final Directory directory = Directory.systemTemp.createTempSync(
+        'comtran-run',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final path = '${directory.path}/set.ctd';
+      File(
+        path,
+      ).writeAsBytesSync(encodeCanon(mirrorToDeck('${_source.join('\n')}\n')));
+      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
+        'run',
+        'comtran:comtranc',
+        path,
+        '--run',
+      ]);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(run.stdout, contains('AT 4,00 STOP RUN'));
     });
   });
 }

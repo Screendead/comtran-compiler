@@ -26,8 +26,8 @@ Map<int, RuntimeEntry> runFrame(Machine machine) => <int, RuntimeEntry>{
 
 /// SYS)175 open-all and SYS)177 close-all ([J 90.02.14]). The one
 /// parameter word locates IOC)1, the cell `PZE L,,N` whose decrement
-/// counts the files ([J 90.02.10]). A program with no files has nothing
-/// to open and nothing to close.
+/// counts the files ([J 90.02.10]). An empty list has nothing to open
+/// and nothing to close.
 RunOutcome? _files(Machine machine, int number) {
   final int header = machine.state.read(Word36.address(machine.parameter(1)));
   final int count = Word36.decrement(header);

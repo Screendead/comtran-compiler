@@ -31,6 +31,9 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
   --explain          after compiling, print each job's diagnostics to
                       stderr, one per line; the listing on stdout is
                       unchanged
+  --run              load each job's object deck and run it, printing
+                      the object program's display lines after its
+                      listing (D0.3)
   --emit-cards[=PATH]
                       write the whole deck's card images, in the .ct
                       mirror form (D0.5)
@@ -60,6 +63,12 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
                       writes `payroll.parse`.
   --version          print the version and exit
 ''';
+
+/// The `--run` step budget: instructions and runtime entries together.
+/// A program still running here is looping, which is a reproduced
+/// result and not a diagnostic (D5.1 as amended;
+/// `docs/design/runtime.md` RT-1).
+const int _stepBudget = 1000000;
 
 /// The stage names `--emit-<stage>[=<path>]` accepts
 /// (`docs/design/emit-stages.md`).
@@ -109,6 +118,7 @@ int _run(List<String> arguments) {
   var pedantic = false;
   var tableLimits = true;
   var explain = false;
+  var run = false;
   // A null path means the default, resolved once the deck path is
   // known.
   final emitPaths = <String, String?>{};
@@ -134,6 +144,8 @@ int _run(List<String> arguments) {
       tableLimits = false;
     } else if (argument == '--explain') {
       explain = true;
+    } else if (argument == '--run') {
+      run = true;
     } else if (argument == '--emit-all') {
       for (final String stage in _emitStages) {
         emitPaths[stage] = null;
@@ -225,7 +237,7 @@ int _run(List<String> arguments) {
     final StringBuffer? object = emitPaths.containsKey('object')
         ? StringBuffer()
         : null;
-    var refused = false;
+    var failed = false;
     for (final (int index, JobCompilation job) in deck.jobs.indexed) {
       final ({String text, int pages}) page = writeListing(
         job.frontEnd,
@@ -270,8 +282,11 @@ int _run(List<String> arguments) {
         // The refusal is this compiler's, not the program's, so it
         // prints as an error of the tool and never as a line of the
         // 1962 listing (M4-2 as amended).
-        refused = true;
+        failed = true;
         stderr.writeln('error: job ${index + 1}: ${job.unrecovered}');
+      }
+      if (run) {
+        failed |= !_runObjectProgram(job, options, index + 1);
       }
     }
     // A stopped job still dumps every stage it reached (D10.2): the
@@ -289,7 +304,7 @@ int _run(List<String> arguments) {
     }
     // Severity 5 stops a job (J 90.04.02); lower severities still
     // produce output. A refusal fails the run the same way.
-    return deck.maxSeverity >= 5 || refused ? 1 : 0;
+    return deck.maxSeverity >= 5 || failed ? 1 : 0;
   } on StopCompilation {
     // Every phase catches its own stop and returns partial results;
     // this net keeps a stop from any future phase from crashing the
@@ -302,6 +317,27 @@ int _run(List<String> arguments) {
     stderr.writeln('error: ${e.message}: ${e.path}');
     return 1;
   }
+}
+
+/// Runs job [number]'s object program and prints its display lines
+/// (D0.3; `docs/design/runtime.md` RT-1). Returns false when the run
+/// reached a runtime entry the machine assembly does not implement. A
+/// job with no punched deck runs nothing and fails nothing.
+bool _runObjectProgram(JobCompilation job, ListingOptions options, int number) {
+  final JobDeck? punched = jobDeck(job, options);
+  if (punched == null) {
+    return true;
+  }
+  try {
+    final RunResult result = Machine.load(
+      punched.cards,
+    ).run(maxSteps: _stepBudget);
+    result.display.forEach(stdout.writeln);
+  } on UnimplementedRuntimeEntry catch (e) {
+    stderr.writeln('error: job $number: $e');
+    return false;
+  }
+  return true;
 }
 
 /// Writes one `--emit` dump. [render] runs only for a requested dump, so
