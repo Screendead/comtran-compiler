@@ -511,15 +511,16 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      and `MPY` the left. Three sites attest it: `LDQ CP)+6 /
      MPY 3)HOURS`, `LDQ 1)RATE,1 / MPY 3)HOURS`, and `LDQ CP)+12 /
      MPY EXEMPTIONS,1`.
-  f. **Five more shapes refuse**, each legal COMTRAN the sample never
+  f. **Six more shapes refuse**, each legal COMTRAN the sample never
      reaches, each throwing `UnrecoveredShape` under M4-2 as amended.
      `test/codegen_refusal_test.dart` pins one program per site. Three
-     other conditions cannot arise; the code asserts them.
+     other conditions cannot arise; the code asserts them. The sixth,
+     added 2026-09-06, is an external-decimal convert past 10 digits
+     (`runtime.md` RT-4).
 
-  Items (d) and (e) are underdetermined: one sample attests each, and
-  other formulations agree with it. Both are taken under the section
-  12 standing rule and recorded `DECIDED`, with the formulations they
-  beat, on branch `review/2026-08-16-m4-b2-underdetermined`.
+  Items (d) and (e) are underdetermined. Both are `DECIDED` under the
+  section 12 standing rule, and `review/2026-08-16-m4-b2-underdetermined`
+  holds the formulations they beat.
 
 ## SET and arithmetic
 
@@ -610,10 +611,11 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      convert leaves the accumulator, so the park is `STO`.
 
   `RIR`, `SIR` and `RFT` print M4-8's fourth OCTAL rendering, so
-  `encode.dart` gives them a word form of their own. Two shapes refuse
-  beside the three named above — a scale alignment of a sub-chain, and a
-  product of a product — and `test/codegen_refusal_test.dart` pins one
-  program per site. Items (b), (d) and (e) are underdetermined, and
+  `encode.dart` gives them a word form of their own. Three shapes refuse
+  beside the three named above — a scale alignment of a sub-chain, a
+  product of a product, and, from 2026-09-06, an edited ADD source past
+  10 digits — and `test/codegen_refusal_test.dart` pins one program per
+  site. Items (b), (d) and (e) are underdetermined, and
   `review/2026-08-16-m4-b3-underdetermined` holds the formulations they
   beat.
 ## IF and WHEN
@@ -982,9 +984,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   - **(c) LOC 01327 (PDF p. 212) — confirmed as printed.** The word is
     `TRA SYS)267,0,0`, octal `0020 00 0 00413`, inside a SYS)180
     sequence where every parallel site prints `TXI SYS)267,1,n`. The
-    ink is unambiguous, so the listing reproduces it byte for byte. The
-    execution reading waits for M6, when the sample first runs; the
-    finding amends this entry.
+    ink is unambiguous, so the listing reproduces it byte for byte.
+    `runtime.md` RT-3 holds the execution reading.
   - **(d) LOC 00702 (PDF p. 206) — confirmed verbatim.** The label-only
     `GN)075` line, the out-of-order `GN)088 EQU CP)+37` line between it
     and the instruction, and the unlabeled `AXT GN)086,4` word printing

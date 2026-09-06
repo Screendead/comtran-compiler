@@ -1120,6 +1120,46 @@ void main() {
     });
   });
 
+  group('the stage-4 refusal sites (M4-9, M4-10)', () {
+    test('an external-decimal convert of more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            MOVE WIDEE TO WIDEI.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'WIDEE',
+              level: '1',
+              mode: 'E',
+              description: '99999999999',
+            ),
+            dataCard(
+              name: 'WIDEI',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '99999999999',
+            ),
+          ],
+        ),
+        'an external-decimal convert of more than 10 digits (RT-4)',
+      );
+    });
+
+    test('an edited fetch of more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            ADD WIDEDT TO NUM.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'WIDEDT', level: '1', description: '88888888899.99'),
+          ],
+        ),
+        'an edited fetch of more than 10 digits (RT-4)',
+      );
+    });
+  });
+
   group('the B7 refusal site (M4-6)', () {
     test('a table base ahead of address zero', () {
       // A repeated group opening the program puts its member at word

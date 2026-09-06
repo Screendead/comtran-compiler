@@ -2017,6 +2017,12 @@ final class _Text {
           targetSubscripted: targetSubscripted,
         );
       case (FieldClass.externalDecimal, FieldClass.internalDecimal):
+        if (_sem(source).doublePrecision || _sem(target).doublePrecision) {
+          // The convert parks with one `STO`, which stores the
+          // accumulator alone, and no unsealed source fixes the AC-MQ
+          // split radix (`docs/design/runtime.md` RT-4).
+          _unruled('an external-decimal convert of more than 10 digits (RT-4)');
+        }
         _setup(source, subscripted: sourceSubscripted, target: false);
         _tsx(182);
         _txi(184, _sem(source).digits); // The complete call ([J 90.02.16]).
@@ -2526,6 +2532,10 @@ final class _Text {
   /// runs already read it, and `TARGET-DECIMAL-NUMERIC-LENGTH` because
   /// the register receives exactly those digits (notes 6.2 item 18).
   void _editedFetch(DataItem source) {
+    if (_sem(source).doublePrecision) {
+      // The park is one `STO` as well (`docs/design/runtime.md` RT-4).
+      _unruled('an edited fetch of more than 10 digits (RT-4)');
+    }
     final int digits = _sem(source).digits;
     _tsx(182);
     _txi(268, 1);
