@@ -134,8 +134,9 @@ handler moves words inside core (`runtime.md` RT-1).
 
   A host file attaches by unit. `comtranc --run` takes a directory and
   looks in it for one image per unit, so UNIT1 `D1` reads and writes
-  `D1.tap`. With no directory named, every file opens on an empty tape,
-  which is what the run does today. With a directory named, a declared
+  `D1.tap`. With no directory named, a file has no host image: it opens,
+  it closes without writing, and the run behaves as it does today. With
+  a directory named, a declared
   input file whose image is absent ends the run with a message. A silent
   empty tape would print a wrong report.
 
