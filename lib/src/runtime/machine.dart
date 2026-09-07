@@ -1,6 +1,6 @@
 /// The machine assembly (M4-17; `docs/design/runtime.md` RT-1): the CPU
-/// core, one loaded object program, and the SYS)/IOC) dispatch table
-/// under both.
+/// core, one loaded object program, the run's file table, and the
+/// SYS)/IOC) dispatch table over all three.
 ///
 /// The runtime library is not object code here. Every entry is a Dart
 /// handler at the address the loader resolved its reference to (D0.3),
@@ -8,6 +8,8 @@
 /// [Machine.programOrigin] is a runtime entry, and every address above
 /// it is the program's own text.
 library;
+
+import 'dart:io';
 
 import '../cards/card_image.dart';
 import '../emulator/cpu.dart';
@@ -37,8 +39,12 @@ enum RunOutcome {
 /// to give control back to the program.
 typedef RuntimeEntry = RunOutcome? Function();
 
+/// A fault that ends a run and carries its own message. `comtranc --run`
+/// catches this one type and prints the message as its diagnostic.
+sealed class RunFault implements Exception {}
+
 /// A runtime entry the machine assembly does not implement.
-final class UnimplementedRuntimeEntry implements Exception {
+final class UnimplementedRuntimeEntry implements RunFault {
   UnimplementedRuntimeEntry(this.number, [this.detail]);
 
   /// The system reference number the entry resolved from.
@@ -58,6 +64,64 @@ final class UnimplementedRuntimeEntry implements Exception {
       : 'unimplemented runtime entry $name: $detail';
 }
 
+/// A tape image an input file needs and the host directory does not
+/// hold. The fault is the environment's and not the program's, so no
+/// [J 90.04] diagnostic covers it (M5-3).
+final class MissingTapeImage implements RunFault {
+  MissingTapeImage(this.file, this.path);
+
+  /// The name on the `*FILE` card.
+  final String file;
+
+  /// Where the machine looked.
+  final String path;
+
+  @override
+  String toString() => 'no tape image for input file $file at $path';
+}
+
+/// A `*FILE` card whose shape has no run, which open-all refuses
+/// (M5-3). Three shapes reach it: a direction column that is not `I`,
+/// `T` or `P`, a file with no unit, and two files on one unit. The last
+/// two reach it only in a run that named a tape directory.
+final class UnrunnableFile implements RunFault {
+  UnrunnableFile(this.file, this.fault);
+
+  /// The name on the `*FILE` card.
+  final String file;
+
+  /// What about the file has no run.
+  final String fault;
+
+  @override
+  String toString() => 'no run for file $file: $fault';
+}
+
+/// One file of the run's file table: the control block open-all and
+/// close-all keep for one `*FILE` card (M5-3).
+final class RuntimeFile {
+  RuntimeFile(this.host);
+
+  /// The host tape image, or `null` when the run named no tape
+  /// directory.
+  final File? host;
+
+  bool open = false;
+}
+
+/// A tape mark, the record length zero that ends a file (M5-2).
+const List<int> _tapeMark = <int>[0, 0, 0, 0];
+
+/// Whether [file] is an input file. Column 28 of the `*FILE` card holds
+/// `I` for input, and `T` or `P` for output ([J 90.08.01]).
+bool _input(LoaderFile file) => file.type == 'I';
+
+/// Whether column 28 of [file] names one of the three directions
+/// ([J 90.08.01]). Our generator leaves it blank for a checkpoint file
+/// ([J 02.06.03]).
+bool _directed(LoaderFile file) =>
+    const <String>{'I', 'T', 'P'}.contains(file.type);
+
 /// What one run produced.
 final class RunResult {
   const RunResult({required this.outcome, required this.display});
@@ -72,20 +136,38 @@ final class RunResult {
 final class Machine {
   /// Writes [program] into a fresh [MachineState] and enters at its
   /// entry point (D2.1). A cell no word was placed in reads +0 (ED-6).
-  Machine(this.program) {
+  ///
+  /// The file table takes one control block per `*FILE` card, and a
+  /// file's host image is `<tapes>/<UNIT1>.tap`. With no [tapes]
+  /// directory every file runs with no host image (M5-3).
+  ///
+  /// Cell 1 is IOC)1, and the machine seeds it because no word of the
+  /// object deck writes it. The address field stays zero: the file list
+  /// itself is Dart's, and no compiled word dereferences it (M5-3).
+  Machine(this.program, {Directory? tapes})
+    : files = <RuntimeFile>[
+        for (final LoaderFile file in program.files)
+          RuntimeFile(
+            tapes == null ? null : File('${tapes.path}/${file.unit1}.tap'),
+          ),
+      ] {
     program.words.forEach(state.write);
-    state.ic = program.entry;
+    state
+      ..write(1, pzeWord(decrement: program.files.length))
+      ..ic = program.entry;
   }
 
   /// Loads [objectDeck] at [programOrigin], resolving every system
   /// reference to its own 15-bit code (RT-1).
-  factory Machine.load(List<CardImage> objectDeck) => Machine(
-    loadDeck(
-      objectDeck,
-      resolve: (SystemReference reference) => reference.code,
-      origin: programOrigin,
-    ),
-  );
+  factory Machine.load(List<CardImage> objectDeck, {Directory? tapes}) =>
+      Machine(
+        loadDeck(
+          objectDeck,
+          resolve: (SystemReference reference) => reference.code,
+          origin: programOrigin,
+        ),
+        tapes: tapes,
+      );
 
   /// The first address above the runtime area. The 15-bit codes run 0
   /// to 4095: a system reference at its own number, a file reference at
@@ -94,6 +176,10 @@ final class Machine {
 
   final LoadedProgram program;
   final MachineState state = MachineState();
+
+  /// The run's files, in `*FILE` card order, so file ordinal k is
+  /// `files[k - 1]` (M5-3).
+  final List<RuntimeFile> files;
 
   final List<String> _display = [];
   late final Cpu _cpu = Cpu(state);
@@ -113,6 +199,69 @@ final class Machine {
     state.ic = (k - state.xrRead(4)) & Word36.fieldMask15;
   }
 
+  /// Opens the first [count] files of the table, which SYS)175 reads
+  /// from IOC)1 (RT-2). An output file's host image is created or
+  /// truncated, and an input file's host image must already exist.
+  ///
+  /// A refused run leaves every image as it found it.
+  ///
+  /// Throws [UnrunnableFile] for a file shape that has no run, and
+  /// [MissingTapeImage] for an input file the host directory does not
+  /// hold.
+  void openFiles(int count) {
+    final taken = <String>{};
+    for (var i = 0; i < count; i++) {
+      final LoaderFile declaration = program.files[i];
+      if (!_directed(declaration)) {
+        throw UnrunnableFile(
+          declaration.name,
+          'its direction column is not I, T or P',
+        );
+      }
+      final File? host = files[i].host;
+      if (host == null) {
+        continue;
+      }
+      if (declaration.unit1.isEmpty) {
+        throw UnrunnableFile(declaration.name, 'it names no unit');
+      }
+      if (!taken.add(declaration.unit1)) {
+        throw UnrunnableFile(
+          declaration.name,
+          'another file already holds unit ${declaration.unit1}',
+        );
+      }
+      if (_input(declaration) && !host.existsSync()) {
+        throw MissingTapeImage(declaration.name, host.path);
+      }
+    }
+    for (var i = 0; i < count; i++) {
+      final File? host = files[i].host;
+      if (host != null && !_input(program.files[i])) {
+        host.writeAsBytesSync(const <int>[]);
+      }
+      files[i].open = true;
+    }
+  }
+
+  /// Closes the first [count] files, which SYS)177 reads from IOC)1
+  /// (RT-2). Each open output file takes one tape mark. A file that is
+  /// already closed closes quietly, because the sample's STOP RUN emits
+  /// a second close-all after its own (M5-4).
+  void closeFiles(int count) {
+    for (var i = 0; i < count; i++) {
+      final RuntimeFile file = files[i];
+      if (!file.open) {
+        continue;
+      }
+      final File? host = file.host;
+      if (host != null && !_input(program.files[i])) {
+        host.writeAsBytesSync(_tapeMark, mode: FileMode.append);
+      }
+      file.open = false;
+    }
+  }
+
   /// Prints one line on the on-line printer ([J 05.06.04]).
   void display(String line) {
     _display.add(line);
@@ -125,8 +274,9 @@ final class Machine {
   /// runtime entry counts as one step, so a program that only calls
   /// handlers is bounded too.
   ///
-  /// Throws [UnimplementedRuntimeEntry] when control reaches a runtime
-  /// address with no handler, and every exception the CPU throws (§7 of
+  /// Throws a [RunFault], from the dispatcher when control reaches a
+  /// runtime address with no handler and from a handler that refuses
+  /// its call, and every exception the CPU throws (§7 of
   /// `docs/design/emulator.md`).
   RunResult run({required int maxSteps}) {
     RunOutcome? outcome;

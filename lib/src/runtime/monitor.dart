@@ -3,9 +3,11 @@
 /// the base-locator guard, and the monitor's end-of-job return point
 /// ([J 90.02.09]; [J 90.02.14]; [J 90.02.33]).
 ///
-/// The communication cells SYS)132, SYS)133, IOC)1 and IOC)29 need no
-/// handler: they are memory, and generated code reads and writes them
-/// with ordinary instructions ([J 90.02.08] to [J 90.02.11]).
+/// The communication cells SYS)132, SYS)133 and IOC)29 need no handler:
+/// they are memory, and generated code reads and writes them with
+/// ordinary instructions ([J 90.02.08] to [J 90.02.11]). IOC)1 is
+/// memory the machine seeds at load, because no generated word writes
+/// it (M5-3).
 library;
 
 import '../chars/char_code.dart';
@@ -18,8 +20,8 @@ Map<int, RuntimeEntry> runFrame(Machine machine) => <int, RuntimeEntry>{
   // "The end of job return point in the CT Monitor communication area
   // for all CT jobs" ([J 90.02.09]), entered by `TXI IOC)40,0`.
   40: () => RunOutcome.endOfJob,
-  175: () => _files(machine, 175),
-  177: () => _files(machine, 177),
+  175: () => _files(machine, open: true),
+  177: () => _files(machine, open: false),
   178: () => _stop(machine),
   294: () => _baseLocator(machine),
 };
@@ -28,11 +30,13 @@ Map<int, RuntimeEntry> runFrame(Machine machine) => <int, RuntimeEntry>{
 /// parameter word locates IOC)1, the cell `PZE L,,N` whose decrement
 /// counts the files ([J 90.02.08]). An empty list has nothing to open
 /// and nothing to close.
-RunOutcome? _files(Machine machine, int number) {
+RunOutcome? _files(Machine machine, {required bool open}) {
   final int header = machine.state.read(Word36.address(machine.parameter(1)));
   final int count = Word36.decrement(header);
-  if (count != 0) {
-    throw UnimplementedRuntimeEntry(number, 'a file list of $count (M5)');
+  if (open) {
+    machine.openFiles(count);
+  } else {
+    machine.closeFiles(count);
   }
   machine.resume(2);
   return null;

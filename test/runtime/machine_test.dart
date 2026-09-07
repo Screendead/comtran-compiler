@@ -102,12 +102,15 @@ final List<String> _guard = <String>[
   '      *FINISH',
 ];
 
+/// Compiles the 90.05 job deck with [options].
+ProcessResult _compileSample(List<String> options) => Process.runSync(
+  Platform.resolvedExecutable,
+  ['run', 'comtran:comtranc', jobDeckPath, ...options],
+);
+
 /// Punches [source] into a temporary deck and compiles it with `--run`.
 ProcessResult _compileAndRun(List<String> source) {
-  final Directory directory = Directory.systemTemp.createTempSync(
-    'comtran-run',
-  );
-  addTearDown(() => directory.deleteSync(recursive: true));
+  final Directory directory = tempDirectory('comtran-run');
   final path = '${directory.path}/job.ctd';
   File(
     path,
@@ -174,10 +177,11 @@ void main() {
       expect(subject.program.origin, Machine.programOrigin);
       expect(subject.program.entry, Machine.programOrigin + octal('165'));
       expect(subject.state.ic, subject.program.entry);
-      // The sample calls open-all, which finds an empty file list while
-      // M5 owns IOC)1 (RT-2), fills its work areas through MOVPAK, and
-      // then reads its first record. IOC)8 is the GET, and it is the M4
-      // to M5 boundary (M4-17).
+      // IOC)1 counts the seven FILE cards of the sample (M5-3).
+      expect(Word36.decrement(subject.state.read(1)), 7);
+      // The sample calls open-all, fills its work areas through MOVPAK,
+      // and then reads its first record. IOC)8 is the GET, and it is
+      // the M5 stage 1 to stage 2 boundary (M4-17).
       expect(
         () => subject.run(maxSteps: 1000),
         throwsA(
@@ -188,17 +192,49 @@ void main() {
           ),
         ),
       );
+      expect(subject.files, hasLength(7));
+      expect(
+        subject.files.map((RuntimeFile file) => file.open),
+        everyElement(isTrue),
+      );
+    });
+
+    test('a declared input file needs its tape image', () {
+      final Directory tapes = tempDirectory('comtran-tapes');
+      final ProcessResult run = _compileSample([
+        '--run',
+        '--tapes=${tapes.path}',
+      ]);
+      expect(run.exitCode, 1);
+      expect(
+        run.stderr,
+        contains(
+          'error: job 1: no tape image for input file INPUTMASTER at '
+          '${tapes.path}/D1.tap',
+        ),
+      );
     });
 
     test('comtranc --run fails on the entry M4 lacks', () {
-      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
-        'run',
-        'comtran:comtranc',
-        jobDeckPath,
-        '--run',
-      ]);
+      final ProcessResult run = _compileSample(['--run']);
       expect(run.exitCode, 1);
       expect(run.stderr, contains('error: job 1: unimplemented runtime entry'));
+    });
+  });
+
+  group('the --tapes directory', () {
+    test('an empty path is a usage error', () {
+      final ProcessResult run = _compileSample(['--run', '--tapes=']);
+      expect(run.exitCode, 2);
+      expect(run.stderr, startsWith('Usage:'));
+    });
+
+    test('a directory that is not there names itself', () {
+      final missing = '${tempDirectory('comtran-tapes').path}/gone';
+      final ProcessResult run = _compileSample(['--run', '--tapes=$missing']);
+      expect(run.exitCode, 2);
+      expect(run.stdout, isEmpty);
+      expect(run.stderr, 'error: no tape directory at $missing\n');
     });
   });
 

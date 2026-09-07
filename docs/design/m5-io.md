@@ -61,10 +61,10 @@ handler moves words inside core (`runtime.md` RT-1).
   | 2 | GET: IOC)8, the buffer, the locate-mode pointer the `IOCTN*` word names, AT END, and the two error entries the sequence names. |
   | 3 | FILE: IOC)9, the `IOST` word, blocking, and the printer file. The sample reaches end of job and prints its report. |
 
-  The stage boundary is the file, not the verb. Stage 1 opens and closes
-  every file the sample declares and reads none of them. The sample still
-  stops at its first GET when stage 1 lands. The boundary test then reads
-  a file list of seven where it reads empty today.
+  The stage boundary is the file, not the verb. Stage 1 builds open-all
+  and close-all, and reads no file. The sample reaches open-all only,
+  because it still stops at its first GET when stage 1 lands. The
+  boundary test reads a file list of seven.
 
 ## The tape image
 
@@ -134,18 +134,26 @@ handler moves words inside core (`runtime.md` RT-1).
 
   A host file attaches by unit. `comtranc --run` takes a directory and
   looks in it for one image per unit, so UNIT1 `D1` reads and writes
-  `D1.tap`. With no directory named, a file has no host image: it opens,
-  it closes without writing, and the run behaves as it does today. With
-  a directory named, a declared
-  input file whose image is absent ends the run with a message. A silent
-  empty tape would print a wrong report.
+  `D1.tap`. An empty path is a usage error, and a directory that is not
+  there is an error the compiler names before it compiles. With no
+  directory named, a file has no host image: it opens, it closes
+  without writing, and the run behaves as it does today. With a
+  directory named, a declared input file whose image is absent ends the
+  run with a message. A silent empty tape would print a wrong report.
 
-  **Two file shapes have no run, and open-all refuses both.** A file
-  whose direction column is not `I`, `T` or `P` is the first. Our
-  generator punches that column blank for CHECKPOINT ([J 02.06.03]), and
-  no record says what a checkpoint file opens. A file with no unit is
-  the second. Its image path would be the bare suffix, and two such
-  files would share one image.
+  **Three file shapes have no run, and open-all refuses each one.
+  Ours.** A file whose direction column is not `I`, `T` or `P` is the
+  first. Our generator punches that column blank for CHECKPOINT
+  ([J 02.06.03]), and no record says what a checkpoint file opens. A
+  file with no unit is the second. Its image path would be the bare
+  suffix, and two such files would share one image. Two files on one
+  unit is the third. Open-all opens the whole list at once, so the two
+  files take one image, and the second open truncates what the first
+  wrote. The card gives one file two units, UNIT1 and UNIT2
+  ([J 90.08.01]). No card gives one unit two files. Open-all refuses the
+  second shape and the third only in a run that named a tape directory.
+  Without a directory a file has no host image, and no two files
+  collide.
 
 ## Open all and close all
 
@@ -239,3 +247,4 @@ handler moves words inside core (`runtime.md` RT-1).
 [J 90.02.28]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.32]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.05.03]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#1-data-description-1
+[J 90.08.01]: ../../comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md#appendix-9008

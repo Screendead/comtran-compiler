@@ -105,10 +105,3 @@ int typeAWord(Op op, {int tag = 0, int decrement = 0, int address = 0}) =>
     ((decrement & Word36.fieldMask15) << 18) |
     ((tag & 7) << 15) |
     (address & Word36.fieldMask15);
-
-/// A `PZE` address word: prefix zero, and the fields the calling
-/// sequence carries ([J 90.02.14]).
-int pzeWord({int decrement = 0, int tag = 0, int address = 0}) =>
-    ((decrement & Word36.fieldMask15) << 18) |
-    ((tag & 7) << 15) |
-    (address & Word36.fieldMask15);
