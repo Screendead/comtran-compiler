@@ -11,9 +11,18 @@ instruction to merge is such a waiver. He named the reviewers and their
 configurations on 2026-08-16:
 
 - **Grok**, on grok.com, Expert mode.
-- **The Anthropic reviewer**, model Fable 5, maximum reasoning. Jack
-  calls this reviewer Cowork. Any chat surface that carries this model
-  and this effort satisfies the charter.
+- **The Anthropic reviewer**, the current Fable model at maximum
+  reasoning. Jack calls this reviewer Cowork. Any chat surface that
+  carries this model and this effort satisfies the charter.
+
+  **Amended 2026-09-07 on Jack's instruction.** The bullet named Fable
+  5 until then. That model fell back to Opus 4.8 in the middle of two
+  reviews of pull request #124, and both were voided. Jack then put the
+  reviewer on Fable 5.1 at maximum reasoning, for that loop and for the
+  loop after it. A version number in this bullet made every later
+  version a new grant. The bullet now names the current Fable model
+  instead. Rule 6 quotes his words of 2026-08-16 and is unchanged, and
+  it reads on the reviewer this bullet names.
 
 The reviewers apply the criteria of `REVIEW.md`. This file governs the
 process around them, and the orchestrator alone acts on it.
