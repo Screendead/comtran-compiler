@@ -1,10 +1,11 @@
-/// The control groups of a text card ([J 90.03.04]; M4-16): the 5-bit
-/// group of each object word, which the deck writer punches, the loader
-/// reads, and the listing prints as M4-8's CNTRL column.
+/// The control groups of a text card ([J 90.03.03] to 04; M4-16): the
+/// 5-bit group of each object word, which the deck writer punches, the
+/// loader reads, and the listing prints as M4-8's CNTRL column.
 ///
-/// The file imports nothing. The loader is the runtime's, so an import
-/// here would carry the code generator into every run of a compiled
-/// program.
+/// M4-16 charters the control groups as the deck's, and
+/// `../codegen/text_model.dart` scopes itself to the listing's SYMBOLIC
+/// column ([J 90.02.02]). The two vocabularies are different subjects
+/// that shared one file.
 library;
 
 /// A field's relocation class in a standard word's control group

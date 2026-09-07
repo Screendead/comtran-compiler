@@ -4,9 +4,11 @@
 /// `src/runtime/machine.dart` opens a tape file per unit.
 ///
 /// The barrel splits because `web/main.dart` compiles to WebAssembly
-/// (roadmap W1, `docs/HANDOVER.md`), and `dart:io` has no browser build.
-/// `comtran.dart` holds everything that compiles for a browser. Import
-/// this file instead wherever the program touches the file system.
+/// (roadmap W1, `docs/HANDOVER.md`). A browser build of `dart:io`
+/// compiles, and every operation throws when it runs, so a browser bundle
+/// must not carry these three libraries. `comtran.dart` holds everything a
+/// browser can run, and `test/web_compile_test.dart` holds the guard.
+/// Import this file instead wherever the program touches the file system.
 library;
 
 export 'comtran.dart';

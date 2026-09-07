@@ -24,10 +24,11 @@
 /// - `runtime/` — high-level-emulated SYS)/IOC) library, IOCS tape model
 ///                (M4–M5; D0.3, D0.7).
 ///
-/// This barrel compiles for a browser, so it omits the three exported
-/// libraries that need `dart:io`: `cards/deck_files.dart`,
-/// `mcp/deck_server.dart` and `runtime/machine.dart`. `comtran_io.dart`
-/// exports this file and those three.
+/// This barrel is the browser's half of the package. It omits the three
+/// exported libraries that need `dart:io` — `cards/deck_files.dart`,
+/// `mcp/deck_server.dart` and `runtime/machine.dart` — whose every
+/// operation throws in a browser. `comtran_io.dart` exports this file and
+/// those three, and `test/web_compile_test.dart` guards the omission.
 library;
 
 export 'src/ast/control_ast.dart';

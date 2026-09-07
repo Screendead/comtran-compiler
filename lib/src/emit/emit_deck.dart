@@ -1,10 +1,11 @@
-/// The `--emit-deck` and `--emit-loader` dumps (M4-19,
-/// `docs/design/emit-stages.md`): the punch-level object deck of every
-/// job, and the symbolic control cards of every job as text.
+/// The deck writer (LD-2) and the `--emit-deck` and `--emit-loader` dumps
+/// (M4-19, `docs/design/emit-stages.md`): [jobDeck] punches one job's
+/// cards; the dumps print the punch-level object deck of every job, and
+/// the symbolic control cards of every job as text.
 ///
-/// Both are attested forms. The deck is the [J 90.03] card image in the
-/// canon container (`docs/design/deck-format.md` section 2.3), so it
-/// carries no marker line: a job that produced no object program adds
+/// Both dumps are attested forms. The deck is the [J 90.03] card image
+/// in the canon container (`docs/design/deck-format.md` section 2.3), so
+/// it carries no marker line: a job that produced no object program adds
 /// no cards. The loader dump prints one `* JOB n` section per job with
 /// the cards' text, or the job's marker line (D10.2; M4-2 as amended).
 library;

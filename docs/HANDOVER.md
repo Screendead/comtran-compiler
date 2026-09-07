@@ -52,7 +52,7 @@ Terms that appear without expansion:
 | M4 decision walk (M4-1 to M4-21) | Done 2026-08-05 | `docs/design/m4-codegen.md` |
 | M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
 | M4 stage 2 — core-verb text | Done 2026-08-28. Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, done 2026-08-28 | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
-| M4 stage 3 — the object deck and the loader | Done 2026-08-30: the deck writer, our loader, `--emit-deck` and `--emit-loader`, and the object golden grown to the whole of PDF pp. 198–216 | `docs/design/loader.md`, `lib/src/loader/` |
+| M4 stage 3 — the object deck and the loader | Done 2026-08-30: the deck writer, our loader, `--emit-deck` and `--emit-loader`, and the object golden grown to the whole of PDF pp. 198–216 | `docs/design/loader.md`, `lib/src/loader/`, `lib/src/emit/emit_deck.dart` |
 | M4 stage 4 — the machine assembly | Done 2026-09-06: the machine, the run frame, the 23 reachable MOVPAK entries, and `--run` | `docs/design/runtime.md`, `lib/src/runtime/` |
 | M5 stage 1 — the file model | Done 2026-09-07: the file table, the IOC)1 seed, `--tapes`, and open-all over the sample's seven files. Close-all runs on a test program only: the sample stops at IOC)8 with all seven open | `docs/design/m5-io.md`, `lib/src/runtime/machine.dart` |
 | M5 stages 2 and 3, M6, M7 | Not started | — |
@@ -678,12 +678,13 @@ imports the libraries directly or splits the barrel in two.
 
 **Amended 2026-09-07. The barrel split landed.** `lib/comtran.dart` compiles
 for a browser, and `web/main.dart` imports it. `lib/comtran_io.dart` exports
-that barrel and the three exported libraries that need `dart:io`. The
-WebAssembly build in CI is the guard. `dart:io` has no browser build, so the
-build fails if `lib/comtran.dart` exports a library that needs it again. The
-count above is from 2026-08-10. Four files of the 78 in `lib/src/` import
-`dart:io` today: `cards/deck_files.dart`, the two `mcp/` files and
-`runtime/machine.dart`.
+that barrel and the three exported libraries that need `dart:io`. `dart compile
+wasm` compiles `dart:io`, and every operation throws when it runs. So the
+WebAssembly build catches no `dart:io` import. `test/web_compile_test.dart`
+holds the guard. It walks the imports and exports from `lib/comtran.dart`, and
+fails if a library it reaches imports `dart:io`. The count above is from
+2026-08-10. Four files of the 78 in `lib/src/` import `dart:io` today:
+`cards/deck_files.dart`, the two `mcp/` files and `runtime/machine.dart`.
 
 `editors/vscode-punchcard/media/punchcard.js` is already a browser punch grid,
 in 793 lines with 11 references to the editor API. W1 ports it. The column
