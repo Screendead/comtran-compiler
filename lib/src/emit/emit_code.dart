@@ -16,6 +16,7 @@ library;
 import '../codegen/codegen.dart';
 import '../codegen/text_model.dart';
 import '../driver/driver.dart';
+import '../loader/control_group.dart';
 import 'common.dart';
 
 /// Renders the assembly text of every job on [deck], in deck order.

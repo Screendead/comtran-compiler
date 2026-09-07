@@ -37,6 +37,7 @@ import '../lexer/procedure_lexer.dart';
 import '../lexer/reserved_words.dart';
 import '../lexer/source_card.dart';
 import '../lexer/token.dart';
+import '../loader/control_group.dart';
 import '../parser/parser.dart';
 import 'codegen_messages.dart';
 import 'control_cards.dart';

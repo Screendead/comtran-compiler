@@ -14,9 +14,9 @@ library;
 
 import '../cards/card_image.dart';
 import '../cards/text_codec.dart';
-import '../codegen/text_model.dart';
 import '../emulator/machine_state.dart';
 import '../emulator/word.dart';
+import 'control_group.dart';
 import 'object_deck.dart';
 
 /// A deck the loader cannot load, named for the report.

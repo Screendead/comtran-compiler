@@ -14,6 +14,7 @@ library;
 
 import '../data/data_map.dart';
 import '../lexer/diagnostic.dart';
+import '../loader/control_group.dart';
 import 'blocks.dart';
 import 'control_cards.dart';
 import 'image.dart';

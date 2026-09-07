@@ -9,6 +9,7 @@
 library;
 
 import '../listing/listing.dart';
+import '../loader/control_group.dart';
 import 'text_model.dart';
 
 /// Print columns, counted from the LOC column's first digit as zero.

@@ -78,6 +78,7 @@ export 'src/lexer/source_card.dart';
 export 'src/lexer/source_program.dart';
 export 'src/lexer/token.dart';
 export 'src/listing/listing.dart';
+export 'src/loader/control_group.dart';
 export 'src/loader/loader.dart';
 export 'src/loader/object_deck.dart';
 export 'src/mcp/deck_server.dart';

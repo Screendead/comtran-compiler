@@ -1,20 +1,10 @@
 /// The relative binary program deck ([J 90.03]; M4-16; LD-2): the
-/// columnar binary card, the text card's header, checksum and control
-/// groups, and the deck of one job — the symbolic control cards, then
-/// `*CTEXT`, the text section, `*CTEND`.
-///
-/// The text section is the only binary section punched: no debugging
-/// dictionary, no control break table, no file check table (D7.10).
+/// columnar binary card, and the text card's header, checksum and
+/// control groups.
 library;
 
-import 'dart:math' as math;
-
 import '../cards/card_image.dart';
-import '../cards/text_codec.dart';
 import '../chars/char_code.dart';
-import '../codegen/codegen.dart';
-import '../codegen/control_cards.dart';
-import '../codegen/text_model.dart';
 import '../emulator/word.dart';
 
 /// Data words per text card ([J 90.03.03]): the count the `*CTEND`
@@ -147,77 +137,3 @@ List<int> cardWords(CardImage card) => [
         (card.punchesAt(3 * i + 2) << 12) |
         card.punchesAt(3 * i + 3),
 ];
-
-/// One job's object deck.
-final class JobDeck {
-  const JobDeck({required this.symbolicCards, required this.cards});
-
-  /// The symbolic control cards' text, deck order, each with its
-  /// serial: the `*FILE` and `*SPEC` pairs, `*CTEXT`, then `*CTEND`.
-  final List<String> symbolicCards;
-
-  /// Every card of the deck, punch order.
-  final List<CardImage> cards;
-
-  /// The cards the loader-card page lists: every symbolic card before
-  /// the binary deck, `*CTEXT` last.
-  List<String> get cardsBeforeText =>
-      symbolicCards.sublist(0, symbolicCards.length - 1);
-
-  /// The `*CTEND` card, which the closing lines print.
-  String get lastCard => symbolicCards.last;
-}
-
-/// The deck of [codegen]: the control cards, `*CTEXT`, the text
-/// section at [textCardWords] words a card, `*CTEND` ([J 03.01.02]).
-///
-/// One serial counts every card of the deck, symbolic and binary alike,
-/// and punches as decimal digits ending at column 80: the sample's
-/// `*CTEXT` is card 15 and its `*CTEND` card 67, with 51 text cards
-/// between them (LD-2). The `$LOAD` card and the end-of-file card are
-/// not the compiler's ([J 03.01.02]).
-JobDeck objectDeck(
-  CodegenResult codegen, {
-  required String deckName,
-  required String secondaryIdentifier,
-  required String date,
-  required String time,
-}) {
-  final symbolic = <String>[];
-  final cards = <CardImage>[];
-  var serial = 0;
-  void symbolicCard(String text) {
-    serial++;
-    final line = '${text.padRight(72)}${serial.toString().padLeft(8)}';
-    symbolic.add(line);
-    cards.add(mirrorToDeck('$line\n').single);
-  }
-
-  String bracket(String name) => textBracketCard(
-    name,
-    deckName: deckName,
-    secondaryIdentifier: secondaryIdentifier,
-    date: date,
-    time: time,
-  );
-  codegen.controlCards.forEach(symbolicCard);
-  symbolicCard(bracket('*CTEXT'));
-  final entries = <({int word, int control})>[
-    for (final AssemblyUnit unit in codegen.units)
-      if (unit.word case final int word when unit.control != null)
-        (word: word, control: unit.control!),
-  ];
-  for (var first = 0, sequence = 0; first < entries.length; sequence++) {
-    final int last = math.min(first + textCardWords, entries.length);
-    serial++;
-    cards.add(
-      binaryCard(
-        textCard(sequence, entries.sublist(first, last)),
-        serial: '$serial',
-      ),
-    );
-    first = last;
-  }
-  symbolicCard(bracket('*CTEND'));
-  return JobDeck(symbolicCards: symbolic, cards: cards);
-}
