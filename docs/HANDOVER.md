@@ -106,14 +106,25 @@ into `MachineState` and enters at the entry point (LD-3). A labeled
 PROGRAM.START now names that entry point, and `GN)000` stays on the
 first procedure word (D2.1 as amended 2026-09-06).
 
-**The next task is M5, the I/O runtime.** It lands the IOCS entries
-M4-17 leaves: IOC)2 to 17, 29, 46, 53 and 54, and SYS)260 to 266, 283,
-and 286 to 296 less the landed 294. D0.7 sets the level. I/O is emulated
-at the IOCS level, and a tape file is a binary tape image. The card
-reader, the punch and the printer surface as files at the emulator
-boundary. D6.1 to D6.7 hold the I/O decisions M5 implements. The
-boundary test flips when IOC)8 gets its handler: the sample then runs
-past its first GET.
+**The next task is M5, the I/O runtime.** `docs/design/m5-io.md` holds
+its decisions, and M5-1 holds the stages. The milestone charters the
+IOCS entries M4-17 leaves. They are IOC)2 to 17, 29, 46, 53 and 54, and
+SYS)260 to 266, 283, and 286 to 296 less the landed 294. Our generator
+emits
+four of them. IOC)8 is READ, IOC)9 is WRITE, and SYS)260 and SYS)283
+stand in the decrements of the GET sequence. The rest wait for the
+code-generator shape that emits them (`runtime.md` RT-1).
+
+Every file the sample declares is a tape, so M5 builds one device
+first. Three stages, one pull request each:
+
+1. the file model — the tape image, the file table off the `*FILE` and
+   `*SPEC` cards, and open-all and close-all over a list of seven;
+2. GET — IOC)8, the buffer, locate mode, and AT END;
+3. FILE — IOC)9, blocking, and the four report tapes.
+
+The boundary test flips at stage 2: the sample then runs past its first
+GET.
 
 ### Codegen defects the runtime exposed
 
@@ -121,6 +132,18 @@ The stage-4 runtime made five codegen defects visible for the first
 time. None is fixed on the stage-4 branch, and each fix is a codegen
 change. Take them before M5 or beside it. Whether a site refuses the
 shape or handles it is Jack's call.
+
+**None of the five fires on the sample's own path. Measured 2026-09-07.**
+The sample declares no picture that holds an `S` or an asterisk. Every
+source and target on the two unaligned paths carries the same scale. The
+paths hold 25 internal-to-edited stores, three converts, and the one
+edited ADD source.
+Its three convert targets live in WORKING, which is no record, so defect 4
+has no site. M6 can therefore take the printed report as its oracle before
+any of the five is fixed. A correct fix must leave
+`test/goldens/90.05-payroll.code` byte for byte as it stands: a fix that
+moves it has changed the sample's path. The three divides at LOC 00424,
+01113 and 01142 split on digit count, not on scale, and must survive.
 
 1. **A MOVE does not align scales on two paths.** `_editedStore`
    (`lib/src/codegen/procedure.dart`:2163) compares digit counts alone,
@@ -549,7 +572,10 @@ PDF p. 217. It makes every milestone below testable at once.
   AT END and ON ERROR per Q41; labels per Q45 and Q46 at the M0-chosen fidelity;
   DISPLAY and report output.
 - **M6 — Acceptance**: compile and run the 90.05 payroll sample end to end, and
-  reproduce its printed report output (PDF p. 217). Then take a second corpus —
+  reproduce its printed report output (PDF p. 217). **The input data does
+  not survive.** The manual prints the report and not the master and
+  detail tapes behind it. M6 reconstructs both from the report and the
+  record descriptions (`docs/design/m5-io.md`, Open items). Then take a second corpus —
   F's payroll example with the documented F/J divergences applied (§9.8).
 - **M7 — The diff pass**: the seal ends when this milestone opens. Assemble the
   1963 processor, and diff our reconstruction against it. Each difference is one
