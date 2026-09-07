@@ -3,6 +3,8 @@
 /// MOVPAK dispatch every member case runs behind.
 library;
 
+import 'dart:io';
+
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
@@ -19,23 +21,47 @@ const int junkLocator = 0xFFF;
 
 /// A machine holding [words] at absolute addresses, entered at [start],
 /// with junk in the two index registers a MOVPAK call must not disturb
-/// or must clear (RT-3).
-Machine machine(Map<int, int> words) {
+/// or must clear (RT-3). [files] are the program's `*FILE` cards and
+/// [tapes] the directory their images sit in (M5-3).
+Machine machine(
+  Map<int, int> words, {
+  List<LoaderFile> files = const <LoaderFile>[],
+  Directory? tapes,
+}) {
   final built = Machine(
     LoadedProgram(
       deckName: '',
       origin: Machine.programOrigin,
       entry: start,
       words: words,
-      files: const <LoaderFile>[],
+      files: files,
       cardsRead: 0,
     ),
+    tapes: tapes,
   );
   built.state
     ..xrWrite(1, junkCount)
     ..xrWrite(2, junkLocator);
   return built;
 }
+
+/// One `*FILE` card of a test program: [type] is column 28, `I` for an
+/// input file and `P` for an output file ([J 90.08.01]), and [unit] is
+/// the UNIT1 the host image is named for (M5-3).
+LoaderFile loaderFile(
+  int number, {
+  required String type,
+  required String unit,
+}) => LoaderFile(
+  deckName: 'TEST',
+  number: number,
+  name: 'FILE$number',
+  type: type,
+  mode: 'D',
+  density: 'H',
+  unit1: unit,
+  unit2: '',
+);
 
 /// `TSX SYS)nnn,4`, the linkage of a MOVPAK entry ([J 90.02.14]).
 int tsx(int entry) => typeB(0x03C, address: entry, tag: 4);

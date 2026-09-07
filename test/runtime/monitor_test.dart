@@ -3,11 +3,27 @@
 /// emits.
 library;
 
+import 'dart:io';
+
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
 import '../emulator/asm.dart';
 import 'runtime_support.dart';
+
+/// The file-set calling sequences the sample compiles: open-all, then
+/// close-all for `CLOSE ALL FILES` and close-all again for STOP RUN
+/// (`test/goldens/90.05-payroll.code`:315 to 322; M5-4). Each entry
+/// takes one parameter word, `PZE IOC)1`.
+final Map<int, int> _openAndCloseTwice = <int, int>{
+  start: tsx(175),
+  start + 1: typeA(0, address: 1),
+  start + 2: tsx(177),
+  start + 3: typeA(0, address: 1),
+  start + 4: tsx(177),
+  start + 5: typeA(0, address: 1),
+  start + 6: endOfJob,
+};
 
 void main() {
   group('SYS)178, the STOP display (J 90.02.14)', () {
@@ -45,25 +61,60 @@ void main() {
       }
     });
 
-    test('a file in the list is M5', () {
-      final Machine subject = machine({
-        start: tsx(175),
-        start + 1: typeA(0, address: 1),
-        // IOC)1, the cell `PZE L,,N` ([J 90.02.08]), listing one file.
-        1: typeA(0, decrement: 1, address: start + 0x100),
-      });
-      expect(
-        () => subject.run(maxSteps: 2),
-        throwsA(
-          isA<UnimplementedRuntimeEntry>()
-              .having((UnimplementedRuntimeEntry e) => e.number, 'number', 175)
-              .having(
-                (UnimplementedRuntimeEntry e) => e.toString(),
-                'toString',
-                'unimplemented runtime entry SYS)175: a file list of 1 (M5)',
-              ),
-        ),
+    test('every file the cell counts opens, and closes again', () {
+      // No tape directory, so no file has a host image and the run is
+      // the one M4 stage 4 made (M5-3).
+      final Machine subject = machine(
+        _openAndCloseTwice,
+        files: <LoaderFile>[
+          loaderFile(1, type: 'I', unit: 'D1'),
+          loaderFile(2, type: 'P', unit: 'C1'),
+          loaderFile(3, type: 'P', unit: 'C2'),
+        ],
       );
+      expect(subject.files.map((RuntimeFile file) => file.host), <File?>[
+        null,
+        null,
+        null,
+      ]);
+      // Two steps is the open-all call and its handler.
+      expect(subject.run(maxSteps: 2).outcome, RunOutcome.stepLimit);
+      expect(
+        subject.files.map((RuntimeFile file) => file.open),
+        everyElement(isTrue),
+      );
+      expect(subject.run(maxSteps: 10).outcome, RunOutcome.endOfJob);
+      expect(
+        subject.files.map((RuntimeFile file) => file.open),
+        everyElement(isFalse),
+      );
+    });
+
+    test('close writes one tape mark to each open output file', () {
+      final Directory tapes = Directory.systemTemp.createTempSync(
+        'comtran-tapes',
+      );
+      addTearDown(() => tapes.deleteSync(recursive: true));
+      // Both images hold a record already, so the run shows what open
+      // truncates and what it leaves.
+      final input = File('${tapes.path}/D1.tap')
+        ..writeAsBytesSync(<int>[2, 0, 0, 0, 60, 60, 2, 0, 0, 0]);
+      final output = File('${tapes.path}/C1.tap')
+        ..writeAsBytesSync(<int>[2, 0, 0, 0, 60, 60, 2, 0, 0, 0]);
+      final Machine subject = machine(
+        _openAndCloseTwice,
+        files: <LoaderFile>[
+          loaderFile(1, type: 'I', unit: 'D1'),
+          loaderFile(2, type: 'P', unit: 'C1'),
+        ],
+        tapes: tapes,
+      );
+      expect(subject.run(maxSteps: 10).outcome, RunOutcome.endOfJob);
+      expect(input.readAsBytesSync(), <int>[2, 0, 0, 0, 60, 60, 2, 0, 0, 0]);
+      // The open truncated the output image and the close wrote the
+      // tape mark, the four-byte length zero (M5-2). The second
+      // close-all found the file closed and wrote nothing (M5-4).
+      expect(output.readAsBytesSync(), <int>[0, 0, 0, 0]);
     });
   });
 

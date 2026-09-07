@@ -54,7 +54,8 @@ Terms that appear without expansion:
 | M4 stage 2 — core-verb text | Done 2026-08-28. Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, done 2026-08-28 | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
 | M4 stage 3 — the object deck and the loader | Done 2026-08-30: the deck writer, our loader, `--emit-deck` and `--emit-loader`, and the object golden grown to the whole of PDF pp. 198–216 | `docs/design/loader.md`, `lib/src/loader/` |
 | M4 stage 4 — the machine assembly | Done 2026-09-06: the machine, the run frame, the 23 reachable MOVPAK entries, and `--run` | `docs/design/runtime.md`, `lib/src/runtime/` |
-| M5, M6, M7 | Not started | — |
+| M5 stage 1 — the file model | Done 2026-09-07: the file table, the IOC)1 seed, open-all and close-all over the sample's seven files, and `--tapes` | `docs/design/m5-io.md`, `lib/src/runtime/machine.dart` |
+| M5 stages 2 and 3, M6, M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -66,7 +67,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1248 Dart tests pass, measured 2026-09-06, and 154 extension
+Test baseline: 1250 Dart tests pass, measured 2026-09-07, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -97,16 +98,16 @@ lines.
 the 28 entries stage 4 built and the rule for the rest.
 
 An I/O-free program now runs end to end. The 90.05 sample loads its 936
-words, opens an empty file list, fills its work areas through MOVPAK,
-and stops at IOC)8, its first GET. That stop is the M4 to M5 boundary,
-and `test/runtime/machine_test.dart` asserts it.
+words, opens its seven files, fills its work areas through MOVPAK, and
+stops at IOC)8, its first GET. That stop is the boundary M5 stage 2
+moves, and `test/runtime/machine_test.dart` asserts it.
 
 Both carried items are closed. The machine writes the loader's words
 into `MachineState` and enters at the entry point (LD-3). A labeled
 PROGRAM.START now names that entry point, and `GN)000` stays on the
 first procedure word (D2.1 as amended 2026-09-06).
 
-**The next task is M5, the I/O runtime.** `docs/design/m5-io.md` holds
+**The next task is M5 stage 2, GET.** `docs/design/m5-io.md` holds
 its decisions, and M5-1 holds the stages. The milestone charters the
 IOCS entries M4-17 leaves. They are IOC)2 to 17, 29, 46, 53 and 54, and
 SYS)260 to 266, 283, and 286 to 296 less the landed 294. Our generator
@@ -119,7 +120,8 @@ Every file the sample declares is a tape, so M5 builds one device
 first. Three stages, one pull request each:
 
 1. the file model — the tape image, the file table off the `*FILE` and
-   `*SPEC` cards, and open-all and close-all over a list of seven;
+   `*SPEC` cards, and open-all and close-all over a list of seven
+   (done 2026-09-07);
 2. GET — IOC)8, the buffer, locate mode, and AT END;
 3. FILE — IOC)9, blocking, and the four report tapes.
 

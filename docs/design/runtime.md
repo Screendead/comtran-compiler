@@ -10,9 +10,10 @@ Every entry binds the code.*
 ## RT-1. The machine
 
 `lib/src/runtime/machine.dart` holds the machine, its result and
-outcome types, and its unimplemented-entry error. `Machine` writes a
-`LoadedProgram` into a fresh `MachineState`, enters at the program's
-entry point (D2.1), and runs.
+outcome types, its two errors, and the run's file table. `Machine`
+writes a `LoadedProgram` into a fresh `MachineState`, enters at the
+program's entry point (D2.1), and runs. The file table is one control
+block per `*FILE` card, and `m5-io.md` M5-3 holds its design.
 
 ### The addresses
 
@@ -82,10 +83,10 @@ An address below 4096 with no handler throws
 [J 90.02.07]. A handler that meets work it does not do throws the same
 exception with a reason.
 
-This is the M4 to M5 boundary in one line. The 90.05 sample calls
-open-all, which finds an empty file list while M5 owns IOC)1 (RT-2). It
-then fills its work areas through MOVPAK (RT-3) and reaches IOC)8, the
-GET, which throws.
+This is the boundary in one line. The 90.05 sample calls open-all,
+which opens its seven files (RT-2). It then fills its work areas
+through MOVPAK (RT-3) and reaches IOC)8, the GET, which throws. M5
+stage 2 lands that entry.
 
 ### What exercises the runtime
 
@@ -149,9 +150,11 @@ word calls the rest.
 ## RT-2. The run frame
 
 `lib/src/runtime/monitor.dart` holds the entries an I/O-free program
-reaches. The cells SYS)132, SYS)133, IOC)1 and IOC)29 need no handler:
-they are memory, and generated code reads and writes them with ordinary
-instructions ([J 90.02.08] to [J 90.02.11]).
+reaches. The cells SYS)132, SYS)133 and IOC)29 need no handler: they are
+memory, and generated code reads and writes them with ordinary
+instructions ([J 90.02.08] to [J 90.02.11]). IOC)1 is memory too, and no
+generated word writes it: the machine seeds it with the file count at
+load (M5-3).
 
 ### SYS)178, the STOP display
 
@@ -176,14 +179,24 @@ each, after the word `AT`. No unsealed evidence survives (D0.9).
 The calling sequence of each is the entry and one word, `PZE IOC)1`
 ([J 90.02.14]). IOC)1 is the cell `PZE L,,N`, which "locates (L) a list
 of files, and designates the number (N) of files in the list"
-([J 90.02.08]). The handler reads N from the cell's decrement.
+([J 90.02.08]). The handler reads N from the cell's decrement, opens or
+closes that many files of the machine's table, and returns to `2,4`. An
+N of zero opens and closes nothing.
 
-- N is zero. The handler opens and closes nothing, and returns to `2,4`.
-- N is not zero. Files are M5's. The handler throws
-  `UnimplementedRuntimeEntry` and names the count.
+**Amended 2026-09-07, M5 stage 1.** Stage 4 threw
+`UnimplementedRuntimeEntry` on any N above zero, because M5 owned IOC)1
+and nothing wrote the cell. The machine now seeds it at load and holds
+one control block per `*FILE` card (M5-3), so both handlers run the
+list.
 
-Nothing writes IOC)1 at load time. Core starts at +0 (ED-6), so an
-I/O-free program's N is already zero, and M5 owns the cell.
+Open creates or truncates the host image of an output file, and the
+host image of an input file must exist. A missing input image throws
+`MissingTapeImage`: it is a fault of the environment, not of the
+program, so it carries no [J 90.04] message. Close writes one tape mark
+to each open output file (M5-2), and passes over a file that is already
+closed, because the sample calls close-all twice (M5-4). A file with no
+host image opens, closes, and writes nothing, which is the run
+`comtranc --run` makes without `--tapes`.
 
 ### SYS)294, the base-locator guard
 

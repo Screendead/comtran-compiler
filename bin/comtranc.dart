@@ -34,6 +34,10 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
   --run              load each job's object deck and run it, printing
                       the object program's display lines after its
                       listing (D0.3)
+  --tapes=DIR        attach each declared file to a tape image in DIR,
+                      one image per unit: UNIT1 'D1' reads and writes
+                      DIR/D1.tap. Without it a file opens on no image
+                      at all (M5-3)
   --emit-cards[=PATH]
                       write the whole deck's card images, in the .ct
                       mirror form (D0.5)
@@ -119,6 +123,7 @@ int _run(List<String> arguments) {
   var tableLimits = true;
   var explain = false;
   var run = false;
+  Directory? tapes;
   // A null path means the default, resolved once the deck path is
   // known.
   final emitPaths = <String, String?>{};
@@ -146,6 +151,8 @@ int _run(List<String> arguments) {
       explain = true;
     } else if (argument == '--run') {
       run = true;
+    } else if (argument.startsWith('--tapes=')) {
+      tapes = Directory(argument.substring(8));
     } else if (argument == '--emit-all') {
       for (final String stage in _emitStages) {
         emitPaths[stage] = null;
@@ -286,7 +293,7 @@ int _run(List<String> arguments) {
         stderr.writeln('error: job ${index + 1}: ${job.unrecovered}');
       }
       if (run) {
-        failed |= !_runObjectProgram(job, options, index + 1);
+        failed |= !_runObjectProgram(job, options, index + 1, tapes);
       }
     }
     // A stopped job still dumps every stage it reached (D10.2): the
@@ -319,16 +326,21 @@ int _run(List<String> arguments) {
   }
 }
 
-/// Runs job [number]'s object program and prints its display lines
-/// (D0.3; `docs/design/runtime.md` RT-1). Returns false unless the run
-/// reached the end of the job. A job with no punched deck runs nothing
-/// and fails nothing.
-bool _runObjectProgram(JobCompilation job, ListingOptions options, int number) {
+/// Runs job [number]'s object program over the tape images in [tapes]
+/// and prints its display lines (D0.3; `docs/design/runtime.md` RT-1).
+/// Returns false unless the run reached the end of the job. A job with
+/// no punched deck runs nothing and fails nothing.
+bool _runObjectProgram(
+  JobCompilation job,
+  ListingOptions options,
+  int number,
+  Directory? tapes,
+) {
   final JobDeck? punched = jobDeck(job, options);
   if (punched == null) {
     return true;
   }
-  final machine = Machine.load(punched.cards);
+  final machine = Machine.load(punched.cards, tapes: tapes);
   try {
     final RunResult result = machine.run(maxSteps: _stepBudget);
     result.display.forEach(stdout.writeln);
@@ -342,6 +354,11 @@ bool _runObjectProgram(JobCompilation job, ListingOptions options, int number) {
     return result.outcome == RunOutcome.endOfJob;
   } on UnimplementedRuntimeEntry catch (e) {
     machine.printed.forEach(stdout.writeln);
+    stderr.writeln('error: job $number: $e');
+    return false;
+  } on MissingTapeImage catch (e) {
+    // Open-all runs before the program's first display line, so there
+    // is nothing printed to keep.
     stderr.writeln('error: job $number: $e');
     return false;
   }

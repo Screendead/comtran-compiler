@@ -174,10 +174,11 @@ void main() {
       expect(subject.program.origin, Machine.programOrigin);
       expect(subject.program.entry, Machine.programOrigin + octal('165'));
       expect(subject.state.ic, subject.program.entry);
-      // The sample calls open-all, which finds an empty file list while
-      // M5 owns IOC)1 (RT-2), fills its work areas through MOVPAK, and
-      // then reads its first record. IOC)8 is the GET, and it is the M4
-      // to M5 boundary (M4-17).
+      // IOC)1 counts the seven FILE cards of the sample (M5-3).
+      expect(Word36.decrement(subject.state.read(1)), 7);
+      // The sample calls open-all, fills its work areas through MOVPAK,
+      // and then reads its first record. IOC)8 is the GET, and it is
+      // the M5 stage 1 to stage 2 boundary (M4-17).
       expect(
         () => subject.run(maxSteps: 1000),
         throwsA(
@@ -186,6 +187,33 @@ void main() {
             'number',
             8,
           ),
+        ),
+      );
+      expect(subject.files, hasLength(7));
+      expect(
+        subject.files.map((RuntimeFile file) => file.open),
+        everyElement(isTrue),
+      );
+    });
+
+    test('a declared input file needs its tape image', () {
+      final Directory tapes = Directory.systemTemp.createTempSync(
+        'comtran-tapes',
+      );
+      addTearDown(() => tapes.deleteSync(recursive: true));
+      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
+        'run',
+        'comtran:comtranc',
+        jobDeckPath,
+        '--run',
+        '--tapes=${tapes.path}',
+      ]);
+      expect(run.exitCode, 1);
+      expect(
+        run.stderr,
+        contains(
+          'error: job 1: no tape image for input file INPUTMASTER at '
+          '${tapes.path}/D1.tap',
         ),
       );
     });
