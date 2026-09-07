@@ -357,8 +357,7 @@ bool _runObjectProgram(
     stderr.writeln('error: job $number: $e');
     return false;
   } on MissingTapeImage catch (e) {
-    // Open-all runs before the program's first display line, so there
-    // is nothing printed to keep.
+    machine.printed.forEach(stdout.writeln);
     stderr.writeln('error: job $number: $e');
     return false;
   }

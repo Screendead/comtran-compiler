@@ -54,7 +54,7 @@ Terms that appear without expansion:
 | M4 stage 2 — core-verb text | Done 2026-08-28. Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, done 2026-08-28 | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
 | M4 stage 3 — the object deck and the loader | Done 2026-08-30: the deck writer, our loader, `--emit-deck` and `--emit-loader`, and the object golden grown to the whole of PDF pp. 198–216 | `docs/design/loader.md`, `lib/src/loader/` |
 | M4 stage 4 — the machine assembly | Done 2026-09-06: the machine, the run frame, the 23 reachable MOVPAK entries, and `--run` | `docs/design/runtime.md`, `lib/src/runtime/` |
-| M5 stage 1 — the file model | Done 2026-09-07: the file table, the IOC)1 seed, open-all and close-all over the sample's seven files, and `--tapes` | `docs/design/m5-io.md`, `lib/src/runtime/machine.dart` |
+| M5 stage 1 — the file model | Done 2026-09-07: the file table, the IOC)1 seed, `--tapes`, and open-all over the sample's seven files. Close-all runs on a test program only: the sample stops at IOC)8 with all seven open | `docs/design/m5-io.md`, `lib/src/runtime/machine.dart` |
 | M5 stages 2 and 3, M6, M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |

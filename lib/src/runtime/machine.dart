@@ -12,7 +12,6 @@ library;
 import 'dart:io';
 
 import '../cards/card_image.dart';
-import '../codegen/encode.dart';
 import '../emulator/cpu.dart';
 import '../emulator/machine_state.dart';
 import '../emulator/word.dart';
@@ -77,6 +76,23 @@ final class MissingTapeImage implements Exception {
   String toString() => 'no tape image for input file $file at $path';
 }
 
+/// A `*FILE` card whose shape has no run, which open-all refuses
+/// (M5-3). Two shapes reach it: a direction column that is not `I`, `T`
+/// or `P`, and a file with no unit in a run that named a tape
+/// directory.
+final class UnrunnableFile implements Exception {
+  UnrunnableFile(this.file, this.fault);
+
+  /// The name on the `*FILE` card.
+  final String file;
+
+  /// What about the file has no run.
+  final String fault;
+
+  @override
+  String toString() => 'no run for file $file: $fault';
+}
+
 /// One file of the run's file table: the control block open-all and
 /// close-all keep for one `*FILE` card (M5-3).
 final class RuntimeFile {
@@ -95,6 +111,12 @@ const List<int> _tapeMark = <int>[0, 0, 0, 0];
 /// Whether [file] is an input file. Column 28 of the `*FILE` card holds
 /// `I` for input, and `T` or `P` for output ([J 90.08.01]).
 bool _input(LoaderFile file) => file.type == 'I';
+
+/// Whether column 28 of [file] names one of the three directions
+/// ([J 90.08.01]). Our generator leaves it blank for a checkpoint file
+/// ([J 02.06.03]).
+bool _directed(LoaderFile file) =>
+    const <String>{'I', 'T', 'P'}.contains(file.type);
 
 /// What one run produced.
 final class RunResult {
@@ -177,23 +199,38 @@ final class Machine {
   /// from IOC)1 (RT-2). An output file's host image is created or
   /// truncated, and an input file's host image must already exist.
   ///
-  /// Throws [MissingTapeImage] for an input file the host directory
-  /// does not hold.
+  /// It checks every file before it truncates any image, because a run
+  /// that refuses to start must leave the images as it found them.
+  ///
+  /// Throws [UnrunnableFile] for a file shape that has no run, and
+  /// [MissingTapeImage] for an input file the host directory does not
+  /// hold.
   void openFiles(int count) {
     for (var i = 0; i < count; i++) {
       final LoaderFile declaration = program.files[i];
-      final RuntimeFile file = files[i];
-      final File? host = file.host;
-      if (host != null) {
-        if (_input(declaration)) {
-          if (!host.existsSync()) {
-            throw MissingTapeImage(declaration.name, host.path);
-          }
-        } else {
-          host.writeAsBytesSync(const <int>[]);
-        }
+      if (!_directed(declaration)) {
+        throw UnrunnableFile(
+          declaration.name,
+          'its direction column is not I, T or P',
+        );
       }
-      file.open = true;
+      final File? host = files[i].host;
+      if (host == null) {
+        continue;
+      }
+      if (declaration.unit1.isEmpty) {
+        throw UnrunnableFile(declaration.name, 'it names no unit');
+      }
+      if (_input(declaration) && !host.existsSync()) {
+        throw MissingTapeImage(declaration.name, host.path);
+      }
+    }
+    for (var i = 0; i < count; i++) {
+      final File? host = files[i].host;
+      if (host != null && !_input(program.files[i])) {
+        host.writeAsBytesSync(const <int>[]);
+      }
+      files[i].open = true;
     }
   }
 

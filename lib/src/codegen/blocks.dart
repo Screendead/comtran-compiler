@@ -7,7 +7,7 @@
 /// five reservations of Location Counter 1.
 library;
 
-import 'encode.dart';
+import '../emulator/word.dart';
 import 'image.dart';
 import 'text_model.dart';
 

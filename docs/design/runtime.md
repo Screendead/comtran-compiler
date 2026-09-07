@@ -83,10 +83,10 @@ An address below 4096 with no handler throws
 [J 90.02.07]. A handler that meets work it does not do throws the same
 exception with a reason.
 
-This is the boundary in one line. The 90.05 sample calls open-all,
-which opens its seven files (RT-2). It then fills its work areas
-through MOVPAK (RT-3) and reaches IOC)8, the GET, which throws. M5
-stage 2 lands that entry.
+The M4 to M5 boundary is this, in one line. The 90.05 sample calls
+open-all, which opens its seven files (RT-2). It then fills its work
+areas through MOVPAK (RT-3) and reaches IOC)8, the GET, which throws.
+M5 stage 2 lands that entry.
 
 ### What exercises the runtime
 
@@ -150,7 +150,7 @@ word calls the rest.
 ## RT-2. The run frame
 
 `lib/src/runtime/monitor.dart` holds the entries an I/O-free program
-reaches. The cells SYS)132, SYS)133 and IOC)29 need no handler: they are
+reaches. The cells SYS)132, SYS)133 and IOC)29 need no handler. They are
 memory, and generated code reads and writes them with ordinary
 instructions ([J 90.02.08] to [J 90.02.11]). IOC)1 is memory too, and no
 generated word writes it: the machine seeds it with the file count at
@@ -193,10 +193,21 @@ Open creates or truncates the host image of an output file, and the
 host image of an input file must exist. A missing input image throws
 `MissingTapeImage`: it is a fault of the environment, not of the
 program, so it carries no [J 90.04] message. Close writes one tape mark
-to each open output file (M5-2), and skips a file that is already
+to each open output file (M5-2). It skips a file that is already
 closed, because the sample calls close-all twice (M5-4). A file with no
-host image opens, closes, and writes nothing, which is the run
+host image opens, closes, and writes nothing. That is the run
 `comtranc --run` makes without `--tapes`.
+
+Open reads the whole list before it changes one image. It refuses a run
+on the first fault it finds, and a refused run leaves every image as it
+found it.
+
+Open refuses two file shapes, and throws `UnrunnableFile` for each
+(M5-3). The first is a file whose direction column is not `I`, `T` or
+`P`. Our generator punches that column blank for a checkpoint file, and
+no record says what a checkpoint file opens. The second is a file with
+no unit, in a run that named a tape directory. Its image path would be
+the bare suffix, and two such files would share one image.
 
 ### SYS)294, the base-locator guard
 

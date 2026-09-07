@@ -23,6 +23,9 @@ const int junkLocator = 0xFFF;
 /// with junk in the two index registers a MOVPAK call must not disturb
 /// or must clear (RT-3). [files] are the program's `*FILE` cards and
 /// [tapes] the directory their images sit in (M5-3).
+///
+/// The constructor seeds IOC)1 after it writes [words], so a cell 1 in
+/// [words] is discarded. Write that cell on the machine this returns.
 Machine machine(
   Map<int, int> words, {
   List<LoaderFile> files = const <LoaderFile>[],

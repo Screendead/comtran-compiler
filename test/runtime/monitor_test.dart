@@ -25,6 +25,12 @@ final Map<int, int> _openAndCloseTwice = <int, int>{
   start + 6: endOfJob,
 };
 
+/// Open-all alone: `TSX SYS)175,4` and its one parameter word.
+final Map<int, int> _openAll = <int, int>{
+  start: tsx(175),
+  start + 1: typeA(0, address: 1),
+};
+
 void main() {
   group('SYS)178, the STOP display (J 90.02.14)', () {
     test('prints the sample line and resumes at 3,4', () {
@@ -72,11 +78,6 @@ void main() {
           loaderFile(3, type: 'P', unit: 'C2'),
         ],
       );
-      expect(subject.files.map((RuntimeFile file) => file.host), <File?>[
-        null,
-        null,
-        null,
-      ]);
       // Two steps is the open-all call and its handler.
       expect(subject.run(maxSteps: 2).outcome, RunOutcome.stepLimit);
       expect(
@@ -115,6 +116,94 @@ void main() {
       // tape mark, the four-byte length zero (M5-2). The second
       // close-all found the file closed and wrote nothing (M5-4).
       expect(output.readAsBytesSync(), <int>[0, 0, 0, 0]);
+    });
+
+    test('the handler opens the count IOC)1 holds, not the whole table', () {
+      final Machine subject = machine(
+        _openAll,
+        files: <LoaderFile>[
+          loaderFile(1, type: 'I', unit: 'D1'),
+          loaderFile(2, type: 'P', unit: 'C1'),
+          loaderFile(3, type: 'P', unit: 'C2'),
+        ],
+      );
+      // The constructor seeds the cell with the table's own count
+      // (M5-3), so only a write after it holds the handler to the cell.
+      subject.state.write(1, pzeWord(decrement: 2));
+      expect(subject.run(maxSteps: 2).outcome, RunOutcome.stepLimit);
+      expect(subject.files.map((RuntimeFile file) => file.open), <bool>[
+        true,
+        true,
+        false,
+      ]);
+    });
+
+    test('a refused open leaves every image as it found it', () {
+      final Directory tapes = Directory.systemTemp.createTempSync(
+        'comtran-tapes',
+      );
+      addTearDown(() => tapes.deleteSync(recursive: true));
+      // The output file comes first and the absent input second, so one
+      // loop over the table would truncate C1 before it refused.
+      const record = <int>[2, 0, 0, 0, 60, 60, 2, 0, 0, 0];
+      final output = File('${tapes.path}/C1.tap')..writeAsBytesSync(record);
+      final Machine subject = machine(
+        _openAll,
+        files: <LoaderFile>[
+          loaderFile(1, type: 'P', unit: 'C1'),
+          loaderFile(2, type: 'I', unit: 'D1'),
+        ],
+        tapes: tapes,
+      );
+      expect(() => subject.run(maxSteps: 2), throwsA(isA<MissingTapeImage>()));
+      expect(output.readAsBytesSync(), record);
+      expect(
+        subject.files.map((RuntimeFile file) => file.open),
+        everyElement(isFalse),
+      );
+    });
+
+    test('a file whose direction column is blank has no run', () {
+      // Our generator punches column 28 blank for a checkpoint file
+      // ([J 02.06.03]), and no record says what one opens (M5-3).
+      final Machine subject = machine(
+        _openAll,
+        files: <LoaderFile>[loaderFile(1, type: '', unit: 'D1')],
+      );
+      expect(
+        () => subject.run(maxSteps: 2),
+        throwsA(
+          isA<UnrunnableFile>().having(
+            (UnrunnableFile e) => e.toString(),
+            'toString',
+            'no run for file FILE1: its direction column is not I, T or P',
+          ),
+        ),
+      );
+    });
+
+    test('a file with no unit has no run under a tape directory', () {
+      final Directory tapes = Directory.systemTemp.createTempSync(
+        'comtran-tapes',
+      );
+      addTearDown(() => tapes.deleteSync(recursive: true));
+      // Its image path would be the bare suffix, and two such files
+      // would share one image (M5-3).
+      final Machine subject = machine(
+        _openAll,
+        files: <LoaderFile>[loaderFile(1, type: 'I', unit: '')],
+        tapes: tapes,
+      );
+      expect(
+        () => subject.run(maxSteps: 2),
+        throwsA(
+          isA<UnrunnableFile>().having(
+            (UnrunnableFile e) => e.toString(),
+            'toString',
+            'no run for file FILE1: it names no unit',
+          ),
+        ),
+      );
     });
   });
 
