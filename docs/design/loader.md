@@ -98,6 +98,14 @@ to settle it. The deck writer punches them. The loader reads columns 1
 to 72 of a binary card, so the choice costs it nothing. One line
 reverses it.
 
+**Amended 2026-09-07.** The deck writer moved to
+`lib/src/emit/emit_deck.dart`. The control-group vocabulary of
+[J 90.03.04] moved to `lib/src/loader/control_group.dart`, which the
+loader and the code generator both import.
+`lib/src/loader/object_deck.dart` keeps the card format for both sides.
+The runtime depends on the loader. The loader must therefore not import
+the code generator.
+
 ## LD-3. Our loader
 
 `lib/src/loader/loader.dart` makes one pass. The 1962 loader's second
