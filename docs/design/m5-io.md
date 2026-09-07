@@ -150,9 +150,10 @@ handler moves words inside core (`runtime.md` RT-1).
   unit is the third. Open-all opens the whole list at once, so the two
   files take one image, and the second open truncates what the first
   wrote. The card gives one file two units, UNIT1 and UNIT2
-  ([J 90.08.01]). No card gives one unit two files. The second shape and
-  the third refuse in a run that named a tape directory only. Without a
-  directory a file has no host image, and no two files collide.
+  ([J 90.08.01]). No card gives one unit two files. Open-all refuses the
+  second shape and the third only in a run that named a tape directory.
+  Without a directory a file has no host image, and no two files
+  collide.
 
 ## Open all and close all
 
