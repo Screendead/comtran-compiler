@@ -1,6 +1,6 @@
 /// The website's compiler entry point (roadmap W1): the six stage dumps the
 /// browser prints, the refusals it prints instead, and the guard that keeps
-/// `dart:io` out of the browser barrel.
+/// `dart:io` out of the browser bundle.
 ///
 /// The stage assertions are the same byte comparisons `emit_test.dart`,
 /// `listing_test.dart`, and `codegen_test.dart` make of the command-line
@@ -17,15 +17,20 @@ import 'support/deck_fixtures.dart';
 
 /// An `import` or `export` directive's URI. No library under `lib/` writes
 /// a conditional import, so the first URI of a directive is its only one.
+/// The class takes both quote forms, so the walk stands on its own instead
+/// of leaning on `prefer_single_quotes` to catch a double-quoted directive.
 final RegExp _dependency = RegExp(
-  r"^\s*(?:import|export)\s+'([^']+)'",
+  r'''^\s*(?:import|export)\s+['"]([^'"]+)['"]''',
   multiLine: true,
 );
 
 const String _packageRoot = 'package:comtran/';
 
-String _file(Uri library) =>
-    'lib/${library.toString().substring(_packageRoot.length)}';
+/// The repository-relative path of [library], which the walk reaches either
+/// as a `package:comtran/` URI or as a path relative to the entry point.
+String _file(Uri library) => library.scheme == 'package'
+    ? 'lib/${library.toString().substring(_packageRoot.length)}'
+    : '$library';
 
 /// The sample program the site preloads: the mirror of the job deck.
 String _sample() =>
@@ -35,11 +40,11 @@ String _golden(String stage) =>
     File('test/goldens/90.05-payroll.$stage').readAsStringSync();
 
 void main() {
-  group('the browser barrel', () {
+  group('the browser bundle', () {
     test('reaches no library that imports dart:io', () {
-      // `dart compile wasm` compiles `dart:io` and defers the failure to
-      // the run, so only this walk keeps the barrel browser-safe.
-      final Uri root = Uri.parse('${_packageRoot}comtran.dart');
+      // `dart compile wasm` compiles a `dart:io` import, so the build
+      // catches nothing and only this walk keeps the bundle browser-safe.
+      final Uri root = Uri.parse('web/main.dart');
       final trails = <Uri, String>{root: _file(root)};
       final queue = <Uri>[root];
       final offenders = <String>[];
@@ -51,8 +56,10 @@ void main() {
           if (target.toString() == 'dart:io') {
             offenders.add('${trails[library]} imports dart:io');
           }
-          if (!target.toString().startsWith(_packageRoot) ||
-              trails.containsKey(target)) {
+          final bool reachable =
+              target.scheme.isEmpty ||
+              target.toString().startsWith(_packageRoot);
+          if (!reachable || trails.containsKey(target)) {
             continue;
           }
           trails[target] = '${trails[library]} -> ${_file(target)}';

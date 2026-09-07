@@ -180,8 +180,8 @@ table (`encode.dart`), and the generator itself (`procedure.dart`,
 `pool.dart`, `blocks.dart`). The generator fills every word of the
 object program: the procedure text, the block words, the constant
 pool, and the end-of-text line. `lib/src/codegen/control_cards.dart`
-holds the control cards (LD-1); `lib/src/loader/` holds the loader
-(LD-3), the card format and the control groups;
+holds the control cards (LD-1). `lib/src/loader/` holds the loader
+(LD-3), the card format and the control groups.
 `lib/src/emit/emit_deck.dart` holds the deck writer (LD-2) and the
 `--emit-deck` and `--emit-loader` dumps.
 
@@ -679,12 +679,13 @@ imports the libraries directly or splits the barrel in two.
 **Amended 2026-09-07. The barrel split landed.** `lib/comtran.dart` compiles
 for a browser, and `web/main.dart` imports it. `lib/comtran_io.dart` exports
 that barrel and the three exported libraries that need `dart:io`. `dart compile
-wasm` compiles `dart:io`, and every operation throws when it runs. So the
-WebAssembly build catches no `dart:io` import. `test/web_compile_test.dart`
-holds the guard. It walks the imports and exports from `lib/comtran.dart`, and
-fails if a library it reaches imports `dart:io`. The count above is from
-2026-08-10. Four files of the 78 in `lib/src/` import `dart:io` today:
-`cards/deck_files.dart`, the two `mcp/` files and `runtime/machine.dart`.
+wasm` compiles `dart:io`, and its file-system operations throw when they run.
+So the WebAssembly build catches no `dart:io` import.
+`test/web_compile_test.dart` holds the guard. It walks the imports and exports
+from `web/main.dart`, and fails if a library it reaches imports `dart:io`. The
+count above is from 2026-08-10. Four files of the 78 in `lib/src/` import
+`dart:io` today: `cards/deck_files.dart`, the two `mcp/` files and
+`runtime/machine.dart`.
 
 `editors/vscode-punchcard/media/punchcard.js` is already a browser punch grid,
 in 793 lines with 11 references to the editor API. W1 ports it. The column
