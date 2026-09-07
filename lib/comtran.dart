@@ -23,6 +23,14 @@
 /// - `emulator/`— word-exact 36-bit 7090 CPU core (M4).
 /// - `runtime/` — high-level-emulated SYS)/IOC) library, IOCS tape model
 ///                (M4–M5; D0.3, D0.7).
+///
+/// This barrel is the browser's half of the package. It omits the three
+/// exported libraries that need `dart:io` — `cards/deck_files.dart`,
+/// `mcp/deck_server.dart` and `runtime/machine.dart` — whose file-system
+/// operations throw in a browser. A browser build compiles the `dart:io`
+/// import and catches none of the three. `comtran_io.dart` exports this
+/// file and those three, and `test/layering_test.dart` guards the
+/// omission.
 library;
 
 export 'src/ast/control_ast.dart';
@@ -31,7 +39,6 @@ export 'src/ast/environment_ast.dart';
 export 'src/ast/procedure_ast.dart';
 export 'src/cards/canon_codec.dart';
 export 'src/cards/card_image.dart';
-export 'src/cards/deck_files.dart';
 export 'src/cards/text_codec.dart';
 export 'src/chars/char_code.dart';
 export 'src/codegen/codegen.dart';
@@ -78,9 +85,9 @@ export 'src/lexer/source_card.dart';
 export 'src/lexer/source_program.dart';
 export 'src/lexer/token.dart';
 export 'src/listing/listing.dart';
+export 'src/loader/control_group.dart';
 export 'src/loader/loader.dart';
 export 'src/loader/object_deck.dart';
-export 'src/mcp/deck_server.dart';
 export 'src/parser/control_parser.dart';
 export 'src/parser/data_parser.dart';
 export 'src/parser/environment_parser.dart';
@@ -88,6 +95,5 @@ export 'src/parser/expression_parser.dart';
 export 'src/parser/parser.dart';
 export 'src/parser/parser_messages.dart';
 export 'src/parser/procedure_parser.dart';
-export 'src/runtime/machine.dart';
 export 'src/version.dart';
 export 'src/web/web_compile.dart';

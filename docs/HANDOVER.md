@@ -52,7 +52,7 @@ Terms that appear without expansion:
 | M4 decision walk (M4-1 to M4-21) | Done 2026-08-05 | `docs/design/m4-codegen.md` |
 | M4 stage 1 — the assembly model | Done 2026-08-05 | `lib/src/codegen/` |
 | M4 stage 2 — core-verb text | Done 2026-08-28. Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, done 2026-08-28 | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
-| M4 stage 3 — the object deck and the loader | Done 2026-08-30: the deck writer, our loader, `--emit-deck` and `--emit-loader`, and the object golden grown to the whole of PDF pp. 198–216 | `docs/design/loader.md`, `lib/src/loader/` |
+| M4 stage 3 — the object deck and the loader | Done 2026-08-30: the deck writer, our loader, `--emit-deck` and `--emit-loader`, and the object golden grown to the whole of PDF pp. 198–216 | `docs/design/loader.md`, `lib/src/loader/`, `lib/src/emit/emit_deck.dart` |
 | M4 stage 4 — the machine assembly | Done 2026-09-06: the machine, the run frame, the 23 reachable MOVPAK entries, and `--run` | `docs/design/runtime.md`, `lib/src/runtime/` |
 | M5 stage 1 — the file model | Done 2026-09-07: the file table, the IOC)1 seed, `--tapes`, and open-all over the sample's seven files. Close-all runs on a test program only: the sample stops at IOC)8 with all seven open | `docs/design/m5-io.md`, `lib/src/runtime/machine.dart` |
 | M5 stages 2 and 3, M6, M7 | Not started | — |
@@ -67,7 +67,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1257 Dart tests pass, measured 2026-09-07, and 154 extension
+Test baseline: 1259 Dart tests pass, measured 2026-09-07, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -180,10 +180,10 @@ table (`encode.dart`), and the generator itself (`procedure.dart`,
 `pool.dart`, `blocks.dart`). The generator fills every word of the
 object program: the procedure text, the block words, the constant
 pool, and the end-of-text line. `lib/src/codegen/control_cards.dart`
-holds the control cards (LD-1); `lib/src/loader/` holds the deck writer
-(LD-2) and the loader (LD-3);
-`lib/src/emit/emit_deck.dart` holds the `--emit-deck` and
-`--emit-loader` dumps.
+holds the control cards (LD-1). `lib/src/loader/` holds the loader
+(LD-3), the card format and the control groups.
+`lib/src/emit/emit_deck.dart` holds the deck writer (LD-2) and the
+`--emit-deck` and `--emit-loader` dumps.
 
 The golden `test/goldens/90.05-payroll.storage-map` is the whole
 printed document after the source pages — pages 7 to 25 and the
@@ -675,6 +675,17 @@ browser work inherits this finding, the M4 emulator most of all.
 The probe imported the `lib/src/` libraries one by one. `lib/comtran.dart`
 exports `deck_files.dart`, so a web entrypoint cannot use the barrel. W1 either
 imports the libraries directly or splits the barrel in two.
+
+**Amended 2026-09-07. The barrel split landed.** `lib/comtran.dart` compiles
+for a browser, and `web/main.dart` imports it. `lib/comtran_io.dart` exports
+that barrel and the three exported libraries that need `dart:io`. `dart compile
+wasm` compiles `dart:io`, and its file-system operations throw when they run.
+So the WebAssembly build catches no `dart:io` import.
+`test/layering_test.dart` holds the guard. It walks the imports and exports
+from `web/main.dart`, and fails if a library it reaches imports `dart:io`. The
+count above is from 2026-08-10. Four files of the 78 in `lib/src/` import
+`dart:io` today: `cards/deck_files.dart`, the two `mcp/` files and
+`runtime/machine.dart`.
 
 `editors/vscode-punchcard/media/punchcard.js` is already a browser punch grid,
 in 793 lines with 11 references to the editor API. W1 ports it. The column

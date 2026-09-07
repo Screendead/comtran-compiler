@@ -12,6 +12,7 @@
 library;
 
 import '../data/data_map.dart';
+import '../loader/control_group.dart';
 import 'text_model.dart';
 
 /// The transmitted-data region of [semantics], from `USE 0` through the

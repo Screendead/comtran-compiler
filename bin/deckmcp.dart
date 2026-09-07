@@ -9,7 +9,7 @@
 /// writes JSON-RPC to standard output only, so it must print nothing else.
 library;
 
-import 'package:comtran/comtran.dart';
+import 'package:comtran/comtran_io.dart';
 
 void main() {
   DeckMcpServer.overStdio();

@@ -3,7 +3,7 @@
 /// character movers, each against its [J 90.02] contract.
 library;
 
-import 'package:comtran/comtran.dart';
+import 'package:comtran/comtran_io.dart';
 import 'package:test/test.dart';
 
 import '../support/deck_fixtures.dart';

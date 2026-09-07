@@ -11,8 +11,7 @@ import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:typed_data';
 
-import 'package:comtran/src/version.dart';
-import 'package:comtran/src/web/web_compile.dart';
+import 'package:comtran/comtran.dart';
 
 /// Compiles the typed text and returns the [WebCompilation] as JSON. JSON
 /// keeps the boundary to one string in and one string out.

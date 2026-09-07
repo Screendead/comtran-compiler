@@ -13,7 +13,7 @@ library;
 
 import 'dart:collection';
 
-import 'text_model.dart';
+import '../loader/control_group.dart';
 
 /// The printed capacity of the constant pool ([J 90.01.05] item k):
 /// the 501st entry draws msg 172 (D9.7).

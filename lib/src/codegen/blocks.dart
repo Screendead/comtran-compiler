@@ -8,6 +8,7 @@
 library;
 
 import '../emulator/word.dart';
+import '../loader/control_group.dart';
 import 'image.dart';
 import 'text_model.dart';
 
