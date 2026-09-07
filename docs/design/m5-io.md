@@ -57,7 +57,7 @@ handler moves words inside core (`runtime.md` RT-1).
 
   | Stage | What it delivers |
   |---|---|
-  | 1 | The file model: the tape image, the file table from the `*FILE` and `*SPEC` cards, the attachment at `comtranc --run`, and open-all and close-all over a file list that is not empty. |
+  | 1 | The file model: the tape container and its tape mark, the file table from the `*FILE` and `*SPEC` cards, the attachment at `comtranc --run`, and open-all and close-all over a file list that is not empty. |
   | 2 | GET: IOC)8, the buffer, the locate-mode pointer the `IOCTN*` word names, AT END, and the two error entries the sequence names. |
   | 3 | FILE: IOC)9, the `IOST` word, blocking, and the printer file. The sample reaches end of job and prints its report. |
 
@@ -89,6 +89,10 @@ handler moves words inside core (`runtime.md` RT-1).
   - one 36-bit word is six bytes, most significant six bits first, and
     each byte holds its six bits in its low end.
 
+  The frame order is ours. Stage 1 writes the container and the tape
+  mark, which need no word. The encoding lands with the first record
+  written and the decoding with the first record read.
+
   The high bits of a data byte stay zero. The `I7000` simulator carries
   a parity bit there. It would read a tape of ours with a parity error
   on every character, and it must recompute parity to take one.
@@ -107,8 +111,9 @@ handler moves words inside core (`runtime.md` RT-1).
   loader already reads the `*FILE` and `*SPEC` cards into
   `LoadedProgram.files` (`lib/src/loader/loader.dart`; LD-3), and
   `Machine` ignores them today. Stage 1 gives each `LoaderFile` a
-  control block: its host file, its buffer, its position, and whether it
-  is open.
+  control block of two fields: its host file, and whether it is open.
+  The buffer and the read position arrive with IOC)8, because no word of
+  stage 1 reads them (CLAUDE.md section 11).
 
   A file operand is its ordinal. The generator punches `04000 + k` for
   the k-th FILE card (`lib/src/codegen/control_cards.dart`), the loader
@@ -147,10 +152,12 @@ handler moves words inside core (`runtime.md` RT-1).
   (`lib/src/runtime/monitor.dart`), so the count is the first thing that
   breaks when the table lands.
 
-  Open applies the `*SPEC` open option, and close applies the close
-  option. D6.3 holds the four close codes: U unloads, R or blank
-  rewinds, N does neither, and S writes no file mark. The sample
-  punches `OPENW` and `CLOSER` on all seven files. **No file
+  D6.3 holds the four close codes: U unloads, R or blank rewinds, N
+  does neither, and S writes no file mark. The sample punches one open
+  option and one close option on all seven files, so no branch on either
+  code is reachable. Stage 1 therefore reads neither code. Close writes
+  one tape mark to each open output file, which three of the four codes
+  ask for. The codes land with the first program that punches two. **No file
   in the sample carries a label.** Column 32 of every `*FILE` card is
   blank. [J 90.05.03] says the detail file is "a non-labeled, ungrouped,
   BCD tape file". D6.2's label handling therefore has no site
