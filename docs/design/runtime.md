@@ -194,9 +194,9 @@ host image of an input file must exist. A missing input image throws
 `MissingTapeImage`: it is a fault of the environment, not of the
 program, so it carries no [J 90.04] message. Close writes one tape mark
 to each open output file (M5-2). It skips a file that is already
-closed, because the sample calls close-all twice (M5-4). A file with no
-host image opens, closes, and writes nothing. That is the run
-`comtranc --run` makes without `--tapes`.
+closed, because the sample's object text calls close-all twice (M5-4).
+A file with no host image opens, closes, and writes nothing. That is
+the run `comtranc --run` makes without `--tapes`.
 
 Open reads the whole list before it changes one image. It refuses a run
 on the first fault it finds, and a refused run leaves every image as it

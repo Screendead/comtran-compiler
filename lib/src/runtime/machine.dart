@@ -39,8 +39,12 @@ enum RunOutcome {
 /// to give control back to the program.
 typedef RuntimeEntry = RunOutcome? Function();
 
+/// A fault that ends a run and carries its own message. `comtranc --run`
+/// catches this one type and prints the message as its diagnostic.
+sealed class RunFault implements Exception {}
+
 /// A runtime entry the machine assembly does not implement.
-final class UnimplementedRuntimeEntry implements Exception {
+final class UnimplementedRuntimeEntry implements RunFault {
   UnimplementedRuntimeEntry(this.number, [this.detail]);
 
   /// The system reference number the entry resolved from.
@@ -63,7 +67,7 @@ final class UnimplementedRuntimeEntry implements Exception {
 /// A tape image an input file needs and the host directory does not
 /// hold. The fault is the environment's and not the program's, so no
 /// [J 90.04] diagnostic covers it (M5-3).
-final class MissingTapeImage implements Exception {
+final class MissingTapeImage implements RunFault {
   MissingTapeImage(this.file, this.path);
 
   /// The name on the `*FILE` card.
@@ -80,7 +84,7 @@ final class MissingTapeImage implements Exception {
 /// (M5-3). Two shapes reach it: a direction column that is not `I`, `T`
 /// or `P`, and a file with no unit in a run that named a tape
 /// directory.
-final class UnrunnableFile implements Exception {
+final class UnrunnableFile implements RunFault {
   UnrunnableFile(this.file, this.fault);
 
   /// The name on the `*FILE` card.

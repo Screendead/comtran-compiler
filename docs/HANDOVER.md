@@ -120,8 +120,8 @@ Every file the sample declares is a tape, so M5 builds one device
 first. Three stages, one pull request each:
 
 1. the file model — the tape image, the file table off the `*FILE` and
-   `*SPEC` cards, and open-all and close-all over a list of seven
-   (done 2026-09-07);
+   `*SPEC` cards, and the open-all and close-all handlers; the sample
+   reaches open-all only (done 2026-09-07);
 2. GET — IOC)8, the buffer, locate mode, and AT END;
 3. FILE — IOC)9, blocking, and the four report tapes.
 

@@ -352,11 +352,7 @@ bool _runObjectProgram(
     // An error exit has already printed the monitor's own message on
     // the display (RT-2), so the tool adds none of its own.
     return result.outcome == RunOutcome.endOfJob;
-  } on UnimplementedRuntimeEntry catch (e) {
-    machine.printed.forEach(stdout.writeln);
-    stderr.writeln('error: job $number: $e');
-    return false;
-  } on MissingTapeImage catch (e) {
+  } on RunFault catch (e) {
     machine.printed.forEach(stdout.writeln);
     stderr.writeln('error: job $number: $e');
     return false;

@@ -61,10 +61,11 @@ handler moves words inside core (`runtime.md` RT-1).
   | 2 | GET: IOC)8, the buffer, the locate-mode pointer the `IOCTN*` word names, AT END, and the two error entries the sequence names. |
   | 3 | FILE: IOC)9, the `IOST` word, blocking, and the printer file. The sample reaches end of job and prints its report. |
 
-  The stage boundary is the file, not the verb. Stage 1 opens and closes
-  every file the sample declares and reads none of them. The sample still
-  stops at its first GET when stage 1 lands. The boundary test then reads
-  a file list of seven where it reads empty today.
+  The stage boundary is the file, not the verb. Stage 1 builds open-all
+  and close-all, and reads no file. The sample reaches open-all only,
+  because it still stops at its first GET when stage 1 lands. The
+  boundary test then reads a file list of seven where it reads empty
+  today.
 
 ## The tape image
 
