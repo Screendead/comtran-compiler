@@ -29,7 +29,7 @@
 /// `mcp/deck_server.dart` and `runtime/machine.dart` — whose file-system
 /// operations throw in a browser. A browser build compiles the `dart:io`
 /// import and catches none of the three. `comtran_io.dart` exports this
-/// file and those three, and `test/web_compile_test.dart` guards the
+/// file and those three, and `test/layering_test.dart` guards the
 /// omission.
 library;
 

@@ -67,7 +67,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1258 Dart tests pass, measured 2026-09-07, and 154 extension
+Test baseline: 1259 Dart tests pass, measured 2026-09-07, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -681,7 +681,7 @@ for a browser, and `web/main.dart` imports it. `lib/comtran_io.dart` exports
 that barrel and the three exported libraries that need `dart:io`. `dart compile
 wasm` compiles `dart:io`, and its file-system operations throw when they run.
 So the WebAssembly build catches no `dart:io` import.
-`test/web_compile_test.dart` holds the guard. It walks the imports and exports
+`test/layering_test.dart` holds the guard. It walks the imports and exports
 from `web/main.dart`, and fails if a library it reaches imports `dart:io`. The
 count above is from 2026-08-10. Four files of the 78 in `lib/src/` import
 `dart:io` today: `cards/deck_files.dart`, the two `mcp/` files and

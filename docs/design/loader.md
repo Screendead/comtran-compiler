@@ -105,7 +105,9 @@ loader and the code generator both import.
 `lib/src/loader/object_deck.dart` keeps the card format for the writer
 and the loader.
 The runtime depends on the loader. The loader must therefore not import
-the code generator.
+the code generator. `test/layering_test.dart` holds this rule: it walks
+the imports from `lib/src/runtime/machine.dart` and fails on a library
+under `lib/src/codegen/`.
 
 ## LD-3. Our loader
 
