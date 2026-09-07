@@ -255,4 +255,65 @@ void main() {
       expect(text, contains('TRA*   PARA'));
     });
   });
+
+  group('the entry point (D2.1)', () {
+    // Compiles [procedure] over one integer item and asserts that the
+    // end-of-text entry names the PROGRAM.START word rather than
+    // `GN)000`, which the sample's default path leaves it naming.
+    void expectEntryOnProgramStart(List<String> procedure) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+        ],
+        procedure: procedure,
+      );
+      expect(ids(semantics), isEmpty);
+      final List<AssemblyUnit> units = runCodegen(semantics).units;
+      final AssemblyUnit end = units.singleWhere(
+        (AssemblyUnit u) => u.control == ControlGroup.endOfText,
+      );
+      final AssemblyUnit labelled = units.singleWhere(
+        (AssemblyUnit u) => u.labels.contains('PROGRAM.START'),
+      );
+      final AssemblyUnit first = units.singleWhere(
+        (AssemblyUnit u) => u.labels.contains('GN)000'),
+      );
+      expect(end.operand, 'PROGRAM.START');
+      expect(end.location, labelled.location);
+      // GN)000 binds to the first text word, whose LOC is the data
+      // extent.
+      expect(end.location, greaterThan(first.location!));
+      // The loader reads the entry out of the address field, not the
+      // LOC column.
+      expect(Word36.address(end.word!), end.location);
+    }
+
+    test('a labelled statement takes it', () {
+      expectEntryOnProgramStart(<String>[
+        '            SET NUM = NUM + NUM.',
+        '      PROGRAM.START.  SET NUM = NUM + NUM.',
+        '            STOP RUN.',
+      ]);
+    });
+
+    test('a labelled section takes it', () {
+      // The section leaves through its own STOP RUN, so the program
+      // runs to the end of the job; `test/runtime/machine_test.dart`
+      // runs it.
+      expectEntryOnProgramStart(<String>[
+        '            GO TO WRAP.UP.',
+        '      PROGRAM.START.  BEGIN SECTION.',
+        '            SET NUM = NUM + 1.',
+        '            STOP RUN.',
+        '            END PROGRAM.START.',
+        '      WRAP.UP.  STOP RUN.',
+      ]);
+    });
+  });
 }

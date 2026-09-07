@@ -34,6 +34,7 @@ import '../emulator/word.dart';
 import '../lexer/diagnostic.dart';
 import '../lexer/messages.dart';
 import '../lexer/procedure_lexer.dart';
+import '../lexer/reserved_words.dart';
 import '../lexer/source_card.dart';
 import '../lexer/token.dart';
 import '../parser/parser.dart';
@@ -49,6 +50,7 @@ final class ProcedureText {
   const ProcedureText({
     required this.units,
     required this.words,
+    required this.entry,
     required this.poolWords,
     required this.poolUnits,
   });
@@ -58,6 +60,12 @@ final class ProcedureText {
 
   /// Words the text takes on Location Counter 0.
   final int words;
+
+  /// The object program's entry point, which the end-of-text word names
+  /// and addresses (D2.1): the statement or section labelled
+  /// `PROGRAM.START`, or `GN)000` on the first procedure word where the
+  /// program carries no such label.
+  final ({String name, int location}) entry;
 
   /// The constant pool's entry count after layout (M4-4).
   final int poolWords;
@@ -108,7 +116,10 @@ ProcedureText generateProcedure(
     for (final ParsedGroup group in semantics.parse.groups) {
       if (group is ParsedProcedureGroup) {
         if (entry) {
-          text.label('GN)000'); // The entry word's name (D2.1; M3-8).
+          // The first procedure word's generated name (M3-8), which is
+          // the entry point too unless PROGRAM.START names another word
+          // (D2.1 as amended 2026-09-06).
+          text.label('GN)000');
           entry = false;
         }
         text.sentences(group.sentences);
@@ -844,9 +855,15 @@ final class _Text {
       );
     }
     final ProgramImage? placed = image;
+    final int? start = _labelled[programStartName];
     return ProcedureText(
       units: _units,
       words: _location - _origin,
+      // `GN)000` binds before the first word the text emits, so it
+      // always names `_origin` (D2.1; M3-8).
+      entry: start == null
+          ? (name: 'GN)000', location: _origin)
+          : (name: programStartName, location: start),
       poolWords: _layout.length,
       poolUnits: <AssemblyUnit>[
         if (placed != null)
@@ -2000,6 +2017,12 @@ final class _Text {
           targetSubscripted: targetSubscripted,
         );
       case (FieldClass.externalDecimal, FieldClass.internalDecimal):
+        if (_sem(source).doublePrecision || _sem(target).doublePrecision) {
+          // The convert parks with one `STO`, which stores the
+          // accumulator alone, and no unsealed source fixes the AC-MQ
+          // split radix (`docs/design/runtime.md` RT-4).
+          _unruled('an external-decimal convert of more than 10 digits (RT-4)');
+        }
         _setup(source, subscripted: sourceSubscripted, target: false);
         _tsx(182);
         _txi(184, _sem(source).digits); // The complete call ([J 90.02.16]).
@@ -2077,6 +2100,15 @@ final class _Text {
       // first comma has no word to punch.
       _unruled('an edited field with eight digits before its first comma');
     }
+    if (!shape.protectedIsLeading) {
+      _unruled(
+        'an edited field with a suppression character behind its '
+        'leading run (RT-5)',
+      );
+    }
+    if (!shape.commasFitTheControlWord) {
+      _unruled('an edited field with irregular comma grouping (RT-5)');
+    }
     return (shape.digitsBeforeComma << 33) |
         (shape.digitsBeforePoint << 18) |
         (_signCode(shape.sign) << 15) |
@@ -2085,7 +2117,16 @@ final class _Text {
 
   /// The pictorial of an edited target. A field is edited because its
   /// pictorial holds an edit character, so the measurement is there.
-  Pictorial _editedShape(DataItem target) => _sem(target).shape!;
+  Pictorial _editedShape(DataItem target) {
+    final Pictorial shape = _sem(target).shape!;
+    if (shape.sCount > 0) {
+      // An `S` is a digit the field represents and does not store
+      // (F p. 80), and every MOVPAK count is a digit count, so the
+      // renderer would write past the field (RT-5).
+      _unruled('an edited field with an S position (RT-5)');
+    }
+    return shape;
+  }
 
   /// TARGET-SIGN-CONVENTION, the control word's tag ([J 90.02.17]
   /// Note 2's seven values).
@@ -2110,10 +2151,15 @@ final class _Text {
     if (subscripted) {
       _unruled('a subscripted edited-store source (no sample instance)');
     }
-    _loadBaseOf(source);
-    _opItem(Op.cla, source);
     final ItemSemantics s = _sem(source);
     final ItemSemantics t = _sem(target);
+    if (s.doublePrecision) {
+      // The load is one `CLA`, which reads the accumulator's word alone
+      // (`docs/design/runtime.md` RT-4).
+      _unruled('an edited store of more than 10 digits (RT-4)');
+    }
+    _loadBaseOf(source);
+    _opItem(Op.cla, source);
     if (s.digits > t.digits) {
       // The split divisor is 10 to the target's digit count — the one
       // value all three attested sites share, `CP)+24`.
@@ -2509,6 +2555,10 @@ final class _Text {
   /// runs already read it, and `TARGET-DECIMAL-NUMERIC-LENGTH` because
   /// the register receives exactly those digits (notes 6.2 item 18).
   void _editedFetch(DataItem source) {
+    if (_sem(source).doublePrecision) {
+      // The park is one `STO` as well (`docs/design/runtime.md` RT-4).
+      _unruled('an edited fetch of more than 10 digits (RT-4)');
+    }
     final int digits = _sem(source).digits;
     _tsx(182);
     _txi(268, 1);

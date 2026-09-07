@@ -74,6 +74,10 @@ The path is optional on every flag. The listing on stdout does not change.
 | `--emit-deck[=<path>]` | `-d` | object deck | attested format, no surviving byte image | golden: `test/goldens/90.05-payroll.deck`; the load round trip (`loader.md` LD-3) |
 | `--emit-loader[=<path>]` | `-L` | loader symbolic cards | attested | golden: `test/goldens/90.05-payroll.loader`, the listing's page 198 lines |
 
+`--run` is not in this table and takes no place in it. It writes no dump.
+It loads the punched deck and runs the object program (M4 stage 4;
+`runtime.md` RT-1).
+
 Jack added the short surface 2026-08-05. M4 stage 1 added `--emit-code`
 the same day, under M4-19. Chunk B7 added `--emit-object`, under M4-8.
 Stage 3 added `--emit-deck` and `--emit-loader` on 2026-08-30, under

@@ -17,14 +17,16 @@ the parsers for all three divisions, and the job-stream driver work; code
 generation fills every word of the object program, prints the whole object
 listing of the 1962 sample byte for byte, and issues its diagnostics; the
 deck writer punches the object deck and the loader cards, and our loader
-reads them back; the machine assembly comes next. Read `docs/HANDOVER.md`
+reads them back; the machine assembly runs a compiled program under
+`comtranc --run`, and the 1962 sample stops at its first GET, where the
+I/O runtime of M5 begins. Read `docs/HANDOVER.md`
 for the live state and the next task.
 
 ## 3. Repository map
 
 | Path | What it holds |
 |---|---|
-| `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `data`, `codegen`, `loader`, `driver`, `listing`, `emit`, `emulator`, and `mcp` |
+| `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `data`, `codegen`, `loader`, `driver`, `listing`, `emit`, `emulator`, `runtime`, and `mcp` |
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), `deckmcp.dart` (the MCP server) |
 | `test/` | The Dart tests, plus `test/goldens/`, `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its mirror, and the keying notes) |
 | `tool/` | Dart generators for this package |

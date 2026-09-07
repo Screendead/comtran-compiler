@@ -447,14 +447,11 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      tracking the target — 5, 6 and 7 across the sites.
   4. **CORRESPONDING**: expand `correspondingPairs`, one ordinary move
      per pair, the written subscript appended on its side (D4.12).
-     **Amended 2026-08-15, chunk B1: the pairs emit breadth-first** — a
-     top-level pair before the pairs inside a matched group (statement
-     221's attested unit order) — and a MOVPAK kill of the register
-     cache defers to the expansion's end (statement 221's chain against
-     statement 220's reload). **Item (d) of the chunk B2 amendment below
-     replaces "breadth-first" with the full order**, because that word
-     named the levels and did not say how two pairs at one level break a
-     tie.
+     **Amended 2026-08-15, chunk B1: the pairs emit breadth-first**,
+     and a MOVPAK kill of the register cache defers to the expansion's
+     end (statement 221's chain against statement 220's reload).
+     **Item (d) below replaces "breadth-first" with the full order**:
+     that word named the levels only.
   5. **Multiple targets**: one independent sequence per target, no shared
      setup (attested at statement 188's two receivers; D4.8's store
      independence is the same rule on SET).
@@ -488,7 +485,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   a. **The octal comes from the emulator's table.**
      `lib/src/codegen/encode.dart` imports `decode.dart` and states no
      operation code of its own, so the OCTAL column has one authority.
-     `test/encode_test.dart` asserts the two directions entry by entry.
+     **Amended 2026-09-06 (M4 stage 4).** `test/encode_test.dart` pins
+     both directions.
   b. **A guard sits at the word that uses its operand**, not ahead of
      the sequence. The NET sentence pins it: the guard for
      `1)BONDEDUCTION` sits at LOC 00727, between the fifth `SUB` and
@@ -511,15 +509,18 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      and `MPY` the left. Three sites attest it: `LDQ CP)+6 /
      MPY 3)HOURS`, `LDQ 1)RATE,1 / MPY 3)HOURS`, and `LDQ CP)+12 /
      MPY EXEMPTIONS,1`.
-  f. **Five more shapes refuse**, each legal COMTRAN the sample never
+  f. **Ten more shapes refuse**, each legal COMTRAN the sample never
      reaches, each throwing `UnrecoveredShape` under M4-2 as amended.
      `test/codegen_refusal_test.dart` pins one program per site. Three
-     other conditions cannot arise; the code asserts them.
+     other conditions cannot arise; the code asserts them. Five came on
+     2026-09-06: an external-decimal convert and an edited store
+     past 10 digits (`runtime.md` RT-4), and three edited targets no
+     control word carries — an `S` position, a suppression character
+     behind the leading run, and irregular comma grouping (RT-5).
 
-  Items (d) and (e) are underdetermined: one sample attests each, and
-  other formulations agree with it. Both are taken under the section
-  12 standing rule and recorded `DECIDED`, with the formulations they
-  beat, on branch `review/2026-08-16-m4-b2-underdetermined`.
+  Items (d) and (e) are underdetermined. Both are `DECIDED` under the
+  section 12 standing rule, and `review/2026-08-16-m4-b2-underdetermined`
+  holds the formulations they beat.
 
 ## SET and arithmetic
 
@@ -610,10 +611,15 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      convert leaves the accumulator, so the park is `STO`.
 
   `RIR`, `SIR` and `RFT` print M4-8's fourth OCTAL rendering, so
-  `encode.dart` gives them a word form of their own. Two shapes refuse
-  beside the three named above — a scale alignment of a sub-chain, and a
-  product of a product — and `test/codegen_refusal_test.dart` pins one
-  program per site. Items (b), (d) and (e) are underdetermined, and
+  `encode.dart` gives them a word form of their own. Three shapes refuse
+  beside the three named above:
+
+  - a scale alignment of a sub-chain;
+  - a product of a product;
+  - an edited ADD source past 10 digits, from 2026-09-06.
+
+  `test/codegen_refusal_test.dart` pins one program per site.
+  Items (b), (d) and (e) are underdetermined, and
   `review/2026-08-16-m4-b3-underdetermined` holds the formulations they
   beat.
 ## IF and WHEN
@@ -907,10 +913,10 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   to run an I/O-free program to its STOP. M5 lands
   IOCS: IOC)2–17, 29, 46, 53, 54 and SYS)260–266, 283, and 286–296
   less the already-landed 294. Each handler implements its [J 90.02]
-  contract and is unit-tested against it (D0.3). Handlers keep the
-  printed inconsistencies as recorded defects, not silent fixes:
-  SYS)231–234 follow their own entries (overpunch test), not the family
-  lists' overflow naming (D4.2's note).
+  contract and is unit-tested against it (D0.3).
+  **Amended 2026-09-06. Landed in part.** Stage 4 built 28 entries and
+  `comtranc --run`. `runtime.md` RT-1 holds the list, the rule that each
+  remaining entry lands with its first emitter, and the SYS)130 note.
 
 ## Diagnostics
 
@@ -982,9 +988,9 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   - **(c) LOC 01327 (PDF p. 212) — confirmed as printed.** The word is
     `TRA SYS)267,0,0`, octal `0020 00 0 00413`, inside a SYS)180
     sequence where every parallel site prints `TXI SYS)267,1,n`. The
-    ink is unambiguous, so the listing reproduces it byte for byte. The
-    execution reading waits for M6, when the sample first runs; the
-    finding amends this entry.
+    ink is unambiguous, so the listing reproduces it byte for byte.
+    **Amended 2026-09-06 (M4 stage 4).** `runtime.md` RT-3 holds the
+    execution reading.
   - **(d) LOC 00702 (PDF p. 206) — confirmed verbatim.** The label-only
     `GN)075` line, the out-of-order `GN)088 EQU CP)+37` line between it
     and the instruction, and the unlabeled `AXT GN)086,4` word printing
