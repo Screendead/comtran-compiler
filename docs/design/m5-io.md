@@ -110,7 +110,7 @@ handler moves words inside core (`runtime.md` RT-1).
 - **M5-3. The loader's file cards become the run's file table.** Our
   loader already reads the `*FILE` and `*SPEC` cards into
   `LoadedProgram.files` (`lib/src/loader/loader.dart`; LD-3), and
-  `Machine` ignores them today. Stage 1 gives each `LoaderFile` a
+  `Machine` ignored them before stage 1. Stage 1 gives each `LoaderFile` a
   control block of two fields: its host file, and whether it is open.
   The buffer and the read position arrive with IOC)8, because no word of
   stage 1 reads them (CLAUDE.md section 11).
@@ -136,8 +136,8 @@ handler moves words inside core (`runtime.md` RT-1).
   looks in it for one image per unit, so UNIT1 `D1` reads and writes
   `D1.tap`. An empty path is a usage error, and a directory that is not
   there is an error the compiler names before it compiles. With no
-  directory named, a file has no host image: it opens, it closes
-  without writing, and the run behaves as it does today. With a
+  directory named, a file has no host image. It opens, it closes
+  without writing, and the run behaves as it did before stage 1. With a
   directory named, a declared input file whose image is absent ends the
   run with a message. A silent empty tape would print a wrong report.
 
@@ -164,9 +164,9 @@ handler moves words inside core (`runtime.md` RT-1).
   seven closed files and must do nothing.
 
   `SYS)175` opens every file the list counts and `SYS)177` closes every
-  one ([J 90.02.14]). Today `SYS)177` throws on any non-zero count
-  (`lib/src/runtime/monitor.dart`), so the count is the first thing that
-  breaks when the table lands.
+  one ([J 90.02.14]). Before stage 1, `SYS)177` threw on any non-zero
+  count, so the count was the first thing the file table broke
+  (`lib/src/runtime/monitor.dart`).
 
   D6.3 holds the four close codes: U unloads, R or blank rewinds, N
   does neither, and S writes no file mark. The sample punches one open
