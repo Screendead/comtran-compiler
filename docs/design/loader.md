@@ -102,7 +102,8 @@ reverses it.
 `lib/src/emit/emit_deck.dart`. The control-group vocabulary of
 [J 90.03.04] moved to `lib/src/loader/control_group.dart`, which the
 loader and the code generator both import.
-`lib/src/loader/object_deck.dart` keeps the card format for both sides.
+`lib/src/loader/object_deck.dart` keeps the card format for the writer
+and the loader.
 The runtime depends on the loader. The loader must therefore not import
 the code generator.
 

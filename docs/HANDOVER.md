@@ -680,9 +680,10 @@ imports the libraries directly or splits the barrel in two.
 for a browser, and `web/main.dart` imports it. `lib/comtran_io.dart` exports
 that barrel and the three exported libraries that need `dart:io`. The
 WebAssembly build in CI is the guard. `dart:io` has no browser build, so the
-build fails if `lib/comtran.dart` imports it again. The count above is from
-2026-08-10. Four files of the 78 in `lib/src/` import `dart:io` today:
-`cards/deck_files.dart`, the two `mcp/` files and `runtime/machine.dart`.
+build fails if `lib/comtran.dart` exports a library that needs it again. The
+count above is from 2026-08-10. Four files of the 78 in `lib/src/` import
+`dart:io` today: `cards/deck_files.dart`, the two `mcp/` files and
+`runtime/machine.dart`.
 
 `editors/vscode-punchcard/media/punchcard.js` is already a browser punch grid,
 in 793 lines with 11 references to the editor API. W1 ports it. The column
