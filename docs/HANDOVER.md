@@ -66,7 +66,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1242 Dart tests pass, measured 2026-09-06, and 154 extension
+Test baseline: 1248 Dart tests pass, measured 2026-09-06, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -117,7 +117,7 @@ past its first GET.
 
 ### Codegen defects the runtime exposed
 
-The stage-4 runtime made three codegen defects visible for the first
+The stage-4 runtime made five codegen defects visible for the first
 time. None is fixed on the stage-4 branch, and each fix is a codegen
 change. Take them before M5 or beside it. Whether a site refuses the
 shape or handles it is Jack's call.
@@ -137,6 +137,16 @@ shape or handles it is Jack's call.
    `storageChars` does not. Three sites punch the digit count where the
    handler reads characters: :2028, :2079 and :2565. The handler then
    reads past the field.
+4. **A `STO` through the register the convert has just overwritten.**
+   The external-to-internal path emits `_loadBaseOf(target)` and the
+   `STO` (:2029) before `_movpakClears()`. `_loadBase` (:1036) reuses a
+   register that already holds the target's locator. A target behind the
+   locator in register 1 then stores through the count `TXI SYS)184,1,n`
+   left there. No sample site is on that path.
+5. **A leading run that mixes `8` and `*` compiles.** The control word
+   has one address field for the leading run, so it cannot say which
+   cells take a blank and which an asterisk. `$8*89.99` compiles with no
+   diagnostic. RT-5 lists the shape among its open items.
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the

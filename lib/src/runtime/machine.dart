@@ -118,6 +118,9 @@ final class Machine {
     _display.add(line);
   }
 
+  /// The on-line printer's lines so far.
+  List<String> get printed => List.unmodifiable(_display);
+
   /// Runs until a handler ends the job or [maxSteps] is reached. A
   /// runtime entry counts as one step, so a program that only calls
   /// handlers is bounded too.
@@ -142,7 +145,7 @@ final class Machine {
     }
     return RunResult(
       outcome: outcome ?? RunOutcome.stepLimit,
-      display: List.unmodifiable(_display),
+      display: printed,
     );
   }
 }

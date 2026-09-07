@@ -144,6 +144,26 @@ void main() {
       }).run(maxSteps: 50);
       expect(result.outcome, RunOutcome.stepLimit);
     });
+
+    test('the display survives an entry the machine lacks', () {
+      // No compiled program reaches this in M4: `STOP n` is refused
+      // (notes section 7) and `STOP RUN` ends the job.
+      final Machine subject = machine({
+        start: tsx(178),
+        start + 1: typeA(0, decrement: start + 0x101, address: start + 0x100),
+        start + 2: typeA(0, decrement: start + 0x103, address: start + 0x102),
+        start + 3: tsx(8),
+        start + 0x100: octal('606060011111'),
+        start + 0x101: octal('730104606060'),
+        start + 0x102: octal('606263464760'),
+        start + 0x103: octal('605164456060'),
+      });
+      expect(
+        () => subject.run(maxSteps: 4),
+        throwsA(isA<UnimplementedRuntimeEntry>()),
+      );
+      expect(subject.printed, <String>['AT 199,14 STOP RUN']);
+    });
   });
 
   group('the 90.05 sample', () {

@@ -112,6 +112,16 @@ void main() {
       expect(state.xrRead(2), junkLocator);
       expect(state.xrRead(4), link(start));
     });
+
+    test('the preset entry leaves the counter on the word after it', () {
+      final Machine preset = machine(<int, int>{start: tsx(182)})
+        ..run(maxSteps: 2);
+      final MachineState state = preset.state;
+      expect(state.ic, start + 1);
+      expect(state.xrRead(1), 0);
+      expect(state.xrRead(2), junkLocator);
+      expect(state.xrRead(4), link(start));
+    });
   });
 
   group('a broken instruction stream throws', () {

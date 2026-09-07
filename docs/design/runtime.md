@@ -9,7 +9,8 @@ Every entry binds the code.*
 
 ## RT-1. The machine
 
-`lib/src/runtime/machine.dart` holds one class. `Machine` writes a
+`lib/src/runtime/machine.dart` holds the machine, its result and
+outcome types, and its unimplemented-entry error. `Machine` writes a
 `LoadedProgram` into a fresh `MachineState`, enters at the program's
 entry point (D2.1), and runs.
 
@@ -91,7 +92,8 @@ GET, which throws.
 `comtranc --run` loads and runs each job whose deck the compiler
 punched, and prints the display lines after the listing. CLAUDE.md
 section 11 asks for a caller, and that flag is it. An unimplemented
-entry prints its message and fails the run.
+entry prints the display lines the run produced, then its message, and
+fails the run.
 
 `endOfJob` alone leaves the exit status at 0. An error exit and an
 exhausted budget each fail the job. The budget prints one line on the
@@ -121,7 +123,7 @@ caller, on a recorded plan. This paragraph is that plan, and it covers
 every entry M4-17 names above.
 
 Two entries can never get an emitter. Our generator declines SYS)179
-and SYS)181 at all thirteen sites the manual permits them, and pays 29
+and SYS)181 at all thirteen sites the manual permits them. It pays 29
 extra words to do it (`test/fixtures/90.05-object-code-notes.md`, the
 descriptors list, item 2).
 
@@ -141,7 +143,7 @@ and found zero.
 wider set was legal. Section 11 permits a tested handler with no
 caller, and a plan such as this one is the record it asks for. The
 stage kept to the narrow set because no run in this repository reaches
-the other entries today: the I/O entries wait for M5, and no emitted
+the other entries today. The I/O entries wait for M5, and no emitted
 word calls the rest.
 
 ## RT-2. The run frame
@@ -236,12 +238,14 @@ dispatcher's address test, and it needs no second interpreter.
 
 ### The session
 
-The session holds five things:
+The session holds six things:
 
 - the cursor, which is the address of the calling-sequence word in hand;
 - one byte cursor over the source and one over the target, each copied
   from a pointer cell at the entry (RT-4);
 - the member that opened a two-word run;
+- the edit control and the control word an edited head parks for its
+  terminator (RT-5);
 - the digits converted so far;
 - the sign of those digits.
 
@@ -326,10 +330,10 @@ the 0 the entry wrote, and the handler reads control 0.
   them, so they may write any register. That licence stops at MOVPAK.
 
 `test/runtime/movpak_protocol_test.dart` holds one case per word shape
-of the table above. Each case preloads junk into registers 1 and 2, then
-asserts the resume address, register 1, register 2, the link in register
-4, and whether the session is still open. Six negative cases assert the
-broken-program throws.
+of the table above. Each case preloads junk into registers 1 and 2. It
+then asserts the resume address, register 1, register 2, the link in
+register 4, and whether the session is still open. Six negative cases
+assert the broken-program throws.
 
 ### Rejected readings
 
@@ -385,8 +389,8 @@ Four `SYS)182` sites preset the source pointer alone: LOC 00574, 01356,
 decimal to internal decimal leaving results in the AC or AC-MQ"
 ([J 90.02.16]). Our handler refuses the pair, under the ten-digit rule
 below. The value is the digit string as a binary integer. The handler is
-told no scale, and the sample's three sites give source and target the
-same scale, so the emitted `LRS` and `DVP` tails of D4.1 carry every
+told no scale. The sample's three sites give source and target the same
+scale, so the emitted `LRS` and `DVP` tails of D4.1 carry every
 alignment.
 
 The characters are read one at a time:
@@ -431,13 +435,20 @@ classifies each character as it reads it:
   counted, and it arms nothing.
 - An insertion character — the point, the comma, the dollar sign, the
   plus and the minus — is stepped over and is not counted.
-- The low-order position of the step may carry an overpunch sign, read
-  as under SYS)184.
+- An overpunch is an improper data condition (D4.3): the step reads no
+  sign.
 - Anything else is an improper data condition (D4.3), as under SYS)184.
 
-"Last" is per step, so a run of two SYS)269 steps would read the first
-step's last character as a sign. The generator emits one step, and no
-unsealed evidence says more (D0.9).
+**SYS)269 reads no sign. Design decision.** The manual gives the
+sign-reading steps of the family their own numbers. SYS)273 scans for
+a sign character. SYS)276, 277 and 278 carry the last-character sign
+note, and SYS)282 the first-character note. SYS)269 carries no note
+([J 90.02.30]). The generator emits none of the five, so an overpunch
+a SYS)269 step meets is an improper data condition, as under SYS)193
+and SYS)198 (RT-5). The rejected reading takes the sign over the
+low-order digit, as under SYS)184. SYS)184's entry says so
+([J 90.02.16]). SYS)268's entry says nothing of a sign. No attested
+site separates the two readings, and no unsealed evidence does (D0.9).
 
 **The asterisk is a digit position, not an insertion character. Design
 decision.** The target control word counts the asterisks beside the 8's
@@ -667,9 +678,9 @@ which the renderer refuses before it writes a cell.
 ### SYS)267, the accumulator to an edited field
 
 `TXI SYS)267,1,edit / OCT control / AXT digits,1` ([J 90.02.30]). The
-handler reads the count from the `AXT` word's address field, converts
-the accumulator to that many decimal digits, renders, and returns to
-the `AXT` for the CPU to execute (RT-3).
+handler reads the count from the `AXT` word's address field and
+converts the accumulator to that many decimal digits. It renders, and
+returns to the `AXT` for the CPU to execute (RT-3).
 
 **The source is the accumulator alone, never the AC-MQ pair.** This
 overrides the entry, which says SYS)267 "converts from internal decimal

@@ -121,6 +121,17 @@ void main() {
       expect(subject.state.read(conditionCell), 0);
     });
 
+    test('an overpunch in the step is an improper data condition', () {
+      // SYS)269 carries no sign note (RT-4): `J` is 1 over an 11.
+      final Machine subject = dispatch(
+        words: <int>[txi(268, 1), txi(269, 3), txi(275, 3)],
+        sourceImage: <int>[characters('12J   ')],
+      );
+      expect(subject.state.acSign, 0);
+      expect(subject.state.acMagnitude, 121);
+      expect(subject.state.read(conditionCell), isNot(0));
+    });
+
     test('more than ten digits is unimplemented', () {
       expect(
         () => dispatch(words: <int>[txi(268, 1), txi(269, 0), txi(275, 11)]),

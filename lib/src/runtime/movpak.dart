@@ -170,10 +170,11 @@ final class _Movpak {
   }
 
   /// SYS)269 converts NUMBER-OF-CHARACTERS-TO-CONVERT digit positions of
-  /// the edited source ([J 90.02.30]).
+  /// the edited source ([J 90.02.30]). It carries no sign note, so an
+  /// overpunch in the step is an improper data condition (RT-4).
   RunOutcome? _editedDigits() {
     final (_Session session, int count) = _step(269);
-    _convert(session, count, edited: true);
+    _convert(session, count, edited: true, readsSign: false);
     _next(session);
     return null;
   }

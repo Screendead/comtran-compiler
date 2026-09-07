@@ -328,10 +328,9 @@ bool _runObjectProgram(JobCompilation job, ListingOptions options, int number) {
   if (punched == null) {
     return true;
   }
+  final machine = Machine.load(punched.cards);
   try {
-    final RunResult result = Machine.load(
-      punched.cards,
-    ).run(maxSteps: _stepBudget);
+    final RunResult result = machine.run(maxSteps: _stepBudget);
     result.display.forEach(stdout.writeln);
     if (result.outcome == RunOutcome.stepLimit) {
       stderr.writeln(
@@ -342,6 +341,7 @@ bool _runObjectProgram(JobCompilation job, ListingOptions options, int number) {
     // the display (RT-2), so the tool adds none of its own.
     return result.outcome == RunOutcome.endOfJob;
   } on UnimplementedRuntimeEntry catch (e) {
+    machine.printed.forEach(stdout.writeln);
     stderr.writeln('error: job $number: $e');
     return false;
   }
