@@ -8,7 +8,7 @@ library;
 
 import 'dart:io';
 
-import 'package:comtran/comtran.dart';
+import 'package:comtran/comtran_io.dart';
 
 const String _usage = r'''
 Usage: dart run comtran:comtranc <deck.ctd> [options]

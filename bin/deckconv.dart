@@ -8,7 +8,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:comtran/comtran.dart';
+import 'package:comtran/comtran_io.dart';
 
 const String _usage = '''
 Usage: dart run comtran:deckconv <command> ...

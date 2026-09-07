@@ -6,7 +6,7 @@ library;
 
 import 'dart:io';
 
-import 'package:comtran/comtran.dart';
+import 'package:comtran/comtran_io.dart';
 import 'package:test/test.dart';
 
 import '../emulator/asm.dart';
