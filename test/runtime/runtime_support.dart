@@ -48,6 +48,14 @@ Machine machine(
   return built;
 }
 
+/// A temporary directory named for [prefix], which the test deletes
+/// when it ends.
+Directory tempDirectory(String prefix) {
+  final Directory directory = Directory.systemTemp.createTempSync(prefix);
+  addTearDown(() => directory.deleteSync(recursive: true));
+  return directory;
+}
+
 /// One `*FILE` card of a test program: [type] is column 28, `I` for an
 /// input file and `P` for an output file ([J 90.08.01]), and [unit] is
 /// the UNIT1 the host image is named for (M5-3).

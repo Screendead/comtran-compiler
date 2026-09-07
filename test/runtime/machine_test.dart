@@ -102,12 +102,15 @@ final List<String> _guard = <String>[
   '      *FINISH',
 ];
 
+/// Compiles the 90.05 job deck with [options].
+ProcessResult _compileSample(List<String> options) => Process.runSync(
+  Platform.resolvedExecutable,
+  ['run', 'comtran:comtranc', jobDeckPath, ...options],
+);
+
 /// Punches [source] into a temporary deck and compiles it with `--run`.
 ProcessResult _compileAndRun(List<String> source) {
-  final Directory directory = Directory.systemTemp.createTempSync(
-    'comtran-run',
-  );
-  addTearDown(() => directory.deleteSync(recursive: true));
+  final Directory directory = tempDirectory('comtran-run');
   final path = '${directory.path}/job.ctd';
   File(
     path,
@@ -197,14 +200,8 @@ void main() {
     });
 
     test('a declared input file needs its tape image', () {
-      final Directory tapes = Directory.systemTemp.createTempSync(
-        'comtran-tapes',
-      );
-      addTearDown(() => tapes.deleteSync(recursive: true));
-      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
-        'run',
-        'comtran:comtranc',
-        jobDeckPath,
+      final Directory tapes = tempDirectory('comtran-tapes');
+      final ProcessResult run = _compileSample([
         '--run',
         '--tapes=${tapes.path}',
       ]);
@@ -219,14 +216,25 @@ void main() {
     });
 
     test('comtranc --run fails on the entry M4 lacks', () {
-      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
-        'run',
-        'comtran:comtranc',
-        jobDeckPath,
-        '--run',
-      ]);
+      final ProcessResult run = _compileSample(['--run']);
       expect(run.exitCode, 1);
       expect(run.stderr, contains('error: job 1: unimplemented runtime entry'));
+    });
+  });
+
+  group('the --tapes directory', () {
+    test('an empty path is a usage error', () {
+      final ProcessResult run = _compileSample(['--run', '--tapes=']);
+      expect(run.exitCode, 2);
+      expect(run.stderr, startsWith('Usage:'));
+    });
+
+    test('a directory that is not there names itself', () {
+      final missing = '${tempDirectory('comtran-tapes').path}/gone';
+      final ProcessResult run = _compileSample(['--run', '--tapes=$missing']);
+      expect(run.exitCode, 2);
+      expect(run.stdout, isEmpty);
+      expect(run.stderr, 'error: no tape directory at $missing\n');
     });
   });
 

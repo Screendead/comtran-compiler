@@ -81,9 +81,9 @@ final class MissingTapeImage implements RunFault {
 }
 
 /// A `*FILE` card whose shape has no run, which open-all refuses
-/// (M5-3). Two shapes reach it: a direction column that is not `I`, `T`
-/// or `P`, and a file with no unit in a run that named a tape
-/// directory.
+/// (M5-3). Three shapes reach it: a direction column that is not `I`,
+/// `T` or `P`, a file with no unit, and two files on one unit. The last
+/// two reach it only in a run that named a tape directory.
 final class UnrunnableFile implements RunFault {
   UnrunnableFile(this.file, this.fault);
 
@@ -203,13 +203,13 @@ final class Machine {
   /// from IOC)1 (RT-2). An output file's host image is created or
   /// truncated, and an input file's host image must already exist.
   ///
-  /// It checks every file before it truncates any image, because a run
-  /// that refuses to start must leave the images as it found them.
+  /// A refused run leaves every image as it found it.
   ///
   /// Throws [UnrunnableFile] for a file shape that has no run, and
   /// [MissingTapeImage] for an input file the host directory does not
   /// hold.
   void openFiles(int count) {
+    final taken = <String>{};
     for (var i = 0; i < count; i++) {
       final LoaderFile declaration = program.files[i];
       if (!_directed(declaration)) {
@@ -224,6 +224,12 @@ final class Machine {
       }
       if (declaration.unit1.isEmpty) {
         throw UnrunnableFile(declaration.name, 'it names no unit');
+      }
+      if (!taken.add(declaration.unit1)) {
+        throw UnrunnableFile(
+          declaration.name,
+          'another file already holds unit ${declaration.unit1}',
+        );
       }
       if (_input(declaration) && !host.existsSync()) {
         throw MissingTapeImage(declaration.name, host.path);
@@ -268,8 +274,9 @@ final class Machine {
   /// runtime entry counts as one step, so a program that only calls
   /// handlers is bounded too.
   ///
-  /// Throws [UnimplementedRuntimeEntry] when control reaches a runtime
-  /// address with no handler, and every exception the CPU throws (§7 of
+  /// Throws a [RunFault], from the dispatcher when control reaches a
+  /// runtime address with no handler and from a handler that refuses
+  /// its call, and every exception the CPU throws (§7 of
   /// `docs/design/emulator.md`).
   RunResult run({required int maxSteps}) {
     RunOutcome? outcome;

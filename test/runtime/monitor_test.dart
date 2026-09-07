@@ -92,10 +92,7 @@ void main() {
     });
 
     test('close writes one tape mark to each open output file', () {
-      final Directory tapes = Directory.systemTemp.createTempSync(
-        'comtran-tapes',
-      );
-      addTearDown(() => tapes.deleteSync(recursive: true));
+      final Directory tapes = tempDirectory('comtran-tapes');
       // Both images hold a record already, so the run shows what open
       // truncates and what it leaves.
       final input = File('${tapes.path}/D1.tap')
@@ -139,10 +136,7 @@ void main() {
     });
 
     test('a refused open leaves every image as it found it', () {
-      final Directory tapes = Directory.systemTemp.createTempSync(
-        'comtran-tapes',
-      );
-      addTearDown(() => tapes.deleteSync(recursive: true));
+      final Directory tapes = tempDirectory('comtran-tapes');
       // The output file comes first and the absent input second, so one
       // loop over the table would truncate C1 before it refused.
       const record = <int>[2, 0, 0, 0, 60, 60, 2, 0, 0, 0];
@@ -183,10 +177,7 @@ void main() {
     });
 
     test('a file with no unit has no run under a tape directory', () {
-      final Directory tapes = Directory.systemTemp.createTempSync(
-        'comtran-tapes',
-      );
-      addTearDown(() => tapes.deleteSync(recursive: true));
+      final Directory tapes = tempDirectory('comtran-tapes');
       // Its image path would be the bare suffix, and two such files
       // would share one image (M5-3).
       final Machine subject = machine(
@@ -201,6 +192,30 @@ void main() {
             (UnrunnableFile e) => e.toString(),
             'toString',
             'no run for file FILE1: it names no unit',
+          ),
+        ),
+      );
+    });
+
+    test('two files on one unit have no run under a tape directory', () {
+      // Open-all opens the whole list at once, so one image cannot
+      // hold two files, and the second open would truncate the first
+      // (M5-3).
+      final Machine subject = machine(
+        _openAll,
+        files: <LoaderFile>[
+          loaderFile(1, type: 'P', unit: 'C1'),
+          loaderFile(2, type: 'P', unit: 'C1'),
+        ],
+        tapes: tempDirectory('comtran-tapes'),
+      );
+      expect(
+        () => subject.run(maxSteps: 2),
+        throwsA(
+          isA<UnrunnableFile>().having(
+            (UnrunnableFile e) => e.toString(),
+            'toString',
+            'no run for file FILE2: another file already holds unit C1',
           ),
         ),
       );

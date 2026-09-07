@@ -152,7 +152,12 @@ int _run(List<String> arguments) {
     } else if (argument == '--run') {
       run = true;
     } else if (argument.startsWith('--tapes=')) {
-      tapes = Directory(argument.substring(8));
+      final String path = argument.substring(8);
+      if (path.isEmpty) {
+        stderr.write(_usage);
+        return 2;
+      }
+      tapes = Directory(path);
     } else if (argument == '--emit-all') {
       for (final String stage in _emitStages) {
         emitPaths[stage] = null;
@@ -199,6 +204,12 @@ int _run(List<String> arguments) {
       date != null && !RegExp(r'^\d\d/\d\d/\d\d$').hasMatch(date) ||
       time != null && !RegExp(r'^\d{1,2}\.\d\d$').hasMatch(time)) {
     stderr.write(_usage);
+    return 2;
+  }
+  if (tapes != null && !tapes.existsSync()) {
+    // Without this the run names the first file that failed, and the
+    // directory that failed goes unnamed.
+    stderr.writeln('error: no tape directory at ${tapes.path}');
     return 2;
   }
   for (final String stage in emitPaths.keys.toList()) {

@@ -10,7 +10,8 @@ Every entry binds the code.*
 ## RT-1. The machine
 
 `lib/src/runtime/machine.dart` holds the machine, its result and
-outcome types, its two errors, and the run's file table. `Machine`
+outcome types, the three faults of `RunFault`, and the run's file
+table. `Machine`
 writes a `LoadedProgram` into a fresh `MachineState`, enters at the
 program's entry point (D2.1), and runs. The file table is one control
 block per `*FILE` card, and `m5-io.md` M5-3 holds its design.
@@ -202,12 +203,14 @@ Open reads the whole list before it changes one image. It refuses a run
 on the first fault it finds, and a refused run leaves every image as it
 found it.
 
-Open refuses two file shapes, and throws `UnrunnableFile` for each
+Open refuses three file shapes, and throws `UnrunnableFile` for each
 (M5-3). The first is a file whose direction column is not `I`, `T` or
 `P`. Our generator punches that column blank for a checkpoint file, and
 no record says what a checkpoint file opens. The second is a file with
 no unit, in a run that named a tape directory. Its image path would be
-the bare suffix, and two such files would share one image.
+the bare suffix, and two such files would share one image. The third is
+two files on one unit, in the same run. One image cannot hold both, and
+the second open truncates what the first wrote.
 
 ### SYS)294, the base-locator guard
 
