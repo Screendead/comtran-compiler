@@ -247,7 +247,7 @@ handler moves words inside core (`runtime.md` RT-1).
   for the two input records, and the only I/O cells the compiler
   allocates are the three `BL)` words. The Loader "reserves a portion
   of core storage for use by the I/O system as operating storage"
-  ([J 02.07.02]), and the execution-time core chart puts the file blocks
+  ([J 02.07.02]). The execution-time core chart puts the file blocks
   below the program and the buffer pools above it ([J 03.03.01]). Our
   file table is Dart's and stands below the program (M5-3), so the
   buffer goes above.
@@ -278,8 +278,8 @@ handler moves words inside core (`runtime.md` RT-1).
 
   Three placements were rejected. Below the program contradicts the
   [J 03.03.01] order. A block held in Dart, with each record copied to a
-  fixed area per file, is transmit mode wearing locate mode's numbers,
-  and the printed report would hide the lie. The top of core has no
+  fixed area per file, is transmit mode wearing locate mode's numbers.
+  The printed report would hide that lie. The top of core has no
   evidence. Two buffers a file, after [J 02.06.14]'s "at least 2 buffers
   to each file", is read-ahead, which a sequential emulation never
   observes.
@@ -306,17 +306,17 @@ handler moves words inside core (`runtime.md` RT-1).
      nothing (D6.5).
   2. With no unread word in the buffer, the GET reads the next frame
      first. A record fills the buffer. A file mark takes the AT END
-     exit, leaves the base locator as it was, and leaves the buffer
-     spent, so that the next GET on the file reads on past the mark. A
-     frame that is no record takes SYS)283.
+     exit and leaves the base locator as it was. It also leaves the
+     buffer spent, so that the next GET on the file reads on past the
+     mark. A frame that is no record takes SYS)283.
   3. A buffer that holds fewer unread words than the extent takes
      SYS)260. The record would straddle two blocks, and "one cannot
      locate a logical record that overlaps a physical block" (external:
      C28-6100-2, printed p. 13).
   4. Otherwise the GET writes the address of the next unread word into
-     the address field of the base locator, as a simple `PZE LOC`
-     ([J 90.02.05]), and resumes four words on. The program does byte
-     arithmetic on the whole cell, so the prefix, the tag and the
+     the address field of the base locator, and resumes four words on.
+     The word is a simple `PZE LOC` ([J 90.02.05]). The program does
+     byte arithmetic on the whole cell, so the prefix, the tag and the
      decrement stay zero.
 
   Index register 4 survives every exit, so a terminator reads the same
@@ -326,20 +326,25 @@ handler moves words inside core (`runtime.md` RT-1).
 
   **A frame that is no record takes the error exit. Jack's ruling of
   2026-09-12.** Three conditions present one face to the reader, and
-  all three take SYS)283: a frame whose two lengths disagree, or whose
-  data the image is too short to hold; a length that is no whole number
-  of words; and a read past the end of the tape, which is an image that
-  ends with no file mark. The alternative was a run fault outside the
+  all three take SYS)283:
+
+  - a frame whose two lengths disagree, or whose data the image is too
+    short to hold;
+  - a length that is no whole number of words;
+  - a read past the end of the tape, which is an image that ends with
+    no file mark.
+
+  The alternative was a run fault outside the
   emulation, which leaves SYS)283 unbuilt. The line between a problem
   found before the run and one found during it is the line stage 1 drew
   (M5-3).
 
   **Both message texts are ours.** No manual prints either one.
   [J 90.02.28] says that SYS)260 "prints an error message indicating
-  processing terminated due to record length error", J 90.02.32 that
-  SYS)283 "prints a message concerning the GET error", and [J 05.06.04]
-  says only that a message goes to the on-line printer. Ours name the
-  file and the frame:
+  processing terminated due to record length error". [J 90.02.32] says
+  that SYS)283 "prints a message concerning the GET error".
+  [J 05.06.04] says only that a message goes to the on-line printer.
+  Ours name the file and the frame:
 
   - `RECORD LENGTH ERROR ON INPUTMASTER, BLOCK 3`
   - `GET ERROR ON INPUTMASTER, BLOCK 3`
@@ -351,8 +356,8 @@ handler moves words inside core (`runtime.md` RT-1).
   The words of a record stay in the buffer until the next GET on that
   file refills it. That is our answer to Open Question 54 for the
   emulation: the sample always files a master record before the next
-  GET on the master file. The definition holds no design, so the answer
-  lives here.
+  GET on that file. The definition holds no design, so the answer lives
+  here.
 
 ## Open items
 

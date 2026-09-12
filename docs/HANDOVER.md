@@ -73,8 +73,8 @@ tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
 manual's own payroll sample through every phase to the object deck. Add
-`--run` and `--tapes=DIR`, with a master image and a detail image in DIR,
-and the object program runs as far as its first FILE, which M5 stage 3
+`--run` and `--tapes=DIR`, with a master image and a detail image in DIR.
+The object program then runs as far as its first FILE, which M5 stage 3
 lands. Without `--tapes` the run is refused: an input file has no image.
 The job deck is the 293-card artifact plus one reconstructed
 *FINISH card (D11.3); the raw artifact alone is an incomplete job and draws
@@ -101,9 +101,9 @@ lines.
 the 28 entries stage 4 built and the rule for the rest.
 
 An I/O-free program now runs end to end. The 90.05 sample loads its 936
-words, opens its seven files, fills its work areas through MOVPAK, gets
-a master record and a detail record, and stops at IOC)9, its first
-FILE. That stop is the boundary M5 stage 3 moves, and
+words, opens its seven files, and fills its work areas through MOVPAK.
+It then gets a master record and a detail record, and stops at IOC)9,
+its first FILE. That stop is the boundary M5 stage 3 moves, and
 `test/runtime/machine_test.dart` asserts it.
 
 Both carried items are closed. The machine writes the loader's words
@@ -115,9 +115,9 @@ first procedure word (D2.1 as amended 2026-09-06).
 its decisions, and M5-1 holds the stages. The milestone charters the
 IOCS entries M4-17 leaves. They are IOC)2 to 17, 29, 46, 53 and 54, and
 SYS)260 to 266, 283, and 286 to 296 less the landed 294. Our generator
-emits four of them, and stage 2 landed three: IOC)8, the READ
-subroutine, and SYS)260 and SYS)283, the two terminators of the GET
-sequence. IOC)9 is WRITE, and stage 3 lands it. The rest wait for the
+emits four of them. Stage 2 landed three: IOC)8, the READ subroutine,
+and the two terminators of the GET sequence, SYS)260 and SYS)283.
+IOC)9 is WRITE, and stage 3 lands it. The rest wait for the
 code-generator shape that emits them (`runtime.md` RT-1).
 
 Every file the sample declares is a tape, so M5 builds one device
@@ -129,11 +129,11 @@ first. Three stages, one pull request each:
 2. GET — IOC)8, the buffer, locate mode, and AT END (done 2026-09-12);
 3. FILE — IOC)9, the `IOST` word, blocking, and the four report tapes.
 
-Stage 3 writes a record from core to a host image, blocks records into
-BLOCKSIZE-word blocks (D6.7), gives an output file the buffer stage 2
-left it without, and patches the located-record `IOST` word (M5-6). It
-also needs a lister that renders a BCD tape as print lines, because
-that is the artifact M6 diffs.
+Stage 3 writes a record from core to a host image and blocks records
+into BLOCKSIZE-word blocks (D6.7). It gives an output file the buffer
+stage 2 left it without, and it patches the located-record `IOST` word
+(M5-6). It also needs a lister that renders a BCD tape as print lines,
+because that is the artifact M6 diffs.
 
 ### Codegen defects the runtime exposed
 
