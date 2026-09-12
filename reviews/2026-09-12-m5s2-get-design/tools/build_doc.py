@@ -837,6 +837,36 @@ calling-sequence word" for the AT END exit, which is parameter word 2.</li>
 </section>
 """
 
+# --- the rulings -------------------------------------------------------
+
+# Jack's answer, added after the record was pushed. The item chips below stay
+# as they were: the record must show the question as well as the answer.
+
+RULINGS = """
+<section class="rulings">
+<h2>Rulings, 2026-09-12</h2>
+
+<p>Jack ruled on 2026-09-12, in conversation, after the record was pushed.</p>
+
+<p><strong>Item 4: Option A, as recommended.</strong> A tape record the reader
+cannot read takes the IOCS error exit, SYS)283.</p>
+
+<p><strong>Item 5: neither option in the record.</strong> An input file with no
+tape directory is refused at open-all, before any word of the program runs. That
+is the check stage 1 already makes for an absent image inside a named directory,
+with one more case. Output files with no directory keep stage 1's rule: they open
+and close without writing. The record recommended Option A, the empty file. That
+recommendation was withdrawn in the discussion, for two reasons. The IOCS rule it
+leaned on concerns a file the program never opened, not a missing reel; in 1962 a
+missing reel drew an operator message. And the stage-1 argument that a silent
+empty tape prints a wrong report applies to a forgotten flag as it applies to a
+forgotten image. The sample's own behaviour on an empty master stays reachable,
+by a tape image that holds only a file mark.</p>
+
+<p>These rulings authorize the stage 2 pull request.</p>
+</section>
+"""
+
 # --- the page ----------------------------------------------------------
 
 CSS = """
@@ -887,6 +917,10 @@ section { display:flex; flex-direction:column; gap:.2rem; }
 .answer ol { margin:0 0 .85rem; padding-left:1.2rem; }
 .answer li { margin-bottom:.5rem; }
 .answer p:last-child { margin-bottom:0; }
+.rulings { background:var(--raised); border:1px solid var(--settled);
+           border-left:3px solid var(--settled); padding:1.15rem 1.3rem; }
+.rulings h2 { color:var(--settled); }
+.rulings p:last-child { margin-bottom:0; }
 .note { color:var(--muted); font-size:.92rem; margin:0; }
 .chip { font-family:var(--mono); font-size:.66rem; letter-spacing:.14em;
         text-transform:uppercase; padding:.24em .6em; border-radius:2px;
@@ -951,7 +985,7 @@ HTML = f"""<!DOCTYPE html>
 <p class="eyebrow">Review record · M5 stage 2, GET · evidence 2026-09-12 · head {RECORD_HEAD}</p>
 <h1>M5 stage 2, GET: the design and the delivery plan</h1>
 </header>
-
+{RULINGS}
 <section class="answer">
 <h2>The answer</h2>
 <ol>

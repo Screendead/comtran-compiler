@@ -12,6 +12,10 @@ CALL: what an unreadable tape record does, and what a GET does with no
 `--tapes` directory. One is SETTLED and asks nothing: what stage 2 does not
 build, and the provenance of the evidence.
 
+Jack's rulings of 2026-09-12 are the banner at the top of `index.html`. Item 4
+stands as recommended. Item 5 took a third option, refusal at open-all, and the
+banner says what the record had recommended.
+
 Stage 2 lands as one pull request on branch `m5s2-get`. It changes files under
 `lib/`, so it merges on external-review convergence. Opening it waits for Jack's
 answer to items 4 and 5, and that answer authorizes the opening.
