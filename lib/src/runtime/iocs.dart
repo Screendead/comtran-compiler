@@ -8,6 +8,8 @@
 /// record through that cell ([J 90.02.04]).
 library;
 
+import 'dart:math' as math;
+
 import '../emulator/word.dart';
 import 'machine.dart';
 import 'tape.dart';
@@ -100,9 +102,7 @@ final class _Iocs {
     if (block == null) {
       return atEnd;
     }
-    final int held = block.length < file.blocksize
-        ? block.length
-        : file.blocksize;
+    final int held = math.min(block.length, file.blocksize);
     for (var i = 0; i < held; i++) {
       _machine.state.write(file.buffer + i, block[i]);
     }

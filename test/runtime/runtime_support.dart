@@ -19,11 +19,15 @@ const int junkCount = 0x29C;
 /// Junk index register 2 carries through a call untouched (RT-3).
 const int junkLocator = 0xFFF;
 
+/// Where every test machine's input buffers begin, because it is the
+/// extent the helper below gives its program (M5-7). No test that opens
+/// an input file writes a program word at or above it.
+const int bufferBase = start + 0x50;
+
 /// A machine holding [words] at absolute addresses, entered at [start],
 /// with junk in the two index registers a MOVPAK call must not disturb
 /// or must clear (RT-3). [files] are the program's `*FILE` cards and
-/// [tapes] the directory their images sit in (M5-3). [extent] is where
-/// the input buffers go, one above the last word by default (M5-7).
+/// [tapes] the directory their images sit in (M5-3).
 ///
 /// The constructor seeds IOC)1 after it writes [words], so a cell 1 in
 /// [words] is discarded. Write that cell on the machine this returns.
@@ -31,7 +35,6 @@ Machine machine(
   Map<int, int> words, {
   List<LoaderFile> files = const <LoaderFile>[],
   Directory? tapes,
-  int? extent,
 }) {
   final built = Machine(
     LoadedProgram(
@@ -39,9 +42,7 @@ Machine machine(
       origin: Machine.programOrigin,
       entry: start,
       words: words,
-      extent:
-          extent ??
-          words.keys.fold(start, (int top, int at) => at >= top ? at + 1 : top),
+      extent: bufferBase,
       files: files,
       cardsRead: 0,
     ),

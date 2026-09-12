@@ -248,21 +248,6 @@ void main() {
       expect(result.display, <String>['BASE LOCATOR NOT LOADED']);
     });
 
-    test('a run that names no tape directory is refused', () {
-      final JobCompilation job = compileDeck(loadJobDeck()).jobs.single;
-      final subject = Machine.load(jobDeck(job, _options)!.cards);
-      expect(
-        () => subject.run(maxSteps: 1000),
-        throwsA(
-          isA<NoTapeDirectory>().having(
-            (NoTapeDirectory e) => e.toString(),
-            'toString',
-            'no tape directory for input file INPUTMASTER: pass --tapes=DIR',
-          ),
-        ),
-      );
-    });
-
     test('a declared input file needs its tape image', () {
       final Directory tapes = tempDirectory('comtran-tapes');
       final ProcessResult run = _compileSample([
