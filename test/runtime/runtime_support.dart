@@ -62,12 +62,14 @@ Directory tempDirectory(String prefix) {
 }
 
 /// One `*FILE` card of a test program: [type] is column 28, `I` for an
-/// input file and `P` for an output file ([J 90.08.01]), and [unit] is
-/// the UNIT1 the host image is named for (M5-3).
+/// input file and `P` for an output file ([J 90.08.01]), [unit] is the
+/// UNIT1 the host image is named for (M5-3), and [blocksize] the
+/// `*SPEC` card's field, which sizes an input file's buffer (M5-7).
 LoaderFile loaderFile(
   int number, {
   required String type,
   required String unit,
+  int? blocksize,
 }) => LoaderFile(
   deckName: 'TEST',
   number: number,
@@ -77,7 +79,38 @@ LoaderFile loaderFile(
   density: 'H',
   unit1: unit,
   unit2: '',
-);
+)..blocksize = blocksize;
+
+/// The six bytes of [word] on tape, most significant six bits first
+/// (M5-2).
+List<int> tapeWord(int word) => <int>[
+  for (var i = bytesPerWord - 1; i >= 0; i--) (word >> (6 * i)) & 0x3F,
+];
+
+/// The frame of one record of [words]: its byte length, its data, and
+/// its byte length again (M5-2).
+List<int> tapeRecord(List<int> words) {
+  final data = <int>[for (final int word in words) ...tapeWord(word)];
+  final List<int> length = tapeField(data.length);
+  return <int>[...length, ...data, ...length];
+}
+
+/// [value] as the four little-endian bytes of a frame's length field
+/// (M5-2). A zero field is a file mark.
+List<int> tapeField(int value) => <int>[
+  value & 0xFF,
+  (value >> 8) & 0xFF,
+  (value >> 16) & 0xFF,
+  (value >> 24) & 0xFF,
+];
+
+/// Writes the image of [blocks], closed by a file mark, to the file
+/// unit [unit] reads in [tapes] (M5-2; M5-3).
+File tapeImage(Directory tapes, String unit, List<List<int>> blocks) =>
+    File('${tapes.path}/$unit.tap')..writeAsBytesSync(<int>[
+      for (final List<int> block in blocks) ...tapeRecord(block),
+      ...tapeField(0),
+    ]);
 
 /// `TSX SYS)nnn,4`, the linkage of a MOVPAK entry ([J 90.02.14]).
 int tsx(int entry) => typeB(0x03C, address: entry, tag: 4);
