@@ -1003,6 +1003,8 @@ record built on it.*
 
 **Oracle.** decision-conformance only (the sample opens every file it reads); the calling-sequence shape it depends on is covered by listing-diff.
 
+*Amended 2026-09-12 (M5 stage 2, `docs/design/m5-io.md` M5-8).* The Implementation names "the third calling-sequence word", which counts the `TSX`. The end-of-file exit is the address field of **parameter word 2**, the word that also carries SYS)283 in its decrement ([J 90.02.04]). The decision is unchanged: IOC)8 now tests the open flag and branches there, and it prints nothing.
+
 *Citations:* ([J 02.07.04]; [J 02.07.06]); Open Question 41 ([J 90.02.04], 90.02.29)
 
 ### D6.6 — AT END: "any imperative clause" (F) vs "a single imperative statement only" (J)

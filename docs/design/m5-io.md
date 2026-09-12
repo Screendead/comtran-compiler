@@ -19,7 +19,8 @@ M5 makes the input-output verbs run. M4 emitted their calling sequences so
 that the listing and the addresses reproduced (M4-15). M5 builds the IOCS
 entries those sequences call.
 
-The 1962 sample stops at its first GET today. M5 moves that stop. The
+The 1962 sample stopped at its first GET when M5 opened. M5 moves that
+stop. The
 sample must read its master file and its detail file, file its records,
 and reach end of job. M6 then diffs the printed report against PDF p. 217.
 
@@ -66,6 +67,10 @@ handler moves words inside core (`runtime.md` RT-1).
   because it still stops at its first GET when stage 1 lands. The
   boundary test reads a file list of seven.
 
+  **Amended 2026-09-12.** Stage 2 is done. The sample now reads a
+  master record and a detail record, and stops at IOC)9, its first
+  FILE. It needs the `--tapes` directory to run at all.
+
 ## The tape image
 
 - **M5-2. A tape file is a SIMH `.tap` image, six bytes to the word.
@@ -105,6 +110,10 @@ handler moves words inside core (`runtime.md` RT-1).
   ([J 90.05.03]). A reader takes the record extent from the file, not
   from the block it arrives in.
 
+  **Amended 2026-09-12, M5 stage 2.** A read past the end of the tape
+  takes the IOCS error exit SYS)283 (M5-8). An image that ends with no
+  file mark therefore fails visibly, and the run stops.
+
 ## The file table
 
 - **M5-3. The loader's file cards become the run's file table.** Our
@@ -140,6 +149,15 @@ handler moves words inside core (`runtime.md` RT-1).
   without writing, and the run behaves as it did before stage 1. With a
   directory named, a declared input file whose image is absent ends the
   run with a message. A silent empty tape would print a wrong report.
+
+  **Amended 2026-09-12, M5 stage 2. Jack's ruling.** An input file in a
+  run that named no directory is refused at open-all, before any word
+  of the program runs. The paragraph above therefore holds for an
+  output file only. Both alternatives mislead: an empty tape prints a
+  wrong report, and a fault at the first GET arrives after the run has
+  begun. The refusal names the file and asks for `--tapes=DIR`. It is
+  the check open-all already makes for an absent image, with one more
+  case.
 
   **Three file shapes have no run, and open-all refuses each one.
   Ours.** A file whose direction column is not `I`, `T` or `P` is the
@@ -208,6 +226,8 @@ handler moves words inside core (`runtime.md` RT-1).
   and it is why the buffer must live in core. Where the buffer lives is
   stage 2's first decision, and this record does not take it.
 
+  **Amended 2026-09-12, M5 stage 2.** M5-7 takes that decision.
+
 - **M5-6. A FILE writes a record the IOST word locates.** The word
   carries the record's address and its extent. For a record in a buffer
   the generator emits the address as zero. An `LXA`/`SXA` pair ahead of
@@ -219,6 +239,120 @@ handler moves words inside core (`runtime.md` RT-1).
   one-character record mark separates them (D6.4). Stage 3 needs a lister
   that renders a BCD tape as print lines, because that is the artifact
   M6 diffs.
+
+## The GET
+
+- **M5-7. Each input file takes one buffer above the program. Ours.**
+  The object program reserves no buffer. The storage map prints no area
+  for the two input records, and the only I/O cells the compiler
+  allocates are the three `BL)` words. The Loader "reserves a portion
+  of core storage for use by the I/O system as operating storage"
+  ([J 02.07.02]), and the execution-time core chart puts the file blocks
+  below the program and the buffer pools above it ([J 03.03.01]). Our
+  file table is Dart's and stands below the program (M5-3), so the
+  buffer goes above.
+
+  The loader therefore reports the program's extent: the first address
+  above every word the text placed or reserved. Reservations move the
+  location counter and place no word, so the extent is not the count of
+  placed words. For the sample the extent is 5114, one above the
+  constant pool's last word at relative 01771.
+
+  At load, each input file takes a buffer of BLOCKSIZE words from the
+  extent upward, in `*FILE` card order. The sample needs 303 words: 300
+  for INPUTMASTER and 3 for DETAILFILE. BLOCKSIZE is "the maximum
+  number of words which can be read from an input block" (external:
+  C28-6100-2, printed p. 75). A block therefore enters the buffer
+  BLOCKSIZE words deep, and the rest of the block is discarded.
+
+  Four rules close the entry:
+
+  - An output file takes no buffer. Nothing reads one before stage 3
+    (CLAUDE.md section 11).
+  - A buffer is never reassigned. It belongs to its file until the run
+    ends.
+  - A program whose buffers do not fit below 32768 is refused at load,
+    with a message that names the file.
+  - **ponytail: no pool sharing and no second buffer; add them when a
+    program needs them.**
+
+  Three placements were rejected. Below the program contradicts the
+  [J 03.03.01] order. A block held in Dart, with each record copied to a
+  fixed area per file, is transmit mode wearing locate mode's numbers,
+  and the printed report would hide the lie. The top of core has no
+  evidence. Two buffers a file, after [J 02.06.14]'s "at least 2 buffers
+  to each file", is read-ahead, which a sequential emulation never
+  observes.
+
+  IOCS suspends buffering at the end of a file, and its pool may
+  reassign the buffer (external: C28-6100-2, printed p. 16). The sample
+  writes `HIGH.VALUE` through BL)2 after that exit, at LOC 00342 to
+  00346, and the 1962 run printed a correct report. That buffer was not
+  reused. Our design reproduces the result by being safer than IOCS
+  was.
+
+- **M5-8. The read rules of IOC)8. Ours.** The manuals delegate them:
+  "A knowledge of the 7090 IOCS is necessary in understanding most of
+  the IOC Numbers" ([J 90.02.08]). Each rule follows a sentence of the
+  published IOCS manual (external: C28-6100-2), which the definition
+  cites under Open Questions 45, 46 and 50.
+
+  The entry reads three parameter words (M5-5). Word 1 names the file:
+  its address field is 2048 plus the ordinal. Word 2 holds the AT END
+  exit in its address field. Word 3 holds the base locator and, in its
+  decrement, the record's extent in words. The rules run in this order:
+
+  1. A GET on a file that is not open takes the AT END exit and prints
+     nothing (D6.5).
+  2. With no unread word in the buffer, the GET reads the next frame
+     first. A record fills the buffer. A file mark takes the AT END
+     exit, leaves the base locator as it was, and leaves the buffer
+     spent, so that the next GET on the file reads on past the mark. A
+     frame that is no record takes SYS)283.
+  3. A buffer that holds fewer unread words than the extent takes
+     SYS)260. The record would straddle two blocks, and "one cannot
+     locate a logical record that overlaps a physical block" (external:
+     C28-6100-2, printed p. 13).
+  4. Otherwise the GET writes the address of the next unread word into
+     the address field of the base locator, as a simple `PZE LOC`
+     ([J 90.02.05]), and resumes four words on. The program does byte
+     arithmetic on the whole cell, so the prefix, the tag and the
+     decrement stay zero.
+
+  Index register 4 survives every exit, so a terminator reads the same
+  calling sequence. Index registers 1 and 2 and the accumulator keep
+  what the program left in them. IOCS leaves a history word in the
+  accumulator and no compiled word reads it.
+
+  **A frame that is no record takes the error exit. Jack's ruling of
+  2026-09-12.** Three conditions present one face to the reader, and
+  all three take SYS)283: a frame whose two lengths disagree, or whose
+  data the image is too short to hold; a length that is no whole number
+  of words; and a read past the end of the tape, which is an image that
+  ends with no file mark. The alternative was a run fault outside the
+  emulation, which leaves SYS)283 unbuilt. The line between a problem
+  found before the run and one found during it is the line stage 1 drew
+  (M5-3).
+
+  **Both message texts are ours.** No manual prints either one.
+  [J 90.02.28] says that SYS)260 "prints an error message indicating
+  processing terminated due to record length error", J 90.02.32 that
+  SYS)283 "prints a message concerning the GET error", and [J 05.06.04]
+  says only that a message goes to the on-line printer. Ours name the
+  file and the frame:
+
+  - `RECORD LENGTH ERROR ON INPUTMASTER, BLOCK 3`
+  - `GET ERROR ON INPUTMASTER, BLOCK 3`
+
+  The ordinal counts the frames the file has read, file marks included.
+  The line therefore names the frame the reader stopped on, which is
+  what a hand-made image needs.
+
+  The words of a record stay in the buffer until the next GET on that
+  file refills it. That is our answer to Open Question 54 for the
+  emulation: the sample always files a master record before the next
+  GET on the master file. The definition holds no design, so the answer
+  lives here.
 
 ## Open items
 
@@ -241,7 +375,12 @@ handler moves words inside core (`runtime.md` RT-1).
 
 [J 02.04.06]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
 [J 02.06.03]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
+[J 02.06.14]: ../../comtran-manuals/J28-6169/02-compiler.md#f-group-environment-card
+[J 02.07.02]: ../../comtran-manuals/J28-6169/02-compiler.md#3-the-block
+[J 03.03.01]: ../../comtran-manuals/J28-6169/03-loader.md#k-ctext-and-ctend-cards
+[J 05.06.04]: ../../comtran-manuals/J28-6169/05-systems-operation.md#b-loader-1
 [J 90.02.04]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.05]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.08]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ct-system-subroutines-and-communication-cells
 [J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.28]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
