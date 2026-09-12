@@ -88,12 +88,14 @@ for byte.
 
 **M4 is complete (2026-09-06).** Stage 3 landed the deck writer and our
 loader (LD-1 to LD-4), and stage 4 landed the machine assembly (M4-17).
-`lib/src/runtime/` holds three files:
+`lib/src/runtime/` holds five files:
 
 - the machine, which loads an object deck at address 4096 and treats
   every address below it as a runtime entry (RT-1);
 - the run frame SYS)175, 177, 178, 294 and IOC)40 (RT-2);
-- 23 MOVPAK entries and members (RT-3 to RT-5).
+- 23 MOVPAK entries and members (RT-3 to RT-5);
+- the tape reader, which takes the records off a host image (M5-2);
+- the GET entries IOC)8, SYS)260 and SYS)283 (M5-8).
 
 `comtranc --run` runs each job's punched deck and prints its display
 lines.

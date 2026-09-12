@@ -10,7 +10,7 @@ Every entry binds the code.*
 ## RT-1. The machine
 
 `lib/src/runtime/machine.dart` holds the machine, its result and
-outcome types, the three faults of `RunFault`, and the run's file
+outcome types, the faults of `RunFault`, and the run's file
 table. `Machine`
 writes a `LoadedProgram` into a fresh `MachineState`, enters at the
 program's entry point (D2.1), and runs. The file table is one control
@@ -207,6 +207,11 @@ to each open output file (M5-2). It skips a file that is already
 closed, because the sample's object text calls close-all twice (M5-4).
 A file with no host image opens, closes, and writes nothing. That is
 the run `comtranc --run` makes without `--tapes`.
+
+**Amended 2026-09-12, M5 stage 2 (M5-3 as amended).** Those two
+sentences hold for an output file only. Open now throws
+`NoTapeDirectory` for an input file in a run that named no directory,
+because a GET must read and an empty tape prints a wrong report.
 
 Open reads the whole list before it changes one image. It refuses a run
 on the first fault it finds, and a refused run leaves every image as it
