@@ -128,9 +128,10 @@ void main() {
 
     test('a second open-all reads the file from its first frame', () {
       // Open rewinds the image, so the buffer must empty with it
-      // (M5-4 as amended). The second frame is no record, and the GET
-      // that reaches it names frame 2 only if the first four words
-      // entered the buffer twice.
+      // (M5-4 as amended). J forbids this reopen, and D6.3 records the
+      // result as unreliable; the test pins what the runtime does. The
+      // second frame is no record, and the GET that reaches it names
+      // frame 2 only if the first four words entered the buffer twice.
       final Directory tapes = tempDirectory('comtran-tapes');
       File('${tapes.path}/D1.tap').writeAsBytesSync(<int>[
         ...tapeRecord(<int>[11, 12, 13, 14]),

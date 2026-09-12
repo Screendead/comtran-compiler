@@ -142,16 +142,18 @@ because that is the artifact M6 diffs.
 The stage-4 runtime made five codegen defects visible for the first
 time. None is fixed on the stage-4 branch, and each fix is a codegen
 change. Take them before M5 or beside it. Whether a site refuses the
-shape or handles it is Jack's call.
+shape or handles it is Jack's call. The M5 stage 2 review added a
+sixth, a missing diagnostic.
 
-**None of the five fires on the sample's own path. Measured 2026-09-07.**
+**None of the six fires on the sample's own path. The five were
+measured 2026-09-07.**
 The sample declares no picture that holds an `S` or an asterisk. Every
 source and target on the two unaligned paths carries the same scale. The
 paths hold 25 internal-to-edited stores, three converts, and the one
 edited ADD source.
 Its three convert targets live in WORKING, which is no record, so defect 4
 has no site. M6 can therefore take the printed report as its oracle before
-any of the five is fixed. A correct fix must leave
+any of the six is fixed. A correct fix must leave
 `test/goldens/90.05-payroll.code` byte for byte as it stands: a fix that
 moves it has changed the sample's path. The three divides at LOC 00424,
 01113 and 01142 split on digit count, not on scale, and must survive.
@@ -181,6 +183,12 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    has one address field for the leading run, so it cannot say which
    cells take a blank and which an asterisk. `$8*89.99` compiles with no
    diagnostic. RT-5 lists the shape among its open items.
+6. **A reopen after CLOSE ALL FILES draws no diagnostic.** D6.3 asks
+   the compiler to diagnose the statically determinable case. The OPEN
+   emitter (`lib/src/codegen/procedure.dart`:1352) emits `TSX SYS)175,4`
+   for every OPEN ALL FILES and checks nothing. The M5 stage 2 review
+   found it on 2026-09-12. The sample opens once, so it has no site.
+   M5-4 records what the runtime does on the reopen.
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the

@@ -200,8 +200,12 @@ handler moves words inside core (`runtime.md` RT-1).
   **Amended 2026-09-12, M5 stage 2. Ours.** Open builds an input file's
   reader at the image's first frame, and it empties the file's buffer. A
   close-all and then an open-all therefore read the file from its start.
-  No code reads the `*SPEC` close code, so D6.3's close dispositions stay
-  deferred.
+  That result is the open path D6.3 asks us to record, and D6.3 marks it
+  unreliable. J forbids a reopen after CLOSE ALL FILES, so no program may
+  depend on it. The compiler does not yet diagnose the statically
+  determinable case D6.3 names. `docs/HANDOVER.md` lists that gap among
+  the codegen defects. No code reads the `*SPEC` close code, so D6.3's
+  close dispositions stay deferred.
 
 ## What stages 2 and 3 must respect
 
