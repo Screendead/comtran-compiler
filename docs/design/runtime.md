@@ -113,7 +113,7 @@ on the display (RT-2).
 ### The stage-4 set and what waits
 
 M4-17 charters about 130 runtime entries. Stage 4 built the entries an
-I/O-free program reaches, and no others:
+I/O-free program reaches, and M5 stage 2 built the GET of the last row:
 
 | Where | Entries |
 |---|---|
@@ -210,8 +210,8 @@ the run `comtranc --run` makes without `--tapes`.
 
 **Amended 2026-09-12, M5 stage 2 (M5-3 as amended).** Those two
 sentences hold for an output file only. Open now throws
-`NoTapeDirectory` for an input file in a run that named no directory,
-because a GET must read and an empty tape prints a wrong report.
+`NoTapeDirectory` for an input file in a run that named no directory. A
+GET must read, and an empty tape prints a wrong report.
 
 Open reads the whole list before it changes one image. It refuses a run
 on the first fault it finds, and a refused run leaves every image as it

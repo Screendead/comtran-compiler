@@ -168,9 +168,9 @@ final class RuntimeFile {
   /// How many unread words the buffer still holds.
   int unread = 0;
 
-  /// How many frames the file has read. A terminator's line names it,
-  /// so the reader of a hand-made image finds the frame it stopped on
-  /// (M5-8).
+  /// How many frames the file read after its open. A terminator's line
+  /// names it, so the reader of a hand-made image finds the frame it
+  /// stopped on (M5-8).
   int block = 0;
 }
 

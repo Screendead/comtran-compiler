@@ -154,8 +154,8 @@ handler moves words inside core (`runtime.md` RT-1).
   run that named no directory is refused at open-all, before any word
   of the program runs. The paragraph above therefore holds for an
   output file only. Both alternatives mislead: an empty tape prints a
-  wrong report, and a fault at the first GET arrives after the run has
-  begun. The refusal names the file and asks for `--tapes=DIR`. It is
+  wrong report, and a fault at the first GET arrives after the run
+  starts. The refusal names the file and asks for `--tapes=DIR`. It is
   the check open-all already makes for an absent image, with one more
   case.
 
@@ -366,7 +366,8 @@ handler moves words inside core (`runtime.md` RT-1).
   - `RECORD LENGTH ERROR ON INPUTMASTER, BLOCK 3`
   - `GET ERROR ON INPUTMASTER, BLOCK 3`
 
-  The ordinal counts the frames the file has read, file marks included.
+  The ordinal counts the frames the file reads after its open, file
+  marks included.
   The line therefore names the frame the reader stopped on, which is
   what a hand-made image needs.
 
