@@ -103,7 +103,7 @@ void main() {
       final Machine subject = machine(
         _openAndCloseTwice,
         files: <LoaderFile>[
-          loaderFile(1, type: 'I', unit: 'D1'),
+          loaderFile(1, type: 'I', unit: 'D1', blocksize: 2),
           loaderFile(2, type: 'P', unit: 'C1'),
         ],
         tapes: tapes,
@@ -146,7 +146,7 @@ void main() {
         _openAll,
         files: <LoaderFile>[
           loaderFile(1, type: 'P', unit: 'C1'),
-          loaderFile(2, type: 'I', unit: 'D1'),
+          loaderFile(2, type: 'I', unit: 'D1', blocksize: 2),
         ],
         tapes: tapes,
       );
@@ -164,7 +164,7 @@ void main() {
       // image still opens and closes.
       final Machine subject = machine(
         _openAll,
-        files: <LoaderFile>[loaderFile(1, type: 'I', unit: 'D1')],
+        files: <LoaderFile>[loaderFile(1, type: 'I', unit: 'D1', blocksize: 2)],
       );
       expect(
         () => subject.run(maxSteps: 2),
@@ -207,7 +207,7 @@ void main() {
       // would share one image (M5-3).
       final Machine subject = machine(
         _openAll,
-        files: <LoaderFile>[loaderFile(1, type: 'I', unit: '')],
+        files: <LoaderFile>[loaderFile(1, type: 'I', unit: '', blocksize: 2)],
         tapes: tapes,
       );
       expect(

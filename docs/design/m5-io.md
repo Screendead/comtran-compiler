@@ -271,16 +271,23 @@ handler moves words inside core (`runtime.md` RT-1).
   C28-6100-2, printed p. 75). A block therefore enters the buffer
   BLOCKSIZE words deep, and the rest of the block is discarded.
 
-  Four rules close the entry:
+  Five rules close the entry:
 
   - An output file takes no buffer. Nothing reads one before stage 3
     (CLAUDE.md section 11).
   - A buffer is never reassigned. It belongs to its file until the run
     ends.
+  - An input file with no BLOCKSIZE is refused at load, with a message
+    that names the file. Our generator punches the field blank when the
+    source drew message 89 (D10.8).
   - A program whose buffers do not fit below 32768 is refused at load,
     with a message that names the file.
   - **ponytail: no pool sharing and no second buffer; add them when a
     program needs them.**
+
+  Both load refusals come before every refusal open-all makes (M5-3).
+  The machine builds the file table when it loads the deck, and open-all
+  runs later.
 
   Three placements were rejected. Below the program contradicts the
   [J 03.03.01] order. A block held in Dart, with each record copied to a

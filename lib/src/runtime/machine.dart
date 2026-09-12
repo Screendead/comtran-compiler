@@ -114,6 +114,19 @@ final class NoTapeDirectory implements RunFault {
       'pass --tapes=DIR';
 }
 
+/// An input file whose `*SPEC` card declares no BLOCKSIZE, which is the
+/// depth of its buffer (M5-7). Our generator punches the field blank
+/// when the source drew message 89 (D10.8).
+final class NoBlocksize implements RunFault {
+  NoBlocksize(this.file);
+
+  /// The name on the `*FILE` card.
+  final String file;
+
+  @override
+  String toString() => 'no BLOCKSIZE for input file $file';
+}
+
 /// An input file whose buffer does not fit above the program (M5-7).
 final class NoBufferRoom implements RunFault {
   NoBufferRoom(this.file);
@@ -165,13 +178,17 @@ final class RuntimeFile {
 /// taking a buffer of BLOCKSIZE words in card order from the program's
 /// extent upward (M5-7). A file's host image is `<tapes>/<UNIT1>.tap`.
 ///
-/// Throws [NoBufferRoom] for a program whose buffers run past core.
+/// Throws [NoBlocksize] for an input file that declares no BLOCKSIZE,
+/// and [NoBufferRoom] for a program whose buffers run past core.
 List<RuntimeFile> _fileTable(LoadedProgram program, Directory? tapes) {
   int top = program.extent;
   final table = <RuntimeFile>[];
   for (final LoaderFile file in program.files) {
     final bool input = _input(file);
-    final int size = input ? file.blocksize ?? 0 : 0;
+    if (input && file.blocksize == null) {
+      throw NoBlocksize(file.name);
+    }
+    final int size = input ? file.blocksize! : 0;
     if (top + size > MachineState.memoryWords) {
       throw NoBufferRoom(file.name);
     }

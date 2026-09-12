@@ -305,6 +305,22 @@ void main() {
   });
 
   group('the buffers (M5-7)', () {
+    test('an input file with no BLOCKSIZE is refused at load', () {
+      expect(
+        () => machine(
+          const <int, int>{},
+          files: <LoaderFile>[loaderFile(1, type: 'I', unit: 'D1')],
+        ),
+        throwsA(
+          isA<NoBlocksize>().having(
+            (NoBlocksize e) => e.toString(),
+            'toString',
+            'no BLOCKSIZE for input file FILE1',
+          ),
+        ),
+      );
+    });
+
     test('a program with no room for a buffer is refused at load', () {
       expect(
         () => machine(const <int, int>{}, files: _oneFile(9999), extent: 30000),
