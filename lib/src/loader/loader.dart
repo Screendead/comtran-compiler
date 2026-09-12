@@ -98,6 +98,7 @@ final class LoadedProgram {
     required this.origin,
     required this.entry,
     required this.words,
+    required this.extent,
     required this.files,
     required this.cardsRead,
   });
@@ -113,6 +114,11 @@ final class LoadedProgram {
   /// Every word the text placed, by absolute address. Reservations
   /// place nothing.
   final Map<int, int> words;
+
+  /// The first address above every word the text placed or reserved.
+  /// The 1962 loader put the I/O buffer pools above the program
+  /// ([J 03.03.01]; M5-7).
+  final int extent;
 
   /// The files in `*FILE` card order.
   final List<LoaderFile> files;
@@ -138,13 +144,14 @@ LoadedProgram loadDeck(
 }) => _Loader(cards, origin, resolve).load();
 
 final class _Loader {
-  _Loader(this._cards, this._origin, this._resolve);
+  _Loader(this._cards, this._origin, this._resolve) : _extent = _origin;
 
   final List<CardImage> _cards;
   final int _origin;
   final SystemReferenceResolver _resolve;
   final List<LoaderFile> _files = [];
   final Map<int, int> _words = {};
+  int _extent;
   int _index = 0;
   String _deckName = '';
 
@@ -164,6 +171,7 @@ final class _Loader {
       origin: _origin,
       entry: entry,
       words: _words,
+      extent: _extent,
       files: _files,
       cardsRead: _index,
     );
@@ -308,7 +316,7 @@ final class _Loader {
     return switch (Word36.prefix(word)) {
       0 => address,
       5 => _relative(address),
-      2 => location + address,
+      2 => _extend(location + address),
       3 => throw LoadError(
         'a variable-length reservation (PTH), which the compiler never '
         'punches',
@@ -364,6 +372,16 @@ final class _Loader {
 
   void _place(int location, int word) {
     _words[_fits(location)] = word;
+    _extend(location + 1);
+  }
+
+  /// Raises the extent to [top] and returns it, so that a reservation
+  /// carries the program's end with it.
+  int _extend(int top) {
+    if (top > _extent) {
+      _extent = top;
+    }
+    return top;
   }
 
   /// The card in hand as text, or `null` when it is not a glyph card.
