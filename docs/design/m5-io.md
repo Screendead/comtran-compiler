@@ -310,10 +310,14 @@ handler moves words inside core (`runtime.md` RT-1).
   published IOCS manual (external: C28-6100-2), which the definition
   cites under Open Questions 45, 46 and 50.
 
-  The entry reads three parameter words (M5-5). Word 1 names the file:
-  its address field is 2048 plus the ordinal. Word 2 holds the AT END
-  exit in its address field. Word 3 holds the base locator and, in its
-  decrement, the record's extent in words. The rules run in this order:
+  The entry reads three parameter words (M5-5). Word 1 names the file in
+  its address field, 2048 plus the ordinal, and the record-length exit
+  in its decrement. Word 2 holds the AT END exit in its address field
+  and the error exit in its decrement. Word 3 holds the base locator
+  and, in its decrement, the record's extent in words. The handler takes
+  each exit from the field that carries it, and the sample plants
+  SYS)260 and SYS)283 in the two decrements (M5-5). The rules run in
+  this order:
 
   1. A GET on a file that is not open takes the AT END exit and prints
      nothing (D6.5).
@@ -321,11 +325,11 @@ handler moves words inside core (`runtime.md` RT-1).
      first. A record fills the buffer. A file mark takes the AT END
      exit and leaves the base locator as it was. It also leaves the
      buffer spent, so that the next GET on the file reads on past the
-     mark. A frame that is no record takes SYS)283.
-  3. A buffer that holds fewer unread words than the extent takes
-     SYS)260. The record would straddle two blocks, and "one cannot
-     locate a logical record that overlaps a physical block" (external:
-     C28-6100-2, printed p. 13).
+     mark. A frame that is no record takes the error exit.
+  3. A buffer that holds fewer unread words than the extent takes the
+     record-length exit. The record would straddle two blocks, and "one
+     cannot locate a logical record that overlaps a physical block"
+     (external: C28-6100-2, printed p. 13).
   4. Otherwise the GET writes the address of the next unread word into
      the address field of the base locator, and resumes four words on.
      The word is a simple `PZE LOC` ([J 90.02.05]). The program does

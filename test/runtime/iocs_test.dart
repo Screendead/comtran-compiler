@@ -18,6 +18,10 @@ const int _locator2 = start + 0x41;
 /// The AT END exit every GET below names.
 const int _atEnd = start + 0x20;
 
+/// A free address the two exit tests plant their own end of job at, in
+/// place of a terminator.
+const int _planted = start + 0x30;
+
 /// Where the buffers go, above every word the programs below hold.
 const int _buffer = start + 0x50;
 
@@ -28,16 +32,19 @@ int _reference(int ordinal) =>
 
 /// `TSX IOC)8,4` at [at] and its three parameter words: file [file],
 /// the AT END exit, and the base locator [cell] of a record of [extent]
-/// words (M4-15).
+/// words (M4-15). [lengthExit] and [errorExit] are the two decrements
+/// the sample plants SYS)260 and SYS)283 in (M5-5).
 Map<int, int> _get(
   int at, {
   required int cell,
   required int extent,
   int file = 1,
+  int lengthExit = 260,
+  int errorExit = 283,
 }) => <int, int>{
   at: tsx(8),
-  at + 1: typeA(0, decrement: 260, address: _reference(file)),
-  at + 2: typeA(0, decrement: 283, address: _atEnd),
+  at + 1: typeA(0, decrement: lengthExit, address: _reference(file)),
+  at + 2: typeA(0, decrement: errorExit, address: _atEnd),
   at + 3: typeA(5, decrement: extent, tag: 6, address: cell),
 };
 
@@ -260,6 +267,34 @@ void main() {
       ]);
     });
 
+    test('the record-length exit is the decrement of parameter 1', () {
+      // The sample plants SYS)260 there, and the handler branches where
+      // the sequence sends it (M5-5).
+      final Directory tapes = tempDirectory('comtran-tapes');
+      tapeImage(tapes, 'D1', <List<int>>[
+        <int>[for (var word = 1; word <= 20; word++) word],
+      ]);
+      final Machine subject = machine(
+        <int, int>{
+          ..._program(<int, int>{
+            ..._get(start + 2, cell: _locator, extent: 15),
+            ..._get(
+              start + 6,
+              cell: _locator,
+              extent: 15,
+              lengthExit: _planted,
+            ),
+          }),
+          _planted: endOfJob,
+        },
+        files: _oneFile(20),
+        tapes: tapes,
+        extent: _buffer,
+      );
+      expect(subject.run(maxSteps: 10).outcome, RunOutcome.endOfJob);
+      expect(subject.printed, isEmpty);
+    });
+
     test('a frame that is no record takes SYS)283', () {
       final frames = <String, List<int>>{
         'the two lengths disagree': <int>[
@@ -301,6 +336,30 @@ void main() {
         ], reason: frame.key);
         expect(subject.state.read(_locator), 0, reason: frame.key);
       }
+    });
+
+    test('the GET error exit is the decrement of parameter 2', () {
+      // The sample plants SYS)283 there (M5-5).
+      final Directory tapes = tempDirectory('comtran-tapes');
+      File('${tapes.path}/D1.tap').writeAsBytesSync(<int>[
+        ...tapeField(12),
+        ...tapeWord(1),
+        ...tapeWord(2),
+        ...tapeField(6),
+      ]);
+      final Machine subject = machine(
+        <int, int>{
+          ..._program(<int, int>{
+            ..._get(start + 2, cell: _locator, extent: 2, errorExit: _planted),
+          }),
+          _planted: endOfJob,
+        },
+        files: _oneFile(2),
+        tapes: tapes,
+        extent: _buffer,
+      );
+      expect(subject.run(maxSteps: 6).outcome, RunOutcome.endOfJob);
+      expect(subject.printed, isEmpty);
     });
   });
 

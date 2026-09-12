@@ -25,22 +25,24 @@ final class _Iocs {
 
   final Machine _machine;
 
-  /// The ordinal of the file the GET in hand names, which a terminator
-  /// reports on its line.
-  int _ordinal = 0;
-
   Map<int, RuntimeEntry> get entries => <int, RuntimeEntry>{
     8: _read,
     260: () => _terminate('RECORD LENGTH ERROR'),
     283: () => _terminate('GET ERROR'),
   };
 
+  /// The ordinal of the file the calling sequence in hand names. A
+  /// terminator reads it too, because index register 4 still holds the
+  /// link the GET's `TSX` wrote (M5-5).
+  int get _ordinal => Word36.address(_machine.parameter(1)) - _fileReference;
+
   /// The file of the GET in hand. Ordinal k is `files[k - 1]` (M5-3).
   RuntimeFile get _file => _machine.files[_ordinal - 1];
 
   /// IOC)8, the READ subroutine ([J 90.02.08]). Parameter word 1 names
-  /// the file, word 2 the AT END exit, and word 3 the base locator and
-  /// the record's extent in words (M5-5).
+  /// the file and the record-length exit, word 2 the AT END exit and
+  /// the error exit, and word 3 the base locator and the record's
+  /// extent in words (M5-5).
   ///
   /// The read rules are M5-8's. Index registers 1 and 2 and the
   /// accumulator stay as the program left them: no compiled word reads
@@ -49,59 +51,63 @@ final class _Iocs {
     final int reference = _machine.parameter(1);
     final int exits = _machine.parameter(2);
     final int descriptor = _machine.parameter(3);
-    _ordinal = Word36.address(reference) - _fileReference;
+    final RuntimeFile file = _file;
     final int extent = Word36.decrement(descriptor);
-    if (!_file.open) {
+    if (!file.open) {
       return _exit(Word36.address(exits));
     }
-    if (_file.unread == 0) {
-      final int? exit = _fill(Word36.address(exits));
+    if (file.unread == 0) {
+      final int? exit = _fill(
+        file,
+        atEnd: Word36.address(exits),
+        onError: Word36.decrement(exits),
+      );
       if (exit != null) {
         return _exit(exit);
       }
     }
-    if (_file.unread < extent) {
-      return _exit(260);
+    if (file.unread < extent) {
+      return _exit(Word36.decrement(reference));
     }
     // The program does byte arithmetic on the whole cell, so the word
     // is a plain `PZE LOC`: a simple base locator ([J 90.02.05]).
     _machine.state.write(
       Word36.address(descriptor),
-      pzeWord(address: _file.cursor),
+      pzeWord(address: file.cursor),
     );
-    _file
+    file
       ..cursor += extent
       ..unread -= extent;
     _machine.resume(4);
     return null;
   }
 
-  /// Reads the next tape block into the file's buffer, which takes at
+  /// Reads the next tape block into [file]'s buffer, which takes at
   /// most BLOCKSIZE words of it ([J 90.05.03]).
   ///
   /// Returns the exit the read takes, or null once the buffer holds
   /// the block: [atEnd] at a file mark, which leaves the buffer spent
-  /// so that the next GET reads on past the mark, and SYS)283 for a
+  /// so that the next GET reads on past the mark, and [onError] for a
   /// frame that is no record (M5-8).
-  int? _fill(int atEnd) {
-    _file.block++;
+  int? _fill(RuntimeFile file, {required int atEnd, required int onError}) {
+    file.block++;
     final List<int>? block;
     try {
-      block = _file.reader!.read();
+      block = file.reader!.read();
     } on UnreadableRecord {
-      return 283;
+      return onError;
     }
     if (block == null) {
       return atEnd;
     }
-    final int held = block.length < _file.blocksize
+    final int held = block.length < file.blocksize
         ? block.length
-        : _file.blocksize;
+        : file.blocksize;
     for (var i = 0; i < held; i++) {
-      _machine.state.write(_file.buffer + i, block[i]);
+      _machine.state.write(file.buffer + i, block[i]);
     }
-    _file
-      ..cursor = _file.buffer
+    file
+      ..cursor = file.buffer
       ..unread = held;
     return null;
   }
