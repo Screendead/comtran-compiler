@@ -124,6 +124,39 @@ void main() {
       expect(subject.state.read(_buffer), 100);
     });
 
+    test('a second open-all reads the file from its first frame', () {
+      // Open rewinds the image, so the buffer must empty with it
+      // (M5-4 as amended). The second frame is no record, and the GET
+      // that reaches it names frame 2 only if the first four words
+      // entered the buffer twice.
+      final Directory tapes = tempDirectory('comtran-tapes');
+      File('${tapes.path}/D1.tap').writeAsBytesSync(<int>[
+        ...tapeRecord(<int>[11, 12, 13, 14]),
+        ...tapeField(12),
+        ...tapeWord(1),
+        ...tapeWord(2),
+        ...tapeField(6),
+      ]);
+      final Machine subject = machine(
+        _program(<int, int>{
+          ..._get(start + 2, cell: _locator, extent: 2),
+          start + 6: tsx(177),
+          start + 7: typeA(0, address: 1), // PZE IOC)1
+          start + 8: tsx(175),
+          start + 9: typeA(0, address: 1),
+          ..._get(start + 10, cell: _locator, extent: 4),
+          ..._get(start + 14, cell: _locator, extent: 2),
+        }),
+        files: _oneFile(4),
+        tapes: tapes,
+        extent: _buffer,
+      );
+      expect(subject.run(maxSteps: 20).outcome, RunOutcome.errorExit);
+      expect(subject.printed, <String>['GET ERROR ON FILE1, BLOCK 2']);
+      // The GET of four words located the whole record at the base.
+      expect(subject.state.read(_locator), pzeWord(address: _buffer));
+    });
+
     test('two files locate a record each, in their own buffers', () {
       final Directory tapes = tempDirectory('comtran-tapes');
       tapeImage(tapes, 'D1', <List<int>>[

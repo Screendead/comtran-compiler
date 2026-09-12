@@ -197,6 +197,12 @@ handler moves words inside core (`runtime.md` RT-1).
   BCD tape file". D6.2's label handling therefore has no site
   here, and it waits for the shape that needs it.
 
+  **Amended 2026-09-12, M5 stage 2. Ours.** Open builds an input file's
+  reader at the image's first frame, and it empties the file's buffer. A
+  close-all and then an open-all therefore read the file from its start.
+  No code reads the `*SPEC` close code, so D6.3's close dispositions stay
+  deferred.
+
 ## What stages 2 and 3 must respect
 
 - **M5-5. The calling sequences are fixed, and the resume counts with

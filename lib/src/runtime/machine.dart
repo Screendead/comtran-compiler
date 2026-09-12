@@ -276,7 +276,8 @@ final class Machine {
   /// Opens the first [count] files of the table, which SYS)175 reads
   /// from IOC)1 (RT-2). An output file's host image is created or
   /// truncated, and an input file's host image must already exist and
-  /// becomes the file's reader.
+  /// becomes the file's reader over an empty buffer, so a second
+  /// open-all reads the image from its first frame (M5-4).
   ///
   /// A refused run leaves every image as it found it.
   ///
@@ -319,7 +320,10 @@ final class Machine {
       final File? host = file.host;
       if (host != null) {
         if (_input(program.files[i])) {
-          file.reader = TapeReader(host.readAsBytesSync());
+          file
+            ..reader = TapeReader(host.readAsBytesSync())
+            ..unread = 0
+            ..block = 0;
         } else {
           host.writeAsBytesSync(const <int>[]);
         }
