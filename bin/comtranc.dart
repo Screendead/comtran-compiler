@@ -351,8 +351,11 @@ bool _runObjectProgram(
   if (punched == null) {
     return true;
   }
-  final machine = Machine.load(punched.cards, tapes: tapes);
+  // The load allocates the input buffers, so it faults on a program
+  // with no room for them and leaves no machine to print from (M5-7).
+  Machine? machine;
   try {
+    machine = Machine.load(punched.cards, tapes: tapes);
     final RunResult result = machine.run(maxSteps: _stepBudget);
     result.display.forEach(stdout.writeln);
     if (result.outcome == RunOutcome.stepLimit) {
@@ -364,7 +367,7 @@ bool _runObjectProgram(
     // the display (RT-2), so the tool adds none of its own.
     return result.outcome == RunOutcome.endOfJob;
   } on RunFault catch (e) {
-    machine.printed.forEach(stdout.writeln);
+    machine?.printed.forEach(stdout.writeln);
     stderr.writeln('error: job $number: $e');
     return false;
   }
