@@ -18,8 +18,9 @@ generation fills every word of the object program, prints the whole object
 listing of the 1962 sample byte for byte, and issues its diagnostics; the
 deck writer punches the object deck and the loader cards, and our loader
 reads them back; the machine assembly runs a compiled program under
-`comtranc --run`, and the 1962 sample runs to end of job under the test
-tapes, where `--list-tapes` prints its report tapes and M6 begins.
+`comtranc --run`, and the 1962 sample runs to end of job over its
+reconstructed input tapes and prints the report of PDF p. 217 under
+`--list-tapes`, up to four recorded findings.
 Read `docs/HANDOVER.md`
 for the live state and the next task.
 
@@ -261,6 +262,7 @@ Do not edit these by hand:
 | `editors/vscode-punchcard/manual-map.json` | `dart run tool/generate_manual_map.dart` |
 | `editors/vscode-punchcard/syntaxes/comtran-deck.tmLanguage.json` | `npm run grammar` |
 | every `*.ct` mirror | `dart run comtran:deckconv regen <path>` |
+| `test/fixtures/90.05-tapes/D1.tap` and `C2.tap` | `dart run tool/generate_sample_tapes.dart` |
 | the manual-link block at the end of a markdown file | `dart run tool/linkify_manual_refs.dart` |
 
 A golden test guards each one. A hand edit fails that test with no obvious

@@ -541,6 +541,10 @@ handler moves words inside core (`runtime.md` RT-1).
   name, date, hours and amounts, and the ERRORFILE report gives the
   records that failed. The reconstruction is M6's work, and stage 1's
   tape writer is what makes it possible.
+
+  **Amended 2026-09-13, M6 stage 1.** Done. `m6-acceptance.md` M6-3
+  holds the reconstruction and `test/fixtures/90.05-tapes/` the two
+  images.
 - **IOC)29 overlaps IOC)40.** The label area is 14 words at cell 29, so
   it covers cell 40, which is IOC)40's dispatch address. Dispatch reads
   the instruction counter and not the cell, so nothing breaks today. It

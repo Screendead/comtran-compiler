@@ -1,17 +1,12 @@
 # M4 — Core-verb code generation design and decisions
 
-*Drafted 2026-08-05. This document records the M4-specific design decisions
-the way `m3-data.md` records M3's. The language facts come from
-`docs/comtran-language-definition.md` (cited by §), the manuals (cited as
-`(F p. N)` / `(J xx.xx.xx)`), and the locked decision slate
-(`docs/design/decisions.md`, cited as D-numbers). This document adds no
-language claims; where the sources leave a code-shape gap, the entry below
-closes it and says so. Every unattested choice is labeled ours and is
-amendable by an explicit edit.*
+*Drafted 2026-08-05. The M4 design decisions, in the form of `m3-data.md`:
+language facts cited by § of the definition, by manual page or section,
+or by D-number; no language claims; every unattested choice labeled ours
+and amendable by an explicit edit.*
 
-*Entry IDs are append-only. A new entry takes the next free number and goes in
-the section it belongs to, and the section headings below are the index. The
-code cites these IDs, so no entry is ever renumbered.*
+*Entry IDs are append-only and never renumbered; the section headings are
+the index.*
 
 ## Charter
 
@@ -979,6 +974,13 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
     words are therefore byte-blind; the byte selection lives in the
     generated lookup code, and the pool prints the two identical words.
     This closes the review backlog's RETPREM pointer anomaly.
+
+    **Amended 2026-09-13, M6 stage 1.** No byte selection exists. The
+    lookup at LOC 01421 to 01470 builds `PI)3` and `PI)2` from the two
+    identical base words, and the two step lists that read them are
+    identical. The object program reads INSPREM for RETPREM, and PDF
+    p. 217 prints RET.PREM equal to INS.PREM on every line
+    (`m6-acceptance.md` M6-4).
   - **(b) LOC 01612 (PDF p. 215) — a transcription error, corrected
     2026-08-05 under Jack's authorization.** The print reads
     `CLA 5)NETPAY`; the transcription's `4)NETPAY` misread the 5. The

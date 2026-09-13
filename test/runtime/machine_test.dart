@@ -334,6 +334,28 @@ void main() {
       );
     });
 
+    test('the reconstructed tapes print the report of PDF p. 217', () {
+      // The four reports the run writes, byte for byte (M6-5). The
+      // golden is our output; test/acceptance_test.dart measures its
+      // distance from the page.
+      final Directory tapes = tempDirectory('comtran-tapes');
+      for (final unit in <String>['D1', 'C2']) {
+        File('$sampleTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
+      }
+      final ProcessResult run = _compileSample([
+        '--run',
+        '--tapes=${tapes.path}',
+        '--list-tapes',
+      ]);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      const display = 'AT 199,14 STOP RUN\n';
+      final stdout = '${run.stdout}';
+      expect(
+        stdout.substring(stdout.indexOf(display) + display.length),
+        File('test/goldens/90.05-payroll.report').readAsStringSync(),
+      );
+    });
+
     test('comtranc --list-tapes lists nothing the run never opened', () {
       // The first run leaves its reports in the directory. Open-all then
       // refuses the second run ahead of the truncation, so every image

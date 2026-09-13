@@ -57,7 +57,8 @@ Terms that appear without expansion:
 | M5 stage 1 — the file model | Done 2026-09-07: the file table, the IOC)1 seed, `--tapes`, and open-all over the sample's seven files | `docs/design/m5-io.md`, `lib/src/runtime/machine.dart` |
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
-| M6, M7 | Not started | — |
+| M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
+| M6 stage 2 — the second corpus, M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -69,7 +70,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1298 Dart tests pass, measured 2026-09-13, and 154 extension
+Test baseline: 1308 Dart tests pass, measured 2026-09-13, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -86,7 +87,7 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — M6
+## The next task — M6 stage 2
 
 **M4 is complete (2026-09-06).** Stage 3 landed the deck writer and our
 loader (LD-1 to LD-4), and stage 4 landed the machine assembly (M4-17).
@@ -138,10 +139,23 @@ Three stages, one pull request each:
 3. FILE — IOC)9, the `IOST` word, blocking, and the four report tapes
    (done 2026-09-13).
 
-**The next task is M6, acceptance.** The roadmap section "The mission:
-the compiler — roadmap" below holds it. M6 reproduces the sample's
-printed report of PDF p. 217. The input tapes do not survive, so M6
-reconstructs them first (`docs/design/m5-io.md`, Open items).
+**M6 stage 1 is complete (2026-09-13).** `docs/design/m6-acceptance.md`
+holds its decisions. The input tapes do not survive, so stage 1
+reconstructed them from the printed report and the record descriptions
+(`test/fixtures/90.05-tapes/`, with `test/fixtures/90.05-tapes-notes.md`
+for the derivation of every field). The sample runs over them, and the
+report it prints is the golden `test/goldens/90.05-payroll.report`.
+The acceptance test diffs that report against our reading of the page,
+`test/fixtures/90.05-report-page-217.txt`, and pins every difference
+(M6-4). The largest: the 1962 processor compiled `RETPREM (POS)` as
+`INSPREM (POS)`, the page shows it on every line, and our object
+program reproduces it.
+
+**The next task is M6 stage 2**, the second corpus: the payroll example
+of the 1960 manual with the documented F/J divergences applied (§9.8),
+compiled and run over the same tapes (M6-1). The six codegen defects
+below are still open beside it, and each fix must leave
+`test/goldens/90.05-payroll.code` as it stands.
 
 ### Codegen defects the runtime exposed
 
@@ -241,59 +255,12 @@ catalogue that drove the sizing is
 pinned as constants of the sample by Jack's ruling of 2026-08-15 (M4-4
 as amended; the chunk B1 review record).
 
-B2 added six rules to M4-9: the encode table, the guard's use-point
-placement, the lowest-free-register allocation, the CORRESPONDING
-emission order, the two-factor `LDQ` selection, and five refusals. Two of
-them are underdetermined by the one sample program, and the record
-`review/2026-08-16-m4-b2-underdetermined` holds the rejected
-formulations.
-
-B3 added six rules to M4-10: the AC-or-MQ register a value sits in, the
-result-storage cell number, the section-by-section addressing of M4-4's
-reserved cells, the unrecovered `+0` suffix, the ADD CORRESPONDING target
-reversal, and the edited-source convert. It also records the
-`RIR`/`SIR`/`RFT` word form, folds two subscript facts into M4-10's own
-subscript bullet, and adds five more refusals. Three of the six are
-underdetermined, and the record
-`review/2026-08-16-m4-b3-underdetermined` holds the rejected
-formulations.
-
-B4 added six rules to M4-11, and six refusals. The rules:
-
-- the three-word zero build,
-- the extraction shift distance,
-- the spill cell,
-- the spill's outcome mirror,
-- the subscripted comparand's prologue,
-- and the truth function's false target.
-
-Two of the six rules are underdetermined,
-and the record `review/2026-08-16-m4-b4-underdetermined` holds the
-rejected formulations.
-
-B5 filled the transfer and call sites:
-
-- the GO TO transfers;
-- the return cells;
-- the terminal returns;
-- the plain DO calls, the AT END forms included;
-- the DO FOR loop with its two interleaved EQU lines.
-
-The amendments to M4-12 and M4-13 add three print rules and twelve
-refusals; messages 127, 128, 188 and 108 stand in front of three of
-the refusals.
-The B5 spine counts were 840 symbolic and 834 octal.
-
-B6 filled the last bare-sized sites:
-
-- the OPEN ALL and CLOSE ALL calls;
-- the four GET frames, statement stamps included (M4-14);
-- the eight FILE calls, the located self-patching pair included;
-- the STOP RUN close-down.
-
-The amendments to M4-14 and M4-15 record fourteen more refusals;
-messages 16, 19 and 11 stand in front of four of them. The spine
-counts rose to 900 symbolic and 894 octal.
+Chunks B2 to B6 filled the verb sites in turn: the moves and guards
+(M4-9), the arithmetic (M4-10), the comparisons (M4-11), the transfers
+and calls (M4-12, M4-13), and the input-output frames and STOP RUN
+(M4-14, M4-15). Each chunk's amendments hold its rules and refusals,
+and the records `review/2026-08-16-m4-b2-underdetermined`, `-b3-` and
+`-b4-` hold the formulations one sample program cannot separate.
 
 B7 closed the stage's print work: every control group under M4-16's
 class rule, the `USE 2` and `BL)` pointer words, the 62 constant-pool
@@ -401,7 +368,16 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **No candidate is open.** The one candidate that was,
+  authorization. **One candidate is open, since 2026-09-13.** The
+  transcription of PDF p. 217, the printed report, carries a note that
+  the printer carried "the last few amount fields of a detail or totals
+  line on the print position immediately above the identifying line",
+  and its text block assigns those fields to the row above. The scan
+  shows a skewed print: every line rises to the right by about one line
+  height, on one straight baseline, and the arithmetic of every line
+  holds only under that reading (`docs/design/m6-acceptance.md` M6-2).
+  The candidate asks to drop the note and to reflow the block one row
+  down on its right-hand side. The candidate before it,
   opened 2026-08-30, closed on 2026-09-06: the transcription of PDF
   p. 198 read `*SPEC  05` on its twelfth card, file 6's, where the scan
   reads `06` — the `*FILE  06` line above it prints the same weak-topped
@@ -599,8 +575,10 @@ PDF p. 217. It makes every milestone below testable at once.
 - **M6 — Acceptance**: compile and run the 90.05 payroll sample end to end, and
   reproduce its printed report output (PDF p. 217). **The input data does
   not survive.** The manual prints the report and not the master and
-  detail tapes behind it. M6 reconstructs both from the report and the
-  record descriptions (`docs/design/m5-io.md`, Open items). Then take a second corpus —
+  detail tapes behind it. Stage 1 reconstructed both from the report and
+  the record descriptions, and the run reproduces the page up to four
+  recorded findings — **DONE 2026-09-13** (`docs/design/m6-acceptance.md`).
+  Stage 2 takes a second corpus —
   F's payroll example with the documented F/J divergences applied (§9.8).
 - **M7 — The diff pass**: the seal ends when this milestone opens. Assemble the
   1963 processor, and diff our reconstruction against it. Each difference is one

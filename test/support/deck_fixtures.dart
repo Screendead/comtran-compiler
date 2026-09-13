@@ -27,6 +27,11 @@ const String jobDeckPath = 'test/fixtures/90.05-payroll-job.ctd';
 List<CardImage> loadJobDeck() =>
     decodeCanon(File(jobDeckPath).readAsBytesSync());
 
+/// The directory holding the sample's two reconstructed input tapes
+/// (M6-3). A run writes its output tapes beside them, so a test copies
+/// the directory before it runs.
+const String sampleTapesPath = 'test/fixtures/90.05-tapes';
+
 /// Runs the front end and stage-2 semantics over one job: a `*DATA` block,
 /// with an `*ENVIRONMENT` block and a `*PROCEDURE` block appended when
 /// [environment] or [procedure] is non-empty.
