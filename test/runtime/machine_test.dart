@@ -231,8 +231,9 @@ void main() {
       // date is the word of DETAILFILE's buffer left to read (M5-7).
       expect(subject.state.read(5114), characters('992222'));
       expect(subject.state.read(5715), characters('010161'));
-      // The two employee numbers do not match, so LOW.DETAIL files the
-      // detail record and END.OF.MASTERS the master one (statement 196).
+      // LOW.DETAIL files the detail record (196), and its GET's AT END
+      // runs END.OF.DETAILS (198) into HIGH.DETAIL (193), which files
+      // the master one.
       expect(_report(tapes, 'D4'), <String>[
         'D111111010161400',
         'M992222000000000000000',
@@ -317,15 +318,17 @@ void main() {
     });
 
     test('comtranc --list-tapes lists nothing the run never opened', () {
-      // Open-all refuses the missing input image before it writes any
-      // output image, so no file has a report to print.
+      // The first run leaves its reports in the directory. Open-all then
+      // refuses the second run ahead of the truncation, so every image
+      // is the first run's and none is this run's (M5-11).
       final Directory tapes = tempDirectory('comtran-tapes');
-      final ProcessResult run = _compileSample([
-        '--run',
-        '--tapes=${tapes.path}',
-        '--list-tapes',
-      ]);
+      _sampleTapes(tapes);
+      final flags = ['--run', '--tapes=${tapes.path}', '--list-tapes'];
+      expect(_compileSample(flags).exitCode, 0);
+      File('${tapes.path}/C2.tap').deleteSync();
+      final ProcessResult run = _compileSample(flags);
       expect(run.exitCode, 1);
+      expect(run.stderr, contains('no tape image for input file DETAILFILE'));
       expect(run.stdout, isNot(contains('REPORT')));
     });
 

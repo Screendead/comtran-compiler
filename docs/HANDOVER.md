@@ -76,7 +76,7 @@ counts, do not trust them.
 manual's own payroll sample through every phase to the object deck. Add
 `--run` and `--tapes=DIR`, with a master image and a detail image in DIR.
 The object program then runs to end of job. Add `--list-tapes` and it
-prints the report of every output file it wrote. Without `--tapes` the
+prints the report of every BCD output file it wrote. Without `--tapes` the
 run is refused: an input file has no image.
 The job deck is the 293-card artifact plus one reconstructed
 *FINISH card (D11.3); the raw artifact alone is an incomplete job and draws

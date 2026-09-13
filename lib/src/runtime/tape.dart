@@ -51,24 +51,22 @@ List<int> tapeRecord(List<int> words) {
 Iterable<String> listTape(List<int> bytes) sync* {
   final reader = TapeReader(bytes);
   for (List<int>? block = reader.read(); block != null; block = reader.read()) {
-    final lines = <String>[];
     final line = StringBuffer();
     for (final int word in block) {
       for (var i = 5; i >= 0; i--) {
         final int code = (word >> (6 * i)) & 0x3F;
         if (code == bcdRecordMark) {
-          lines.add('$line'.trimRight());
+          yield '$line'.trimRight();
           line.clear();
         } else {
           line.write(glyphFromBcd(code) ?? '?');
         }
       }
     }
-    lines.add('$line'.trimRight());
-    if (lines.last.isEmpty) {
-      lines.removeLast();
+    final String last = '$line'.trimRight();
+    if (last.isNotEmpty) {
+      yield last;
     }
-    yield* lines;
   }
 }
 

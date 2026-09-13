@@ -178,6 +178,11 @@ final class RuntimeFile {
 
   bool open = false;
 
+  /// Whether open-all reached this file. It stays true after the close,
+  /// unlike [open], because the lister must not print an image a
+  /// refused run left from an earlier run (M5-11).
+  bool opened = false;
+
   /// The image the file reads, while it is open.
   TapeReader? reader;
 
@@ -225,9 +230,6 @@ List<RuntimeFile> _fileTable(LoadedProgram program, Directory? tapes) {
   }
   return table;
 }
-
-/// A tape mark, the record length zero that ends a file (M5-2).
-const List<int> _tapeMark = <int>[0, 0, 0, 0];
 
 /// Whether [file] is an input file. Column 28 of the `*FILE` card holds
 /// `I` for input, and `T` or `P` for output ([J 90.08.01]).
@@ -368,7 +370,9 @@ final class Machine {
           host.writeAsBytesSync(const <int>[]);
         }
       }
-      file.open = true;
+      file
+        ..open = true
+        ..opened = true;
     }
   }
 
@@ -386,7 +390,7 @@ final class Machine {
       final File? host = file.host;
       if (!_input(program.files[i])) {
         writeBlock(file);
-        host?.writeAsBytesSync(_tapeMark, mode: FileMode.append);
+        host?.writeAsBytesSync(tapeField(0), mode: FileMode.append);
       }
       file
         ..reader = null

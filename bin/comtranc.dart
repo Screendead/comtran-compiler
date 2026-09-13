@@ -371,8 +371,8 @@ bool _runObjectProgram(
   if (punched == null) {
     return true;
   }
-  // The load allocates the input buffers, so it faults on a program
-  // with no room for them and leaves no machine to print from (M5-7).
+  // The load allocates every file's buffer, so it faults on a program
+  // with no room for them and leaves no machine to print from (M5-10).
   Machine? machine;
   try {
     machine = Machine.load(punched.cards, tapes: tapes);
@@ -403,18 +403,18 @@ bool _runObjectProgram(
 /// Prints one report per output file of [machine], in `*FILE` card
 /// order: the file's name and the word `REPORT`, a blank line, and the
 /// file's print lines, with one blank line between two files (M5-11).
-/// A binary file is not listed. Returns false when an image faults.
+/// A binary file, and a file this run never opened, are not listed.
+/// Returns false when an image faults.
 bool _listTapes(Machine machine, int number) {
   var read = true;
   var first = true;
   for (final (int index, LoaderFile file) in machine.program.files.indexed) {
-    if (!const <String>{'T', 'P'}.contains(file.type) || file.mode == 'B') {
-      continue;
-    }
-    final File? host = machine.files[index].host;
-    // Open-all writes every output image empty, so an image that is not
-    // there is one the run faulted ahead of, holding nothing to list.
-    if (host == null || !host.existsSync()) {
+    final RuntimeFile runtime = machine.files[index];
+    final File? host = runtime.host;
+    if (!runtime.opened ||
+        host == null ||
+        file.type == 'I' ||
+        file.mode == 'B') {
       continue;
     }
     if (!first) {
