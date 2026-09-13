@@ -1,0 +1,26 @@
+deskew angle (all blocks, one frame): -1.83 deg (PIL rotate about image centre)
+PAYFILE  40.0                   ink 684-689  measured col   38.04  expected   38  d=+0.04
+PAYFILE  136.00                 ink 760-762  measured col   46.02  expected   46  d=+0.02
+PAYFILE  19.80                  ink 862-865  measured col   57.00  expected   57  d=+0.00
+PAYFILE  0.00                   ink 954-960  measured col   67.02  expected   67  d=+0.02
+PAYFILE  2.00 INS               ink 1122-1127  measured col   84.97  expected   85  d=-0.03
+PAYFILE  2.00 RET               ink 1206-1211  measured col   93.98  expected   94  d=-0.02
+PAYFILE  112.20                 ink 1282-1286  measured col  102.07  expected  102  d=+0.07
+PAYFILE  DEPT-D                 ink 431-437  measured col   10.98  expected   11  d=-0.02
+PAYFILE  DEPT-BONDPURCH 0.00    ink 1392-1399  measured col  114.02  expected  114  d=+0.02
+PAYFILE  GT dash1               ink 580-587  measured col   27.00  expected   27  d=-0.00
+PAYFILE  GT dash2               ink 608-614  measured col   29.95  expected   30  d=-0.05
+CHECK    110-06-61 col1         ink 337-341  measured col    1.02  expected    1  d=+0.02
+CHECK    091977                 ink 701-707  measured col   40.01  expected   40  d=+0.01
+CHECK    $ of $294.12           ink 711-716  measured col   41.03  expected   41  d=+0.03
+CHECK    last 2 of $294.12      ink 766-771  measured col   46.90  expected   47  d=-0.10
+CHECK    $ of $364.16           ink 711-716  measured col   41.03  expected   41  d=+0.03
+CHECK    last 6 of $364.16      ink 766-772  measured col   46.96  expected   47  d=-0.04
+CHECK    $ of $363.10           ink 711-716  measured col   41.03  expected   41  d=+0.03
+CHECK    last 0 of $363.10      ink 766-772  measured col   46.96  expected   47  d=-0.04  (window corrected)
+CHECK    2WOO J col1            ink 336-341  measured col    0.96  expected    1  d=-0.04
+CHECK    BOND 091980 first 0    ink 339-345  measured col    1.34  expected    2  d=-0.66
+CHECK    BOND 3 of 3750         ink 566-570  measured col   25.48  expected   26  d=-0.52
+CHECK    BOND 1 of 100661       ink 612-615  measured col   30.34  expected   31  d=-0.66
+ERROR    M of M011001           ink 1087-1093  measured col    1.02  expected    1  d=+0.02
+ERROR    D of D061500           ink 1086-1093  measured col    0.97  expected    1  d=-0.03
