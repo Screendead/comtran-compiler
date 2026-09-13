@@ -102,6 +102,22 @@ final List<String> _guard = <String>[
   '      *FINISH',
 ];
 
+/// Writes the two input tapes the sample reads: one master record and
+/// one detail record, whose employee number is the lower of the two.
+/// The comparison then takes LOW.DETAIL, which files an error record at
+/// the sample's first FILE ([J 90.05] statement 193).
+void _sampleTapes(Directory tapes) {
+  tapeImage(tapes, 'D1', <List<int>>[
+    // MASTER is 15 words, and only its employee number is read on that
+    // path. The rest reads as the BCD zeros of an untouched field.
+    <int>[characters('992222'), ...List<int>.filled(14, 0)],
+  ]);
+  tapeImage(tapes, 'C2', <List<int>>[
+    // DETAIL is the employee number, the date, and the hours.
+    <int>[characters('111111'), characters('010161'), characters('400000')],
+  ]);
+}
+
 /// Compiles the 90.05 job deck with [options].
 ProcessResult _compileSample(List<String> options) => Process.runSync(
   Platform.resolvedExecutable,
@@ -126,14 +142,15 @@ ProcessResult _compileAndRun(List<String> source) {
 void main() {
   group('the dispatch rule', () {
     test('an entry with no handler names itself', () {
-      // `TSX IOC)8,4`, the GET of M5 (M4-17).
+      // IOC)2 locates the 12-word IOCS file blocks. It has no emitter
+      // and stays unbuilt, because the file table is Dart's (M5-3).
       expect(
-        () => machine({start: tsx(8)}).run(maxSteps: 4),
+        () => machine({start: tsx(2)}).run(maxSteps: 4),
         throwsA(
           isA<UnimplementedRuntimeEntry>().having(
             (UnimplementedRuntimeEntry e) => e.toString(),
             'toString',
-            'unimplemented runtime entry IOC)8',
+            'unimplemented runtime entry IOC)2',
           ),
         ),
       );
@@ -155,7 +172,7 @@ void main() {
         start: tsx(178),
         start + 1: typeA(0, decrement: start + 0x101, address: start + 0x100),
         start + 2: typeA(0, decrement: start + 0x103, address: start + 0x102),
-        start + 3: tsx(8),
+        start + 3: tsx(2),
         start + 0x100: octal('606060011111'),
         start + 0x101: octal('730104606060'),
         start + 0x102: octal('606263464760'),
@@ -170,9 +187,12 @@ void main() {
   });
 
   group('the 90.05 sample', () {
-    test('loads at the origin and stops at the first entry M4 lacks', () {
+    test('locates its two records and stops at the first entry M5 '
+        'stage 2 lacks', () {
+      final Directory tapes = tempDirectory('comtran-tapes');
+      _sampleTapes(tapes);
       final JobCompilation job = compileDeck(loadJobDeck()).jobs.single;
-      final subject = Machine.load(jobDeck(job, _options)!.cards);
+      final subject = Machine.load(jobDeck(job, _options)!.cards, tapes: tapes);
       expect(subject.program.words, hasLength(936));
       expect(subject.program.origin, Machine.programOrigin);
       expect(subject.program.entry, Machine.programOrigin + octal('165'));
@@ -180,15 +200,16 @@ void main() {
       // IOC)1 counts the seven FILE cards of the sample (M5-3).
       expect(Word36.decrement(subject.state.read(1)), 7);
       // The sample calls open-all, fills its work areas through MOVPAK,
-      // and then reads its first record. IOC)8 is the GET, and it is
-      // the M5 stage 1 to stage 2 boundary (M4-17).
+      // gets a master record and a detail record, and files the error
+      // record the two numbers make. IOC)9 is that FILE, and it is the
+      // M5 stage 2 to stage 3 boundary (M4-17).
       expect(
-        () => subject.run(maxSteps: 1000),
+        () => subject.run(maxSteps: 5000),
         throwsA(
           isA<UnimplementedRuntimeEntry>().having(
             (UnimplementedRuntimeEntry e) => e.number,
             'number',
-            8,
+            9,
           ),
         ),
       );
@@ -197,6 +218,34 @@ void main() {
         subject.files.map((RuntimeFile file) => file.open),
         everyElement(isTrue),
       );
+      // The program's last placed word is relative 01771, so the
+      // buffers start at 5114: INPUTMASTER takes 300 words of it and
+      // DETAILFILE the three above them (M5-7).
+      expect(subject.program.extent, 5114);
+      final int master = Word36.address(
+        subject.state.read(Machine.programOrigin + octal('1667')),
+      );
+      final int detail = Word36.address(
+        subject.state.read(Machine.programOrigin + octal('1670')),
+      );
+      expect(master, 5114);
+      expect(detail, 5414);
+      expect(subject.state.read(master), characters('992222'));
+      expect(subject.state.read(detail), characters('111111'));
+    });
+
+    test('an empty master file ends at the base-locator guard', () {
+      // The first GET takes its AT END exit into END.OF.MASTERS, which
+      // reads the detail record before any GET DETAIL has run. BL)3 is
+      // still zero, so the guard fires (RT-2).
+      final Directory tapes = tempDirectory('comtran-tapes');
+      tapeImage(tapes, 'D1', const <List<int>>[]);
+      tapeImage(tapes, 'C2', const <List<int>>[]);
+      final JobCompilation job = compileDeck(loadJobDeck()).jobs.single;
+      final subject = Machine.load(jobDeck(job, _options)!.cards, tapes: tapes);
+      final RunResult result = subject.run(maxSteps: 5000);
+      expect(result.outcome, RunOutcome.errorExit);
+      expect(result.display, <String>['BASE LOCATOR NOT LOADED']);
     });
 
     test('a declared input file needs its tape image', () {
@@ -215,10 +264,30 @@ void main() {
       );
     });
 
-    test('comtranc --run fails on the entry M4 lacks', () {
+    test('comtranc --run fails on the entry M5 stage 2 lacks', () {
+      final Directory tapes = tempDirectory('comtran-tapes');
+      _sampleTapes(tapes);
+      final ProcessResult run = _compileSample([
+        '--run',
+        '--tapes=${tapes.path}',
+      ]);
+      expect(run.exitCode, 1);
+      expect(
+        run.stderr,
+        contains('error: job 1: unimplemented runtime entry IOC)9'),
+      );
+    });
+
+    test('comtranc --run refuses the sample with no tape directory', () {
       final ProcessResult run = _compileSample(['--run']);
       expect(run.exitCode, 1);
-      expect(run.stderr, contains('error: job 1: unimplemented runtime entry'));
+      expect(
+        run.stderr,
+        contains(
+          'error: job 1: no tape directory for input file INPUTMASTER: '
+          'pass --tapes=DIR',
+        ),
+      );
     });
   });
 

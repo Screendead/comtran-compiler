@@ -67,6 +67,9 @@ void main() {
       };
       expect(program.words, image);
       expect(program.words, hasLength(936));
+      // The last word the text places is the constant pool's, at
+      // relative 01771 (`test/goldens/90.05-payroll.code`).
+      expect(program.extent, _octal('1772'));
       expect(program.entry, _octal('165'));
       expect(program.origin, 0);
       expect(program.deckName, '');
@@ -159,6 +162,9 @@ void main() {
       );
       expect(program.words, {102: 1, 106: 2, 40: 3});
       expect(program.entry, 100);
+      // The reservation carries the extent past the word it skips, and
+      // the absolute origin below the program does not lower it (M5-7).
+      expect(program.extent, 107);
     });
 
     test('a *SPEC card without its *FILE card is ignored (J 03.02.05)', () {

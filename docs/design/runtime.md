@@ -10,7 +10,7 @@ Every entry binds the code.*
 ## RT-1. The machine
 
 `lib/src/runtime/machine.dart` holds the machine, its result and
-outcome types, the three faults of `RunFault`, and the run's file
+outcome types, the faults of `RunFault`, and the run's file
 table. `Machine`
 writes a `LoadedProgram` into a fresh `MachineState`, enters at the
 program's entry point (D2.1), and runs. The file table is one control
@@ -38,8 +38,13 @@ with reference type `0000` and carries no discriminator
 **The program loads at address 4096. Design decision.** No manual
 states an origin. 4096 is the first address above the runtime area, so
 one comparison separates a runtime entry from the program's own text.
-The 90.05 sample then holds addresses 4096 to 5031, and its entry point
-is 4213.
+The 90.05 sample then holds addresses 4096 to 5113, and its entry point
+is 4213. Its input buffers follow at 5114 (`m5-io.md` M5-7).
+
+**Corrected 2026-09-12, M5 stage 2.** The line read 4096 to 5031, which
+counted the 936 words the text places and not the span it covers. A
+`BSS` reservation moves the location counter and places no word. The
+golden's last placed word is relative 01771, which is 5113.
 
 ### The dispatch rule
 
@@ -86,8 +91,10 @@ exception with a reason.
 
 The M4 to M5 boundary is this, in one line. The 90.05 sample calls
 open-all, which opens its seven files (RT-2). It then fills its work
-areas through MOVPAK (RT-3) and reaches IOC)8, the GET, which throws.
-M5 stage 2 lands that entry.
+areas through MOVPAK (RT-3), reads a master record and a detail record
+(`m5-io.md` M5-8), and reaches IOC)9, the FILE, which throws. M5 stage
+3 lands that entry. The run takes the `--tapes` directory of M5-3:
+open-all refuses an input file that has no host image.
 
 ### What exercises the runtime
 
@@ -106,7 +113,7 @@ on the display (RT-2).
 ### The stage-4 set and what waits
 
 M4-17 charters about 130 runtime entries. Stage 4 built the entries an
-I/O-free program reaches, and no others:
+I/O-free program reaches, and M5 stage 2 built the GET of the last row:
 
 | Where | Entries |
 |---|---|
@@ -114,9 +121,11 @@ I/O-free program reaches, and no others:
 | the MOVPAK entries (RT-3) | SYS)180 and SYS)182 |
 | the non-edited members (RT-4) | SYS)184, 239, 240, 241, 243, 244, 245, 268, 269, 275 |
 | the edited family (RT-5) | SYS)185, 190, 193, 198, 211, 212, 214, 216, 225, 226, 267 |
+| the GET, added 2026-09-12 (`m5-io.md` M5-8) | IOC)8, SYS)260 and SYS)283 |
 
 That is 28 handlers, plus the four cells RT-2 names: SYS)132, SYS)133,
-IOC)1 and IOC)29.
+IOC)1 and IOC)29. M5 stage 2 then added the three of the last row, for
+31.
 
 **Each remaining entry lands with the codegen shape that first emits
 it. Design decision.** CLAUDE.md section 11 bans a handler that no test
@@ -198,6 +207,11 @@ to each open output file (M5-2). It skips a file that is already
 closed, because the sample's object text calls close-all twice (M5-4).
 A file with no host image opens, closes, and writes nothing. That is
 the run `comtranc --run` makes without `--tapes`.
+
+**Amended 2026-09-12, M5 stage 2 (M5-3 as amended).** Those two
+sentences hold for an output file only. Open now throws
+`NoTapeDirectory` for an input file in a run that named no directory. A
+GET must read, and an empty tape prints a wrong report.
 
 Open reads the whole list before it changes one image. It refuses a run
 on the first fault it finds, and a refused run leaves every image as it

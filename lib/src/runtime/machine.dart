@@ -16,8 +16,10 @@ import '../emulator/cpu.dart';
 import '../emulator/machine_state.dart';
 import '../emulator/word.dart';
 import '../loader/loader.dart';
+import 'iocs.dart';
 import 'monitor.dart';
 import 'movpak.dart';
+import 'tape.dart';
 
 /// How a run ended.
 enum RunOutcome {
@@ -97,16 +99,109 @@ final class UnrunnableFile implements RunFault {
   String toString() => 'no run for file $file: $fault';
 }
 
+/// An input file in a run that named no tape directory (M5-3 as
+/// amended). It has nothing to read, and a silent empty tape would
+/// print a wrong report.
+final class NoTapeDirectory implements RunFault {
+  NoTapeDirectory(this.file);
+
+  /// The name on the `*FILE` card.
+  final String file;
+
+  @override
+  String toString() =>
+      'no tape directory for input file $file: '
+      'pass --tapes=DIR';
+}
+
+/// An input file whose `*SPEC` card declares no BLOCKSIZE, which is the
+/// depth of its buffer (M5-7). Our generator punches the field blank
+/// when the source drew message 89 (D10.8).
+final class NoBlocksize implements RunFault {
+  NoBlocksize(this.file);
+
+  /// The name on the `*FILE` card.
+  final String file;
+
+  @override
+  String toString() => 'no BLOCKSIZE for input file $file';
+}
+
+/// An input file whose buffer does not fit above the program (M5-7).
+final class NoBufferRoom implements RunFault {
+  NoBufferRoom(this.file);
+
+  /// The name on the `*FILE` card.
+  final String file;
+
+  @override
+  String toString() =>
+      'no room above the program for the buffer of input file $file';
+}
+
 /// One file of the run's file table: the control block open-all and
-/// close-all keep for one `*FILE` card (M5-3).
+/// close-all keep for one `*FILE` card (M5-3), and the buffer a GET
+/// reads a block of an input file into (M5-7).
 final class RuntimeFile {
-  RuntimeFile(this.host);
+  RuntimeFile(this.host, {required this.buffer, required this.blocksize});
 
   /// The host tape image, or `null` when the run named no tape
   /// directory.
   final File? host;
 
+  /// The buffer's first word. An output file has no buffer and takes
+  /// zero (M5-7).
+  final int buffer;
+
+  /// How many words of a tape block the buffer takes, from the `*SPEC`
+  /// card ([J 02.06.04]).
+  final int blocksize;
+
   bool open = false;
+
+  /// The image the file reads, while it is open.
+  TapeReader? reader;
+
+  /// The address of the next unread word of the buffer.
+  int cursor = 0;
+
+  /// How many unread words the buffer still holds.
+  int unread = 0;
+
+  /// How many frames the file read after its open. A terminator's line
+  /// names it, so the reader of a hand-made image finds the frame it
+  /// stopped on (M5-8).
+  int block = 0;
+}
+
+/// One control block per `*FILE` card of [program], each input file
+/// taking a buffer of BLOCKSIZE words in card order from the program's
+/// extent upward (M5-7). A file's host image is `<tapes>/<UNIT1>.tap`.
+///
+/// Throws [NoBlocksize] for an input file that declares no BLOCKSIZE,
+/// and [NoBufferRoom] for a program whose buffers run past core.
+List<RuntimeFile> _fileTable(LoadedProgram program, Directory? tapes) {
+  int top = program.extent;
+  final table = <RuntimeFile>[];
+  for (final LoaderFile file in program.files) {
+    final bool input = _input(file);
+    if (input && file.blocksize == null) {
+      throw NoBlocksize(file.name);
+    }
+    final int size = input ? file.blocksize! : 0;
+    if (top + size > MachineState.memoryWords) {
+      throw NoBufferRoom(file.name);
+    }
+    table.add(
+      RuntimeFile(
+        tapes == null ? null : File('${tapes.path}/${file.unit1}.tap'),
+        buffer: input ? top : 0,
+        blocksize: size,
+      ),
+    );
+    top += size;
+  }
+  return table;
 }
 
 /// A tape mark, the record length zero that ends a file (M5-2).
@@ -137,20 +232,15 @@ final class Machine {
   /// Writes [program] into a fresh [MachineState] and enters at its
   /// entry point (D2.1). A cell no word was placed in reads +0 (ED-6).
   ///
-  /// The file table takes one control block per `*FILE` card, and a
-  /// file's host image is `<tapes>/<UNIT1>.tap`. With no [tapes]
-  /// directory every file runs with no host image (M5-3).
+  /// The file table takes one control block per `*FILE` card, with the
+  /// input buffers above the program (M5-7). With no [tapes] directory
+  /// every file runs with no host image (M5-3).
   ///
   /// Cell 1 is IOC)1, and the machine seeds it because no word of the
   /// object deck writes it. The address field stays zero: the file list
   /// itself is Dart's, and no compiled word dereferences it (M5-3).
   Machine(this.program, {Directory? tapes})
-    : files = <RuntimeFile>[
-        for (final LoaderFile file in program.files)
-          RuntimeFile(
-            tapes == null ? null : File('${tapes.path}/${file.unit1}.tap'),
-          ),
-      ] {
+    : files = _fileTable(program, tapes) {
     program.words.forEach(state.write);
     state
       ..write(1, pzeWord(decrement: program.files.length))
@@ -186,6 +276,7 @@ final class Machine {
   late final Map<int, RuntimeEntry> _handlers = {
     ...runFrame(this),
     ...movpak(this),
+    ...iocs(this),
   };
 
   /// Parameter word [k] of the calling sequence in hand: the word at
@@ -201,13 +292,16 @@ final class Machine {
 
   /// Opens the first [count] files of the table, which SYS)175 reads
   /// from IOC)1 (RT-2). An output file's host image is created or
-  /// truncated, and an input file's host image must already exist.
+  /// truncated, and an input file's host image must already exist and
+  /// becomes the file's reader over an empty buffer, so a second
+  /// open-all reads the image from its first frame (M5-4).
   ///
   /// A refused run leaves every image as it found it.
   ///
-  /// Throws [UnrunnableFile] for a file shape that has no run, and
-  /// [MissingTapeImage] for an input file the host directory does not
-  /// hold.
+  /// Throws [UnrunnableFile] for a file shape that has no run,
+  /// [NoTapeDirectory] for an input file in a run that named no
+  /// directory, and [MissingTapeImage] for an input file the host
+  /// directory does not hold.
   void openFiles(int count) {
     final taken = <String>{};
     for (var i = 0; i < count; i++) {
@@ -220,6 +314,9 @@ final class Machine {
       }
       final File? host = files[i].host;
       if (host == null) {
+        if (_input(declaration)) {
+          throw NoTapeDirectory(declaration.name);
+        }
         continue;
       }
       if (declaration.unit1.isEmpty) {
@@ -236,18 +333,27 @@ final class Machine {
       }
     }
     for (var i = 0; i < count; i++) {
-      final File? host = files[i].host;
-      if (host != null && !_input(program.files[i])) {
-        host.writeAsBytesSync(const <int>[]);
+      final RuntimeFile file = files[i];
+      final File? host = file.host;
+      if (host != null) {
+        if (_input(program.files[i])) {
+          file
+            ..reader = TapeReader(host.readAsBytesSync())
+            ..unread = 0
+            ..block = 0;
+        } else {
+          host.writeAsBytesSync(const <int>[]);
+        }
       }
-      files[i].open = true;
+      file.open = true;
     }
   }
 
   /// Closes the first [count] files, which SYS)177 reads from IOC)1
-  /// (RT-2). Each open output file takes one tape mark. A file that is
-  /// already closed closes quietly, because the sample's STOP RUN emits
-  /// a second close-all after its own (M5-4).
+  /// (RT-2). Each open output file takes one tape mark, and an input
+  /// file drops its reader. A file that is already closed closes
+  /// quietly, because the sample's STOP RUN emits a second close-all
+  /// after its own (M5-4).
   void closeFiles(int count) {
     for (var i = 0; i < count; i++) {
       final RuntimeFile file = files[i];
@@ -258,7 +364,9 @@ final class Machine {
       if (host != null && !_input(program.files[i])) {
         host.writeAsBytesSync(_tapeMark, mode: FileMode.append);
       }
-      file.open = false;
+      file
+        ..reader = null
+        ..open = false;
     }
   }
 

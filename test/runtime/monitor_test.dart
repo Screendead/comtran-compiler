@@ -69,11 +69,12 @@ void main() {
 
     test('every file the cell counts opens, and closes again', () {
       // No tape directory, so no file has a host image and the run is
-      // the one M4 stage 4 made (M5-3).
+      // the one M4 stage 4 made (M5-3). Only an output file runs that
+      // way: an input file with no image is refused below.
       final Machine subject = machine(
         _openAndCloseTwice,
         files: <LoaderFile>[
-          loaderFile(1, type: 'I', unit: 'D1'),
+          loaderFile(1, type: 'P', unit: 'D1'),
           loaderFile(2, type: 'P', unit: 'C1'),
           loaderFile(3, type: 'P', unit: 'C2'),
         ],
@@ -102,7 +103,7 @@ void main() {
       final Machine subject = machine(
         _openAndCloseTwice,
         files: <LoaderFile>[
-          loaderFile(1, type: 'I', unit: 'D1'),
+          loaderFile(1, type: 'I', unit: 'D1', blocksize: 2),
           loaderFile(2, type: 'P', unit: 'C1'),
         ],
         tapes: tapes,
@@ -119,7 +120,7 @@ void main() {
       final Machine subject = machine(
         _openAll,
         files: <LoaderFile>[
-          loaderFile(1, type: 'I', unit: 'D1'),
+          loaderFile(1, type: 'P', unit: 'D1'),
           loaderFile(2, type: 'P', unit: 'C1'),
           loaderFile(3, type: 'P', unit: 'C2'),
         ],
@@ -145,12 +146,36 @@ void main() {
         _openAll,
         files: <LoaderFile>[
           loaderFile(1, type: 'P', unit: 'C1'),
-          loaderFile(2, type: 'I', unit: 'D1'),
+          loaderFile(2, type: 'I', unit: 'D1', blocksize: 2),
         ],
         tapes: tapes,
       );
       expect(() => subject.run(maxSteps: 2), throwsA(isA<MissingTapeImage>()));
       expect(output.readAsBytesSync(), record);
+      expect(
+        subject.files.map((RuntimeFile file) => file.open),
+        everyElement(isFalse),
+      );
+    });
+
+    test('an input file has no run without a tape directory', () {
+      // M5-3 as amended: the file has nothing to read, and a silent
+      // empty tape would print a wrong report. An output file with no
+      // image still opens and closes.
+      final Machine subject = machine(
+        _openAll,
+        files: <LoaderFile>[loaderFile(1, type: 'I', unit: 'D1', blocksize: 2)],
+      );
+      expect(
+        () => subject.run(maxSteps: 2),
+        throwsA(
+          isA<NoTapeDirectory>().having(
+            (NoTapeDirectory e) => e.toString(),
+            'toString',
+            'no tape directory for input file FILE1: pass --tapes=DIR',
+          ),
+        ),
+      );
       expect(
         subject.files.map((RuntimeFile file) => file.open),
         everyElement(isFalse),
@@ -182,7 +207,7 @@ void main() {
       // would share one image (M5-3).
       final Machine subject = machine(
         _openAll,
-        files: <LoaderFile>[loaderFile(1, type: 'I', unit: '')],
+        files: <LoaderFile>[loaderFile(1, type: 'I', unit: '', blocksize: 2)],
         tapes: tapes,
       );
       expect(

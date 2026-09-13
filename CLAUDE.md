@@ -18,8 +18,8 @@ generation fills every word of the object program, prints the whole object
 listing of the 1962 sample byte for byte, and issues its diagnostics; the
 deck writer punches the object deck and the loader cards, and our loader
 reads them back; the machine assembly runs a compiled program under
-`comtranc --run`, and the 1962 sample stops at its first GET, where the
-I/O runtime of M5 begins. Read `docs/HANDOVER.md`
+`comtranc --run`, and the 1962 sample reads its first records off tape
+and stops at its first FILE, where M5 stage 3 begins. Read `docs/HANDOVER.md`
 for the live state and the next task.
 
 ## 3. Repository map

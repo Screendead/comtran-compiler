@@ -54,8 +54,9 @@ Terms that appear without expansion:
 | M4 stage 2 — core-verb text | Done 2026-08-28. Phase A done 2026-08-10 (all 18 object pages scan-verified); Phase B chunks B1 to B7 done 2026-08-15 to 2026-08-17 — the whole printed object listing, pages 8 to 25, matches the 1962 print byte for byte, and the target is retired; B8, the diagnostics, done 2026-08-28 | `test/goldens/90.05-payroll.storage-map`, `test/fixtures/90.05-object-code-notes.md` |
 | M4 stage 3 — the object deck and the loader | Done 2026-08-30: the deck writer, our loader, `--emit-deck` and `--emit-loader`, and the object golden grown to the whole of PDF pp. 198–216 | `docs/design/loader.md`, `lib/src/loader/`, `lib/src/emit/emit_deck.dart` |
 | M4 stage 4 — the machine assembly | Done 2026-09-06: the machine, the run frame, the 23 reachable MOVPAK entries, and `--run` | `docs/design/runtime.md`, `lib/src/runtime/` |
-| M5 stage 1 — the file model | Done 2026-09-07: the file table, the IOC)1 seed, `--tapes`, and open-all over the sample's seven files. Close-all runs on a test program only: the sample stops at IOC)8 with all seven open | `docs/design/m5-io.md`, `lib/src/runtime/machine.dart` |
-| M5 stages 2 and 3, M6, M7 | Not started | — |
+| M5 stage 1 — the file model | Done 2026-09-07: the file table, the IOC)1 seed, `--tapes`, and open-all over the sample's seven files | `docs/design/m5-io.md`, `lib/src/runtime/machine.dart` |
+| M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
+| M5 stage 3, M6, M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -67,12 +68,14 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1259 Dart tests pass, measured 2026-09-07, and 154 extension
+Test baseline: 1282 Dart tests pass, measured 2026-09-12, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
 manual's own payroll sample through every phase to the object deck. Add
-`--run` and the object program runs as far as its first GET, which M5 lands.
+`--run` and `--tapes=DIR`, with a master image and a detail image in DIR.
+The object program then runs as far as its first FILE, which M5 stage 3
+lands. Without `--tapes` the run is refused: an input file has no image.
 The job deck is the 293-card artifact plus one reconstructed
 *FINISH card (D11.3); the raw artifact alone is an incomplete job and draws
 message 132. The compile prints the listing, numbered 1,00 to 229,00 exactly
@@ -85,12 +88,14 @@ for byte.
 
 **M4 is complete (2026-09-06).** Stage 3 landed the deck writer and our
 loader (LD-1 to LD-4), and stage 4 landed the machine assembly (M4-17).
-`lib/src/runtime/` holds three files:
+`lib/src/runtime/` holds five files:
 
 - the machine, which loads an object deck at address 4096 and treats
   every address below it as a runtime entry (RT-1);
 - the run frame SYS)175, 177, 178, 294 and IOC)40 (RT-2);
-- 23 MOVPAK entries and members (RT-3 to RT-5).
+- 23 MOVPAK entries and members (RT-3 to RT-5);
+- the tape reader, which takes the records off a host image (M5-2);
+- the GET entries IOC)8, SYS)260 and SYS)283 (M5-8).
 
 `comtranc --run` runs each job's punched deck and prints its display
 lines.
@@ -98,51 +103,57 @@ lines.
 the 28 entries stage 4 built and the rule for the rest.
 
 An I/O-free program now runs end to end. The 90.05 sample loads its 936
-words, opens its seven files, fills its work areas through MOVPAK, and
-stops at IOC)8, its first GET. That stop is the boundary M5 stage 2
-moves, and `test/runtime/machine_test.dart` asserts it.
+words, opens its seven files, and fills its work areas through MOVPAK.
+It then gets a master record and a detail record, and stops at IOC)9,
+its first FILE. That stop is the boundary M5 stage 3 moves, and
+`test/runtime/machine_test.dart` asserts it.
 
 Both carried items are closed. The machine writes the loader's words
 into `MachineState` and enters at the entry point (LD-3). A labeled
 PROGRAM.START now names that entry point, and `GN)000` stays on the
 first procedure word (D2.1 as amended 2026-09-06).
 
-**The next task is M5 stage 2, GET.** `docs/design/m5-io.md` holds
+**The next task is M5 stage 3, FILE.** `docs/design/m5-io.md` holds
 its decisions, and M5-1 holds the stages. The milestone charters the
 IOCS entries M4-17 leaves. They are IOC)2 to 17, 29, 46, 53 and 54, and
 SYS)260 to 266, 283, and 286 to 296 less the landed 294. Our generator
-emits
-four of them. IOC)8 is READ, IOC)9 is WRITE, and SYS)260 and SYS)283
-stand in the decrements of the GET sequence. The rest wait for the
+emits four of them. Stage 2 landed three: IOC)8, the READ subroutine,
+and the two terminators of the GET sequence, SYS)260 and SYS)283.
+IOC)9 is WRITE, and stage 3 lands it. The rest wait for the
 code-generator shape that emits them (`runtime.md` RT-1).
 
 Every file the sample declares is a tape, so M5 builds one device
 first. Three stages, one pull request each:
 
 1. the file model — the tape image, the file table off the `*FILE` and
-   `*SPEC` cards, and the open-all and close-all handlers; the sample
-   reaches open-all only (done 2026-09-07);
-2. GET — IOC)8, the buffer, locate mode, and AT END;
-3. FILE — IOC)9, blocking, and the four report tapes.
+   `*SPEC` cards, and the open-all and close-all handlers (done
+   2026-09-07);
+2. GET — IOC)8, the buffer, locate mode, and AT END (done 2026-09-12);
+3. FILE — IOC)9, the `IOST` word, blocking, and the four report tapes.
 
-The boundary test flips at stage 2: the sample then runs past its first
-GET.
+Stage 3 writes a record from core to a host image and blocks records
+into BLOCKSIZE-word blocks (D6.7). It gives an output file the buffer
+stage 2 left it without, and it patches the located-record `IOST` word
+(M5-6). It also needs a lister that renders a BCD tape as print lines,
+because that is the artifact M6 diffs.
 
 ### Codegen defects the runtime exposed
 
 The stage-4 runtime made five codegen defects visible for the first
 time. None is fixed on the stage-4 branch, and each fix is a codegen
 change. Take them before M5 or beside it. Whether a site refuses the
-shape or handles it is Jack's call.
+shape or handles it is Jack's call. The M5 stage 2 review added a
+sixth, a missing diagnostic.
 
-**None of the five fires on the sample's own path. Measured 2026-09-07.**
+**None of the six fires on the sample's own path. The five were
+measured 2026-09-07.**
 The sample declares no picture that holds an `S` or an asterisk. Every
 source and target on the two unaligned paths carries the same scale. The
 paths hold 25 internal-to-edited stores, three converts, and the one
 edited ADD source.
 Its three convert targets live in WORKING, which is no record, so defect 4
 has no site. M6 can therefore take the printed report as its oracle before
-any of the five is fixed. A correct fix must leave
+any of the six is fixed. A correct fix must leave
 `test/goldens/90.05-payroll.code` byte for byte as it stands: a fix that
 moves it has changed the sample's path. The three divides at LOC 00424,
 01113 and 01142 split on digit count, not on scale, and must survive.
@@ -172,6 +183,12 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    has one address field for the leading run, so it cannot say which
    cells take a blank and which an asterisk. `$8*89.99` compiles with no
    diagnostic. RT-5 lists the shape among its open items.
+6. **A reopen after CLOSE ALL FILES draws no diagnostic.** D6.3 asks
+   the compiler to diagnose the statically determinable case. The OPEN
+   emitter (`lib/src/codegen/procedure.dart`:1352) emits `TSX SYS)175,4`
+   for every OPEN ALL FILES and checks nothing. The M5 stage 2 review
+   found it on 2026-09-12. The sample opens once, so it has no site.
+   M5-4 records what the runtime does on the reopen.
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
@@ -891,7 +908,7 @@ evidence tier of a rule, shown where the compiler acts on it (O3).
 
 | Cut | Reason |
 |---|---|
-| The run button, before M5 and M6 | The sample stops at its first GET. Do not build a stub. |
+| The run button, before M5 and M6 | The sample stops at its first FILE. Do not build a stub. |
 | The tutorial, before W4 | It is writing, and it is the one part no artifact in this repository can generate. |
 | A second editor for the tutorial page | Two editors mean two column rules, and two places to get a card column wrong. |
 | The choice between the terminal and the punchcard | They are not alternatives. The punch grid shows one input card; the terminal holds the deck text and the compiler output. |
