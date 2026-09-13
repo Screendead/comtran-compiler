@@ -56,7 +56,8 @@ Terms that appear without expansion:
 | M4 stage 4 — the machine assembly | Done 2026-09-06: the machine, the run frame, the 23 reachable MOVPAK entries, and `--run` | `docs/design/runtime.md`, `lib/src/runtime/` |
 | M5 stage 1 — the file model | Done 2026-09-07: the file table, the IOC)1 seed, `--tapes`, and open-all over the sample's seven files | `docs/design/m5-io.md`, `lib/src/runtime/machine.dart` |
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
-| M5 stage 3, M6, M7 | Not started | — |
+| M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
+| M6, M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -68,14 +69,15 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1282 Dart tests pass, measured 2026-09-12, and 154 extension
+Test baseline: 1298 Dart tests pass, measured 2026-09-13, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
 manual's own payroll sample through every phase to the object deck. Add
 `--run` and `--tapes=DIR`, with a master image and a detail image in DIR.
-The object program then runs as far as its first FILE, which M5 stage 3
-lands. Without `--tapes` the run is refused: an input file has no image.
+The object program then runs to end of job. Add `--list-tapes` and it
+prints the report of every output file it wrote. Without `--tapes` the
+run is refused: an input file has no image.
 The job deck is the 293-card artifact plus one reconstructed
 *FINISH card (D11.3); the raw artifact alone is an incomplete job and draws
 message 132. The compile prints the listing, numbered 1,00 to 229,00 exactly
@@ -84,7 +86,7 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — M5
+## The next task — M6
 
 **M4 is complete (2026-09-06).** Stage 3 landed the deck writer and our
 loader (LD-1 to LD-4), and stage 4 landed the machine assembly (M4-17).
@@ -94,48 +96,52 @@ loader (LD-1 to LD-4), and stage 4 landed the machine assembly (M4-17).
   every address below it as a runtime entry (RT-1);
 - the run frame SYS)175, 177, 178, 294 and IOC)40 (RT-2);
 - 23 MOVPAK entries and members (RT-3 to RT-5);
-- the tape reader, which takes the records off a host image (M5-2);
-- the GET entries IOC)8, SYS)260 and SYS)283 (M5-8).
+- the tape reader, which takes the records off a host image, and the
+  lister, which prints a BCD image (M5-2; M5-11);
+- the GET entries IOC)8, SYS)260 and SYS)283 (M5-8), and the FILE entry
+  IOC)9 (M5-9).
 
 `comtranc --run` runs each job's punched deck and prints its display
-lines.
+lines. `--list-tapes` prints the report of every output file after
+them.
 `docs/design/runtime.md` holds the decisions. Its RT-1 holds the list of
 the 28 entries stage 4 built and the rule for the rest.
 
 An I/O-free program now runs end to end. The 90.05 sample loads its 936
 words, opens its seven files, and fills its work areas through MOVPAK.
-It then gets a master record and a detail record, and stops at IOC)9,
-its first FILE. That stop is the boundary M5 stage 3 moves, and
-`test/runtime/machine_test.dart` asserts it.
+It then gets a master record and a detail record, files its output
+records, closes every file, and reaches end of job.
+`test/runtime/machine_test.dart` asserts that run and the reports it
+writes.
 
 Both carried items are closed. The machine writes the loader's words
 into `MachineState` and enters at the entry point (LD-3). A labeled
 PROGRAM.START now names that entry point, and `GN)000` stays on the
 first procedure word (D2.1 as amended 2026-09-06).
 
-**The next task is M5 stage 3, FILE.** `docs/design/m5-io.md` holds
-its decisions, and M5-1 holds the stages. The milestone charters the
-IOCS entries M4-17 leaves. They are IOC)2 to 17, 29, 46, 53 and 54, and
+**M5 is complete (2026-09-13).** `docs/design/m5-io.md` holds its
+decisions, and M5-1 holds the stages. The milestone charters the IOCS
+entries M4-17 leaves. They are IOC)2 to 17, 29, 46, 53 and 54, and
 SYS)260 to 266, 283, and 286 to 296 less the landed 294. Our generator
-emits four of them. Stage 2 landed three: IOC)8, the READ subroutine,
-and the two terminators of the GET sequence, SYS)260 and SYS)283.
-IOC)9 is WRITE, and stage 3 lands it. The rest wait for the
+emits four of them, and the three stages landed all four: IOC)8, the
+READ subroutine, IOC)9, the WRITE subroutine, and the two terminators
+of the GET sequence, SYS)260 and SYS)283. The rest wait for the
 code-generator shape that emits them (`runtime.md` RT-1).
 
-Every file the sample declares is a tape, so M5 builds one device
-first. Three stages, one pull request each:
+Every file the sample declares is a tape, so M5 built one device.
+Three stages, one pull request each:
 
 1. the file model — the tape image, the file table off the `*FILE` and
    `*SPEC` cards, and the open-all and close-all handlers (done
    2026-09-07);
 2. GET — IOC)8, the buffer, locate mode, and AT END (done 2026-09-12);
-3. FILE — IOC)9, the `IOST` word, blocking, and the four report tapes.
+3. FILE — IOC)9, the `IOST` word, blocking, and the four report tapes
+   (done 2026-09-13).
 
-Stage 3 writes a record from core to a host image and blocks records
-into BLOCKSIZE-word blocks (D6.7). It gives an output file the buffer
-stage 2 left it without, and it patches the located-record `IOST` word
-(M5-6). It also needs a lister that renders a BCD tape as print lines,
-because that is the artifact M6 diffs.
+**The next task is M6, acceptance.** The roadmap section "The mission:
+the compiler — roadmap" below holds it. M6 reproduces the sample's
+printed report of PDF p. 217. The input tapes do not survive, so M6
+reconstructs them first (`docs/design/m5-io.md`, Open items).
 
 ### Codegen defects the runtime exposed
 

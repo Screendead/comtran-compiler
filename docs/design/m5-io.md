@@ -71,6 +71,11 @@ handler moves words inside core (`runtime.md` RT-1).
   master record and a detail record, and stops at IOC)9, its first
   FILE. It needs the `--tapes` directory to run at all.
 
+  **Amended 2026-09-13.** Stage 3 is done. The sample reaches end of
+  job under the two test tapes, and `--list-tapes` prints its reports.
+  M6 reconstructs the input tapes and diffs the report against PDF
+  p. 217.
+
 ## The tape image
 
 - **M5-2. A tape file is a SIMH `.tap` image, six bytes to the word.
@@ -499,6 +504,11 @@ handler moves words inside core (`runtime.md` RT-1).
     consumed column 1 would fail M6's diff.
   - Trailing blanks are trimmed. A printer's trailing blanks are
     invisible.
+  - The block's characters split at each record mark, and each piece
+    loses its trailing blanks. Only a final empty piece is dropped. Two
+    record marks in a row therefore print one blank line. A block that
+    ends with a mark prints no extra line, and a block that ends with
+    blank padding after a mark prints none either.
   - A code with no Set H glyph prints as `?`, the mark the glyph table
     itself uses for an unassigned code (`lib/src/chars/char_code.dart`).
   - The list runs from the tape's first frame to its file mark. An

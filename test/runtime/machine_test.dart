@@ -296,6 +296,67 @@ void main() {
       expect(run.stdout, contains('AT 199,14 STOP RUN'));
     });
 
+    test('comtranc --list-tapes prints the reports after the run', () {
+      final Directory tapes = tempDirectory('comtran-tapes');
+      _sampleTapes(tapes);
+      final ProcessResult run = _compileSample([
+        '--run',
+        '--tapes=${tapes.path}',
+        '--list-tapes',
+      ]);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(
+        run.stdout,
+        contains(
+          'ERRORFILE REPORT\n\nD111111010161400\nM992222000000000000000\n',
+        ),
+      );
+      // OUTPUTMASTER punches mode B, and a binary tape is not listed
+      // (M5-11).
+      expect(run.stdout, isNot(contains('OUTPUTMASTER REPORT')));
+    });
+
+    test('comtranc --list-tapes lists nothing the run never opened', () {
+      // Open-all refuses the missing input image before it writes any
+      // output image, so no file has a report to print.
+      final Directory tapes = tempDirectory('comtran-tapes');
+      final ProcessResult run = _compileSample([
+        '--run',
+        '--tapes=${tapes.path}',
+        '--list-tapes',
+      ]);
+      expect(run.exitCode, 1);
+      expect(run.stdout, isNot(contains('REPORT')));
+    });
+
+    test('comtranc --list-tapes ends a report at the reader fault', () {
+      // Two empty input tapes take the run to the base-locator guard,
+      // which exits before close-all writes any file mark (M5-11).
+      final Directory tapes = tempDirectory('comtran-tapes');
+      tapeImage(tapes, 'D1', const <List<int>>[]);
+      tapeImage(tapes, 'C2', const <List<int>>[]);
+      final ProcessResult run = _compileSample([
+        '--run',
+        '--tapes=${tapes.path}',
+        '--list-tapes',
+      ]);
+      expect(run.exitCode, 1);
+      expect(run.stdout, contains('ERRORFILE REPORT\n\n'));
+      expect(
+        run.stderr,
+        contains(
+          'error: job 1: ERRORFILE: unreadable tape record: the tape ends '
+          'with no file mark',
+        ),
+      );
+    });
+
+    test('comtranc --list-tapes needs a run', () {
+      final ProcessResult run = _compileSample(['--list-tapes']);
+      expect(run.exitCode, 2);
+      expect(run.stderr, startsWith('Usage:'));
+    });
+
     test('comtranc --run refuses the sample with no tape directory', () {
       final ProcessResult run = _compileSample(['--run']);
       expect(run.exitCode, 1);
