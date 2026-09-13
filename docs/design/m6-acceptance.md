@@ -87,9 +87,9 @@ the report our run prints against the page.
   order. Its CHECKFILE block holds the three checks the page prints,
   and nothing stands for the eight it omits.
 
-  The columns were measured on the scan, not read off the
-  transcription (CLAUDE.md section 9). The page was rotated 1.83
-  degrees to take the skew out, and the character pitch was fitted per
+  We measured the columns on the scan and read none off the
+  transcription (CLAUDE.md section 9). We rotated the page 1.83
+  degrees to take the skew out, and fitted the character pitch per
   pasted block at about 9.3 pixels a column. Every measured item of
   the PAYFILE block lands on the column the record layout gives it,
   within a tenth of a column: the date at 25, the hours at 38, and so
@@ -115,11 +115,15 @@ the report our run prints against the page.
   WHT, the bond deduction, and WOO's bond denomination. A FICA year to
   date that prints 0.00 is 144.00 exactly, because statement 213 caps
   the master at 144.00 and takes the excess off the pay, and DORR's
-  2.01 fixes 141.99. The rest is chosen, and each choice is the least
-  value that prints the page: 0.00 for a FICA year to date the cap
-  never reaches, 20.50 for WOO's accumulation, 18.75 and 0.00 for the
-  denomination and accumulation of the three who deduct and order
-  nothing, and zero or blank for every field the report never prints.
+  2.01 fixes 141.99. The rest is chosen. Each choice is the least
+  value that prints the page:
+
+  - 0.00 for a FICA year to date the cap never reaches;
+  - 20.50 for WOO's bond accumulation;
+  - 18.75 and 0.00 for the denomination and accumulation of the three
+    who deduct and order nothing;
+  - zero or blank for every field the report never prints.
+
   An unmatched master is its number and its name.
 
   The images take the blocking the manual describes. The master file
@@ -182,7 +186,8 @@ the report our run prints against the page.
      01333, after the edited store of BONDENOMINATION at 01325 to
      01331, whose calling sequence ends `AXT 5,1`. Our MOVPAK cleared
      the register at every entry and handed the `AXT` back to the CPU,
-     so 01333 read address zero. The page prints the number, so the
+     so register 1 held 5 and 01333 read the zero word at address
+     0 − 5. The page prints the number, so the
      1961 library preserved the register and took the `AXT` as the last
      word of the sequence, which is how [J 90.02.30] prints it. The fix
      saves and restores the register around a call and consumes the
