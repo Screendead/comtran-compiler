@@ -13,7 +13,8 @@ import '../emulator/asm.dart';
 /// Where every calling sequence below sits: the program's first word.
 const int start = Machine.programOrigin;
 
-/// Junk index register 1 carries into a call, which the entry clears.
+/// Junk index register 1 carries into a call, which the entry clears
+/// and the end of the move restores (RT-3).
 const int junkCount = 0x29C;
 
 /// Junk index register 2 carries through a call untouched (RT-3).
@@ -25,8 +26,8 @@ const int junkLocator = 0xFFF;
 const int bufferBase = start + 0x50;
 
 /// A machine holding [words] at absolute addresses, entered at [start],
-/// with junk in the two index registers a MOVPAK call must not disturb
-/// or must clear (RT-3). [files] are the program's `*FILE` cards and
+/// with junk in the two index registers a MOVPAK call must give back
+/// (RT-3). [files] are the program's `*FILE` cards and
 /// [tapes] the directory their images sit in (M5-3).
 ///
 /// The constructor seeds IOC)1 after it writes [words], so a cell 1 in
