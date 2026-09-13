@@ -899,8 +899,8 @@ artifact's own key and invents none. This phase needs the structured emit
 surface, under the rule above.
 
 **W4 — teach and run.** The tutorial page, with the W1 editor and no second
-editor. The run button waits for M5 and M6, because the sample does not run
-before them.
+editor. The run button waits for M6, because the sample runs only on the
+test tapes until M6 reconstructs its input.
 
 ### Later, and not scheduled
 
@@ -914,7 +914,7 @@ evidence tier of a rule, shown where the compiler acts on it (O3).
 
 | Cut | Reason |
 |---|---|
-| The run button, before M5 and M6 | The sample stops at its first FILE. Do not build a stub. |
+| The run button, before M6 | The sample's input tapes do not exist yet. Do not build a stub. |
 | The tutorial, before W4 | It is writing, and it is the one part no artifact in this repository can generate. |
 | A second editor for the tutorial page | Two editors mean two column rules, and two places to get a card column wrong. |
 | The choice between the terminal and the punchcard | They are not alternatives. The punch grid shows one input card; the terminal holds the deck text and the compiler output. |
