@@ -29,7 +29,11 @@ void main() {
       })..run(maxSteps: 2 + 2 * stepWords);
       final MachineState state = subject.state;
       expect(state.ic, resume, reason: '$name resume');
-      expect(state.xrRead(1), 0, reason: '$name index register 1');
+      expect(
+        state.xrRead(1),
+        ends ? junkCount : 0,
+        reason: '$name index register 1',
+      );
       expect(state.xrRead(2), junkLocator, reason: '$name index register 2');
       expect(state.xrRead(4), link(start), reason: '$name link');
       if (ends) {
@@ -76,11 +80,11 @@ void main() {
       shape('SYS)245', <int>[txi(245, 0), characters('((((((')], 1, ends: true);
     });
 
-    test('the edited store ends on the AXT the CPU then executes', () {
-      // The one shape that leaves index register 1 loaded: the handler
-      // returns to the `AXT`, whose address field it has already read
-      // (RT-3). Its TRA form carries the same address and no tag, so
-      // the edit control it hands over is the 0 the entry left.
+    test('the edited store resumes past its AXT parameter word', () {
+      // The `AXT` is read, never executed, so the caller's index
+      // register 1 comes back over the digit count it names (RT-3). The
+      // TRA form carries the same address and no tag, so the edit
+      // control it hands over is the 0 the entry left.
       for (final head in <int>[txi(267, 4), typeB(0x010, address: 267)]) {
         final Machine subject = machine(<int, int>{
           start: tsx(180),
@@ -89,10 +93,10 @@ void main() {
           start + 3: 0,
           start + 4: axt(6),
           start + 5: txi(243, 0),
-        })..run(maxSteps: 5);
+        })..run(maxSteps: 4);
         final MachineState state = subject.state;
         expect(state.ic, start + 5);
-        expect(state.xrRead(1), 6);
+        expect(state.xrRead(1), junkCount);
         expect(state.xrRead(2), junkLocator);
         expect(state.xrRead(4), link(start));
         expect(() => subject.run(maxSteps: 2), throwsA(isA<StateError>()));

@@ -1053,13 +1053,13 @@ final class _Text {
     }
   }
 
-  /// Every MOVPAK sequence ends in an `AXT` that writes index register
-  /// 1, so that one register empties (notes question 2). Inside a
-  /// CORRESPONDING expansion the kill is deferred to the expansion's
-  /// end: statement 221's two-word chain at 01332 reuses the register
-  /// across the edit tail at 01331, where statement 220's compare at
-  /// 01301 reloads across the same tail at statement distance — the
-  /// expander planned its addressing once.
+  /// The 1962 compiler empties index register 1 after every MOVPAK
+  /// sequence (notes question 2), though the call preserves it (RT-3).
+  /// Inside a CORRESPONDING expansion the kill is deferred to the
+  /// expansion's end: statement 221's two-word chain at 01332 reuses the
+  /// register across the edit tail at 01331, where statement 220's
+  /// compare at 01301 reloads across the same tail at statement
+  /// distance — the expander planned its addressing once.
   void _movpakClears() {
     if (_inCorresponding) {
       _killPending = true;

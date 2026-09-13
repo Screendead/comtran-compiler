@@ -107,12 +107,14 @@ final class _Movpak {
     if (setsTarget) {
       state.write(_targetCell, _machine.parameter(1));
     }
+    final int caller = state.xrRead(1);
     state.xrWrite(1, 0);
     _machine.resume(setsTarget ? 2 : 1);
     // Both cells are copied uninterpreted: under SYS)180 the source is a
     // register and SYS)132 is stale (RT-4).
     _session = _Session(
       cursor: state.ic,
+      caller: caller,
       source: _Bytes(state, state.read(_sourceCell)),
       target: _Bytes(state, state.read(_targetCell)),
     );
@@ -144,7 +146,9 @@ final class _Movpak {
 
   /// Returns past the call and closes the move.
   void _end(_Session session) {
-    _machine.state.ic = session.cursor;
+    _machine.state
+      ..ic = session.cursor
+      ..xrWrite(1, session.caller);
     _session = null;
   }
 
@@ -254,16 +258,17 @@ final class _Movpak {
 
   /// SYS)267 renders the accumulator into an edited target and ends the
   /// move ([J 90.02.30]). Its `OCT` word is TARGET-CONTROL-WORD and its
-  /// `AXT` word's address NUMBER-OF-DIGITS-TO-CONVERT; the CPU executes
-  /// that `AXT` after the handler returns (RT-3).
+  /// `AXT` word's address NUMBER-OF-DIGITS-TO-CONVERT; both are
+  /// parameter words the handler reads and the CPU never executes
+  /// (RT-3).
   RunOutcome? _editedStore() {
-    final (_Session session, int edit) = _step(267, owned: 1);
+    final (_Session session, int edit) = _step(267, owned: 2);
     final MachineState state = _machine.state;
-    final int count = Word36.address(state.read(session.cursor));
+    final int count = Word36.address(state.read(session.cursor - 1));
     _render(
       session.target,
       edit: edit,
-      control: state.read(session.cursor - 1),
+      control: state.read(session.cursor - 2),
       // The source is the accumulator alone: SYS)180's `CLA` leaves the
       // MQ stale, and the divide of D4.1(c) has already dropped the
       // excess into it (RT-5).
@@ -510,11 +515,20 @@ int _overpunch(int digit, int convention, int sign) =>
 
 /// One move, from the entry that opened it to the member that ends it.
 final class _Session {
-  _Session({required this.cursor, required this.source, required this.target});
+  _Session({
+    required this.cursor,
+    required this.caller,
+    required this.source,
+    required this.target,
+  });
 
   /// The calling-sequence word the CPU runs next, or the word the
   /// handler in hand was reached from.
   int cursor;
+
+  /// Index register 1 as the caller left it, which the move restores
+  /// when it ends (RT-3).
+  final int caller;
 
   final _Bytes source;
   final _Bytes target;

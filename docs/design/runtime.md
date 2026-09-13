@@ -282,9 +282,11 @@ dispatcher's address test, and it needs no second interpreter.
 
 ### The session
 
-The session holds six things:
+The session holds seven things:
 
 - the cursor, which is the address of the calling-sequence word in hand;
+- index register 1 as the caller left it, which the end of the move
+  restores;
 - one byte cursor over the source and one over the target, each copied
   from a pointer cell at the entry (RT-4);
 - the member that opened a two-word run;
@@ -319,8 +321,9 @@ next word. Each handler does this, in order:
 
 ### The word shapes
 
-`c` is the cursor when the handler runs. Index register 1 is 0 at every
-resume, except SYS)267.
+`c` is the cursor when the handler runs. Index register 1 is 0 at a
+resume inside the move. The move restores the caller's register 1 when
+it ends.
 
 | Shape | Members | Data words | Resume | Ends the move |
 |---|---|---|---|---|
@@ -331,7 +334,7 @@ resume, except SYS)267.
 | mover pair, first word | 240 | 0 | c+1 | no |
 | mover pair, last word | 241 | 0 | c+1 | yes |
 | fill with characters | 245 | 1 | c+2 | yes |
-| edited store | 267 | 1 | c+2 | yes |
+| edited store | 267 | 2 | c+3 | yes |
 
 The sample attests the resume of each shape it carries. `TXI SYS)225,1,5`
 at LOC 00611 is followed by `CLA 3)HOURS` at 00612. `TXI SYS)245,1,6`
@@ -339,21 +342,28 @@ with its `OCT 747474747474` at 00346 is followed by
 `TRA* END.OF.MASTERS` at 00350 ([J 90.05] listing).
 
 A handler that owns a data word reads it after the advance, at
-`cursor - 1`. SYS)267 owns one `OCT` word there and reads its `AXT` word
-at `cursor`.
+`cursor - 1`. SYS)267 owns two words, and reads its `OCT` word at
+`cursor - 2` and its `AXT` word at `cursor - 1`.
 
 ### SYS)267 and its AXT word
 
 The edited store is `TXI SYS)267,1,edit / OCT control / AXT digits,1`
 ([J 90.05] listing). The handler reads the `AXT` word's address field
-for the digit count. It then returns to that word.
+for the digit count. It then returns past that word.
 
-**The CPU executes the trailing `AXT`. Design decision.**
-`lib/src/codegen/procedure.dart` builds its register-cache model on the
-claim that the trailing `AXT` is the call's only register write. To let
-the CPU execute the word makes that claim true in the emulator. The
-choice is invisible to the program: index register 1 ends at the digit
-count, and the instruction counter ends at `c+3`, under both readings.
+**Amended 2026-09-13, M6 stage 1.** The old rule gave SYS)267 one data
+word. The CPU executed the trailing `AXT`, which left index register 1
+at the digit count. The sample refutes the rule. Statement 221 loads
+MASTER's base into register 1 at LOC 01320. It addresses through that
+register at LOC 01333. The edited store of BONDENOMINATION stands
+between them, at LOC 01325. Under the old rule the `AXT` overwrites the
+base, and the employee number of the bond order reads zero. The new
+rule gives SYS)267 two data words. The entry saves index register 1 and
+the end of the move restores it, so a call preserves the register. Two
+pieces of evidence support the new rule. [J 90.02.30] prints the
+calling sequence as one three-line block, which makes the `AXT` a
+parameter word. The printed report prints the employee number 091980 on
+its BONDORDERFILE line ([J 90.05], PDF p. 217).
 
 One of the 25 SYS)267 sites punches `TRA SYS)267,0,0` instead of the
 step, because its edit control computes to zero ([J 90.05] listing, LOC
@@ -362,12 +372,13 @@ the 0 the entry wrote, and the handler reads control 0.
 
 ### The register contract
 
-- A MOVPAK entry or member writes index register 1 only, and leaves it
-  0. SYS)267 is the exception, because the CPU's `AXT` then loads the
-  digit count.
+- A MOVPAK entry or member writes index register 1 only. It leaves the
+  register 0 inside the move, and the caller's value behind it.
 - Index register 2 must survive a call. `_assignRegister` hands out
   registers 1 and 2 and refuses a third, and `_movpakClears()` drops
   register 1 alone, so generated code addresses `NAME,2` across a call.
+  Register 1 also survives a call, so that drop reproduces the 1962
+  compiler's cache policy and no rule of the machine.
 - Index register 4 must survive the link the `TSX` wrote. Every resume
   address is computed from it.
 - The run frame of RT-2 and the IOCS calls take a full cache clear after
@@ -724,7 +735,16 @@ which the renderer refuses before it writes a cell.
 `TXI SYS)267,1,edit / OCT control / AXT digits,1` ([J 90.02.30]). The
 handler reads the count from the `AXT` word's address field and
 converts the accumulator to that many decimal digits. It renders, and
-returns to the `AXT` for the CPU to execute (RT-3).
+returns past the `AXT` (RT-3).
+
+**Amended 2026-09-13, M6 stage 1.** The old rule returned to the `AXT`
+and let the CPU execute it. The `AXT` is a parameter word, so the
+handler now steps over it and the call preserves index register 1.
+[J 90.02.30] prints the `TXI`, the `OCT` and the `AXT` as one block of
+three lines. The printed report needs the rule. Its BONDORDERFILE line
+prints the employee number 091980, which the sample addresses through
+register 1 after the store ([J 90.05], PDF p. 217). RT-3 holds the full
+record.
 
 **The source is the accumulator alone, never the AC-MQ pair.** This
 overrides the entry, which says SYS)267 "converts from internal decimal
