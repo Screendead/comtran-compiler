@@ -480,7 +480,7 @@ handler moves words inside core (`runtime.md` RT-1).
   A frame on the tape is the encoding M5-2 fixed. It is a four-byte
   little-endian length, six bytes a word with the most significant six
   bits first, and the length again. The test support built that frame
-  since stage 1. The library now owns the one encoder, one test pins
+  at stage 1. The library now owns the one encoder, one test pins
   its bytes to a literal, and the support calls it.
 
   A block held in Dart was rejected. No compiled word reads an output
@@ -494,10 +494,11 @@ handler moves words inside core (`runtime.md` RT-1).
   PDF p. 217 is the artifact M6 diffs. The lister is the printer of
   that listing. Its rules:
 
-  - One block is one print line. A record mark, BCD code octal 72,
-    ends the line and is not printed. That is D6.4: "RCDMRK-type
-    one-character record marks delimit the lines inside a record". A
-    CHECK record therefore prints as two lines ([J 90.05.03]).
+  - A block prints as one line. A record mark, BCD code octal 72, ends
+    that line and starts the next, and the mark itself is not printed.
+    That is D6.4: "RCDMRK-type one-character record marks delimit the
+    lines inside a record". A CHECK record therefore prints as two
+    lines ([J 90.05.03]).
   - Every other character prints, the carriage-control character in
     column 1 included. The 1962 listing printed them. On PDF p. 217,
     `110-06-61` and `2WILLIAMS P` begin with control characters. Words

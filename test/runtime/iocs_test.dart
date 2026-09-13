@@ -385,8 +385,8 @@ void main() {
     test("J's own example packs the records into blocks (D6.7)", () {
       // [J 02.07.09] to [J 02.07.10] Example 1: records of 64, 128 and
       // 192 words on a file of BLOCKSIZE 256, filed REC1 REC1 REC2 REC1
-      // REC2 REC3 REC1. Block 1 fills exactly and waits for the fourth
-      // FILE, and block 3 fills exactly and waits for the close (M5-9).
+      // REC2 REC3 REC1. J's own answer is three blocks of 256, 192 and
+      // 256 words, in that order (M5-9).
       final Directory tapes = tempDirectory('comtran-tapes');
       const filed = <(int, int)>[
         (_rec1, 64),
@@ -430,6 +430,27 @@ void main() {
       expect(<int>[frames[2][0], frames[2][192]], <int>[3, 1]);
     });
 
+    test('a block that fills exactly waits for the FILE that needs it', () {
+      // A full block leaves the buffer only when the next record wants
+      // its words. The run takes no close, so the image holds nothing
+      // but what IOC)9 itself wrote (M5-9).
+      final Directory tapes = tempDirectory('comtran-tapes');
+      final Machine subject = machine(
+        <int, int>{
+          start: tsx(175),
+          start + 1: typeA(0, address: 1), // PZE IOC)1
+          ..._fileCall(start + 2, record: _rec1, extent: 4),
+          start + 5: endOfJob,
+          _rec1: 8,
+        },
+        files: _oneOutput(4),
+        tapes: tapes,
+      );
+      expect(subject.run(maxSteps: 10).outcome, RunOutcome.endOfJob);
+      expect(subject.files.single.held, 4);
+      expect(File('${tapes.path}/D1.tap').readAsBytesSync(), isEmpty);
+    });
+
     test('a FILE on a file that is not open writes nothing', () {
       // [J 02.07.08]: it "acts as a NOP. No error message is given."
       // The run ends on the word three on, so the entry resumed (M5-5).
@@ -444,6 +465,8 @@ void main() {
         tapes: tapes,
       );
       expect(subject.run(maxSteps: 4).outcome, RunOutcome.endOfJob);
+      // The record never enters the buffer, so nothing is left to write.
+      expect(subject.files.single.held, 0);
       expect(File('${tapes.path}/D1.tap').existsSync(), isFalse);
       expect(subject.printed, isEmpty);
     });

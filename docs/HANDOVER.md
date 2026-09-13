@@ -102,7 +102,7 @@ loader (LD-1 to LD-4), and stage 4 landed the machine assembly (M4-17).
   IOC)9 (M5-9).
 
 `comtranc --run` runs each job's punched deck and prints its display
-lines. `--list-tapes` prints the report of every output file after
+lines. `--list-tapes` prints the report of every BCD output file after
 them.
 `docs/design/runtime.md` holds the decisions. Its RT-1 holds the list of
 the 28 entries stage 4 built and the rule for the rest.

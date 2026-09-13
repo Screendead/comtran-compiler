@@ -38,9 +38,9 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
                       one image per unit: UNIT1 'D1' reads and writes
                       DIR/D1.tap. Without it a file opens on no image
                       at all (M5-3)
-  --list-tapes       after the run, print the report of every output
-                      file the job wrote, headed by the file's name;
-                      needs --run and --tapes (M5-11)
+  --list-tapes       after the run, print the report of every BCD
+                      output file the job wrote, headed by the file's
+                      name; needs --run and --tapes (M5-11)
   --emit-cards[=PATH]
                       write the whole deck's card images, in the .ct
                       mirror form (D0.5)
@@ -357,7 +357,8 @@ int _run(List<String> arguments) {
 
 /// Runs job [number]'s object program over the tape images in [tapes]
 /// and prints its display lines (D0.3; `docs/design/runtime.md` RT-1),
-/// then, under [listTapes], the report of every output file (M5-11).
+/// then, under [listTapes], the report of every BCD output file
+/// (M5-11).
 /// Returns false unless the run reached the end of the job. A job with
 /// no punched deck runs nothing and fails nothing.
 bool _runObjectProgram(

@@ -306,15 +306,32 @@ void main() {
         '--list-tapes',
       ]);
       expect(run.exitCode, 0, reason: '${run.stderr}');
+      // The whole listing, from the last display line on: the four BCD
+      // output files in `*FILE` card order. OUTPUTMASTER punches mode
+      // B, so a binary tape stands nowhere in it (M5-11).
       expect(
         run.stdout,
-        contains(
-          'ERRORFILE REPORT\n\nD111111010161400\nM992222000000000000000\n',
+        endsWith(
+          'AT 199,14 STOP RUN\n'
+          'CHECKFILE REPORT\n'
+          '\n'
+          '\n'
+          'PAYFILE REPORT\n'
+          '\n'
+          '          DEPARTMENT 99 TOTALS        0.0      0.00      0.00     '
+          '0.00     0.00     0.00     0.00      0.00      0.00\n'
+          'GT                        -  -        0.0      0.00      0.00     '
+          '0.00     0.00     0.00     0.00      0.00      0.00\n'
+          '\n'
+          'BONDORDERFILE REPORT\n'
+          '\n'
+          '\n'
+          'ERRORFILE REPORT\n'
+          '\n'
+          'D111111010161400\n'
+          'M992222000000000000000\n',
         ),
       );
-      // OUTPUTMASTER punches mode B, and a binary tape is not listed
-      // (M5-11).
-      expect(run.stdout, isNot(contains('OUTPUTMASTER REPORT')));
     });
 
     test('comtranc --list-tapes lists nothing the run never opened', () {

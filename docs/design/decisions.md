@@ -990,7 +990,7 @@ record built on it.*
 
 **Oracle.** listing-diff (the sample's report files and their FILE sequences, [J 90.05.03]) and report (the printed report, [J 90.05] listing, PDF p. 217 — which exercises the multi-line CHECK record end to end); decision-conformance only for direct PRX output.
 
-*Amended 2026-09-13 (M5 stage 3, `docs/design/m5-io.md` M5-11).* The lister that splits a record at its record marks into print lines landed in the runtime, and it prints the carriage-control character rather than consuming it, because the 1962 listing on PDF p. 217 printed it. Direct printer output stays unbuilt: the sample assigns no PRX or OU unit.
+*Amended 2026-09-13 (M5 stage 3, `docs/design/m5-io.md` M5-11).* The lister landed in the runtime. It splits a record at its record marks into print lines. It prints the carriage-control character and does not consume it, because the 1962 listing on PDF p. 217 printed it. Direct printer output stays unbuilt: the sample assigns no PRX or OU unit.
 
 *Citations:* ([F p. 40]; [J 02.07.07]; [J 02.06.09]–10; [J 90.05.03]–04; [J 02.05.03])
 
