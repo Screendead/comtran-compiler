@@ -1,11 +1,14 @@
-/// The IOCS entries a GET reaches (`docs/design/m5-io.md` M5-7 and
-/// M5-8): IOC)8, the READ subroutine, and the two terminators its
+/// The IOCS entries a GET and a FILE reach
+/// (`docs/design/m5-io.md` M5-8 to M5-10): IOC)8, the READ subroutine,
+/// IOC)9, the WRITE subroutine, and the two terminators the GET's
 /// calling sequence names ([J 90.02.08]; [J 90.02.28]; [J 90.02.32]).
 ///
 /// A GET locates its record. The handler reads a tape block into the
 /// file's buffer, writes the address of the next record there into the
 /// base locator the `IOCTN*` word names, and the program reads the
-/// record through that cell ([J 90.02.04]).
+/// record through that cell ([J 90.02.04]). A FILE runs the other way:
+/// the handler copies the record the `IOST` word locates into the
+/// file's buffer, and the buffer goes to tape one block at a time.
 library;
 
 import 'dart:math' as math;
@@ -29,6 +32,7 @@ final class _Iocs {
 
   Map<int, RuntimeEntry> get entries => <int, RuntimeEntry>{
     8: _read,
+    9: _write,
     260: () => _terminate('RECORD LENGTH ERROR'),
     283: () => _terminate('GET ERROR'),
   };
@@ -38,7 +42,8 @@ final class _Iocs {
   /// link the GET's `TSX` wrote (M5-5).
   int get _ordinal => Word36.address(_machine.parameter(1)) - _fileReference;
 
-  /// The file of the GET in hand. Ordinal k is `files[k - 1]` (M5-3).
+  /// The file of the calling sequence in hand. Ordinal k is
+  /// `files[k - 1]` (M5-3).
   RuntimeFile get _file => _machine.files[_ordinal - 1];
 
   /// IOC)8, the READ subroutine ([J 90.02.08]). Parameter word 1 names
@@ -84,6 +89,42 @@ final class _Iocs {
     return null;
   }
 
+  /// IOC)9, the WRITE subroutine ([J 90.02.08]). Parameter word 1 names
+  /// the file and an end-of-buffer exit, and word 2 is the `IOST` word:
+  /// the record's first address and its extent in words (M5-5; M5-9).
+  ///
+  /// The write rules are M5-9's. Index registers 1 and 2 and the
+  /// accumulator stay as the program left them.
+  ///
+  /// Throws [RecordTooLong] for a record the file's block cannot hold.
+  RunOutcome? _write() {
+    final RuntimeFile file = _file;
+    if (file.open) {
+      final int iost = _machine.parameter(2);
+      final int extent = Word36.decrement(iost);
+      if (extent > file.blocksize) {
+        throw RecordTooLong(
+          _machine.program.files[_ordinal - 1].name,
+          extent,
+          file.blocksize,
+        );
+      }
+      if (file.blocksize - file.held < extent) {
+        _machine.writeBlock(file);
+      }
+      final int record = Word36.address(iost);
+      for (var i = 0; i < extent; i++) {
+        _machine.state.write(
+          file.buffer + file.held + i,
+          _machine.state.read(record + i),
+        );
+      }
+      file.held += extent;
+    }
+    _machine.resume(3);
+    return null;
+  }
+
   /// Reads the next tape block into [file]'s buffer, which takes at
   /// most BLOCKSIZE words of it ([J 90.05.03]).
   ///
@@ -102,13 +143,13 @@ final class _Iocs {
     if (block == null) {
       return atEnd;
     }
-    final int held = math.min(block.length, file.blocksize);
-    for (var i = 0; i < held; i++) {
+    final int taken = math.min(block.length, file.blocksize);
+    for (var i = 0; i < taken; i++) {
       _machine.state.write(file.buffer + i, block[i]);
     }
     file
       ..cursor = file.buffer
-      ..unread = held;
+      ..unread = taken;
     return null;
   }
 

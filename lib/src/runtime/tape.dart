@@ -1,5 +1,6 @@
-/// The tape reader (M5-2; M5-8): one input file's host image as the
-/// records and file marks IOC)8 reads from it.
+/// The tape (M5-2): one file's host image as the records and file marks
+/// IOC)8 reads from it (M5-8), the frame IOC)9 writes to it (M5-9), and
+/// the print lines a BCD image renders as (M5-11).
 ///
 /// A record frame is a 4-byte little-endian length, that many data
 /// bytes, then the same length again. A length of zero is a file mark
@@ -7,8 +8,69 @@
 /// the image, ends the tape.
 library;
 
+import '../chars/char_code.dart';
+
 /// Six bytes to a 36-bit word (M5-2).
 const int bytesPerWord = 6;
+
+/// The six bytes of [word] on tape, the most significant six bits first
+/// (M5-2).
+List<int> tapeWord(int word) => <int>[
+  for (var i = bytesPerWord - 1; i >= 0; i--) (word >> (6 * i)) & 0x3F,
+];
+
+/// [value] as the four little-endian bytes of a frame's length field
+/// (M5-2). A zero field is a file mark.
+List<int> tapeField(int value) => <int>[
+  value & 0xFF,
+  (value >> 8) & 0xFF,
+  (value >> 16) & 0xFF,
+  (value >> 24) & 0xFF,
+];
+
+/// The frame of one record of [words]: its byte length, its data, and
+/// its byte length again (M5-2). The block IOC)9 writes is one frame
+/// (M5-10).
+List<int> tapeRecord(List<int> words) {
+  final data = <int>[for (final int word in words) ...tapeWord(word)];
+  final List<int> length = tapeField(data.length);
+  return <int>[...length, ...data, ...length];
+}
+
+/// The print lines of the BCD image [bytes], one block at a time
+/// (M5-11).
+///
+/// A record mark ends a line and is not printed, and every other
+/// character prints, the carriage-control character in column 1
+/// included. A code with no Set H glyph prints `?`, and trailing blanks
+/// are trimmed. The list runs to the file mark.
+///
+/// Throws [UnreadableRecord] after the lines of every whole frame
+/// ahead of a frame that is no record, and for an image that ends with
+/// no file mark.
+Iterable<String> listTape(List<int> bytes) sync* {
+  final reader = TapeReader(bytes);
+  for (List<int>? block = reader.read(); block != null; block = reader.read()) {
+    final lines = <String>[];
+    final line = StringBuffer();
+    for (final int word in block) {
+      for (var i = 5; i >= 0; i--) {
+        final int code = (word >> (6 * i)) & 0x3F;
+        if (code == bcdRecordMark) {
+          lines.add('$line'.trimRight());
+          line.clear();
+        } else {
+          line.write(glyphFromBcd(code) ?? '?');
+        }
+      }
+    }
+    lines.add('$line'.trimRight());
+    if (lines.last.isEmpty) {
+      lines.removeLast();
+    }
+    yield* lines;
+  }
+}
 
 /// A frame the reader cannot decode, which the GET turns into the IOCS
 /// error exit SYS)283 (M5-8).

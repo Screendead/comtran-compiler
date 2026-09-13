@@ -114,9 +114,9 @@ final class NoTapeDirectory implements RunFault {
       'pass --tapes=DIR';
 }
 
-/// An input file whose `*SPEC` card declares no BLOCKSIZE, which is the
-/// depth of its buffer (M5-7). Our generator punches the field blank
-/// when the source drew message 89 (D10.8).
+/// A file whose `*SPEC` card declares no BLOCKSIZE, which is the depth
+/// of its buffer (M5-10). Our generator punches the field blank when
+/// the source drew message 89 (D10.8).
 final class NoBlocksize implements RunFault {
   NoBlocksize(this.file);
 
@@ -124,10 +124,10 @@ final class NoBlocksize implements RunFault {
   final String file;
 
   @override
-  String toString() => 'no BLOCKSIZE for input file $file';
+  String toString() => 'no BLOCKSIZE for file $file';
 }
 
-/// An input file whose buffer does not fit above the program (M5-7).
+/// A file whose buffer does not fit above the program (M5-10).
 final class NoBufferRoom implements RunFault {
   NoBufferRoom(this.file);
 
@@ -135,13 +135,32 @@ final class NoBufferRoom implements RunFault {
   final String file;
 
   @override
+  String toString() => 'no room above the program for the buffer of file $file';
+}
+
+/// A record longer than its file's BLOCKSIZE, which ends the run: no
+/// word of the FILE sequence carries an exit for it, and a silent
+/// truncation would print a wrong report (M5-9).
+final class RecordTooLong implements RunFault {
+  RecordTooLong(this.file, this.extent, this.blocksize);
+
+  /// The name on the `*FILE` card.
+  final String file;
+
+  /// The record's length in words, from the `IOST` word's decrement.
+  final int extent;
+
+  /// The depth of the file's block, from its `*SPEC` card.
+  final int blocksize;
+
+  @override
   String toString() =>
-      'no room above the program for the buffer of input file $file';
+      'record of $extent words exceeds the BLOCKSIZE $blocksize of file $file';
 }
 
 /// One file of the run's file table: the control block open-all and
 /// close-all keep for one `*FILE` card (M5-3), and the buffer a GET
-/// reads a block of an input file into (M5-7).
+/// reads a block into and a FILE builds a block in (M5-10).
 final class RuntimeFile {
   RuntimeFile(this.host, {required this.buffer, required this.blocksize});
 
@@ -149,12 +168,12 @@ final class RuntimeFile {
   /// directory.
   final File? host;
 
-  /// The buffer's first word. An output file has no buffer and takes
-  /// zero (M5-7).
+  /// The buffer's first word (M5-10).
   final int buffer;
 
-  /// How many words of a tape block the buffer takes, from the `*SPEC`
-  /// card ([J 02.06.04]).
+  /// The buffer's depth in words, from the `*SPEC` card
+  /// ([J 02.06.04]): how many words of a tape block an input file
+  /// takes, and how many an output file's block holds.
   final int blocksize;
 
   bool open = false;
@@ -172,30 +191,33 @@ final class RuntimeFile {
   /// names it, so the reader of a hand-made image finds the frame it
   /// stopped on (M5-8).
   int block = 0;
+
+  /// How many words of its buffer an output file's block holds. Each
+  /// FILE adds its record, and a write empties it (M5-10).
+  int held = 0;
 }
 
-/// One control block per `*FILE` card of [program], each input file
-/// taking a buffer of BLOCKSIZE words in card order from the program's
-/// extent upward (M5-7). A file's host image is `<tapes>/<UNIT1>.tap`.
+/// One control block per `*FILE` card of [program], each file taking a
+/// buffer of BLOCKSIZE words in card order from the program's extent
+/// upward (M5-10). A file's host image is `<tapes>/<UNIT1>.tap`.
 ///
-/// Throws [NoBlocksize] for an input file that declares no BLOCKSIZE,
-/// and [NoBufferRoom] for a program whose buffers run past core.
+/// Throws [NoBlocksize] for a file that declares no BLOCKSIZE, and
+/// [NoBufferRoom] for a program whose buffers run past core.
 List<RuntimeFile> _fileTable(LoadedProgram program, Directory? tapes) {
   int top = program.extent;
   final table = <RuntimeFile>[];
   for (final LoaderFile file in program.files) {
-    final bool input = _input(file);
-    if (input && file.blocksize == null) {
+    final int? size = file.blocksize;
+    if (size == null) {
       throw NoBlocksize(file.name);
     }
-    final int size = input ? file.blocksize! : 0;
     if (top + size > MachineState.memoryWords) {
       throw NoBufferRoom(file.name);
     }
     table.add(
       RuntimeFile(
         tapes == null ? null : File('${tapes.path}/${file.unit1}.tap'),
-        buffer: input ? top : 0,
+        buffer: top,
         blocksize: size,
       ),
     );
@@ -233,8 +255,9 @@ final class Machine {
   /// entry point (D2.1). A cell no word was placed in reads +0 (ED-6).
   ///
   /// The file table takes one control block per `*FILE` card, with the
-  /// input buffers above the program (M5-7). With no [tapes] directory
-  /// every file runs with no host image (M5-3).
+  /// buffers above the program (M5-10). With no [tapes] directory every
+  /// output file runs with no host image, and open-all refuses an input
+  /// file (M5-3 as amended).
   ///
   /// Cell 1 is IOC)1, and the machine seeds it because no word of the
   /// object deck writes it. The address field stays zero: the file list
@@ -350,10 +373,10 @@ final class Machine {
   }
 
   /// Closes the first [count] files, which SYS)177 reads from IOC)1
-  /// (RT-2). Each open output file takes one tape mark, and an input
-  /// file drops its reader. A file that is already closed closes
-  /// quietly, because the sample's STOP RUN emits a second close-all
-  /// after its own (M5-4).
+  /// (RT-2). Each open output file takes the block it still holds and
+  /// then one tape mark, and an input file drops its reader. A file
+  /// that is already closed closes quietly, because the sample's STOP
+  /// RUN emits a second close-all after its own (M5-4; M5-10).
   void closeFiles(int count) {
     for (var i = 0; i < count; i++) {
       final RuntimeFile file = files[i];
@@ -361,13 +384,31 @@ final class Machine {
         continue;
       }
       final File? host = file.host;
-      if (host != null && !_input(program.files[i])) {
-        host.writeAsBytesSync(_tapeMark, mode: FileMode.append);
+      if (!_input(program.files[i])) {
+        writeBlock(file);
+        host?.writeAsBytesSync(_tapeMark, mode: FileMode.append);
       }
       file
         ..reader = null
         ..open = false;
     }
+  }
+
+  /// Writes the block [file] holds to its host image as one frame, and
+  /// empties the block. An empty block writes nothing, because a frame
+  /// of zero length is a tape mark, and a file must not hold one. With
+  /// no host image the write is dropped (M5-10).
+  void writeBlock(RuntimeFile file) {
+    final File? host = file.host;
+    if (host != null && file.held > 0) {
+      host.writeAsBytesSync(
+        tapeRecord(<int>[
+          for (var i = 0; i < file.held; i++) state.read(file.buffer + i),
+        ]),
+        mode: FileMode.append,
+      );
+    }
+    file.held = 0;
   }
 
   /// Prints one line on the on-line printer ([J 05.06.04]).

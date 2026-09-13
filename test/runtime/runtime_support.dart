@@ -19,9 +19,9 @@ const int junkCount = 0x29C;
 /// Junk index register 2 carries through a call untouched (RT-3).
 const int junkLocator = 0xFFF;
 
-/// Where every test machine's input buffers begin, because it is the
-/// extent the helper below gives its program (M5-7). No test that opens
-/// an input file writes a program word at or above it.
+/// Where every test machine's buffers begin, because it is the extent
+/// the helper below gives its program (M5-10). No test writes a program
+/// word inside the buffers its files take.
 const int bufferBase = start + 0x50;
 
 /// A machine holding [words] at absolute addresses, entered at [start],
@@ -65,12 +65,12 @@ Directory tempDirectory(String prefix) {
 /// One `*FILE` card of a test program: [type] is column 28, `I` for an
 /// input file and `P` for an output file ([J 90.08.01]), [unit] is the
 /// UNIT1 the host image is named for (M5-3), and [blocksize] the
-/// `*SPEC` card's field, which sizes an input file's buffer (M5-7).
+/// `*SPEC` card's field, which sizes the file's buffer (M5-10).
 LoaderFile loaderFile(
   int number, {
   required String type,
   required String unit,
-  int? blocksize,
+  int? blocksize = 1,
 }) => LoaderFile(
   deckName: 'TEST',
   number: number,
@@ -81,29 +81,6 @@ LoaderFile loaderFile(
   unit1: unit,
   unit2: '',
 )..blocksize = blocksize;
-
-/// The six bytes of [word] on tape, most significant six bits first
-/// (M5-2).
-List<int> tapeWord(int word) => <int>[
-  for (var i = bytesPerWord - 1; i >= 0; i--) (word >> (6 * i)) & 0x3F,
-];
-
-/// The frame of one record of [words]: its byte length, its data, and
-/// its byte length again (M5-2).
-List<int> tapeRecord(List<int> words) {
-  final data = <int>[for (final int word in words) ...tapeWord(word)];
-  final List<int> length = tapeField(data.length);
-  return <int>[...length, ...data, ...length];
-}
-
-/// [value] as the four little-endian bytes of a frame's length field
-/// (M5-2). A zero field is a file mark.
-List<int> tapeField(int value) => <int>[
-  value & 0xFF,
-  (value >> 8) & 0xFF,
-  (value >> 16) & 0xFF,
-  (value >> 24) & 0xFF,
-];
 
 /// Writes the image of [blocks], closed by a file mark, to the file
 /// unit [unit] reads in [tapes] (M5-2; M5-3).

@@ -295,11 +295,14 @@ handler moves words inside core (`runtime.md` RT-1).
 
   Three placements were rejected. Below the program contradicts the
   [J 03.03.01] order. A block held in Dart, with each record copied to a
-  fixed area per file, is transmit mode wearing locate mode's numbers.
-  The printed report would hide that lie. The top of core has no
+  fixed area per file, is transmit mode with locate mode's addresses.
+  The printed report would not show the difference. The top of core has no
   evidence. Two buffers a file, after [J 02.06.14]'s "at least 2 buffers
   to each file", is read-ahead, which a sequential emulation never
   observes.
+
+  **Amended 2026-09-13, M5 stage 3.** Every file takes a buffer, and
+  M5-10 holds the rule. The first of the five rules above is lifted.
 
   IOCS suspends buffering at the end of a file, and its pool may
   reassign the buffer (external: C28-6100-2, printed p. 16). The sample
@@ -370,16 +373,150 @@ handler moves words inside core (`runtime.md` RT-1).
   - `RECORD LENGTH ERROR ON INPUTMASTER, BLOCK 3`
   - `GET ERROR ON INPUTMASTER, BLOCK 3`
 
-  The ordinal counts the frames the file reads after its open, file
-  marks included.
+  The block number counts the frames the file reads after its open,
+  file marks included.
   The line therefore names the frame the reader stopped on, which is
   what a hand-made image needs.
+
+  After the error exit the run ends, so the reader's position inside
+  the bad frame is never read again.
 
   The words of a record stay in the buffer until the next GET on that
   file refills it. That is our answer to Open Question 54 for the
   emulation: the sample always files a master record before the next
   GET on that file. The definition holds no design, so the answer lives
   here.
+
+## The FILE
+
+- **M5-9. The write rules of IOC)9. Ours.** IOC)9 is "the entry point
+  to the IOCS WRITE subroutine" ([J 90.02.08]). The manual delegates its
+  rules as it delegates the READ's (M5-8). Each rule below follows a
+  sentence of J or of the published IOCS manual (external:
+  C28-6100-2, printed p. 16).
+
+  The entry reads two parameter words (M5-5). Word 1 names the file in
+  its address field, 2048 plus the file number, and an end-of-buffer
+  exit in its decrement. Our generator punches that decrement zero at
+  every tape site (`test/goldens/90.05-payroll.code`:168), and the
+  card-file terminators SYS)291 and SYS)296 have no emitter
+  ([J 90.02.33]). Word 2 is the `IOST` word: the record's first address
+  in its address field and its extent in words in its decrement
+  (M5-6). For a located record the `LXA`/`SXA` pair ahead of the call
+  writes the base locator's address over the zero the generator
+  punched, so the CPU patches the word before the entry reads it
+  (statement 208; M4-15). The entry reads no base locator itself. The
+  rules run in this order:
+
+  1. A FILE on a file that is not open "acts as a NOP. No error
+     message is given" ([J 02.07.08]). The entry resumes three words on
+     and writes nothing.
+  2. A record longer than the file's BLOCKSIZE ends the run with a
+     fault that names the file. No word of the sequence carries an
+     exit for it, and a silent truncation would print a wrong report.
+     The compiler never draws message 209, "HAS INSUFFICIENT
+     BLOCKSIZE", so a compiled program can reach this rule. SPANS is
+     Open Question 48 and outside this stage (D6.7).
+  3. A block with fewer unused words than the extent is written to the
+     tape first, as one frame of the words it holds, and the block
+     empties. That is D6.7: a record is complete within one block, and
+     the packing is arithmetic. J's own example packs its records this
+     way ([J 02.07.09] to [J 02.07.10], Example 1), and [J 90.05.04] says
+     the sample's shorter DEPARTMENT.TOTAL records "will always begin
+     a new buffer".
+  4. The entry copies the record's words from the `IOST` address into
+     the block, word for word, and resumes three words on. A record
+     that fills a block exactly stays in the block until the next FILE
+     or the close writes it.
+
+  Index register 4 survives, as it does for the GET. Index registers 1
+  and 2 and the accumulator keep what the program left in them. IOCS
+  leaves a history word in the accumulator at each WRITE exit
+  (external: C28-6100-2, printed p. 17), and no compiled word reads it.
+
+  BEGIN has no site. No FILE card of the sample carries it, so no rule
+  reads it. It lands with the program that punches it (CLAUDE.md
+  section 11).
+
+  **The end-of-buffer field is an open item, not a collision.** The
+  sample passes an end-of-buffer exit of zero. Under IOCS's own rule a
+  zero exit means that "truncation of the buffer and automatic
+  transition to the next one occur; command execution continues
+  without interruption" (external: C28-6100-2, printed p. 16). That
+  splits a record across two blocks. D6.7 keeps a record whole, and J's
+  own worked example governs J's blocking. How IOC)9 reconciled the two
+  is sealed until M7 (D0.9).
+
+- **M5-10. Every file takes one buffer above the program, and the
+  close writes the last block. Ours.** Stage 2 gave an input file a
+  buffer of BLOCKSIZE words above the program's extent, in `*FILE`
+  card order, and an output file none (M5-7). Stage 3 lifts the
+  exception: every file takes BLOCKSIZE words, in card order. The
+  sample's seven buffers take 655 words, from 5114 up. The two load
+  refusals of M5-7 now cover every file: a file with no BLOCKSIZE, and
+  a set of buffers that does not fit below 32768. DETAILFILE's buffer
+  therefore moves from 5414 to 5714, because OUTPUTMASTER's 300 words
+  now stand between.
+
+  An output file's block is the first words of its buffer, as many as
+  the FILEs since the last write put there. IOC)9 writes a full block
+  (M5-9), and close-all writes the block a file still holds and then
+  the tape mark (M5-4). An empty block writes nothing, at IOC)9 and at
+  close: a frame of zero length is a tape mark (M5-2), and a file must
+  not hold one. The second close-all finds the file closed and does
+  nothing (M5-4).
+
+  With no host image the block fills and every write is dropped. A run
+  that names no `--tapes` directory and declares no input file
+  therefore behaves as it did at stage 1: each file opens, closes, and
+  writes nothing (M5-3 as amended).
+
+  A frame on the tape is the encoding M5-2 fixed: a four-byte
+  little-endian length, six bytes a word with the most significant six
+  bits first, and the length again. The test support built that frame
+  since stage 1. The library now owns the one encoder, one test pins
+  its bytes to a literal, and the support calls it.
+
+  A block held in Dart was rejected. No compiled word reads an output
+  buffer, so the emulation could hold the block outside core. The
+  [J 03.03.01] chart puts every buffer above the program, the input
+  buffers already stand there, and one rule for every file is shorter
+  than two.
+
+- **M5-11. The lister renders a BCD tape as print lines. Ours.** The
+  four report files are BCD tapes listed off line (M5-6; D6.4), and
+  PDF p. 217 is the artifact M6 diffs. The lister is the printer of
+  that listing. Its rules:
+
+  - One block is one print line. A record mark, BCD code octal 72,
+    ends the line and is not printed. That is D6.4: "RCDMRK-type
+    one-character record marks delimit the lines inside a record". A
+    CHECK record therefore prints as two lines ([J 90.05.03]).
+  - Every other character prints, the carriage-control character in
+    column 1 included. The 1962 listing printed them: `110-06-61` and
+    `2WILLIAMS P` on PDF p. 217 begin with the control characters that
+    words 1 and 8 of the CHECK record carry ([J 90.05.03]). A lister that
+    consumed column 1 would fail M6's diff.
+  - Trailing blanks are trimmed. A printer's trailing blanks are
+    invisible.
+  - A code with no Set H glyph prints as `?`, the mark the glyph table
+    itself uses for an unassigned code (`lib/src/chars/char_code.dart`).
+  - The list runs from the tape's first frame to its file mark. An
+    image that ends with no file mark, because the run stopped before
+    close-all, lists every whole frame it holds, and the reader's
+    fault ends the list. The lister therefore yields its lines one at
+    a time, and the fault arrives after them.
+  - A file whose `*FILE` card punches mode `B`, binary, in column 31
+    is not listed ([J 90.08.01]). OUTPUTMASTER is one.
+
+  `comtranc --run --list-tapes` prints the lists after the run's
+  display lines: each output file of the job in `*FILE` card order, a
+  heading line of the file's name and the word `REPORT`, a blank line,
+  and the file's lines. One blank line separates two files. The
+  headings are p. 217's own. The flag needs `--run` and `--tapes`,
+  because without a run nothing was written and without a directory
+  nothing was kept. A reader's fault ends the list of that file, and
+  the tool prints it as an error that names the job and the file.
 
 ## Open items
 
@@ -404,6 +541,9 @@ handler moves words inside core (`runtime.md` RT-1).
 [J 02.06.03]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
 [J 02.06.14]: ../../comtran-manuals/J28-6169/02-compiler.md#f-group-environment-card
 [J 02.07.02]: ../../comtran-manuals/J28-6169/02-compiler.md#3-the-block
+[J 02.07.08]: ../../comtran-manuals/J28-6169/02-compiler.md#1-forms-of-the-command
+[J 02.07.09]: ../../comtran-manuals/J28-6169/02-compiler.md#1-non-standard-variable-length-input-records
+[J 02.07.10]: ../../comtran-manuals/J28-6169/02-compiler.md#1-example-1
 [J 03.03.01]: ../../comtran-manuals/J28-6169/03-loader.md#k-ctext-and-ctend-cards
 [J 05.06.04]: ../../comtran-manuals/J28-6169/05-systems-operation.md#b-loader-1
 [J 90.02.04]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
@@ -412,5 +552,7 @@ handler moves words inside core (`runtime.md` RT-1).
 [J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.28]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.32]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.33]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.05.03]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#1-data-description-1
+[J 90.05.04]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#a-data-description
 [J 90.08.01]: ../../comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md#appendix-9008

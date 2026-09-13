@@ -22,6 +22,10 @@ const int bcdBlank = 0x30;
 /// The BCD code of the group mark (octal 37, card code 12-5-8).
 const int bcdGroupMark = 0x1F;
 
+/// The BCD code of the record mark (octal 72), which delimits the print
+/// lines inside a record (D6.4).
+const int bcdRecordMark = 0x3A;
+
 /// Punch-row bit for digit row [digit] (1–9).
 int rowBitDigit(int digit) {
   if (digit < 1 || digit > 9) {
