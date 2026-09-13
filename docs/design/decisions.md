@@ -990,6 +990,8 @@ record built on it.*
 
 **Oracle.** listing-diff (the sample's report files and their FILE sequences, [J 90.05.03]) and report (the printed report, [J 90.05] listing, PDF p. 217 — which exercises the multi-line CHECK record end to end); decision-conformance only for direct PRX output.
 
+*Amended 2026-09-13 (M5 stage 3, `docs/design/m5-io.md` M5-11).* The lister landed in the runtime. It splits a record at its record marks into print lines. It prints the carriage-control character and does not consume it, because the 1962 listing on PDF p. 217 printed it. Direct printer output stays unbuilt: the sample assigns no PRX or OU unit.
+
 *Citations:* ([F p. 40]; [J 02.07.07]; [J 02.06.09]–10; [J 90.05.03]–04; [J 02.05.03])
 
 ### D6.5 — GET on an unopened file: silent exit vs terminate-with-message
@@ -1030,6 +1032,8 @@ record built on it.*
 **Implementation.** Data mapper and Environment (BLOCKSIZE, BEGIN per record), SYS-IOC runtime (blocking on output, deblocking on input), and the compiler's buffer sizing and base locators (BL)n). Diagnostics: none new. --pedantic: no delta. Interacts with SPANS for records that exceed BLOCKSIZE; that case is Open Question 48 and is out of this unit.
 
 **Oracle.** manual example ([J 02.07.09]–10 Example 1: REC1 64 / REC2 128 / REC3 192, BLOCKSIZE 256, no SPANS/HOLD/BEGIN → block J = REC1+REC1+REC2, J+1 = REC1+REC2 only, J+2 = REC3+REC1; [J 02.07.11] Example 2: BLOCKSIZE 128 with SPANS and BEGIN → blocks truncated to 64 words for REC1 and REC3 spanning 128 + 62 words). The definition says a compiler writer should treat these as acceptance tests for blocking/mode logic. Also listing-diff for PAYFILE's buffer sizing and base locators. Also report (end-to-end run of the sample must produce the 1962 printed report, [J 90.05] listing, PDF p. 217). Also manual example ([J 90.05.04]) for the 20-word and 10-word cases.
+
+*Amended 2026-09-13 (M5 stage 3, `docs/design/m5-io.md` M5-9).* Blocking on output landed as the arithmetic this record asks for: IOC)9 writes the block when the next record does not fit. BEGIN and SPANS have no sample site and stay unbuilt. The published IOCS manual's own end-of-buffer rule would split a record; M5-9 records that gap as sealed until M7.
 
 *Citations:* ([J 90.05.04]; [J 02.06.03]–04; [J 02.07.01]; [J 02.07.09]–11)
 

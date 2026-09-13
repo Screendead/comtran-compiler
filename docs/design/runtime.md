@@ -39,7 +39,7 @@ with reference type `0000` and carries no discriminator
 states an origin. 4096 is the first address above the runtime area, so
 one comparison separates a runtime entry from the program's own text.
 The 90.05 sample then holds addresses 4096 to 5113, and its entry point
-is 4213. Its input buffers follow at 5114 (`m5-io.md` M5-7).
+is 4213. Its seven file buffers follow at 5114 (`m5-io.md` M5-10).
 
 **Corrected 2026-09-12, M5 stage 2.** The line read 4096 to 5031, which
 counted the 936 words the text places and not the span it covers. A
@@ -89,12 +89,13 @@ An address below 4096 with no handler throws
 [J 90.02.07]. A handler that meets work it does not do throws the same
 exception with a reason.
 
-The M4 to M5 boundary is this, in one line. The 90.05 sample calls
-open-all, which opens its seven files (RT-2). It then fills its work
-areas through MOVPAK (RT-3), reads a master record and a detail record
-(`m5-io.md` M5-8), and reaches IOC)9, the FILE, which throws. M5 stage
-3 lands that entry. The run takes the `--tapes` directory of M5-3:
-open-all refuses an input file that has no host image.
+The 90.05 sample stops at no runtime entry. It calls open-all, which
+opens its seven files (RT-2). It fills its work areas through MOVPAK
+(RT-3). It reads a master record and a detail record (`m5-io.md`
+M5-8). It files its records through IOC)9 (`m5-io.md` M5-9). It then
+closes its files and ends the job at STOP RUN. The run takes the
+`--tapes` directory of M5-3: open-all refuses an input file that has
+no host image.
 
 ### What exercises the runtime
 
@@ -122,10 +123,11 @@ I/O-free program reaches, and M5 stage 2 built the GET of the last row:
 | the non-edited members (RT-4) | SYS)184, 239, 240, 241, 243, 244, 245, 268, 269, 275 |
 | the edited family (RT-5) | SYS)185, 190, 193, 198, 211, 212, 214, 216, 225, 226, 267 |
 | the GET, added 2026-09-12 (`m5-io.md` M5-8) | IOC)8, SYS)260 and SYS)283 |
+| the FILE, added 2026-09-13 (`m5-io.md` M5-9) | IOC)9 |
 
 That is 28 handlers, plus the four cells RT-2 names: SYS)132, SYS)133,
-IOC)1 and IOC)29. M5 stage 2 then added the three of the last row, for
-31.
+IOC)1 and IOC)29. M5 stage 2 then added the three of the GET row, for
+31, and M5 stage 3 the FILE, for 32.
 
 **Each remaining entry lands with the codegen shape that first emits
 it. Design decision.** CLAUDE.md section 11 bans a handler that no test
@@ -202,13 +204,14 @@ list.
 Open creates or truncates the host image of an output file, and the
 host image of an input file must exist. A missing input image throws
 `MissingTapeImage`: it is a fault of the environment, not of the
-program, so it carries no [J 90.04] message. Close writes one tape mark
-to each open output file (M5-2). It skips a file that is already
-closed, because the sample's object text calls close-all twice (M5-4).
-A file with no host image opens, closes, and writes nothing. That is
-the run `comtranc --run` makes without `--tapes`.
+program, so it carries no [J 90.04] message. Close writes the block an
+open output file still holds, as one frame, and then one tape mark
+(M5-2; M5-10). An empty block writes nothing. Close skips a file that
+is already closed, because the sample's object text calls close-all
+twice (M5-4). A file with no host image opens, closes, and writes
+nothing. That is the run `comtranc --run` makes without `--tapes`.
 
-**Amended 2026-09-12, M5 stage 2 (M5-3 as amended).** Those two
+**Amended 2026-09-12, M5 stage 2 (M5-3 as amended).** The last two
 sentences hold for an output file only. Open now throws
 `NoTapeDirectory` for an input file in a run that named no directory. A
 GET must read, and an empty tape prints a wrong report.

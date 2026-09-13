@@ -38,6 +38,9 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
                       one image per unit: UNIT1 'D1' reads and writes
                       DIR/D1.tap. Without it a file opens on no image
                       at all (M5-3)
+  --list-tapes       after the run, print the report of every BCD
+                      output file the job wrote, headed by the file's
+                      name; needs --run and --tapes (M5-11)
   --emit-cards[=PATH]
                       write the whole deck's card images, in the .ct
                       mirror form (D0.5)
@@ -123,6 +126,7 @@ int _run(List<String> arguments) {
   var tableLimits = true;
   var explain = false;
   var run = false;
+  var listTapes = false;
   Directory? tapes;
   // A null path means the default, resolved once the deck path is
   // known.
@@ -151,6 +155,8 @@ int _run(List<String> arguments) {
       explain = true;
     } else if (argument == '--run') {
       run = true;
+    } else if (argument == '--list-tapes') {
+      listTapes = true;
     } else if (argument.startsWith('--tapes=')) {
       final String path = argument.substring(8);
       if (path.isEmpty) {
@@ -203,6 +209,12 @@ int _run(List<String> arguments) {
   if (deckPath == null ||
       date != null && !RegExp(r'^\d\d/\d\d/\d\d$').hasMatch(date) ||
       time != null && !RegExp(r'^\d{1,2}\.\d\d$').hasMatch(time)) {
+    stderr.write(_usage);
+    return 2;
+  }
+  // Without a run nothing was written, and without a directory nothing
+  // was kept (M5-11).
+  if (listTapes && (!run || tapes == null)) {
     stderr.write(_usage);
     return 2;
   }
@@ -304,7 +316,13 @@ int _run(List<String> arguments) {
         stderr.writeln('error: job ${index + 1}: ${job.unrecovered}');
       }
       if (run) {
-        failed |= !_runObjectProgram(job, options, index + 1, tapes);
+        failed |= !_runObjectProgram(
+          job,
+          options,
+          index + 1,
+          tapes,
+          listTapes: listTapes,
+        );
       }
     }
     // A stopped job still dumps every stage it reached (D10.2): the
@@ -338,21 +356,24 @@ int _run(List<String> arguments) {
 }
 
 /// Runs job [number]'s object program over the tape images in [tapes]
-/// and prints its display lines (D0.3; `docs/design/runtime.md` RT-1).
+/// and prints its display lines (D0.3; `docs/design/runtime.md` RT-1),
+/// then, under [listTapes], the report of every BCD output file
+/// (M5-11).
 /// Returns false unless the run reached the end of the job. A job with
 /// no punched deck runs nothing and fails nothing.
 bool _runObjectProgram(
   JobCompilation job,
   ListingOptions options,
   int number,
-  Directory? tapes,
-) {
+  Directory? tapes, {
+  required bool listTapes,
+}) {
   final JobDeck? punched = jobDeck(job, options);
   if (punched == null) {
     return true;
   }
-  // The load allocates the input buffers, so it faults on a program
-  // with no room for them and leaves no machine to print from (M5-7).
+  // The load allocates every file's buffer, so it faults on a program
+  // with no room for them and leaves no machine to print from (M5-10).
   Machine? machine;
   try {
     machine = Machine.load(punched.cards, tapes: tapes);
@@ -365,12 +386,53 @@ bool _runObjectProgram(
     }
     // An error exit has already printed the monitor's own message on
     // the display (RT-2), so the tool adds none of its own.
-    return result.outcome == RunOutcome.endOfJob;
+    var ended = result.outcome == RunOutcome.endOfJob;
+    if (listTapes) {
+      ended &= _listTapes(machine, number);
+    }
+    return ended;
   } on RunFault catch (e) {
     machine?.printed.forEach(stdout.writeln);
     stderr.writeln('error: job $number: $e');
+    if (listTapes && machine != null) {
+      _listTapes(machine, number);
+    }
     return false;
   }
+}
+
+/// Prints one report per output file of [machine], in `*FILE` card
+/// order: the file's name and the word `REPORT`, a blank line, and the
+/// file's print lines, with one blank line between two files (M5-11).
+/// A binary file, and a file this run never opened, are not listed.
+/// Returns false when an image faults.
+bool _listTapes(Machine machine, int number) {
+  var read = true;
+  var first = true;
+  for (final (int index, LoaderFile file) in machine.program.files.indexed) {
+    final RuntimeFile runtime = machine.files[index];
+    final File? host = runtime.host;
+    if (!runtime.opened ||
+        host == null ||
+        file.type == 'I' ||
+        file.mode == 'B') {
+      continue;
+    }
+    if (!first) {
+      stdout.writeln();
+    }
+    first = false;
+    stdout
+      ..writeln('${file.name} REPORT')
+      ..writeln();
+    try {
+      listTape(host.readAsBytesSync()).forEach(stdout.writeln);
+    } on UnreadableRecord catch (e) {
+      stderr.writeln('error: job $number: ${file.name}: $e');
+      read = false;
+    }
+  }
+  return read;
 }
 
 /// Writes one `--emit` dump. [render] runs only for a requested dump, so

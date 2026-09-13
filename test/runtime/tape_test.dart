@@ -1,5 +1,6 @@
-/// The tape reader (M5-2; M5-8): the record frame byte for byte, the
-/// file mark, the end of the tape, and every frame that is no record.
+/// The tape (M5-2; M5-8; M5-11): the record frame byte for byte, the
+/// file mark, the end of the tape, every frame that is no record, and
+/// the print lines a BCD image renders as.
 library;
 
 import 'package:comtran/comtran_io.dart';
@@ -13,6 +14,31 @@ final int _word = octal('010203040506');
 
 /// The frame of one [_word] record: the length, the data, the length.
 const List<int> _frame = <int>[6, 0, 0, 0, 1, 2, 3, 4, 5, 6, 6, 0, 0, 0];
+
+/// An unassigned BCD code, octal 17, which the glyph table itself
+/// marks `?` (`lib/src/chars/char_code.dart`).
+const int _unassigned = 0x0F;
+
+/// The words of [text], each `~` a record mark, blank-filled to a whole
+/// word (M5-11).
+List<int> _print(String text) {
+  final codes = <int>[
+    for (final String glyph in text.split(''))
+      glyph == '~' ? bcdRecordMark : bcdFromGlyph(glyph)!,
+  ];
+  while (codes.length % 6 != 0) {
+    codes.add(bcdBlank);
+  }
+  return <int>[
+    for (var i = 0; i < codes.length; i += 6) bcdWord(codes.sublist(i, i + 6)),
+  ];
+}
+
+/// The image of [blocks], closed by a file mark (M5-2).
+List<int> _image(List<List<int>> blocks) => <int>[
+  for (final List<int> block in blocks) ...tapeRecord(block),
+  ...tapeField(0),
+];
 
 Matcher _unreadable(String fault) => throwsA(
   isA<UnreadableRecord>().having(
@@ -98,6 +124,53 @@ void main() {
         TapeReader(partial).read,
         _unreadable('a record of 4 bytes is no whole word'),
       );
+    });
+  });
+
+  group('the lister (M5-11)', () {
+    test('a record mark ends a line, and every other character prints', () {
+      // A CHECK record prints as two lines, each with the carriage-
+      // control character of its own first word in column 1
+      // ([J 90.05.03]). The blanks ahead of the mark and the blanks that
+      // fill the last word are both trailing blanks of a line.
+      expect(
+        listTape(_image(<List<int>>[_print('1PAY TO  ~2WILLIAMS P')])),
+        <String>['1PAY TO', '2WILLIAMS P'],
+      );
+    });
+
+    test('a code with no Set H glyph prints as a question mark', () {
+      expect(
+        listTape(
+          _image(<List<int>>[
+            <int>[
+              bcdWord(<int>[_unassigned, ...List<int>.filled(5, bcdBlank)]),
+            ],
+          ]),
+        ),
+        <String>['?'],
+      );
+    });
+
+    test('the list runs from the first frame to the file mark', () {
+      expect(
+        listTape(<int>[
+          ..._image(<List<int>>[_print('A'), _print('B')]),
+          ...tapeRecord(_print('C')),
+        ]),
+        <String>['A', 'B'],
+      );
+    });
+
+    test('an image with no file mark yields its whole frames first', () {
+      // A run that stopped before close-all leaves one: the lines come
+      // out, and the reader's fault ends the list behind them (M5-11).
+      final listed = <String>[];
+      expect(
+        () => listTape(tapeRecord(_print('A'))).forEach(listed.add),
+        _unreadable('the tape ends with no file mark'),
+      );
+      expect(listed, <String>['A']);
     });
   });
 }

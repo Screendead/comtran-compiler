@@ -1,5 +1,5 @@
 /// The machine assembly (RT-1): the dispatch rule, the step budget, the
-/// 1962 sample at the runtime boundary, one program run end to end, and
+/// 1962 sample over its input tapes, one program run end to end, and
 /// the `--run` flag that carries it to the command line, outcome by
 /// outcome.
 library;
@@ -105,7 +105,7 @@ final List<String> _guard = <String>[
 /// Writes the two input tapes the sample reads: one master record and
 /// one detail record, whose employee number is the lower of the two.
 /// The comparison then takes LOW.DETAIL, which files an error record at
-/// the sample's first FILE ([J 90.05] statement 193).
+/// the sample's first FILE ([J 90.05] statement 196).
 void _sampleTapes(Directory tapes) {
   tapeImage(tapes, 'D1', <List<int>>[
     // MASTER is 15 words, and only its employee number is read on that
@@ -117,6 +117,12 @@ void _sampleTapes(Directory tapes) {
     <int>[characters('111111'), characters('010161'), characters('400000')],
   ]);
 }
+
+/// The print lines of the image unit [unit] holds in [tapes] (M5-11).
+/// The lister runs to the file mark, so it also proves the close wrote
+/// one.
+List<String> _report(Directory tapes, String unit) =>
+    listTape(File('${tapes.path}/$unit.tap').readAsBytesSync()).toList();
 
 /// Compiles the 90.05 job deck with [options].
 ProcessResult _compileSample(List<String> options) => Process.runSync(
@@ -187,8 +193,7 @@ void main() {
   });
 
   group('the 90.05 sample', () {
-    test('locates its two records and stops at the first entry M5 '
-        'stage 2 lacks', () {
+    test('reads its two records and runs to the end of the job', () {
       final Directory tapes = tempDirectory('comtran-tapes');
       _sampleTapes(tapes);
       final JobCompilation job = compileDeck(loadJobDeck()).jobs.single;
@@ -199,39 +204,56 @@ void main() {
       expect(subject.state.ic, subject.program.entry);
       // IOC)1 counts the seven FILE cards of the sample (M5-3).
       expect(Word36.decrement(subject.state.read(1)), 7);
-      // The sample calls open-all, fills its work areas through MOVPAK,
-      // gets a master record and a detail record, and files the error
-      // record the two numbers make. IOC)9 is that FILE, and it is the
-      // M5 stage 2 to stage 3 boundary (M4-17).
-      expect(
-        () => subject.run(maxSteps: 5000),
-        throwsA(
-          isA<UnimplementedRuntimeEntry>().having(
-            (UnimplementedRuntimeEntry e) => e.number,
-            'number',
-            9,
-          ),
-        ),
-      );
-      expect(subject.files, hasLength(7));
+      // The program's last placed word is relative 01771, so the buffers
+      // start at 5114: INPUTMASTER takes 300 words, OUTPUTMASTER the 300
+      // above them, and DETAILFILE the three above those (M5-10).
+      expect(subject.program.extent, 5114);
+      expect(subject.files.map((RuntimeFile file) => file.buffer), <int>[
+        5114,
+        5414,
+        5714,
+        5717,
+        5737,
+        5757,
+        5763,
+      ]);
+      final RunResult result = subject.run(maxSteps: 5000);
+      expect(result.outcome, RunOutcome.endOfJob);
+      expect(result.display, <String>['AT 199,14 STOP RUN']);
+      // CLOSE ALL FILES and the STOP RUN behind it close every file
+      // (M5-4).
       expect(
         subject.files.map((RuntimeFile file) => file.open),
-        everyElement(isTrue),
+        everyElement(isFalse),
       );
-      // The program's last placed word is relative 01771, so the
-      // buffers start at 5114: INPUTMASTER takes 300 words of it and
-      // DETAILFILE the three above them (M5-7).
-      expect(subject.program.extent, 5114);
-      final int master = Word36.address(
-        subject.state.read(Machine.programOrigin + octal('1667')),
-      );
-      final int detail = Word36.address(
-        subject.state.read(Machine.programOrigin + octal('1670')),
-      );
-      expect(master, 5114);
-      expect(detail, 5414);
-      expect(subject.state.read(master), characters('992222'));
-      expect(subject.state.read(detail), characters('111111'));
+      // Each record entered its own buffer. END.OF.DETAILS then wrote
+      // HIGH.VALUE over the detail employee number through BL)3, so the
+      // date is the word of DETAILFILE's buffer left to read (M5-7).
+      expect(subject.state.read(5114), characters('992222'));
+      expect(subject.state.read(5715), characters('010161'));
+      // LOW.DETAIL files the detail record (196), and its GET's AT END
+      // runs END.OF.DETAILS (198) into HIGH.DETAIL (193), which files
+      // the master one.
+      expect(_report(tapes, 'D4'), <String>[
+        'D111111010161400',
+        'M992222000000000000000',
+      ]);
+      // The department total and the grand total reach PAYFILE.
+      final List<String> pay = _report(tapes, 'D3');
+      expect(pay, hasLength(2));
+      expect(pay.first, contains('DEPARTMENT 99 TOTALS'));
+      expect(pay.last, startsWith('GT'));
+      // OUTPUTMASTER, CHECKFILE and BONDORDERFILE take no record on this
+      // path, so the close writes each of them the tape mark alone
+      // (M5-10).
+      for (final unit in <String>['C1', 'D2', 'C3']) {
+        expect(File('${tapes.path}/$unit.tap').readAsBytesSync(), <int>[
+          0,
+          0,
+          0,
+          0,
+        ]);
+      }
     });
 
     test('an empty master file ends at the base-locator guard', () {
@@ -264,18 +286,95 @@ void main() {
       );
     });
 
-    test('comtranc --run fails on the entry M5 stage 2 lacks', () {
+    test('comtranc --run carries the sample to the end of the job', () {
       final Directory tapes = tempDirectory('comtran-tapes');
       _sampleTapes(tapes);
       final ProcessResult run = _compileSample([
         '--run',
         '--tapes=${tapes.path}',
       ]);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(run.stdout, contains('AT 199,14 STOP RUN'));
+    });
+
+    test('comtranc --list-tapes prints the reports after the run', () {
+      final Directory tapes = tempDirectory('comtran-tapes');
+      _sampleTapes(tapes);
+      final ProcessResult run = _compileSample([
+        '--run',
+        '--tapes=${tapes.path}',
+        '--list-tapes',
+      ]);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      // The whole listing, from the last display line on: the four BCD
+      // output files in `*FILE` card order. OUTPUTMASTER punches mode
+      // B, so a binary tape stands nowhere in it (M5-11).
+      expect(
+        run.stdout,
+        endsWith(
+          'AT 199,14 STOP RUN\n'
+          'CHECKFILE REPORT\n'
+          '\n'
+          '\n'
+          'PAYFILE REPORT\n'
+          '\n'
+          '          DEPARTMENT 99 TOTALS        0.0      0.00      0.00     '
+          '0.00     0.00     0.00     0.00      0.00      0.00\n'
+          'GT                        -  -        0.0      0.00      0.00     '
+          '0.00     0.00     0.00     0.00      0.00      0.00\n'
+          '\n'
+          'BONDORDERFILE REPORT\n'
+          '\n'
+          '\n'
+          'ERRORFILE REPORT\n'
+          '\n'
+          'D111111010161400\n'
+          'M992222000000000000000\n',
+        ),
+      );
+    });
+
+    test('comtranc --list-tapes lists nothing the run never opened', () {
+      // The first run leaves its reports in the directory. Open-all then
+      // refuses the second run ahead of the truncation, so every image
+      // is the first run's and none is this run's (M5-11).
+      final Directory tapes = tempDirectory('comtran-tapes');
+      _sampleTapes(tapes);
+      final flags = ['--run', '--tapes=${tapes.path}', '--list-tapes'];
+      expect(_compileSample(flags).exitCode, 0);
+      File('${tapes.path}/C2.tap').deleteSync();
+      final ProcessResult run = _compileSample(flags);
       expect(run.exitCode, 1);
+      expect(run.stderr, contains('no tape image for input file DETAILFILE'));
+      expect(run.stdout, isNot(contains('REPORT')));
+    });
+
+    test('comtranc --list-tapes ends a report at the reader fault', () {
+      // Two empty input tapes take the run to the base-locator guard,
+      // which exits before close-all writes any file mark (M5-11).
+      final Directory tapes = tempDirectory('comtran-tapes');
+      tapeImage(tapes, 'D1', const <List<int>>[]);
+      tapeImage(tapes, 'C2', const <List<int>>[]);
+      final ProcessResult run = _compileSample([
+        '--run',
+        '--tapes=${tapes.path}',
+        '--list-tapes',
+      ]);
+      expect(run.exitCode, 1);
+      expect(run.stdout, contains('ERRORFILE REPORT\n\n'));
       expect(
         run.stderr,
-        contains('error: job 1: unimplemented runtime entry IOC)9'),
+        contains(
+          'error: job 1: ERRORFILE: unreadable tape record: the tape ends '
+          'with no file mark',
+        ),
       );
+    });
+
+    test('comtranc --list-tapes needs a run', () {
+      final ProcessResult run = _compileSample(['--list-tapes']);
+      expect(run.exitCode, 2);
+      expect(run.stderr, startsWith('Usage:'));
     });
 
     test('comtranc --run refuses the sample with no tape directory', () {

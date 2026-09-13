@@ -22,7 +22,6 @@ import 'pictorial.dart';
 const int _bcdPlus = 0x10;
 const int _bcdMinus = 0x20;
 const int _bcdPeriod = 0x1B;
-const int _bcdRecordMark = 0x3A;
 
 /// Re-reads a quoted constant's characters from the card images as
 /// BCD codes, replaying the M1 scan's walk (M1-9 directs the re-read;
@@ -139,7 +138,7 @@ final class ImageBuilder {
   void _storeItem(DataItem item, ItemSemantics sem) {
     if (item.typeCode == DataTypeCode.rcdmrk) {
       for (var k = 0; k < sem.quantity; k++) {
-        _setChar(sem.startChar + k * sem.strideChars, _bcdRecordMark);
+        _setChar(sem.startChar + k * sem.strideChars, bcdRecordMark);
       }
       return;
     }
