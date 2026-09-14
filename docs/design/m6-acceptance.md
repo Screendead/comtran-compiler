@@ -221,8 +221,8 @@ the report our run prints against the page.
 - **M6-6. The 1960 program is keyed as printed, and its compilation is
   a diagnostic corpus.** `test/fixtures/f-payroll.ctd` holds the sample
   payroll program of F28-8043 Appendix 1, keyed from the typeset machine
-  listing at [F p. 101] to p. 104: 187 source cards between `*COMPILE LIST`
-  and `*FINISH`. That listing prints card columns 7 to 72 the way the
+  listing at [F p. 101] to p. 104: 187 source cards and two division
+  headers between `*COMPILE LIST` and `*FINISH`. That listing prints card columns 7 to 72 the way the
   1962 listing does, and every column was measured on the scan
   (CLAUDE.md section 9). `test/fixtures/f-payroll-deck-notes.md` holds
   the measurements and each placement choice. The deck keeps the 1960
@@ -253,7 +253,7 @@ the report our run prints against the page.
     level of TABLE.ITEM (D3.4);
   - one 206,00 for INDEX, an external field inside a record.
 
-  Three observations, none a defect:
+  Four observations, none a defect:
 
   - No message names the missing environment division, and the
     compiler completes. [J 05.06.01] says compilation completes "unless
@@ -269,6 +269,11 @@ the report our run prints against the page.
     avoids the form.
   - The COPY rule copies an entry "in its entirety" but for its name
     and its level ([F p. 76]), so an expanded GRAND.TOTAL is a RECORD.
+  - The six TABLE cards are six level-2 entries, each with its own
+    quote marks and an empty continuation column, on the form (F p.
+    100) and in the listing alike. The §9.8 row that read them as one
+    continued literal is corrected. The conversion's note that reads
+    them the same way is an erratum candidate (`docs/HANDOVER.md`).
 
 - **M6-7. The applied deck takes the rows of §9.8 that the front end
   requires, and no other. Ours.** `test/fixtures/f-payroll-j.ctd` is

@@ -202,7 +202,7 @@ The run's reports ([J 90.05] listing, PDF p. 217) close the loop on the editing 
 | STOP | `STOP 1234` (`STOP n`) | `STOP RUN` (mandatory) | [J 02.04.06] #9 |
 | COPY type code | `GRAND.TOTAL 1COPY DEPARTMENT.TOTAL` | not used — COPY deferred | J 90.01.03.b.i |
 | REDEF coding | level-1 unnamed `1REDEF TABLE`; TABLE.ITEM level 2 | bare `REDEF TABLE` (GN-named); TABLE.ITEM level 1 = level of TABLE | J 02.05.B.3.a |
-| Table initialization | one 132-char alphameric literal, 6 continuation cards | 24 per-field constants, internal + external, no continuations | J 02.03.D (internal arithmetic) |
+| Table initialization | six unnamed level-2 entries, each a 22-character alphameric literal with its own quote marks, no continuation; the form (p. 100) and the machine listing (p. 104) agree | 24 per-field constants, internal + external, no continuations | F pp. 100, 104; J 02.03.D (internal arithmetic) |
 | CORRESPONDING reliance | name-only matching assumed (`… TO PAYRECORD, CURRENT`) | qualifier-chain rule respected; explicit MOVEs where chains differ | [J 02.04.04] |
 | Arithmetic staging | in record fields (external) | in WORKING (IR fields) | J 02.03.D |
 | Error output | error code inside master/detail records, `FILE … IN ERROR.FILE` | dedicated ERROROUT record, plain FILE | [J 02.07.08] |

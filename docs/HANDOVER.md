@@ -294,7 +294,7 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **One candidate is open, since 2026-09-13.** The
+  authorization. **Two candidates are open.** The first, since 2026-09-13: the
   transcription of PDF p. 217, the printed report, carries a note that
   the printer carried "the last few amount fields of a detail or totals
   line on the print position immediately above the identifying line",
@@ -305,7 +305,12 @@ binds work outside the definition.
   The candidate asks to drop the note and to reflow the block one row
   down on its right-hand side. The definition's §9.7 carried the same
   reading; Jack had it corrected on 2026-09-14, and the conversion's
-  note still waits. The candidate before it,
+  note still waits. The second, since 2026-09-14: the F conversion's
+  note after the page-100 form (`comtran-manuals/F28-8043/a1-programming-example.md`)
+  reads the six TABLE cards as one literal continued across six lines.
+  The form and the machine listing both show six level-2 entries, each
+  with its own quote marks and an empty continuation column (M6-6). The
+  candidate before them,
   opened 2026-08-30, closed on 2026-09-06: the transcription of PDF
   p. 198 read `*SPEC  05` on its twelfth card, file 6's, where the scan
   reads `06` — the `*FILE  06` line above it prints the same weak-topped
