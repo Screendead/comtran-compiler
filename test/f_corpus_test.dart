@@ -25,6 +25,8 @@ void _printsGolden(String deck, String golden) {
     deck,
     ..._pageHead,
   ]);
+  // Both decks stop the generator, so the run ends in a refusal.
+  expect(run.exitCode, 1, reason: '${run.stderr}');
   expect(run.stdout, File(golden).readAsStringSync());
 }
 
