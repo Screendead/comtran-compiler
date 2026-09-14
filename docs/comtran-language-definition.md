@@ -4264,6 +4264,11 @@ The run's reports ([J 90.05] listing, PDF p. 217) close the loop on the editing 
 | Error output | error code inside master/detail records, `FILE … IN ERROR.FILE` | dedicated ERROROUT record, plain FILE | [J 02.07.08] |
 | WHT zero-floor | IF/OTHERWISE `SET … = ZEROS` | `* TR(WORKING WHT GT 0)` | F pp. 24, 106 |
 | Subscript use in search | `INDEX` for all three arrays | `INDEX` for probe, copied to `POS` for fetches | [J 90.01.02]; J 02.04.D |
+| FICA cap | tests, then adds: `IF MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00 THEN SET DETAIL FICA = 0.03 * DETAIL GROSS OTHERWISE SET DETAIL FICA = 144.00 - MASTER FICA` (serials 03016–03018) | adds, then caps: `ADD WORKING FICA TO MASTER FICA. IF MASTER FICA GT 144.00 THEN SET WORKING FICA = WORKING FICA - (MASTER FICA - 144.00), SET MASTER FICA = 144.00` | [F p. 93]; [J 90.05] listing |
+| Bond orders | filed into the error file: `FILE BONDORDER IN ERROR.FILE` (serial 04014) | filed into its own BONDORDERFILE: `FILE BONDORDER` | [F p. 94]; [J 90.05] |
+| The updated master | the introduction promises an updated master file as output; the program files MASTER only in error | every matched master is filed to OUTPUTMASTER: `FILE MASTER` | F pp. 87, 91, 93; [J 90.05] |
+| The last department's totals | department totals print on a department change only, so the last department's never print; END.OF.RUN moves GRAND.TOTAL straight to PAYRECORD (serials 02009–02010, 03005–03010) | END.OF.RUN does DEPARTMENT.END first | [F pp. 92–93]; [J 90.05] |
+| INDEX and the department key | `INDEX` declared `99` inside the RECORD CURRENT, DEPARTMENT beside it (serials 10013–10015) | `INDEX` and `POS` are `IR99` in WORKING; `CURRENT.DEPT` is `AA` in DEPARTMENT.TOTAL | [F p. 100]; [J 90.05] |
 
 ### 9.9 Flagged ambiguities (details in §8.5)
 
@@ -4659,6 +4664,7 @@ Questions that remain after studying both manuals end to end — things neither 
 [F pp. 91–93]: ../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F pp. 91–94]: ../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F p. 92]: ../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
+[F pp. 92–93]: ../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F pp. 92–94]: ../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F p. 93]: ../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F p. 94]: ../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
