@@ -221,7 +221,7 @@ the report our run prints against the page.
 - **M6-6. The 1960 program is keyed as printed, and its compilation is
   a diagnostic corpus.** `test/fixtures/f-payroll.ctd` holds the sample
   payroll program of F28-8043 Appendix 1, keyed from the typeset machine
-  listing at [F p. 101] to p. 104: 187 source cards and two division
+  listing at [F p. 101] to p. 104. It holds 187 source cards and two division
   headers between `*COMPILE LIST` and `*FINISH`. That listing prints
   the card image, columns 1 to 72, with the serial of columns 1 to 5
   as the card carries it ([F p. 65]; [J 02.02.01]). The field columns and
@@ -274,8 +274,8 @@ the report our run prints against the page.
   - The COPY rule copies an entry "in its entirety" but for its name
     and its level ([F p. 76]), so an expanded GRAND.TOTAL is a RECORD.
   - The six TABLE cards are six level-2 entries, each with its own
-    quote marks and an empty continuation column, on the form (F p.
-    100) and in the listing alike. The §9.8 row that read them as one
+    quote marks and an empty continuation column. The form ([F p. 100]) and
+    the listing show them alike. The §9.8 row that read them as one
     continued literal is corrected. The conversion's note that reads
     them the same way is an erratum candidate (`docs/HANDOVER.md`).
 
@@ -320,8 +320,8 @@ the report our run prints against the page.
   base of the next chunk, whichever way M6-8 is decided.
 
   The deck holds 215 cards. Its listing draws three 206,00, each for
-  INDEX in the SEARCH sentence, statement 165,00, and no other message,
-  and it closes SEVERITY LIMIT WAS NOT REACHED. Two details of the
+  INDEX in the SEARCH sentence, statement 165,00, and no other message.
+  It closes SEVERITY LIMIT WAS NOT REACHED. Two details of the
   keying: the expanded GRAND.TOTAL header carries DEPARTMENT.TOTAL's
   `L`, because the [F p. 76] rule copies the entry whole; and `DPT
   BONDEDUCT` becomes `DEPARTMENT.TOTAL BONDEDUCTION`, the field's own
@@ -396,6 +396,7 @@ the report our run prints against the page.
 [F p. 65]: ../../comtran-manuals/F28-8043/04-data-description.md#data-description-format
 [F p. 76]: ../../comtran-manuals/F28-8043/04-data-description.md#tables
 [F p. 87]: ../../comtran-manuals/F28-8043/a1-programming-example.md#appendix-1-programming-example
+[F p. 100]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F p. 101]: ../../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 05.06.01]: ../../comtran-manuals/J28-6169/05-systems-operation.md#d-file-maintenance
