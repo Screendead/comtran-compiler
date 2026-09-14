@@ -41,3 +41,7 @@ the machine listing at printed page 104. `crops/crop-10001-10007.png` shows
 serials 10001 to 10007 with their level column; `crops/crop-table-lit.png` shows
 the same six constant lines enlarged, each with its own pair of quote marks.
 Item 6 rests the definition's "Table initialization" correction on them.
+
+## Correction
+
+Correction, 2026-09-14, appended after commit 1ca6711 on m6s2-f-corpus. Item 6 said chunk 2b owes the fix of the §9.8 “Table initialization” row. A crop of the page-100 form (images/page-105.png) shows serials 02 to 07 each at level 2 with their own quote marks and an empty CONT column, so the row is corrected in this pull request instead. The F conversion’s note that reads the six cards as one continued literal is a new erratum candidate in HANDOVER. M6-6’s card count now reads “187 source cards and two division headers”.
