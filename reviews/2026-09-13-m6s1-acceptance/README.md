@@ -68,3 +68,17 @@ SYS)267 calling sequence of item 6. The remaining four —
 `pay-l1-wholeline.png`, `check-294.png`, `bond-left.png` and
 `error-M-line.png` — are the overlay plates `tools/scan/overlays.py` drew, and
 item 7 rests the column measurement on them.
+
+## Answer
+
+Answer, 2026-09-14. Jack authorized item 2, in these words: "Both errata
+authorised". The answer takes option 1, both parts, and it also authorizes the
+page-100 candidate of the record of 2026-09-14. The correction landed the same
+day, in commit `c023111` on branch `errata-p217-table`, pull request 136. The
+note about the printer's practice is deleted, and both report blocks are
+reflowed on their own baselines. The reflow opened a new erratum candidate: the
+deskewed page prints `0.00` in the FICA column of the DEPARTMENT 09 TOTALS line
+and `5.21` and `36.00` in the GT line's FICA and bond-deduction columns, which
+the transcription does not hold. To key the three cells changes values, so that
+candidate is open in `docs/HANDOVER.md` and waits for Jack. Item 2 keeps its
+YOUR CALL chip, and the answer is appended under it.

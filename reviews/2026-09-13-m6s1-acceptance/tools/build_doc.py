@@ -280,6 +280,31 @@ reads the scan. Cost: the erratum stays open, as it has since M4.</p></div>
 
 <p>The recommendation is option 1. The evidence is closed, the two edits are
 small, and both are reversible.</p>
+
+<h3>Jack's answer, 2026-09-14</h3>
+
+<div class="answer">
+<p><strong>Authorized.</strong> Jack answered on 2026-09-14, in these words:
+&ldquo;Both errata authorised&rdquo;. The answer takes option 1, both parts. It
+also authorizes the second candidate, the note after the page-100 form of the
+1960 manual, which the review record of 2026-09-14 raises.</p>
+
+<p>The correction landed on 2026-09-14, in commit <code>c023111</code> on branch
+<code>errata-p217-table</code>, pull request 136. The sentence about the
+printer's practice is deleted, from &ldquo;including&rdquo; to
+&ldquo;identifying line&rdquo;, and the note now states the skew. Both report
+blocks are reflowed. Each line's fields now sit on that line's own baseline.</p>
+
+<p>The reflow opened a new erratum candidate, which this authorization does not
+cover. Deskewed, the page prints <code>0.00</code> in the FICA column of the
+DEPARTMENT 09 TOTALS line, where the transcription reads <code>5.21</code>. The
+GT line prints <code>5.21</code> in its FICA column and <code>36.00</code> in
+its bond-deduction column. The transcription holds neither figure. The column
+sums confirm all three cells. To key them changes values, not the note, so the
+three cells are a new candidate. It is open in
+<a href="https://github.com/Screendead/comtran-compiler/blob/c023111/docs/HANDOVER.md"><code>docs/HANDOVER.md</code></a>
+and it waits for Jack.</p>
+</div>
 </section>
 """
 
@@ -903,6 +928,17 @@ HTML = f"""<!DOCTYPE html>
 <h1>M6 stage 1, the sample's acceptance: the reconstruction, the page reading,
 and the four findings</h1>
 </header>
+
+<section class="answer">
+<div class="itemhead"><span class="chip done">Answered</span>
+<h2>Jack's ruling, 2026-09-14</h2></div>
+<p>Item 2 is authorized. Jack answered &ldquo;Both errata authorised&rdquo;, and
+the correction of PDF p. 217 landed the same day, in commit
+<code>c023111</code>, pull request 136. The full answer sits under item 2, with
+the new erratum candidate the reflow opened. Item 2 keeps its
+&ldquo;Your call&rdquo; chip: the record must show the question as well as the
+answer. Everything below this banner is the record as Jack received it.</p>
+</section>
 
 <section class="answer">
 <h2>The answer</h2>
