@@ -136,11 +136,18 @@ the course that ruling overturns, and M6-7 as amended corrects the
 `STOP` row: `STOP n` is legal, so the applied deck keeps `STOP 1234`
 and adds `STOP RUN` after it.
 
-**The next task is chunk 2b:** build the external-decimal fetch and
-the external-decimal store, `FILE record IN file`, the comparison
-whose sides are expressions, the product of a product, the SYS)190
-bypass steps, the 11-character table stride, and `STOP n` at run
-time. M6-9 holds the list and the evidence for each item. Then write the
+**The next task is chunk 2b.** M6-9's design list has eight items:
+
+- the external-decimal fetch;
+- the external-decimal store;
+- `FILE record IN file`;
+- the comparison whose sides are expressions;
+- the product of a product;
+- the SYS)190 bypass steps;
+- the 11-character table stride;
+- `STOP n` at run time.
+
+M6-9 holds the evidence for each item. Then write the
 two tapes from the sample's source table, in the corpus's layouts.
 Run the applied deck over them, and diff the values against the
 sample's report. M6-1 as amended names the columns that can be
@@ -244,10 +251,14 @@ Four review records hold the formulations one sample program cannot
 separate: `review/2026-08-16-m4-b2-underdetermined`, `-b3-`, `-b4-`,
 and `review/2026-08-28-m4-b8-underdetermined`.
 
-Chunks A7 and A8 read each page **twice**, by two readers who did not know of
-each other. The five pages returned zero disagreements over 261 content lines.
-One page costs about 245k tokens to read, and a second reading costs the same
-again and no more wall clock.
+Chunks A7 and A8 read each page **twice**, by two readers who did not know of each
+other, and compared the two readings before either met the target. Ten
+readers ran at once, over the five pages of chunks A7 and A8 together, at
+2.45M tokens and 43 minutes of wall clock for the ten. One page therefore
+costs about 245k tokens, which matches the 250k measured over chunk A5,
+and reading it twice costs twice that and no more wall clock. The five
+pages returned zero disagreements between paired readers, over 261 content
+lines.
 
 **With every page verified, the location column was walked end to end**, a
 check no page reader could run. The three location counters hold 1021 words
@@ -258,9 +269,11 @@ over the top of the `BL)` block. Counter 1's 105 words are exactly
 `test/fixtures/90.05-object-listing-notes.md` holds the walk and the four
 print forms it has to model.
 
-Give each reader its own scratch directory. Two of chunk A4's shared one and
-collided over a working file, which
-`test/fixtures/90.05-object-listing-notes.md` records.
+Give each reader its own scratch directory: two of chunk A4's ran at
+once, shared one, and collided over a working file.
+`test/fixtures/90.05-object-listing-notes.md` records it, in the section
+on the chunk A4 flaw. Chunks A5 to A8 gave every concurrent reader its own
+directory and none collided.
 
 Everything stage 2 had to add beyond the verb generators is done.
 `docs/design/m4-codegen.md` holds each item:

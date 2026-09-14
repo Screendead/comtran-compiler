@@ -39,7 +39,7 @@ the report our run prints against the page.
   for the first.
 
   **Amended 2026-09-14.** The second stage is chunked, the way M4 stage
-  2 was (Jack's call of 2026-08-09), and M6-6 to M6-8 hold the chunks.
+  2 was (Jack's call of 2026-08-09), and M6-6 to M6-9 hold the chunks.
   Its input is not the same tapes. The 1960 records are 80-character
   external images, so the stage writes the same source table,
   `tool/sample_tapes_source.dart`, in the corpus's own layouts. Its
@@ -85,12 +85,21 @@ the report our run prints against the page.
   and on no other line. No department total and no grand total checks,
   because each one sums the lines above it.
 
-  Two columns rest on a tape decision chunk 2b has not made. The 1960
-  program adds into the detail record, so each computed field starts
-  at whatever the tape carried. The list above holds only if the
-  corpus's detail record arrives with zero in GROSS, FICA, WHT,
-  INSURANCE and RETIREMENT. Bond deduction checks only if the detail
-  record carries the master's bond deduction, because
+  Four checked columns rest on a tape decision that chunk 2b has not
+  made: gross pay, the withholding tax, the FICA deduction and bond
+  deduction. The 1960 program adds into the detail record, so a
+  computed field starts at whatever the tape carried. Three fields
+  start there: GROSS (serial 02014), INSURANCE and RETIREMENT
+  (serials 04019 to 04021). The FICA sentence sets DETAIL FICA in
+  both arms (serials 03016 to 03018), and the WHT sentence sets
+  DETAIL WHT in both arms (serials 04002 to 04004). No tape value
+  reaches those two columns. The gross-pay check above, and the
+  withholding-tax and FICA checks with it, therefore hold only if the
+  corpus's detail record arrives with zero in GROSS. The insurance
+  premium and the retirement premium need zero in INSURANCE and
+  RETIREMENT, and cause 1 above already separates them. Bond
+  deduction checks only if the detail record carries the master's
+  bond deduction, because
   `MOVE CORRESPONDING DETAIL TO PAYRECORD` is the only writer of the
   printed field and the bond routine works on the master. Chunk 2b
   settles the layout, and it must state which of these it chose.
@@ -391,8 +400,8 @@ the report our run prints against the page.
      the omission of a division header)". Whether a division absent
      whole is that omission is D2.3's open point. The row exists
      because the 1962 GET and FILE bound to nothing.
-  2. The CALL row is demanded. [J 02.04.05] #5: "The (old.name) in a
-     CALL statement must be unique and may not be subscripted."
+  2. J's rule requires the CALL row. [J 02.04.05] #5: "The (old.name)
+     in a CALL statement must be unique and may not be subscripted."
   3. The STOP row was wrong, and the deck is corrected. `STOP n` is
      attested legal: [J 05.06.04] a says the computer stops, and the
      START key resumes the object program. SYS)178 carries "the type of
@@ -402,13 +411,14 @@ the report our run prints against the page.
      therefore adds `STOP RUN` after `STOP 1234`. It replaces nothing.
      `test/fixtures/f-payroll-j.ctd` punches both cards and holds 216
      cards, and the three 206,00 messages move to statement 166,00.
-  4. The COPY row is demanded. [J 90.01.03] b.i defers COPY. The hand
-     expansion reconstructs the 1960 intent under the [F p. 76] rule,
-     and it matches what the 1962 sample wrote out. No 1962 program
-     equals it.
-  5. The REDEF row is demanded. [J 02.05.02]: "When the REDEF type code
-     is used, it should appear on a line with no additional coding
-     except a serial number and the name of the item being redefined."
+  4. J defers COPY, so the row is required. [J 90.01.03] b.i states
+     the deferral. The hand expansion reconstructs the 1960 intent
+     under the [F p. 76] rule, and it matches what the 1962 sample
+     wrote out. No 1962 program equals it.
+  5. J's rule requires the REDEF row. [J 02.05.02]: "When the REDEF
+     type code is used, it should appear on a line with no additional
+     coding except a serial number and the name of the item being
+     redefined."
      Messages 80,00 and 81,00 report the conflict. What the 1962
      processor made of the 1960 form is unstated, so our edit takes the
      rule's own form.
@@ -559,9 +569,10 @@ the report our run prints against the page.
      (`comtran-manuals/J28-6169/images/page-015.png`).
      Definition §4.2.1 already states the object-time conversion. The
      generated forms are attested. A fetch reads the field into a
-     register through SYS)181 or SYS)182 ([J 90.02.14]). SYS)184
+     register through SYS)181 or SYS)182 ([J 90.02.15]). SYS)184
      converts it ([J 90.02.16]). A store writes it back through
-     SYS)180 with SYS)186, 187 or 188 ([J 90.02.18]). The sample
+     SYS)180 ([J 90.02.15]) with SYS)186, 187 or 188
+     ([J 90.02.18]). The sample
      exhibits SYS)184's calling sequence at statement 202,00, and the
      SYS)180 skeleton at GROSS's edited store. The refusals are the
      arithmetic arms. No 90.01 restriction covers the shape, and
@@ -594,25 +605,28 @@ the report our run prints against the page.
      relations "may be used to connect data-names, literals, and
      arithmetic expressions", with the example
      `BEGINNING.ON.HAND + RECEIPTS - SHIPMENTS IS LESS THAN
-     REORDER.POINT`. F pp. 105 and 106 formalise it. [J 02.04.06]
-     states six field rules and no grammar, and [J 02.04.05.01] b heads
+     REORDER.POINT`. F pp. 105 and 106 formalise it. [J 02.04.06] and
+     [J 02.04.07] state six field rules and no grammar, and
+     [J 02.04.05.01] b heads
      its precedence table with TR, a condition inside an expression.
      Definition §5.3.2 lists J's tightenings, and operand shape is not
      among them. The sites are statements 152,00 and 156,00 of the
      applied deck, and the refusal is the default arm of the numeric
      comparison.
   5. **A product of a product.** [J 02.04.05.01] b: "the expression
-     A*B*C will be taken to mean (A*B)*C". F p. 107 rule 4 states the
-     same. The site is statement 141,00. Above 40 hours the 1962 sample's
+     A*B*C will be taken to mean (A*B)*C".
+     [F p. 107], rule 4, states the same.
+     The site is statement 141,00. Above 40 hours the 1962 sample's
      `(WORKING HOURS * 1.5 - 20) * MASTER RATE` folds the 1960
      program's two sentences (definition §9.8). It avoids no shape.
      Open Question 28 asks about intermediate precision in the
      generated code, not about legality.
   6. **An edit run that drops high-order digits.** [F p. 42]: "Such
      alignment may involve the dropping of leading digits or low-order
-     digits". F p. 43 works a row: `99999` holding `01234` into
-     `999V9` gives `2340`. SYS)190's package counts characters to test
-     for overflow and characters to bypass ([J 90.02.19]). At run time
+     digits".
+     [F p. 43] works a row: `99999` holding `01234` into `999V9` gives
+     `2340`. SYS)190's package counts characters to test for overflow
+     and characters to bypass ([J 90.02.19]). At run time
      SYS)130 records "the truncation of significant high order values
      (i.e. overflow)" ([J 90.02.10]). Definition §8.5.4-b holds
      the same reading. The site is statement 146,00, `$88889.99-` into
@@ -620,7 +634,7 @@ the report our run prints against the page.
      says the manual's two bypass counts cannot be told apart. The
      SYS)190 notes on
      `comtran-manuals/J28-6169/images/page-158.png` may distinguish
-     them, and nobody has measured that page. The code and the comment
+     them, and nobody measured that page. The code and the comment
      stay as they are, and chunk 2b carries the check.
 
   **The refusals are stricter than Jack's rule, by design.**
@@ -676,8 +690,8 @@ the report our run prints against the page.
   evidence describes", not "1962 refused". Take the listing as the
   deliverable of that deck. The applied deck is where chunk 2b works,
   so nothing in the repository waits on the answer. The question is
-  Jack's call under his rule, and the review record of 2026-09-14
-  carries it to him.
+  Jack's call under his rule, and the review record on branch
+  `review/2026-09-14-m6s2-rule` carries it to him.
 
   **Chunk 2b's design list.** Each item is a recorded decision under
   D0.4, with no listing oracle behind it:
@@ -702,10 +716,12 @@ the report our run prints against the page.
 
 [F p. 21]: ../../comtran-manuals/F28-8043/02-language-structure.md#arithmetic-expressions
 [F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
+[F p. 43]: ../../comtran-manuals/F28-8043/03-procedure-description.md#editing-feature
 [F p. 65]: ../../comtran-manuals/F28-8043/04-data-description.md#data-description-format
 [F p. 76]: ../../comtran-manuals/F28-8043/04-data-description.md#tables
 [F p. 87]: ../../comtran-manuals/F28-8043/a1-programming-example.md#appendix-1-programming-example
 [F p. 101]: ../../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
+[F p. 107]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
 [J 02.01.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-cmple-card
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
@@ -713,6 +729,7 @@ the report our run prints against the page.
 [J 02.04.05]: ../../comtran-manuals/J28-6169/02-compiler.md#4-corresponding-option-with-move-and-add
 [J 02.04.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
 [J 02.04.06]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
+[J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
 [J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-record
 [J 02.07.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-record-types
@@ -724,6 +741,7 @@ the report our run prints against the page.
 [J 90.02]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.10]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
 [J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.16]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.18]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.19]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers

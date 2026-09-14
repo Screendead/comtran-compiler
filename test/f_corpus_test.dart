@@ -1,7 +1,7 @@
 /// The second corpus (M6-6, M6-7): the 1960 sample payroll program of
 /// F28-8043 Appendix 1, keyed as printed, and the same program with the
-/// five §9.8 divergences of M6-7 as amended. The 1962 processor
-/// never compiled either one, so each golden is decision-conformance,
+/// five §9.8 divergences of M6-7 as amended. No 1962 listing of
+/// either one survives, so each golden is decision-conformance,
 /// not an oracle. The listing cannot carry a refusal, so the two
 /// refusal tests pin what the generator stopped on.
 library;
