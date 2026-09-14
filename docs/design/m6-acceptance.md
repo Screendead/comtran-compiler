@@ -77,10 +77,15 @@ the report our run prints against the page.
   lines, and the GT line is the sum of the department totals in every
   column but one (M6-4).
 
-  The transcription's note is an erratum candidate. It describes a
-  printer practice that does not exist, and a later reader who trusts
-  it will misread the page. The conversion is read-only, so the note
-  waits for Jack's authorization (`docs/HANDOVER.md`).
+  Jack authorized the correction on 2026-09-14. The note now states
+  the skew, and the block reads each line along its own baseline. The
+  reflow left three cells that the scan contradicts, and they are a new
+  erratum candidate (`docs/HANDOVER.md`). The DEPARTMENT 09 TOTALS line
+  prints `0.00` in the fourth amount column, where the transcription
+  reads `5.21`. The GT line prints `5.21` and `36.00` in its fourth and
+  fifth columns, and the transcription omits both. The column sums
+  confirm all three: the fourth column of the department totals sums to
+  5.21, and the fifth to 36.00.
 
   The print chain rendered some letters O as C. The BONDORDERFILE line
   prints `WCO J` where the PAYFILE line and the check print the same
