@@ -984,6 +984,16 @@ passes. Its second sentence is unconditional:</p>
     " on every line.",
 )}
 
+{plate(
+    "02012 COMPUTE.PAY.  IF DETAIL HOURS IS GREATER THAN 40 THEN SET DETAIL\n"
+    "02013        GROSS = (DETAIL HOURS - 40) * MASTER RATE * 1.5.\n"
+    "\n"
+    "02014        SET DETAIL GROSS = DETAIL GROSS + MASTER RATE * 40, DO\n"
+    "02015        FICA.ROUTINE, DO WITHOLDING.TAX.ROUTINE.",
+    "The same four lines as text, from the conversion"
+    " <code>comtran-manuals/F28-8043/a1-programming-example.md</code>.",
+)}
+
 <p>Below 40 hours the first sentence does not fire, and the second sentence adds
 40 hours of pay to the detail record's own GROSS field. The 1960 program
 therefore pays a 40-hour week to anyone who worked less than 40 hours. The 1962
@@ -998,8 +1008,18 @@ sample does not:</p>
     " GROSS = WORKING HOURS * MASTER RATE.",
     "Statements 202,00 and 203,00, cut from"
     " <code>comtran-manuals/J28-6169/images/page-196.png</code>, box"
-    " (470, 548, 1440, 634), enlarged two times. One sentence, two arms. The"
+    " (505, 546, 1295, 626), enlarged two times. One sentence, two arms. The"
     " OTHERWISE arm pays the hours worked.",
+)}
+
+{plate(
+    "        202,00   71516  COMPUTE.PAY.    MOVE DETAIL DATE TO MASTER DATE,  MOVE DETAIL\n"
+    "                                         HOURS TO WORKING HOURS, PAYRECORD HRS.\n"
+    "        203,00                          IF WORKING HOURS GT 40.0 THEN SET WORKING GROSS = (WORKING\n"
+    "                                         HOURS * 1.5 -20) * MASTER RATE OTHERWISE SET WORKING\n"
+    "                                         GROSS = WORKING HOURS * MASTER RATE.",
+    "The same five lines as text, from the conversion"
+    " <code>comtran-manuals/J28-6169/90.05-sample-program.md</code>.",
 )}
 
 <p>No line of the reconstructed tapes exceeds 40 hours, and six of the eleven
@@ -1230,6 +1250,19 @@ convergence under the charter. Item 2 is a live question, so Jack's answer is
 also the authorization to open that pull request, under rule 7 of the
 review-records skill. His answer lands as a second commit on this branch.</p>
 </footer>
+
+<section id="correction">
+<h2>Correction</h2>
+<p>Correction, 2026-09-14, appended as the second commit of this branch. It
+changes no argument and no verdict. Item 6's crop of the 1962 sample listing was
+cut too wide and too deep. Its box was (470, 548, 1440, 634), which left a third
+of the frame empty on the right and clipped the first line of statement 204,00
+at the foot. The page is 47rem wide, so the crop displayed at about three
+quarters of the scan's own scale and the dot-matrix print was hard to read. The
+box is now (505, 546, 1295, 626). Both listing figures of item 6 also carry a
+monospace plate of the same lines as text, taken from the conversions, so the
+comparison of the two overtime sentences reads without the scan.</p>
+</section>
 
 </main>
 </body>

@@ -47,11 +47,22 @@ without the repository.
 | `crops/j-p016-set-sequences.png` | `comtran-manuals/J28-6169/images/page-016.png` | (370, 235, 1130, 835) | The two SET sequences. The improved form of example 2 still stores into A, an external field. |
 | `crops/j-p157-sys186-188.png` | `comtran-manuals/J28-6169/images/page-157.png` | (110, 220, 1140, 610) | SYS)186, SYS)187 and SYS)188, the internal-to-external store converters. None carries an overflow test step. |
 | `crops/f-p101-overtime.png` | `comtran-manuals/F28-8043/images/page-106.png` | (370, 1015, 1130, 1125) | Serials 02012 to 02015 of the 1960 machine listing: the two overtime sentences. That image is printed page 101. |
-| `crops/j-p196-stmt203.png` | `comtran-manuals/J28-6169/images/page-196.png` | (470, 548, 1440, 634) | Statements 202,00 and 203,00 of the 1962 sample listing: the overtime sentence with its OTHERWISE arm. |
+| `crops/j-p196-stmt203.png` | `comtran-manuals/J28-6169/images/page-196.png` | (505, 546, 1295, 626) | Statements 202,00 and 203,00 of the 1962 sample listing: the overtime sentence with its OTHERWISE arm. |
 
 Every crop is enlarged two times with Lanczos resampling, so it stays legible at
 the record's width. Each keeps a white ground in both themes, because the scans
 are black ink on white paper.
+
+## Correction
+
+Correction, 2026-09-14, appended as the second commit of this branch. It changes
+no argument and no verdict. The crop of the 1962 sample listing was cut too wide
+and too deep. Its box was (470, 548, 1440, 634), which left a third of the frame
+empty on the right and clipped the first line of statement 204,00 at the foot,
+so the crop displayed at about three quarters of the scan's own scale and was
+hard to read. The box in the table above is the new one. Both listing figures of
+item 6 also carry a monospace plate of the same lines as text, taken from the
+conversions.
 
 ## One correction to the task as given
 
