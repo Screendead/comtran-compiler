@@ -62,7 +62,7 @@ the report our run prints against the page.
   2. **The overtime sentences.** The two programs agree above 40 hours
      and disagree below it. The 1960 program tests for more than 40
      hours. It pays the premium half only when the test passes. It
-     then adds 40 hours of pay to whatever the detail record carried
+     then adds 40 hours of pay to the detail record's own GROSS field
      (serials 02012 to 02014). Below 40 hours it pays a 40-hour week.
      The 1962 sample carries an OTHERWISE arm that pays the hours
      worked (definition §9.8). No line of the reconstructed tapes
@@ -79,11 +79,21 @@ the report our run prints against the page.
 
   These columns still check against
   `test/goldens/90.05-payroll.report`: the employee number, the name,
-  the date, the hours and the bond deduction. Every ERRORFILE line and
-  the BONDORDERFILE line check too. Gross pay, the
-  withholding tax and the FICA deduction check on the five lines where
-  the hours are exactly 40.0 and on no other line. No department total
-  and no grand total checks, because each one sums the lines above it.
+  the date and the hours. Every ERRORFILE line and the BONDORDERFILE
+  line check too. Gross pay, the withholding tax and the FICA
+  deduction check on the five lines where the hours are exactly 40.0
+  and on no other line. No department total and no grand total checks,
+  because each one sums the lines above it.
+
+  Two columns rest on a tape decision chunk 2b has not made. The 1960
+  program adds into the detail record, so each computed field starts
+  at whatever the tape carried. The list above holds only if the
+  corpus's detail record arrives with zero in GROSS, FICA, WHT,
+  INSURANCE and RETIREMENT. Bond deduction checks only if the detail
+  record carries the master's bond deduction, because
+  `MOVE CORRESPONDING DETAIL TO PAYRECORD` is the only writer of the
+  printed field and the bond routine works on the master. Chunk 2b
+  settles the layout, and it must state which of these it chose.
 
   A difference between our report and the page is a finding, and M6-4
   classifies each one. A finding is one of four things: a defect of
