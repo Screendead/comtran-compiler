@@ -1,0 +1,115 @@
+diff --git a/test/goldens/f-payroll-j.listing b/test/goldens/f-payroll-j.listing
+index ead4b5b..4a90ac6 100644
+--- a/test/goldens/f-payroll-j.listing
++++ b/test/goldens/f-payroll-j.listing
+@@ -166,24 +166,25 @@
+                                       TO COMPARE.EMPLOYEE.NUMBERS.
+                  138,00   71420 END.OF.RUN.  MOVE CORRESPONDING GRAND.TOTAL TO PAYRECORD, FILE
+                                       PAYRECORD, CLOSE ALL FILES.
+-                 139,00                 STOP RUN.
+-                 140,00   71421 COMPUTE.PAY.  IF DETAIL HOURS IS GREATER THAN 40 THEN SET DETAIL
+-                                      GROSS = (DETAIL HOURS - 40) * MASTER RATE * 1.5.
++                 139,00                 STOP 1234.
++                 140,00                 STOP RUN.
++                 141,00   71421 COMPUTE.PAY.  IF DETAIL HOURS IS GREATER THAN 40 THEN SET DETAIL
+         DATE 06/01/60  TIME  1.00  ACCOUNT                     ID.                         PAGE  4
+ 
+-                 141,00                 SET DETAIL GROSS = DETAIL GROSS + MASTER RATE * 40, DO
++                                      GROSS = (DETAIL HOURS - 40) * MASTER RATE * 1.5.
++                 142,00                 SET DETAIL GROSS = DETAIL GROSS + MASTER RATE * 40, DO
+                                       FICA.ROUTINE, DO WITHOLDING.TAX.ROUTINE.
+-                 142,00                 IF M.BONDEDUCT IS NOT EQUAL TO ZERO THEN DO
++                 143,00                 IF M.BONDEDUCT IS NOT EQUAL TO ZERO THEN DO
+                                       BOND.ROUTINE.
+-                 143,00                 DO SEARCH FOR INDEX = 1(1)12.
+-                 144,00   71424 NET.    SET PAYRECORD NETPAY = DETAIL GROSS - DETAIL FICA - DETAIL
++                 144,00                 DO SEARCH FOR INDEX = 1(1)12.
++                 145,00   71424 NET.    SET PAYRECORD NETPAY = DETAIL GROSS - DETAIL FICA - DETAIL
+                                       WHT - DETAIL RETIREMENT - DETAIL INSURANCE - DETAIL
+                                       BONDEDUCTION.
+-                 145,00                 ADD CORRESPONDING DETAIL TOTALS TO MASTER TOTALS, MOVE
++                 146,00                 ADD CORRESPONDING DETAIL TOTALS TO MASTER TOTALS, MOVE
+                                       CORRESPONDING DETAIL TO PAYRECORD, CHECK, MOVE PAYRECORD
+                                       NETPAY TO CHECK AMOUNT.
+-                 146,00                 FILE CHECK.
+-                 147,00                 IF PAYRECORD DEPARTMENT IS GREATER THAN CURRENT DEPARTMENT
++                 147,00                 FILE CHECK.
++                 148,00                 IF PAYRECORD DEPARTMENT IS GREATER THAN CURRENT DEPARTMENT
+                                       THEN MOVE BLANKS TO PAYRECORD EMPLOYEE.NUMBER, PAYRECORD
+                                       NAME, MOVE CORRESPONDING DEPARTMENT.TOTAL TO PAYRECORD, FILE
+                                       PAYRECORD, MOVE ZEROS TO DEPARTMENT.TOTAL HOURS,
+@@ -192,42 +193,42 @@
+                                       DEPARTMENT.TOTAL INSURANCE.PREM, DEPARTMENT.TOTAL
+                                       RETIREMENT.PREM, DEPARTMENT.TOTAL NETPAY, DEPARTMENT.TOTAL
+                                       BONDPURCHASES.
+-                 148,00                 MOVE CORRESPONDING DETAIL TO PAYRECORD, CURRENT,  ADD
++                 149,00                 MOVE CORRESPONDING DETAIL TO PAYRECORD, CURRENT,  ADD
+                                       CORRESPONDING DETAIL TO DEPARTMENT.TOTAL, GRAND.TOTAL,
+                                       FILE PAYRECORD.
+-                 149,00                 GO TO GET.MASTER.
+-                 150,00   71426 FICA.ROUTINE.  BEGIN SECTION.
+-                 151,00                 IF MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00
++                 150,00                 GO TO GET.MASTER.
++                 151,00   71426 FICA.ROUTINE.  BEGIN SECTION.
++                 152,00                 IF MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00
+                                       THEN SET DETAIL FICA = 0.03 * DETAIL GROSS  OTHERWISE SET
+                                       DETAIL FICA = 144.00 - MASTER FICA.
+-                 152,00                 ADD DETAIL FICA TO MASTER FICA.
+-                 153,00         GN)030END FICA.ROUTINE.
+-                 154,00   71432 WITHOLDING.TAX.ROUTINE.  BEGIN SECTION.
+-                 155,00                 IF 13 * MASTER EXEMPTIONS IS LESS THAN DETAIL GROSS THEN
++                 153,00                 ADD DETAIL FICA TO MASTER FICA.
++                 154,00         GN)030END FICA.ROUTINE.
++                 155,00   71432 WITHOLDING.TAX.ROUTINE.  BEGIN SECTION.
++                 156,00                 IF 13 * MASTER EXEMPTIONS IS LESS THAN DETAIL GROSS THEN
+                                       SET DETAIL WHT = 0.18 * (DETAIL GROSS - 13 * MASTER
+                                       EXEMPTIONS) OTHERWISE SET DETAIL WHT = ZEROS.
+-                 156,00                 ADD DETAIL WHT TO MASTER WHT.
+-                 157,00         GN)033END WITHOLDING.TAX.ROUTINE.
+-                 158,00   71436 BOND.ROUTINE.  BEGIN SECTION.
+-                 159,00                 ADD M.BONDEDUCT TO M.BONDACCUM.
+-                 160,00   71437 BOND.CALCULATION.  IF M.BONDENOM IS NOT GREATER THAN
++                 157,00                 ADD DETAIL WHT TO MASTER WHT.
++                 158,00         GN)033END WITHOLDING.TAX.ROUTINE.
++                 159,00   71436 BOND.ROUTINE.  BEGIN SECTION.
++                 160,00                 ADD M.BONDEDUCT TO M.BONDACCUM.
++                 161,00   71437 BOND.CALCULATION.  IF M.BONDENOM IS NOT GREATER THAN
+                                       M.BONDACCUM THEN SET M.BONDACCUM = M.BONDACCUM -
+                                       M.BONDENOM OTHERWISE GO TO BOND.END.
+-                 161,00                 MOVE CORRESPONDING MASTER TO BONDORDER, ADD BONDORDER
++                 162,00                 MOVE CORRESPONDING MASTER TO BONDORDER, ADD BONDORDER
+                                       BONDENOMINATION TO DEPARTMENT.TOTAL BONDPURCHASES, MOVE
+                                       BONDORDER BONDENOMINATION TO PAYRECORD BONDENOMINATION, FILE
+                                       BONDORDER IN ERROR.FILE.
+-                 162,00                 GO TO BOND.CALCULATION.
+-                 163,00   71442 BOND.END.  END BOND.ROUTINE.
+-                 164,00   71443 SEARCH.  BEGIN SECTION.
+-                 165,00                 IF MASTER RATE GT TABLE.ITEM RATE (INDEX) THEN GO TO
++                 163,00                 GO TO BOND.CALCULATION.
++                 164,00   71442 BOND.END.  END BOND.ROUTINE.
++                 165,00   71443 SEARCH.  BEGIN SECTION.
++                 166,00                 IF MASTER RATE GT TABLE.ITEM RATE (INDEX) THEN GO TO
+                                       SEARCH.END OTHERWISE ADD TABLE.ITEM INSURANCE.PREM (INDEX)
+                                       TO DETAIL INSURANCE, ADD TABLE.ITEM RETIREMENT.PREM (INDEX)
+                                       TO DETAIL RETIREMENT, GO TO NET.
+-                 166,00   71446 SEARCH.END.  END SEARCH.
+-
++                 167,00   71446 SEARCH.END.  END SEARCH.
+         DATE 06/01/60  TIME  1.00  ACCOUNT                     ID.                         PAGE  5
+ 
++
+   CTD
+   CTE
+ 
+@@ -235,8 +236,8 @@ THE FOLLOWING ERRORS WERE DETECTED DURING COMPILATION-
+ 
+ NUMBER   CODE   MESSAGE
+ 
+- 165,01    1    'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
+- 165,03    1    'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
+- 165,04    1    'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
++ 166,01    1    'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
++ 166,03    1    'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
++ 166,04    1    'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
+ 
+ SEVERITY LIMIT WAS NOT REACHED
