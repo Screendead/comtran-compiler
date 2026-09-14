@@ -4255,16 +4255,18 @@ The run's reports ([J 90.05] listing, PDF p. 217) close the loop on the editing 
 | Serial sequence checking | checked ([F p. 37]) | not checked; sample deck prints none | J 02.03.A.1 |
 | CALL old.name | shared simple name; synonym later qualified | must be unique (qualified old.name); synonym used unqualified | [J 02.04.05] |
 | Employee-number typing for HIGH.VALUE | numeric `99`/`9999` | alphameric `AA`/`AAAA` | J 02.04.01.b, 02.04.02 |
-| STOP | `STOP 1234` (`STOP n`) | `STOP RUN` (mandatory) | [J 02.04.06] #9 |
+| STOP | `STOP 1234` (serial 02011), and no `STOP RUN` | `STOP RUN`, and no `STOP n`. J keeps `STOP n`: the computer stops, and the START key resumes the object program. J requires a `STOP RUN` in each program, and msg 175,00 reports its absence. The sample replaced the one form with the other; J withdraws neither. | [J 05.06.04] a; [J 02.04.06] #9; [J 90.04.01] msg 175 |
 | COPY type code | `GRAND.TOTAL 1COPY DEPARTMENT.TOTAL` | not used — COPY deferred | J 90.01.03.b.i |
 | REDEF coding | level-1 unnamed `1REDEF TABLE`; TABLE.ITEM level 2 | bare `REDEF TABLE` (GN-named); TABLE.ITEM level 1 = level of TABLE | J 02.05.B.3.a |
 | Table initialization | six unnamed level-2 entries, each a 22-character alphameric literal with its own quote marks, no continuation; the form (p. 100) and the machine listing (p. 104) agree | 24 per-field constants, internal + external, no continuations | F pp. 100, 104; J 02.03.D (internal arithmetic) |
 | CORRESPONDING reliance | name-only matching assumed (`… TO PAYRECORD, CURRENT`) | qualifier-chain rule respected; explicit MOVEs where chains differ | [J 02.04.04] |
 | Arithmetic staging | in record fields (external) | in WORKING (IR fields) | J 02.03.D |
+| Master numeric typing | bare pictorials, so external decimal: `RATE 99V999`, `EXEMPTIONS 99`, the TOTALS fields `99999V99` and `999V99`, `FICA 999V99`, `WHT 9999V99`, and the bond fields `99V99` and `999V99` (serials 05009–05023). The program declares no file, because it has no environment division. | the same fields carry the `IR` mode code: `IR99V999`, `IR99`, `IR9(4)V99` and `IR999V99`, `IR999V99`, `IR9(4)V99`, `IR99V99` and `IR999V99`. GROSS also narrows from five integer digits to four. INPUTMASTER and OUTPUTMASTER are `BINARY` files. The date fields MONTH, DAY and YEAR do not become internal; they become alphameric `AA`. | [F p. 103]; [J 90.05] |
 | Error output | error code inside master/detail records, `FILE … IN ERROR.FILE` | dedicated ERROROUT record, plain FILE | [J 02.07.08] |
 | WHT zero-floor | IF/OTHERWISE `SET … = ZEROS` | `* TR(WORKING WHT GT 0)` | F pp. 24, 106 |
 | Subscript use in search | `INDEX` for all three arrays | `INDEX` for probe, copied to `POS` for fetches | [J 90.01.02]; J 02.04.D |
 | FICA cap | tests, then adds: `IF MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00 THEN SET DETAIL FICA = 0.03 * DETAIL GROSS OTHERWISE SET DETAIL FICA = 144.00 - MASTER FICA` (serials 03016–03018) | adds, then caps: `ADD WORKING FICA TO MASTER FICA. IF MASTER FICA GT 144.00 THEN SET WORKING FICA = WORKING FICA - (MASTER FICA - 144.00), SET MASTER FICA = 144.00` | [F p. 93]; [J 90.05] listing |
+| Overtime pay | two sentences. `IF DETAIL HOURS IS GREATER THAN 40 THEN SET DETAIL GROSS = (DETAIL HOURS - 40) * MASTER RATE * 1.5` (serials 02012–02013), then the unconditional `SET DETAIL GROSS = DETAIL GROSS + MASTER RATE * 40` (serial 02014). Below 40 hours the first sentence does not fire, so the program pays 40 hours. | one sentence with two arms: `IF WORKING HOURS GT 40.0 THEN SET WORKING GROSS = (WORKING HOURS * 1.5 -20) * MASTER RATE OTHERWISE SET WORKING GROSS = WORKING HOURS * MASTER RATE` (statement 203,00). Above 40 hours the two programs compute the same value. Below 40 hours they do not: the J sample pays the hours worked. | [F p. 101]; [J 90.05] listing |
 | Bond orders | filed into the error file: `FILE BONDORDER IN ERROR.FILE` (serial 04014) | filed into its own BONDORDERFILE: `FILE BONDORDER` | [F p. 94]; [J 90.05] |
 | The updated master | the introduction promises an updated master file as output; the program files MASTER only in error | every matched master is filed to OUTPUTMASTER: `FILE MASTER` | F pp. 87, 91, 93; [J 90.05] |
 | The last department's totals | department totals print on a department change only, so the last department's never print; END.OF.RUN moves GRAND.TOTAL straight to PAYRECORD (serials 02009–02010, 03005–03010) | END.OF.RUN does DEPARTMENT.END first | [F pp. 92–93]; [J 90.05] |
@@ -4672,7 +4674,9 @@ Questions that remain after studying both manuals end to end — things neither 
 [F pp. 95–96]: ../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F p. 98]: ../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F p. 100]: ../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
+[F p. 101]: ../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
 [F pp. 101–104]: ../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
+[F p. 103]: ../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
 [F pp. 103–104]: ../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
 [F p. 104]: ../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
 [F p. 105]: ../comtran-manuals/F28-8043/a2-supplementary-information.md#appendix-2-supplementary-information
