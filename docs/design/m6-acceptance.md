@@ -38,6 +38,13 @@ the report our run prints against the page.
   same tapes, and the report the sample prints. The second stage waits
   for the first.
 
+  **Amended 2026-09-14.** The second stage is chunked, the way M4 stage
+  2 was (Jack's call of 2026-08-09), and M6-6 to M6-8 hold the chunks.
+  Its input is not the same tapes. The 1960 records are 80-character
+  external images, so the stage writes the same source table,
+  `tool/sample_tapes_source.dart`, in the corpus's own layouts. Its
+  oracle is the values the sample's report prints, not its bytes.
+
   A difference between our report and the page is a finding, and M6-4
   classifies each one. A finding is one of four things: a defect of
   ours, a defect of the 1962 processor that the page corroborates, a
@@ -209,8 +216,191 @@ the report our run prints against the page.
   `test/goldens/`, so a pull request that moves it merges on
   external-review convergence (CLAUDE.md section 12).
 
+## The second corpus
+
+- **M6-6. The 1960 program is keyed as printed, and its compilation is
+  a diagnostic corpus.** `test/fixtures/f-payroll.ctd` holds the sample
+  payroll program of F28-8043 Appendix 1, keyed from the typeset machine
+  listing at [F p. 101] to p. 104: 187 source cards and two division
+  headers between `*COMPILE LIST` and `*FINISH`. That listing prints
+  the card image, columns 1 to 72, with the serial of columns 1 to 5
+  as the card carries it ([F p. 65]; [J 02.02.01]). The field columns and
+  the procedure start columns were measured on the scan (CLAUDE.md
+  section 9). The word gaps inside a card come from the conversion,
+  with one to three columns of uncertainty, as the notes state.
+  `test/fixtures/f-payroll-deck-notes.md` holds
+  the measurements and each placement choice. The deck keeps the 1960
+  text whole: `*PROCEDURE` before `*DATA`, no environment division,
+  `STOP 1234`, `1COPY`, a level on the REDEF line, and `WITHOLDING`.
+
+  The 1962 processor never compiled this program. Ours does, and the
+  result is the first fixture that exercises the diagnostic machinery
+  on a real program, because the sample compiles clean. The front end
+  prints 55 messages of 12 kinds and closes with SEVERITY LIMIT WAS NOT
+  REACHED. The generator then refuses the first GET, because no FILE
+  card lists MASTER. `test/goldens/f-payroll.listing` pins the listing,
+  and the corpus test pins the refusal line, which the listing cannot
+  carry. The page head prints the run's date and time, so both goldens
+  take `--date=06/01/60 --time=1.00`, two values that claim nothing.
+  The golden has no 1962 oracle: the sample's listing carries no
+  message, so the layout of a listing with messages is
+  decision-conformance only. The messages are these:
+
+  - six 166,00, one for each CALL old name that names a field of
+    several records (D4.13), and the 26 108,00 and seven 101,00 that
+    follow from the synonyms the CALL never made;
+  - three 9,00, four 19,00 and three 21,00 for the records and the file
+    that no FILE card carries;
+  - 175,00 for the missing STOP RUN (D2.7);
+  - 110,00 for COPY, which J defers ([J 90.01.03]);
+  - 906,00, 81,00 and 80,00 for the level on the REDEF line and the
+    level of TABLE.ITEM (D3.4);
+  - one 206,00 for INDEX, an external field inside a record.
+
+  Four observations, none a defect:
+
+  - No message names the missing environment division, and the
+    compiler completes. [J 05.06.01] says compilation completes "unless
+    a catastrophic error occurs (e.g., the omission of a division
+    header)", after which "a standard end-of-job message will be
+    printed". The manual does not say whether a division absent whole
+    is that omission or only a header absent before its cards (D2.3).
+    The 9,00, 19,00 and 21,00 messages are the attested consequence of
+    the absent FILE cards.
+  - The resolver reports 101,00 on `DPT HOURS`, a synonym used as a
+    qualifier. D4.13 speaks of a reference whose last name is a
+    synonym. Open Question 56 holds the question, and the applied deck
+    avoids the form.
+  - The COPY rule copies an entry "in its entirety" but for its name
+    and its level ([F p. 76]), so an expanded GRAND.TOTAL is a RECORD.
+  - The six TABLE cards are six level-2 entries, each with its own
+    quote marks and an empty continuation column, on the form (F p.
+    100) and in the listing alike. The §9.8 row that read them as one
+    continued literal is corrected. The conversion's note that reads
+    them the same way is an erratum candidate (`docs/HANDOVER.md`).
+
+- **M6-7. The applied deck takes the rows of §9.8 that the front end
+  requires, and no other. Ours.** `test/fixtures/f-payroll-j.ctd` is
+  the 1960 program with five divergences applied. Each is a row of the
+  §9.8 table, and each is a change the 1962 front end demands. The
+  applied deck carries no serial. It is a deck in the 1962 form, and
+  the 1962 sample carries none; the compiler checks no sequence either
+  way (D2.4). The five:
+
+  1. An environment division, and J's order DATA, ENVIRONMENT,
+     PROCEDURE (D2.2). Five files, all BCD tape, named after the F
+     prose the way ERROR.FILE is: MASTER.FILE and DETAIL.FILE for
+     input; REPORT.FILE, CHECK.FILE and ERROR.FILE for output.
+     ERROR.FILE carries MASTER, DETAIL and BONDORDER, because the 1960
+     program files its bond orders there. Each BLOCKSIZE is the word
+     count of the file's longest record: 14, 14, 20, 5 and 14. The
+     units are the sample's for the like file, D1, C2, D3, D2 and D4,
+     and each SPECIF is OPENW, CLOSER, LOW. No file receives an updated
+     master. The introduction promises one ([F p. 87]), and the program
+     never files MASTER except in error.
+  2. CALL old names qualified to one field, and synonyms unqualified
+     (D4.13), the sample's pattern: `(MASTER EMPLOYEE.NUMBER)
+     M.EMPLOYNO`, `(DETAIL EMPLOYEE.NUMBER) D.EMPLOYNO`, `(MASTER
+     BONDEDUCTION) M.BONDEDUCT`, `(MASTER BONDENOMINATION) M.BONDENOM`
+     and `(MASTER BONDACCUMULATION) M.BONDACCUM`. Every other renamed
+     reference is written in full, `PAYRECORD EMPLOYEE.NUMBER`,
+     `DEPARTMENT.TOTAL HOURS`, `TABLE.ITEM INSURANCE.PREM (INDEX)`. The
+     DPT synonym goes, because each of its uses qualifies a field
+     through it (M6-6).
+  3. `STOP RUN` for `STOP 1234` (D2.7).
+  4. GRAND.TOTAL written out as a RECORD with DEPARTMENT.TOTAL's nine
+     entries: the COPY expanded by hand under the [F p. 76] rule (M6-6).
+  5. The bare REDEF card, TABLE.ITEM at level 1 with its three fields
+     at level 2 (D3.4; D3.6).
+
+  Everything else stays 1960: external fields, arithmetic in the
+  records, ERRORCODE in the records, `FILE ... IN ERROR.FILE`, the
+  six-card TABLE literal, INDEX inside CURRENT, `IS NOT GREATER THAN`,
+  and the edited pictures with `*` and a trailing `-`. The deck is the
+  base of the next chunk, whichever way M6-8 is decided.
+
+  The deck holds 215 cards. Its listing draws three 206,00, each for
+  INDEX in the SEARCH sentence, statement 165,00, and no other message,
+  and it closes SEVERITY LIMIT WAS NOT REACHED. Two details of the
+  keying: the expanded GRAND.TOTAL header carries DEPARTMENT.TOTAL's
+  `L`, because the [F p. 76] rule copies the entry whole; and `DPT
+  BONDEDUCT` becomes `DEPARTMENT.TOTAL BONDEDUCTION`, the field's own
+  name. The notes hold every changed card.
+
+- **M6-8. What the generator cannot recover from the applied deck, and
+  the course it leaves. Decided under the section 12 standing rule;
+  Jack can overturn it.** The generator refuses the
+  applied deck at statement 131,00, `FILE MASTER IN ERROR.FILE`, the
+  first shape in source order that the sample never attests (M4-2). A
+  job stops at its first refusal, so the run shows one shape and the
+  code shows the rest. The static inventory, read from
+  `lib/src/codegen/procedure.dart`:
+
+  - `FILE record IN file`, three times;
+  - every arithmetic sentence: each SET target, ADD operand, numeric
+    comparand and DO index is an external field, and the generator
+    recovers internal decimal only;
+  - the WHT test and the FICA test, each a comparison of an
+    expression;
+  - `(DETAIL HOURS - 40) * MASTER RATE * 1.5`, a product of a product;
+  - `DO SEARCH FOR INDEX = 1(1)12`, an index that is external and
+    lives in a record;
+  - `MOVE PAYRECORD NETPAY TO CHECK AMOUNT`, five integer digits into
+    four, an edit run that bypasses source digits;
+  - `TABLE.ITEM RATE (INDEX)`: the item is 11 characters, and the
+    stride truncates to one word with no refusal (`docs/HANDOVER.md`,
+    codegen defect 7).
+
+  Two courses lead from here, and they differ in size by an order of
+  magnitude:
+
+  - **A. Recover the 1960 shapes.** Build external-decimal arithmetic
+    from the convert members of [J 90.02]: SYS)184 in, and SYS)186 to
+    188 out, which the sample never attests and RT-3 has not built.
+    Then the FILE IN form, the located index, the expression
+    comparison, the product chain and the truncating edit run. Each is
+    a decision-conformance design with no listing oracle. The compiler
+    gains the largest part of the language the sample never touches,
+    and the codegen defects 1 to 4 get live sites.
+  - **B. Apply the remaining rows of §9.8.** Stage the arithmetic in a
+    WORKING area of internal fields, the way the 1962 sample does. Add
+    a dedicated error record and plain FILE, 24 per-field constants,
+    explicit MOVEs where the qualifier chains differ, and INDEX in
+    WORKING. The 1960 records and flow stay. Two shapes stay unbuilt
+    even so. The year-to-date fields of the 1960 master are external,
+    so their update from WORKING needs the internal-to-external move,
+    SYS)186. The second shape is the check amount's edit run. The
+    course inside B that needs
+    neither is the sample's own: retype the master's numerics IR and
+    make MASTER.FILE binary. The check amount then comes from an
+    internal source, the attested shape.
+
+  B is the course, in the sample's own form. Three facts leave one
+  option open (CLAUDE.md section 12). The roadmap's words are B, "with
+  the documented F/J divergences applied". The 1962 sample applied the
+  same rows to the same program, so every replacement is attested. And
+  A has no oracle for any of its shapes. Each is a design with no
+  listing behind it, and it belongs to a stage of its own, which
+  `docs/HANDOVER.md` parks. Two rows still need adding to §9.8 when
+  chunk 2b applies them: the overtime formula, which the sample
+  rearranged to `(HOURS * 1.5 - 20) * RATE`, and the master's typing,
+  IR fields in a binary file. Under B the table items are two whole
+  words. The RET = INS defect therefore reproduces by the same
+  word-granular rule, and the sample's report becomes a value-level
+  oracle for the corpus (M6-4). Under A the 11-character items meet
+  defect 7 instead.
+  The review record holds the rejected courses and their costs.
+
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
+[F p. 65]: ../../comtran-manuals/F28-8043/04-data-description.md#data-description-format
+[F p. 76]: ../../comtran-manuals/F28-8043/04-data-description.md#tables
+[F p. 87]: ../../comtran-manuals/F28-8043/a1-programming-example.md#appendix-1-programming-example
+[F p. 101]: ../../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
+[J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
+[J 05.06.01]: ../../comtran-manuals/J28-6169/05-systems-operation.md#d-file-maintenance
+[J 90.01.03]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
+[J 90.02]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.30]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.05.02]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#1-data-description
 [J 90.05.03]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#1-data-description-1

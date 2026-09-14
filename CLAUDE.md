@@ -30,7 +30,7 @@ for the live state and the next task.
 |---|---|
 | `lib/src/` | The compiler: `cards`, `chars`, `lexer`, `parser`, `ast`, `data`, `codegen`, `loader`, `driver`, `listing`, `emit`, `emulator`, `runtime`, and `mcp` |
 | `bin/` | The executables: `comtranc.dart` (the compiler), `deckconv.dart` (the deck CLI), `deckmcp.dart` (the MCP server) |
-| `test/` | The Dart tests, plus `test/goldens/`, `test/emulator/`, and `test/fixtures/` (the 90.05 canon deck, its mirror, and the keying notes) |
+| `test/` | The Dart tests, plus `test/goldens/`, `test/emulator/`, and `test/fixtures/` (the 90.05 and 1960 payroll decks, their mirrors, and the keying notes) |
 | `tool/` | Dart generators for this package |
 | `editors/vscode-punchcard/` | The VS Code punchcard extension (TypeScript, npm) |
 | `docs/` | The language definition and its generated browser mirror `docs/definition/`, HANDOVER, and `docs/design/` |

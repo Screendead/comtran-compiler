@@ -58,7 +58,8 @@ Terms that appear without expansion:
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
-| M6 stage 2 — the second corpus, M7 | Not started | — |
+| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with the five front-end divergences, refused at `FILE ... IN`. Chunk 2b applies the remaining §9.8 rows (M6-8, decided; Jack can overturn) | `docs/design/m6-acceptance.md` M6-6 to M6-8, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
+| M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -70,7 +71,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1308 Dart tests pass, measured 2026-09-13, and 154 extension
+Test baseline: 1312 Dart tests pass, measured 2026-09-14, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -89,55 +90,23 @@ for byte.
 
 ## The next task — M6 stage 2
 
-**M4 is complete (2026-09-06).** Stage 3 landed the deck writer and our
-loader (LD-1 to LD-4), and stage 4 landed the machine assembly (M4-17).
-`lib/src/runtime/` holds five files:
+**M4 is complete (2026-09-06). M5 is complete (2026-09-13).**
+`docs/design/runtime.md` RT-1 to RT-5 hold the machine assembly and the
+28 entries stage 4 built. `docs/design/loader.md` LD-1 to LD-4 hold the
+deck writer and our loader. `docs/design/m5-io.md` M5-1 holds the three
+I/O stages, and its list of the IOCS entries M4-17 leaves unbuilt.
 
-- the machine, which loads an object deck at address 4096 and treats
-  every address below it as a runtime entry (RT-1);
-- the run frame SYS)175, 177, 178, 294 and IOC)40 (RT-2);
-- 23 MOVPAK entries and members (RT-3 to RT-5);
-- the tape reader, which takes the records off a host image, and the
-  lister, which prints a BCD image (M5-2; M5-11);
-- the GET entries IOC)8, SYS)260 and SYS)283 (M5-8), and the FILE entry
-  IOC)9 (M5-9).
-
-`comtranc --run` runs each job's punched deck and prints its display
-lines. `--list-tapes` prints the report of every BCD output file after
-them.
-`docs/design/runtime.md` holds the decisions. Its RT-1 holds the list of
-the 28 entries stage 4 built and the rule for the rest.
-
-An I/O-free program now runs end to end. The 90.05 sample loads its 936
-words, opens its seven files, and fills its work areas through MOVPAK.
+`lib/src/runtime/` holds five files: the machine, the run frame, the
+MOVPAK entries, the tape reader and its lister, and the GET and FILE
+entries. The 90.05 sample loads its 936 words and opens its seven files.
 It then gets a master record and a detail record, files its output
 records, closes every file, and reaches end of job.
 `test/runtime/machine_test.dart` asserts that run and the reports it
 writes.
 
-Both carried items are closed. The machine writes the loader's words
-into `MachineState` and enters at the entry point (LD-3). A labeled
-PROGRAM.START now names that entry point, and `GN)000` stays on the
-first procedure word (D2.1 as amended 2026-09-06).
-
-**M5 is complete (2026-09-13).** `docs/design/m5-io.md` holds its
-decisions, and M5-1 holds the stages. The milestone charters the IOCS
-entries M4-17 leaves. They are IOC)2 to 17, 29, 46, 53 and 54, and
-SYS)260 to 266, 283, and 286 to 296 less the landed 294. Our generator
-emits four of them, and the three stages landed all four: IOC)8, the
-READ subroutine, IOC)9, the WRITE subroutine, and the two terminators
-of the GET sequence, SYS)260 and SYS)283. The rest wait for the
-code-generator shape that emits them (`runtime.md` RT-1).
-
-Every file the sample declares is a tape, so M5 built one device.
-Three stages, one pull request each:
-
-1. the file model — the tape image, the file table off the `*FILE` and
-   `*SPEC` cards, and the open-all and close-all handlers (done
-   2026-09-07);
-2. GET — IOC)8, the buffer, locate mode, and AT END (done 2026-09-12);
-3. FILE — IOC)9, the `IOST` word, blocking, and the four report tapes
-   (done 2026-09-13).
+Both carried items are closed. A labeled PROGRAM.START names the entry
+point, and `GN)000` stays on the first procedure word (D2.1 as amended
+2026-09-06).
 
 **M6 stage 1 is complete (2026-09-13).** `docs/design/m6-acceptance.md`
 holds its decisions. The input tapes do not survive, so stage 1
@@ -151,11 +120,22 @@ The acceptance test diffs that report against our reading of the page,
 `INSPREM (POS)`, the page shows it on every line, and our object
 program reproduces it.
 
-**The next task is M6 stage 2**, the second corpus: the payroll example
-of the 1960 manual with the documented F/J divergences applied (§9.8),
-compiled and run over the same tapes (M6-1). The six codegen defects
-below are still open beside it, and each fix must leave
-`test/goldens/90.05-payroll.code` as it stands.
+**M6 stage 2 is in progress; chunk 2a landed 2026-09-14.**
+`docs/design/m6-acceptance.md` M6-6 to M6-8 hold it. The 1960 program
+is keyed as printed (`test/fixtures/f-payroll.ctd`), and its listing,
+55 messages of 12 kinds, is the first diagnostic corpus. The applied
+deck (`test/fixtures/f-payroll-j.ctd`) takes the five divergences the
+front end demands, compiles with three 206,00 and no other message,
+and the generator refuses it at `FILE MASTER IN ERROR.FILE`.
+
+**The next task is chunk 2b:** apply the remaining rows of §9.8 to
+the applied deck, in the sample's own form (M6-8, decided under the
+standing rule; Jack can overturn it), write the two tapes from the
+sample's source table in the corpus's layouts (M6-1 as amended), run
+it, and diff its values against the sample's report. The 1960 shapes
+the generator refuses are parked below as a stage of their own. The
+seven codegen defects below stay open beside it, and each fix must
+leave `test/goldens/90.05-payroll.code` as it stands.
 
 ### Codegen defects the runtime exposed
 
@@ -209,6 +189,12 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    for every OPEN ALL FILES and checks nothing. The M5 stage 2 review
    found it on 2026-09-12. The sample opens once, so it has no site.
    M5-4 records what the runtime does on the reopen.
+7. **A table item that is not a whole number of words strides too
+   short.** `_strideWords` (`lib/src/codegen/procedure.dart`:1706)
+   returns `strideChars ~/ 6`, so an 11-character TABLE.ITEM strides
+   one word, not two, with no refusal. The sample's items are two whole
+   words. The 1960 corpus found it on 2026-09-14 (M6-8); its applied
+   deck refuses earlier, so no run reaches it.
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
@@ -224,64 +210,20 @@ holds the control cards (LD-1). `lib/src/loader/` holds the loader
 
 The golden `test/goldens/90.05-payroll.storage-map` is the whole
 printed document after the source pages — pages 7 to 25 and the
-closing lines since stage 3 — and it is the oracle of record. B7
-matched pages 8 to 25 against the scan-verified target byte
-for byte: every head, blank, header and content line, all 977 content
-rows and every CNTRL value. It then deleted the target, its generator,
-and the spine test that carried chunks B1 to B6.
+closing lines since stage 3 — and it is the oracle of record.
 
-Stage 2 generates the core-verb text and the full symbolic listing.
-Its oracle is the full listing diff, byte for byte, after the blind
-scan verification pass (M4-8; the M3-22 pattern). Both have run: the
-scan pass closed Phase A, and the pp. 199–216 diff ran clean at B7.
-Page 198, the loader-card page, landed at stage 3 (LD-4).
+Stage 2 generated the core-verb text and the full symbolic listing in
+chunks A0 to A8 and B1 to B8, by Jack's call of 2026-08-09.
+`docs/design/m4-codegen.md` M4-1 as amended holds the chunks, and M4-8
+as amended holds the verify-first order. M4-5, M4-9 to M4-16 and M4-18
+hold each chunk's rules, diagnostics and refusals. The scan-verified
+target listing is retired (B7). Page 198, the loader-card page, landed
+at stage 3 (LD-4). The catalogue that drove the sizing is
+`test/fixtures/90.05-object-code-notes.md`.
 
-Stage 2 is chunked, by Jack's call of 2026-08-09, so a usage limit costs
-one chunk and not the stage. Phase A builds and verifies the target
-listing before any generator runs. Phase B generates, and it sizes every
-unit in the program before it fills any word. `docs/design/m4-codegen.md`
-M4-1 as amended holds the chunks, A0 to A8 and B1 to B8; M4-8 as amended
-holds the verify-first order. The target itself is retired (B7).
-
-**Phase A is complete, and Phase B's chunks B1 to B7 are done.** All
-eighteen object pages are scan-verified, the B1 generator reproduces the
-listing's whole address spine, B2 fills the columns of the MOVE sites
-and the guards, B3 fills the columns of the arithmetic, B4 fills
-the columns of the eleven comparison sites, their skip vectors, and
-the THEN-arm join transfers, B5 fills the transfer and call
-sites, and B6 fills the input-output frames and STOP RUN. The
-catalogue that drove the sizing is
-`test/fixtures/90.05-object-code-notes.md`; the RS) reservation is
-pinned as constants of the sample by Jack's ruling of 2026-08-15 (M4-4
-as amended; the chunk B1 review record).
-
-Chunks B2 to B6 filled the verb sites in turn: the moves and guards
-(M4-9), the arithmetic (M4-10), the comparisons (M4-11), the transfers
-and calls (M4-12, M4-13), and the input-output frames and STOP RUN
-(M4-14, M4-15). Each chunk's amendments hold its rules and refusals,
-and the records `review/2026-08-16-m4-b2-underdetermined`, `-b3-` and
-`-b4-` hold the formulations one sample program cannot separate.
-
-B7 closed the stage's print work: every control group under M4-16's
-class rule, the `USE 2` and `BL)` pointer words, the 62 constant-pool
-words, the end-of-text line, and the paginated writer behind
-`--emit-object`. The acceptance diff ran clean — the whole document
-against the target, byte for byte — and the target, its generator and
-its tests are deleted.
-
-B8 closed the stage with the generator's diagnostics (M4-18). The
-generator takes the job's sink and stops on a severity 5 like every
-earlier phase (M4-2; D10.2): no text and no image, and the rows
-recorded before the stop print. Msg 942 counts the eight generated
-classes with the programmer names in one tally, continued across the
-resolver, the allocator and the generator (M4-5 as amended). Msg 172
-counts the constant pool, seeds included (D9.7). Under `--pedantic`,
-msg 946 notes constant DO FOR parameters that never step from p to r
-under the decoded exit (D5.1). Msg 947 notes a DO that can re-enter a
-procedure open around it (D5.7). The sample draws neither. Seven of
-the chunk's calls are underdetermined by the one sample program. The
-record `review/2026-08-28-m4-b8-underdetermined` holds the rejected
-formulations.
+Four review records hold the formulations one sample program cannot
+separate: `review/2026-08-16-m4-b2-underdetermined`, `-b3-`, `-b4-`,
+and `review/2026-08-28-m4-b8-underdetermined`.
 
 Chunks A7 and A8 read each page **twice**, by two readers who did not know of each
 other, and compared the two readings before either met the target. Ten
@@ -307,53 +249,37 @@ once, shared one, and collided over a working file.
 on the chunk A4 flaw. Chunks A5 to A8 gave every concurrent reader its own
 directory and none collided.
 
-What stage 2 had to add beyond the verb generators, with each item's
-state:
+Everything stage 2 had to add beyond the verb generators is done.
+`docs/design/m4-codegen.md` holds each item:
 
-- The two head rows stage 1 could not compute, `USE 1` and
-  `BGN 2,PI)1`. Both carry Location Counter 1's origin, which follows
-  the procedure text (M4-7.1). Done (B1).
-- The four block sizes stage 1 leaves empty: result storage, temporary
-  storage, the positional indicators, and the constant pool. The verb
-  generators size three of them. Stage 1 derives `BL)` alone, and gets
-  the sample's attested 3 (M4-4 as amended). **`TS)` has no rule and will
-  not get one.** Jack ruled on 2026-08-10 that it takes the attested 7 as
-  a constant, after an eleven-agent hunt over both manuals refuted seven
-  readings and left two that one sample cannot separate. M4-4 as amended
-  holds the reasoning and forbids inventing a rule that returns 7. All
-  four sizes enter `blockWords` together in chunk B1, because
-  `ProgramImage.originOf` sums the blocks ahead of its argument and
-  sizing one alone moves every origin below it. Done (B1).
+- the two head rows `USE 1` and `BGN 2,PI)1` (M4-7.1);
+- the four block sizes (M4-4);
+- the page furniture (M4-8 as amended);
+- the later-pass GN allocation rule, GN)084 on (M4-6);
+- msg 942 widened, with ids 946 and 947 (M4-5; M4-18).
 
-  The hunt is worth not repeating. Its central negatives: no word of the
-  object program addresses any of the seven cells, which refutes
-  demand-driven sizing; over-reservation tracks how well [J 90.02]
-  documents each rule, so `PI)` uses all 3 of its words, `RS)` 5 of its
-  30, and `TS)` none of its 7; and the `BSS` operand counts words rather
-  than items, since `RS)` cell 0 sits at 01621 and cell 1 at 01623, so
-  matching sevens of anything against it is doubly ungrounded. Two
-  coincidence-grade sevens exist and are recorded as coincidences: the
-  program declares seven files, and it has six sections. **Do not
-  commission more scan work on this.** PDF p. 215 has been read
-  independently twice and both readers print `TS) BSS 7`; the ink is not
-  in doubt and the rule is not on the page. Only the storage map of a
-  second compiled listing settles it.
-- The page furniture: the per-page blank counts. The page head and the
-  `LOC OCTAL CNTRL SYMBOLIC` column header are measured to the byte and
-  pinned (M4-8 as amended 2026-08-09). The head is the source listing's
-  own head, so stage 2 calls the existing builder in
-  `lib/src/listing/listing.dart`. Done (B7).
-- The later-pass GN allocation rule (GN)084 on). Stage 2 pins it
-  instruction by instruction during the listing diff (M4-6). A design
-  that assumes a dense counter is wrong by construction. Done (B1;
-  M4-6 as amended holds the three fitted placements).
-- Msg 942 widens to the eight generated-name classes with one combined
-  tally (M4-5). Ids 946 and 947 are reserved for the D5.1 and D5.7
-  pedantic sites, pedantic-only at C1 and C2 (M4-18); D6.1 to D6.5 stay
-  deferred to M5 (D11.4). Done (B8).
-- The emit surface gains `--emit-deck` (`-d`) and `--emit-loader` (`-L`)
-  at stage 3, under `emit-stages.md`'s conventions, which M4-19 adopts
-  unamended. Done (stage 3, 2026-08-30).
+Stage 3 added `--emit-deck` and `--emit-loader` on 2026-08-30 (M4-19).
+
+**`TS)` has no rule and will not get one.** Jack ruled on 2026-08-10
+that it takes the attested 7 as a constant, after an eleven-agent hunt
+over both manuals refuted seven readings and left two that one sample
+cannot separate. He pinned the `RS)` reservation as constants of the
+sample on 2026-08-15. M4-4 as amended holds both calls and forbids
+inventing a rule that returns 7.
+
+The hunt is worth not repeating. Its central negatives: no word of the
+object program addresses any of the seven cells, which refutes
+demand-driven sizing; over-reservation tracks how well [J 90.02]
+documents each rule, so `PI)` uses all 3 of its words, `RS)` 5 of its
+30, and `TS)` none of its 7; and the `BSS` operand counts words rather
+than items, since `RS)` cell 0 sits at 01621 and cell 1 at 01623, so
+matching sevens of anything against it is doubly ungrounded. Two
+coincidence-grade sevens exist and are recorded as coincidences: the
+program declares seven files, and it has six sections. **Do not
+commission more scan work on this.** PDF p. 215 has been read
+independently twice and both readers print `TS) BSS 7`; the ink is not
+in doubt and the rule is not on the page. Only the storage map of a
+second compiled listing settles it.
 
 ## Rules that bind future work
 
@@ -368,7 +294,7 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **One candidate is open, since 2026-09-13.** The
+  authorization. **Two candidates are open.** The first, since 2026-09-13: the
   transcription of PDF p. 217, the printed report, carries a note that
   the printer carried "the last few amount fields of a detail or totals
   line on the print position immediately above the identifying line",
@@ -377,7 +303,14 @@ binds work outside the definition.
   height, on one straight baseline, and the arithmetic of every line
   holds only under that reading (`docs/design/m6-acceptance.md` M6-2).
   The candidate asks to drop the note and to reflow the block one row
-  down on its right-hand side. The candidate before it,
+  down on its right-hand side. The definition's §9.7 carried the same
+  reading; Jack had it corrected on 2026-09-14, and the conversion's
+  note still waits. The second, since 2026-09-14: the F conversion's
+  note after the page-100 form (`comtran-manuals/F28-8043/a1-programming-example.md`)
+  reads the six TABLE cards as one literal continued across six lines.
+  The form and the machine listing both show six level-2 entries, each
+  with its own quote marks and an empty continuation column (M6-6). The
+  candidate before them,
   opened 2026-08-30, closed on 2026-09-06: the transcription of PDF
   p. 198 read `*SPEC  05` on its twelfth card, file 6's, where the scan
   reads `06` — the `*FILE  06` line above it prints the same weak-topped
@@ -585,6 +518,13 @@ PDF p. 217. It makes every milestone below testable at once.
   of two findings: a real change between January 1962 and July 1963, or an error
   in our recovery. Treat MOVPAK and Open Question 31 as contaminated; D0.9 says
   why. That result is the project's headline finding (D0.9).
+- **Parked, unscheduled — the 1960 shapes.** The applied deck of the
+  second corpus keeps the 1960 program's arithmetic in external record
+  fields, its `FILE ... IN` form, its located index and its
+  expression comparisons, and the generator refuses each (M6-8). A
+  stage that recovers them builds external-decimal arithmetic from the
+  convert members of [J 90.02], SYS)184 in and SYS)186 to 188 out, with
+  no listing oracle. Whether to schedule it is Jack's call.
 - **Parked, unscheduled — the dangling-continuation diagnostic.** The Data
   and Environment scanners accept a dangling continuation in silence: a
   punched column 72 on a division's last card draws no diagnostic

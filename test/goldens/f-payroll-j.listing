@@ -1,0 +1,242 @@
+        DATE 06/01/60  TIME  1.00  ACCOUNT                     ID.                         PAGE  1
+
+
+        *COMPILE LIST
+  CTC
+
+                                *DATA
+                   1,00   71175 MASTER           1RECORD      L
+                   2,00   71177  ERRORCODE       2             A
+                   3,00   71200 DATA             2
+                   4,00   71201  EMPLOYEE.NUMBER 3
+                   5,00   71202   DEPARTMENT     4             99
+                   6,00   71203   EMPLOYEE       4             9999
+                   7,00   71204  NAME            3             A(15)
+                   8,00   71205  RATE            3             99V999
+                   9,00   71206  DATE            3
+                  10,00   71207   MONTH          4             99
+                  11,00   71210   DAY            4             99
+                  12,00   71211   YEAR           4             99
+                  13,00   71212  EXEMPTIONS      3             99
+                  14,00   71213  TOTALS          3
+                  15,00   71214   GROSS          4             99999V99
+                  16,00   71215   RETIREMENT     4             999V99
+                  17,00   71216   INSURANCE      4             999V99
+                  18,00   71217  FICA            3             999V99
+                  19,00   71220  WHT             3             9999V99
+                  20,00   71221 BONDEDUCTION     3             99V99
+                  21,00   71222 BONDACCUMULATION 2             999V99
+                  22,00   71223 BONDENOMINATION  2             999V99
+                  23,00         GN)001           2             AAA
+                  24,00   71225 DETAIL           1RECORD      L
+                  25,00   71227  ERRORCODE       2             A
+                  26,00   71230  HOURS           2             99V9
+                  27,00   71231 DATA             2
+                  28,00   71232  EMPLOYEE.NUMBER 3
+                  29,00   71233   DEPARTMENT     4             99
+                  30,00   71234   EMPLOYEE       4             9999
+                  31,00   71235  NAME            3             A(15)
+                  32,00   71236  DATE            3
+                  33,00   71237   MONTH          4             99
+                  34,00   71240   DAY            4             99
+                  35,00   71241   YEAR           4             99
+                  36,00   71242  EXEMPTIONS      3             99
+                  37,00   71243  TOTALS          3
+                  38,00   71244   GROSS          4             99999V99
+                  39,00   71245   RETIREMENT     4             999V99
+                  40,00   71246   INSURANCE      4             999V99
+                  41,00   71247  FICA            3             999V99
+                  42,00   71250  WHT             3             9999V99
+                  43,00   71251 BONDEDUCTION     3             99V99
+                  44,00   71252 BONDACCUMULATION 2             999V99
+                  45,00   71253 BONDENOMINATION  2             999V99
+                  46,00         GN)002           2             AAAAA
+                  47,00   71255 BONDORDER        1RECORD      L
+                  48,00   71257  EMPLOYEE.NUMBER 2             9(6)
+                  49,00   71260   DATE           2             9(6)
+                  50,00   71261  BONDENOMINATION 2             999V99
+        DATE 06/01/60  TIME  1.00  ACCOUNT                     ID.                         PAGE  2
+
+                  51,00   71262   NAME           2             A(15)
+                  52,00   71263 CHECK            1RECORD      L
+                  53,00   71265  EMPLOYEE.NUMBER 2
+                  54,00   71266   DEPARTMENT     3             99
+                  55,00   71267   EMPLOYEE       3             9999
+                  56,00   71270  NAME            2             A(15)
+                  57,00   71271   AMOUNT         2             $***9.99
+                  58,00   71272 PAYRECORD        1RECORD      L
+                  59,00   71274 EMPLOYEE.NUMBER  2
+                  60,00   71275  DEPARTMENT      3             99
+                  61,00         GN)003           3             A
+                  62,00   71277  EMPLOYEE        3             9999
+                  63,00         GN)004           2             A
+                  64,00   71301 NAME             2             A(15)
+                  65,00   71302 DATE             2
+                  66,00         GN)005           3             A
+                  67,00   71304  MONTH           3             99
+                  68,00         GN)006           3             A
+                  69,00   71306  DAY             3             99
+                  70,00         GN)007           3             A
+                  71,00   71310  YEAR            3             99
+                  72,00   71311 HOURS            2             8889.9-
+                  73,00   71312 GROSS            2             $88889.99-
+                  74,00   71313  WHT             2             $88889.99-
+                  75,00   71314  FICA            2             $8889.99-
+                  76,00   71315  BONDEDUCTION    2             $8889.99-
+                  77,00   71316  INSURANCE       2             $8889.99-
+                  78,00   71317  RETIREMENT      2             $8889.99-
+                  79,00   71320 NETPAY           2             $88889.99-
+                  80,00   71321  BONDENOMINATION 2             $88899.99-
+                  81,00   71322 DEPARTMENT.TOTAL 1RECORD      L
+                  82,00   71324   HOURS          2             9999V9
+                  83,00   71325  GROSS           2             9(5)V99
+                  84,00   71326   WHT            2             9(5)V99
+                  85,00   71327   FICA           2             9999V99
+                  86,00   71330   BONDEDUCTION   2             9999V99
+                  87,00   71331   INSURANCE.PREM 2             9999V99
+                  88,00           RETIREMENT.    2
+                          71332             PREM               9999V99
+                  89,00   71333  NETPAY          2             9(5)V99
+                  90,00   71334   BONDPURCHASES  2             9(5)V99
+                  91,00   71335 GRAND.TOTAL      1RECORD      L
+                  92,00   71337   HOURS          2             9999V9
+                  93,00   71340  GROSS           2             9(5)V99
+                  94,00   71341   WHT            2             9(5)V99
+                  95,00   71342   FICA           2             9999V99
+                  96,00   71343   BONDEDUCTION   2             9999V99
+                  97,00   71344   INSURANCE.PREM 2             9999V99
+                  98,00           RETIREMENT.    2
+                          71345             PREM               9999V99
+                  99,00   71346  NETPAY          2             9(5)V99
+                 100,00   71347   BONDPURCHASES  2             9(5)V99
+                 101,00   71350 TABLE            1            L
+                 102,00         GN)008           2             '0099908006001499100060'
+                 103,00         GN)009           2             '0199912009002499150090'
+        DATE 06/01/60  TIME  1.00  ACCOUNT                     ID.                         PAGE  3
+
+                 104,00         GN)010           2             '0299915012003499200120'
+                 105,00         GN)011           2             '0399920015004499250150'
+                 106,00         GN)012           2             '0499930018006499300250'
+                 107,00         GN)013           2             '0799930035099999300500'
+                 108,00         GN)014            REDEF        TABLE
+                 109,00   71360 TABLE.ITEM       1         12
+                 110,00   71361  RATE            2             99V999
+                 111,00   71362  INSURANCE.PREM  2             9V99
+                 112,00   71363  RETIREMENT.PREM 2             9V99
+                 113,00   71364 CURRENT          1RECORD
+                 114,00   71366 DEPARTMENT       2             99
+                 115,00   71367 INDEX            2             99
+
+                                *ENVIRONMENT
+                 116,00         MASTER.FILE       FILE  INPUT,BCD,TAPE,MASTER,BLOCKSIZE 14
+                 117,00                           SPECIFMASTER.FILE, UNIT1 'D1',OPENW,CLOSER,LOW
+                 118,00         DETAIL.FILE       FILE  INPUT,BCD,TAPE,DETAIL,BLOCKSIZE 14
+                 119,00                           SPECIFDETAIL.FILE, UNIT1 'C2',OPENW,CLOSER,LOW
+                 120,00         REPORT.FILE       FILE  OUTPUT,BCD,TAPE,PAYRECORD,BLOCKSIZE 20
+                 121,00                           SPECIFREPORT.FILE, UNIT1 'D3',OPENW,CLOSER,LOW
+                 122,00         CHECK.FILE        FILE  OUTPUT,BCD,TAPE,CHECK,BLOCKSIZE 5
+                 123,00                           SPECIFCHECK.FILE, UNIT1 'D2',OPENW,CLOSER,LOW
+                 124,00         ERROR.FILE        FILE  OUTPUT,BCD,TAPE,MASTER,DETAIL,
+                                                        BONDORDER,BLOCKSIZE 14
+                 125,00                           SPECIFERROR.FILE, UNIT1 'D4',OPENW,CLOSER,LOW
+
+                                *PROCEDURE
+                 126,00   71371 GN)000CALL (MASTER EMPLOYEE.NUMBER)   M.EMPLOYNO,
+                          71372            (DETAIL EMPLOYEE.NUMBER)   D.EMPLOYNO,
+                          71373            (MASTER BONDEDUCTION)      M.BONDEDUCT,
+                          71374            (MASTER BONDENOMINATION)   M.BONDENOM,
+                          71375            (MASTER BONDACCUMULATION)  M.BONDACCUM.
+                 127,00   71376 START.  OPEN ALL FILES.
+                 128,00   71377 GET.MASTER.  GET MASTER, AT END DO END.OF.MASTERS.
+                 129,00   71402 GET.DETAIL.  GET DETAIL, AT END GO TO END.OF.DETAILS.
+                 130,00   71405 COMPARE.EMPLOYEE.NUMBERS.  GO TO COMPUTE.PAY WHEN D.EMPLOYNO
+                                      IS EQUAL TO M.EMPLOYNO, LOW.DETAIL WHEN
+                                      D.EMPLOYNO IS LESS THAN M.EMPLOYNO.
+                 131,00   71406 HIGH.DETAIL.  MOVE 'M' TO MASTER ERRORCODE, FILE MASTER IN
+                                      ERROR.FILE.
+                 132,00                 GET MASTER, AT END DO END.OF.MASTERS.
+                 133,00                 GO TO COMPARE.EMPLOYEE.NUMBERS.
+                 134,00   71411 LOW.DETAIL.  MOVE 'D' TO DETAIL ERRORCODE, FILE DETAIL IN
+                                      ERROR.FILE.
+                 135,00                 GO TO GET.DETAIL.
+                 136,00   71412 END.OF.MASTERS.  IF D.EMPLOYNO = HIGH.VALUE THEN GO TO
+                                      END.OF.RUN OTHERWISE SET M.EMPLOYNO = HIGH.VALUE.
+                 137,00   71415 END.OF.DETAILS.  IF M.EMPLOYNO = HIGH.VALUE THEN GO TO
+                                      END.OF.RUN OTHERWISE SET D.EMPLOYNO = HIGH.VALUE, GO
+                                      TO COMPARE.EMPLOYEE.NUMBERS.
+                 138,00   71420 END.OF.RUN.  MOVE CORRESPONDING GRAND.TOTAL TO PAYRECORD, FILE
+                                      PAYRECORD, CLOSE ALL FILES.
+                 139,00                 STOP RUN.
+                 140,00   71421 COMPUTE.PAY.  IF DETAIL HOURS IS GREATER THAN 40 THEN SET DETAIL
+                                      GROSS = (DETAIL HOURS - 40) * MASTER RATE * 1.5.
+        DATE 06/01/60  TIME  1.00  ACCOUNT                     ID.                         PAGE  4
+
+                 141,00                 SET DETAIL GROSS = DETAIL GROSS + MASTER RATE * 40, DO
+                                      FICA.ROUTINE, DO WITHOLDING.TAX.ROUTINE.
+                 142,00                 IF M.BONDEDUCT IS NOT EQUAL TO ZERO THEN DO
+                                      BOND.ROUTINE.
+                 143,00                 DO SEARCH FOR INDEX = 1(1)12.
+                 144,00   71424 NET.    SET PAYRECORD NETPAY = DETAIL GROSS - DETAIL FICA - DETAIL
+                                      WHT - DETAIL RETIREMENT - DETAIL INSURANCE - DETAIL
+                                      BONDEDUCTION.
+                 145,00                 ADD CORRESPONDING DETAIL TOTALS TO MASTER TOTALS, MOVE
+                                      CORRESPONDING DETAIL TO PAYRECORD, CHECK, MOVE PAYRECORD
+                                      NETPAY TO CHECK AMOUNT.
+                 146,00                 FILE CHECK.
+                 147,00                 IF PAYRECORD DEPARTMENT IS GREATER THAN CURRENT DEPARTMENT
+                                      THEN MOVE BLANKS TO PAYRECORD EMPLOYEE.NUMBER, PAYRECORD
+                                      NAME, MOVE CORRESPONDING DEPARTMENT.TOTAL TO PAYRECORD, FILE
+                                      PAYRECORD, MOVE ZEROS TO DEPARTMENT.TOTAL HOURS,
+                                      DEPARTMENT.TOTAL GROSS, DEPARTMENT.TOTAL WHT,
+                                      DEPARTMENT.TOTAL FICA, DEPARTMENT.TOTAL BONDEDUCTION,
+                                      DEPARTMENT.TOTAL INSURANCE.PREM, DEPARTMENT.TOTAL
+                                      RETIREMENT.PREM, DEPARTMENT.TOTAL NETPAY, DEPARTMENT.TOTAL
+                                      BONDPURCHASES.
+                 148,00                 MOVE CORRESPONDING DETAIL TO PAYRECORD, CURRENT,  ADD
+                                      CORRESPONDING DETAIL TO DEPARTMENT.TOTAL, GRAND.TOTAL,
+                                      FILE PAYRECORD.
+                 149,00                 GO TO GET.MASTER.
+                 150,00   71426 FICA.ROUTINE.  BEGIN SECTION.
+                 151,00                 IF MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00
+                                      THEN SET DETAIL FICA = 0.03 * DETAIL GROSS  OTHERWISE SET
+                                      DETAIL FICA = 144.00 - MASTER FICA.
+                 152,00                 ADD DETAIL FICA TO MASTER FICA.
+                 153,00         GN)030END FICA.ROUTINE.
+                 154,00   71432 WITHOLDING.TAX.ROUTINE.  BEGIN SECTION.
+                 155,00                 IF 13 * MASTER EXEMPTIONS IS LESS THAN DETAIL GROSS THEN
+                                      SET DETAIL WHT = 0.18 * (DETAIL GROSS - 13 * MASTER
+                                      EXEMPTIONS) OTHERWISE SET DETAIL WHT = ZEROS.
+                 156,00                 ADD DETAIL WHT TO MASTER WHT.
+                 157,00         GN)033END WITHOLDING.TAX.ROUTINE.
+                 158,00   71436 BOND.ROUTINE.  BEGIN SECTION.
+                 159,00                 ADD M.BONDEDUCT TO M.BONDACCUM.
+                 160,00   71437 BOND.CALCULATION.  IF M.BONDENOM IS NOT GREATER THAN
+                                      M.BONDACCUM THEN SET M.BONDACCUM = M.BONDACCUM -
+                                      M.BONDENOM OTHERWISE GO TO BOND.END.
+                 161,00                 MOVE CORRESPONDING MASTER TO BONDORDER, ADD BONDORDER
+                                      BONDENOMINATION TO DEPARTMENT.TOTAL BONDPURCHASES, MOVE
+                                      BONDORDER BONDENOMINATION TO PAYRECORD BONDENOMINATION, FILE
+                                      BONDORDER IN ERROR.FILE.
+                 162,00                 GO TO BOND.CALCULATION.
+                 163,00   71442 BOND.END.  END BOND.ROUTINE.
+                 164,00   71443 SEARCH.  BEGIN SECTION.
+                 165,00                 IF MASTER RATE GT TABLE.ITEM RATE (INDEX) THEN GO TO
+                                      SEARCH.END OTHERWISE ADD TABLE.ITEM INSURANCE.PREM (INDEX)
+                                      TO DETAIL INSURANCE, ADD TABLE.ITEM RETIREMENT.PREM (INDEX)
+                                      TO DETAIL RETIREMENT, GO TO NET.
+                 166,00   71446 SEARCH.END.  END SEARCH.
+
+        DATE 06/01/60  TIME  1.00  ACCOUNT                     ID.                         PAGE  5
+
+  CTD
+  CTE
+
+THE FOLLOWING ERRORS WERE DETECTED DURING COMPILATION-
+
+NUMBER   CODE   MESSAGE
+
+ 165,01    1    'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
+ 165,03    1    'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
+ 165,04    1    'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.
+
+SEVERITY LIMIT WAS NOT REACHED

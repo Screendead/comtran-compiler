@@ -189,7 +189,7 @@ The run's reports ([J 90.05] listing, PDF p. 217) close the loop on the editing 
 - **Edited-field behavior in the flesh:** floating dollar signs hug the first significant digit (`$294.12`, `$364.16` under picture `$8889.99`); `8` positions zero-suppress to blanks (HOURS `40.0` under `8889.9`; GROSS ` 94.00` under `88889.99`); constant fields embedded in the record always print (the `-` date separators appear even on the grand-total line, whose date fields were blanked: `GT … - - 389.5 2730.39 449.35`); fields blanked by `MOVE BLANKS` print empty (bond columns for employees without bond deductions).
 - **The CHECKFILE is a print-image tape:** its listing shows the carriage-control characters `1` and `2` as leading data characters of the two lines of each check, exactly as described in the record (`CNTRLCHAR A '1'`, `CNTRLCHARSECLIN … A '2'`; [J 90.05.03]).
 - **ERRORFILE records are single-character-code + image:** `M011001AJAX T` (ERRORTYPE `M` + MASTER DAT), `D061500100661400` (ERRORTYPE `D` + the 18-character DETAIL record image inside `A(23)` INFO) — confirming the group/record-to-alphameric MOVEs of 9.5.7.
-- The transcription preserves printer artifacts of the original (half-line staggering of trailing columns; `WCO J` where other reports print `WOO J`, and `MOCRE` where the expected name would be MOORE per the conversion notes' inference) — these are print/test-data anomalies of the 1961 run, not language phenomena (file conversion notes, [J 90.05]).
+- The page carries printer artifacts of the original: `WCO J` where other reports print `WOO J`, and `MOCRE` where the expected name would be MOORE per the conversion notes' inference. These are print/test-data anomalies of the 1961 run, not language phenomena (file conversion notes, [J 90.05]). The print is also skewed: every line rises to the right by about one line height across the page (`J28-6169/images/page-217.png`). The transcription reads that skew as a stagger of the trailing amount columns onto the row above; the scan shows one straight tilted baseline per line, and the arithmetic of every line confirms the baseline reading (`docs/design/m6-acceptance.md` M6-2).
 
 ### 9.8 Consolidated F-sample vs J-sample divergence table
 
@@ -202,12 +202,17 @@ The run's reports ([J 90.05] listing, PDF p. 217) close the loop on the editing 
 | STOP | `STOP 1234` (`STOP n`) | `STOP RUN` (mandatory) | [J 02.04.06] #9 |
 | COPY type code | `GRAND.TOTAL 1COPY DEPARTMENT.TOTAL` | not used — COPY deferred | J 90.01.03.b.i |
 | REDEF coding | level-1 unnamed `1REDEF TABLE`; TABLE.ITEM level 2 | bare `REDEF TABLE` (GN-named); TABLE.ITEM level 1 = level of TABLE | J 02.05.B.3.a |
-| Table initialization | one 132-char alphameric literal, 6 continuation cards | 24 per-field constants, internal + external, no continuations | J 02.03.D (internal arithmetic) |
+| Table initialization | six unnamed level-2 entries, each a 22-character alphameric literal with its own quote marks, no continuation; the form (p. 100) and the machine listing (p. 104) agree | 24 per-field constants, internal + external, no continuations | F pp. 100, 104; J 02.03.D (internal arithmetic) |
 | CORRESPONDING reliance | name-only matching assumed (`… TO PAYRECORD, CURRENT`) | qualifier-chain rule respected; explicit MOVEs where chains differ | [J 02.04.04] |
 | Arithmetic staging | in record fields (external) | in WORKING (IR fields) | J 02.03.D |
 | Error output | error code inside master/detail records, `FILE … IN ERROR.FILE` | dedicated ERROROUT record, plain FILE | [J 02.07.08] |
 | WHT zero-floor | IF/OTHERWISE `SET … = ZEROS` | `* TR(WORKING WHT GT 0)` | F pp. 24, 106 |
 | Subscript use in search | `INDEX` for all three arrays | `INDEX` for probe, copied to `POS` for fetches | [J 90.01.02]; J 02.04.D |
+| FICA cap | tests, then adds: `IF MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00 THEN SET DETAIL FICA = 0.03 * DETAIL GROSS OTHERWISE SET DETAIL FICA = 144.00 - MASTER FICA` (serials 03016–03018) | adds, then caps: `ADD WORKING FICA TO MASTER FICA. IF MASTER FICA GT 144.00 THEN SET WORKING FICA = WORKING FICA - (MASTER FICA - 144.00), SET MASTER FICA = 144.00` | [F p. 93]; [J 90.05] listing |
+| Bond orders | filed into the error file: `FILE BONDORDER IN ERROR.FILE` (serial 04014) | filed into its own BONDORDERFILE: `FILE BONDORDER` | [F p. 94]; [J 90.05] |
+| The updated master | the introduction promises an updated master file as output; the program files MASTER only in error | every matched master is filed to OUTPUTMASTER: `FILE MASTER` | F pp. 87, 91, 93; [J 90.05] |
+| The last department's totals | department totals print on a department change only, so the last department's never print; END.OF.RUN moves GRAND.TOTAL straight to PAYRECORD (serials 02009–02010, 03005–03010) | END.OF.RUN does DEPARTMENT.END first | [F pp. 92–93]; [J 90.05] |
+| INDEX and the department key | `INDEX` declared `99` inside the RECORD CURRENT, DEPARTMENT beside it (serials 10013–10015) | `INDEX` and `POS` are `IR99` in WORKING; `CURRENT.DEPT` is `AA` in DEPARTMENT.TOTAL | [F p. 100]; [J 90.05] |
 
 ### 9.9 Flagged ambiguities (details in §8.5)
 
@@ -255,6 +260,7 @@ The run's reports ([J 90.05] listing, PDF p. 217) close the loop on the editing 
 [F pp. 91–92]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F pp. 91–93]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F pp. 91–94]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
+[F pp. 92–93]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F pp. 92–94]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F pp. 95–96]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
