@@ -937,7 +937,8 @@ the correction of PDF p. 217 landed the same day, in commit
 <code>c023111</code>, pull request 136. The full answer sits under item 2, with
 the new erratum candidate the reflow opened. Item 2 keeps its
 &ldquo;Your call&rdquo; chip: the record must show the question as well as the
-answer. Everything below this banner is the record as Jack received it.</p>
+answer. Everything below this banner is the record as Jack received it,
+except the dated answer block appended under item 2.</p>
 </section>
 
 <section class="answer">
