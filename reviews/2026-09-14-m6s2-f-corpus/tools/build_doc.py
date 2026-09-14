@@ -543,6 +543,28 @@ those fields to the row above. A conversion is read-only and needs Jack's
 authorization, so that erratum candidate — item 2 of the review record of
 2026-09-13 — stays open
 ({link(HANDOVER, "296-308", "HANDOVER.md:296-308")}).</p>
+
+<h3>Jack's answer, 2026-09-14</h3>
+
+<div class="answer">
+<p><strong>Both conversions are authorized.</strong> Jack answered on
+2026-09-14, in these words: &ldquo;Both errata authorised&rdquo;. The answer
+covers the F conversion's note after the page-100 form, which the correction at
+the foot of this record opened, and the J conversion's note on PDF p. 217, which
+the subsection above leaves open.</p>
+
+<p>The page-100 note landed on 2026-09-14, in commit <code>a68e185</code> on
+branch <code>errata-p217-table</code>, pull request 136. The note now reads
+serials 02 to 07 as six unnamed level-2 entries. Each entry carries its own
+quoted 22-character literal, and the form's continuation column is empty on all
+six. TABLE.ITEM at serial 08 lays its twelve 11-character entries over the 132
+characters the six literals occupy.</p>
+
+<p>The p. 217 note landed the same day, in commit <code>c023111</code> of the
+same pull request. Item 2 of the review record of 2026-09-13 carries that
+answer. The reflow of the report blocks opened a new erratum candidate on three
+cells, and that candidate waits for Jack.</p>
+</div>
 </section>
 """
 
@@ -707,6 +729,8 @@ the charter. Opening it is under Jack's standing authorization of
 </footer>
 
 </main>
+<section id="correction"><h2>Correction</h2><p>Correction, 2026-09-14, appended after commit 1ca6711 on m6s2-f-corpus. Item 6 said chunk 2b owes the fix of the §9.8 “Table initialization” row. A crop of the page-100 form (images/page-105.png) shows serials 02 to 07 each at level 2 with their own quote marks and an empty CONT column, so the row is corrected in this pull request instead. The F conversion’s note that reads the six cards as one continued literal is a new erratum candidate in HANDOVER. M6-6’s card count now reads “187 source cards and two division headers”.</p></section>
+<section id="correction-2"><h2>Correction 2</h2><p>Correction, 2026-09-14, appended after commit 14085fe on m6s2-f-corpus, the answer to round 1 of the external review. The Anthropic reviewer showed that the 1960 cards carry their serial in columns 1 to 5 (F p. 65: the digits “must be punched in each card”; J 02.02.01: the listing’s first column is the card sequence number), and the verbatim deck now punches them; the applied deck carries none, as a deck in the 1962 form. The seven CALL synonyms moved from column 40, the conversion’s spacing, to column 37, the scan’s. Item 2 and item 4 describe the deck as it was before that commit.</p></section>
 </body>
 </html>
 """
