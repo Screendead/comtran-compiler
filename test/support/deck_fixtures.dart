@@ -27,6 +27,14 @@ const String jobDeckPath = 'test/fixtures/90.05-payroll-job.ctd';
 List<CardImage> loadJobDeck() =>
     decodeCanon(File(jobDeckPath).readAsBytesSync());
 
+/// The 1960 sample payroll program of F28-8043 Appendix 1, keyed as
+/// printed (M6-6). 191 cards.
+const String fVerbatimDeckPath = 'test/fixtures/f-payroll.ctd';
+
+/// The same program with the five §9.8 divergences the 1962 front end
+/// demands (M6-7). 215 cards.
+const String fAppliedDeckPath = 'test/fixtures/f-payroll-j.ctd';
+
 /// The directory holding the sample's two reconstructed input tapes
 /// (M6-3). A run writes its output tapes beside them, so a test copies
 /// the directory before it runs.

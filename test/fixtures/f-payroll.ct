@@ -1,0 +1,191 @@
+      *COMPILE LIST
+      *PROCEDURE
+            CALL (EMPLOYEE.NUMBER)     EMPLOYNO,
+                 (BONDEDUCTION)        BONDEDUCT,
+                 (BONDENOMINATION)     BONDENOM,
+                 (BONDACCUMULATION)    BONDACCUM,
+                 (INSURANCE.PREM)      INSPREM,
+                 (RETIREMENT.PREM)     RETPREM,
+                 (DEPARTMENT.TOTAL)    DPT.
+      START.  OPEN ALL FILES.
+      GET.MASTER.  GET MASTER, AT END DO END.OF.MASTERS.
+      GET.DETAIL.  GET DETAIL, AT END GO TO END.OF.DETAILS.
+      COMPARE.EMPLOYEE.NUMBERS.  GO TO COMPUTE.PAY WHEN DETAIL EMPLOYNO
+            IS EQUAL TO MASTER EMPLOYNO, LOW.DETAIL WHEN DETAIL
+            EMPLOYNO IS LESS THAN MASTER EMPLOYNO.
+      HIGH.DETAIL.  MOVE 'M' TO MASTER ERRORCODE, FILE MASTER IN
+            ERROR.FILE.
+              GET MASTER, AT END DO END.OF.MASTERS.
+              GO TO COMPARE.EMPLOYEE.NUMBERS.
+      LOW.DETAIL.  MOVE 'D' TO DETAIL ERRORCODE, FILE DETAIL IN
+            ERROR.FILE.
+              GO TO GET.DETAIL.
+      END.OF.MASTERS.  IF DETAIL EMPLOYNO = HIGH.VALUE THEN GO TO
+            END.OF.RUN OTHERWISE SET MASTER EMPLOYNO = HIGH.VALUE.
+      END.OF.DETAILS.  IF MASTER EMPLOYNO = HIGH.VALUE THEN GO TO
+            END.OF.RUN OTHERWISE SET DETAIL EMPLOYNO = HIGH.VALUE, GO
+            TO COMPARE.EMPLOYEE.NUMBERS.
+      END.OF.RUN.  MOVE CORRESPONDING GRAND.TOTAL TO PAYRECORD, FILE
+            PAYRECORD, CLOSE ALL FILES.
+              STOP 1234.
+      COMPUTE.PAY.  IF DETAIL HOURS IS GREATER THAN 40 THEN SET DETAIL
+            GROSS = (DETAIL HOURS - 40) * MASTER RATE * 1.5.
+              SET DETAIL GROSS = DETAIL GROSS + MASTER RATE * 40, DO
+            FICA.ROUTINE, DO WITHOLDING.TAX.ROUTINE.
+              IF MASTER BONDEDUCT IS NOT EQUAL TO ZERO THEN DO
+            BOND.ROUTINE.
+              DO SEARCH FOR INDEX = 1(1)12.
+      NET.    SET PAYRECORD NETPAY = DETAIL GROSS - DETAIL FICA - DETAIL
+            WHT - DETAIL RETIREMENT - DETAIL INSURANCE - DETAIL
+            BONDEDUCT.
+              ADD CORRESPONDING DETAIL TOTALS TO MASTER TOTALS, MOVE
+            CORRESPONDING DETAIL TO PAYRECORD, CHECK, MOVE PAYRECORD
+            NETPAY TO CHECK AMOUNT.
+              FILE CHECK.
+              IF PAYRECORD DEPARTMENT IS GREATER THAN CURRENT DEPARTMENT
+            THEN MOVE BLANKS TO PAYRECORD EMPLOYNO, PAYRECORD NAME,
+            MOVE CORRESPONDING DEPARTMENT.TOTAL TO PAYRECORD, FILE
+            PAYRECORD, MOVE ZEROS TO DPT HOURS, DPT GROSS, DPT WHT,
+            DPT FICA, DPT BONDEDUCT, DPT INSPREM, DPT RETPREM, DPT
+            NETPAY, DPT BONDPURCHASES.
+              MOVE CORRESPONDING DETAIL TO PAYRECORD, CURRENT,  ADD
+            CORRESPONDING DETAIL TO DEPARTMENT.TOTAL, GRAND.TOTAL,
+            FILE PAYRECORD.
+              GO TO GET.MASTER.
+      FICA.ROUTINE.  BEGIN SECTION.
+              IF MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00
+            THEN SET DETAIL FICA = 0.03 * DETAIL GROSS  OTHERWISE SET
+            DETAIL FICA = 144.00 - MASTER FICA.
+              ADD DETAIL FICA TO MASTER FICA.
+            END FICA.ROUTINE.
+      WITHOLDING.TAX.ROUTINE.  BEGIN SECTION.
+              IF 13 * MASTER EXEMPTIONS IS LESS THAN DETAIL GROSS THEN
+            SET DETAIL WHT = 0.18 * (DETAIL GROSS - 13 * MASTER
+            EXEMPTIONS) OTHERWISE SET DETAIL WHT = ZEROS.
+              ADD DETAIL WHT TO MASTER WHT.
+            END WITHOLDING.TAX.ROUTINE.
+      BOND.ROUTINE.  BEGIN SECTION.
+              ADD MASTER BONDEDUCT TO MASTER BONDACCUM.
+      BOND.CALCULATION.  IF MASTER BONDENOM IS NOT GREATER THAN MASTER
+            BONDACCUM THEN SET MASTER BONDACCUM = MASTER BONDACCUM -
+            MASTER BONDENOM OTHERWISE GO TO BOND.END.
+              MOVE CORRESPONDING MASTER TO BONDORDER, ADD BONDORDER
+            BONDENOM TO DPT BONDPURCHASES, MOVE BONDORDER BONDENOM TO
+            PAYRECORD BONDENOM, FILE BONDORDER IN ERROR.FILE.
+              GO TO BOND.CALCULATION.
+      BOND.END.  END BOND.ROUTINE.
+      SEARCH.  BEGIN SECTION.
+              IF MASTER RATE GT TABLE.ITEM RATE (INDEX) THEN GO TO
+            SEARCH.END OTHERWISE ADD TABLE.ITEM INSPREM (INDEX) TO
+            DETAIL INSURANCE, ADD TABLE.ITEM RETPREM (INDEX) TO DETAIL
+            RETIREMENT, GO TO NET.
+      SEARCH.END.  END SEARCH.
+      *DATA
+      MASTER           1RECORD      L
+       ERRORCODE       2             A
+      DATA             2
+       EMPLOYEE.NUMBER 3
+        DEPARTMENT     4             99
+        EMPLOYEE       4             9999
+       NAME            3             A(15)
+       RATE            3             99V999
+       DATE            3
+        MONTH          4             99
+        DAY            4             99
+        YEAR           4             99
+       EXEMPTIONS      3             99
+       TOTALS          3
+        GROSS          4             99999V99
+        RETIREMENT     4             999V99
+        INSURANCE      4             999V99
+       FICA            3             999V99
+       WHT             3             9999V99
+      BONDEDUCTION     3             99V99
+      BONDACCUMULATION 2             999V99
+      BONDENOMINATION  2             999V99
+                       2             AAA
+      DETAIL           1RECORD      L
+       ERRORCODE       2             A
+       HOURS           2             99V9
+      DATA             2
+       EMPLOYEE.NUMBER 3
+        DEPARTMENT     4             99
+        EMPLOYEE       4             9999
+       NAME            3             A(15)
+       DATE            3
+        MONTH          4             99
+        DAY            4             99
+        YEAR           4             99
+       EXEMPTIONS      3             99
+       TOTALS          3
+        GROSS          4             99999V99
+        RETIREMENT     4             999V99
+        INSURANCE      4             999V99
+       FICA            3             999V99
+       WHT             3             9999V99
+      BONDEDUCTION     3             99V99
+      BONDACCUMULATION 2             999V99
+      BONDENOMINATION  2             999V99
+                       2             AAAAA
+      BONDORDER        1RECORD      L
+       EMPLOYEE.NUMBER 2             9(6)
+        DATE           2             9(6)
+       BONDENOMINATION 2             999V99
+        NAME           2             A(15)
+      CHECK            1RECORD      L
+       EMPLOYEE.NUMBER 2
+        DEPARTMENT     3             99
+        EMPLOYEE       3             9999
+       NAME            2             A(15)
+        AMOUNT         2             $***9.99
+      PAYRECORD        1RECORD      L
+      EMPLOYEE.NUMBER  2
+       DEPARTMENT      3             99
+                       3             A
+       EMPLOYEE        3             9999
+                       2             A
+      NAME             2             A(15)
+      DATE             2
+                       3             A
+       MONTH           3             99
+                       3             A
+       DAY             3             99
+                       3             A
+       YEAR            3             99
+      HOURS            2             8889.9-
+      GROSS            2             $88889.99-
+       WHT             2             $88889.99-
+       FICA            2             $8889.99-
+       BONDEDUCTION    2             $8889.99-
+       INSURANCE       2             $8889.99-
+       RETIREMENT      2             $8889.99-
+      NETPAY           2             $88889.99-
+       BONDENOMINATION 2             $88899.99-
+      DEPARTMENT.TOTAL 1RECORD      L
+        HOURS          2             9999V9
+       GROSS           2             9(5)V99
+        WHT            2             9(5)V99
+        FICA           2             9999V99
+        BONDEDUCTION   2             9999V99
+        INSURANCE.PREM 2             9999V99
+        RETIREMENT.    2                                               X
+                  PREM               9999V99
+       NETPAY          2             9(5)V99
+        BONDPURCHASES  2             9(5)V99
+      GRAND.TOTAL      1COPY         DEPARTMENT.TOTAL
+      TABLE            1            L
+                       2             '0099908006001499100060'
+                       2             '0199912009002499150090'
+                       2             '0299915012003499200120'
+                       2             '0399920015004499250150'
+                       2             '0499930018006499300250'
+                       2             '0799930035099999300500'
+                       1REDEF        TABLE
+      TABLE.ITEM       2         12
+       RATE            3             99V999
+       INSURANCE.PREM  3             9V99
+       RETIREMENT.PREM 3             9V99
+      CURRENT          1RECORD
+      DEPARTMENT       2             99
+      INDEX            2             99
+      *FINISH
