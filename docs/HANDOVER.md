@@ -58,7 +58,7 @@ Terms that appear without expansion:
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
-| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with the five front-end divergences, refused at `FILE ... IN`. The scope of chunk 2b is Jack's call (M6-8) | `docs/design/m6-acceptance.md` M6-6 to M6-8, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
+| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with the five front-end divergences, refused at `FILE ... IN`. Chunk 2b applies the remaining §9.8 rows (M6-8, decided; Jack can overturn) | `docs/design/m6-acceptance.md` M6-6 to M6-8, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
 | M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -128,12 +128,14 @@ deck (`test/fixtures/f-payroll-j.ctd`) takes the five divergences the
 front end demands, compiles with three 206,00 and no other message,
 and the generator refuses it at `FILE MASTER IN ERROR.FILE`.
 
-**The next task is chunk 2b, and its scope waits on Jack's call
-(M6-8):** recover the 1960 shapes, or apply the remaining rows of
-§9.8. Either way the corpus runs over the sample's source table
-written in its own layouts (M6-1 as amended), and the seven codegen
-defects below stay open beside it. Each fix must leave
-`test/goldens/90.05-payroll.code` as it stands.
+**The next task is chunk 2b:** apply the remaining rows of §9.8 to
+the applied deck, in the sample's own form (M6-8, decided under the
+standing rule; Jack can overturn it), write the two tapes from the
+sample's source table in the corpus's layouts (M6-1 as amended), run
+it, and diff its values against the sample's report. The 1960 shapes
+the generator refuses are parked below as a stage of their own. The
+seven codegen defects below stay open beside it, and each fix must
+leave `test/goldens/90.05-payroll.code` as it stands.
 
 ### Codegen defects the runtime exposed
 
@@ -511,6 +513,13 @@ PDF p. 217. It makes every milestone below testable at once.
   of two findings: a real change between January 1962 and July 1963, or an error
   in our recovery. Treat MOVPAK and Open Question 31 as contaminated; D0.9 says
   why. That result is the project's headline finding (D0.9).
+- **Parked, unscheduled — the 1960 shapes.** The applied deck of the
+  second corpus keeps the 1960 program's arithmetic in external record
+  fields, its `FILE ... IN` form, its located index and its
+  expression comparisons, and the generator refuses each (M6-8). A
+  stage that recovers them builds external-decimal arithmetic from the
+  convert members of [J 90.02], SYS)184 in and SYS)186 to 188 out, with
+  no listing oracle. Whether to schedule it is Jack's call.
 - **Parked, unscheduled — the dangling-continuation diagnostic.** The Data
   and Environment scanners accept a dangling continuation in silence: a
   punched column 72 on a division's last card draws no diagnostic
