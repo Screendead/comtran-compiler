@@ -361,7 +361,7 @@ SERIAL  DATA NAME                LV  TYPE     QUAN  J  DESCRIPTION
 15        INDEX                    2                  99
 ```
 
-Note — serials 02–07 carry the initial-value literal for TABLE as a single quoted string continued across six lines of the form (opening/closing quote marks repeated on each line per COMTRAN continuation convention); concatenated, the 132-character string supplies the twelve RATE / INSURANCE.PREM / RETIREMENT.PREM entries (11 characters each) of TABLE.ITEM, redefined over TABLE at serial 08.
+Note — serials 02–07 are six unnamed level-2 entries under TABLE. Each carries a 2 in the LV column, its own opening and closing quote marks, and a 22-character literal, and the form's continuation column is empty on all six. TABLE.ITEM at serial 08 (REDEF TABLE) lays its twelve 11-character RATE / INSURANCE.PREM / RETIREMENT.PREM entries over the 132 characters the six literals occupy in order.
 
 ## SAMPLE PAYROLL PROGRAM - MACHINE LISTING
 

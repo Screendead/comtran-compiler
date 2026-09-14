@@ -281,8 +281,9 @@ the report our run prints against the page.
   - The six TABLE cards are six level-2 entries, each with its own
     quote marks and an empty continuation column, on the form (F p.
     100) and in the listing alike. The §9.8 row that read them as one
-    continued literal is corrected. The conversion's note that reads
-    them the same way is an erratum candidate (`docs/HANDOVER.md`).
+    continued literal is corrected. The conversion's note read them the
+    same way. Jack authorized the correction on 2026-09-14, and the
+    note now describes the six entries.
 
 - **M6-7. The applied deck takes the rows of §9.8 that the front end
   requires, and no other. Ours.** `test/fixtures/f-payroll-j.ctd` is
