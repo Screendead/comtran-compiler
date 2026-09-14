@@ -276,8 +276,8 @@ the handler for nnn.
 **The CPU executes the step list. Design decision.** The other reading
 is an entry that reads each word through its own cursor and never lets
 the CPU see it. Both readings are invisible to the program, because
-`_movpakClears()` drops index register 1 from the register cache after
-every call. The execute model reuses the CPU's `TXI` and the
+the end of the move restores index register 1 (amended 2026-09-13,
+below). The execute model reuses the CPU's `TXI` and the
 dispatcher's address test, and it needs no second interpreter.
 
 ### The session
