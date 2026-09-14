@@ -675,7 +675,9 @@ the report our run prints against the page.
   relabel it. The honest label is "1962 punched a deck whose content no
   evidence describes", not "1962 refused". Take the listing as the
   deliverable of that deck. The applied deck is where chunk 2b works,
-  so nothing in the repository waits on the answer.
+  so nothing in the repository waits on the answer. The question is
+  Jack's call under his rule, and the review record of 2026-09-14
+  carries it to him.
 
   **Chunk 2b's design list.** Each item is a recorded decision under
   D0.4, with no listing oracle behind it:
