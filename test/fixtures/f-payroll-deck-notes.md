@@ -124,8 +124,8 @@ outside that count.
 row of the language definition's section 9.8. Everything else stays 1960.
 
 **Amended 2026-09-14.** Four of the five let the deck run. The 1962 compiler
-accepted the 1960 text and punched a deck; that deck could not run, because a
-GET and a FILE named records that no file carried. Item 3 is the exception,
+accepted the 1960 text and punched a deck. That deck could not run: a GET and
+a FILE named records that no file carried. Item 3 is the exception,
 and it was wrong. M6-7 as amended holds the reading of each item.
 
 ### Item 1: an environment division, and J's division order

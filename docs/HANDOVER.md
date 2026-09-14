@@ -58,7 +58,7 @@ Terms that appear without expansion:
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
-| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with the five front-end divergences, refused at `FILE ... IN`. Chunk 2b applies the remaining §9.8 rows (M6-8, decided; Jack can overturn) | `docs/design/m6-acceptance.md` M6-6 to M6-8, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
+| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9) | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
 | M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -121,21 +121,38 @@ The acceptance test diffs that report against our reading of the page,
 program reproduces it.
 
 **M6 stage 2 is in progress; chunk 2a landed 2026-09-14.**
-`docs/design/m6-acceptance.md` M6-6 to M6-8 hold it. The 1960 program
+`docs/design/m6-acceptance.md` M6-6 to M6-9 hold it. The 1960 program
 is keyed as printed (`test/fixtures/f-payroll.ctd`), and its listing,
 55 messages of 12 kinds, is the first diagnostic corpus. The applied
-deck (`test/fixtures/f-payroll-j.ctd`) takes the five divergences the
-front end demands, compiles with three 206,00 and no other message,
-and the generator refuses it at `FILE MASTER IN ERROR.FILE`.
+deck (`test/fixtures/f-payroll-j.ctd`) takes five divergences,
+compiles with three 206,00 and no other message, and the generator
+refuses it at `FILE MASTER IN ERROR.FILE`.
 
-**The next task is chunk 2b:** apply the remaining rows of §9.8 to
-the applied deck, in the sample's own form (M6-8, decided under the
-standing rule; Jack can overturn it), write the two tapes from the
-sample's source table in the corpus's layouts (M6-1 as amended), run
-it, and diff its values against the sample's report. The 1960 shapes
-the generator refuses are parked below as a stage of their own. The
-seven codegen defects below stay open beside it, and each fix must
-leave `test/goldens/90.05-payroll.code` as it stands.
+**Jack ruled on 2026-09-14: a program that would compile in 1962
+should compile.** M6-9 answers the rule for the six shapes the
+generator refuses. All six compiled in 1962, so chunk 2b recovers
+them instead of rewriting the deck around them. M6-8 as amended holds
+the course that ruling overturns, and M6-7 as amended corrects the
+`STOP` row: `STOP n` is legal, so the applied deck keeps `STOP 1234`
+and adds `STOP RUN` after it.
+
+**The next task is chunk 2b:** build the external-decimal fetch and
+the external-decimal store, `FILE record IN file`, the comparison
+whose sides are expressions, the product of a product, the SYS)190
+bypass steps, the 11-character table stride, and `STOP n` at run
+time. M6-9 holds the list and the evidence for each item. Then write the
+two tapes from the sample's source table, in the corpus's layouts.
+Run the applied deck over them, and diff the values against the
+sample's report. M6-1 as amended names the columns that can be
+compared and the three causes that separate the rest. Codegen defect
+7 below lies on the stride's path. The seven codegen defects stay
+open, and each fix must leave `test/goldens/90.05-payroll.code` as it
+stands.
+
+**One question waits for Jack, and no work waits on his answer.**
+M6-9 asks whether "compile" in his rule means the diagnostic listing
+or the object deck. It argues the question both ways and recommends
+the listing. Chunk 2b works on the applied deck either way.
 
 ### Codegen defects the runtime exposed
 
@@ -193,8 +210,10 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    short.** `_strideWords` (`lib/src/codegen/procedure.dart`:1706)
    returns `strideChars ~/ 6`, so an 11-character TABLE.ITEM strides
    one word, not two, with no refusal. The sample's items are two whole
-   words. The 1960 corpus found it on 2026-09-14 (M6-8); its applied
-   deck refuses earlier, so no run reaches it.
+   words. The 1960 corpus found it on 2026-09-14 (M6-8). It now lies on
+   chunk 2b's path. The corpus's table item is 11 characters, and chunk
+   2b designs how a positional indicator addresses that stride (M6-1 as
+   amended).
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
@@ -225,14 +244,10 @@ Four review records hold the formulations one sample program cannot
 separate: `review/2026-08-16-m4-b2-underdetermined`, `-b3-`, `-b4-`,
 and `review/2026-08-28-m4-b8-underdetermined`.
 
-Chunks A7 and A8 read each page **twice**, by two readers who did not know of each
-other, and compared the two readings before either met the target. Ten
-readers ran at once, over the five pages of chunks A7 and A8 together, at
-2.45M tokens and 43 minutes of wall clock for the ten. One page therefore
-costs about 245k tokens, which matches the 250k measured over chunk A5,
-and reading it twice costs twice that and no more wall clock. The five
-pages returned zero disagreements between paired readers, over 261 content
-lines.
+Chunks A7 and A8 read each page **twice**, by two readers who did not know of
+each other. The five pages returned zero disagreements over 261 content lines.
+One page costs about 245k tokens to read, and a second reading costs the same
+again and no more wall clock.
 
 **With every page verified, the location column was walked end to end**, a
 check no page reader could run. The three location counters hold 1021 words
@@ -243,11 +258,9 @@ over the top of the `BL)` block. Counter 1's 105 words are exactly
 `test/fixtures/90.05-object-listing-notes.md` holds the walk and the four
 print forms it has to model.
 
-Give each reader its own scratch directory: two of chunk A4's ran at
-once, shared one, and collided over a working file.
-`test/fixtures/90.05-object-listing-notes.md` records it, in the section
-on the chunk A4 flaw. Chunks A5 to A8 gave every concurrent reader its own
-directory and none collided.
+Give each reader its own scratch directory. Two of chunk A4's shared one and
+collided over a working file, which
+`test/fixtures/90.05-object-listing-notes.md` records.
 
 Everything stage 2 had to add beyond the verb generators is done.
 `docs/design/m4-codegen.md` holds each item:
@@ -511,20 +524,18 @@ PDF p. 217. It makes every milestone below testable at once.
   detail tapes behind it. Stage 1 reconstructed both from the report and
   the record descriptions, and the run reproduces the page up to four
   recorded findings — **DONE 2026-09-13** (`docs/design/m6-acceptance.md`).
-  Stage 2 takes a second corpus —
-  F's payroll example with the documented F/J divergences applied (§9.8).
+  Stage 2 takes a second corpus — F's payroll example, with the §9.8 rows
+  the 1962 front end forces applied and the rest recorded (M6-9).
 - **M7 — The diff pass**: the seal ends when this milestone opens. Assemble the
   1963 processor, and diff our reconstruction against it. Each difference is one
   of two findings: a real change between January 1962 and July 1963, or an error
   in our recovery. Treat MOVPAK and Open Question 31 as contaminated; D0.9 says
   why. That result is the project's headline finding (D0.9).
-- **Parked, unscheduled — the 1960 shapes.** The applied deck of the
-  second corpus keeps the 1960 program's arithmetic in external record
-  fields, its `FILE ... IN` form, its located index and its
-  expression comparisons, and the generator refuses each (M6-8). A
-  stage that recovers them builds external-decimal arithmetic from the
-  convert members of [J 90.02], SYS)184 in and SYS)186 to 188 out, with
-  no listing oracle. Whether to schedule it is Jack's call.
+- **Withdrawn 2026-09-14 — the 1960 shapes.** This bullet parked a stage
+  for the shapes the generator refuses in the applied deck. Jack's rule
+  of that date makes them chunk 2b's work, because each one compiled in
+  1962. `docs/design/m6-acceptance.md` M6-9 holds the list and the
+  evidence, and M6-8 as amended holds the course the rule overturns.
 - **Parked, unscheduled — the dangling-continuation diagnostic.** The Data
   and Environment scanners accept a dangling continuation in silence: a
   punched column 72 on a division's last card draws no diagnostic
