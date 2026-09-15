@@ -10,7 +10,7 @@ M6-6 and M6-7).*
 | File | What it holds |
 |---|---|
 | `f-payroll.ctd` | The 1960 program, keyed as printed. 191 cards. |
-| `f-payroll-j.ctd` | The same program with five divergences applied. 215 cards. |
+| `f-payroll-j.ctd` | The same program with five divergences applied. 216 cards. |
 | `f-payroll.ct`, `f-payroll-j.ct` | The generated text mirrors (decision D0.5). |
 
 Card counts of `f-payroll.ctd`:
@@ -29,8 +29,8 @@ Card counts of `f-payroll-j.ctd`:
 | 1 | `*COMPILE LIST` control card |
 | 2–119 | `*DATA` header + 117 data description cards |
 | 120–131 | `*ENVIRONMENT` header + 11 environment cards |
-| 132–214 | `*PROCEDURE` header + 82 procedure cards |
-| 215 | `*FINISH` control card |
+| 132–215 | `*PROCEDURE` header + 83 procedure cards |
+| 216 | `*FINISH` control card |
 
 The `*COMPILE LIST` and `*FINISH` cards are reconstructions. The 1960 listing
 prints neither, and a complete job needs both. M6-6 counts the 187 source
@@ -121,8 +121,12 @@ outside that count.
 ## The applied deck
 
 `f-payroll-j.ctd` applies the five divergences of M6-7 and no other. Each is a
-row of the language definition's section 9.8, and each is a change the 1962
-front end demands. Everything else stays 1960.
+row of the language definition's section 9.8. Everything else stays 1960.
+
+**Amended 2026-09-14.** Four of the five let the deck run. The 1962 compiler
+accepted the 1960 text and punched a deck. That deck could not run: a GET and
+a FILE named records that no file carried. Item 3 is the exception,
+and it was wrong. M6-7 as amended holds the reading of each item.
 
 ### Item 1: an environment division, and J's division order
 
@@ -157,9 +161,18 @@ and each synonym at column 45.
 Every reference the dropped synonyms carried is written out in full. The
 `DPT` synonym goes, because each of its uses qualifies a field through it.
 
-### Item 3: `STOP RUN`
+### Item 3: `STOP RUN` added after `STOP 1234`
 
-Serial 02011 reads `STOP 1234`. The applied deck reads `STOP RUN` (D2.7).
+Serial 02011 reads `STOP 1234.`. The applied deck keeps that card and punches
+`STOP RUN.` on a new card after it.
+
+**Corrected 2026-09-14.** The deck first replaced the one form with the other.
+That was wrong. J keeps `STOP n`: the computer stops, and the START key
+resumes the object program ([J 05.06.04] a). J requires a `STOP RUN` in each
+program ([J 02.04.06] #9), and msg 175,00 reports its absence. D2.7
+implements both forms. So the 1962 repair adds the terminator; it removes
+nothing. The new card is an unnamed sentence, so its text starts in column
+15.
 
 ### Item 4: GRAND.TOTAL written out
 
@@ -193,7 +206,7 @@ a card that no verbatim card answers.
 | 01002–01008 | seven `CALL` operand cards | five `CALL` operand cards | 2 |
 | 01012–01014 | `DETAIL EMPLOYNO`, `MASTER EMPLOYNO` | `D.EMPLOYNO`, `M.EMPLOYNO` | 2 |
 | 02004–02007 | `DETAIL EMPLOYNO`, `MASTER EMPLOYNO` | `D.EMPLOYNO`, `M.EMPLOYNO` | 2 |
-| 02011 | `STOP 1234.` | `STOP RUN.` | 3 |
+| 02011 | `STOP 1234.` | `STOP 1234.`, then a new card `STOP RUN.` | 3 |
 | 02016 | `MASTER BONDEDUCT` | `M.BONDEDUCT` | 2 |
 | 02021 | `BONDEDUCT.` | `BONDEDUCTION.` | 2 |
 | 03006–03010 | `PAYRECORD EMPLOYNO`, nine `DPT` references | `PAYRECORD EMPLOYEE.NUMBER`, nine `DEPARTMENT.TOTAL` references, re-flowed onto eight cards | 2 |
@@ -252,3 +265,5 @@ generator refuses `FILE record IN file (no sample instance)` at statement
 [F p. 101]: ../../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.03.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0202-compiler-output
+[J 02.04.06]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
+[J 05.06.04]: ../../comtran-manuals/J28-6169/05-systems-operation.md#b-loader-1

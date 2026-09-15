@@ -39,11 +39,70 @@ the report our run prints against the page.
   for the first.
 
   **Amended 2026-09-14.** The second stage is chunked, the way M4 stage
-  2 was (Jack's call of 2026-08-09), and M6-6 to M6-8 hold the chunks.
+  2 was (Jack's call of 2026-08-09), and M6-6 to M6-9 hold the chunks.
   Its input is not the same tapes. The 1960 records are 80-character
   external images, so the stage writes the same source table,
   `tool/sample_tapes_source.dart`, in the corpus's own layouts. Its
   oracle is the values the sample's report prints, not its bytes.
+
+  **Amended again 2026-09-14, before the run.** The corpus prints its
+  own report, and that report does not equal the sample's report in
+  every column. Three causes separate them. Each is stated here, so
+  the run measures a stated expectation and finds no surprise.
+
+  1. **The table lookup.** The sample's RET = INS defect rests on
+     items of two whole words (M6-4). The 1960 TABLE.ITEM is 11
+     characters. How a positional indicator addresses a stride that is
+     not a whole number of words is a design chunk 2b must make. No
+     listing attests the form: `MON PI)NN,,0` is the printed word, and
+     the character arithmetic behind it is not printed. Codegen defect
+     7 lies on that path (`docs/HANDOVER.md`). The insurance premium,
+     the retirement premium, the net pay and the check amount are
+     therefore expected to differ, and that design settles them.
+  2. **The overtime sentences.** The two programs agree above 40 hours
+     and disagree below it. The 1960 program tests for more than 40
+     hours. It pays the premium half only when the test passes. It
+     then adds 40 hours of pay to the detail record's own GROSS field
+     (serials 02012 to 02014). Below 40 hours it pays a 40-hour week.
+     The 1962 sample carries an OTHERWISE arm that pays the hours
+     worked (definition §9.8). No line of the reconstructed tapes
+     exceeds 40 hours, and six of the eleven fall below it. Gross pay
+     therefore differs on those six lines, and the withholding tax,
+     the FICA deduction and the net pay follow it.
+  3. **The 1960 program's own defects.** The last department's totals
+     never print. CURRENT DEPARTMENT carries no value at the first
+     department test, because the program sets it at the end of the
+     first cycle. `MOVE CORRESPONDING DEPARTMENT.TOTAL TO PAYRECORD`
+     leaves two fields unmatched: the totals record names them
+     INSURANCE.PREM and RETIREMENT.PREM, and the print record names
+     them INSURANCE and RETIREMENT.
+
+  These columns still check against
+  `test/goldens/90.05-payroll.report`: the employee number, the name,
+  the date and the hours. Every ERRORFILE line and the BONDORDERFILE
+  line check too. Gross pay, the withholding tax and the FICA
+  deduction check on the five lines where the hours are exactly 40.0
+  and on no other line. No department total and no grand total checks,
+  because each one sums the lines above it.
+
+  Four checked columns rest on a tape decision that chunk 2b has not
+  made: gross pay, the withholding tax, the FICA deduction and bond
+  deduction. The 1960 program adds into the detail record, so a
+  computed field starts at whatever the tape carried. Three fields
+  start there: GROSS (serial 02014), INSURANCE and RETIREMENT
+  (serials 04019 to 04021). The FICA sentence sets DETAIL FICA in
+  both arms (serials 03016 to 03018), and the WHT sentence sets
+  DETAIL WHT in both arms (serials 04002 to 04004). No tape value
+  reaches those two columns. The gross-pay check above, and the
+  withholding-tax and FICA checks with it, therefore hold only if the
+  corpus's detail record arrives with zero in GROSS. The insurance
+  premium and the retirement premium need zero in INSURANCE and
+  RETIREMENT, and cause 1 above already separates them. Bond
+  deduction checks only if the detail record carries the master's
+  bond deduction, because
+  `MOVE CORRESPONDING DETAIL TO PAYRECORD` is the only writer of the
+  printed field and the bond routine works on the master. Chunk 2b
+  settles the layout, and it must state which of these it chose.
 
   A difference between our report and the page is a finding, and M6-4
   classifies each one. A finding is one of four things: a defect of
@@ -327,6 +386,43 @@ the report our run prints against the page.
   BONDEDUCT` becomes `DEPARTMENT.TOTAL BONDEDUCTION`, the field's own
   name. The notes hold every changed card.
 
+  **Amended 2026-09-14.** The premise above overstates the case. The
+  1962 processor compiled the verbatim deck as punched, so no row of
+  the five is a change the front end demands of the source text. Four
+  of the rows fix the deck that compilation punched. That deck could
+  not run: its GET and its FILE named records that no file carried.
+  M6-9 holds the reading rule and the evidence for it. Row by
+  row:
+
+  1. The environment division is construction, not repair. Messages
+     9,00, 19,00 and 21,00 do not stop a compilation. [J 05.06.01] says
+     compilation completes "unless a catastrophic error occurs (e.g.,
+     the omission of a division header)". Whether a division absent
+     whole is that omission is D2.3's open point. The row exists
+     because the 1962 GET and FILE bound to nothing.
+  2. J's rule requires the CALL row. [J 02.04.05] #5: "The (old.name)
+     in a CALL statement must be unique and may not be subscripted."
+  3. The STOP row was wrong, and the deck is corrected. `STOP n` is
+     attested legal: [J 05.06.04] a says the computer stops, and the
+     START key resumes the object program. SYS)178 carries "the type of
+     STOP (STOP NNN or STOP RUN)" ([J 90.02.14]), and D2.7 implements
+     both forms. Message 175,00 fires on the absence of STOP RUN, which
+     [J 02.04.06] #9 requires in each program. The 1962 repair
+     therefore adds `STOP RUN` after `STOP 1234`. It replaces nothing.
+     `test/fixtures/f-payroll-j.ctd` punches both cards and holds 216
+     cards, and the three 206,00 messages move to statement 166,00.
+  4. J defers COPY, so the row is required. [J 90.01.03] b.i states
+     the deferral. The hand expansion reconstructs the 1960 intent
+     under the [F p. 76] rule, and it matches what the 1962 sample
+     wrote out. No 1962 program equals it.
+  5. J's rule requires the REDEF row. [J 02.05.02]: "When the REDEF
+     type code is used, it should appear on a line with no additional
+     coding except a serial number and the name of the item being
+     redefined."
+     Messages 80,00 and 81,00 report the conflict. What the 1962
+     processor made of the 1960 form is unstated, so our edit takes the
+     rule's own form.
+
 - **M6-8. What the generator cannot recover from the applied deck, and
   the course it leaves. Decided under the section 12 standing rule;
   Jack can overturn it.** The generator refuses the
@@ -391,16 +487,267 @@ the report our run prints against the page.
   defect 7 instead.
   The review record holds the rejected courses and their costs.
 
+  **Amended 2026-09-14. Overturned in part, on Jack's instruction of
+  that date.** He ruled: "if it would compile in 1962, it should
+  compile. If it wouldn't, it shouldn't. If it's ambiguous, I need to
+  see it with argumentation both ways and a recommendation, and I'll
+  make a call." The 1962 processor is the one J28-6169 describes. Two
+  standing decisions already carry the principle. D0.1 makes J the
+  target language. D0.8 makes the field-test compiler as attested the
+  reconstruction target.
+
+  **Course B is withdrawn, and so is the parked stage.** M6-9 holds
+  the evidence: all six shapes of the inventory above compiled in 1962.
+  Course B replaces them with the sample's forms, so course B rewrites
+  source that the 1962 processor accepted. The rule forbids that.
+  Course A is the course. M6-9 gives it its list, and
+  `docs/HANDOVER.md` carries it as the next task instead of as a
+  parking.
+
+  **Where the reasoning went wrong.** The roadmap's words decided B,
+  and they were read broad. "With the documented F/J divergences
+  applied" can mean every row of §9.8, or only the rows the 1962
+  front end forces. Jack's rule reads them narrow: apply what 1962
+  forces, and record the rest. Definition §4.2.1 already states what
+  the rest costs, which is an unpack-and-convert at object time and
+  nothing else. Two rows are recorded and not applied: the overtime
+  formula, and the master's numeric typing. §9.8 now carries both.
+
+  **One line of the inventory is corrected.** `DO SEARCH FOR INDEX =
+  1(1)12` is refused for the index's mode, not for its place. The
+  refusal that fires is `_decimal(indexItem)`. `_located` is false for
+  CURRENT, a record that sits on no FILE card and has no base locator.
+  The line folds into the arithmetic line above it.
+
+  Nothing above is deleted. The costs recorded against course A stand
+  as the costs of the course now taken, and the costs recorded against
+  course B stand as the costs of the course refused.
+
+## What compiles in 1962
+
+- **M6-9. The six refused shapes all compiled in 1962. Decided under
+  the section 12 standing rule; Jack can overturn it.** Jack ruled on
+  2026-09-14: "if it would compile in 1962, it should compile. If it
+  wouldn't, it shouldn't. If it's ambiguous, I need to see it with
+  argumentation both ways and a recommendation, and I'll make a call."
+  This entry answers the rule for the six shapes M6-8 inventories. Each
+  one compiled. The 1962 processor is the one J28-6169 describes (D0.1;
+  D0.8).
+
+  **The reading rule.** J names its two core sections after what they
+  do to F: "02.04 Procedure Description Clarification and
+  Amplification" and "02.05 Data Description Amplification and
+  Clarification". Where J revokes an F form, it revokes it in words.
+  [J 02.07.04] is the model: "The verb is described incorrectly in
+  the Commercial Translator General Information manual and the
+  definition ... should be replaced with:".
+  Appendix 90.01 is the enumerated list of what the field-test
+  processor did not do. So a form that F admits, that J does not
+  contradict, and that 90.01 does not defer, compiled in 1962.
+
+  **The reading against it.** J's comparison section states rules for
+  fields and says nothing about expressions. Message 107,00 "ILLEGAL
+  COMPARISON STRUCTURE." states no trigger, so it could be the
+  diagnostic for an expression comparand. On that reading J's silence
+  withdraws the form. We reject the reading under D0.1. An F-only
+  feature is one that J withdraws, or that 90.01 defers. It is not one
+  that J merely does not restate. J restates little of F, so the
+  reading against would withdraw most of the language.
+
+  **The six verdicts.** Each refusal named below is a site in
+  `lib/src/codegen/procedure.dart`.
+
+  1. **Arithmetic on external-decimal record fields.** [J 02.04.05] #6:
+     "The operands of a SET instruction which are used in an arithmetic
+     expression may be fields of any format except alphameric ...
+     Appropriate conversion is performed in all cases although
+     arithmetic operations are considerably less efficient when
+     performed on fields having dissimilar formats." [J 02.03.03.01]
+     makes the same point by example. It rewrites a sequence for
+     speed, and keeps `SET A = X+C` in the improved form. There A to
+     E carry no mode letter, and X alone is IR
+     (`comtran-manuals/J28-6169/images/page-015.png`).
+     Definition §4.2.1 already states the object-time conversion. The
+     generated forms are attested. A fetch reads the field into a
+     register through SYS)181 or SYS)182 ([J 90.02.15]). SYS)184
+     converts it ([J 90.02.16]). A store writes it back through
+     SYS)180 ([J 90.02.15]) with SYS)186, 187 or 188
+     ([J 90.02.18]). The sample
+     exhibits SYS)184's calling sequence at statement 202,00, and the
+     SYS)180 skeleton at GROSS's edited store. The refusals are the
+     arithmetic arms. No 90.01 restriction covers the shape, and
+     message 25,00 rejects
+     alphameric operands only. Two things stay open: the overflow
+     behaviour of SYS)186 to 188, which carry no test step, and
+     rounding (§8.5.4-a).
+  2. **`FILE record IN file`.** [J 02.07.08] b: "FILE record.name IN
+     file.name — This form of the verb provides a means of filing a
+     record in a specific file when the record.name is associated with
+     several output files." Its condition a asks that the record be
+     associated with the file in the Environment Description. The
+     applied deck's ERROR.FILE card lists MASTER, DETAIL and
+     BONDORDER, so the condition holds. The refusal is the
+     `inFile != null` guard. Each of those three records has one
+     output file, so the emitted code equals plain FILE.
+  3. **INDEX inside a record.** This shape folds into shape 1, because
+     the refusal that fires is the mode test and not a place test.
+     Message 206,00 "'NAME.1' HAS INEFFICIENT FORMAT FOR SUBSCRIPT
+     VARIABLE." concedes that the form works. The rejecting messages
+     are 31,00 and 79,00, and an INDEX of `99` draws neither. Our
+     severity for 206,00 and our trigger criterion are both ours
+     (D9.11, "CRITERION INVENTED"). J states no rule on where a
+     subscript variable is declared. [J 02.05.01] asks only for a Data
+     Description entry. [J 90.01.02] vi lists four indexing cautions,
+     and none of them is about declaration. The 1962 sample's INDEX
+     is `IR99` in WORKING, a level-1 group with no type code, so the
+     sample attests the mode and not the place.
+  4. **A comparison whose sides are expressions.** [F p. 21] says
+     relations "may be used to connect data-names, literals, and
+     arithmetic expressions", with the example
+     `BEGINNING.ON.HAND + RECEIPTS - SHIPMENTS IS LESS THAN
+     REORDER.POINT`. F pp. 105 and 106 formalise it. [J 02.04.06] and
+     [J 02.04.07] state six field rules and no grammar, and
+     [J 02.04.05.01] b heads
+     its precedence table with TR, a condition inside an expression.
+     Definition §5.3.2 lists J's tightenings, and operand shape is not
+     among them. The sites are statements 152,00 and 156,00 of the
+     applied deck, and the refusal is the default arm of the numeric
+     comparison.
+  5. **A product of a product.** [J 02.04.05.01] b: "the expression
+     A*B*C will be taken to mean (A*B)*C".
+     [F p. 107], rule 4, states the same.
+     The site is statement 141,00. Above 40 hours the 1962 sample's
+     `(WORKING HOURS * 1.5 - 20) * MASTER RATE` folds the 1960
+     program's two sentences (definition §9.8). It avoids no shape.
+     Open Question 28 asks about intermediate precision in the
+     generated code, not about legality.
+  6. **An edit run that drops high-order digits.** [F p. 42]: "Such
+     alignment may involve the dropping of leading digits or low-order
+     digits".
+     [F p. 43] works a row: `99999` holding `01234` into `999V9` gives
+     `2340`. SYS)190's package counts characters to test for overflow
+     and characters to bypass ([J 90.02.19]). At run time
+     SYS)130 records "the truncation of significant high order values
+     (i.e. overflow)" ([J 90.02.10]). Definition §8.5.4-b holds
+     the same reading. The site is statement 146,00, `$88889.99-` into
+     `$***9.99`. The refusal is the edit-step builder, and its comment
+     says the manual's two bypass counts cannot be told apart. The
+     SYS)190 notes on
+     `comtran-manuals/J28-6169/images/page-158.png` may distinguish
+     them, and nobody measured that page. The code and the comment
+     stay as they are, and chunk 2b carries the check.
+
+  **The refusals are stricter than Jack's rule, by design.**
+  `UnrecoveredShape` says so in its own words: "The 1962 compiler had
+  code for the shape, so no [J 90.04] message and no severity fits". A
+  refusal asks whether the 1962 listing attests the generated form. It
+  never asked whether the 1962 processor compiled the source. The two
+  questions part company here for the first time.
+
+  **The severity finding.** [J 90.04.02]: "The Severity Codes (values)
+  are numbered 1 through 5 ... An error severity code of 1 does not
+  prevent the running of the object program immediately after
+  compilation. Any code above 1 does prevent running ... An error
+  severity code of 5 causes the compiler to stop compiling."
+  [J 02.01.01]: "If the severity code is 5, a deck will not be
+  produced." [J 02.01.02] makes execution conditional on no error above
+  severity 1 and on no undefined symbol in the generated code.
+  [J 90.04.01] prints CODE 0 against every message "because the value
+  may vary", so no printed value survives.
+
+  The verbatim deck draws twelve message kinds: 166, 108, 101, 9, 19,
+  21, 175, 110, 81, 80, 206, and our own 906. None of the twelve is
+  worded as a stop, a deletion or a repair. J holds that vocabulary and
+  uses it elsewhere: 2,00 "-RUN- DELETED.", 25,00 "OPERATION IGNORED",
+  171,00 "SENTENCE DELETED FROM TEXT." Our severities are D7.5's, and
+  they run 1 to 4 and never 5. So `test/goldens/f-payroll.listing`
+  closes SEVERITY LIMIT WAS NOT REACHED, and the driver goes on to code
+  generation. There the refusal `a GET record on 0 input files (no
+  sample instance)` stops it.
+
+  Under J's letter, then, the 1962 processor compiled the 1960 deck as
+  punched, punched an object deck, and refused to run it. No evidence
+  describes what that deck held. It held a GET on a record bound to no
+  file, 26 undefined names, and a GRAND.TOTAL left empty because COPY
+  was deferred. The severities that could change this are unattested
+  (Open Question 65).
+
+  **The one question for Jack.** Does "compile" in his rule mean the
+  diagnostic listing, or the object deck?
+
+  - *For the listing.* The listing is the artifact our corpus
+    reproduces and a golden pins, and chunk 2a already delivered it
+    whole. The object deck is unreachable: no evidence describes the
+    code for a GET bound to no file, and inventing it breaks D0.4.
+  - *For the object deck.* To compile in 1962 was to punch a deck.
+    [J 02.01.01] ties deck production to the severity code alone, and
+    our severities allow it. A compiler that stops short of the deck
+    has not compiled. On this reading the refusal marks a gap in our
+    recovery and not a property of the program.
+
+  **Recommendation.** Keep the refusal for the verbatim deck, and
+  relabel it. The honest label is "1962 punched a deck whose content no
+  evidence describes", not "1962 refused". Take the listing as the
+  deliverable of that deck. The applied deck is where chunk 2b works,
+  so nothing in the repository waits on the answer. The question is
+  Jack's call under his rule, and the review record on branch
+  `review/2026-09-14-m6s2-rule` carries it to him.
+
+  **Chunk 2b's design list.** Each item is a recorded decision under
+  D0.4, with no listing oracle behind it:
+
+  - the external-decimal fetch, SYS)181 or SYS)182 with SYS)184;
+  - the external-decimal store, SYS)180 with SYS)186, 187 or 188;
+  - `FILE record IN file`;
+  - a comparison whose sides are expressions;
+  - a product of a product;
+  - the SYS)190 bypass steps, with the page-158 notes measured at build
+    time;
+  - the 11-character table stride, which carries codegen defect 7 with
+    it (`docs/HANDOVER.md`);
+  - `STOP n` at run time: the halt and the resume (Open Question 69).
+
+  **The run.** Chunk 2b runs the applied deck over two tapes written
+  from the sample's own source table in the corpus's layouts (M6-1 as
+  amended). It diffs values and not bytes, and M6-1 as amended names
+  the columns that can be compared.
+
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
+[F p. 21]: ../../comtran-manuals/F28-8043/02-language-structure.md#arithmetic-expressions
+[F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
+[F p. 43]: ../../comtran-manuals/F28-8043/03-procedure-description.md#editing-feature
 [F p. 65]: ../../comtran-manuals/F28-8043/04-data-description.md#data-description-format
 [F p. 76]: ../../comtran-manuals/F28-8043/04-data-description.md#tables
 [F p. 87]: ../../comtran-manuals/F28-8043/a1-programming-example.md#appendix-1-programming-example
 [F p. 101]: ../../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
+[F p. 107]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
+[J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
+[J 02.01.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-cmple-card
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
+[J 02.03.03.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-effect-of-data-storage-mode-on-arithmetic-efficiency
+[J 02.04.05]: ../../comtran-manuals/J28-6169/02-compiler.md#4-corresponding-option-with-move-and-add
+[J 02.04.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
+[J 02.04.06]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
+[J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
+[J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
+[J 02.05.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-record
+[J 02.07.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-record-types
+[J 02.07.08]: ../../comtran-manuals/J28-6169/02-compiler.md#1-forms-of-the-command
 [J 05.06.01]: ../../comtran-manuals/J28-6169/05-systems-operation.md#d-file-maintenance
+[J 05.06.04]: ../../comtran-manuals/J28-6169/05-systems-operation.md#b-loader-1
+[J 90.01.02]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.01.03]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
+[J 90.02.10]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
+[J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.16]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.18]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.19]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.30]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.04]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#appendix-9004
+[J 90.04.01]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#error-messages-and-severity-codes
+[J 90.04.02]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#a-error-messages
 [J 90.05.02]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#1-data-description
 [J 90.05.03]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#1-data-description-1
