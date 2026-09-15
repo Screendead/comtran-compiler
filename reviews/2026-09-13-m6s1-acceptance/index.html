@@ -115,14 +115,17 @@ and the four findings</h1>
 
 <section class="answer">
 <div class="itemhead"><span class="chip done">Answered</span>
-<h2>Jack's ruling, 2026-09-14</h2></div>
-<p>Item 2 is authorized. Jack answered &ldquo;Both errata authorised&rdquo;, and
-the correction of PDF p. 217 landed the same day, in commit
-<code>c023111</code>, pull request 136. The full answer sits under item 2, with
-the new erratum candidate the reflow opened. Item 2 keeps its
-&ldquo;Your call&rdquo; chip: the record must show the question as well as the
-answer. Everything below this banner is the record as Jack received it,
-except the dated answer block appended under item 2.</p>
+<h2>Jack's rulings, 2026-09-14 and 2026-09-15</h2></div>
+<p>Item 2 is authorized, in two parts. On 2026-09-14 Jack answered
+&ldquo;Both errata authorised&rdquo;, and the correction of the PDF p. 217 note
+and its block landed the same day, in commit <code>c023111</code>, pull request
+136. That reflow left three cells of the report block wrong, and Jack authorized
+those on 2026-09-15: &ldquo;authorize the three cells&rdquo;. They landed in
+commit <code>5671ae6</code>, pull request 138. Both answers sit under item 2,
+each in its own dated block. Item 2 keeps its &ldquo;Your call&rdquo; chip: the
+record must show the question as well as the answer. Everything below this
+banner is the record as Jack received it, except the two dated answer blocks
+appended under item 2.</p>
 </section>
 
 <section class="answer">
@@ -394,6 +397,40 @@ sums confirm all three cells. To key them changes values, not the note, so the
 three cells are a new candidate. It is open in
 <a href="https://github.com/Screendead/comtran-compiler/blob/c023111/docs/HANDOVER.md"><code>docs/HANDOVER.md</code></a>
 and it waits for Jack.</p>
+</div>
+
+<h3>Jack's answer, 2026-09-15</h3>
+
+<div class="answer">
+<p><strong>Authorized.</strong> Jack answered on 2026-09-15, in these words:
+&ldquo;authorize the three cells&rdquo;. The authorization covers the three
+cells the reflow left, and nothing else.</p>
+
+<p>The DEPARTMENT 09 TOTALS line read <code>5.21</code> in its FICA column and
+now reads <code>0.00</code>. The GT line carried no FICA cell and no
+bond-deduction cell, and now reads <code>5.21</code> and <code>36.00</code>.
+The block's column grid is unchanged: every amount still ends in its own column
+and both edited lines are still 105 characters.</p>
+
+<p>The three cells were measured again on the scan before the edit, deskewed by
+1.8 degrees, and the column sums were re-derived. The FICA column of the seven
+department totals sums to 5.21 (0.00 + 3.20 + 0.00 + 2.01 + 0.00 + 0.00 +
+0.00), which is the GT cell. The four detail lines of department 09 each print
+0.00 for FICA, so that department's total is 0.00 and cannot be 5.21. The
+bond-deduction column of the seven department totals sums to 36.00 (0.00 + 0.00
++ 0.00 + 0.00 + 0.00 + 4.00 + 32.00), which is the other GT cell. With all three
+keyed, the GT line's own arithmetic closes: 2730.39 &minus; 449.35 &minus; 5.21
+&minus; 36.00 &minus; 28.00 &minus; 28.00 = 2183.83, the figure item 4 records
+as ours.</p>
+
+<p>The correction landed on 2026-09-15, in commit <code>5671ae6</code> on branch
+<code>errata-p217-cells</code>, pull request 138. No erratum candidate is open
+now. No finding of this record moves. Item 4, the grand-total net pay, stands as
+written: the page prints 2180.63 in that one cell and our run prints 2183.83.
+The reading of the page this record carries,
+<code>evidence/90.05-report-page-217.txt</code>, was keyed from the scan and
+never from the conversion, so it already held all three values, and so did the
+report golden beside it. No test and no golden changed.</p>
 </div>
 </section>
 
