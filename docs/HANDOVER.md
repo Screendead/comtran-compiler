@@ -405,7 +405,7 @@ binds work outside the definition.
   writer takes the trailer geometry from that entry.
 
   Thirty-five corrections are authorized and
-  applied, counted one to a site. The three most recent, all on
+  applied. The three most recent, all on
   2026-09-15, are the three cells of the p. 217 report block. The two
   before them, both on 2026-09-14, are the p. 217 note
   with its report block and the p. 100 note on the six TABLE cards. The
