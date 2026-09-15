@@ -320,23 +320,29 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **Two candidates are open.** The first, since 2026-09-13: the
-  transcription of PDF p. 217, the printed report, carries a note that
-  the printer carried "the last few amount fields of a detail or totals
-  line on the print position immediately above the identifying line",
-  and its text block assigns those fields to the row above. The scan
-  shows a skewed print: every line rises to the right by about one line
-  height, on one straight baseline, and the arithmetic of every line
-  holds only under that reading (`docs/design/m6-acceptance.md` M6-2).
-  The candidate asks to drop the note and to reflow the block one row
-  down on its right-hand side. The definition's §9.7 carried the same
-  reading; Jack had it corrected on 2026-09-14, and the conversion's
-  note still waits. The second, since 2026-09-14: the F conversion's
+  authorization. **One candidate is open**, since 2026-09-14: the
+  reflowed block of PDF p. 217 holds three cells that the scan
+  contradicts. The DEPARTMENT 09 TOTALS line prints `0.00` in the
+  fourth amount column, where the transcription reads `5.21`. The GT
+  line prints `5.21` and `36.00` in its fourth and fifth columns, and
+  the transcription omits both. The column sums confirm all three
+  (`docs/design/m6-acceptance.md` M6-2). The candidate asks to key the
+  three cells as the scan prints them. Three
+  candidates closed before it. The first, opened and closed on
+  2026-09-14: the F conversion's
   note after the page-100 form (`comtran-manuals/F28-8043/a1-programming-example.md`)
-  reads the six TABLE cards as one literal continued across six lines.
+  read the six TABLE cards as one literal continued across six lines.
   The form and the machine listing both show six level-2 entries, each
-  with its own quote marks and an empty continuation column (M6-6). The
-  candidate before them,
+  with its own quote marks and an empty continuation column (M6-6).
+  Jack authorized the correction, and the note now describes the six
+  entries. The second, opened 2026-09-13 and
+  closed on 2026-09-14: the p. 217 note described a printer practice
+  that does not exist. The block followed the note and assigned each
+  line's right-hand fields to the row above. The scan shows a skewed
+  print, and the arithmetic holds only along each line's own baseline
+  (M6-2). Jack authorized the correction, and the note and the block
+  now read the baselines. The definition's §9.7 carried the same
+  reading, corrected the same day. The third,
   opened 2026-08-30, closed on 2026-09-06: the transcription of PDF
   p. 198 read `*SPEC  05` on its twelfth card, file 6's, where the scan
   reads `06` — the `*FILE  06` line above it prints the same weak-topped
@@ -397,9 +403,12 @@ binds work outside the definition.
   columns; the golden ends at the end-of-text line, and the stage-3 deck
   writer takes the trailer geometry from that entry.
 
-  Thirty corrections are authorized and
-  applied. The most recent, on 2026-09-06, is the `*SPEC  06` character on
-  PDF p. 198 above. The two before it, on 2026-08-10, are chunk A8's blank counts;
+  Thirty-two corrections are authorized and
+  applied. The two most recent, both on 2026-09-14, are the p. 217 note
+  with its report block and the p. 100 note on the six TABLE cards. The
+  one before them, on 2026-09-06, is the `*SPEC  06`
+  character on
+  PDF p. 198 above. The two before that, on 2026-08-10, are chunk A8's blank counts;
   the three before those are chunk A7's blank counts, also 2026-08-10; the three before those are chunk A6's two blank counts and its
   one content correction, also 2026-08-10; the three before those are chunk
   A5's object-page blank counts, also 2026-08-10; the seven before those,
