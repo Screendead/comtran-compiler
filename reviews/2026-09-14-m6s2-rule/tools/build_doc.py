@@ -1174,6 +1174,27 @@ HTML = f"""<!DOCTYPE html>
 </header>
 
 <section class="answer">
+<div class="itemhead"><span class="chip done">Answered</span>
+<h2>Jack's ruling, 2026-09-15</h2></div>
+<p>Jack answered on 2026-09-15, in these words: &ldquo;verdicts and course A
+stand&rdquo;. The six verdicts of item 1 stand, and so does item 3's course A:
+chunk 2b recovers the six refused shapes in the 1960 program's own form, and it
+is the next task. Items 4, 5 and 6 are unchanged. Pull request 137 carried the
+work and merged on external-review convergence the same day.</p>
+
+<p><strong>Item 2 stays open.</strong> Jack asked for a walkthrough of the deck
+reading before he decides whether &ldquo;compile&rdquo; means the diagnostic
+listing or the object deck. The question is not withdrawn and it is not
+answered. No work waits on it: what the code does today is item 2's own
+recommendation, which is to keep the refusal, relabel it, and take the listing
+as the deliverable. Item 2 keeps its &ldquo;Your call&rdquo; chip.</p>
+
+<p>Everything below this banner is the record as Jack received it, with two
+additions: the Correction section at the foot, appended as the second commit of
+this branch, and this banner, appended as the third.</p>
+</section>
+
+<section class="answer">
 <h2>The answer</h2>
 
 <p>Jack ruled on 2026-09-14: &ldquo;{RULE}&rdquo; This record applies that rule
