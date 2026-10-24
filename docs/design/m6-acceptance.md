@@ -747,6 +747,13 @@ the report our run prints against the page.
   shape `FILE record IN a file not bound to the record`. No evidence
   shows what code the 1962 processor made for it.
 
+  This refusal falls under the question for Jack above. The message
+  says "CANNOT FILE RECORD 'NAME.2' IN THIS FILE". Our severity for it
+  is 3 (D7.5), and [J 90.04.01] prints no value. At severity 3 the 1962
+  processor punched a deck and did not run it ([J 90.04.02]). The case
+  is the verbatim deck's case: a listing exists, and no evidence
+  describes the deck. His answer decides both refusals.
+
   The tests:
 
   - `test/codegen_test.dart` asserts the call on one file and on two.
