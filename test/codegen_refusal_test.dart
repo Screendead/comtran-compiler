@@ -1065,14 +1065,15 @@ void main() {
       );
     });
 
-    test('FILE record IN file', () {
+    test('FILE record IN a file not bound to the record', () {
       expect(
         _refuses(
-          ['            FILE OREC IN TAPE2.'],
+          ['            FILE IREC IN TAPE2.'],
           data: _records(),
-          environment: [_output()],
+          environment: [_input(), _output()],
+          flagged: ['195,00', '198,00'],
         ),
-        'FILE record IN file (no sample instance)',
+        'FILE record IN a file not bound to the record (no sample instance)',
       );
     });
 

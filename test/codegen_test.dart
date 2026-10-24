@@ -256,6 +256,55 @@ void main() {
     });
   });
 
+  group('FILE record IN file (M6-9)', () {
+    List<AssemblyUnit> compile(List<String> environment, String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'OREC', level: '1', type: 'RECORD'),
+          dataCard(name: 'OFLD', level: '2', description: 'A(6)'),
+        ],
+        environment: environment,
+        procedure: [statement, '      RTN.  STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      return runCodegen(semantics).units;
+    }
+
+    String tape(String name) => environmentCard(
+      name: name,
+      type: 'FILE',
+      options: 'OUTPUT,BCD,TAPE,OREC,BLOCKSIZE 5',
+    );
+
+    test('a record on one file compiles as plain FILE', () {
+      expect(
+        renderObjectLines(
+          compile([tape('TAPE2')], '            FILE OREC IN TAPE2.'),
+        ),
+        renderObjectLines(compile([tape('TAPE2')], '            FILE OREC.')),
+      );
+    });
+
+    test('a record on two files is filed in the named one', () {
+      final List<AssemblyUnit> units = compile([
+        tape('TAPE2'),
+        tape('TAPE3'),
+      ], '            FILE OREC IN TAPE2, FILE OREC IN TAPE3.');
+      final List<String> words = [
+        for (final AssemblyUnit u in units) '${u.operation} ${u.operand}',
+      ];
+      final int call = words.indexOf('TSX IOC)9,4');
+      expect(words.sublist(call, call + 6), [
+        'TSX IOC)9,4',
+        'PZE TAPE2,,0',
+        'IOST OREC,,1',
+        'TSX IOC)9,4',
+        'PZE TAPE3,,0',
+        'IOST OREC,,1',
+      ]);
+    });
+  });
+
   group('the entry point (D2.1)', () {
     // Compiles [procedure] over one integer item and asserts that the
     // end-of-text entry names the PROGRAM.START word rather than

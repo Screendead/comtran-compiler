@@ -713,6 +713,52 @@ the report our run prints against the page.
     it (`docs/HANDOVER.md`);
   - `STOP n` at run time: the halt and the resume (Open Question 69).
 
+  **Decided 2026-10-24: `FILE record IN file`. A design decision
+  under D0.4; Jack can overturn it.** This is the first item of the
+  list above. The generator now compiles the IN form to the call of
+  plain FILE, with the named file in the file word:
+
+  ```
+  TSX    IOC)9,4
+  PZE    file,,0
+  IOST   record,,length
+  ```
+
+  A located record takes the LXA and SXA pair ahead of the call, the
+  same as plain FILE. No listing shows the IN form. The decision rests
+  on four facts:
+
+  - The 1962 sample attests the IOC)9 call of plain FILE, and its file
+    word names one file.
+  - [J 02.07.08] b gives the IN form "a means of filing a record in a
+    specific file". The form names that one file, so the call names
+    it.
+  - PRIMARY does not change the call. [J 02.06.07] binds PRIMARY to
+    the plain form: "The 'FILE record.name' command will file records
+    belonging to more than one output file only in those files where
+    PRIMARY has been specified".
+  - The record can sit on several output files. The plain form still
+    refuses that case, because no sample attests the order of its
+    calls. The IN form makes one call, so it has no order.
+
+  [J 02.07.08] 2 a asks that the record be "associated in the
+  Environment Description" with the named file. Where it is not, the
+  front end prints message 195,00. The generator then refuses the
+  shape `FILE record IN a file not bound to the record`. No evidence
+  shows what code the 1962 processor made for it.
+
+  The tests:
+
+  - `test/codegen_test.dart` asserts the call on one file and on two.
+  - `test/codegen_refusal_test.dart` pins the new refusal.
+  - `test/f_corpus_test.dart` pins the next stop. The applied deck now
+    compiles past statement 131,00. It stops at statement 139,00,
+    `STOP 1234`, on the shape `STOP n`, the last item of the list.
+
+  The two listings do not change, because the change is in code
+  generation only. `test/goldens/90.05-payroll.code` does not change,
+  because the sample has no IN form.
+
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
   amended). It diffs values and not bytes, and M6-1 as amended names
@@ -739,6 +785,7 @@ the report our run prints against the page.
 [J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
 [J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-record
+[J 02.06.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
 [J 02.07.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-record-types
 [J 02.07.08]: ../../comtran-manuals/J28-6169/02-compiler.md#1-forms-of-the-command
 [J 05.06.01]: ../../comtran-manuals/J28-6169/05-systems-operation.md#d-file-maintenance

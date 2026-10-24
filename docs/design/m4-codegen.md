@@ -853,7 +853,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   as amended): OPEN or CLOSE naming files (notes section 7), GET RECORD
   FROM, GET with no AT END (SYS)265 unattested), GET from a file
   declaring ON ERROR (the SYS)283 replacement is unknown), GET of a
-  transmitted record, and FILE record IN file. A GET or FILE refuses
+  transmitted record, and FILE record IN file (until M6-9). A GET or FILE refuses
   off the roster, on other than one matching file, or where two FILE
   cards share a name.
 
