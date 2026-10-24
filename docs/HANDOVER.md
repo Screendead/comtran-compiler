@@ -58,7 +58,7 @@ Terms that appear without expansion:
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
-| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). `FILE record IN file` compiles since 2026-10-24, and the applied deck now stops at `STOP 1234` | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
+| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). `FILE record IN file` and `STOP n` compile since 2026-10-24, and the applied deck now stops at its first external-decimal operand | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
 | M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -71,7 +71,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1314 Dart tests pass, measured 2026-10-24, and 154 extension
+Test baseline: 1315 Dart tests pass, measured 2026-10-24, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -137,18 +137,18 @@ the course that ruling overturns, and M6-7 as amended corrects the
 and adds `STOP RUN` after it.
 
 **The next task is chunk 2b.** M6-9's design list has eight items.
-The first item done is `FILE record IN file` (2026-10-24, M6-9). The
-applied deck now compiles past statement 131,00. The generator stops
-at statement 139,00, `STOP 1234`, on the shape `STOP n (notes section
-7)`. Seven items stay open:
+Two items are done: `FILE record IN file` and `STOP n` (2026-10-24,
+M6-9). The applied deck now compiles past statement 139,00. The
+generator stops at statement 141,00, `IF DETAIL HOURS IS GREATER THAN
+40`, on the shape `an arithmetic operand of externalDecimal`. That is
+the external-decimal fetch, the next task. Six items stay open:
 
 - the external-decimal fetch;
 - the external-decimal store;
 - the comparison whose sides are expressions;
 - the product of a product;
 - the SYS)190 bypass steps;
-- the 11-character table stride;
-- `STOP n` at run time.
+- the 11-character table stride.
 
 M6-9 holds the evidence for each item. Then write the
 two tapes from the sample's source table, in the corpus's layouts.

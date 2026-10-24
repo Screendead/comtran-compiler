@@ -39,6 +39,24 @@ final List<String> _source = <String>[
   '      *FINISH',
 ];
 
+/// A program that halts on `STOP n` and then runs on: the `SET` after
+/// the halt stores only if the run resumes in sequence (D2.7).
+final List<String> _halt = <String>[
+  '      *DATA',
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  '      *PROCEDURE',
+  '      START.  STOP 1234.',
+  '            SET NUM = NUM + 1.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program whose entry point is a labelled section (D2.1). The `GO TO`
 /// ahead of the section runs only if the entry lands on `GN)000`.
 final List<String> _section = <String>[
@@ -172,8 +190,8 @@ void main() {
     });
 
     test('the display survives an entry the machine lacks', () {
-      // No compiled program reaches this in M4: `STOP n` is refused
-      // (notes section 7) and `STOP RUN` ends the job.
+      // No compiled program reaches this: the generator emits no
+      // call to an entry the machine lacks.
       final Machine subject = machine({
         start: tsx(178),
         start + 1: typeA(0, decrement: start + 0x101, address: start + 0x100),
@@ -449,6 +467,15 @@ void main() {
       final ProcessResult run = _compileAndRun(_source);
       expect(run.exitCode, 0, reason: '${run.stderr}');
       expect(run.stdout, contains('AT 4,00 STOP RUN'));
+    });
+
+    test('STOP n prints its line and resumes with the next statement', () {
+      final (JobCompilation job, Machine subject) = compiled(_halt);
+      expect(subject.printed, <String>[
+        'AT 2,00 STOP 1234',
+        'AT 4,00 STOP RUN',
+      ]);
+      expect(subject.state.read(addressOf(job, 'NUM')), 1);
     });
 
     test('a labelled section runs from the entry point it takes', () {
