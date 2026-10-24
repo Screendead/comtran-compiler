@@ -51,13 +51,9 @@ void main() {
     );
   });
 
-  test('the applied deck refuses the first FILE ... IN', () {
-    // The environment division carries the GETs, so generation reaches
-    // HIGH.DETAIL, statement 131,00, and stops at `FILE MASTER IN
-    // ERROR.FILE`.
-    expect(
-      _refusal(fAppliedDeckPath),
-      'FILE record IN file (no sample instance)',
-    );
+  test('the applied deck refuses the first STOP n', () {
+    // FILE record IN file compiles (M6-9), so generation reaches
+    // END.OF.RUN, statement 139,00, and stops at `STOP 1234`.
+    expect(_refusal(fAppliedDeckPath), 'STOP n (notes section 7)');
   });
 }

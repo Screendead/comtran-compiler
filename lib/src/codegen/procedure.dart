@@ -1846,9 +1846,6 @@ final class _Text {
   }
 
   void _file(FileClause clause) {
-    if (clause.inFile != null) {
-      _unruled('FILE record IN file (no sample instance)');
-    }
     final RecordInfo? info = _rosterRecord(clause.record.text);
     if (info == null) {
       _unruled('a FILE of a name no FILE card lists (no sample instance)');
@@ -1856,13 +1853,22 @@ final class _Text {
     if (_duplicateFiles) {
       _unruled('a FILE where two FILE cards share a name (no sample instance)');
     }
-    if (info.outputFiles.length != 1) {
+    final String? named = clause.inFile?.text;
+    if (named != null) {
+      // The IN form names the file, so the record may sit on several
+      // (J 02.07.08 b; M6-9).
+      if (!info.outputFiles.contains(named)) {
+        _unruled(
+          'FILE record IN a file not bound to the record (no sample instance)',
+        );
+      }
+    } else if (info.outputFiles.length != 1) {
       _unruled(
         'a FILE record on ${info.outputFiles.length} output files '
         '(no sample instance)',
       );
     }
-    final String file = info.outputFiles.single;
+    final String file = named ?? info.outputFiles.single;
     final int length = _recordWords(info.item);
     final int? locator = _baseLocators[info.item];
     if (locator != null) {
