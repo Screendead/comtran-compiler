@@ -305,6 +305,64 @@ void main() {
     });
   });
 
+  group('STOP n (D2.7; M6-9)', () {
+    test('calls the display alone, with n right-justified', () {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+        ],
+        procedure: ['            STOP 1234.', '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<AssemblyUnit> units = runCodegen(semantics).units;
+      final List<String> words = [
+        for (final AssemblyUnit u in units) '${u.operation} ${u.operand}',
+      ];
+      final int call = words.indexOf('TSX SYS)178,4');
+      // No close-all and no end-of-job: the next word is STOP RUN's.
+      expect(words[call + 3], 'TSX SYS)178,4');
+      expect(words.where((String w) => w == 'TSX SYS)177,4'), hasLength(1));
+      // '  1234' in BCD (D0.6).
+      expect(words, contains('OCT 606001020304'));
+    });
+
+    test('empties the register cache, like every other call', () {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+          dataCard(name: 'FLD', level: '2', description: 'A(6)'),
+          dataCard(name: 'HOLD', level: '1', description: 'A(6)'),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          '            GET IREC, AT END GO TO RTN.',
+          '            MOVE FLD TO HOLD, STOP 5, MOVE FLD TO HOLD.',
+          '            STOP RUN.',
+          '      RTN.  STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      // The located FLD reloads its base after the halt.
+      expect(words.where((String w) => w == 'LAC BL)2,1'), hasLength(2));
+    });
+  });
+
   group('the entry point (D2.1)', () {
     // Compiles [procedure] over one integer item and asserts that the
     // end-of-text entry names the PROGRAM.START word rather than

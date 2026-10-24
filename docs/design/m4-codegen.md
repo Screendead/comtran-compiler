@@ -818,9 +818,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   `TSX SYS)177,4 / PZE IOC)1`; then `TXI IOC)40,0` — no halt
   instruction. The sample's SYS)177 pair at LOC 00517/00520 is
   the source's separate `CLOSE ALL FILES` clause (M4-15's shape), not
-  STOP RUN's (D2.7). STOP n has no sample site and refuses (notes
-  section 7); its D2.7 reading (the SYS)178 call alone, the halt in the
-  handler) stands unbuilt. The statement stamp is a pool pair: the
+  STOP RUN's (D2.7). STOP n has no sample site; M6-9 builds D2.7's
+  reading, the SYS)178 call alone. The statement stamp is a pool pair: the
   statement number in BCD, a comma, two digits, and three blanks. Each
   GET sequence opens with it as a tag-0 no-op,
   `TXH CP)+a,0,CP)+b`; SYS)178's parameters carry it; no other statement
@@ -853,9 +852,9 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   as amended): OPEN or CLOSE naming files (notes section 7), GET RECORD
   FROM, GET with no AT END (SYS)265 unattested), GET from a file
   declaring ON ERROR (the SYS)283 replacement is unknown), GET of a
-  transmitted record, and FILE record IN file (until M6-9). A GET or FILE refuses
-  off the roster, on other than one matching file, or where two FILE
-  cards share a name.
+  transmitted record, and FILE record IN file (until M6-9). A GET or
+  plain FILE refuses off the roster, on other than one matching file,
+  or where two FILE cards share a name. M6-9 holds the IN form's rule.
 
 ## The object deck and the loader cards
 

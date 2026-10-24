@@ -727,9 +727,10 @@ the report our run prints against the page.
   - `STOP n` at run time: the halt and the resume (Open Question 69).
 
   **Decided 2026-10-24: `FILE record IN file`. A design decision
-  under D0.4; Jack can overturn it.** This is the first item of the
-  list above. The generator now compiles the IN form to the call of
-  plain FILE, with the named file in the file word:
+  under D0.4; Jack can overturn it.** This is the third item of the
+  list above, and the first item done. The generator now compiles the
+  IN form to the call of plain FILE, with the named file in the file
+  word:
 
   ```
   TSX    IOC)9,4
@@ -757,8 +758,10 @@ the report our run prints against the page.
   [J 02.07.08] 2 a asks that the record be "associated in the
   Environment Description" with the named file. Where it is not, the
   front end prints message 195,00. The generator then refuses the
-  shape `FILE record IN a file not bound to the record`. No evidence
-  shows what code the 1962 processor made for it.
+  shape `FILE record IN a file that is not an output file of the
+  record`. No evidence shows what code the 1962 processor made for it.
+  The same refusal covers an IN form that names an input file. The
+  front end then prints message 22,00, also at severity 3.
 
   This refusal falls under the question for Jack above. The message
   says "CANNOT FILE RECORD 'NAME.2' IN THIS FILE". Our severity for it
@@ -771,13 +774,77 @@ the report our run prints against the page.
 
   - `test/codegen_test.dart` asserts the call on one file and on two.
   - `test/codegen_refusal_test.dart` pins the new refusal.
-  - `test/f_corpus_test.dart` pins the next stop. The applied deck now
-    compiles past statement 131,00. It stops at statement 139,00,
-    `STOP 1234`, on the shape `STOP n`, the last item of the list.
+  - `test/f_corpus_test.dart` pinned the next stop. The applied deck
+    then compiled past statement 131,00 and stopped at statement
+    139,00, `STOP 1234`, on the shape `STOP n`. The STOP n decision
+    below moved the pin.
 
   The two listings do not change, because the change is in code
   generation only. `test/goldens/90.05-payroll.code` does not change,
   because the sample has no IN form.
+
+  **Decided 2026-10-24: `STOP n`. A design decision under D0.4; Jack
+  can overturn it.** This is the last item of the list above, and the
+  second item done. The generator builds the reading of D2.7, the
+  display call alone:
+
+  ```
+  TSX    SYS)178,4
+  PZE    CP)+a,,CP)+b
+  PZE    CP)+c,,CP)+d
+  ```
+
+  CP)+a and CP)+b hold the statement stamp, as for STOP RUN (M4-14).
+  CP)+c holds ` STOP `. CP)+d holds n, right-justified in six BCD
+  characters with blank fill. No close-all and no end-of-job transfer
+  follow, so control goes on to the next word. The evidence:
+
+  - [J 90.02.14]: the pool entries hold "the type of STOP (STOP NNN or
+    STOP RUN)". The sample attests the STOP RUN words, ` STOP ` and
+    ` RUN  `.
+  - The form of n is ours. The one numeric pool word of the sample's
+    call is the statement number `   199`, right-justified, so n takes
+    that form. The display drops the padding (RT-2), so the printed
+    line does not depend on it.
+  - [J 05.06.04]: "The computer will stop, and hitting the START key
+    will cause the object program to continue in execution."
+
+  The SYS)178 handler does not change. It prints the line, for example
+  `AT 139,00 STOP 1234`, and returns to the word after the call. Our
+  machine has no operator. It takes the halt as a START pressed at
+  once, so the run continues with the next statement. This is the
+  resume of [F p. 54], "beginning with the next command in sequence".
+  Open Question 69 stays open, because J's words do not say where the
+  program continues.
+
+  The call empties the register cache, as every subroutine call does
+  (M4-9 as amended). A located field after the halt therefore loads
+  its base again and takes the SYS)294 guard.
+
+  The generator refuses an n that is not one to six digits, with the
+  shape `STOP n where n is not one to six digits`. The parser keeps a
+  longer n under message 192,00 at severity 3, and it takes a decimal
+  n such as `1.5` with no message. [F p. 54] says "n is an integer",
+  and [J 05.06.04] says "any number 6 digits or less". No evidence
+  shows what the 1962 processor punched for either form.
+
+  The tests:
+
+  - `test/codegen_test.dart` asserts the call alone, the pool word,
+    and the reload after the halt.
+  - `test/codegen_refusal_test.dart` pins the refusal of a long and a
+    decimal n.
+  - `test/runtime/machine_test.dart` runs a program through a halt.
+    The line prints, and the statement after the halt runs.
+  - `test/f_corpus_test.dart` pins the next stop. The applied deck now
+    compiles past statement 139,00. It stops at statement 141,00, `IF
+    DETAIL HOURS IS GREATER THAN 40`, on the shape `an arithmetic
+    operand of externalDecimal`. HOURS is an external-decimal field,
+    so this is the first item of the list, the external-decimal fetch.
+
+  The two listings do not change, because the change is in code
+  generation only. `test/goldens/90.05-payroll.code` does not change,
+  because the sample has no STOP n.
 
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
@@ -789,6 +856,7 @@ the report our run prints against the page.
 [F p. 21]: ../../comtran-manuals/F28-8043/02-language-structure.md#arithmetic-expressions
 [F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [F p. 43]: ../../comtran-manuals/F28-8043/03-procedure-description.md#editing-feature
+[F p. 54]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
 [F p. 65]: ../../comtran-manuals/F28-8043/04-data-description.md#data-description-format
 [F p. 76]: ../../comtran-manuals/F28-8043/04-data-description.md#tables
 [F p. 87]: ../../comtran-manuals/F28-8043/a1-programming-example.md#appendix-1-programming-example

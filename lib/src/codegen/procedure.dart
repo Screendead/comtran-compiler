@@ -1415,18 +1415,28 @@ final class _Text {
   // --- The program frame (catalogue 4.1) ----------------------------------
 
   void _stop(StopClause clause, {required bool run}) {
-    if (!run) {
-      _unruled('STOP n (notes section 7)');
-    }
     final (PoolHandle number, PoolHandle comma) = _stamp(
       _statement,
       _ordinals[clause] ?? 0,
     );
+    if (!run && !RegExp(r'^[0-9]{1,6}$').hasMatch(clause.number!.text)) {
+      // The parser keeps a long n under 192,00 and takes a decimal n
+      // with no message; the six-character pool word fits neither.
+      _unruled('STOP n where n is not one to six digits (no sample instance)');
+    }
     final PoolHandle stopWord = _pool.machineWord(_bcdWord(' STOP '));
-    final PoolHandle runWord = _pool.machineWord(_bcdWord(' RUN  '));
+    // n takes the stamp's right-justified form (M6-9).
+    final PoolHandle typeWord = _pool.machineWord(
+      _bcdWord(run ? ' RUN  ' : clause.number!.text.padLeft(6)),
+    );
     _tsx(178); // The halt entry ([J 90.02.14]).
     _pzePair(_cp(number), _cp(comma));
-    _pzePair(_cp(stopWord), _cp(runWord));
+    _pzePair(_cp(stopWord), _cp(typeWord));
+    if (!run) {
+      // The halt and the resume are the handler's (D2.7).
+      _callClears();
+      return;
+    }
     _tsx(177); // The close-all of [J 90.02.14] rides inside STOP RUN.
     _pzeIoc1();
     _name('IOC)40');
@@ -1859,7 +1869,8 @@ final class _Text {
       // (J 02.07.08 b; M6-9).
       if (!info.outputFiles.contains(named)) {
         _unruled(
-          'FILE record IN a file not bound to the record (no sample instance)',
+          'FILE record IN a file that is not an output file of the record '
+          '(no sample instance)',
         );
       }
     } else if (info.outputFiles.length != 1) {

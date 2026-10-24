@@ -176,6 +176,10 @@ hold, in BCD, the statement stamp and the type of the STOP (M4-14). The
 handler reads the four words in address-then-decrement order, prints one
 line, and returns to `3,4`.
 
+**Amended 2026-10-24.** STOP n reaches the same handler (D2.7). The
+machine has no operator, so it takes the halt as a START pressed at
+once, and the run goes on at `3,4`. M6-9 holds the reading.
+
 The attested site is LOC 00521 to 00523 of the sample, with the pool
 words `CP)+26` to `CP)+29` ([J 90.05] listing). They decode to
 `   199`, `,14   `, ` STOP ` and ` RUN  `.

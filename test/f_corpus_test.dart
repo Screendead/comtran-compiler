@@ -51,9 +51,13 @@ void main() {
     );
   });
 
-  test('the applied deck refuses the first STOP n', () {
-    // FILE record IN file compiles (M6-9), so generation reaches
-    // END.OF.RUN, statement 139,00, and stops at `STOP 1234`.
-    expect(_refusal(fAppliedDeckPath), 'STOP n (notes section 7)');
+  test('the applied deck refuses its first external-decimal operand', () {
+    // STOP n compiles (M6-9), so generation reaches COMPUTE.PAY,
+    // statement 141,00, and stops at `IF DETAIL HOURS IS GREATER THAN
+    // 40`: HOURS is an external-decimal field.
+    expect(
+      _refusal(fAppliedDeckPath),
+      'an arithmetic operand of externalDecimal (no sample instance)',
+    );
   });
 }
