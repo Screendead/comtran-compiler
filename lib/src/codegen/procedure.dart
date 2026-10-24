@@ -1419,9 +1419,13 @@ final class _Text {
       _statement,
       _ordinals[clause] ?? 0,
     );
+    if (!run && !RegExp(r'^[0-9]{1,6}$').hasMatch(clause.number!.text)) {
+      // The parser keeps a long n under 192,00 and takes a decimal n
+      // with no message; the six-character pool word fits neither.
+      _unruled('STOP n where n is not one to six digits (no sample instance)');
+    }
     final PoolHandle stopWord = _pool.machineWord(_bcdWord(' STOP '));
-    // n takes the stamp's right-justified form (M6-9); the parser
-    // bounds it at six digits (J 05.06.04).
+    // n takes the stamp's right-justified form (M6-9).
     final PoolHandle typeWord = _pool.machineWord(
       _bcdWord(run ? ' RUN  ' : clause.number!.text.padLeft(6)),
     );
@@ -1430,6 +1434,7 @@ final class _Text {
     _pzePair(_cp(stopWord), _cp(typeWord));
     if (!run) {
       // The halt and the resume are the handler's (D2.7).
+      _callClears();
       return;
     }
     _tsx(177); // The close-all of [J 90.02.14] rides inside STOP RUN.

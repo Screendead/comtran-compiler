@@ -932,6 +932,18 @@ void main() {
   });
 
   group('the B6 refusal sites (M4-2 as amended)', () {
+    test('STOP n where n is not one to six digits', () {
+      // The parser draws 192,00 for the long n and nothing for the
+      // decimal one, and neither stops generation (M6-9).
+      for (final n in ['1234567', '1.5']) {
+        expect(
+          _refuses(['            STOP $n.']),
+          'STOP n where n is not one to six digits (no sample instance)',
+          reason: n,
+        );
+      }
+    });
+
     test('an OPEN naming files', () {
       expect(
         _refuses(

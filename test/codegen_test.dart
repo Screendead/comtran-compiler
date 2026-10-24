@@ -331,6 +331,36 @@ void main() {
       // '  1234' in BCD (D0.6).
       expect(words, contains('OCT 606001020304'));
     });
+
+    test('empties the register cache, like every other call', () {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+          dataCard(name: 'FLD', level: '2', description: 'A(6)'),
+          dataCard(name: 'HOLD', level: '1', description: 'A(6)'),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          '            GET IREC, AT END GO TO RTN.',
+          '            MOVE FLD TO HOLD, STOP 5, MOVE FLD TO HOLD.',
+          '            STOP RUN.',
+          '      RTN.  STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      // The located FLD reloads its base after the halt.
+      expect(words.where((String w) => w == 'LAC BL)2,1'), hasLength(2));
+    });
   });
 
   group('the entry point (D2.1)', () {

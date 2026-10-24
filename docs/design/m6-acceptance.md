@@ -728,8 +728,9 @@ the report our run prints against the page.
 
   **Decided 2026-10-24: `FILE record IN file`. A design decision
   under D0.4; Jack can overturn it.** This is the third item of the
-  list above, and the first item done. The generator now compiles the IN form to the call of
-  plain FILE, with the named file in the file word:
+  list above, and the first item done. The generator now compiles the
+  IN form to the call of plain FILE, with the named file in the file
+  word:
 
   ```
   TSX    IOC)9,4
@@ -773,9 +774,10 @@ the report our run prints against the page.
 
   - `test/codegen_test.dart` asserts the call on one file and on two.
   - `test/codegen_refusal_test.dart` pins the new refusal.
-  - `test/f_corpus_test.dart` pins the next stop. The applied deck now
-    compiles past statement 131,00. It stops at statement 139,00,
-    `STOP 1234`, on the shape `STOP n`, the last item of the list.
+  - `test/f_corpus_test.dart` pinned the next stop. The applied deck
+    then compiled past statement 131,00 and stopped at statement
+    139,00, `STOP 1234`, on the shape `STOP n`. The STOP n decision
+    below moved the pin.
 
   The two listings do not change, because the change is in code
   generation only. `test/goldens/90.05-payroll.code` does not change,
@@ -815,9 +817,23 @@ the report our run prints against the page.
   Open Question 69 stays open, because J's words do not say where the
   program continues.
 
+  The call empties the register cache, as every subroutine call does
+  (M4-9 as amended). A located field after the halt therefore loads
+  its base again and takes the SYS)294 guard.
+
+  The generator refuses an n that is not one to six digits, with the
+  shape `STOP n where n is not one to six digits`. The parser keeps a
+  longer n under message 192,00 at severity 3, and it takes a decimal
+  n such as `1.5` with no message. [F p. 54] says "n is an integer",
+  and [J 05.06.04] says "any number 6 digits or less". No evidence
+  shows what the 1962 processor punched for either form.
+
   The tests:
 
-  - `test/codegen_test.dart` asserts the call alone and the pool word.
+  - `test/codegen_test.dart` asserts the call alone, the pool word,
+    and the reload after the halt.
+  - `test/codegen_refusal_test.dart` pins the refusal of a long and a
+    decimal n.
   - `test/runtime/machine_test.dart` runs a program through a halt.
     The line prints, and the statement after the halt runs.
   - `test/f_corpus_test.dart` pins the next stop. The applied deck now
