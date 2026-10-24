@@ -138,13 +138,26 @@ the report our run prints against the page.
 
   Jack authorized the correction on 2026-09-14. The note now states
   the skew, and the block reads each line along its own baseline. The
-  reflow left three cells that the scan contradicts, and they are a new
-  erratum candidate (`docs/HANDOVER.md`). The DEPARTMENT 09 TOTALS line
-  prints `0.00` in the fourth amount column, where the transcription
-  reads `5.21`. The GT line prints `5.21` and `36.00` in its fourth and
-  fifth columns, and the transcription omits both. The column sums
-  confirm all three: the fourth column of the department totals sums to
-  5.21, and the fifth to 36.00.
+  reflow left three cells that the scan contradicts. The DEPARTMENT 09
+  TOTALS line prints `0.00` in the fourth amount column, where the
+  transcription read `5.21`. The GT line prints `5.21` and `36.00` in
+  its fourth and fifth columns, and the transcription omitted both. The
+  column sums confirm all three: the fourth column of the seven
+  department totals sums to 5.21, the fifth to 36.00, and the four
+  detail lines of department 09 each print 0.00 in the fourth.
+
+  **Amended 2026-09-15.** Jack authorized the three cells, in these
+  words: "authorize the three cells". The conversion now prints them,
+  and no erratum candidate is open. The reading was measured again
+  first, on the scan
+  (`comtran-manuals/J28-6169/images/page-217.png`) deskewed by 1.8
+  degrees. No finding of M6-4 moves, and no test and no golden change.
+  `test/fixtures/90.05-report-page-217.txt` was keyed from the scan and
+  never from the conversion, so it already held the three values, and
+  so did `test/goldens/90.05-payroll.report`. Finding 2 stands, and the
+  corrected cells are what let the GT line's own arithmetic close:
+  2730.39 − 449.35 − 5.21 − 36.00 − 28.00 − 28.00 = 2183.83, where the
+  page prints 2180.63.
 
   The print chain rendered some letters O as C. The BONDORDERFILE line
   prints `WCO J` where the PAYFILE line and the check print the same
