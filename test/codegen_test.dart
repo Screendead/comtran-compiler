@@ -1065,6 +1065,153 @@ void main() {
       ]);
       expect(chain('            SET EXM = FRAC - 4.').last, 'TXI SYS)187,1,3');
     });
+
+    test('a located target loads its base ahead of the half-adjust', () {
+      // Statement 142,00's DETAIL GROSS: the base load and its guard
+      // come after the chain and before the tail.
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+          dataCard(
+            name: 'IGRS',
+            level: '2',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(
+            name: 'FRAC',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '9V9',
+          ),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          '            GET IREC, AT END GO TO RTN.',
+          '            SET IGRS = FRAC + FRAC.',
+          '      RTN.  STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('TRA RTN') + 1;
+      expect(words.sublist(start, words.indexOf('TSX SYS)178,4')), [
+        'CLA FRAC',
+        'ADD FRAC',
+        'LAC BL)2,1',
+        'TXL SYS)294,1,0',
+        'ACL CP)+4',
+        'LRS 35',
+        'DVP CP)+5',
+        'STQ IGRS,1',
+      ]);
+    });
+  });
+
+  group('the external-decimal DO FOR index (M6-9)', () {
+    /// The units of `DO RTN FOR index = [bounds]` over CELL (index).
+    /// EXI is external `99`, EXM external `9R` (two digits), and NUM and CELL
+    /// internal `999`.
+    List<AssemblyUnit> units(String index, String bounds) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'TAB', level: '1', quantity: '12'),
+          for (final String name in ['CELL', 'NUM'])
+            dataCard(
+              name: name,
+              level: name == 'CELL' ? '2' : '1',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+          dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
+          dataCard(name: 'EXM', level: '1', mode: 'E', description: '9R'),
+        ],
+        procedure: [
+          '            DO RTN FOR $index = $bounds.',
+          '            STOP RUN.',
+          '      RTN.  BEGIN SECTION.',
+          '            MOVE NUM TO TAB CELL ($index).',
+          '            END RTN.',
+        ],
+      );
+      expect(ids(semantics), ['206,00']);
+      return runCodegen(semantics).units;
+    }
+
+    /// The words of the loop, from its AXT to its TPL.
+    List<String> loop(String index, String bounds) {
+      final List<String> words = [
+        for (final AssemblyUnit u in units(index, bounds))
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexWhere((w) => w.startsWith('AXT GN)'));
+      return words.sublist(
+        start,
+        words.indexWhere((w) => w.startsWith('TPL '), start) + 1,
+      );
+    }
+
+    test('the loop stores, steps and tests the index through its cell', () {
+      expect(loop('EXI', '1(1)12'), [
+        'AXT GN)004,4',
+        'SXA RTN,4',
+        'CLA CP)+1',
+        'TSX SYS)180,4',
+        'PZE EXI,,0',
+        'TXI SYS)186,1,2',
+        'CLA GN)006',
+        'STO PI)1',
+        'EQU RTN+1',
+        'TRA RTN+1',
+        'LDI CP)+8',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,2',
+        'STO TS)1',
+        'CLA TS)1',
+        'ADD CP)+1',
+        // The stride words reuse the accumulator, so the stepped value
+        // parks for the exit test.
+        'STO TS)1',
+        'TSX SYS)180,4',
+        'PZE EXI,,0',
+        'TXI SYS)186,1,2',
+        'CLA CP)+1',
+        'ADD PI)1',
+        'STO PI)1',
+        'CLA CP)+2',
+        'SUB TS)1',
+        'TPL GN)003',
+      ]);
+    });
+
+    test('the back edge enters the increment block on the convert', () {
+      final AssemblyUnit head = units(
+        'EXI',
+        '1(1)12',
+      ).firstWhere((AssemblyUnit u) => u.labels.contains('GN)004'));
+      expect('${head.operation} ${head.operand}', 'LDI CP)+8');
+    });
+
+    test('a minus-overpunched index stores through SYS)187', () {
+      expect(loop('EXM', '1(1)9').where((w) => w.startsWith('TXI SYS)18')), [
+        'TXI SYS)187,1,2',
+        'TXI SYS)184,1,2',
+        'TXI SYS)187,1,2',
+      ]);
+    });
   });
 
   group('the entry point (D2.1)', () {
