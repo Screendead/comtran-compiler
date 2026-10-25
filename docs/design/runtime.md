@@ -120,14 +120,15 @@ I/O-free program reaches, and M5 stage 2 built the GET of the last row:
 |---|---|
 | the run frame (RT-2) | SYS)175, 177, 178, 294, and IOC)40 |
 | the MOVPAK entries (RT-3) | SYS)180 and SYS)182 |
-| the non-edited members (RT-4) | SYS)184, 239, 240, 241, 243, 244, 245, 268, 269, 275 |
+| the non-edited members (RT-4) | SYS)184, 186, 187, 188, 239, 240, 241, 243, 244, 245, 268, 269, 275 |
 | the edited family (RT-5) | SYS)185, 190, 193, 198, 211, 212, 214, 216, 225, 226, 267 |
 | the GET, added 2026-09-12 (`m5-io.md` M5-8) | IOC)8, SYS)260 and SYS)283 |
 | the FILE, added 2026-09-13 (`m5-io.md` M5-9) | IOC)9 |
 
 That is 28 handlers, plus the four cells RT-2 names: SYS)132, SYS)133,
 IOC)1 and IOC)29. M5 stage 2 then added the three of the GET row, for
-31, and M5 stage 3 the FILE, for 32.
+31, and M5 stage 3 the FILE, for 32. M6 stage 2 added SYS)186, 187 and
+188 with the external-decimal store, for 35 (`m6-acceptance.md` M6-9).
 
 **Each remaining entry lands with the codegen shape that first emits
 it. Design decision.** CLAUDE.md section 11 bans a handler that no test
@@ -429,11 +430,14 @@ them.
 The entry copies both cells into the session and reads neither as a
 source or a target. The family head decides which side is a register.
 
-**The handler decodes `PZE` only. Design decision.** The manual also
-prints `MZE BL)NN,,CP)+NN` ([J 90.02.14]) and `MON PI)NN,,0`
-([J 90.02.15]). Our generator emits neither, because `_pze` refuses a
-located item before it reads anything. A prefix test would duplicate
-that refusal, and CLAUDE.md section 11 bars a branch no run reaches.
+**The handler decodes `PZE` and `MZE`. Design decision.** A word with
+the sign bit clear is the pointer itself. `MZE BL)NN,,CP)+NN`
+([J 90.02.14] Case 2) gives the pointer as the sum of the base locator
+and the displacement constant. That is the sum the in-line `CAL BL)NN /
+ACL CP)+NN / SLW` builds ([J 90.02.11] Case 2). The external-decimal
+store emits the `MZE` form for a target in a located record (M6-9,
+amended 2026-10-25). The handler does not decode `MON PI)NN,,0`
+([J 90.02.15]), because no emitted word holds it.
 
 **The advanced pointers are not written back. Design decision.** No
 source says whether MOVPAK returns them. Every site that reads a pointer
@@ -466,6 +470,30 @@ The characters are read one at a time:
 
 A minus-overpunched zero gives the machine's minus zero: the sign bit is
 set and the magnitude is 0.
+
+### SYS)186, SYS)187 and SYS)188, internal decimal to external decimal
+
+`TXI SYS)186,1,NUMBER-OF-CHARACTERS-TO-DEVELOP` "converts from internal
+decimal in the AC or AC-MQ to unsigned external decimal". SYS)187 gives
+"overpunch minus sign convention" and SYS)188 "overpunch plus sign
+convention" ([J 90.02.18]). Each step ends the move. Added 2026-10-25
+with the external-decimal store (M6-9).
+
+The handler writes the accumulator's magnitude as that many digits,
+high order first:
+
+- SYS)186 writes no sign. A negative value stores its magnitude.
+- SYS)187 and SYS)188 overpunch the last digit as the edited tags 1 and
+  2 do (RT-5, the sign conventions). Under SYS)187 a positive value
+  keeps the plain digit. Under SYS)188 it takes the 12 punch.
+
+**The source is the accumulator alone, as for SYS)267.** The generator
+moves a value in the MQ with `XCA` before the call. More than ten
+characters is the AC-MQ pair, which the handler refuses (below).
+
+**A longer value drops its high-order digits, and arms nothing. Design
+decision.** [J 90.02.18] lists no overflow test step for the three
+entries. The rule is SYS)267's rule (RT-5) and D4.2's.
 
 ### SYS)268, SYS)269 and SYS)275, an edited field to a register
 
@@ -823,6 +851,7 @@ Three edited pictorials reach no control word, so codegen refuses them
 [J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.16]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.17]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.18]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.19]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.25]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.26]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
