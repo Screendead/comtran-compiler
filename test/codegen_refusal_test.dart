@@ -256,6 +256,15 @@ void main() {
       );
     });
 
+    test('the operator inside a product', () {
+      // A quotient as the complex factor keeps its own refusal, not the
+      // digit count of the product of a product (M6-9).
+      expect(
+        _refuses(['            SET NUM = NUM / TOT * IDX.']),
+        'the operator / (notes section 7)',
+      );
+    });
+
     test('a subscripted chain operand, one term', () {
       expect(
         _refuses(['            SET NUM = TAB CELL (IDX).']),

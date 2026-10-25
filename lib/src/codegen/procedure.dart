@@ -2892,7 +2892,7 @@ final class _Text {
     }
     final complex = leftLeaf ? right : left;
     final leaf = leftLeaf ? left : right;
-    if (complex is BinaryExpr && !_additive(complex)) {
+    if (complex is BinaryExpr && complex.operator.text == '*') {
       // The product of a product (M6-9): the inner product is already
       // the MQ half, so the factor's word multiplies it with no `XCA`,
       // the one-word step of 01224 to 01225. That `MPY` reads the MQ
