@@ -746,15 +746,6 @@ void main() {
   });
 
   group('the B3 refusal sites (M4-10)', () {
-    test('a scaling store of a chain value', () {
-      // The tail opens on `XCA`, which reads the MQ half, and a chain
-      // finishes in the accumulator.
-      expect(
-        _refuses(['            SET NUM = FRAC + FRAC.']),
-        'a scaling store of a chain value (no sample instance)',
-      );
-    });
-
     test('a scale alignment of a sub-chain', () {
       // The sub-chain's scale is below the chain's, and no one word
       // aligns a value the accumulator holds.

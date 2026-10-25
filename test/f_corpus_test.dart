@@ -51,14 +51,13 @@ void main() {
     );
   });
 
-  test('the applied deck refuses its first scaling store of a chain', () {
-    // The external-decimal store compiles (M6-9), so statement 141,00
-    // compiles whole. Statement 142,00, `SET DETAIL GROSS = DETAIL GROSS
-    // + MASTER RATE * 40`, computes a chain at scale 3 in the
-    // accumulator and stops on its store into a field of scale 2.
+  test('the applied deck refuses its first external-decimal DO FOR index', () {
+    // The scaling store of a chain value compiles (M6-9), so statement
+    // 142,00 compiles whole. Statement 144,00, `DO SEARCH FOR INDEX =
+    // 1(1)12`, runs its loop on an external-decimal INDEX.
     expect(
       _refusal(fAppliedDeckPath),
-      'a scaling store of a chain value (no sample instance)',
+      'an external-decimal DO FOR index (M6-9)',
     );
   });
 }

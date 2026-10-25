@@ -896,6 +896,106 @@ void main() {
     });
   });
 
+  group('the scaling store of a chain value (M6-9)', () {
+    /// The words of [statement] up to its STOP RUN. NUM is internal
+    /// `999`, FRAC internal `9V9`, EXT external `999` and EXM external
+    /// `99R`.
+    List<String> chain(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          for (final (String name, String picture) in [
+            ('NUM', '999'),
+            ('FRAC', '9V9'),
+          ])
+            dataCard(
+              name: name,
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: picture,
+            ),
+          dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
+          dataCard(name: 'EXM', level: '1', mode: 'E', description: '99R'),
+        ],
+        procedure: [statement, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      // The procedure begins past the four one-word data cells.
+      final int start = words.indexOf('BSS 0') + 5;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    test('a chain takes the tail with no XCA', () {
+      expect(chain('            SET NUM = FRAC + FRAC.'), [
+        'CLA FRAC',
+        'ADD FRAC',
+        'ACL CP)+2',
+        'LRS 35',
+        'DVP CP)+3',
+        'STQ NUM',
+      ]);
+    });
+
+    test('a one-term chain takes the same tail', () {
+      expect(chain('            SET NUM = FRAC.'), [
+        'CLA FRAC',
+        'ACL CP)+2',
+        'LRS 35',
+        'DVP CP)+3',
+        'STQ NUM',
+      ]);
+    });
+
+    test('TRUNCATED drops the half-adjust', () {
+      expect(chain('            SET NUM = FRAC + FRAC TRUNCATED.'), [
+        'CLA FRAC',
+        'ADD FRAC',
+        'LRS 35',
+        'DVP CP)+2',
+        'STQ NUM',
+      ]);
+    });
+
+    test('the shape of statement 142,00 divides by its alignment word', () {
+      // NUM aligns by 100 to the scale of the product, and the tail
+      // divides by the same pool word, as CP)+31 serves both at 00623
+      // and 00646.
+      expect(chain('            SET NUM = NUM + FRAC * FRAC.'), [
+        'LDQ NUM',
+        'MPY CP)+2',
+        'STQ RS)1+0',
+        'LDQ FRAC',
+        'MPY FRAC',
+        'STQ RS)0',
+        'CLA RS)1',
+        'ADD RS)0',
+        'ACL CP)+3',
+        'LRS 35',
+        'DVP CP)+2',
+        'STQ NUM',
+      ]);
+    });
+
+    test('an external target takes the quotient back with XCA', () {
+      expect(chain('            SET EXT = FRAC + FRAC.'), [
+        'CLA FRAC',
+        'ADD FRAC',
+        'ACL CP)+2',
+        'LRS 35',
+        'DVP CP)+3',
+        'XCA ',
+        'TSX SYS)180,4',
+        'PZE EXT,,0',
+        'TXI SYS)186,1,3',
+      ]);
+      expect(chain('            SET EXM = FRAC - 4.').last, 'TXI SYS)187,1,3');
+    });
+  });
+
   group('the entry point (D2.1)', () {
     // Compiles [procedure] over one integer item and asserts that the
     // end-of-text entry names the PROGRAM.START word rather than

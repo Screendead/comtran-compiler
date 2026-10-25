@@ -3026,7 +3026,8 @@ final class _Text {
 
   /// The store: one word on equal scale, the five-word scaling tail
   /// otherwise — `XCA / ACL half / LRS 35 / DVP scale / STQ`, the
-  /// half-adjust suppressed under TRUNCATED (catalogue 4.7; D4.1).
+  /// half-adjust suppressed under TRUNCATED (catalogue 4.7; D4.1). A
+  /// value in the accumulator takes the tail without its `XCA` (M6-9).
   void _store(NameReference target, _Value value, {required bool truncated}) {
     if (target.subscripts.isNotEmpty) {
       _unruled('a subscripted SET target (no sample instance)');
@@ -3049,11 +3050,6 @@ final class _Text {
     if (value.scale < targetScale) {
       _unruled('a store below the target scale (no sample instance)');
     }
-    if (value.register != _Register.mq) {
-      // The tail opens on `XCA`, which reads the MQ half, so it scales a
-      // product and nothing else. Every attested site is one (M4-10).
-      _unruled('a scaling store of a chain value (no sample instance)');
-    }
     final int divisor = _pow10(value.scale - targetScale);
     // The half-adjust is referenced first, so it pools first.
     final _Sym? half = truncated ? null : _cp(_pool.machineWord(divisor ~/ 2));
@@ -3061,7 +3057,11 @@ final class _Text {
     if (!external) {
       _loadBaseOf(item);
     }
-    _xca();
+    // A product moves its low half into the accumulator; a chain is
+    // already there, so its tail opens on the half-adjust (M6-9).
+    if (value.register == _Register.mq) {
+      _xca();
+    }
     if (half != null) {
       _op(Op.acl, half);
     }
