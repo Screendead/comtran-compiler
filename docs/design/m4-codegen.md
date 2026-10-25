@@ -709,7 +709,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   The one-site cell and register choices are underdetermined; the
   chunk B4 record holds the rejected formulations. Six unattested
   variants refuse (M4-2 as amended):
-  - a nonzero literal comparand;
+  - a nonzero literal comparand, until 2026-10-25 (M6-9);
   - a subscripted accumulator comparand;
   - an unscaled zero;
   - a subscripted alphameric comparand;

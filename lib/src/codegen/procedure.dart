@@ -3125,8 +3125,9 @@ final class _Text {
     return false;
   }
 
-  /// P(A) + L(A) + P(B) + 1 + V (catalogue 4.8). The zero build is
-  /// three words when the zero needs the storage operand's scale.
+  /// P(A) + L(A) + P(B) + 1 + V (catalogue 4.8). The zero build and
+  /// the aligned build each take three words where a plain `CLA` takes
+  /// one.
   void _numericComparison(
     ArithExpr acc,
     ArithExpr storage,
@@ -3149,7 +3150,9 @@ final class _Text {
     }
     switch (acc) {
       case LiteralOperand(:final literal) when _literalValue(literal).$1 != 0:
-        _unruled('a nonzero literal comparand (no sample instance)');
+        // The pool word's own load, as the one-term chain `CLA CP)+10`
+        // at 01215 (M6-9).
+        _op(Op.cla, _cp(_numericLiteral(literal)));
       // Only a zero figurative reaches the zero build: legality bars
       // the others against a numeric operand (msg 82,00), and one that
       // slipped through would take the default refusal below.
@@ -3195,13 +3198,15 @@ final class _Text {
   /// and 01241–01243). The literal pools as keyed (catalogue 4.7).
   void _alignedBuild(ArithExpr low, int deficit) {
     if (low case LiteralOperand(:final literal)) {
-      _wordGuard('${_literalValue(literal).$1.abs()}'.length, deficit);
+      _wordGuard('${_literalValue(literal).$1}'.length, deficit);
       _scaledLoad(() => _op(Op.ldq, _cp(_numericLiteral(literal))), deficit);
       return;
     }
     final NameReference name = (low as NameOperand).name;
     if (name.subscripts.isNotEmpty) {
-      _unruled('a subscripted accumulator comparand (no sample instance)');
+      _unruled(
+        'a subscripted comparand that needs upscaling (no sample instance)',
+      );
     }
     final DataItem item = _operand(_item(name)!);
     _wordGuard(_sem(item).digits, deficit);

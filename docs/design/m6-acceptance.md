@@ -1014,8 +1014,8 @@ the report our run prints against the page.
 
   The generator refuses two shapes on this path:
 
-  - `a subscripted accumulator comparand (no sample instance)`, now
-    also for a subscripted side of lesser scale.
+  - `a subscripted comparand that needs upscaling (no sample
+    instance)`, for a subscripted side of lesser scale on either side.
   - `an aligned comparand of more than 10 digits (no sample instance)`.
     The `XCA` keeps one word of the product. Past ten digits the value
     needs the AC-MQ pair, which has no comparison form (§8.5 Open
@@ -1036,6 +1036,16 @@ the report our run prints against the page.
     below moved the pin.
 
   The two listings and `test/goldens/90.05-payroll.code` do not change.
+
+  **Amended 2026-10-25, after the PR 143 review.** The alignment
+  admitted a nonzero literal in the accumulator when the scales differ,
+  so `IF 4 GT FRAC` compiled and `IF 4 GT NUM` refused. Both compiled in
+  1962. A nonzero literal of equal scale now loads with `CLA` of its
+  pool word, then `CAS`. The load is the one-term chain of LOC 01215,
+  `CLA CP)+10`. M4-11's refusal `a nonzero literal comparand` is
+  withdrawn. `test/codegen_test.dart` asserts the words, and
+  `test/runtime/machine_test.dart` runs `5 GT NUM`, `5 LT NUM` and
+  `4 LT 5`.
 
   **Decided 2026-10-25: the product of a product. A design decision
   under D0.4; Jack can overturn it.** This is the fifth item of the

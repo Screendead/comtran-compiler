@@ -532,6 +532,25 @@ void main() {
       ]);
     });
 
+    test('a nonzero literal of equal scale loads its pool word', () {
+      expect(compare('            IF 5 GT NUM THEN STOP RUN.'), [
+        'CLA CP)+2',
+        'CAS NUM',
+        'TRA *+3',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
+    });
+
+    test('two literals of equal scale take the same load', () {
+      expect(compare('            IF 4 LT 5 THEN STOP RUN.'), [
+        'CLA CP)+2',
+        'CAS CP)+3',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
+    });
+
     test('a fetched field compares with 40 from its cell', () {
       expect(compare('            IF HRS GT 40 THEN STOP RUN.'), [
         'LDI CP)+10',

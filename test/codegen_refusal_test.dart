@@ -452,7 +452,7 @@ void main() {
     test('a subscripted comparand of lesser scale', () {
       expect(
         _refuses(['            IF FRAC GT TAB CELL (IDX) THEN STOP RUN.']),
-        'a subscripted accumulator comparand (no sample instance)',
+        'a subscripted comparand that needs upscaling (no sample instance)',
       );
     });
 
@@ -736,13 +736,6 @@ void main() {
   });
 
   group('the B4 refusal sites (M4-11)', () {
-    test('a nonzero literal comparand', () {
-      expect(
-        _refuses(['            IF 5 GT NUM THEN STOP RUN.']),
-        'a nonzero literal comparand (no sample instance)',
-      );
-    });
-
     test('a subscripted accumulator comparand', () {
       expect(
         _refuses(['            IF TAB CELL (IDX) GT NUM THEN STOP RUN.']),
