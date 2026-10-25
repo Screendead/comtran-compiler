@@ -1652,8 +1652,7 @@ final class _Text {
       _unruled('a DO FOR index with no data definition (no sample instance)');
     }
     _operand(indexItem);
-    final bool external =
-        _sem(indexItem).fieldClass == FieldClass.externalDecimal;
+    final external = _sem(indexItem).fieldClass == FieldClass.externalDecimal;
     if (external) {
       _checkExternalTarget(indexItem);
     }
