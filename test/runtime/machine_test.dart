@@ -615,6 +615,13 @@ final List<String> _byteStride = <String>[
   '      *FINISH',
 ];
 
+/// The index card of [_wordStrideByte], which ends its table.
+final String _byteIndex = dataCard(
+  name: 'INDEX',
+  level: '1',
+  description: '99',
+);
+
 /// A loop over twelve items of two whole words: A `99`, B `9999` at
 /// byte 2, and C `9(6)`. Item k holds A = k, B = k and C = 100 + k, so a
 /// reader that took B from byte 0 would read `0k00` for k below 10.
@@ -633,7 +640,7 @@ final List<String> _wordStrideByte = <String>[
   dataCard(name: 'A', level: '2', description: '99'),
   dataCard(name: 'B', level: '2', description: '9999'),
   dataCard(name: 'C', level: '2', description: '9(6)'),
-  dataCard(name: 'INDEX', level: '1', description: '99'),
+  _byteIndex,
   dataCard(name: 'SB', level: '1', description: '9(6)'),
   for (final String name in ['NB', 'NG', 'SN'])
     dataCard(
@@ -652,6 +659,54 @@ final List<String> _wordStrideByte = <String>[
   '            MOVE B (INDEX) TO NB.',
   '            SET SN = SN + NB.',
   '            END RTN.',
+  '      *FINISH',
+];
+
+/// An internal-decimal field of [pic] at [level].
+String _internal(String name, String pic, {String level = '1'}) => dataCard(
+  name: name,
+  level: level,
+  mode: 'I',
+  justify: 'R',
+  description: pic,
+);
+
+/// Stores 7 into element 2 of a three-word table through a MOVE whose
+/// target is subscripted, after a SET and an ADD move the index from 1
+/// to 3 and back to 2. A, an external table holding 1, 2 and 3, is read
+/// after each step.
+final List<String> _subscriptStores = <String>[
+  '      *DATA',
+  _internal('P1', '9'),
+  _internal('P2', '9'),
+  dataCard(name: 'TAB', level: '1', quantity: '3'),
+  _internal('CELL', '999', level: '2'),
+  dataCard(name: 'TABLE', level: '1'),
+  for (var k = 1; k <= 3; k++)
+    dataCard(level: '2', description: "'${'$k'.padLeft(6, '0')}'"),
+  dataCard(type: 'REDEF', description: 'TABLE'),
+  dataCard(name: 'ATAB', level: '1', quantity: '3'),
+  dataCard(name: 'A', level: '2', mode: 'E', description: '9(6)'),
+  for (final String name in ['I', 'ONE', 'NUM', 'WS', 'WA'])
+    _internal(name, '9(6)'),
+  '      *PROCEDURE',
+  '      START.  SET ONE = 1, MOVE ONE TO I.',
+  '            SET I = 3, MOVE A (I) TO WS.',
+  '            ADD ONE TO I, SET I = I - 2, MOVE A (I) TO WA.',
+  '            SET NUM = 7, MOVE NUM TO CELL (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
+final List<String> _subChain = <String>[
+  '      *DATA',
+  _internal('NUM', '999'),
+  _internal('X', '9(5)'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 5.',
+  '            SET X = NUM * 2 + (NUM * 3 + 1).',
+  '            STOP RUN.',
   '      *FINISH',
 ];
 
@@ -1332,6 +1387,47 @@ void main() {
       expect(subject.state.read(addressOf(job, 'NG')), 6);
       // The subscripted MOVE source reads through the same pointer.
       expect(subject.state.read(addressOf(job, 'SN')), 78);
+    });
+
+    test('a SET, an ADD and a subscripted MOVE target move the element', () {
+      final (JobCompilation job, Machine subject) = compiled(_subscriptStores);
+      // The SET moved the indicator to element 3, and the ADD and SET
+      // back to element 2.
+      expect(subject.state.read(addressOf(job, 'WS')), 3);
+      expect(subject.state.read(addressOf(job, 'WA')), 2);
+      final int tab = addressOf(job, 'TAB');
+      expect(
+        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
+        <int>[0, 7, 0],
+      );
+    });
+
+    test('a subscript store reads a field from its own byte', () {
+      // The loop above sets its indicators from the DO FOR base; here
+      // one MOVE sets the index, so the subscript store's base does.
+      final (JobCompilation job, Machine subject) = compiled(<String>[
+        '      *DATA',
+        // The base `B-2` must stay at or above address zero.
+        _internal('P1', '9'),
+        _internal('P2', '9'),
+        ..._wordStrideByte.sublist(1, _wordStrideByte.indexOf(_byteIndex)),
+        _internal('THREE', '99'),
+        _internal('IDX', '99'),
+        _internal('NB', '9(6)'),
+        '      *PROCEDURE',
+        '      START.  SET THREE = 3, MOVE THREE TO IDX.',
+        '            MOVE B (IDX) TO NB.',
+        '            STOP RUN.',
+        '      *FINISH',
+      ]);
+      // A read from byte 0 gives 300.
+      expect(subject.state.read(addressOf(job, 'NB')), 3);
+    });
+
+    test('a sub-chain inside a chain keeps the outer park', () {
+      final (JobCompilation job, Machine subject) = compiled(_subChain);
+      // Both products in one cell would give 3·5 + 3·5 + 1 = 31.
+      expect(subject.state.read(addressOf(job, 'X')), 26);
     });
 
     test('a labelled section runs from the entry point it takes', () {
