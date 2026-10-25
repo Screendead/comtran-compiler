@@ -2892,9 +2892,22 @@ final class _Text {
     }
     final complex = leftLeaf ? right : left;
     final leaf = leftLeaf ? left : right;
+    if (complex is BinaryExpr && !_additive(complex)) {
+      // The product of a product (M6-9): the inner product is already
+      // the MQ half, so the factor's word multiplies it with no `XCA`,
+      // the one-word step of 01224 to 01225. That `MPY` reads the MQ
+      // alone, so the inner product must fit one word.
+      if (_digits(complex) > 10) {
+        _unruled('a product of a product past 10 digits (no sample instance)');
+      }
+      final int scale = _product(complex);
+      _leafOperand(leaf)(Op.mpy);
+      return scale + _naturalScale(leaf);
+    }
     final int scale = switch (complex) {
       TruthExpr() => _truthFunction(complex),
-      BinaryExpr() => _accumulated(_chain(complex)),
+      // An additive chain always finishes in the accumulator.
+      BinaryExpr() => _chain(complex).scale,
       _ => _unruled('a factor of ${complex.runtimeType}'),
     };
     final void Function(Op) factor = _leafOperand(leaf);
@@ -2905,12 +2918,25 @@ final class _Text {
     return scale + _naturalScale(leaf);
   }
 
-  /// The scale of a complex factor, which the `XCA` step requires in the
-  /// accumulator. A chain of one product finishes in the MQ instead, and
-  /// the sample never writes one (M4-10).
-  int _accumulated(_Value value) => value.register == _Register.ac
-      ? value.scale
-      : _unruled('a product of a product (no sample instance)');
+  /// The most decimal digits [expr] can hold at its natural scale. A
+  /// chain of two or more terms takes one more digit for the carry.
+  int _digits(ArithExpr expr) => switch (expr) {
+    NameOperand(:final name) => _sem(_item(name)!).digits,
+    LiteralOperand(:final literal) => literal.text.replaceFirst('.', '').length,
+    TruthExpr() => 1,
+    BinaryExpr(:final left, :final right) when expr.operator.text == '*' =>
+      _digits(left) + _digits(right),
+    BinaryExpr() when _additive(expr) =>
+      _additiveTerms(expr)
+              .map(
+                ((ArithExpr, Token?) term) =>
+                    _digits(term.$1) - _naturalScale(term.$1),
+              )
+              .reduce((int a, int b) => a > b ? a : b) +
+          _naturalScale(expr) +
+          1,
+    _ => _unruled('the digits of ${expr.runtimeType}'),
+  };
 
   /// Prepares [leaf] as a factor and returns the emitter of the word
   /// that addresses it, guard and all. A literal takes a pool entry and

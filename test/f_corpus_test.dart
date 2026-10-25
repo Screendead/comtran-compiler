@@ -51,13 +51,10 @@ void main() {
     );
   });
 
-  test('the applied deck refuses its first product of a product', () {
-    // The comparison of unequal scales compiles (M6-9), so statement
-    // 141,00 compares HOURS with 40 and stops in its THEN arm: `(DETAIL
-    // HOURS - 40) * MASTER RATE * 1.5` multiplies a product.
-    expect(
-      _refusal(fAppliedDeckPath),
-      'a product of a product (no sample instance)',
-    );
+  test('the applied deck refuses its first external-decimal store', () {
+    // The product of a product compiles (M6-9), so statement 141,00
+    // computes `(DETAIL HOURS - 40) * MASTER RATE * 1.5` and stops on
+    // its store: DETAIL GROSS is an external-decimal field.
+    expect(_refusal(fAppliedDeckPath), 'an external-decimal store (M6-9)');
   });
 }

@@ -363,6 +363,97 @@ void main() {
     });
   });
 
+  group('the product of a product (M6-9)', () {
+    /// The words of [statement] up to its STOP RUN, with NUM and TOT at
+    /// `999` and FRAC at `9V9`.
+    List<String> product(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(
+            name: 'TOT',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(
+            name: 'FRAC',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '9V9',
+          ),
+        ],
+        procedure: [statement, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      // The procedure begins past the three one-word data cells.
+      final int start = words.indexOf('BSS 0') + 4;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    test('the next factor multiplies the MQ with no XCA', () {
+      expect(product('            SET NUM = NUM * TOT * 2.'), [
+        'LDQ TOT',
+        'MPY NUM',
+        'MPY CP)+2',
+        'STQ NUM',
+      ]);
+    });
+
+    test('a parenthesised product takes the same words', () {
+      expect(
+        product('            SET NUM = (NUM * TOT) * 2.'),
+        product('            SET NUM = NUM * TOT * 2.'),
+      );
+    });
+
+    test('the shape of statement 141,00 scales back once at the store', () {
+      // (FRAC - 4) is at scale 1, so the product is at 1 + 0 + 1 = 2,
+      // and the tail divides by 10 into FRAC with the half-adjust 5.
+      // The pool holds 4, then 1.5, then the 10 the alignment and the
+      // divide share.
+      expect(product('            SET FRAC = (FRAC - 4) * NUM * 1.5.'), [
+        'LDQ CP)+2',
+        'MPY CP)+4',
+        'STQ RS)0',
+        'CLA FRAC',
+        'SUB RS)0',
+        'XCA ',
+        'MPY NUM',
+        'MPY CP)+3',
+        'XCA ',
+        'ACL CP)+5',
+        'LRS 35',
+        'DVP CP)+4',
+        'STQ FRAC',
+      ]);
+    });
+
+    test('a truth function inside the inner product compiles', () {
+      final List<String> words = product(
+        '            SET NUM = TR (NUM GT 1) * TOT * NUM.',
+      );
+      expect(words.sublist(words.length - 4), [
+        'XCA ',
+        'MPY TOT',
+        'MPY NUM',
+        'STQ NUM',
+      ]);
+    });
+  });
+
   group('the comparison of unequal scales (M6-9)', () {
     /// The words of [statement] up to its STOP RUN, with NUM at `999`,
     /// FRAC at `9V9`, and HRS an external `99V9`.

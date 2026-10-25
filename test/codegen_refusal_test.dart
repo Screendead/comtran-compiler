@@ -689,12 +689,12 @@ void main() {
       );
     });
 
-    test('a product of a product', () {
-      // The `XCA` step reads the complex factor in the accumulator, and
-      // a product finishes in the MQ.
+    test('a product of a product past 10 digits', () {
+      // The chained `MPY` reads the MQ alone, and NUM * TOT * NUM * TOT
+      // can hold 12 digits, past one word (M6-9).
       expect(
-        _refuses(['            SET NUM = NUM * TOT * IDX.']),
-        'a product of a product (no sample instance)',
+        _refuses(['            SET NUM = NUM * TOT * NUM * TOT * IDX.']),
+        'a product of a product past 10 digits (no sample instance)',
       );
     });
 
