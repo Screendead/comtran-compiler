@@ -396,4 +396,56 @@ void main() {
       );
     });
   });
+
+  group('msg 948, a reopen after CLOSE ALL FILES (D6.3)', () {
+    List<String> program(List<String> procedure) => [
+      '      *DATA',
+      dataCard(name: 'OREC', level: '1', type: 'RECORD'),
+      dataCard(name: 'OFLD', level: '2', description: 'AAA'),
+      '      *ENVIRONMENT',
+      environmentCard(
+        name: 'TAPE1',
+        type: 'FILE',
+        options: 'OUTPUT,BCD,TAPE,OREC,BLOCKSIZE 1',
+      ),
+      '      *PROCEDURE',
+      ...procedure,
+      '      *FINISH',
+    ];
+
+    test('an OPEN in the straight run after the close draws it', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES.',
+          '            CLOSE ALL FILES.',
+          '            OPEN ALL FILES.',
+          '            STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), ['948,00']);
+      expect(job.diagnostics.single.clause, 1);
+    });
+
+    test('a label between the two ends the straight run', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES.',
+          '            CLOSE ALL FILES.',
+          '      AGAIN.  OPEN ALL FILES.',
+          '            STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), isEmpty);
+    });
+
+    test("the sample's CLOSE ALL FILES, STOP RUN is silent", () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES.',
+          '            CLOSE ALL FILES, STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), isEmpty);
+    });
+  });
 }

@@ -424,7 +424,12 @@ final class _Text {
   void label(String name) {
     _pending.add(name);
     _registerHolds.clear();
+    _closedAll = false;
   }
+
+  /// Whether a CLOSE ALL FILES precedes in the straight run: no label
+  /// since, and no GO TO, STOP RUN or END (D6.3; msg 948).
+  bool _closedAll = false;
 
   /// Emits one written object word: [operation] and [control] now, the
   /// operand text and the 36-bit word after the walk (M4-4). Every
@@ -1509,9 +1514,17 @@ final class _Text {
         _op(Op.axt, _Sym(() => '0', () => 0, Relocation.constant));
       case EndClause():
         _endClause(clause);
+        _closedAll = false;
       case OpenClause(:final allFiles):
         if (!allFiles) {
           _unruled('an OPEN naming files (notes section 7)');
+        }
+        if (_closedAll && checks != null) {
+          _report(
+            msgReopenAfterCloseAll,
+            at: clause.verb,
+            clause: _clauseNumber,
+          );
         }
         _tsx(175); // [J 90.02.14].
         _pzeIoc1();
@@ -1523,10 +1536,15 @@ final class _Text {
         _tsx(177); // [J 90.02.14].
         _pzeIoc1();
         _callClears();
+        _closedAll = true;
       case StopClause(:final run):
         _stop(clause, run: run);
+        if (run) {
+          _closedAll = false;
+        }
       case GoToClause():
         _goTo(clause);
+        _closedAll = false;
       case DoClause():
         _do(clause);
       case GetClause():
