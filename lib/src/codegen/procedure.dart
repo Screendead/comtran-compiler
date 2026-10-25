@@ -2326,12 +2326,7 @@ final class _Text {
     _setup(target, subscripted: targetSubscripted, target: true);
     _setup(source, subscripted: sourceSubscripted, target: false);
     _tsx(182);
-    _txi(183, switch (t.shape!.sign) {
-      SignConvention.overpunchMinus => 1,
-      SignConvention.overpunchPlus => 2,
-      // An external field signs by overpunch alone ([J 02.05.05] note 1).
-      _ => 0,
-    });
+    _txi(183, _signCode(t.shape!.sign));
     _txi(s.shape!.sign == SignConvention.none ? 191 : 227, s.digits);
     _txi(223, t.digits);
     _movpakClears();
@@ -2992,76 +2987,71 @@ final class _Text {
       chainScale = scale > chainScale ? scale : chainScale;
     }
     final int live = _liveResultCells;
-    try {
-      // One entry per term: the word the assembly emits for it, with the
-      // guard that word must carry. The NET sentence pins the placement:
-      // the guard for `1)BONDEDUCTION` sits at 00727, between the fifth
-      // `SUB` and its own, not ahead of the `CLA` at 00722.
-      final assembly = <void Function(Op op)>[];
-      for (var i = 0; i < terms.length; i++) {
-        final ArithExpr term = terms[i].$1;
-        // The sample's chains never subscript a term, so the multi-term
-        // arms refuse one exactly as the single-term arm above does.
-        if (term case NameOperand(
-          :final name,
-        ) when name.subscripts.isNotEmpty) {
-          _unruled('a subscripted chain operand (no sample instance)');
-        }
-        final int deficit = chainScale - _naturalScale(term);
-        // The cell a computed term parks in: the count of the chain's
-        // operands that follow it in source order (M4-10).
-        final int cell = terms.length - 1 - i;
-        switch (term) {
-          case NameOperand(:final name) when deficit == 0:
-            final DataItem item = _operand(_item(name)!);
-            assembly.add((Op op) => _read(op, item));
-          case LiteralOperand(:final literal) when deficit == 0:
-            final _Sym at = _cp(_numericLiteral(literal));
-            assembly.add((Op op) => _op(op, at));
-          case NameOperand() || LiteralOperand():
-            // The scale alignment: a run-time multiply against a separate
-            // pool word, never a folded literal (catalogue 4.7), parked.
-            if (term case LiteralOperand(:final literal)) {
-              _op(Op.ldq, _cp(_numericLiteral(literal)));
-            } else if (term case NameOperand(:final name)) {
-              _read(Op.ldq, _operand(_item(name)!));
-            }
+    // One entry per term: the word the assembly emits for it, with the
+    // guard that word must carry. The NET sentence pins the placement:
+    // the guard for `1)BONDEDUCTION` sits at 00727, between the fifth
+    // `SUB` and its own, not ahead of the `CLA` at 00722.
+    final assembly = <void Function(Op op)>[];
+    for (var i = 0; i < terms.length; i++) {
+      final ArithExpr term = terms[i].$1;
+      // The sample's chains never subscript a term, so the multi-term
+      // arms refuse one exactly as the single-term arm above does.
+      if (term case NameOperand(:final name) when name.subscripts.isNotEmpty) {
+        _unruled('a subscripted chain operand (no sample instance)');
+      }
+      final int deficit = chainScale - _naturalScale(term);
+      // The cell a computed term parks in: the count of the chain's
+      // operands that follow it in source order (M4-10).
+      final int cell = terms.length - 1 - i;
+      switch (term) {
+        case NameOperand(:final name) when deficit == 0:
+          final DataItem item = _operand(_item(name)!);
+          assembly.add((Op op) => _read(op, item));
+        case LiteralOperand(:final literal) when deficit == 0:
+          final _Sym at = _cp(_numericLiteral(literal));
+          assembly.add((Op op) => _op(op, at));
+        case NameOperand() || LiteralOperand():
+          // The scale alignment: a run-time multiply against a separate
+          // pool word, never a folded literal (catalogue 4.7), parked.
+          if (term case LiteralOperand(:final literal)) {
+            _op(Op.ldq, _cp(_numericLiteral(literal)));
+          } else if (term case NameOperand(:final name)) {
+            _read(Op.ldq, _operand(_item(name)!));
+          }
+          _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
+          assembly.add(_park(cell, _Register.mq));
+        case BinaryExpr() when _additive(term):
+          final _Value inner = _chain(term); // The sub-chain, then its park.
+          if (inner.scale < chainScale) {
+            // An additive sub-chain finishes in the accumulator, which
+            // no one word aligns: `MPY` reads the MQ half. The sample
+            // never writes one (M4-10).
+            _unruled('a scale alignment of a sub-chain (no sample instance)');
+          }
+          assembly.add(_park(cell, inner.register));
+        case BinaryExpr():
+          _product(term); // The product, then its alignment and park.
+          if (deficit > 0) {
+            // The product is in the MQ, so one more multiply aligns it.
             _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
-            assembly.add(_park(cell, _Register.mq));
-          case BinaryExpr() when _additive(term):
-            final _Value inner = _chain(term); // The sub-chain, then its park.
-            if (inner.scale < chainScale) {
-              // An additive sub-chain finishes in the accumulator, which
-              // no one word aligns: `MPY` reads the MQ half. The sample
-              // never writes one (M4-10).
-              _unruled('a scale alignment of a sub-chain (no sample instance)');
-            }
-            assembly.add(_park(cell, inner.register));
-          case BinaryExpr():
-            _product(term); // The product, then its alignment and park.
-            if (deficit > 0) {
-              // The product is in the MQ, so one more multiply aligns it.
-              _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
-            }
-            assembly.add(_park(cell, _Register.mq));
-          default:
-            _unruled('a chain of ${term.runtimeType} (no sample instance)');
-        }
+          }
+          assembly.add(_park(cell, _Register.mq));
+        default:
+          _unruled('a chain of ${term.runtimeType} (no sample instance)');
       }
-      // The assembly: one CLA, then ADD or SUB each.
-      for (var i = 0; i < assembly.length; i++) {
-        final Token? operator = terms[i].$2;
-        assembly[i](
-          operator == null
-              ? Op.cla
-              : operator.text == '-'
-              ? Op.sub
-              : Op.add,
-        );
-      }
-    } finally {
-      _liveResultCells = live; // The assembly has read every park.
     }
+    // The assembly: one CLA, then ADD or SUB each.
+    for (var i = 0; i < assembly.length; i++) {
+      final Token? operator = terms[i].$2;
+      assembly[i](
+        operator == null
+            ? Op.cla
+            : operator.text == '-'
+            ? Op.sub
+            : Op.add,
+      );
+    }
+    _liveResultCells = live; // The assembly has read every park.
     return (scale: chainScale, register: _Register.ac);
   }
 
@@ -3495,12 +3485,11 @@ final class _Text {
           finish: () => _op(Op.stq, parkCell),
         );
       }
+      // A refusal aborts the job's code generation, so neither count
+      // needs a finally to restore it.
       _parked++;
-      try {
-        _accumulatorSide(acc as BinaryExpr, scale);
-      } finally {
-        _parked--;
-      }
+      _accumulatorSide(acc as BinaryExpr, scale);
+      _parked--;
       _op(Op.cas, parkCell);
     }
     _vector(relation, !leftInAccumulator, trueTo: trueTo, falseTo: falseTo);
@@ -3744,8 +3733,9 @@ final class _Text {
   };
 
   /// The alphameric comparison (catalogue 4.8): each operand costs its
-  /// prologue, its load, and its extraction — `LGL` off byte zero,
-  /// `ANA` under six characters — and when both need extraction the
+  /// prologue, its load, and its extraction — `LDQ` of the next word
+  /// across a boundary, `LGL` off byte zero, `ANA` off byte zero or
+  /// under six characters — and when both need extraction the
   /// first spills to result storage and the compare reads the cell.
   void _alphamericComparison(
     ArithExpr acc,
@@ -3841,12 +3831,20 @@ final class _Text {
   /// The extraction: `LGL` six bits a character brings the field to
   /// character 0, and the mask extracts characters 0 on (the attested
   /// `LGL 18` and `CP)+30`, shared by both operands of statement 200).
+  /// A field across a word boundary takes its next word into the MQ
+  /// first, so the shift carries its tail in (codegen defect 12, M6-9).
   void _emitExtraction(NameReference name) {
-    final ItemSemantics sem = _sem(_item(name)!);
+    final DataItem item = _item(name)!;
+    final ItemSemantics sem = _sem(item);
+    if (sem.byte + sem.storageChars > 6) {
+      _opItem(Op.ldq, item, plus: 1);
+    }
     if (sem.byte != 0) {
       _shift(Op.lgl, 6 * sem.byte);
     }
-    if (sem.storageChars < 6) {
+    // The shift also moves the bit above the field into Q, and LAS
+    // reads Q, so a shifted six-character field takes the mask too.
+    if (sem.byte != 0 || sem.storageChars < 6) {
       _op(
         Op.ana,
         _cp(_pool.machineWord(_extractMask(0, sem.storageChars - 1))),
