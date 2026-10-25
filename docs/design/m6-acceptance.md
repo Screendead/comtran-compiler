@@ -939,7 +939,7 @@ the report our run prints against the page.
     reached the compare, because the first such pair in the applied
     deck reads an external-decimal field. Without the refusal, `HOURS`
     at `99V9` against `40` compares 4.0 hours. This shape is not in the
-    list of eight above.
+    list of eight above. The decision below withdraws this refusal.
 
   The tests:
 
@@ -959,6 +959,76 @@ the report our run prints against the page.
   The two listings do not change, because the change is in code
   generation only. `test/goldens/90.05-payroll.code` does not change,
   because the sample has no external-decimal operand.
+
+  **Decided 2026-10-25: the comparison of unequal scales. A design
+  decision under D0.4; Jack can overturn it.** This is the ninth item
+  of the list above, and the fourth item done. When the two sides of a
+  numeric comparison have different scales, the side of lesser scale
+  goes into the accumulator, upscaled by the difference `d`:
+
+  ```
+  LDQ    low
+  MPY    CP)+n          10**d
+  XCA
+  CAS    high
+  ```
+
+  The skip vector mirrors when the upscaled side is the right operand.
+  For example, `IF HRS GT 40` with HRS an external `99V9` compiles to
+  the fetch into `TS)1`, then `LDQ` the pooled 40, `MPY` the pooled 10,
+  `XCA` and `CAS TS)1`. The less slot is the true outcome. The evidence:
+
+  - [J 02.04.07]: "Numeric fields are compared arithmetically without
+    regard to length." `CAS` compares two words as integers, so the
+    integers must have one scale.
+  - The form is the zero build of the 1962 sample, LOC 00656 to 00660
+    and 01241 to 01243. Each site upscales the literal 0 into the
+    accumulator against a field of scale 2, and the vector reads
+    against the literal (catalogue 4.8). Only the `LDQ` operand
+    changes.
+  - Catalogue 4.7: "A literal enters the pool as its keyed digits,
+    never pre-multiplied by an alignment factor", and every site of
+    the sample obeys it. The 40 pools as 40 and the 10 as its own
+    word.
+  - `LDQ` of a field is attested at LOC 00641, `LDQ 1)RATE,1`. A
+    field of lesser scale takes the same three words.
+  - The sample has no unequal pair because statement 203 keys its
+    literal as `40.0`. The 1960 program keys `40`.
+
+  The rejected options:
+
+  - *Fold the literal.* A pool word of 400 saves three words and emits
+    no multiply. Catalogue 4.7 and M4-10 reject a folded alignment at
+    every attested site.
+  - *Downscale the other side.* A divide loses the fraction, and the
+    sample never downscales before the store (M4-10).
+  - *Refuse a field of lesser scale.* The words are the same words,
+    each one attested, and the 1962 processor compiled the shape
+    (Jack's rule of 2026-09-14).
+
+  The generator refuses two shapes on this path:
+
+  - `a subscripted accumulator comparand (no sample instance)`, now
+    also for a subscripted side of lesser scale.
+  - `an aligned comparand of more than 10 digits (no sample instance)`.
+    The `XCA` keeps one word of the product. Past ten digits the value
+    needs the AC-MQ pair, which has no comparison form (§8.5 Open
+    Question 28).
+
+  The tests:
+
+  - `test/codegen_test.dart` asserts the words for a literal on each
+    side, a field against a literal, two fields, and a fetched field.
+  - `test/codegen_refusal_test.dart` pins the two refusals.
+  - `test/runtime/machine_test.dart` runs `4.5 GT 4`, `4.5 GT 5`,
+    `40.0 = 40`, `40.0 GT 40` and `4.5 LT 5`. Without the alignment,
+    four of the five give the wrong value.
+  - `test/f_corpus_test.dart` pins the next stop. Statement 141,00
+    compiles its comparison and stops in its THEN arm, `(DETAIL HOURS
+    - 40) * MASTER RATE * 1.5`, with the shape `a product of a
+    product`. That is the fifth item of the list.
+
+  The two listings and `test/goldens/90.05-payroll.code` do not change.
 
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
