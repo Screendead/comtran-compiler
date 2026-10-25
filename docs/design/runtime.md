@@ -122,6 +122,7 @@ I/O-free program reaches, and M5 stage 2 built the GET of the last row:
 | the MOVPAK entries (RT-3) | SYS)180 and SYS)182 |
 | the non-edited members (RT-4) | SYS)184, 186, 187, 188, 239, 240, 241, 243, 244, 245, 268, 269, 275 |
 | the edited family (RT-5) | SYS)185, 190, 193, 198, 201, 204, 211, 212, 214, 216, 225, 226, 267 |
+| the external move, added 2026-10-25 (RT-4) | SYS)183, 191, 223, 227 |
 | the GET, added 2026-09-12 (`m5-io.md` M5-8) | IOC)8, SYS)260 and SYS)283 |
 | the FILE, added 2026-09-13 (`m5-io.md` M5-9) | IOC)9 |
 
@@ -129,8 +130,9 @@ That is 28 handlers, plus the four cells RT-2 names: SYS)132, SYS)133,
 IOC)1 and IOC)29. M5 stage 2 then added the three of the GET row, for
 31, and M5 stage 3 the FILE, for 32. M6 stage 2 added SYS)186, 187 and
 188 with the external-decimal store, for 35, and SYS)201 and 204 with
-the edit run that drops high-order digits, for 37 (`m6-acceptance.md`
-M6-9).
+the edit run that drops high-order digits, for 37, and SYS)183, 191,
+223 and 227 with the external-to-external move, for 41
+(`m6-acceptance.md` M6-9).
 
 **Each remaining entry lands with the codegen shape that first emits
 it. Design decision.** CLAUDE.md section 11 bans a handler that no test
@@ -334,9 +336,9 @@ it ends.
 
 | Shape | Members | Data words | Resume | Ends the move |
 |---|---|---|---|---|
-| bare step | 193, 198, 211, 212, 214, 216, 268, 269 | 0 | c+1 | no |
+| bare step | 183, 191, 193, 198, 211, 212, 214, 216, 227, 268, 269 | 0 | c+1 | no |
 | head and control word | 185, 190 | 1 | c+2 | no |
-| terminator | 225, 226, 275 | 0 | c+1 | yes |
+| terminator | 223, 225, 226, 275 | 0 | c+1 | yes |
 | one-word convert or mover | 184, 239, 243, 244 | 0 | c+1 | yes |
 | mover pair, first word | 240 | 0 | c+1 | no |
 | mover pair, last word | 241 | 0 | c+1 | yes |
@@ -503,6 +505,27 @@ every position a digit.
 **A longer value drops its high-order digits, and arms nothing. Design
 decision.** [J 90.02.18] lists no overflow test step for the three
 entries. The rule is SYS)267's rule (RT-5) and D4.2's.
+
+### SYS)183, external decimal to external decimal
+
+`TXI SYS)183,1,TARGET-SIGN-CONVENTION` opens the move, and `TXI
+SYS)223,1,TARGET-NUMERIC-LENGTH` ends it ([J 90.02.15],
+[J 90.02.16]). Added 2026-10-25 with the external-to-external move
+(M6-9).
+
+- SYS)183 parks the convention: 0 no sign, 1 overpunch minus, 2
+  overpunch plus.
+- SYS)191 appends the count in source digits through the reader of
+  SYS)193. It reads no sign.
+- SYS)227 does the same, and its last character gives the sign (Note
+  1).
+- SYS)223 writes the digits. The last digit takes the overpunch of
+  SYS)187 or SYS)188 under convention 1 or 2. Convention 0 writes the
+  magnitude alone. A count that differs from the digits built throws,
+  as for SYS)225.
+
+The handlers move characters and never use the accumulator, so the
+ten-digit limit below does not apply.
 
 ### SYS)268, SYS)269 and SYS)275, an edited field to a register
 
