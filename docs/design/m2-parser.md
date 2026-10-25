@@ -167,7 +167,7 @@ The entries below close the surface-syntax gaps the sources leave open:
 
 - **M2-8. Figurative constants are verb-level alternatives, not expression
   operands.** F's operand inventories for arithmetic expressions never list
-  figurative constants (F pp. 45, 105–106); J grants them as the source of
+  figurative constants ([F pp. 45], [105–106]); J grants them as the source of
   SET or MOVE ([J 02.04.01]). Recorded decision: the SET right-hand side is
   `arithmetic-expression | figurative-constant`, and MOVE's source likewise;
   a figurative constant inside a larger expression is a syntax error.
@@ -308,6 +308,7 @@ Three pull requests, each green on its own:
 [F p. 35]: ../../comtran-manuals/F28-8043/03-procedure-description.md#chapter-3-procedure-description
 [F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [F pp. 42–43]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
+[F pp. 45]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-set-command
 [F p. 47]: ../../comtran-manuals/F28-8043/03-procedure-description.md#set-used-with-condition-names
 [F p. 51]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-indexing
 [F p. 54]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
@@ -317,6 +318,7 @@ Three pull requests, each green on its own:
 [F pp. 71–72]: ../../comtran-manuals/F28-8043/04-data-description.md#level-col-23-24
 [F p. 79]: ../../comtran-manuals/F28-8043/04-data-description.md#justify-col-37
 [F p. 105]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#appendix-2-supplementary-information
+[105–106]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#appendix-2-supplementary-information
 [F p. 106]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-conditional-expressions
 [F p. 108]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
