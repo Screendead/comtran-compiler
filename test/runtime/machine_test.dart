@@ -1365,7 +1365,7 @@ void main() {
     test('its tapes print the reports of test/goldens/f-payroll-j.report', () {
       // The five reports the run writes, byte for byte. The golden is
       // our output; test/f_acceptance_test.dart classifies its distance
-      // from the 1962 sample's report (m6-f-tapes.md, the run).
+      // from the 1962 sample's report (M6-9, the run).
       final Directory tapes = tempDirectory('comtran-f-tapes');
       for (final unit in <String>['D1', 'C2']) {
         File('$fTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
