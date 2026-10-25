@@ -344,6 +344,20 @@ void main() {
       );
     });
 
+    test('a numeric comparison of a truth function', () {
+      expect(
+        _refuses(['            IF TR (NUM GT TOT) GT NUM THEN STOP RUN.']),
+        'a comparison of TruthExpr',
+      );
+    });
+
+    test('a numeric comparison against a truth function', () {
+      expect(
+        _refuses(['            IF NUM GT TR (NUM GT TOT) THEN STOP RUN.']),
+        'a comparison of TruthExpr',
+      );
+    });
+
     test('an alphameric comparison of a literal', () {
       expect(
         _refuses(["            IF 'ABC' = ALF THEN STOP RUN."]),

@@ -1753,8 +1753,11 @@ the report our run prints against the page.
 
   The refusals: `an expression comparand of more than 10 digits (no
   sample instance)`, because `CAS` reads one word; `a comparison of
-  FigurativeOperand against an expression (no sample instance)`; and `a
-  temporary cell past the TS) reservation (M4-4)` for the park.
+  FigurativeOperand against an expression (no sample instance)`,
+  because the attested zero build puts the zero in the accumulator and
+  no site makes it the `CAS` operand; and `a temporary cell past the
+  TS) reservation (M4-4)` for the park. The two pins that reached the
+  default arms with an expression now pin a truth function there.
 
   The tests: `test/codegen_test.dart` asserts the words of both
   statements, a mirrored side, a chain below a field, two expressions,
