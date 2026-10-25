@@ -581,8 +581,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
 
   a. **A value carries the register that holds it.** A product ends in
      the MQ and a chain in the accumulator, so a park writes `STQ` or
-     `STO`, five sites and no exception. The store tail opens on `XCA`,
-     which reads the MQ half, so a scaling store of a chain refuses.
+     `STO`, five sites and no exception. Amended 2026-10-25: a chain takes
+     the scaling tail without its `XCA` (M6-9).
   b. **A computed operand parks in the cell its later operands count**,
      in the section the walk is in: `RS)n` in section 0, `k.RS)n` after
      it (notes 6.2 item 21).
@@ -606,8 +606,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      convert leaves the accumulator, so the park is `STO`.
 
   `RIR`, `SIR` and `RFT` print M4-8's fourth OCTAL rendering, so
-  `encode.dart` gives them a word form of their own. Three shapes refused
-  beside the three named above:
+  `encode.dart` gives them a word form of their own. Two shapes refuse
+  beside the two in (c); a third compiles:
 
   - a scale alignment of a sub-chain;
   - a product of a product, compiled since 2026-10-25 (M6-9);
@@ -707,7 +707,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   - **A truth function's false outcomes** land one word past the
     vector, over the `SIR` (statement 215's `*+3` and `*+2`).
   The one-site cell and register choices are underdetermined; the
-  chunk B4 record holds the rejected formulations. Six unattested
+  chunk B4 record holds the rejected formulations. Five unattested
   variants refuse (M4-2 as amended):
   - a nonzero literal comparand, until 2026-10-25 (M6-9);
   - a subscripted accumulator comparand;
@@ -807,7 +807,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   - an END inside an open paragraph and an open section;
   - a procedure open at the end of the text;
   - a DO FOR index undefined (behind msg 108) or located;
-  - a DO FOR driving two indicators — the M4-6 name run fits one.
+  - a DO FOR driving two indicators — withdrawn 2026-10-25 (M6-9).
 
 ## STOP and the statement stamps
 

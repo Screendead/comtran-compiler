@@ -22,6 +22,9 @@ Map<int, RuntimeEntry> movpak(Machine machine) => _Movpak(machine).entries;
 const int _sourceCell = 132;
 const int _targetCell = 133;
 
+/// The overflow cell (D4.2). Nothing reads or clears it.
+const int _overflowCell = 130;
+
 /// The improper-data condition cell (D4.3). Nothing reads or clears it.
 const int _conditionCell = 131;
 
@@ -72,10 +75,19 @@ final class _Movpak {
     180: () => _enter(setsTarget: true),
     182: () => _enter(setsTarget: false),
     184: _externalToInternal,
+    186: () => _internalToExternal(186),
+    187: () => _internalToExternal(187),
+    188: () => _internalToExternal(188),
+    183: _externalHead,
+    191: () => _moveDigits(191, edited: false),
+    227: () => _moveDigits(227, edited: false, readsSign: true),
+    223: _externalEnd,
     185: () => _editedHead(185),
     190: () => _editedHead(190),
     193: () => _moveDigits(193, edited: false),
     198: () => _moveDigits(198, edited: true),
+    201: () => _testOverflow(201, edited: false),
+    204: () => _testOverflow(204, edited: true),
     211: () => _zeroDigits(211),
     212: () => _zeroDigits(212),
     214: () => _zeroDigits(214),
@@ -105,7 +117,7 @@ final class _Movpak {
     }
     final MachineState state = _machine.state;
     if (setsTarget) {
-      state.write(_targetCell, _machine.parameter(1));
+      state.write(_targetCell, _addressReference(_machine.parameter(1)));
     }
     final int caller = state.xrRead(1);
     state.xrWrite(1, 0);
@@ -119,6 +131,25 @@ final class _Movpak {
       target: _Bytes(state, state.read(_targetCell)),
     );
     return null;
+  }
+
+  /// The pointer an in-line address reference names ([J 90.02.14]):
+  /// `PZE LOC,,BYTE` is the pointer itself, and `MZE BL)NN,,CP)+NN` the
+  /// base locator plus the displacement constant, the sum the in-line
+  /// `CAL / ACL / SLW` builds ([J 90.02.11] Case 2).
+  int _addressReference(int word) {
+    final int prefix = Word36.prefix(word);
+    if (prefix == 0) {
+      return word;
+    }
+    if (prefix != 4) {
+      // `MON PI)NN,,0` ([J 90.02.15]) has no emitter (RT-4).
+      throw StateError('an address word of prefix $prefix');
+    }
+    final MachineState state = _machine.state;
+    return (state.read(Word36.address(word)) +
+            state.read(Word36.decrement(word))) &
+        Word36.wordMask;
   }
 
   /// The step discipline of RT-3. The cursor sits on the handler's own
@@ -160,6 +191,28 @@ final class _Movpak {
     _singlePrecision(184, count);
     _convert(session, count, edited: false);
     _toAccumulator(session);
+    _end(session);
+    return null;
+  }
+
+  /// SYS)186, SYS)187 and SYS)188 write the accumulator as
+  /// NUMBER-OF-CHARACTERS-TO-DEVELOP external-decimal characters and end
+  /// the move ([J 90.02.18]). SYS)186 writes no sign; SYS)187 and
+  /// SYS)188 overpunch the last digit under the minus and the plus
+  /// convention, the edited tags 1 and 2 (RT-5). A longer value drops its
+  /// high-order digits and arms nothing, as SYS)267 does (RT-4).
+  RunOutcome? _internalToExternal(int entry) {
+    final (_Session session, int count) = _step(entry);
+    _singlePrecision(entry, count);
+    final MachineState state = _machine.state;
+    final List<int> digits = _decimalDigits(state.acMagnitude, count);
+    for (var i = 0; i < count; i++) {
+      session.target.write(
+        i == count - 1 && entry != 186
+            ? _overpunch(digits[i], entry - 186, state.acSign)
+            : digits[i],
+      );
+    }
     _end(session);
     return null;
   }
@@ -213,6 +266,39 @@ final class _Movpak {
     return null;
   }
 
+  /// SYS)183 opens the external-to-external move ([J 90.02.15]). Its
+  /// decrement is TARGET-SIGN-CONVENTION, which the terminator reads.
+  RunOutcome? _externalHead() {
+    final (_Session session, int convention) = _step(183);
+    session.convention = convention;
+    _next(session);
+    return null;
+  }
+
+  /// SYS)223 writes the digits the steps built as TARGET-NUMERIC-LENGTH
+  /// external-decimal characters and ends the move ([J 90.02.16]). The
+  /// last digit takes the overpunch of the parked convention, as under
+  /// SYS)187 and SYS)188; convention 0 writes no sign, so a minus source
+  /// arrives as its magnitude (M6-9).
+  RunOutcome? _externalEnd() {
+    final (_Session session, int count) = _step(223);
+    if (session.digits.length != count) {
+      throw StateError(
+        'SYS)223 over ${session.digits.length} digits of $count',
+      );
+    }
+    for (var i = 0; i < count; i++) {
+      final int digit = session.digits[i];
+      session.target.write(
+        i == count - 1 && session.convention != 0
+            ? _overpunch(digit, session.convention, session.sign)
+            : digit,
+      );
+    }
+    _end(session);
+    return null;
+  }
+
   /// SYS)211, SYS)212, SYS)214 and SYS)216 each append the count in
   /// zero digits, ahead of the moved digits or behind them
   /// ([J 90.02.17], [J 90.02.19]).
@@ -223,13 +309,34 @@ final class _Movpak {
     return null;
   }
 
-  /// SYS)193 moves the count in external-decimal digits and SYS)198 the
-  /// count in digit positions of an edited source ([J 90.02.17],
-  /// [J 90.02.19]). Neither carries a sign note, so neither reads the
-  /// source's sign (RT-5).
-  RunOutcome? _moveDigits(int entry, {required bool edited}) {
+  /// SYS)191 and SYS)193 move the count in external-decimal digits and
+  /// SYS)198 the count in digit positions of an edited source
+  /// ([J 90.02.16], [J 90.02.17], [J 90.02.19]). These three carry no
+  /// sign note, so none reads the source's sign (RT-5). SYS)227, the
+  /// exception, carries Note 1 of [J 90.02.16], so its last character
+  /// gives the sign.
+  RunOutcome? _moveDigits(
+    int entry, {
+    required bool edited,
+    bool readsSign = false,
+  }) {
     final (_Session session, int count) = _step(entry);
+    _convert(session, count, edited: edited, readsSign: readsSign);
+    _next(session);
+    return null;
+  }
+
+  /// SYS)201 and SYS)204 read the count in source digit positions, the
+  /// high-order excess, and move none of them ([J 90.02.17],
+  /// [J 90.02.19]). A non-zero digit among them arms SYS)130 (D4.2).
+  RunOutcome? _testOverflow(int entry, {required bool edited}) {
+    final (_Session session, int count) = _step(entry);
+    final int kept = session.digits.length;
     _convert(session, count, edited: edited, readsSign: false);
+    if (session.digits.skip(kept).any((int d) => d != 0)) {
+      _machine.state.write(_overflowCell, 1);
+    }
+    session.digits.removeRange(kept, session.digits.length);
     _next(session);
     return null;
   }
@@ -541,6 +648,10 @@ final class _Session {
   /// family head for its terminator ([J 90.02.17]).
   int edit = 0;
   int control = 0;
+
+  /// TARGET-SIGN-CONVENTION, parked by SYS)183 for SYS)223
+  /// ([J 90.02.15]).
+  int convention = 0;
 
   /// The digits read or inserted so far, high order first, and their
   /// sign (0 plus, 1 minus).

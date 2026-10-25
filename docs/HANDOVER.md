@@ -58,7 +58,7 @@ Terms that appear without expansion:
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
-| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). `FILE record IN file` and `STOP n` compile since 2026-10-24, and the external-decimal fetch, the comparison of unequal scales and the product of a product since 2026-10-25. The applied deck now stops at its first external-decimal store, statement 141,00 | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
+| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). All fourteen of its items compile since 2026-10-24 and 2026-10-25. The applied deck now compiles to the end and punches a 68-card object deck | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
 | M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -71,7 +71,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1347 Dart tests pass, measured 2026-10-25, and 154 extension
+Test baseline: 1441 Dart tests pass, measured 2026-10-25, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -104,10 +104,6 @@ records, closes every file, and reaches end of job.
 `test/runtime/machine_test.dart` asserts that run and the reports it
 writes.
 
-Both carried items are closed. A labeled PROGRAM.START names the entry
-point, and `GN)000` stays on the first procedure word (D2.1 as amended
-2026-09-06).
-
 **M6 stage 1 is complete (2026-09-13).** `docs/design/m6-acceptance.md`
 holds its decisions. The input tapes do not survive, so stage 1
 reconstructed them from the printed report and the record descriptions
@@ -125,8 +121,7 @@ program reproduces it.
 is keyed as printed (`test/fixtures/f-payroll.ctd`), and its listing,
 55 messages of 12 kinds, is the first diagnostic corpus. The applied
 deck (`test/fixtures/f-payroll-j.ctd`) takes five divergences,
-compiles with three 206,00 and no other message. The generator first
-refused it at `FILE MASTER IN ERROR.FILE`, statement 131,00.
+compiles with three 206,00 and no other message.
 
 **Jack ruled on 2026-09-14: a program that would compile in 1962
 should compile.** M6-9 answers the rule for the six shapes the
@@ -136,27 +131,18 @@ the course that ruling overturns, and M6-7 as amended corrects the
 `STOP` row: `STOP n` is legal, so the applied deck keeps `STOP 1234`
 and adds `STOP RUN` after it.
 
-**The next task is chunk 2b.** M6-9's design list has nine items.
-Five items are done: `FILE record IN file` and `STOP n` (2026-10-24),
-the external-decimal fetch, the comparison of unequal scales, and the
-product of a product (2026-10-25). The applied deck now compiles the
-product of statement 141,00 and stops at its store into DETAIL GROSS,
-with the shape `an external-decimal store`. That is the next task.
-Four items of the list stay open:
-
-- the external-decimal store;
-- the comparison whose sides are expressions;
-- the SYS)190 bypass steps;
-- the 11-character table stride.
-
-M6-9 holds the evidence for each item. Then write the
-two tapes from the sample's source table, in the corpus's layouts.
-Run the applied deck over them, and diff the values against the
-sample's report. M6-1 as amended names the columns that can be
-compared and the three causes that separate the rest. Codegen defect
-7 below lies on the stride's path. The seven codegen defects stay
-open, and each fix must leave `test/goldens/90.05-payroll.code` as it
-stands.
+**The next task is chunk 2b's run.** All fourteen items of M6-9's
+design list are done (2026-10-24 and 2026-10-25). The applied deck
+compiles to the end with no refusal, and punches 68 cards. Write the
+two tapes from the sample's source table, in the corpus's layouts. Run
+the applied deck over them, and diff the values against the sample's report. M6-1
+as amended names the columns that can be compared and the three
+causes that separate the rest. Expect BONDORDER's EMPLOYEE.NUMBER,
+NAME and DATE to stay unmoved: MASTER holds them under DATA, so they do
+not correspond ([J 02.04.04]; M6-9). With codegen defect 12 fixed, the
+run over PR 145's tapes reaches end of job. Defect 7 is fixed for the
+DO FOR. The other ten defects stay open, and each fix must leave
+`test/goldens/90.05-payroll.code` as it stands.
 
 **One question waits for Jack, and no work waits on his answer.**
 M6-9 asks whether "compile" in his rule means the diagnostic listing
@@ -165,21 +151,15 @@ the listing. Chunk 2b works on the applied deck either way.
 
 ### Codegen defects the runtime exposed
 
-The stage-4 runtime made five codegen defects visible for the first
-time. None is fixed on the stage-4 branch, and each fix is a codegen
-change. Take them before M5 or beside it. Whether a site refuses the
-shape or handles it is Jack's call. The M5 stage 2 review added a
-sixth, a missing diagnostic.
+The stage-4 runtime exposed defects 1 to 5, the M5 stage 2 review
+defect 6, and chunk 2b the rest. Whether a site refuses the shape or
+handles it is Jack's call.
 
-**None of the six fires on the sample's own path. The five were
-measured 2026-09-07.**
-The sample declares no picture that holds an `S` or an asterisk. Every
-source and target on the two unaligned paths carries the same scale. The
-paths hold 25 internal-to-edited stores, three converts, and the one
-edited ADD source.
-Its three convert targets live in WORKING, which is no record, so defect 4
-has no site. M6 can therefore take the printed report as its oracle before
-any of the six is fixed. A correct fix must leave
+**None of the first six fires on the sample's own path (measured
+2026-09-07).** The sample declares no picture that holds an `S` or an
+asterisk, its unaligned paths carry equal scales, and its convert
+targets live in WORKING, so defect 4 has no site. A correct fix must
+leave
 `test/goldens/90.05-payroll.code` byte for byte as it stands: a fix that
 moves it has changed the sample's path. The three divides at LOC 00424,
 01113 and 01142 split on digit count, not on scale, and must survive.
@@ -216,13 +196,49 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    found it on 2026-09-12. The sample opens once, so it has no site.
    M5-4 records what the runtime does on the reopen.
 7. **A table item that is not a whole number of words strides too
-   short.** `_strideWords` (`lib/src/codegen/procedure.dart`:1706)
-   returns `strideChars ~/ 6`, so an 11-character TABLE.ITEM strides
-   one word, not two, with no refusal. The sample's items are two whole
-   words. The 1960 corpus found it on 2026-09-14 (M6-8). It now lies on
-   chunk 2b's path. The corpus's table item is 11 characters, and chunk
-   2b designs how a positional indicator addresses that stride (M6-1 as
-   amended).
+   short. Fixed for the DO FOR on 2026-10-25.** `_strideWords`
+   (`lib/src/codegen/procedure.dart`) returned `strideChars ~/ 6`, so
+   the corpus's 11-character TABLE.ITEM strode one word (M6-8). The DO
+   FOR now steps the indicator's byte, carries it into the word, and
+   sets every base with its byte (M6-9). The subscript store and a
+   whole-word read through `LAC PI)n,r` still refuse such a stride.
+8. **A subscripted MOVE target drops its subscript.** `_moveUnit`
+   (`lib/src/codegen/procedure.dart`) takes `targetSubscripted` and
+   passes it to no internal-decimal arm, so `MOVE NUM TO TAB CELL (I)`
+   compiles to `CLA NUM / STO CELL` and writes the first cell on every
+   pass. The DO FOR decision of M6-9 found it on 2026-10-25. The
+   sample's subscripted moves are sources only, and the applied deck
+   has no subscripted MOVE target.
+9. **A SET or ADD into a subscript variable updates no indicator.**
+   `_subscriptRecomputation` (`lib/src/codegen/procedure.dart`) has
+   one caller, the MOVE. So `SET IDX = 3` stores the index and leaves
+   every positional indicator it drives on the old element. M4-10 asks
+   for the update at every store into a subscript variable
+   ([J 02.04.07.01]). The DO FOR decision of M6-9 found it on
+   2026-10-25. The sample's one subscript store is a MOVE, and the
+   applied deck stores into INDEX only through its DO FOR.
+
+10. **The subscript store drops the byte of a field inside a word.**
+    `_subscriptRecomputation` builds the base `NAME-n` with a zero
+    decrement, the 1962 defect at `RETPREM-2` (M6-4 finding 1). The
+    golden needs that word at the sample's site. Elsewhere a reader
+    through SYS)132 then reads from byte 0: over items of `99`, `9999`
+    and `9(6)`, `MOVE THREE TO IDX` then `MOVE B (IDX) TO NB` gives 300
+    for 3. Whether to refuse the shape or handle it is Jack's call. The
+    PR 150 review found it on 2026-10-25. The applied deck has no
+    subscript store.
+11. **A sub-chain in a chain overwrites the outer park.** The arm
+    `BinaryExpr() when _additive(term)` (`procedure.dart`:3031) calls
+    `_chain`, whose cells start at 0. `SET X = NUM * 2 + (NUM * 3 + 1)`
+    parks both products in `RS)1` and stores 3N + 3N + 1, not
+    2N + 3N + 1. The PR 153 review found it on 2026-10-25. The applied
+    deck does not reach the arm.
+12. **An alphameric comparison read one word of a field across a word
+    boundary. Fixed on 2026-10-25.** Statement 130,00 compares two
+    `A(6)` fields at bytes 4 and 1, so no detail matched its master,
+    and the run read DETAIL.FILE past its file mark. The extraction
+    now loads the next word into the MQ and masks the shifted field
+    (M6-9).
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
@@ -922,6 +938,8 @@ this project's own decision (Open Question 65).
 [F p. 12]: ../comtran-manuals/F28-8043/02-language-structure.md#underlying-principles
 [F p. 42]: ../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
+[J 02.04.04]: ../comtran-manuals/J28-6169/02-compiler.md#3-move
+[J 02.04.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.05]: ../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card
 [J 03.02.09]: ../comtran-manuals/J28-6169/03-loader.md#j-start-card

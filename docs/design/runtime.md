@@ -120,14 +120,19 @@ I/O-free program reaches, and M5 stage 2 built the GET of the last row:
 |---|---|
 | the run frame (RT-2) | SYS)175, 177, 178, 294, and IOC)40 |
 | the MOVPAK entries (RT-3) | SYS)180 and SYS)182 |
-| the non-edited members (RT-4) | SYS)184, 239, 240, 241, 243, 244, 245, 268, 269, 275 |
-| the edited family (RT-5) | SYS)185, 190, 193, 198, 211, 212, 214, 216, 225, 226, 267 |
+| the non-edited members (RT-4) | SYS)184, 186, 187, 188, 239, 240, 241, 243, 244, 245, 268, 269, 275 |
+| the edited family (RT-5) | SYS)185, 190, 193, 198, 201, 204, 211, 212, 214, 216, 225, 226, 267 |
+| the external move, added 2026-10-25 (RT-4) | SYS)183, 191, 223, 227 |
 | the GET, added 2026-09-12 (`m5-io.md` M5-8) | IOC)8, SYS)260 and SYS)283 |
 | the FILE, added 2026-09-13 (`m5-io.md` M5-9) | IOC)9 |
 
 That is 28 handlers, plus the four cells RT-2 names: SYS)132, SYS)133,
 IOC)1 and IOC)29. M5 stage 2 then added the three of the GET row, for
-31, and M5 stage 3 the FILE, for 32.
+31, and M5 stage 3 the FILE, for 32. M6 stage 2 added SYS)186, 187 and
+188 with the external-decimal store, for 35, and SYS)201 and 204 with
+the edit run that drops high-order digits, for 37, and SYS)183, 191,
+223 and 227 with the external-to-external move, for 41
+(`m6-acceptance.md` M6-9).
 
 **Each remaining entry lands with the codegen shape that first emits
 it. Design decision.** CLAUDE.md section 11 bans a handler that no test
@@ -146,11 +151,11 @@ chunk B8 added the shape with the first diagnostic (M4-2 as amended).
 The SYS)162 boundary stays unbuilt beside AND, OR and NOT, because no
 comparand passes one word (M4-11).
 
-**No reachable handler arms SYS)130.** D4.2 gives that cell to the
-counted overflow-test steps SYS)195, 196, 199, 201, 203, 204, 270, 277
-and 281. Our generator emits none of them, so no run has written the
-cell. The M7 diff pass must read it as unexercised, and not as tested
-and found zero.
+**Two handlers arm SYS)130.** D4.2 gives that cell to the counted
+overflow-test steps SYS)195, 196, 199, 201, 203, 204, 270, 277 and 281.
+Our generator emits SYS)201 and SYS)204 alone (amended 2026-10-25, M6-9).
+The M7 diff pass must read the other seven as unexercised, and not as
+tested and found zero.
 
 **The narrow set is a judgment call, and Jack can overturn it.** A
 wider set was legal. Section 11 permits a tested handler with no
@@ -331,9 +336,9 @@ it ends.
 
 | Shape | Members | Data words | Resume | Ends the move |
 |---|---|---|---|---|
-| bare step | 193, 198, 211, 212, 214, 216, 268, 269 | 0 | c+1 | no |
+| bare step | 183, 191, 193, 198, 211, 212, 214, 216, 227, 268, 269 | 0 | c+1 | no |
 | head and control word | 185, 190 | 1 | c+2 | no |
-| terminator | 225, 226, 275 | 0 | c+1 | yes |
+| terminator | 223, 225, 226, 275 | 0 | c+1 | yes |
 | one-word convert or mover | 184, 239, 243, 244 | 0 | c+1 | yes |
 | mover pair, first word | 240 | 0 | c+1 | no |
 | mover pair, last word | 241 | 0 | c+1 | yes |
@@ -429,11 +434,15 @@ them.
 The entry copies both cells into the session and reads neither as a
 source or a target. The family head decides which side is a register.
 
-**The handler decodes `PZE` only. Design decision.** The manual also
-prints `MZE BL)NN,,CP)+NN` ([J 90.02.14]) and `MON PI)NN,,0`
-([J 90.02.15]). Our generator emits neither, because `_pze` refuses a
-located item before it reads anything. A prefix test would duplicate
-that refusal, and CLAUDE.md section 11 bars a branch no run reaches.
+**The handler decodes `PZE` and `MZE`. Design decision.** A word with
+the sign bit clear is the pointer itself. `MZE BL)NN,,CP)+NN`
+([J 90.02.14] Case 2) gives the pointer as the sum of the base locator
+and the displacement constant. That is the sum the in-line `CAL BL)NN /
+ACL CP)+NN / SLW` builds ([J 90.02.11] Case 2). The external-decimal
+store emits the `MZE` form for a target in a located record (M6-9,
+amended 2026-10-25). The handler throws a `StateError` on any other
+prefix, `MON PI)NN,,0` ([J 90.02.15]) among them, because no emitted
+word holds one.
 
 **The advanced pointers are not written back. Design decision.** No
 source says whether MOVPAK returns them. Every site that reads a pointer
@@ -466,6 +475,57 @@ The characters are read one at a time:
 
 A minus-overpunched zero gives the machine's minus zero: the sign bit is
 set and the magnitude is 0.
+
+### SYS)186, SYS)187 and SYS)188, internal decimal to external decimal
+
+`TXI SYS)186,1,NUMBER-OF-CHARACTERS-TO-DEVELOP` "converts from internal
+decimal in the AC or AC-MQ to unsigned external decimal". SYS)187 gives
+"overpunch minus sign convention" and SYS)188 "overpunch plus sign
+convention" ([J 90.02.18]). Each step ends the move. Added 2026-10-25
+with the external-decimal store (M6-9).
+
+The handler writes the accumulator's magnitude as that many digits,
+high order first, with zeros in the unused high-order positions:
+
+- SYS)186 writes no sign. A negative value stores its magnitude.
+- SYS)187 and SYS)188 overpunch the last digit as the edited tags 1 and
+  2 do (RT-5, the sign conventions). Under SYS)187 a positive value
+  keeps the plain digit. Under SYS)188 it takes the 12 punch.
+
+**The source is the accumulator alone, as for SYS)267.** The generator
+moves a value in the MQ with `XCA` before the call. More than ten
+characters is the AC-MQ pair, which the handler refuses (below).
+
+**The high-order fill is zeros. Design decision under D0.4; Jack can
+overturn it.** [J 90.02.18] does not say zero or blank. The
+[J 02.05.05] chart lists "digits and leading blanks" as what an
+external field holds, so blank fill is also legal data. Zeros keep
+every position a digit.
+
+**A longer value drops its high-order digits, and arms nothing. Design
+decision.** [J 90.02.18] lists no overflow test step for the three
+entries. The rule is SYS)267's rule (RT-5) and D4.2's.
+
+### SYS)183, external decimal to external decimal
+
+`TXI SYS)183,1,TARGET-SIGN-CONVENTION` opens the move, and `TXI
+SYS)223,1,TARGET-NUMERIC-LENGTH` ends it ([J 90.02.15],
+[J 90.02.16]). Added 2026-10-25 with the external-to-external move
+(M6-9).
+
+- SYS)183 parks the convention: 0 no sign, 1 overpunch minus, 2
+  overpunch plus.
+- SYS)191 appends the count in source digits through the reader of
+  SYS)193. It reads no sign.
+- SYS)227 does the same, and its last character gives the sign (Note
+  1).
+- SYS)223 writes the digits. The last digit takes the overpunch of
+  SYS)187 or SYS)188 under convention 1 or 2. Convention 0 writes the
+  magnitude alone. A count that differs from the digits built throws,
+  as for SYS)225.
+
+The handlers move characters and never use the accumulator, so the
+ten-digit limit below does not apply.
 
 ### SYS)268, SYS)269 and SYS)275, an edited field to a register
 
@@ -713,6 +773,7 @@ The digit string is built left to right, and the terminator renders it
 | Member | 185 | 190 | What it does |
 |---|---|---|---|
 | head | 185 | 190 | parks the edit control and the control word |
+| overflow test | 201 | 204 | reads the count, moves none, arms SYS)130 on a non-zero digit |
 | leading zeros | 212 | 214 | appends the count in zero digits |
 | move | 193 | 198 | appends the count from the source |
 | trailing zeros | 211 | 216 | appends the count in zero digits |
@@ -723,6 +784,10 @@ value, a blank contributes 0 ([J 02.05.05] note 3), and anything else
 is an improper data condition (D4.3). SYS)198 reads an edited source
 through the reader of RT-4, so a blank and an asterisk are digit
 positions worth 0 and the insertion characters are stepped over.
+SYS)201 and SYS)204 read the source's excess high-order digits through
+the reader of SYS)193 and SYS)198, and add none of them to the digit
+string. A non-zero digit among them sets SYS)130, which nothing clears
+(D4.2; `m6-acceptance.md` M6-9).
 
 **Neither move step reads the source's sign, so a rendered value is
 positive. Design decision.** The manual gives the sign-examining steps
@@ -762,7 +827,8 @@ the MQ on purpose (D4.1(c)). To read the pair would undo that split.
 **A value of more digits than the count drops its high-order digits,
 and arms nothing.** That is the discard the split performs, and [F p. 42]
 describes it for MOVE: alignment "may involve the dropping of leading
-digits". D4.2 fixes that no reachable handler arms `SYS)130`.
+digits". D4.2 arms `SYS)130` only through a test step, and SYS)267
+has none.
 
 ### What the compiler refuses
 
@@ -823,6 +889,7 @@ Three edited pictorials reach no control word, so codegen refuses them
 [J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.16]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.17]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.18]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.19]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.25]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.26]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers

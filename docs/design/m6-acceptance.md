@@ -461,7 +461,9 @@ the report our run prints against the page.
   - `DO SEARCH FOR INDEX = 1(1)12`, an index that is external and
     lives in a record;
   - `MOVE PAYRECORD NETPAY TO CHECK AMOUNT`, five integer digits into
-    four, an edit run that bypasses source digits;
+    four, an edit run that bypasses source digits (amended
+    2026-10-25: the run drops high-order digits through a test step,
+    not a bypass; the SYS)190 decision below holds it);
   - `TABLE.ITEM RATE (INDEX)`: the item is 11 characters, and the
     stride truncates to one word with no refusal (`docs/HANDOVER.md`,
     codegen defect 7).
@@ -631,7 +633,8 @@ the report our run prints against the page.
      Definition §5.3.2 lists J's tightenings, and operand shape is not
      among them. The sites are statements 152,00 and 156,00 of the
      applied deck, and the refusal is the default arm of the numeric
-     comparison.
+     comparison. (Amended 2026-10-25: both compile. The decision on the
+     comparison whose sides are expressions holds it.)
   5. **A product of a product.** [J 02.04.05.01] b: "the expression
      A*B*C will be taken to mean (A*B)*C".
      [F p. 107], rule 4, states the same.
@@ -654,7 +657,9 @@ the report our run prints against the page.
      SYS)190 notes on
      `comtran-manuals/J28-6169/images/page-158.png` may distinguish
      them, and nobody measured that page. The code and the comment
-     stay as they are, and chunk 2b carries the check.
+     stay as they are, and chunk 2b carries the check. (Amended
+     2026-10-25: the check is done. The SYS)190 decision below holds
+     it.)
 
   **The refusals are stricter than Jack's rule, by design.**
   `UnrecoveredShape` says so in its own words: "The 1962 compiler had
@@ -720,13 +725,28 @@ the report our run prints against the page.
   - `FILE record IN file`;
   - a comparison whose sides are expressions;
   - a product of a product;
-  - the SYS)190 bypass steps, with the page-158 notes measured at build
-    time;
+  - the SYS)190 bypass steps (decided as a test step), with the
+    page-158 notes measured at build time;
   - the 11-character table stride, which carries codegen defect 7 with
     it (`docs/HANDOVER.md`);
   - `STOP n` at run time: the halt and the resume (Open Question 69);
   - a numeric comparison of unequal scales, added 2026-10-25 by the
     fetch decision below.
+  - a scaling store of a chain value, added 2026-10-25 by the store
+    decision below;
+  - an external-decimal DO FOR index, added 2026-10-25 by the
+    store decision below;
+  - a DO FOR driving three indicators, added 2026-10-25 by the DO FOR
+    decision below;
+  - a SET into an edited field, added 2026-10-25 by the edited store
+    decision below;
+  - a MOVE of an external-decimal field to an external-decimal field,
+    added 2026-10-25, the stop that the expression-comparison decision
+    below found.
+
+  No decision below changes the two listings or
+  `test/goldens/90.05-payroll.code`, because each acts on shapes the
+  sample does not hold.
 
   **Decided 2026-10-24: `FILE record IN file`. A design decision
   under D0.4; Jack can overturn it.** This is the third item of the
@@ -776,14 +796,7 @@ the report our run prints against the page.
 
   - `test/codegen_test.dart` asserts the call on one file and on two.
   - `test/codegen_refusal_test.dart` pins the new refusal.
-  - `test/f_corpus_test.dart` pinned the next stop. The applied deck
-    then compiled past statement 131,00 and stopped at statement
-    139,00, `STOP 1234`, on the shape `STOP n`. The STOP n decision
-    below moved the pin.
-
-  The two listings do not change, because the change is in code
-  generation only. `test/goldens/90.05-payroll.code` does not change,
-  because the sample has no IN form.
+  - `test/f_corpus_test.dart` moved the pin to statement 139,00.
 
   **Decided 2026-10-24: `STOP n`. A design decision under D0.4; Jack
   can overturn it.** This is the last item of the list above, and the
@@ -838,16 +851,8 @@ the report our run prints against the page.
     decimal n.
   - `test/runtime/machine_test.dart` runs a program through a halt.
     The line prints, and the statement after the halt runs.
-  - `test/f_corpus_test.dart` pinned the next stop. The applied deck
-    then compiled past statement 139,00. It stopped at statement 141,00,
-    `IF DETAIL HOURS IS GREATER THAN 40`, on the shape `an arithmetic
-    operand of externalDecimal`. HOURS is an external-decimal field,
-    so this is the first item of the list, the external-decimal fetch.
-    The fetch decision below moved the pin.
-
-  The two listings do not change, because the change is in code
-  generation only. `test/goldens/90.05-payroll.code` does not change,
-  because the sample has no STOP n.
+  - `test/f_corpus_test.dart` moved the pin to the fetch of HOURS at
+    statement 141,00.
 
   **Decided 2026-10-25: the external-decimal fetch. A design decision
   under D0.4; Jack can overturn it.** This is the first item of the
@@ -895,7 +900,8 @@ the report our run prints against the page.
   - A SET, one ADD clause, one ADD CORRESPONDING pair, and one numeric
     comparison each open a scope. The clause scope converts the source
     once for all its targets, as the edited source of statement 221
-    parks once (amended 2026-10-25).
+    parks once (amended 2026-10-25). A DO FOR increment block also
+    opens a scope (amended 2026-10-25, the DO FOR decision below).
     All the fetches of the scope come before its first word, so no
     convert can overwrite a live accumulator or MQ.
   - One field read two times in a scope converts once and takes one
@@ -925,9 +931,8 @@ the report our run prints against the page.
 
   The generator refuses five shapes on this path:
 
-  - `an external-decimal store (M6-9)`. A SET target, an ADD target, a
-    DO index or a subscript variable of external decimal needs the
-    store, which is the next item of the list.
+  - `an external-decimal store (M6-9)`, for an external target. The
+    store decision below withdraws it.
   - `a subscripted external-decimal operand (M6-9)`. The fetch sets
     SYS)132 from a fixed descriptor, and no sample operand is both
     subscripted and converted.
@@ -936,13 +941,9 @@ the report our run prints against the page.
   - `an external-decimal convert of more than 10 digits (RT-4)`, as
     for the MOVE. The park is one `STO`.
   - `a numeric comparison of unequal scales (no sample instance)`.
-    `CAS` compares two words as integers. Each attested comparison of a
-    field with a word has the same scale on the two sides, and the
-    scaled zero has its own build. The refusal is a general fix and not
-    a fetch fix. Before it, every unequal pair compiled wrong: `IF FRAC
-    GT NUM`, at `9V9` against `999`, compiled to `CLA FRAC / CAS NUM`.
-    This shape is the ninth item of the list above. The decision below
-    withdraws this refusal.
+    Before it, every unequal pair compiled wrong: `IF FRAC GT NUM`, at
+    `9V9` against `999`, compiled to `CLA FRAC / CAS NUM`. The decision
+    below withdraws this refusal.
 
   The tests:
 
@@ -954,14 +955,8 @@ the report our run prints against the page.
   - `test/runtime/machine_test.dart` runs a program over an
     external-decimal field that holds 4.25. `SET TOT = EXT + 1.50`
     stores 5.75. `EXT GT 4.00` is true, and `EXT GT 4.25` is false.
-  - `test/f_corpus_test.dart` pins the next stop. The applied deck
-    fetches HOURS at statement 141,00, `IF DETAIL HOURS IS GREATER THAN
-    40`, and stops on the shape `a numeric comparison of unequal
-    scales`. That is the ninth item of the list.
-
-  The two listings do not change, because the change is in code
-  generation only. `test/goldens/90.05-payroll.code` does not change,
-  because the sample has no external-decimal operand.
+  - `test/f_corpus_test.dart` moved the pin to the comparison of
+    statement 141,00.
 
   **Decided 2026-10-25: the comparison of unequal scales. A design
   decision under D0.4; Jack can overturn it.** This is the ninth item
@@ -1029,13 +1024,8 @@ the report our run prints against the page.
   - `test/runtime/machine_test.dart` runs `4.5 GT 4`, `4.5 GT 5`,
     `40.0 = 40`, `40.0 GT 40` and `4.5 LT 5`. Without the alignment,
     four of the five give the wrong value.
-  - `test/f_corpus_test.dart` pins the next stop. Statement 141,00
-    compiles its comparison and stops in its THEN arm, `(DETAIL HOURS
-    - 40) * MASTER RATE * 1.5`, with the shape `a product of a
-    product`. That is the fifth item of the list. The product decision
-    below moved the pin.
-
-  The two listings and `test/goldens/90.05-payroll.code` do not change.
+  - `test/f_corpus_test.dart` moved the pin to the product of
+    statement 141,00.
 
   **Amended 2026-10-25, after the PR 143 review.** The alignment
   admitted a nonzero literal in the accumulator when the scales differ,
@@ -1083,10 +1073,10 @@ the report our run prints against the page.
   instance)`. The count is ours:
 
   - a field: its declared digits;
-  - a literal: its keyed digits;
+  - a literal: the digits of its value;
   - a product: the sum of its factors;
-  - a chain: its widest integer part, plus the chain scale, plus one
-    digit for the carry.
+  - a chain of n terms: its widest integer part, plus the chain scale,
+    plus the digits of n - 1 for the carry.
 
   At statement 141,00 the inner product holds at most 4 + 5 = 9 digits.
   The outer product takes no new check, because the store tail also
@@ -1118,17 +1108,799 @@ the report our run prints against the page.
     HRS an external field that holds 45.0. A RATE of 2.505 stores
     18.79, and a RATE of 2.500 stores 18.75. A product that dropped the
     scale of 1.5 would store 187.88.
-  - `test/f_corpus_test.dart` pins the next stop. Statement 141,00
-    compiles its product and stops at its store, because DETAIL GROSS
-    is an external-decimal field. The shape is `an external-decimal
-    store (M6-9)`, the second item of the list.
+  - `test/f_corpus_test.dart` moved the pin to the store of statement
+    141,00.
 
-  The two listings and `test/goldens/90.05-payroll.code` do not change.
+  **Decided 2026-10-25: the external-decimal store. A design decision
+  under D0.4; Jack can overturn it.** This is the second item of the
+  list above, and the sixth item done. A SET or ADD target of external
+  decimal takes the SYS)180 skeleton of the edited store (catalogue
+  4.6), with one convert step in place of the edit words:
+
+  ```
+  ...                   the value, in the accumulator
+  TSX    SYS)180,4
+  PZE    target,,byte
+  TXI    SYS)186,1,digits
+  ```
+
+  A value in the MQ takes `XCA` first, in place of the `STQ`. A field
+  of a located record takes `MZE BL)n,,CP)+k`, with `CP)+k` the
+  displacement constant of the fetch. An ADD target reads the cell of
+  its fetch. The evidence:
+
+  - [J 90.02.15]: under SYS)180 the source "is in a machine register",
+    and the target pointer is set "in the same manner as SYS)179". The
+    sample attests the pair at its 25 edited stores. [J 90.02.14] Case
+    2 gives the `MZE` form for a located item; no listing shows it.
+  - [J 90.02.18]: each step converts "from internal decimal in the AC
+    or AC-MQ".
+  - SYS)186 is "unsigned", SYS)187 "overpunch minus" and SYS)188
+    "overpunch plus". An external field signs by overpunch alone
+    ([J 02.05.05] note 1), and SYS)183 numbers the same three
+    conventions. So a pictorial with no sign takes SYS)186, a final J
+    to R letter SYS)187, and a final A to I letter SYS)188.
+
+  The two open items: a value of more digits drops its high-order
+  digits and arms nothing, as SYS)267 does (RT-5; D4.2), because
+  [J 90.02.18] gives no test step. The value rounds in the tail of D4.1
+  before the store, and §8.5.4-a stays open.
+
+  The rejected options:
+
+  - *Preset SYS)133, then SYS)182.* [J 90.02.11] permits it, but the
+    located preset overwrites the accumulator, so it would have to
+    come before the arithmetic. SYS)180 has a located form of its own.
+  - *A handler that reads the MQ.* No word of the call names the
+    register, and RT-5 reads the accumulator alone.
+  - *Park and reload.* Two words and a cell, where `XCA` is one word.
+
+  The refusals: `an external-decimal DO FOR index (M6-9)` and `an
+  external-decimal subscript variable (M6-9)`, because the store
+  changes the fitted run of M4-6; `an ADD clause that names an
+  external-decimal field twice (no sample instance)`, because a cell
+  would go stale; `an external-decimal store of more than 10 digits
+  (RT-4)`; and `an external-decimal store into an S position (RT-4)`.
+  The DO FOR decision below withdraws the first.
+
+  The tests: `test/codegen_test.dart` asserts the words,
+  `test/codegen_refusal_test.dart` pins the five refusals, and
+  `test/runtime/movpak_test.dart` runs each step and the `MZE` sum.
+  `test/runtime/machine_test.dart` runs the shape of statement 141,00,
+  then `ADD GROSS TO GROSS`: the field reads `0003758`. A minus field
+  reads `27N`, a plus field `52E`, and a fetch reads -2.75 back. A
+  located field, read from a tape, takes the `MZE` store and reads
+  `07P` in the buffer.
+  `test/f_corpus_test.dart` moved the pin to the store of statement
+  142,00, which the next decision takes.
+
+  **Decided 2026-10-25: the scaling store of a chain value. A design
+  decision under D0.4; Jack can overturn it.** This is the tenth item
+  of the list above, and the seventh item done. A value in the
+  accumulator at a scale above the target's takes the scaling tail of
+  D4.1 without its `XCA`:
+
+  ```
+  ...                   the chain, in the accumulator
+  ACL    half           omitted under TRUNCATED
+  LRS    35
+  DVP    10**d
+  STQ    target         or XCA and the SYS)180 store
+  ```
+
+  Statement 142,00 divides by 10 with the half-adjust 5. A one-term
+  chain takes the same words. The evidence:
+
+  - The `XCA` of LOC 00631 moves the product's low half into the
+    accumulator. A chain already ends there (M4-10), as `CLA RS)1 /
+    SUB RS)0` at LOC 00625 to 00626 shows.
+  - `LRS 35 / DVP` on a value in the accumulator, with no `XCA`, is
+    attested at LOC 00423 to 00425 on `CLA 5)NETPAY`.
+  - D4.1: a SET rounds and TRUNCATED drops the `ACL` alone. `ACL` adds
+    to the magnitude, so a negative chain rounds away from zero, as a
+    product does.
+  - The four words are the product's words after its `XCA`, so the
+    tail adds no bound the product path lacks.
+
+  The rejected options:
+
+  - *`ADD half`.* It moves a negative value toward zero, so -2.485
+    stores -2.48. Every attested half-adjust is `ACL`.
+  - *`XCA`, then the tail as printed.* Two words that cancel.
+  - *Rescale each term before the sum.* Each divide loses fraction
+    digits. [F p. 115] defines ROUND on "a number", and we read that
+    number as the result, not its terms.
+
+  The refusal `a store below the target scale (no sample instance)`
+  stays.
+
+  The tests: `test/codegen_test.dart` asserts the words.
+  `test/runtime/machine_test.dart` stores 3.505 as 3.51, 3.504 as 3.50
+  and -2.485 as -2.49, internal and external. `test/f_corpus_test.dart`
+  pins the next stop: statement 144,00, `DO SEARCH FOR INDEX = 1(1)12`,
+  refuses `an external-decimal DO FOR index (M6-9)`.
+
+  **Decided 2026-10-25: the external-decimal DO FOR index. A design
+  decision under D0.4; Jack can overturn it.** This is the eleventh item
+  of the list above, and the eighth item done. The loop of M4-13 keeps
+  every word that does not touch the index. The four that do change,
+  and one word is added:
+
+  - Each `STO` of the index becomes the external-decimal store.
+  - The `CLA` of the index becomes a fetch into `TS)1`, then
+    `CLA TS)1`.
+  - The `SUB` of the index reads `TS)1`.
+  - The added word is the park, `STO TS)1`.
+
+  ```
+  AXT    GN)a,4
+  SXA    P,4
+  CLA    CP)+p
+  TSX    SYS)180,4      the store of p
+  PZE    index,,byte
+  TXI    SYS)186,1,digits
+  CLA    table-base
+  STO    PI)1
+  TRA    P+1
+  GN)a   LDI CP)+n      the fetch of the index
+  STI    SYS)132
+  TSX    SYS)182,4
+  TXI    SYS)184,1,digits
+  STO    TS)1
+  CLA    TS)1
+  ADD    CP)+q
+  STO    TS)1           the park of i + q
+  TSX    SYS)180,4      the store of i + q
+  PZE    index,,byte
+  TXI    SYS)186,1,digits
+  CLA    stride
+  ADD    PI)1
+  STO    PI)1
+  CLA    CP)+r
+  SUB    TS)1
+  TPL    GN)b
+  ```
+
+  The loop holds 21 + 5·M words, where the internal loop holds 11 + 5·M.
+  Each indicator of a stride of part of a word adds 3 (amended
+  2026-10-25, the stride decision below).
+  A minus or plus overpunch takes SYS)187 or SYS)188, as for every
+  store. The evidence:
+
+  - The loop is LOC 00702 to 00721 of the 1962 sample. Only the words
+    that read or write the index change, and the park is added.
+  - The fetch and the store are the two decisions above, unchanged. The
+    increment block is one fetch scope. The scope opens at the block's
+    head, so the back edge enters on the convert.
+  - [J 02.04.05] #6 converts operands of any format "in all cases",
+    and message 206,00 calls the format inefficient, not illegal. The
+    converts are that inefficiency.
+  - The M4-6 name run does not change. The table-base EQU heads the
+    block, and the body-entry EQU stands before the `TRA`, so both
+    fitted placements hold. Only the words between them grow.
+
+  **The park.** The stride words use the accumulator between the store
+  and the exit test. So the stepped value parks in `TS)1` before the
+  store, and the test reads the cell. Without the park, the `SUB`
+  would read the field's characters as a binary word.
+
+  The rejected options:
+
+  - *A fetch before the exit test.* Five words where one does, and the
+    field cannot change between the store and the test.
+  - *A convert in place.* It saves two words. The fetch decision keeps
+    one form at every site.
+  - *A cell that lives across passes.* The body can write the index,
+    and a cell never outlives its scope.
+  - *Keep the refusal.* The 1962 processor compiled the shape (Jack's
+    rule of 2026-09-14).
+
+  The open item: SYS)186 has no test step, so a `99` index that steps
+  past 99 drops its high digit in the field. The test reads the cell
+  and exits all the same.
+
+  The refusal `an external-decimal subscript variable (M6-9)` stays. It
+  fires on a MOVE into the index, inside the loop body or outside it,
+  and the deck has none. A SET or ADD into the index does not reach it,
+  because neither recomputes an indicator (codegen defect 9,
+  `docs/HANDOVER.md`). The loop checks the index as a store target
+  first, so an index of more than 10 digits refuses before the loop's
+  first word.
+
+  The tests: `test/codegen_test.dart` asserts the words, the convert
+  under the increment label, and SYS)187 for a `9R` index.
+  `test/codegen_refusal_test.dart` pins the long index.
+  `test/runtime/machine_test.dart` runs a loop 1(1)12 over an
+  external `99` index. The body runs 12 times, and the index reads
+  `13`. `test/f_corpus_test.dart` pins the next stop. Statement 144,00
+  refuses `a DO FOR driving two indicators (M4-6; no sample
+  instance)`, because statement 166,00 subscripts RATE,
+  INSURANCE.PREM and RETIREMENT.PREM by INDEX.
+
+  **Decided 2026-10-25: the DO FOR driving several indicators. A
+  design decision under D0.4; Jack can overturn it.** This is the
+  twelfth item of the list above, and the ninth item done. A loop
+  whose index subscripts M names now steps M indicators. Each
+  indicator takes the sample's words for its one indicator, repeated
+  in indicator order. For M = 2, internal index:
+
+  ```
+  GN)b1  EQU CP)+x       the base of the first indicator
+  GN)b2  EQU CP)+y       the base of the second
+  AXT    GN)a,4
+  SXA    P,4
+  CLA    CP)+p
+  STO    index
+  CLA    GN)b1
+  STO    PI)1
+  CLA    GN)b2
+  STO    PI)2
+  GN)e   EQU P+1
+  TRA    P+1
+  GN)a   CLA index
+  ADD    CP)+q
+  STO    index
+  CLA    stride1
+  ADD    PI)1
+  STO    PI)1
+  CLA    stride2
+  ADD    PI)2
+  STO    PI)2
+  CLA    CP)+r
+  SUB    index
+  TPL    GN)e
+  ```
+
+  The loop holds 11 + 5·M words, the count of the notes. The rules:
+
+  - **The words.** Each indicator takes `CLA base / STO PI)n` in the
+    prologue and `CLA stride / ADD PI)n / STO PI)n` in the increment
+    block, the attested 00706 to 00707 and 00714 to 00716. M = 1 is
+    unchanged.
+  - **The order.** Indicator order is `PI)` order, the order of first
+    reference. The prologue, the increment block and the EQU lines
+    follow it.
+  - **The names.** The run is 3 + 2·M names:
+    - one unbound name;
+    - the body-entry EQU;
+    - the increment block;
+    - one pair per indicator, the first name unbound and the second
+      bound to the base.
+
+    For M = 1 that is the fitted run 084 to 088 of M4-6. Both
+    groupings of the notes give the same DO FOR run, so the extension
+    does not choose between them.
+  - **The EQU lines.** Every table-base EQU heads the block, as the
+    subscript store prints its two EQUs ahead of its blocks.
+  - **The pool.** Each indicator takes its own base, `PZE NAME+0`.
+    Fields of one table share one stride entry (the keying rule).
+
+  The evidence: [J 02.04.07] gives each unique subscripted name its own
+  positional indicator, and [J 02.04.07.01] updates every indicator
+  whose subscript changes. M4-13 already adds "the stride to each
+  affected positional indicator". Only the name run was open.
+
+  The rejected options:
+
+  - *Reverse first-reference order,* as the subscript store walks its
+    indicators (M4-6). That order is fitted to one site. Both orders
+    give correct code.
+  - *One name per extra base, with no unbound name.* The run then
+    differs in shape from the attested pair of the subscript store.
+  - *A direct `CLA CP)+n` for each extra base.* All three attested base
+    references go through an EQU name.
+  - *Keep the refusal.* The 1962 processor compiled the shape (Jack's
+    rule of 2026-09-14), and [J 02.04.07] states the indicators.
+
+  **The stride of part of a word is refused, not built.** Codegen
+  defect 7 stepped an 11-character element by one word and gave no
+  message. `_strideWords` now refuses `a table stride of 11
+  characters, not a whole number of words (M6-9)`, in the loop and in
+  the subscript store. Wrong code becomes a refusal. The design of the
+  stride needs its own decision, for three reasons:
+
+  - [J 02.04.07] says a positional indicator holds "the location (word
+    and byte)". The attested step is one `ADD` of a word count. An
+    11-character stride is one word and five bytes, and an `ADD` of a
+    byte count into the decrement carries nothing into the address. A
+    test-and-adjust sequence has no attested form.
+  - The internal comparison form `LAC PI)n,r / CAS 0,r` reads a
+    whole word. The external comparand of 166,00 still refuses.
+  - The one attested base of a field inside a word is `PZE RETPREM-2`.
+    Its zero decrement is the 1962 defect of M6-4 finding 1, so the
+    only evidence on the byte of a base is wrong code.
+    INSURANCE.PREM sits at byte 5 and RETIREMENT.PREM at byte 2.
+
+  The rejected options for the stride:
+
+  - *Round the stride up to two words.* [J 02.05.04] D.2 packs an
+    unjustified field "immediately to the right" of the one before, so
+    element 2 starts at word 1, byte 5. Two words would read the wrong
+    characters from element 2 on.
+  - *Keep the truncation.* It is defect 7: silent wrong code.
+
+  No refusal is added for a base inside a word: it would fire on
+  `PZE RETPREM-2` in the sample.
+
+  **Amended 2026-10-25.** The stride decision below builds the stride
+  in the loop. The refusal stays for the subscript store.
+
+  The tests: `test/codegen_test.dart` asserts the words for two
+  tables, and for three fields of one table with one stride entry.
+  `test/codegen_refusal_test.dart` pins the stride refusal in a loop
+  and in a subscript store. `test/runtime/machine_test.dart` loops
+  1(1)12 over a table of three whole-word external fields, k, 100 + k
+  and 200 + k. Each pass reads element k through each indicator, so
+  each count reads 12 and the sums read 78, 1278 and 2478.
+  `test/f_corpus_test.dart` pins the next stop. Statement 144,00 now
+  refuses the stride of TABLE.ITEM, 11 characters.
+
+  **Decided 2026-10-25: the stride of part of a word. A design
+  decision under D0.4; Jack can overturn it.** This is the seventh item
+  of the list above, and the tenth item done. A DO FOR now steps an
+  indicator by a stride that is not a whole number of words. The step
+  carries the byte into the word. Each such indicator takes six words
+  in the increment block, where a whole-word stride takes three:
+
+  ```
+  CLA    stride         PZE 1,,5 for 11 characters
+  ADD    PI)n
+  SUB    CP)+k          OCT 000005777777, 6·2^18 − 1
+  TPL    *+2
+  ADD    CP)+k
+  STO    PI)n
+  ```
+
+  The prologue sets the indicator from a base that carries the field's
+  byte, for every stride. For TABLE.ITEM the bases are `PZE RATE+0`,
+  `PZE INSURANCE.PREM+0,,5` and `PZE RETIREMENT.PREM+0,,2`. A base at
+  byte 0 prints no byte, so the sample's `PZE 2)RATE+0` does not
+  change. A whole-word stride keeps the sample's three step words.
+
+  **Amended 2026-10-25, after the PR 150 review.** The first build
+  gave a whole-word stride the base `NAME+0` with a zero decrement.
+  The readers below then read a field at byte 2 from byte 0: over
+  items of `99`, `9999` and `9(6)`, `ADD B (INDEX)` summed 007800 for
+  000078. The subscripted MOVE source read the same wrong characters
+  before this decision, because it also sets SYS)132 from the
+  indicator. Every DO FOR base now carries its byte.
+  `test/runtime/machine_test.dart` runs the ADD, a comparison and the
+  MOVE over that table.
+
+  **The indicator form.** An indicator is the MOVPAK pointer itself:
+  the word in the address field and the byte in the decrement. The
+  evidence:
+
+  - [J 02.04.07] says a positional indicator holds "the location (word
+    and byte)".
+  - LOC 01445 to 01446 of the 1962 sample copy `PI)2` into SYS)132
+    with `LDI` and `STI`, and add nothing. So the indicator has the
+    form of the pointer.
+  - [J 90.02.11] gives SYS)132 as `PZE LOC,,BYTE`, and the sample's
+    `PZE INS.PREM,,3` prints the byte in the decrement.
+
+  **The carry.** The decrement sits above the address, so the word is
+  `byte·2^18 + word`. The rules:
+
+  - The `ADD` of `PZE 1,,5` adds 5 to the byte and 1 to the word. Only
+    the carry is missing.
+  - The `SUB` of k leaves `(byte − 6)·2^18 + word + 1`. The address is
+    below 2^15, so the value is positive exactly when the byte reached
+    6. It is then the carried pointer: the byte less 6, the word plus 1.
+  - When the value is negative, the `ADD` of k restores the sum. The
+    value is never zero, so the sign of zero does not matter.
+  - The byte stays below 11, so one carry is always enough.
+
+  The sequence uses only attested opcodes: `TPL` at the exit test of
+  LOC 00721, `*+n` at LOC 01413. The sequence itself has no listing.
+
+  **The readers.** A subscripted external-decimal operand of a
+  comparison or an ADD now converts through its indicator into a
+  temporary cell:
+
+  ```
+  LDI    PI)n
+  STI    SYS)132
+  TSX    SYS)182,4
+  TXI    SYS)184,1,digits
+  STO    TS)k
+  ```
+
+  These are the words of LOC 01445 to 01450, the subscripted MOVE
+  source, with the park of the fetch decision in place of the store.
+  The handler reads characters from the pointer's byte, so a reader
+  through a descriptor reads any stride. The arithmetic then reads the
+  cell. The fetch decision's refusal `a subscripted external-decimal
+  operand (M6-9)` stays for SET, because the chain has no subscripted
+  operand form.
+
+  These answer the three reasons of the DO FOR decision above:
+
+  - The step carries in three words of attested opcodes.
+  - The external comparand reads through a descriptor, not through
+    `LAC PI)n,r / CAS 0,r`.
+  - The base carries its byte. The 1962 subscript store drops it
+    (M6-4 finding 1), and that site keeps its words (codegen defect
+    10, `docs/HANDOVER.md`).
+
+  The rejected options:
+
+  - *Recompute the indicator from the index.* `LDQ`, `MPY` by 11,
+    `DVP` by 6, `ALS 18` and `ORS` give the same pointer in 11 words.
+    The loop then gives up the attested step of LOC 00714 to 00716.
+  - *A `CAS` vector for the carry.* `CAS k`, its three `TRA` words
+    and `SUB k` give the same pointer in eight words, two more.
+  - *A runtime that takes a byte past 5.* [J 90.02.11] gives the byte of
+    SYS)132 as "(0-5)".
+  - *Drop the base byte, as the 1962 subscript store does.* That is a
+    defect at one site, and the DO FOR has no listing that repeats it.
+    INSURANCE.PREM would then read RATE's last character.
+
+  The open items: the prologue sets each indicator to element 1 for any
+  p, and the step adds one stride for any q. The deck is `1(1)12`, so
+  neither changes its code. Both are older than this decision.
+
+  The refusals:
+
+  - `a whole-word read of an element whose stride is 11 characters
+    (M6-9)`, for an internal comparand through `LAC PI)n,r`. The `CAS
+    0,r` reads the word and drops the byte.
+  - `a table stride of 11 characters, not a whole number of words
+    (M6-9)` stays for the subscript store, which multiplies a word
+    count. The deck has no MOVE into INDEX.
+  - `an external-decimal field read with and without its subscript (no
+    sample instance)`, because one cell serves an item in a scope.
+
+  The tests:
+
+  - `test/codegen_test.dart` asserts the step words, the pool words
+    and the reader words, and gives two tables different strides.
+  - `test/codegen_refusal_test.dart` pins the three refusals.
+  - `test/runtime/machine_test.dart` loops 1(1)12 over the deck's six
+    TABLE rows. Each pass compares RATE, INSURANCE.PREM and
+    RETIREMENT.PREM of item k with a whole-word copy, so each count
+    reads 12. The bytes run 0, 5, 4, 3, 2, 1, so the carry fires at
+    exactly 6 and past it. The two ADD sums read the row totals.
+  - `test/f_corpus_test.dart` pins the next stop. Statement 145,00
+    refuses `an arithmetic operand of edited (no sample instance)`,
+    because its SET target PAYRECORD NETPAY is edited. Statement
+    166,00, the readers above, comes later in the text.
+
+  **Decided 2026-10-25: the edited store of a chain value. A design
+  decision under D0.4; Jack can overturn it.** This is the thirteenth
+  item of the list above, and the eleventh item done. A SET target of
+  edited class takes the edited store of catalogue 4.6 behind the
+  chain, in place of the store's `CLA`:
+
+  ```
+  ...                   the chain, in the accumulator
+  TSX    SYS)180,4
+  PZE    target,,byte
+  TXI    SYS)267,1,edit
+  OCT    control
+  AXT    digits,1
+  ```
+
+  A value in the MQ takes `XCA` first. A chain above the target's
+  scale takes the scaling tail of the decision above, then `XCA`. For
+  PAYRECORD NETPAY, `$88889.99-`, the edit control is 12, a dollar and
+  a point. The control word is `OCT 000005300004`: five integer digits,
+  sign convention 3 in the tag, four protected positions. The evidence:
+
+  - The sample attests the five words at its 25 edited stores. GROSS,
+    `88889.99`, at LOC 00374 to 00400 prints `TXI SYS)267,1,4`, the
+    point alone, and `OCT 000005000004`.
+  - [J 90.02.15]: under SYS)180 the source "is in a machine register".
+    The external store decision above already puts the call behind a
+    chain. This decision changes only the step words.
+  - [J 90.02.17] Note 2 numbers the trailing minus 3. The sample has no
+    signed edited target, so its tags are all 0. The 1960 program
+    writes the SET as printed, and J does not withdraw it (M6-9's
+    reading rule).
+
+  The open item: a value of more digits drops its high-order digits
+  and arms nothing, as SYS)267 does (RT-5; D4.2). A register value has
+  no declared digit count, so the split divide of LOC 00424 has no
+  trigger. The store compares scales, so codegen defect 1 does not
+  reach this path.
+
+  The rejected options:
+
+  - *The split divide on a computed digit count.* The bound would be
+    ours, and SYS)267 drops the excess already.
+  - *Refuse a chain above the target scale.* `LRS 35 / DVP` on a value
+    in the accumulator, with no `XCA`, is attested at LOC 00423 to
+    00425, and the decision above ends the tail in `XCA` and SYS)180.
+  - *Park the chain in a cell for the MOVE path's `CLA`.* A cell and two
+    words more, as the external store found.
+  - *The `MZE` form for a located target.* [J 90.02.14] Case 2 gives it,
+    but no edited store of the sample is located, and PAYRECORD is an
+    output record. A located target refuses.
+
+  The refusals, ahead of the first word of the chain: `an edited store
+  of more than 10 digits (RT-4)`, `an in-line address word for a
+  located item (catalogue 4.3)`, and the control word's own, for
+  example `an edited field with an S position (RT-5)`. `a store below
+  the target scale (no sample instance)` stays. `an arithmetic operand
+  of edited (no sample instance)` stays for a chain operand and an ADD
+  target.
+
+  The tests: `test/codegen_test.dart` asserts the words for the shape
+  of statement 145,00, a product and a tail.
+  `test/codegen_refusal_test.dart` pins the refusals.
+  `test/runtime/machine_test.dart` runs the shape over the deck's six
+  pictorials: 307.39 prints `  $307.39 ` and -65.11 `   $65.11-`.
+  `test/f_corpus_test.dart` pins the next stop. Statement 146,00, `MOVE
+  PAYRECORD NETPAY TO CHECK AMOUNT`, moves `$88889.99-` into
+  `$***9.99` and refuses `an edit run that bypasses source digits (no
+  sample instance)`. That is the SYS)190 bypass item of the list.
+
+  **Decided 2026-10-25: the SYS)190 test step. A design decision
+  under D0.4; Jack can overturn it.** This is the sixth item of the
+  list above, and the twelfth item done. An edit run whose source has
+  more integer digits than its target now emits a test step for the
+  excess, ahead of the move:
+
+  ```
+  TSX    SYS)182,4
+  TXI    SYS)190,1,13
+  OCT    000004000003
+  TXI    SYS)204,1,1        the dropped digit
+  TXI    SYS)198,1,6
+  TXI    SYS)226,1,6
+  ```
+
+  That is statement 146,00, `$88889.99-` into `$***9.99`. An external
+  source takes SYS)201 under SYS)185. The handler reads the count in
+  digit positions as SYS)198 does, and moves none of them. A non-zero
+  digit among them sets SYS)130. The evidence:
+
+  - [J 90.02.10]: SYS)130 records "the truncation of significant high
+    order values (i.e. overflow)". A high-order drop is that
+    truncation, so the count is NUMBER-OF-CHARACTERS-TO-TEST-FOR-OVERFLOW.
+    D4.2 already sets the arming rule for the test steps, so this
+    decision does not amend D4.2.
+  - A low-order drop is not overflow. It is the bypass count, and
+    neither site needs it.
+  - The scan, `comtran-manuals/J28-6169/images/page-158.png`, is a clean
+    typeset page with no marginal notes. It prints Note 2 under SYS)202
+    only, and Note 3 under SYS)230, 234 and 238. Its wording agrees with
+    the conversion. So the notes separate SYS)202, the bypass that
+    reads a sign, from SYS)208. They do not separate SYS)196 from
+    SYS)204.
+  - SYS)204 against SYS)196 is our pick under D0.4, and no evidence
+    forces it.
+
+  The rejected options:
+
+  - *SYS)196.* No text separates it from SYS)204. The run prints the
+    same image under either. Only the step number in the object
+    listing changes, and a change back is one constant.
+  - *A test that only reads, then a bypass.* Each note speaks of the
+    characters "processed under control of this instruction", so a
+    test step consumes its count. The extra word changes no output.
+  - *A drop that arms nothing*, as SYS)267 does. SYS)267 has no test
+    step. SYS)190 has one, and D4.2 arms SYS)130 through it.
+
+  The refusals: `an edit run that bypasses source digits (no sample
+  instance)` stays for the low-order drop. `an edit run that moves no
+  source digit (no sample instance)` is new: no site drops every
+  source digit.
+
+  The tests: `test/codegen_test.dart` asserts the words of statement
+  146,00 and of [F p. 43]'s `99999` row into an edited `999.9`.
+  `test/runtime/movpak_edit_test.dart` runs the steps.
+  `test/runtime/machine_test.dart` runs both shapes. 8889.99 prints
+  `$8889.99` and SYS)130 stays 0. 12345.67 prints `$2345.67` and sets
+  SYS)130. In a separate run, the `01234` row prints `234.0`, as F's
+  `2340`, and sets it.
+  `test/f_corpus_test.dart` pins the next stop. Statement 152,00, `IF
+  MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00`, refuses `a
+  comparison of BinaryExpr`. That is the fourth verdict above.
+
+  **Decided 2026-10-25: the comparison whose sides are expressions. A
+  design decision under D0.4; Jack can overturn it.** This is the fourth
+  item of the list above, and the thirteenth item done. Both sides
+  compare at the greater of their two scales. The left expression, or
+  the one expression, ends in the accumulator. The other side is the
+  `CAS` operand. When that side must be upscaled or computed, it is
+  built first and parked in a temporary cell. Statement 152,00:
+
+  ```
+  ...                   the fetches of FICA and GROSS, TS)1 and TS)2
+  LDQ    CP)+a          144.00
+  MPY    CP)+b          100
+  STQ    TS)3
+  LDQ    TS)1           the chain, at scale 4
+  MPY    CP)+b
+  STQ    RS)1+0
+  LDQ    CP)+c          0.03
+  MPY    TS)2
+  STQ    RS)0
+  CLA    RS)1
+  ADD    RS)0
+  CAS    TS)3
+  ```
+
+  The vector follows, and mirrors when the accumulator holds the right
+  side. Statement 156,00 parks nothing. The product `13 * EXEMPTIONS`
+  ends in the MQ at scale 0, so `MPY` 100 and `XCA` align it against
+  GROSS. The rules:
+
+  - A chain below the other side's scale aligns each term to that
+    scale, with the chain's attested `LDQ / MPY / STQ` park. A product
+    below it takes one more `MPY`, as a product term of a chain does.
+  - A computed or upscaled other side parks with one word: `STQ` from
+    the MQ, `STO` from the accumulator. The cell is the next `TS)`
+    cell past the fetches of the scope. A `TS)` park inside a truth
+    function takes the cell above any outer `TS)` park.
+  - Each chain numbers its `RS)` cells from 0. A truth function after
+    a parked term of a chain therefore refuses an expression
+    comparison. One in the first term runs before any park, so its
+    chain reads its own cells first.
+  - Both sides expressions: the right one first, parked, then the left.
+
+  The evidence: [J 02.04.07], "Numeric fields are compared
+  arithmetically without regard to length", so the two integers take
+  one scale. Each word is a word of the chain, the product or the
+  aligned build above. [J 90.02.04] gives `TS)` cells to "temporarily
+  store an item".
+
+  The rejected options:
+
+  - *Lower the expression with the divide tail.* It rounds or drops
+    fraction digits, so 113.99 + 0.03 * 1000.33, which is 143.9999,
+    would compare equal to 144.00.
+  - *The expression first, then park it.* The plain side then takes
+    `LDQ / MPY / XCA` and the park costs one word more.
+  - *Park in `RS)`.* The chain numbers its own `RS)` cells, and a park
+    there needs a cell past them in a reservation fitted to the sample.
+  - *`XCA / MPY / XCA` after a chain.* The term alignment gives the same
+    value with attested words.
+
+  The refusals: `an expression comparand of more than 10 digits (no
+  sample instance)`, because `CAS` reads one word; `a zero comparand
+  against an expression (no sample instance)`, for ZERO and a zero
+  literal, because the attested zero build puts the zero in the
+  accumulator and no site makes it the `CAS` operand, as on the plain
+  path; `an expression comparison inside a truth function after a
+  parked term (no sample instance)`; and `a temporary cell past the
+  TS) reservation (M4-4)` for the park. The two pins that reached the
+  default arms with an expression now pin a truth function there.
+
+  The tests: `test/codegen_test.dart` asserts the words of both
+  statements, a mirrored side, a chain below a field, two expressions,
+  and a truth function's park. `test/codegen_refusal_test.dart` pins
+  the four refusals. `test/runtime/machine_test.dart` runs both shapes
+  over external fields: 130.00, 144.00, 150.00 and 143.9999 against
+  144.00, and 13 * 2 against 25.99, 26.00 and 26.01. It also runs a
+  truth function in the first term, true and false.
+  `test/f_corpus_test.dart` pins the next stop. Statement 162,00, `MOVE
+  CORRESPONDING MASTER TO BONDORDER`, refuses `a move of
+  externalDecimal to externalDecimal (notes section 7)`.
+
+  **Decided 2026-10-25: the external-to-external move. A design
+  decision under D0.4; Jack can overturn it.** This is the fourteenth
+  item of the list above, and the fourteenth item done. The shape
+  compiled in 1962: [F p. 42] rule 1 lets numeric fields move to
+  numeric fields, J revokes nothing, and [J 90.01.02] vii restricts
+  only figurative moves. The move takes the SYS)183 run:
+
+  ```
+  LDI    CP)+n          the target pointer
+  STI    SYS)133
+  CAL    BL)2           the source pointer, a located record
+  ACL    CP)+m
+  SLW    SYS)132
+  TSX    SYS)182,4
+  TXI    SYS)183,1,0    TARGET-SIGN-CONVENTION
+  TXI    SYS)191,1,5
+  TXI    SYS)223,1,5
+  ```
+
+  That is statement 162,00. `MOVE CORRESPONDING MASTER TO BONDORDER`
+  matches one pair, BONDENOMINATION to BONDENOMINATION, `999V99` on
+  both sides. MASTER holds EMPLOYEE.NUMBER, NAME and DATE under DATA,
+  and BONDORDER does not, so those three do not correspond
+  ([J 02.04.04] example b). The run leaves them as they are. A target
+  overpunch takes convention 1 or 2, as the store's SYS)187 and 188
+  do. A signed source moves under SYS)227 in place of SYS)191. The
+  evidence:
+
+  - [J 90.02.15]: SYS)183 "moves external decimal fields to external
+    decimal fields".
+  - [J 90.02.16] prints the whole run as an example: two pointers,
+    `TSX SYS)182,4`, `TXI SYS)183,1,1`, `TXI SYS)191,1,10` and `TXI
+    SYS)223,1,10`. Its Note 1 marks SYS)227: "The last character
+    processed under control of this instruction is examined for source
+    field sign."
+  - [J 02.04.03] a): fields of the same format move "direct", with no
+    intermediate form.
+
+  A target of convention 0 writes the magnitude, so a minus source
+  loses its sign. That is our reading of "no sign".
+
+  The rejected options:
+
+  - *Fetch, then store.* SYS)182 and 184, then SYS)180 and 186, is
+    built already. It goes through the accumulator, which [J 02.04.03]
+    a) makes unnecessary, and [J 90.02.15] names a mover for the pair.
+  - *The source pointer first.* The example of [J 90.02.16] sets
+    SYS)132 first. Catalogue 4.3 finds the target first at all nine
+    two-cell sites of the sample, and the edit run follows the sample.
+    The order changes no result.
+  - *SYS)191 for a signed source.* It carries no sign note, so the
+    sign would be lost.
+
+  The refusals: `an external-decimal move of unequal shapes (no sample
+  instance)`, because the steps SYS)199, 205, 209 and 210 have no
+  handler and no site needs them; `an external-decimal move with an S
+  position (RT-4)`, because each step counts characters.
+
+  The tests: `test/codegen_test.dart` asserts the words of statement
+  162,00, both overpunch conventions, and SYS)227.
+  `test/codegen_refusal_test.dart` pins the two refusals.
+  `test/runtime/movpak_test.dart` runs each step.
+  `test/runtime/machine_test.dart` moves 275.33, then -2.75 into each
+  convention: `0027N`, `0027N` and `00275`.
+
+  **The applied deck now compiles to the end.** No refusal remains. It
+  punches an object deck of 67 cards. `test/f_corpus_test.dart` pins
+  the deck and the one SYS)183 run, and the applied listing golden
+  does not change.
 
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
   amended). It diffs values and not bytes, and M6-1 as amended names
   the columns that can be compared.
+
+  **Decided 2026-10-25: the comparison of a field across a word
+  boundary (codegen defect 12). A design decision under D0.4; Jack can
+  overturn it.** The run over PR 145's tapes found it. Statement 130,00
+  compares DETAIL and MASTER EMPLOYEE.NUMBER, each `A(6)`, at bytes 4
+  and 1. The extraction loaded the first word only, so no detail
+  matched its master. An equal-length comparison of two alphameric
+  fields is basic COMTRAN ([J 02.04.07] rule 2), so the shape compiled
+  in 1962. The extraction now takes the next word into the MQ:
+
+  ```
+  CAL    2)EMPLOYEE.NUMBER,1
+  LDQ    2)EMPLOYEE.NUMBER+1,1   the next word, through the same base
+  LGL    24                      six bits a character
+  ANA    CP)+n                   OCT 777777777777
+  SLW    RS)0
+  ```
+
+  The evidence:
+
+  - Statement 200 of the sample extracts by `CAL / LGL 18 / ANA
+    CP)+30` (M4-11). The new form adds one `LDQ` ahead of the shift.
+  - The two-word move chain (catalogue 4.5) already addresses the
+    next word of a field as `NAME+1`, with the field's own tag.
+  - `LGL` shifts the AC and the MQ as one register, and `LAS` reads Q
+    (external: 22-6528-4). A shift off byte zero moves the bit above
+    the field into Q, so the full mask clears it. A field under six
+    characters takes its own mask, as before.
+
+  The rejected options:
+
+  - *SYS)162.* M4-11 keeps it for a field that one word cannot hold.
+    This field fits in one word after the shift. SYS)162 also has no
+    handler, and its OP word has no site.
+  - *Spill and reload through RS.* `SLW RS)k / CAL RS)k` also clears
+    Q, but costs two words where `ANA` costs one.
+  - *Refuse the shape.* Jack's rule of 2026-09-14 bars it.
+
+  A HIGH.VALUE comparand takes the existing spill path with the same
+  extraction (statement 136,00). The refusals of a field over six
+  characters and of unequal lengths stay. `test/codegen_test.dart`
+  asserts the words, unlocated, located and against HIGH.VALUE.
+  `test/runtime/machine_test.dart` compares two such fields equal,
+  less and greater, and against HIGH.VALUE after statement 137,00's
+  move. The applied deck takes six `LDQ` and six `ANA` words and
+  punches 68 cards. Neither listing golden nor
+  `test/goldens/90.05-payroll.code` changes: no sample comparand
+  crosses a word.
 
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
@@ -1142,16 +1914,22 @@ the report our run prints against the page.
 [F p. 100]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F p. 101]: ../../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
 [F p. 107]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
+[F p. 115]: ../../comtran-manuals/F28-8043/a3-glossary.md#appendix-3-glossary
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
 [J 02.01.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-cmple-card
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.03.03.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-effect-of-data-storage-mode-on-arithmetic-efficiency
+[J 02.04.03]: ../../comtran-manuals/J28-6169/02-compiler.md#2-display
+[J 02.04.04]: ../../comtran-manuals/J28-6169/02-compiler.md#3-move
 [J 02.04.05]: ../../comtran-manuals/J28-6169/02-compiler.md#4-corresponding-option-with-move-and-add
 [J 02.04.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
 [J 02.04.06]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
 [J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
+[J 02.04.07.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-record
+[J 02.05.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-param-and-funct
+[J 02.05.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.06.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
 [J 02.07.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-record-types
 [J 02.07.08]: ../../comtran-manuals/J28-6169/02-compiler.md#1-forms-of-the-command
@@ -1163,11 +1941,13 @@ the report our run prints against the page.
 [J 90.02.03]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.04]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.10]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
+[J 90.02.11]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.12]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.13]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.16]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.17]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.18]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.19]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.30]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers

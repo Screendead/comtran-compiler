@@ -586,8 +586,8 @@ final class _Text {
   }
 
   /// The in-line address word `PZE LOC,,BYTE` ([J 90.02.14]). All 25
-  /// attested sites name a fixed location, so the word takes no tag and
-  /// the located form has none (catalogue 4.3).
+  /// attested sites name a fixed location, so the word takes no tag. A
+  /// located item takes the `MZE` form of [_externalStore] instead.
   void _pze(DataItem item) {
     // The test precedes [_ref]: a located reference reads its record's
     // base register, and no caller guards one for this word.
@@ -616,12 +616,16 @@ final class _Text {
 
   /// A calling-sequence parameter pair, `PZE first,,second`: the first
   /// operand in the address field, the second in the decrement
-  /// ([J 90.02.14]; [J 90.02.28]; the notes, section 2.6).
-  void _pzePair(_Sym first, _Sym second) => _emit(
-    'PZE',
+  /// ([J 90.02.14]; [J 90.02.28]; the notes, section 2.6). The [minus]
+  /// form is the `MZE BL)NN,,CP)+NN` address reference of a located
+  /// item ([J 90.02.14] Case 2).
+  void _pzePair(_Sym first, _Sym second, {bool minus = false}) => _emit(
+    minus ? 'MZE' : 'PZE',
     WordForm.prefix,
     () => '${first.text()},,${second.text()}',
-    () => pzeWord(decrement: second.value(), address: first.value()),
+    () =>
+        (minus ? Word36.signBit : 0) |
+        pzeWord(decrement: second.value(), address: first.value()),
     control: standardControl(second.relocation, first.relocation),
   );
 
@@ -986,13 +990,13 @@ final class _Text {
     return fieldClass == FieldClass.group ? FieldClass.alphameric : fieldClass;
   }
 
-  /// Every attested SET target, ADD target, DO index and subscript
-  /// variable is internal decimal. The external-decimal store is an open
-  /// item of M6-9, so it refuses under its own shape; any other class
-  /// has no attested arithmetic form and refuses.
+  /// Every attested subscript variable is internal decimal. An external
+  /// one would be read inside the fitted recomputation run (M4-6), so it
+  /// refuses under its own shape; any other class has no attested
+  /// arithmetic form and refuses.
   DataItem _decimal(DataItem item) {
     if (_sem(item).fieldClass == FieldClass.externalDecimal) {
-      _unruled('an external-decimal store (M6-9)');
+      _unruled('an external-decimal subscript variable (M6-9)');
     }
     return _operand(item);
   }
@@ -1010,6 +1014,34 @@ final class _Text {
       );
     }
     return item;
+  }
+
+  /// Records whether the external-decimal [item] is read through its
+  /// indicator. One cell per item serves the scope, so an item read both
+  /// with and without its subscript has no form.
+  void _noteSubscript(
+    DataItem item,
+    NameReference name,
+    Set<DataItem>? subscripted,
+    List<DataItem> seen,
+  ) {
+    final bool through = name.subscripts.isNotEmpty;
+    if (through && subscripted == null) {
+      // The chain of a SET has no subscripted operand form; the fetch
+      // of a comparison or an ADD sets SYS)132 from the indicator, as
+      // the subscripted MOVE source does at LOC 01445–01450.
+      _unruled('a subscripted external-decimal operand (M6-9)');
+    }
+    if (seen.any((DataItem each) => identical(each, item)) &&
+        (subscripted?.contains(item) ?? false) != through) {
+      _unruled(
+        'an external-decimal field read with and without its subscript '
+        '(no sample instance)',
+      );
+    }
+    if (through) {
+      subscripted!.add(item);
+    }
   }
 
   /// The word that reads [item] as an operand: the field itself under
@@ -1036,12 +1068,21 @@ final class _Text {
   final Map<DataItem, int> _fetched = Map<DataItem, int>.identity();
   bool _fetching = false;
 
+  /// The comparison parks still live past the fetch cells (M6-9). A
+  /// truth function inside the accumulator side of an expression
+  /// comparison parks above them.
+  int _parked = 0;
+
   /// Runs [body] with every external-decimal item of [operands] fetched
   /// ahead of it into its own temporary cell (M6-9). The fetches run
   /// before the first word of the body, so no convert can clobber a
   /// live accumulator or MQ. A scope opened inside an open one, the
   /// truth function's comparison, reads the outer scope's cells.
-  T _withFetches<T>(Iterable<DataItem> operands, T Function() body) {
+  T _withFetches<T>(
+    Iterable<DataItem> operands,
+    T Function() body, {
+    Set<DataItem> subscripted = const <DataItem>{},
+  }) {
     if (_fetching) {
       return body();
     }
@@ -1056,7 +1097,7 @@ final class _Text {
         if (cell > temporaryStorageWords) {
           _unruled('a temporary cell past the TS) reservation (M4-4)');
         }
-        _setup(item, target: false);
+        _setup(item, target: false, subscripted: subscripted.contains(item));
         _externalConvert(item);
         _op(Op.sto, _blockWord(StorageBlock.ts, cell));
         _movpakClears();
@@ -1070,7 +1111,13 @@ final class _Text {
   }
 
   /// The data items an expression or a relation reads, in source order.
-  List<DataItem> _operandsOf(Iterable<ArithExpr> expressions) {
+  /// A subscripted external-decimal item goes into [subscripted], whose
+  /// fetch then sets SYS)132 from its indicator; with no set, the site
+  /// has no subscripted form and refuses.
+  List<DataItem> _operandsOf(
+    Iterable<ArithExpr> expressions, [
+    Set<DataItem>? subscripted,
+  ]) {
     final items = <DataItem>[];
     void walk(ArithExpr expr) {
       switch (expr) {
@@ -1079,13 +1126,8 @@ final class _Text {
           if (item == null) {
             return;
           }
-          if (name.subscripts.isNotEmpty &&
-              _sem(item).fieldClass == FieldClass.externalDecimal) {
-            // The fetch sets SYS)132 from a fixed descriptor. No sample
-            // arithmetic operand is both subscripted and converted; the
-            // subscripted MOVE source sets the pointer from its indicator,
-            // `LDI PI)2 / STI SYS)132` at LOC 01445–01450.
-            _unruled('a subscripted external-decimal operand (M6-9)');
+          if (_sem(item).fieldClass == FieldClass.externalDecimal) {
+            _noteSubscript(item, name, subscripted, items);
           }
           items.add(item);
         case BinaryExpr(:final left, :final right):
@@ -1633,9 +1675,11 @@ final class _Text {
   );
 
   /// DO FOR (catalogue 4.1): 11 + 5·M words, M the positional
-  /// indicators the loop index drives; a five-name later-pass run,
-  /// binding the body-entry EQU, the increment block, and the
-  /// table-base EQU (M4-6, the fitted grouping).
+  /// indicators the loop index drives, and 21 + 5·M for an external
+  /// index (M6-9); a later-pass run of 3 + 2·M names, binding the
+  /// body-entry EQU, the increment block, and one table-base EQU per
+  /// indicator (M4-6, the fitted grouping, its last pair repeated per
+  /// indicator; M6-9).
   void _doFor(DoClause clause) {
     if (clause.indices.length > 1) {
       _unruled('a multi-index DO (notes section 7)');
@@ -1646,7 +1690,11 @@ final class _Text {
     if (indexItem == null) {
       _unruled('a DO FOR index with no data definition (no sample instance)');
     }
-    _decimal(indexItem);
+    _operand(indexItem);
+    final external = _sem(indexItem).fieldClass == FieldClass.externalDecimal;
+    if (external) {
+      _checkExternalTarget(indexItem);
+    }
     if (_located(indexItem)) {
       // The expansion reads and stores the index with no base load
       // in its word count.
@@ -1656,11 +1704,6 @@ final class _Text {
       for (final (DataItem, String) each in semantics.positionalIndicators)
         if (each.$2 == index.index.text) each,
     ];
-    if (driven.length > 1) {
-      // The M4-6 name run is fitted to one driven indicator; no rule
-      // derives the run for two.
-      _unruled('a DO FOR driving two indicators (M4-6; no sample instance)');
-    }
     final bounds = <PoolHandle>[];
     for (final bound in <ArithExpr>[index.from, index.by, index.to]) {
       if (bound case LiteralOperand(:final literal)) {
@@ -1673,29 +1716,52 @@ final class _Text {
       }
     }
     final strides = <PoolHandle>[];
+    final bases = <PoolHandle>[];
+    final partial = <bool>[];
     for (final (DataItem item, _) in driven) {
-      strides.add(_tableStride(item));
-      _subscriptBase(item);
+      final int chars = _strideChars(item);
+      if (chars % 6 == 0) {
+        strides.add(_pool.stride(chars ~/ 6));
+        partial.add(false);
+      } else {
+        // The indicator is the MOVPAK pointer itself, word in the
+        // address and byte in the decrement (`LDI PI)2 / STI SYS)132`
+        // at LOC 01445-01446), so the stride carries a byte too (M6-9).
+        strides.add(
+          _pool.stride(pzeWord(decrement: chars % 6, address: chars ~/ 6)),
+        );
+        partial.add(true);
+      }
+      bases.add(_subscriptBase(item));
+    }
+    if (driven.isEmpty) {
+      _unruled('a DO FOR driving no indicator');
     }
     _generated += 1; // The first name of the run is never bound (M4-6).
     final String bodyEntry = _mint();
     final String increment = _mint();
-    _generated += 1; // The fourth is never bound either (M4-6).
-    final String tableBase = _mint();
-    final PoolHandle base = driven.isEmpty
-        ? _unruled('a DO FOR driving no indicator')
-        : _subscriptBase(driven.first.$1);
-    final _Sym baseCell = _cp(base);
-    equ(tableBase, baseCell.value, operand: baseCell.text);
+    // Every table-base EQU heads the block, in indicator order (M6-9).
+    final tableBases = <_Sym>[];
+    for (final base in bases) {
+      _generated += 1; // The pair's first name is never bound (M4-6).
+      final String name = _mint();
+      final _Sym baseCell = _cp(base);
+      equ(name, baseCell.value, operand: baseCell.text);
+      tableBases.add(_Sym(() => name, baseCell.value, Relocation.relative));
+    }
     // The prologue (the attested 00702): patch the cell to the
     // increment block, then set the index and each indicator off.
     _op(Op.axt, _labelSym(increment), tag: 4);
     _op(Op.sxa, _labelSym(clause.procedure.text), tag: 4);
     _op(Op.cla, _cp(bounds[0]));
-    _opItem(Op.sto, indexItem);
-    for (final (DataItem item, _) in driven) {
-      _op(Op.cla, _Sym(() => tableBase, baseCell.value, Relocation.relative));
-      _op(Op.sto, _blockWord(StorageBlock.pi, _indicator(item)));
+    if (external) {
+      _externalStore(indexItem, _Register.ac);
+    } else {
+      _opItem(Op.sto, indexItem);
+    }
+    for (var i = 0; i < driven.length; i++) {
+      _op(Op.cla, tableBases[i]);
+      _op(Op.sto, _blockWord(StorageBlock.pi, _indicator(driven[i].$1)));
     }
     final _Sym entry = _entrySym(clause.procedure);
     equ(bodyEntry, entry.value, operand: entry.text);
@@ -1705,21 +1771,34 @@ final class _Text {
     _op(Op.tra, entry);
     label(increment);
     // The increment block: step the index, step each indicator by its
-    // stride, and take the D5.1 magnitude exit.
-    _opItem(Op.cla, indexItem);
-    _op(Op.add, _cp(bounds[1]));
-    _opItem(Op.sto, indexItem);
-    for (var i = 0; i < driven.length; i++) {
-      final _Sym indicator = _blockWord(
-        StorageBlock.pi,
-        _indicator(driven[i].$1),
-      );
-      _op(Op.cla, _cp(strides[i]));
-      _op(Op.add, indicator);
-      _op(Op.sto, indicator);
-    }
-    _op(Op.cla, _cp(bounds[2]));
-    _opItem(Op.sub, indexItem);
+    // stride, and take the D5.1 magnitude exit. An external index
+    // converts into its cell at the block's head, and the stepped value
+    // parks there too, because the stride words reuse the accumulator
+    // before the exit test reads the value (M6-9).
+    _withFetches(external ? [indexItem] : const <DataItem>[], () {
+      _read(Op.cla, indexItem);
+      _op(Op.add, _cp(bounds[1]));
+      if (external) {
+        _op(Op.sto, _blockWord(StorageBlock.ts, _fetched[indexItem]!));
+        _externalStore(indexItem, _Register.ac);
+      } else {
+        _opItem(Op.sto, indexItem);
+      }
+      for (var i = 0; i < driven.length; i++) {
+        final _Sym indicator = _blockWord(
+          StorageBlock.pi,
+          _indicator(driven[i].$1),
+        );
+        _op(Op.cla, _cp(strides[i]));
+        _op(Op.add, indicator);
+        if (partial[i]) {
+          _byteCarry();
+        }
+        _op(Op.sto, indicator);
+      }
+      _op(Op.cla, _cp(bounds[2]));
+      _read(Op.sub, indexItem);
+    });
     _op(Op.tpl, _Sym(() => bodyEntry, entry.value, Relocation.relative));
     _callClears();
   }
@@ -1816,29 +1895,56 @@ final class _Text {
     }
   }
 
-  /// The subscript base `NAME+0`, the entry a positional indicator is
-  /// set from: the item's own first word.
+  /// The DO FOR base `NAME+0`, the entry a positional indicator is set
+  /// from: the item's own first word and byte. The indicator is a MOVPAK
+  /// pointer, so a field inside a word needs its byte (M6-9); the
+  /// sample's `PZE 2)RATE+0` is at byte 0 and prints none.
   PoolHandle _subscriptBase(DataItem item) {
+    final int byte = _sem(item).byte;
     final (int address, Relocation relocation) = _dataAddress(item);
     return _pool.base(
-      '${_printedName(item)}+0',
-      word: pzeWord(address: address),
+      '${_printedName(item)}+0${byte == 0 ? '' : ',,$byte'}',
+      word: pzeWord(decrement: byte, address: address),
       control: standardControl(Relocation.constant, relocation),
     );
   }
 
-  /// The stride: the repeated ancestor's element words (catalogue 5.3,
-  /// the STR entry). A positional indicator names the referenced field,
-  /// and the repetition can sit on an enclosing group — `RATE` under
-  /// the twelve-element `TABLE.ITEM`.
-  int _strideWords(DataItem table) {
+  /// The repeated ancestor's element, in characters. A positional
+  /// indicator names the referenced field, and the repetition can sit on
+  /// an enclosing group — `RATE` under the twelve-element `TABLE.ITEM`.
+  int _strideChars(DataItem table) {
     for (DataItem? each = table; each != null; each = each.parent) {
       final ItemSemantics sem = _sem(each);
       if (sem.quantity > 1) {
-        return sem.strideChars ~/ 6;
+        return sem.strideChars;
       }
     }
     return _unruled('a positional indicator with no repeated ancestor');
+  }
+
+  /// The stride in words (catalogue 5.3, the STR entry). Only the DO FOR
+  /// steps a byte; the subscript store multiplies a word count (M6-9).
+  int _strideWords(DataItem table) {
+    final int chars = _strideChars(table);
+    if (chars % 6 != 0) {
+      _unruled(
+        'a table stride of $chars characters, '
+        'not a whole number of words (M6-9)',
+      );
+    }
+    return chars ~/ 6;
+  }
+
+  /// The carry of a stepped indicator's byte into its word: the
+  /// accumulator holds `byte·2^18 + word`, and `byte·2^18 + word − k`
+  /// with k = 6·2^18 − 1 is the carried pointer when the byte reached 6
+  /// and negative when it did not (M6-9).
+  void _byteCarry() {
+    final _Sym carry = _cp(_pool.machineWord((6 << 18) - 1));
+    _op(Op.sub, carry);
+    final int target = _location + 2;
+    _op(Op.tpl, _Sym(() => '*+2', () => target, Relocation.relative));
+    _op(Op.add, carry);
   }
 
   PoolHandle _tableStride(DataItem table) => _pool.stride(_strideWords(table));
@@ -2162,6 +2268,13 @@ final class _Text {
         _loadBaseOf(target);
         _opItem(Op.sto, target);
         _movpakClears();
+      case (FieldClass.externalDecimal, FieldClass.externalDecimal):
+        _externalRun(
+          source,
+          target,
+          sourceSubscripted: sourceSubscripted,
+          targetSubscripted: targetSubscripted,
+        );
       default:
         _unruled('a move of ${from.name} to ${to.name} (notes section 7)');
     }
@@ -2187,13 +2300,47 @@ final class _Text {
     _movpakClears();
   }
 
-  /// The steps between the head and the terminator: leading zeros, the
-  /// move itself, then trailing zeros ([J 90.02.17]).
+  /// The external-to-external move (M6-9): the two pointers, the MOVPAK
+  /// entry, the SYS)183 head with the target's sign convention, one
+  /// move step, and the terminator ([J 90.02.15], [J 90.02.16]). A
+  /// signed source moves under SYS)227, whose last character is
+  /// examined for the source sign (Note 1).
+  void _externalRun(
+    DataItem source,
+    DataItem target, {
+    required bool sourceSubscripted,
+    required bool targetSubscripted,
+  }) {
+    final ItemSemantics s = _sem(source);
+    final ItemSemantics t = _sem(target);
+    if (s.shape!.sCount > 0 || t.shape!.sCount > 0) {
+      // An `S` is a digit the field represents and does not store
+      // (F p. 80), and every step counts characters.
+      _unruled('an external-decimal move with an S position (RT-4)');
+    }
+    if (s.digits != t.digits || s.fractionDigits != t.fractionDigits) {
+      _unruled(
+        'an external-decimal move of unequal shapes (no sample instance)',
+      );
+    }
+    _setup(target, subscripted: targetSubscripted, target: true);
+    _setup(source, subscripted: sourceSubscripted, target: false);
+    _tsx(182);
+    _txi(183, _signCode(t.shape!.sign));
+    _txi(s.shape!.sign == SignConvention.none ? 191 : 227, s.digits);
+    _txi(223, t.digits);
+    _movpakClears();
+  }
+
+  /// The steps between the head and the terminator: the overflow test,
+  /// leading zeros, the move itself, then trailing zeros ([J 90.02.17],
+  /// [J 90.02.19]).
   ///
-  /// A source wider than the target on either side needs the overflow
-  /// test and the bypass steps, and no site emits either, so the two
-  /// step numbers the manual offers cannot be told apart (catalogue 4.6;
-  /// M4-2 as amended).
+  /// The source's excess high-order digits go to the test step, which
+  /// reads them and moves none (D4.2). Under SYS)190 the test is SYS)204;
+  /// no text separates it from SYS)196, so the pick is ours (M6-9). A
+  /// source wider on the low-order side needs a bypass step, and no site
+  /// emits one.
   void _editSteps(
     DataItem source,
     DataItem target, {
@@ -2203,13 +2350,24 @@ final class _Text {
     final ItemSemantics t = _sem(target);
     final int sourceInteger = s.digits - s.fractionDigits;
     final int targetInteger = t.digits - t.fractionDigits;
-    if (sourceInteger > targetInteger || s.fractionDigits > t.fractionDigits) {
+    if (s.fractionDigits > t.fractionDigits) {
       _unruled('an edit run that bypasses source digits (no sample instance)');
+    }
+    final int dropped = sourceInteger > targetInteger
+        ? sourceInteger - targetInteger
+        : 0;
+    if (dropped == s.digits) {
+      // No site drops every source digit. Note 3's SYS)232 and SYS)234
+      // test the last character, but no site shows when a run takes them.
+      _unruled('an edit run that moves no source digit (no sample instance)');
+    }
+    if (dropped > 0) {
+      _txi(fromEdited ? 204 : 201, dropped);
     }
     if (targetInteger > sourceInteger) {
       _txi(fromEdited ? 214 : 212, targetInteger - sourceInteger);
     }
-    _txi(fromEdited ? 198 : 193, s.digits);
+    _txi(fromEdited ? 198 : 193, s.digits - dropped);
     if (t.fractionDigits > s.fractionDigits) {
       _txi(fromEdited ? 216 : 211, t.fractionDigits - s.fractionDigits);
     }
@@ -2300,6 +2458,13 @@ final class _Text {
       _shift(Op.lrs, 35);
       _op(Op.dvp, _cp(divisor));
     }
+    _editedCall(target);
+  }
+
+  /// The SYS)180 call of the edited store, with the accumulator holding
+  /// the value: the address word, the SYS)267 step, its control word
+  /// and its digit count (catalogue 4.6).
+  void _editedCall(DataItem target) {
     _tsx(180);
     _pze(target);
     final int control = _editControl(target);
@@ -2320,7 +2485,7 @@ final class _Text {
       _txi(267, control);
     }
     _oct(_controlWord(target));
-    _axt(t.digits, 1);
+    _axt(_sem(target).digits, 1);
     _movpakClears();
   }
 
@@ -2634,9 +2799,23 @@ final class _Text {
       _figurativeFill(target, word);
       return;
     }
+    // The target refuses before the first word of the chain.
+    if (target.subscripts.isNotEmpty) {
+      _unruled('a subscripted SET target (no sample instance)');
+    }
+    final DataItem item = _item(target)!;
+    final FieldClass to = _sem(item).fieldClass;
+    if (to == FieldClass.edited) {
+      _checkEditedTarget(item);
+    } else {
+      _operand(item);
+      if (to == FieldClass.externalDecimal) {
+        _checkExternalTarget(item);
+      }
+    }
     _withFetches(
       _operandsOf([clause.value]),
-      () => _store(target, _chain(clause.value), truncated: clause.truncated),
+      () => _store(item, _chain(clause.value), truncated: clause.truncated),
     );
   }
 
@@ -2655,10 +2834,11 @@ final class _Text {
       return;
     }
     if (clause.source case NameOperand(:final name)) {
-      if (name.subscripts.isNotEmpty) {
+      final DataItem source = _item(name)!;
+      final external = _sem(source).fieldClass == FieldClass.externalDecimal;
+      if (name.subscripts.isNotEmpty && !external) {
         _unruled('a subscripted ADD source (no sample instance)');
       }
-      final DataItem source = _item(name)!;
       if (_sem(source).fieldClass == FieldClass.edited) {
         // The non-binary operand fetch (catalogue 4.7): the register
         // convert of catalogue 4.6, then one word to park it. The
@@ -2670,17 +2850,43 @@ final class _Text {
         _op(Op.sto, park);
         _movpakClears();
         for (final NameReference target in clause.targets) {
-          _addBody(_item(target)!, () => _op(Op.add, park));
+          final DataItem item = _item(target)!;
+          _withFetches([item], () => _addBody(item, () => _op(Op.add, park)));
         }
         return;
       }
+      final targets = <DataItem>[
+        for (final NameReference target in clause.targets) _item(target)!,
+      ];
+      final read = <DataItem>[source, ...targets];
+      if (name.subscripts.isNotEmpty &&
+          targets.any((DataItem each) => identical(each, source))) {
+        // The one cell would serve the element and the plain field.
+        _unruled(
+          'an external-decimal field read with and without its subscript '
+          '(no sample instance)',
+        );
+      }
+      if (targets.length > 1 &&
+          read.any(
+            (DataItem item) =>
+                _sem(item).fieldClass == FieldClass.externalDecimal &&
+                read.where((DataItem each) => identical(each, item)).length > 1,
+          )) {
+        // Each cell holds the value from before the clause, and a later
+        // pair would read it after an earlier pair stored the field.
+        _unruled(
+          'an ADD clause that names an external-decimal field twice '
+          '(no sample instance)',
+        );
+      }
       // One scope for the clause: the source converts once, and every
       // pair reads its cell, as statement 221's edited source parks once.
-      _withFetches([source], () {
-        for (final NameReference target in clause.targets) {
-          _addPair(source, _item(target)!);
+      _withFetches(read, () {
+        for (final target in targets) {
+          _addPair(source, target);
         }
-      });
+      }, subscripted: <DataItem>{if (name.subscripts.isNotEmpty) source});
       return;
     }
     _unruled('an ADD of a literal (no sample instance)');
@@ -2730,19 +2936,31 @@ final class _Text {
       _unruled('an ADD pair of unequal scales (notes section 7)');
     }
     final DataItem addend = _operand(source);
-    _withFetches([addend], () => _addBody(target, () => _read(Op.add, addend)));
+    _withFetches([
+      addend,
+      target,
+    ], () => _addBody(target, () => _read(Op.add, addend)));
   }
 
   void _addBody(DataItem target, void Function() addend) {
-    final DataItem item = _decimal(target);
-    _loadBaseOf(item);
-    _opItem(Op.cla, item);
+    final DataItem item = _operand(target);
+    final external = _sem(item).fieldClass == FieldClass.externalDecimal;
+    if (external) {
+      _checkExternalTarget(item);
+    }
+    _read(Op.cla, item);
     addend();
-    _opItem(Op.sto, item);
+    if (external) {
+      _externalStore(item, _Register.ac);
+    } else {
+      _opItem(Op.sto, item);
+    }
   }
 
   /// Emits the chain of [value] and returns what it computed and where.
-  _Value _chain(ArithExpr value) {
+  /// A chain of several terms aligns them to at least [floor], the scale
+  /// of a comparison's other side (M6-9).
+  _Value _chain(ArithExpr value, {int floor = 0}) {
     final List<(ArithExpr, Token?)> terms = _additiveTerms(value);
     if (terms.length == 1) {
       final ArithExpr term = terms.single.$1;
@@ -2763,11 +2981,12 @@ final class _Text {
           _unruled('a chain of ${term.runtimeType} (no sample instance)');
       }
     }
-    var chainScale = 0;
+    var chainScale = floor;
     for (final (ArithExpr term, _) in terms) {
       final int scale = _naturalScale(term);
       chainScale = scale > chainScale ? scale : chainScale;
     }
+    final int live = _liveResultCells;
     // One entry per term: the word the assembly emits for it, with the
     // guard that word must carry. The NET sentence pins the placement:
     // the guard for `1)BONDEDUCTION` sits at 00727, between the fifth
@@ -2832,6 +3051,7 @@ final class _Text {
             : Op.add,
       );
     }
+    _liveResultCells = live; // The assembly has read every park.
     return (scale: chainScale, register: _Register.ac);
   }
 
@@ -2839,6 +3059,7 @@ final class _Text {
   /// word the assembly reads it back with. The park names the register
   /// the value sits in: `STQ` after a multiply, `STO` after a chain.
   void Function(Op op) _park(int cell, _Register register) {
+    _liveResultCells++;
     _op(
       register == _Register.mq ? Op.stq : Op.sto,
       _resultCell(cell, offset: cell != 0 && register == _Register.mq),
@@ -2846,6 +3067,11 @@ final class _Text {
     final _Sym read = _resultCell(cell);
     return (Op op) => _op(op, read);
   }
+
+  /// The `RS)` parks of the open chains that the assembly has yet to
+  /// read. Each chain numbers its cells from 0, so a chain nested inside
+  /// a truth function would overwrite them (M6-9).
+  int _liveResultCells = 0;
 
   bool _additive(BinaryExpr expr) =>
       expr.operator.text == '+' || expr.operator.text == '-';
@@ -2896,11 +3122,12 @@ final class _Text {
       // The product of a product (M6-9): the inner product is already
       // the MQ half, so the factor's word multiplies it with no `XCA`,
       // the one-word step of 01224 to 01225. That `MPY` reads the MQ
-      // alone, so the inner product must fit one word.
+      // alone, so the inner product must fit one word. The inner shape
+      // emits first, so its own refusal wins over the digit count.
+      final int scale = _product(complex);
       if (_digits(complex) > 10) {
         _unruled('a product of a product past 10 digits (no sample instance)');
       }
-      final int scale = _product(complex);
       _leafOperand(leaf)(Op.mpy);
       return scale + _naturalScale(leaf);
     }
@@ -2919,10 +3146,14 @@ final class _Text {
   }
 
   /// The most decimal digits [expr] can hold at its natural scale. A
-  /// chain of two or more terms takes one more digit for the carry.
+  /// chain of n terms takes the digits of n - 1 more for the carry,
+  /// since n terms each below 10 to the k sum below n times 10 to the k.
+  ///
+  /// The caller has already emitted [expr], so every node is one the
+  /// chain and the product admit.
   int _digits(ArithExpr expr) => switch (expr) {
     NameOperand(:final name) => _sem(_item(name)!).digits,
-    LiteralOperand(:final literal) => literal.text.replaceFirst('.', '').length,
+    LiteralOperand(:final literal) => '${_literalValue(literal).$1}'.length,
     TruthExpr() => 1,
     BinaryExpr(:final left, :final right) when expr.operator.text == '*' =>
       _digits(left) + _digits(right),
@@ -2934,8 +3165,8 @@ final class _Text {
               )
               .reduce((int a, int b) => a > b ? a : b) +
           _naturalScale(expr) +
-          1,
-    _ => _unruled('the digits of ${expr.runtimeType}'),
+          '${_additiveTerms(expr).length - 1}'.length,
+    _ => throw StateError('the digits of an unemitted ${expr.runtimeType}'),
   };
 
   /// Prepares [leaf] as a factor and returns the emitter of the word
@@ -2987,16 +3218,22 @@ final class _Text {
   static const int _everyIndicator = 0x3FFFF;
   static const int _truthIndicator = 0x1;
 
-  /// The store: one word on equal scale, the five-word scaling tail
-  /// otherwise — `XCA / ACL half / LRS 35 / DVP scale / STQ`, the
-  /// half-adjust suppressed under TRUNCATED (catalogue 4.7; D4.1).
-  void _store(NameReference target, _Value value, {required bool truncated}) {
-    if (target.subscripts.isNotEmpty) {
-      _unruled('a subscripted SET target (no sample instance)');
-    }
-    final DataItem item = _decimal(_item(target)!);
+  /// The store: one word on equal scale, the scaling tail otherwise. A
+  /// product in the MQ takes five words, `XCA / ACL half / LRS 35 / DVP
+  /// scale / STQ` (catalogue 4.7); a chain in the accumulator takes the
+  /// four after the `XCA` (M6-9). An external or edited target ends the
+  /// tail in `XCA` and the SYS)180 call in place of the `STQ` (M6-9).
+  /// TRUNCATED drops the `ACL` (D4.1).
+  void _store(DataItem item, _Value value, {required bool truncated}) {
+    final FieldClass to = _sem(item).fieldClass;
+    final bool sys180 =
+        to == FieldClass.externalDecimal || to == FieldClass.edited;
     final int targetScale = _sem(item).fractionDigits;
     if (value.scale == targetScale) {
+      if (sys180) {
+        _sys180Store(item, value.register);
+        return;
+      }
       _loadBaseOf(item);
       _opItem(value.register == _Register.mq ? Op.stq : Op.sto, item);
       return;
@@ -3004,27 +3241,105 @@ final class _Text {
     if (value.scale < targetScale) {
       _unruled('a store below the target scale (no sample instance)');
     }
-    if (value.register != _Register.mq) {
-      // The tail opens on `XCA`, which reads the MQ half, so it scales a
-      // product and nothing else. Every attested site is one (M4-10).
-      _unruled('a scaling store of a chain value (no sample instance)');
-    }
     final int divisor = _pow10(value.scale - targetScale);
     // The half-adjust is referenced first, so it pools first.
     final _Sym? half = truncated ? null : _cp(_pool.machineWord(divisor ~/ 2));
     final _Sym scale = _cp(_pool.machineWord(divisor));
-    _loadBaseOf(item);
-    _xca();
+    if (!sys180) {
+      _loadBaseOf(item);
+    }
+    // A product moves its low half into the accumulator; a chain is
+    // already there, so its tail opens on the half-adjust (M6-9).
+    if (value.register == _Register.mq) {
+      _xca();
+    }
     if (half != null) {
       _op(Op.acl, half);
     }
     _shift(Op.lrs, _storeShift);
     _op(Op.dvp, scale);
-    _opItem(Op.stq, item);
+    if (sys180) {
+      _sys180Store(item, _Register.mq);
+    } else {
+      _opItem(Op.stq, item);
+    }
   }
 
-  /// `LRS 35` leaves the whole product in the MQ half, which is what
-  /// `DVP` divides.
+  /// The SYS)180 store of [register] into an external or an edited
+  /// field (M6-9).
+  void _sys180Store(DataItem item, _Register register) {
+    if (_sem(item).fieldClass == FieldClass.externalDecimal) {
+      _externalStore(item, register);
+      return;
+    }
+    if (register == _Register.mq) {
+      _xca();
+    }
+    _editedCall(item);
+  }
+
+  /// The external-decimal store (M6-9): the value into the accumulator,
+  /// then the SYS)180 skeleton of the edited store with one convert step
+  /// ([J 90.02.15]; [J 90.02.18]). The step follows the target's sign:
+  /// SYS)186 unsigned, SYS)187 a minus overpunch, SYS)188 a plus
+  /// overpunch, the three values of SYS)183's TARGET-SIGN-CONVENTION.
+  void _externalStore(DataItem item, _Register register) {
+    final ItemSemantics s = _sem(item);
+    if (register == _Register.mq) {
+      _xca();
+    }
+    _tsx(180);
+    if (_located(item)) {
+      _pzePair(
+        _blockWord(StorageBlock.bl, _baseLocators[_recordOf(item)!]!),
+        _cp(_descriptor(item)),
+        minus: true,
+      );
+    } else {
+      _pze(item);
+    }
+    _txi(switch (s.shape!.sign) {
+      SignConvention.overpunchMinus => 187,
+      SignConvention.overpunchPlus => 188,
+      // An external field signs by overpunch alone ([J 02.05.05] note 1).
+      _ => 186,
+    }, s.digits);
+    _movpakClears();
+  }
+
+  /// The two external-decimal targets the store cannot write. Both
+  /// callers refuse them before the first word of the arithmetic.
+  void _checkExternalTarget(DataItem item) {
+    final ItemSemantics s = _sem(item);
+    if (s.doublePrecision) {
+      // One word holds the value (`docs/design/runtime.md` RT-4).
+      _unruled('an external-decimal store of more than 10 digits (RT-4)');
+    }
+    if (s.shape!.sCount > 0) {
+      // An `S` is a digit the field represents and does not store
+      // (F p. 80), and the step writes one character per digit.
+      _unruled('an external-decimal store into an S position (RT-4)');
+    }
+  }
+
+  /// The edited targets the store cannot write, refused before the
+  /// first word of the chain.
+  void _checkEditedTarget(DataItem item) {
+    if (_sem(item).doublePrecision) {
+      // SYS)267 renders the accumulator alone, and RT-4 refuses more
+      // than 10 digits on every path that reads it.
+      _unruled('an edited store of more than 10 digits (RT-4)');
+    }
+    if (_located(item)) {
+      // The address word of the edited store is `PZE` alone.
+      _unruled('an in-line address word for a located item (catalogue 4.3)');
+    }
+    _controlWord(item);
+  }
+
+  /// `LRS 35` moves the accumulator's value, a product's low half after
+  /// its `XCA` or a chain, into the MQ half, which is what `DVP`
+  /// divides.
   static const int _storeShift = 35;
 
   // --- IF and the comparisons (catalogue 4.8) -----------------------------
@@ -3093,18 +3408,126 @@ final class _Text {
         falseTo: falseTo,
       );
     } else {
+      final subscripted = Set<DataItem>.identity();
       _withFetches(
-        _operandsOf([acc, storage]),
-        () => _numericComparison(
-          acc,
-          storage,
-          relation,
-          rightInAccumulator,
-          trueTo: trueTo,
-          falseTo: falseTo,
-        ),
+        _operandsOf([acc, storage], subscripted),
+        () => relation.left is BinaryExpr || relation.right is BinaryExpr
+            ? _expressionComparison(relation, trueTo: trueTo, falseTo: falseTo)
+            : _numericComparison(
+                acc,
+                storage,
+                relation,
+                rightInAccumulator,
+                trueTo: trueTo,
+                falseTo: falseTo,
+              ),
+        subscripted: subscripted,
       );
     }
+  }
+
+  /// A numeric comparison with an expression on one side or both (M6-9).
+  /// Both sides compare at the greater of their scales. The left
+  /// expression, or the one expression, ends in the accumulator. The
+  /// other side is the `CAS` operand: a name or a literal as it stands,
+  /// or built first and parked in a temporary cell when it must be
+  /// upscaled or computed.
+  void _expressionComparison(
+    Relation relation, {
+    required _Cont trueTo,
+    required _Cont falseTo,
+  }) {
+    if (_liveResultCells > 0) {
+      // The chain of this comparison would number its RS) cells from 0
+      // over the outer chain's parks.
+      _unruled(
+        'an expression comparison inside a truth function after a parked '
+        'term (no sample instance)',
+      );
+    }
+    for (final side in <ArithExpr>[relation.left, relation.right]) {
+      if (_builtInAccumulator(side)) {
+        // The attested zero build puts the zero in the accumulator, and
+        // no site makes it the `CAS` operand (msg 82,00 bars the other
+        // figuratives).
+        _unruled('a zero comparand against an expression (no sample instance)');
+      }
+      if (side is! BinaryExpr &&
+          side is! NameOperand &&
+          side is! LiteralOperand) {
+        _unruled(
+          'a comparison of ${side.runtimeType} against an expression '
+          '(no sample instance)',
+        );
+      }
+    }
+    final int scale = math.max(
+      _naturalScale(relation.left),
+      _naturalScale(relation.right),
+    );
+    final leftInAccumulator = relation.left is BinaryExpr;
+    final ArithExpr acc = leftInAccumulator ? relation.left : relation.right;
+    final ArithExpr storage = leftInAccumulator
+        ? relation.right
+        : relation.left;
+    if (storage is! BinaryExpr && _naturalScale(storage) == scale) {
+      _accumulatorSide(acc as BinaryExpr, scale);
+      _compareStorage(storage);
+    } else {
+      final _Sym parkCell = _comparisonPark();
+      if (storage is BinaryExpr) {
+        final _Register register = _alignedExpression(storage, scale);
+        _op(register == _Register.mq ? Op.stq : Op.sto, parkCell);
+      } else {
+        _alignedBuild(
+          storage,
+          scale - _naturalScale(storage),
+          finish: () => _op(Op.stq, parkCell),
+        );
+      }
+      // A refusal aborts the job's code generation, so neither count
+      // needs a finally to restore it.
+      _parked++;
+      _accumulatorSide(acc as BinaryExpr, scale);
+      _parked--;
+      _op(Op.cas, parkCell);
+    }
+    _vector(relation, !leftInAccumulator, trueTo: trueTo, falseTo: falseTo);
+  }
+
+  /// Emits [expr] at [scale] and leaves it in the accumulator.
+  void _accumulatorSide(BinaryExpr expr, int scale) {
+    if (_alignedExpression(expr, scale) == _Register.mq) {
+      _xca();
+    }
+  }
+
+  /// Emits [expr] at [scale] and returns the register it ends in. A
+  /// chain aligns its terms to the scale; a product below it takes one
+  /// more `MPY`, as a product term of a chain does. The value must fit
+  /// the one word that `CAS` reads.
+  _Register _alignedExpression(BinaryExpr expr, int scale) {
+    final _Value value = _chain(expr, floor: scale);
+    if (value.scale < scale) {
+      _op(Op.mpy, _cp(_pool.machineWord(_pow10(scale - value.scale))));
+    }
+    if (_digits(expr) + scale - _naturalScale(expr) > 10) {
+      _unruled(
+        'an expression comparand of more than 10 digits (no sample instance)',
+      );
+    }
+    return value.register;
+  }
+
+  /// The temporary cell past the fetch cells and the parks still live
+  /// (M6-9). A truth function inside the accumulator side parks above
+  /// the outer park.
+  _Sym _comparisonPark() {
+    final int cell = _fetched.length + 1 + _parked;
+    if (cell > temporaryStorageWords) {
+      _unruled('a temporary cell past the TS) reservation (M4-4)');
+    }
+    return _blockWord(StorageBlock.ts, cell);
   }
 
   bool _builtInAccumulator(ArithExpr operand) => switch (operand) {
@@ -3162,7 +3585,7 @@ final class _Text {
         _zeroBuild(storage);
       case NameOperand(:final name):
         final DataItem item = _operand(_item(name)!);
-        if (name.subscripts.isNotEmpty) {
+        if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
           _unruled('a subscripted accumulator comparand (no sample instance)');
         }
         _read(Op.cla, item);
@@ -3196,21 +3619,28 @@ final class _Text {
   /// The aligned side of a comparison: `LDQ` the operand, `MPY` the power
   /// of ten, `XCA` — the zero build's three words (the attested 00656–00660
   /// and 01241–01243). The literal pools as keyed (catalogue 4.7).
-  void _alignedBuild(ArithExpr low, int deficit) {
+  ///
+  /// [finish] is the word that ends it: `XCA`, or the park of an
+  /// expression comparison (M6-9).
+  void _alignedBuild(ArithExpr low, int deficit, {void Function()? finish}) {
     if (low case LiteralOperand(:final literal)) {
       _wordGuard('${_literalValue(literal).$1}'.length, deficit);
-      _scaledLoad(() => _op(Op.ldq, _cp(_numericLiteral(literal))), deficit);
+      _scaledLoad(
+        () => _op(Op.ldq, _cp(_numericLiteral(literal))),
+        deficit,
+        finish: finish,
+      );
       return;
     }
     final NameReference name = (low as NameOperand).name;
-    if (name.subscripts.isNotEmpty) {
+    final DataItem item = _operand(_item(name)!);
+    if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
       _unruled(
         'a subscripted comparand that needs upscaling (no sample instance)',
       );
     }
-    final DataItem item = _operand(_item(name)!);
     _wordGuard(_sem(item).digits, deficit);
-    _scaledLoad(() => _read(Op.ldq, item), deficit);
+    _scaledLoad(() => _read(Op.ldq, item), deficit, finish: finish);
   }
 
   /// The `XCA` keeps the low word of the product, so the aligned value
@@ -3231,7 +3661,7 @@ final class _Text {
         _op(Op.cas, _cp(_numericLiteral(literal)));
       case NameOperand(:final name):
         final DataItem item = _operand(_item(name)!);
-        if (name.subscripts.isNotEmpty) {
+        if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
           final int register = _indicatorPrologue(item);
           // The element the indicator addresses: `CAS 0,r`, the word
           // the register alone reaches (the attested 01412).
@@ -3254,6 +3684,14 @@ final class _Text {
   /// with a locator, and the register leaves the cache: it holds the
   /// element address now, not a base.
   int _indicatorPrologue(DataItem array) {
+    final int chars = _strideChars(array);
+    if (chars % 6 != 0) {
+      // `CAS 0,r` reads the word the address names and drops the byte.
+      _unruled(
+        'a whole-word read of an element whose stride is $chars '
+        'characters (M6-9)',
+      );
+    }
     final int indicator = _indicator(array);
     final int register = _assignRegister(-indicator);
     _registerHolds.remove(register);
@@ -3276,11 +3714,16 @@ final class _Text {
   }
 
   /// [load] into the MQ, then `MPY` the power of ten and `XCA`, which
-  /// leaves the upscaled value in the accumulator.
-  void _scaledLoad(void Function() load, int deficit) {
+  /// leaves the upscaled value in the accumulator, or [finish] in place
+  /// of the `XCA`.
+  void _scaledLoad(
+    void Function() load,
+    int deficit, {
+    void Function()? finish,
+  }) {
     load();
     _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
-    _xca();
+    (finish ?? _xca)();
   }
 
   int _operandScale(ArithExpr operand) => switch (operand) {
@@ -3290,8 +3733,9 @@ final class _Text {
   };
 
   /// The alphameric comparison (catalogue 4.8): each operand costs its
-  /// prologue, its load, and its extraction — `LGL` off byte zero,
-  /// `ANA` under six characters — and when both need extraction the
+  /// prologue, its load, and its extraction — `LDQ` of the next word
+  /// across a boundary, `LGL` off byte zero, `ANA` off byte zero or
+  /// under six characters — and when both need extraction the
   /// first spills to result storage and the compare reads the cell.
   void _alphamericComparison(
     ArithExpr acc,
@@ -3387,12 +3831,20 @@ final class _Text {
   /// The extraction: `LGL` six bits a character brings the field to
   /// character 0, and the mask extracts characters 0 on (the attested
   /// `LGL 18` and `CP)+30`, shared by both operands of statement 200).
+  /// A field across a word boundary takes its next word into the MQ
+  /// first, so the shift carries its tail in (codegen defect 12, M6-9).
   void _emitExtraction(NameReference name) {
-    final ItemSemantics sem = _sem(_item(name)!);
+    final DataItem item = _item(name)!;
+    final ItemSemantics sem = _sem(item);
+    if (sem.byte + sem.storageChars > 6) {
+      _opItem(Op.ldq, item, plus: 1);
+    }
     if (sem.byte != 0) {
       _shift(Op.lgl, 6 * sem.byte);
     }
-    if (sem.storageChars < 6) {
+    // The shift also moves the bit above the field into Q, and LAS
+    // reads Q, so a shifted six-character field takes the mask too.
+    if (sem.byte != 0 || sem.storageChars < 6) {
       _op(
         Op.ana,
         _cp(_pool.machineWord(_extractMask(0, sem.storageChars - 1))),

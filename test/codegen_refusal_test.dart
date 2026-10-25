@@ -214,6 +214,38 @@ void main() {
       );
     });
 
+    test('an external-decimal move of unequal shapes', () {
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'EXW', level: '1', mode: 'E', description: '9999'),
+        dataCard(name: 'EXF', level: '1', mode: 'E', description: '99V9'),
+      ];
+      // A wider target, then an equal width at another scale.
+      expect(
+        _refuses(['            MOVE EXT TO EXW.'], data: data),
+        'an external-decimal move of unequal shapes (no sample instance)',
+      );
+      expect(
+        _refuses(['            MOVE EXT TO EXF.'], data: data),
+        'an external-decimal move of unequal shapes (no sample instance)',
+      );
+    });
+
+    test('an external-decimal move with an S position', () {
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'SEXT', level: '1', mode: 'E', description: '99S'),
+      ];
+      expect(
+        _refuses(['            MOVE SEXT TO EXT.'], data: data),
+        'an external-decimal move with an S position (RT-4)',
+      );
+      expect(
+        _refuses(['            MOVE EXT TO SEXT.'], data: data),
+        'an external-decimal move with an S position (RT-4)',
+      );
+    });
+
     test('a subscripted figurative target', () {
       expect(
         _refuses(['            MOVE ZERO TO TAB CELL (IDX).']),
@@ -261,6 +293,15 @@ void main() {
       // digit count of the product of a product (M6-9).
       expect(
         _refuses(['            SET NUM = NUM / TOT * IDX.']),
+        'the operator / (notes section 7)',
+      );
+    });
+
+    test('the operator inside a product of a product', () {
+      // The inner shape emits before the digit count, so its own
+      // refusal wins at any depth (M6-9).
+      expect(
+        _refuses(['            SET NUM = NUM / TOT * IDX * NUM.']),
         'the operator / (notes section 7)',
       );
     });
@@ -335,17 +376,17 @@ void main() {
       );
     });
 
-    test('a numeric comparison of an expression', () {
+    test('a numeric comparison of a truth function', () {
       expect(
-        _refuses(['            IF NUM + TOT GT NUM THEN STOP RUN.']),
-        startsWith('a comparison of '),
+        _refuses(['            IF TR (NUM GT TOT) GT NUM THEN STOP RUN.']),
+        'a comparison of TruthExpr',
       );
     });
 
-    test('a numeric comparison against an expression', () {
+    test('a numeric comparison against a truth function', () {
       expect(
-        _refuses(['            IF NUM GT TOT + NUM THEN STOP RUN.']),
-        startsWith('a comparison of '),
+        _refuses(['            IF NUM GT TR (NUM GT TOT) THEN STOP RUN.']),
+        'a comparison of TruthExpr',
       );
     });
 
@@ -428,10 +469,93 @@ void main() {
       );
     });
 
-    test('an external-decimal SET target', () {
+    test('an external-decimal DO FOR index of more than 10 digits', () {
+      // The loop stores the index, so it refuses before its first word.
       expect(
-        _refuses(['            SET EXT = NUM + TOT.']),
-        'an external-decimal store (M6-9)',
+        _refuses(
+          ['            DO RTN FOR EXL = 1(1)12.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'EXL', level: '1', mode: 'E', description: '9(11)'),
+          ],
+        ),
+        'an external-decimal store of more than 10 digits (RT-4)',
+      );
+    });
+
+    test('an external-decimal subscript variable', () {
+      expect(
+        _refuses(
+          [
+            '            MOVE ZEROS TO EXI.',
+            '            IF XCEL (EXI) GT NUM THEN STOP RUN.',
+          ],
+          data: [
+            ..._data(),
+            dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
+            dataCard(name: 'XTAB', level: '1', quantity: '12'),
+            dataCard(
+              name: 'XCEL',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+          ],
+          flagged: ['206,00'],
+        ),
+        'an external-decimal subscript variable (M6-9)',
+      );
+    });
+
+    test('an external-decimal field named twice in one ADD clause', () {
+      expect(
+        _refuses(['            ADD EXT TO EXT, NUM.']),
+        'an ADD clause that names an external-decimal field twice '
+        '(no sample instance)',
+      );
+    });
+
+    test('an external-decimal store of more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            SET WIDEE = NUM.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'WIDEE',
+              level: '1',
+              mode: 'E',
+              description: '99999999999',
+            ),
+          ],
+        ),
+        'an external-decimal store of more than 10 digits (RT-4)',
+      );
+    });
+
+    test('an external-decimal store into an S position', () {
+      expect(
+        _refuses(
+          ['            SET SEXT = NUM.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'SEXT', level: '1', mode: 'E', description: '99S'),
+          ],
+        ),
+        'an external-decimal store into an S position (RT-4)',
+      );
+      // The target refuses before the chain, so the divide never
+      // reaches its own refusal.
+      expect(
+        _refuses(
+          ['            SET SEXT = NUM / TOT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'SEXT', level: '1', mode: 'E', description: '99S'),
+          ],
+        ),
+        'an external-decimal store into an S position (RT-4)',
       );
     });
 
@@ -442,10 +566,65 @@ void main() {
       );
     });
 
-    test('an external ADD target', () {
+    test('an edited ADD target', () {
       expect(
-        _refuses(['            ADD NUM TO EXT.']),
-        'an external-decimal store (M6-9)',
+        _refuses(
+          ['            ADD NUM TO WEDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'WEDT', level: '1', description: r'$889'),
+          ],
+        ),
+        'an arithmetic operand of edited (no sample instance)',
+      );
+    });
+
+    test('an edited SET target below the chain scale', () {
+      expect(
+        _refuses(['            SET EDT = NUM + TOT.']),
+        'a store below the target scale (no sample instance)',
+      );
+    });
+
+    test('an edited SET target refuses before the chain', () {
+      // Each target refusal fires ahead of the edited chain operand.
+      expect(
+        _refuses(
+          ['            SET WIDEDT = EDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'WIDEDT', level: '1', description: '88888888899.99'),
+          ],
+        ),
+        'an edited store of more than 10 digits (RT-4)',
+      );
+      expect(
+        _refuses(
+          ['            SET SEDT = EDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'SEDT', level: '1', description: '88S.99'),
+          ],
+        ),
+        'an edited field with an S position (RT-5)',
+      );
+      expect(
+        _refuses(
+          ['            SET IEDT = EDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+            dataCard(name: 'IEDT', level: '2', description: r'$889.99'),
+          ],
+          environment: [
+            environmentCard(
+              name: 'TAPE1',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+            ),
+          ],
+        ),
+        'an in-line address word for a located item (catalogue 4.3)',
       );
     });
 
@@ -479,6 +658,73 @@ void main() {
           ],
         ),
         'an aligned comparand of more than 10 digits (no sample instance)',
+      );
+    });
+
+    test('an expression comparand past ten digits', () {
+      expect(
+        _refuses(
+          ['            IF BIG * BIG GT 1 THEN STOP RUN.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'BIG',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '9(6)',
+            ),
+          ],
+        ),
+        'an expression comparand of more than 10 digits (no sample instance)',
+      );
+    });
+
+    test('a zero comparand against an expression', () {
+      // ZERO, 0, and a scaled 0.00, which would be built and parked.
+      for (final zero in ['ZERO', '0', '0.00']) {
+        expect(
+          _refuses(['            IF NUM + 1 GT $zero THEN STOP RUN.']),
+          'a zero comparand against an expression (no sample instance)',
+          reason: zero,
+        );
+      }
+    });
+
+    test('a truth function against an expression', () {
+      expect(
+        _refuses(['            IF TR (NUM GT TOT) GT NUM + 1 THEN STOP RUN.']),
+        'a comparison of TruthExpr against an expression (no sample instance)',
+      );
+    });
+
+    test('an expression comparison inside a later term of a chain', () {
+      // NUM * 2 parks in RS)1 ahead of the truth function, whose chain
+      // would number its own cells from RS)0 over it.
+      expect(
+        _refuses([
+          '            IF NUM * 2 + TR (NUM + 1 GT FRAC) * 1 GT 15 THEN',
+          '            STOP RUN.',
+        ]),
+        'an expression comparison inside a truth function after a parked '
+        'term (no sample instance)',
+      );
+    });
+
+    test('a comparison park past the TS) reservation', () {
+      // Seven fetches fill TS)1 to TS)7, and the upscaled 1 needs an
+      // eighth cell.
+      final List<String> names = [for (var i = 1; i <= 7; i++) 'E$i'];
+      expect(
+        _refuses(
+          ['            IF ${names.join(' + ')} LT 1 THEN STOP RUN.'],
+          data: [
+            ..._data(),
+            for (final String name in names)
+              dataCard(name: name, level: '1', mode: 'E', description: '9V9'),
+          ],
+        ),
+        'a temporary cell past the TS) reservation (M4-4)',
       );
     });
 
@@ -646,15 +892,29 @@ void main() {
     });
 
     test('an edit run that bypasses source digits', () {
+      // Three fraction digits into EDT's two: the low-order drop.
       expect(
         _refuses(
           ['            MOVE WIDE TO EDT.'],
           data: [
             ..._data(),
-            dataCard(name: 'WIDE', level: '1', mode: 'E', description: '99999'),
+            dataCard(name: 'WIDE', level: '1', mode: 'E', description: '9V999'),
           ],
         ),
         'an edit run that bypasses source digits (no sample instance)',
+      );
+    });
+
+    test('an edit run that moves no source digit', () {
+      expect(
+        _refuses(
+          ['            MOVE EXT TO CENTS.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'CENTS', level: '1', description: r'$.99'),
+          ],
+        ),
+        'an edit run that moves no source digit (no sample instance)',
       );
     });
 
@@ -680,15 +940,6 @@ void main() {
   });
 
   group('the B3 refusal sites (M4-10)', () {
-    test('a scaling store of a chain value', () {
-      // The tail opens on `XCA`, which reads the MQ half, and a chain
-      // finishes in the accumulator.
-      expect(
-        _refuses(['            SET NUM = FRAC + FRAC.']),
-        'a scaling store of a chain value (no sample instance)',
-      );
-    });
-
     test('a scale alignment of a sub-chain', () {
       // The sub-chain's scale is below the chain's, and no one word
       // aligns a value the accumulator holds.
@@ -703,6 +954,18 @@ void main() {
       // can hold 12 digits, past one word (M6-9).
       expect(
         _refuses(['            SET NUM = NUM * TOT * NUM * TOT * IDX.']),
+        'a product of a product past 10 digits (no sample instance)',
+      );
+    });
+
+    test('an eleven-term chain counts two carry digits', () {
+      // Eleven terms of 3 digits sum to 5 digits, and 123456 adds 6:
+      // 11, past one word. One carry digit would count 10.
+      expect(
+        _refuses([
+          '            SET NUM = (NUM + NUM + NUM + NUM + NUM + NUM + NUM',
+          '            + NUM + NUM + NUM + NUM) * 123456 * 2.',
+        ]),
         'a product of a product past 10 digits (no sample instance)',
       );
     });
@@ -870,28 +1133,72 @@ void main() {
       );
     });
 
-    test('a DO FOR driving two indicators', () {
-      expect(
-        _refuses(
-          [
-            '            IF NUM = TAB CELL (IDX) THEN STOP RUN.',
-            '            IF NUM = TAB2 CEL2 (IDX) THEN STOP RUN.',
-            '            DO RTN FOR IDX = 1(1)12.',
-          ],
-          data: [
-            ..._data(),
-            dataCard(name: 'TAB2', level: '1', quantity: '12'),
-            dataCard(
-              name: 'CEL2',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
-          ],
+    group('a table stride of part of a word (M6-9)', () {
+      // An element of 11 characters, as the corpus's TABLE.ITEM: a word
+      // of internal decimal and five characters. Codegen defect 7
+      // stepped it one word.
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'T11', level: '1', quantity: '12'),
+        dataCard(
+          name: 'F11',
+          level: '2',
+          mode: 'I',
+          justify: 'R',
+          description: '999',
         ),
-        'a DO FOR driving two indicators (M4-6; no sample instance)',
-      );
+        dataCard(name: 'G11', level: '2', description: 'A(5)'),
+      ];
+      test('in a whole-word read, which drops the byte', () {
+        // The DO FOR steps the byte now; `CAS 0,r` cannot read it.
+        expect(
+          _refuses([
+            '            DO RTN FOR IDX = 1(1)12.',
+            '            IF NUM = T11 F11 (IDX) THEN STOP RUN.',
+          ], data: data),
+          'a whole-word read of an element whose stride is 11 characters '
+          '(M6-9)',
+        );
+      });
+
+      group('an external field read with and without its subscript', () {
+        // One cell serves an item in a fetch scope.
+        final List<String> external = [
+          ..._data(),
+          dataCard(name: 'XT', level: '1', quantity: '12'),
+          dataCard(name: 'XF', level: '2', description: '99'),
+        ];
+        const shape =
+            'an external-decimal field read with and without its '
+            'subscript (no sample instance)';
+
+        test('in a comparison', () {
+          expect(
+            _refuses([
+              '            IF XF (IDX) GT XF THEN STOP RUN.',
+            ], data: external),
+            shape,
+          );
+        });
+
+        test('in an ADD', () {
+          expect(
+            _refuses(['            ADD XF (IDX) TO XF.'], data: external),
+            shape,
+          );
+        });
+      });
+
+      test('in a subscript store', () {
+        expect(
+          _refuses([
+            '            MOVE NUM TO IDX.',
+            '            IF NUM = T11 F11 (IDX) THEN STOP RUN.',
+          ], data: data),
+          'a table stride of 11 characters, not a whole number of words '
+          '(M6-9)',
+        );
+      });
     });
 
     test('a transfer to an undefined procedure', () {
