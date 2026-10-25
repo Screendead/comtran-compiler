@@ -1024,7 +1024,7 @@ record built on it.*
 
 ### D6.7 — Short-record blocking and the BEGIN threshold
 
-**Status.** Locked; amended 2026-09-13 — IOC)9 blocks the output; BEGIN and SPANS stay unbuilt (see the amendment below).
+**Status.** Locked; amended 2026-09-13 — IOC)9 writes the output in blocks; BEGIN and SPANS stay unbuilt (see the amendment below).
 **Decision.** Implement blocking as arithmetic, with no threshold rule. Pack records into BLOCKSIZE-word blocks in order. A record must be complete within one block, so if the room left in the current block is smaller than the next record, start a new block. Two records that are each longer than half the blocksize can therefore never share one block; a single record longer than half the blocksize may still sit second in a block when the room left is large enough (J's own Example 1 packs REC3, 192 words, together with a 64-word REC1 in a 256-word block). A record described with BEGIN always starts a new block. No special rule keys off the 10-word or 20-word figures in the 90.05 note.
 
 **Rationale.** [J 90.05.04]'s two statements — that the shorter DEPARTMENT.TOTAL records "will always begin a new buffer" in a 20-word-blocked file, while a 10-word record would need BEGIN "to avoid grouping" — both follow from complete-within-a-block packing, so no 02.06 rule is missing. The entry's gloss is that two such records cannot share a block; generalising it to "a record longer than half the blocksize always begins a new block" is false against J's worked example.
