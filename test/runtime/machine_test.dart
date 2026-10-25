@@ -373,6 +373,81 @@ final List<String> _indicators = <String>[
   '      *FINISH',
 ];
 
+/// The corpus's TABLE (statements 101,00 to 112,00 of the applied
+/// deck): six rows of 22 characters, twelve packed items of 11. Item k
+/// starts at character 11·(k − 1), so its byte runs 0, 5, 4, 3, 2, 1.
+const List<String> _tableRows = <String>[
+  '0099908006001499100060',
+  '0199912009002499150090',
+  '0299915012003499200120',
+  '0399920015004499250150',
+  '0499930018006499300250',
+  '0799930035099999300500',
+];
+
+/// The three fields of each item, as the characters of its row.
+List<(String, String, String)> _tableItems() => <(String, String, String)>[
+  for (final String row in _tableRows)
+    for (final int at in <int>[0, 11])
+      (
+        row.substring(at, at + 5),
+        row.substring(at + 5, at + 8),
+        row.substring(at + 8, at + 11),
+      ),
+];
+
+/// A loop over the corpus's TABLE through three indicators of an
+/// 11-character stride. EXPECT holds each item's fields again, one word
+/// apiece, so each pass compares item k with a whole-word copy of it.
+final List<String> _byteStride = <String>[
+  '      *DATA',
+  dataCard(name: 'TABLE', level: '1'),
+  for (final String row in _tableRows)
+    dataCard(level: '2', description: "'$row'"),
+  dataCard(type: 'REDEF', description: 'TABLE'),
+  dataCard(name: 'TABLE.ITEM', level: '1', quantity: '12'),
+  dataCard(name: 'RATE', level: '2', description: '99V999'),
+  dataCard(name: 'INSURANCE.PREM', level: '2', description: '9V99'),
+  dataCard(name: 'RETIREMENT.PREM', level: '2', description: '9V99'),
+  dataCard(name: 'EXPECTED', level: '1'),
+  for (final (String rate, String insurance, String retirement)
+      in _tableItems())
+    dataCard(
+      level: '2',
+      description:
+          "'0$rate${insurance.padLeft(6, '0')}${retirement.padLeft(6, '0')}'",
+    ),
+  dataCard(type: 'REDEF', description: 'EXPECTED'),
+  dataCard(name: 'EXPECT', level: '1', quantity: '12'),
+  dataCard(name: 'XR', level: '2', description: '999V999'),
+  dataCard(name: 'XI', level: '2', description: '9999V99'),
+  dataCard(name: 'XT', level: '2', description: '9999V99'),
+  dataCard(name: 'INDEX', level: '1', description: '99'),
+  dataCard(name: 'SI', level: '1', description: '9999V99'),
+  dataCard(name: 'ST', level: '1', description: '9999V99'),
+  for (final String name in ['NR', 'NI', 'NT'])
+    dataCard(
+      name: name,
+      level: '1',
+      mode: 'I',
+      justify: 'R',
+      description: '99',
+    ),
+  '      *PROCEDURE',
+  '      START.  DO SEARCH FOR INDEX = 1(1)12.',
+  '            STOP RUN.',
+  '      SEARCH.  BEGIN SECTION.',
+  '            IF RATE (INDEX) = XR (INDEX) THEN SET NR = NR + 1.',
+  '            IF INSURANCE.PREM (INDEX) = XI (INDEX)',
+  '            THEN SET NI = NI + 1.',
+  '            IF RETIREMENT.PREM (INDEX) = XT (INDEX)',
+  '            THEN SET NT = NT + 1.',
+  '            ADD INSURANCE.PREM (INDEX) TO SI.',
+  '            ADD RETIREMENT.PREM (INDEX) TO ST.',
+  '      SEARCH.END.  END SEARCH.',
+  '      *FINISH',
+];
+
 /// A program that never reaches its `STOP RUN`.
 final List<String> _loop = <String>[
   '      *DATA',
@@ -875,6 +950,26 @@ void main() {
       expect(subject.state.read(addressOf(job, 'SA')), 78);
       expect(subject.state.read(addressOf(job, 'SB')), 1278);
       expect(subject.state.read(addressOf(job, 'SC')), 2478);
+    });
+
+    test('a loop steps three indicators by 11 characters', () {
+      final (JobCompilation job, Machine subject) = compiled(_byteStride);
+      expect(subject.printed, <String>['AT 38,00 STOP RUN']);
+      // Each field of each of the 12 items equals its whole-word copy,
+      // so every pass read the right characters, byte 0 to byte 5.
+      for (final count in ['NR', 'NI', 'NT']) {
+        expect(subject.state.read(addressOf(job, count)), 12, reason: count);
+      }
+      String total(int field) {
+        var sum = 0;
+        for (final (String, String, String) item in _tableItems()) {
+          sum += int.parse(field == 1 ? item.$2 : item.$3);
+        }
+        return '$sum'.padLeft(6, '0');
+      }
+
+      expect(glyphsAt(subject, addressOf(job, 'SI'), 6), total(1));
+      expect(glyphsAt(subject, addressOf(job, 'ST'), 6), total(2));
     });
 
     test('a labelled section runs from the entry point it takes', () {

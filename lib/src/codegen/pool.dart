@@ -105,18 +105,19 @@ final class ConstantPool {
     return PoolHandle._(SubPool.literals, value);
   }
 
-  /// A subscript stride, in words. Strides sit at the tail of the
-  /// literal sub-pool, after every written literal — the attested
-  /// `CP)+13`, first emitted three words ahead of the literal `CP)+8`
-  /// yet laid out last.
-  PoolHandle stride(int words) {
-    final (int, int) at = (1 << 40, words);
+  /// A subscript stride: a word count, or for an element of part of a
+  /// word the pointer step `PZE words,,characters` (M6-9). Strides sit
+  /// at the tail of the literal sub-pool, after every written literal —
+  /// the attested `CP)+13`, first emitted three words ahead of the
+  /// literal `CP)+8` yet laid out last.
+  PoolHandle stride(int word) {
+    final (int, int) at = (1 << 40, word);
     _literals.update(
-      words,
+      word,
       ((int, int) first) => first.compareTo(at) <= 0 ? first : at,
       ifAbsent: () => _created(at),
     );
-    return PoolHandle._(SubPool.literals, words);
+    return PoolHandle._(SubPool.literals, word);
   }
 
   PoolHandle machineWord(int bits) {

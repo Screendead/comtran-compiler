@@ -1016,6 +1016,34 @@ final class _Text {
     return item;
   }
 
+  /// Records whether the external-decimal [item] is read through its
+  /// indicator. One cell per item serves the scope, so an item read both
+  /// with and without its subscript has no form.
+  void _noteSubscript(
+    DataItem item,
+    NameReference name,
+    Set<DataItem>? subscripted,
+    List<DataItem> seen,
+  ) {
+    final bool through = name.subscripts.isNotEmpty;
+    if (through && subscripted == null) {
+      // The chain of a SET has no subscripted operand form; the fetch
+      // of a comparison or an ADD sets SYS)132 from the indicator, as
+      // the subscripted MOVE source does at LOC 01445–01450.
+      _unruled('a subscripted external-decimal operand (M6-9)');
+    }
+    if (seen.any((DataItem each) => identical(each, item)) &&
+        (subscripted?.contains(item) ?? false) != through) {
+      _unruled(
+        'an external-decimal field read with and without its subscript '
+        '(no sample instance)',
+      );
+    }
+    if (through) {
+      subscripted!.add(item);
+    }
+  }
+
   /// The word that reads [item] as an operand: the field itself under
   /// its guard, or the temporary cell its fetch parked it in.
   void _read(Op op, DataItem item) {
@@ -1045,7 +1073,11 @@ final class _Text {
   /// before the first word of the body, so no convert can clobber a
   /// live accumulator or MQ. A scope opened inside an open one, the
   /// truth function's comparison, reads the outer scope's cells.
-  T _withFetches<T>(Iterable<DataItem> operands, T Function() body) {
+  T _withFetches<T>(
+    Iterable<DataItem> operands,
+    T Function() body, {
+    Set<DataItem> subscripted = const <DataItem>{},
+  }) {
     if (_fetching) {
       return body();
     }
@@ -1060,7 +1092,7 @@ final class _Text {
         if (cell > temporaryStorageWords) {
           _unruled('a temporary cell past the TS) reservation (M4-4)');
         }
-        _setup(item, target: false);
+        _setup(item, target: false, subscripted: subscripted.contains(item));
         _externalConvert(item);
         _op(Op.sto, _blockWord(StorageBlock.ts, cell));
         _movpakClears();
@@ -1074,7 +1106,13 @@ final class _Text {
   }
 
   /// The data items an expression or a relation reads, in source order.
-  List<DataItem> _operandsOf(Iterable<ArithExpr> expressions) {
+  /// A subscripted external-decimal item goes into [subscripted], whose
+  /// fetch then sets SYS)132 from its indicator; with no set, the site
+  /// has no subscripted form and refuses.
+  List<DataItem> _operandsOf(
+    Iterable<ArithExpr> expressions, [
+    Set<DataItem>? subscripted,
+  ]) {
     final items = <DataItem>[];
     void walk(ArithExpr expr) {
       switch (expr) {
@@ -1083,13 +1121,8 @@ final class _Text {
           if (item == null) {
             return;
           }
-          if (name.subscripts.isNotEmpty &&
-              _sem(item).fieldClass == FieldClass.externalDecimal) {
-            // The fetch sets SYS)132 from a fixed descriptor. No sample
-            // arithmetic operand is both subscripted and converted; the
-            // subscripted MOVE source sets the pointer from its indicator,
-            // `LDI PI)2 / STI SYS)132` at LOC 01445–01450.
-            _unruled('a subscripted external-decimal operand (M6-9)');
+          if (_sem(item).fieldClass == FieldClass.externalDecimal) {
+            _noteSubscript(item, name, subscripted, items);
           }
           items.add(item);
         case BinaryExpr(:final left, :final right):
@@ -1679,9 +1712,24 @@ final class _Text {
     }
     final strides = <PoolHandle>[];
     final bases = <PoolHandle>[];
+    final partial = <bool>[];
     for (final (DataItem item, _) in driven) {
-      strides.add(_tableStride(item));
-      bases.add(_subscriptBase(item));
+      final int chars = _strideChars(item);
+      if (chars % 6 == 0) {
+        strides.add(_pool.stride(chars ~/ 6));
+        bases.add(_subscriptBase(item));
+        partial.add(false);
+      } else {
+        // The indicator is the MOVPAK pointer itself, word in the
+        // address and byte in the decrement (`LDI PI)2 / STI SYS)132`
+        // at LOC 01445-01446), so the stride and the base carry a byte
+        // too (M6-9).
+        strides.add(
+          _pool.stride(pzeWord(decrement: chars % 6, address: chars ~/ 6)),
+        );
+        bases.add(_subscriptBase(item, byte: _sem(item).byte));
+        partial.add(true);
+      }
     }
     if (driven.isEmpty) {
       _unruled('a DO FOR driving no indicator');
@@ -1740,6 +1788,9 @@ final class _Text {
         );
         _op(Op.cla, _cp(strides[i]));
         _op(Op.add, indicator);
+        if (partial[i]) {
+          _byteCarry();
+        }
         _op(Op.sto, indicator);
       }
       _op(Op.cla, _cp(bounds[2]));
@@ -1842,36 +1893,53 @@ final class _Text {
   }
 
   /// The subscript base `NAME+0`, the entry a positional indicator is
-  /// set from: the item's own first word.
-  PoolHandle _subscriptBase(DataItem item) {
+  /// set from: the item's own first word, and under a stride of part of
+  /// a word its [byte] in the decrement (M6-9).
+  PoolHandle _subscriptBase(DataItem item, {int? byte}) {
     final (int address, Relocation relocation) = _dataAddress(item);
     return _pool.base(
-      '${_printedName(item)}+0',
-      word: pzeWord(address: address),
+      '${_printedName(item)}+0${byte == null ? '' : ',,$byte'}',
+      word: pzeWord(decrement: byte ?? 0, address: address),
       control: standardControl(Relocation.constant, relocation),
     );
   }
 
-  /// The stride: the repeated ancestor's element words (catalogue 5.3,
-  /// the STR entry). A positional indicator names the referenced field,
-  /// and the repetition can sit on an enclosing group — `RATE` under
-  /// the twelve-element `TABLE.ITEM`. A stride of part of a word would
-  /// step an indicator's byte as well as its word, and no attested step
-  /// carries the one into the other (M6-9).
-  int _strideWords(DataItem table) {
+  /// The repeated ancestor's element, in characters. A positional
+  /// indicator names the referenced field, and the repetition can sit on
+  /// an enclosing group — `RATE` under the twelve-element `TABLE.ITEM`.
+  int _strideChars(DataItem table) {
     for (DataItem? each = table; each != null; each = each.parent) {
       final ItemSemantics sem = _sem(each);
       if (sem.quantity > 1) {
-        if (sem.strideChars % 6 != 0) {
-          _unruled(
-            'a table stride of ${sem.strideChars} characters, '
-            'not a whole number of words (M6-9)',
-          );
-        }
-        return sem.strideChars ~/ 6;
+        return sem.strideChars;
       }
     }
     return _unruled('a positional indicator with no repeated ancestor');
+  }
+
+  /// The stride in words (catalogue 5.3, the STR entry). Only the DO FOR
+  /// steps a byte; the subscript store multiplies a word count (M6-9).
+  int _strideWords(DataItem table) {
+    final int chars = _strideChars(table);
+    if (chars % 6 != 0) {
+      _unruled(
+        'a table stride of $chars characters, '
+        'not a whole number of words (M6-9)',
+      );
+    }
+    return chars ~/ 6;
+  }
+
+  /// The carry of a stepped indicator's byte into its word: the
+  /// accumulator holds `byte·2^18 + word`, and `byte·2^18 + word − k`
+  /// with k = 6·2^18 − 1 is the carried pointer when the byte reached 6
+  /// and negative when it did not (M6-9).
+  void _byteCarry() {
+    final _Sym carry = _cp(_pool.machineWord((6 << 18) - 1));
+    _op(Op.sub, carry);
+    final int target = _location + 2;
+    _op(Op.tpl, _Sym(() => '*+2', () => target, Relocation.relative));
+    _op(Op.add, carry);
   }
 
   PoolHandle _tableStride(DataItem table) => _pool.stride(_strideWords(table));
@@ -2696,10 +2764,11 @@ final class _Text {
       return;
     }
     if (clause.source case NameOperand(:final name)) {
-      if (name.subscripts.isNotEmpty) {
+      final DataItem source = _item(name)!;
+      final external = _sem(source).fieldClass == FieldClass.externalDecimal;
+      if (name.subscripts.isNotEmpty && !external) {
         _unruled('a subscripted ADD source (no sample instance)');
       }
-      final DataItem source = _item(name)!;
       if (_sem(source).fieldClass == FieldClass.edited) {
         // The non-binary operand fetch (catalogue 4.7): the register
         // convert of catalogue 4.6, then one word to park it. The
@@ -2720,6 +2789,14 @@ final class _Text {
         for (final NameReference target in clause.targets) _item(target)!,
       ];
       final read = <DataItem>[source, ...targets];
+      if (name.subscripts.isNotEmpty &&
+          targets.any((DataItem each) => identical(each, source))) {
+        // The one cell would serve the element and the plain field.
+        _unruled(
+          'an external-decimal field read with and without its subscript '
+          '(no sample instance)',
+        );
+      }
       if (targets.length > 1 &&
           read.any(
             (DataItem item) =>
@@ -2739,7 +2816,7 @@ final class _Text {
         for (final target in targets) {
           _addPair(source, target);
         }
-      });
+      }, subscripted: <DataItem>{if (name.subscripts.isNotEmpty) source});
       return;
     }
     _unruled('an ADD of a literal (no sample instance)');
@@ -3219,8 +3296,9 @@ final class _Text {
         falseTo: falseTo,
       );
     } else {
+      final subscripted = Set<DataItem>.identity();
       _withFetches(
-        _operandsOf([acc, storage]),
+        _operandsOf([acc, storage], subscripted),
         () => _numericComparison(
           acc,
           storage,
@@ -3229,6 +3307,7 @@ final class _Text {
           trueTo: trueTo,
           falseTo: falseTo,
         ),
+        subscripted: subscripted,
       );
     }
   }
@@ -3288,7 +3367,7 @@ final class _Text {
         _zeroBuild(storage);
       case NameOperand(:final name):
         final DataItem item = _operand(_item(name)!);
-        if (name.subscripts.isNotEmpty) {
+        if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
           _unruled('a subscripted accumulator comparand (no sample instance)');
         }
         _read(Op.cla, item);
@@ -3329,12 +3408,12 @@ final class _Text {
       return;
     }
     final NameReference name = (low as NameOperand).name;
-    if (name.subscripts.isNotEmpty) {
+    final DataItem item = _operand(_item(name)!);
+    if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
       _unruled(
         'a subscripted comparand that needs upscaling (no sample instance)',
       );
     }
-    final DataItem item = _operand(_item(name)!);
     _wordGuard(_sem(item).digits, deficit);
     _scaledLoad(() => _read(Op.ldq, item), deficit);
   }
@@ -3357,7 +3436,7 @@ final class _Text {
         _op(Op.cas, _cp(_numericLiteral(literal)));
       case NameOperand(:final name):
         final DataItem item = _operand(_item(name)!);
-        if (name.subscripts.isNotEmpty) {
+        if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
           final int register = _indicatorPrologue(item);
           // The element the indicator addresses: `CAS 0,r`, the word
           // the register alone reaches (the attested 01412).
@@ -3380,6 +3459,14 @@ final class _Text {
   /// with a locator, and the register leaves the cache: it holds the
   /// element address now, not a base.
   int _indicatorPrologue(DataItem array) {
+    final int chars = _strideChars(array);
+    if (chars % 6 != 0) {
+      // `CAS 0,r` reads the word the address names and drops the byte.
+      _unruled(
+        'a whole-word read of an element whose stride is $chars '
+        'characters (M6-9)',
+      );
+    }
     final int indicator = _indicator(array);
     final int register = _assignRegister(-indicator);
     _registerHolds.remove(register);
