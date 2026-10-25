@@ -458,6 +458,116 @@ void main() {
     });
   });
 
+  group('the alignment of a MOVE and an ADD (F p. 42)', () {
+    /// The words of [statement] up to its STOP RUN, with NUM at `999`,
+    /// AMT at `99V99`, EXT an external `999`, EXF an external `99V99`,
+    /// EDT at `$8889.99`, and ED3 an edited `899`.
+    List<String> aligned(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(
+            name: 'AMT',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '99V99',
+          ),
+          dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
+          dataCard(name: 'EXF', level: '1', mode: 'E', description: '99V99'),
+          dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
+          dataCard(name: 'ED3', level: '1', description: '899'),
+        ],
+        procedure: [statement, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      // The procedure begins past the six data reservations.
+      final int start = words.indexOf('BSS 0') + 7;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    test('an internal source of lesser scale upscales into the edit', () {
+      expect(aligned('            MOVE NUM TO EDT.'), [
+        'LDQ NUM',
+        'MPY CP)+2',
+        'XCA ',
+        'TSX SYS)180,4',
+        'PZE EDT,,0',
+        'TXI SYS)267,1,12',
+        'OCT 000004000003',
+        'AXT 6,1',
+      ]);
+    });
+
+    test('an external source of lesser scale upscales its convert', () {
+      expect(aligned('            MOVE EXT TO AMT.'), [
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'XCA ',
+        'MPY CP)+2',
+        'XCA ',
+        'STO AMT',
+      ]);
+    });
+
+    test('an external source of greater scale drops its low digits', () {
+      expect(aligned('            MOVE EXF TO NUM.'), [
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,4',
+        'LRS 35',
+        'DVP CP)+2',
+        'STQ NUM',
+      ]);
+    });
+
+    test('an ADD source of lesser scale parks as the chain parks', () {
+      expect(
+        aligned('            ADD NUM TO AMT.'),
+        aligned('            SET AMT = AMT + NUM.'),
+      );
+      expect(aligned('            ADD NUM TO AMT.'), [
+        'LDQ NUM',
+        'MPY CP)+2',
+        'STQ RS)0',
+        'CLA AMT',
+        'ADD RS)0',
+        'STO AMT',
+      ]);
+    });
+
+    test('an edited ADD source aligns after its park', () {
+      expect(aligned('            ADD ED3 TO AMT.'), [
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)268,1,1',
+        'TXI SYS)269,1,3',
+        'TXI SYS)275,1,3',
+        'STO RS)1',
+        'LDQ RS)1',
+        'MPY CP)+2',
+        'STQ RS)0',
+        'CLA AMT',
+        'ADD RS)0',
+        'STO AMT',
+      ]);
+    });
+  });
+
   group('the external-decimal fetch (M6-9)', () {
     /// The words from the first fetch to the end of [statement], with
     /// EXT and EXU external decimal, NUM internal, and IFLD a field of
