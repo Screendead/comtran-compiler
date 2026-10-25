@@ -155,7 +155,7 @@ the sample's source table, in the corpus's layouts. Run the applied
 deck over them, and diff the values against the sample's report. M6-1
 as amended names the columns that can be compared and the three
 causes that separate the rest. Codegen defect 7 below is fixed for
-the DO FOR. The other eight codegen defects stay open, and each fix
+the DO FOR. The other nine codegen defects stay open, and each fix
 must leave `test/goldens/90.05-payroll.code` as it stands.
 
 **One question waits for Jack, and no work waits on his answer.**
@@ -165,21 +165,15 @@ the listing. Chunk 2b works on the applied deck either way.
 
 ### Codegen defects the runtime exposed
 
-The stage-4 runtime made five codegen defects visible for the first
-time. None is fixed on the stage-4 branch, and each fix is a codegen
-change. Take them before M5 or beside it. Whether a site refuses the
-shape or handles it is Jack's call. The M5 stage 2 review added a
-sixth, a missing diagnostic.
+The stage-4 runtime exposed defects 1 to 5, the M5 stage 2 review
+defect 6, and chunk 2b the rest. Whether a site refuses the shape or
+handles it is Jack's call.
 
-**None of the six fires on the sample's own path. The five were
-measured 2026-09-07.**
-The sample declares no picture that holds an `S` or an asterisk. Every
-source and target on the two unaligned paths carries the same scale. The
-paths hold 25 internal-to-edited stores, three converts, and the one
-edited ADD source.
-Its three convert targets live in WORKING, which is no record, so defect 4
-has no site. M6 can therefore take the printed report as its oracle before
-any of the six is fixed. A correct fix must leave
+**None of the first six fires on the sample's own path (measured
+2026-09-07).** The sample declares no picture that holds an `S` or an
+asterisk, its unaligned paths carry equal scales, and its convert
+targets live in WORKING, so defect 4 has no site. A correct fix must
+leave
 `test/goldens/90.05-payroll.code` byte for byte as it stands: a fix that
 moves it has changed the sample's path. The three divides at LOC 00424,
 01113 and 01142 split on digit count, not on scale, and must survive.
@@ -219,9 +213,9 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    short. Fixed for the DO FOR on 2026-10-25.** `_strideWords`
    (`lib/src/codegen/procedure.dart`) returned `strideChars ~/ 6`, so
    the corpus's 11-character TABLE.ITEM strode one word (M6-8). The DO
-   FOR now steps the indicator's byte and carries it into the word
-   (M6-9). The subscript store and a whole-word read through
-   `LAC PI)n,r` still refuse such a stride.
+   FOR now steps the indicator's byte, carries it into the word, and
+   sets every base with its byte (M6-9). The subscript store and a
+   whole-word read through `LAC PI)n,r` still refuse such a stride.
 8. **A subscripted MOVE target drops its subscript.** `_moveUnit`
    (`lib/src/codegen/procedure.dart`) takes `targetSubscripted` and
    passes it to no internal-decimal arm, so `MOVE NUM TO TAB CELL (I)`
@@ -237,6 +231,16 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    ([J 02.04.07.01]). The DO FOR decision of M6-9 found it on
    2026-10-25. The sample's one subscript store is a MOVE, and the
    applied deck stores into INDEX only through its DO FOR.
+
+10. **The subscript store drops the byte of a field inside a word.**
+    `_subscriptRecomputation` builds the base `NAME-n` with a zero
+    decrement, the 1962 defect at `RETPREM-2` (M6-4 finding 1). The
+    golden needs that word at the sample's site. Elsewhere a reader
+    through SYS)132 then reads from byte 0: over items of `99`, `9999`
+    and `9(6)`, `MOVE THREE TO IDX` then `MOVE B (IDX) TO NB` gives 300
+    for 3. Whether to refuse the shape or handle it is Jack's call. The
+    PR 150 review found it on 2026-10-25. The applied deck has no
+    subscript store.
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
