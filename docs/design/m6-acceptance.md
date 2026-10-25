@@ -1388,8 +1388,8 @@ the report our run prints against the page.
     11-character stride is one word and five bytes, and an `ADD` of a
     byte count into the decrement carries nothing into the address. A
     test-and-adjust sequence has no attested form.
-  - The comparison form `LAC PI)n,r / CAS 0,r` reads a whole word. It
-    cannot address a byte, and statement 166,00 compares through it.
+  - The internal comparison form `LAC PI)n,r / CAS 0,r` reads a
+    whole word. The external comparand of 166,00 still refuses.
   - The one attested base of a field inside a word is `PZE RETPREM-2`.
     Its zero decrement is the 1962 defect of M6-4 finding 1, so the
     only evidence on the byte of a base is wrong code.
