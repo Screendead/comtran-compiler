@@ -40,6 +40,10 @@ const String fAppliedDeckPath = 'test/fixtures/f-payroll-j.ctd';
 /// the directory before it runs.
 const String sampleTapesPath = 'test/fixtures/90.05-tapes';
 
+/// The directory holding the applied 1960 deck's two input tapes: the
+/// sample's employees in the 1960 record layouts (M6-1 as amended).
+const String fTapesPath = 'test/fixtures/f-payroll-tapes';
+
 /// Runs the front end and stage-2 semantics over one job: a `*DATA` block,
 /// with an `*ENVIRONMENT` block and a `*PROCEDURE` block appended when
 /// [environment] or [procedure] is non-empty.

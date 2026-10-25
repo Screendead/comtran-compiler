@@ -697,6 +697,58 @@ final List<String> _guard = <String>[
   '      *FINISH',
 ];
 
+/// [_source] with [statements] for its procedure and [data] after its
+/// two fields: the shape of each severity band's program (D7.6).
+List<String> _gated(List<String> statements, {List<String> data = const []}) =>
+    <String>[
+      ..._source.sublist(0, 3),
+      ...data,
+      '      *PROCEDURE',
+      ...statements,
+      '      *FINISH',
+    ];
+
+/// One program per severity band below 5, each with the start of the
+/// message that sets its maximum severity.
+final Map<int, (List<String>, String)> _bands = {
+  1: (
+    _gated(['      START.  SET TOT = NUM + 1.', '            STOP RUN']),
+    'PREVIOUS CARD NOT PROPERLY TERMINATED',
+  ),
+  2: (
+    _gated(
+      ['      START.  SET TOT = NUM + 1.', '            STOP RUN.'],
+      data: [
+        dataCard(name: 'GRP', level: '1', justify: 'R'),
+        dataCard(
+          name: 'SUB',
+          level: '2',
+          mode: 'I',
+          justify: 'R',
+          description: '99',
+        ),
+      ],
+    ),
+    'DATA NOT ON FORMAT DESCRIPTION LEVEL',
+  ),
+  3: (
+    _gated([
+      '      START.  SET TOT = NUM + 1.',
+      '            FROB TOT.',
+      '            STOP RUN.',
+    ]),
+    'STATEMENT WITHOUT PROPER VERB',
+  ),
+  4: (
+    _gated([
+      '      START.  SET TOT = NUM + 1.',
+      '            COPY X.',
+      '            STOP RUN.',
+    ]),
+    '-COPY- AND -LIBRARY-',
+  ),
+};
+
 /// Writes the two input tapes the sample reads: one master record and
 /// one detail record, whose employee number is the lower of the two.
 /// The comparison then takes LOW.DETAIL, which files an error record at
@@ -1353,11 +1405,59 @@ void main() {
       );
     });
 
+    test('a maximum severity of 1 runs the program', () {
+      final (List<String> source, String message) = _bands[1]!;
+      final ProcessResult run = _compileAndRun(source);
+      expect(run.stdout, contains('    1    $message'));
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(run.stdout, contains('AT 4,00 STOP RUN'));
+    });
+
+    for (final severity in <int>[2, 3, 4]) {
+      test('a maximum severity of $severity punches but does not run', () {
+        final (List<String> source, String message) = _bands[severity]!;
+        final ProcessResult run = _compileAndRun(source);
+        expect(run.stdout, contains('    $severity    $message'));
+        // Only severity 5 fails the process (D11.2).
+        expect(run.exitCode, 0, reason: '${run.stderr}');
+        expect(run.stdout, isNot(contains(RegExp('^AT ', multiLine: true))));
+        expect(run.stderr, 'job 1: not run: maximum severity $severity\n');
+      });
+    }
+
     test('an error exit fails the job on the monitor message alone', () {
       final ProcessResult run = _compileAndRun(_guard);
       expect(run.exitCode, 1);
       expect(run.stdout, contains('BASE LOCATOR NOT LOADED'));
       expect(run.stderr, isNot(contains('error:')));
+    });
+  });
+
+  group('the applied 1960 deck', () {
+    test('its tapes print the reports of test/goldens/f-payroll-j.report', () {
+      // The five reports the run writes, byte for byte. The golden is
+      // our output; test/f_acceptance_test.dart classifies its distance
+      // from the 1962 sample's report (m6-f-tapes.md, the run).
+      final Directory tapes = tempDirectory('comtran-f-tapes');
+      for (final unit in <String>['D1', 'C2']) {
+        File('$fTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
+      }
+      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
+        'run',
+        'comtran:comtranc',
+        fAppliedDeckPath,
+        '--run',
+        '--tapes=${tapes.path}',
+        '--list-tapes',
+      ]);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      const display = 'AT 140,00 STOP RUN\n';
+      final stdout = '${run.stdout}';
+      expect(stdout, contains('AT 139,00 STOP 1234\n$display'));
+      expect(
+        stdout.substring(stdout.indexOf(display) + display.length),
+        File('test/goldens/f-payroll-j.report').readAsStringSync(),
+      );
     });
   });
 }
