@@ -24,17 +24,6 @@ import 'text_model.dart';
 
 export 'procedure.dart' show UnrecoveredShape;
 
-/// The words temporary storage reserves.
-///
-/// A constant, and deliberately not a rule. The manuals hold no sizing
-/// rule for `TS)`, the sample reserves 7 words and addresses none of
-/// them, and an eleven-agent hunt over both manuals left two readings
-/// one sample cannot separate. M4-4 as amended 2026-08-10 takes the
-/// attested 7 and forbids inventing a rule that returns it. For any
-/// program but the sample this size is unverifiable, which is stated
-/// rather than hidden.
-const int temporaryStorageWords = 7;
-
 /// The words result storage reserves: [resultStorageCells], two words a
 /// cell (D4.8). Chunk B3 addresses the same list section by section, so
 /// the reservation and the addressing cannot disagree.

@@ -46,6 +46,17 @@ enum StorageBlock {
   String get symbol => '${name.toUpperCase()})';
 }
 
+/// The words temporary storage reserves.
+///
+/// A constant, and deliberately not a rule. The manuals hold no sizing
+/// rule for `TS)`, the sample reserves 7 words and addresses none of
+/// them, and an eleven-agent hunt over both manuals left two readings
+/// one sample cannot separate. M4-4 as amended 2026-08-10 takes the
+/// attested 7 and forbids inventing a rule that returns it. For any
+/// program but the sample this size is unverifiable, which is stated
+/// rather than hidden.
+const int temporaryStorageWords = 7;
+
 /// Base locators the program needs: one for the IOCS label area, plus
 /// one buffer pointer per located record (M4-4; M3-11).
 int baseLocatorWords(SemanticResult semantics) =>

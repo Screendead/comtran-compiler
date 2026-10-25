@@ -39,7 +39,6 @@ import '../lexer/source_card.dart';
 import '../lexer/token.dart';
 import '../loader/control_group.dart';
 import '../parser/parser.dart';
-import 'codegen.dart' show temporaryStorageWords;
 import 'codegen_messages.dart';
 import 'control_cards.dart';
 import 'encode.dart';
@@ -1026,7 +1025,8 @@ final class _Text {
   }
 
   /// The temporary cell of each external-decimal operand the open fetch
-  /// scope converted, numbered from 1 as `TS)n` ([J 90.02.04]).
+  /// scope converted. The `SYM)n` suffix counts from 1 (`image.dart`);
+  /// the one printed instance, `ANA TS)1` ([J 90.02.04]), agrees.
   final Map<DataItem, int> _fetched = Map<DataItem, int>.identity();
   bool _fetching = false;
 
