@@ -1032,7 +1032,86 @@ the report our run prints against the page.
   - `test/f_corpus_test.dart` pins the next stop. Statement 141,00
     compiles its comparison and stops in its THEN arm, `(DETAIL HOURS
     - 40) * MASTER RATE * 1.5`, with the shape `a product of a
-    product`. That is the fifth item of the list.
+    product`. That is the fifth item of the list. The product decision
+    below moved the pin.
+
+  The two listings and `test/goldens/90.05-payroll.code` do not change.
+
+  **Decided 2026-10-25: the product of a product. A design decision
+  under D0.4; Jack can overturn it.** This is the fifth item of the
+  list above, and the fifth item done. When the complex factor of a
+  product is itself a product, the inner product finishes in the MQ.
+  The next factor then multiplies it with one word and no `XCA`:
+
+  ```
+  ...                   the inner product, in the MQ
+  MPY    factor
+  ```
+
+  For example, `SET FRAC = (FRAC - 4) * NUM * 1.5`, with FRAC at `9V9`,
+  compiles to the aligned difference, `XCA`, `MPY NUM`, `MPY` the pooled
+  15, and the scaling store tail. The product is at scale 1 + 0 + 1 = 2,
+  so the tail divides by 10 with the half-adjust 5. The evidence:
+
+  - [J 02.04.05.01] b: "the expression A*B*C will be taken to mean
+    (A*B)*C". F p. 107, rule 4, states the same. So the inner product
+    comes first.
+  - The one-word step is the step at LOC 01224 to 01225 of the 1962
+    sample, `MPY EXEMPTIONS,1` then `MPY CP)+31`. Catalogue 4.7 counts
+    the multiplicative step as "1 when the left value is already the MQ
+    half". At that site the second word is a scale alignment and not a
+    source factor. The word is the same `MPY` onto the MQ.
+  - The scale of a product is the sum of the scales of its factors, as
+    at every attested product. The value rescales once, at the store,
+    through the attested tail with the half-adjust of D4.1. Nothing
+    rescales between the two multiplies.
+
+  **The precision.** The second `MPY` reads the MQ alone, so the inner
+  product keeps one word, and the high half in the accumulator drops.
+  The generator refuses an inner product that can pass 10 digits, with
+  the shape `a product of a product past 10 digits (no sample
+  instance)`. The count is ours:
+
+  - a field: its declared digits;
+  - a literal: its keyed digits;
+  - a product: the sum of its factors;
+  - a chain: its widest integer part, plus the chain scale, plus one
+    digit for the carry.
+
+  At statement 141,00 the inner product holds at most 4 + 5 = 9 digits.
+  The outer product takes no new check, because the store tail also
+  keeps one word, as at every attested product. Open Question 28 stays
+  open.
+
+  The rejected options:
+
+  - *Park the inner product.* `STQ` to a cell and `LDQ` back costs two
+    words and a cell, and the MQ already holds the value.
+  - *The `XCA` step of a computed factor.* `XCA` moves the product's
+    low half into the accumulator and its high half into the MQ. The
+    `MPY` then reads the high half, which is 0, and the result is
+    wrong.
+  - *Carry the AC-MQ pair.* The double-precision routines of
+    [J 90.02.12] and [J 90.02.13] have no call in any listing, and ten
+    digits cover the deck.
+
+  The refusal `a product of two computed factors (no sample instance)`
+  stays. The deck does not reach it.
+
+  The tests:
+
+  - `test/codegen_test.dart` asserts the words of a nested product, a
+    parenthesised one, the shape of statement 141,00, and a truth
+    function inside the inner product.
+  - `test/codegen_refusal_test.dart` pins the refusal past 10 digits.
+  - `test/runtime/machine_test.dart` runs `(HRS - 40) * RATE * 1.5` with
+    HRS an external field that holds 45.0. A RATE of 2.505 stores
+    18.79, and a RATE of 2.500 stores 18.75. A product that dropped the
+    scale of 1.5 would store 187.88.
+  - `test/f_corpus_test.dart` pins the next stop. Statement 141,00
+    compiles its product and stops at its store, because DETAIL GROSS
+    is an external-decimal field. The shape is `an external-decimal
+    store (M6-9)`, the second item of the list.
 
   The two listings and `test/goldens/90.05-payroll.code` do not change.
 
@@ -1074,6 +1153,8 @@ the report our run prints against the page.
 [J 90.02.03]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.04]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.10]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
+[J 90.02.12]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.13]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.16]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers

@@ -610,7 +610,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   beside the three named above:
 
   - a scale alignment of a sub-chain;
-  - a product of a product;
+  - a product of a product, compiled since M6-9;
   - an edited ADD source past 10 digits, from 2026-09-06.
 
   `test/codegen_refusal_test.dart` pins one program per site.
