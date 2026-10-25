@@ -717,11 +717,13 @@ final List<String> _sFillers = <String>[
   ),
   dataCard(name: 'ELEAD', level: '1', description: '9.99'),
   dataCard(name: 'ETRAIL', level: '1', description: '888889'),
+  dataCard(name: 'EEDIT', level: '1', description: '888889'),
   '      *PROCEDURE',
   '      START.  MOVE LEAD TO INT.',
   '            MOVE LEAD TO ELEAD.',
   '            MOVE TRAIL TO ETRAIL.',
   '            ADD ESRC TO SUM.',
+  '            MOVE ESRC TO EEDIT.',
   '            STOP RUN.',
   '      *FINISH',
 ];
@@ -1343,11 +1345,12 @@ void main() {
     test('a source with an S position reads its stored digits alone', () {
       final (JobCompilation job, Machine subject) = compiled(_sFillers);
       // A read of the digit count takes the next field's digits: 57,
-      // 0.57, 456000 and 123450.
+      // 0.57, 456000, 123450 and 450000.
       expect(subject.state.read(addressOf(job, 'INT')), 5);
       expect(glyphsAt(subject, addressOf(job, 'ELEAD'), 4), '0.05');
       expect(glyphsAt(subject, addressOf(job, 'ETRAIL'), 6), '123000');
       expect(subject.state.read(addressOf(job, 'SUM')), 123);
+      expect(glyphsAt(subject, addressOf(job, 'EEDIT'), 6), '123000');
     });
 
     test('a located external-decimal store writes into the buffer', () {

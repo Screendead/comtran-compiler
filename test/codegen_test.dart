@@ -2150,6 +2150,21 @@ void main() {
       );
     });
 
+    test('an edited source moves its stored digit positions', () {
+      expect(
+        steps([
+          dataCard(name: 'ESRC', level: '1', description: r'$899SSS'),
+          dataCard(name: 'EDT', level: '1', description: '888889'),
+        ], 'MOVE ESRC TO EDT.'),
+        [
+          '\tTXI SYS)190,1,0',
+          '\tTXI SYS)198,1,3',
+          '\tTXI SYS)216,1,3',
+          '\tTXI SYS)226,1,6',
+        ],
+      );
+    });
+
     test('the edited fetch counts the stored digit positions', () {
       // The `$` is an insertion character, which SYS)269 counts not.
       expect(
