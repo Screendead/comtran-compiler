@@ -147,56 +147,198 @@ The tests, in `test/f_tapes_test.dart`:
 
 ## The run
 
-**Decided 2026-10-25: the run of the applied deck. It does not reach
-the end of the job, and no column can be compared yet.** The command:
+**Decided 2026-10-25: the run of the applied deck.** The run reaches
+the end of the job. The comparison finds no new compiler defect. Every
+difference has one of the causes below.
+
+### The command and the result
 
 ```sh
+cp -r test/fixtures/f-payroll-tapes <copy>
 dart run comtran:comtranc test/fixtures/f-payroll-j.ctd --run \
-  --tapes=test/fixtures/f-payroll-tapes --list-tapes
+  --tapes=<copy> --list-tapes
 ```
 
-The file cards name units `D1` and `C2` for MASTER.FILE and
-DETAIL.FILE, and the tapes directory holds those two names. The run
-prints the listing, then `GET ERROR ON DETAIL.FILE, BLOCK 16`, and
-exits 1. REPORT.FILE and CHECK.FILE hold no record. ERROR.FILE holds
-all 25 masters and all 14 details. The lister also prints three
-errors: each output tape "ends with no file mark", because the job
-stops before CLOSE ALL FILES.
+The run prints `AT 139,00 STOP 1234`, then `AT 140,00 STOP RUN`, and
+exits 0. Codegen defect 12 stopped the first run at statement 130,00.
+PR 155 fixed it, and the comparison of employee numbers now matches.
+The run writes three reports:
 
-**The cause is codegen defect 12: an alphameric comparison of a field
-that crosses a word boundary reads the first word only.** The guard in
-`_alphamericComparison` (`lib/src/codegen/procedure.dart`) refuses a
-field of more than six characters. It does not refuse a field whose
-byte plus its length is more than six. `_emitExtraction` then emits
-one `CAL` of the first word and an `LGL` of six bits a character. The
-characters in the next word are never loaded.
+| Report | Lines | The sample's report |
+|---|---|---|
+| REPORT.FILE | 11 employee lines and one grand-total line | PAYFILE: 11 employee lines, 7 department lines, one grand-total line |
+| CHECK.FILE | 11, one for each check | CHECKFILE: 22, two for each check |
+| ERROR.FILE | 17 error records and the bond order | ERRORFILE: 17 lines; BONDORDERFILE: one line |
 
-Statement 130,00 compares two such fields:
+`test/goldens/f-payroll-j.report` holds the three reports byte for
+byte. The test "the applied 1960 deck" in
+`test/runtime/machine_test.dart` runs the deck over a copy of the
+tapes and compares the result with the golden. `test/f_acceptance_test.dart`
+compares the golden with `test/goldens/90.05-payroll.report` and pins
+each row of the table below.
 
-| Field | Byte | Characters | Object code | What the compare reads |
-|---|---|---|---|---|
-| DETAIL EMPLOYEE.NUMBER | 4 | 6 | LOC 00136, `CAL 2)EMPLOYEE.NUMBER,1`, `LGL 24` | the department, then four zero characters |
-| MASTER EMPLOYEE.NUMBER | 1 | 6 | LOC 00143, `CAL 1)EMPLOYEE.NUMBER,2`, `LGL 6` | the department and three digits, then one zero character |
+### How the lines pair
 
-So a detail compares low to every master of its own department, and
-the match never occurs. The order of ERROR.FILE shows this. For
-example, detail 061500 goes to the file before master 061793, and
-detail 071802 before master 071794. The end of the job fails the same
-way. Statement 137,00 sets D.EMPLOYNO to HIGH.VALUE. The compare of
-statement 136,00, at LOC 00230, then reads octal `747400000000`. It
-never equals the HIGH.VALUE word `747474747474`, so the program reads
-DETAIL.FILE past its file mark.
+An employee line of ours prints no number and no name, so the test
+pairs the lines by their position. Both programs read the same
+employees in the same order, so line *n* of ours is line *n* of the
+sample. The hours confirm the pairing: they match on all 11 lines.
 
-The defect is in the generator, not in the runtime, so this record
-makes no fix. Whether the site refuses the shape or handles it is
-Jack's call, as for defects 1 to 10. A handler path for a longer or
-unaligned field is the SYS)162 boundary that M4-11 names.
+### The causes
 
-The CORRESPONDING finding above is neither confirmed nor refuted. No
-employee line reaches REPORT.FILE. This record adds no report golden
-and no acceptance test: an empty report would pin the defect as the
-oracle. The column diff against `test/goldens/90.05-payroll.report`
-waits for the fix of defect 12.
+| Cause | What it is |
+|---|---|
+| CORR | The CORRESPONDING finding above. J pairs two fields only if all their qualifiers agree ([J 02.04.04]). DETAIL and MASTER hold their fields under the group DATA, so most fields pair with nothing. |
+| C1 | M6-1 cause 1, the table lookup. The 1962 page prints RET.PREM equal to INS.PREM (M6-4 finding 1). Our lookup through the 11-character item reads the true RET.PREM. |
+| C2 | M6-1 cause 2. Below 40 hours, the 1960 program pays a 40-hour week. |
+| C3 | M6-1 cause 3, the 1960 program's own defects. |
+| F-T4 | The tape decision F-T4 above: DETAIL BONDENOMINATION is zero. |
+| §9.8 | A change that the 1962 sample made to the 1960 program (definition §9.8). |
+
+A field that no statement writes keeps the first value of its record
+area. That value is a zero word, because storage starts at zero
+(ED-6, `docs/design/emulator.md`). A zero word lists as zero
+characters. So each unwritten field prints `0` in every position.
+
+### The classification
+
+The employee lines, 11 of each:
+
+| Column | Result | Cause |
+|---|---|---|
+| Department and employee number | differ on 11 | CORR |
+| Name | differ on 11 | CORR |
+| Date | differ on 11 | CORR |
+| Hours | match on 11 | — |
+| Gross pay | differ on 11 | CORR |
+| WHT | differ on 11 | CORR |
+| FICA | differ on 11 | CORR |
+| Bond deduction | differ on 11 | CORR |
+| Insurance premium | differ on 11 | CORR |
+| Retirement premium | differ on 11 | CORR |
+| Net pay | differ on 11 | C1 on 11; C2 also on 6 |
+| Bond purchase | match on 10, differ on 1 | F-T4 on WOO's line |
+
+The department lines: the sample prints 7, and ours prints none. The
+cause is CORR. No statement fills PAYRECORD DEPARTMENT or CURRENT
+DEPARTMENT, so statement 148,00 compares zero with zero and the test
+never passes. M6-1 cause 3 expected the last department's line to
+fail only. Under J's rule, every department line fails.
+
+The grand-total line:
+
+| Column | Result | Cause |
+|---|---|---|
+| The `GT  - -` text | differ | §9.8: END.OF.RUN moves no text into PAYRECORD |
+| Hours | match, 389.5 | — |
+| Gross pay, WHT, FICA, bond deduction | differ: zero | CORR: statement 149,00 adds HOURS alone into GRAND.TOTAL |
+| Insurance and retirement premiums | differ: no writer | C3: INSURANCE.PREM and RETIREMENT.PREM pair with nothing |
+| Net pay | differ: zero | C3, a new item: no statement adds a net pay into a totals record |
+| Bond purchases | differ: zero | C3, a new item: no statement adds into GRAND.TOTAL BONDPURCHASES, and the field pairs with no PAYRECORD field |
+
+The two new items of C3 are defects of the 1960 program under F's
+rule of names too. DETAIL has no NETPAY field. Statement 162,00 adds
+the bond into DEPARTMENT.TOTAL only. M6-1 does not list them.
+
+The checks, 11 of each:
+
+| Column | Result | Cause |
+|---|---|---|
+| Employee number and name | differ on 11 | CORR |
+| Date | the sample only | §9.8: the 1960 CHECK record has no date, and the 1962 check takes two lines |
+| Amount | differ on 11 | the net pay: C1 on 11, C2 also on 6 |
+
+The amount uses the 1960 picture `$***9.99`, so it prints `$*113.00`.
+The value is the net pay of its employee line.
+
+The bond order:
+
+| Column | Result | Cause |
+|---|---|---|
+| Employee number, name, date | differ | CORR: statement 162,00 pairs BONDENOMINATION alone |
+| Denomination | match, 37.50 | — |
+
+The 1960 program files the bond order in ERROR.FILE (§9.8). It prints
+between WUFFE T and ZUGEE W, the place where the run buys the bond.
+
+The error records: all 17 match. Each has the code, the number and
+the name of the sample's line, or the code, the number, the date and
+the hours. The order is the sample's order. Each record prints the
+whole 80 characters of the 1960 record, and a detail holds its hours
+before its number. That is the layout of the 1960 record (§9.8).
+
+### The counts
+
+The table compares 233 values:
+
+| Result | Values |
+|---|---|
+| Match | 77 |
+| Differ, CORR | 128 |
+| Differ, C1 (12 of them with C2 too) | 22 |
+| Differ, C3 | 4 |
+| Differ, F-T4 | 1 |
+| Differ, §9.8 | 1 |
+| Differ, a new compiler defect | 0 |
+
+The counts take 11 employee lines of 12 columns, 10 columns of the
+grand total, 11 checks of 3 columns, 4 columns of the bond order and
+the 54 values of the 17 error records. The 7 department lines are a
+separate difference, CORR. The layouts of the checks and of the error
+records are §9.8 differences, and the table does not count them.
+
+### The net pay, and why no compiler defect is suspected
+
+A model of the two programs gives every net pay of both reports to
+the cent. The model applies the two procedures as written, with the
+rounding of D4.1: a SET rounds its result. A model without the
+rounding misses three lines by one or two cents.
+
+On the five lines of exactly 40.0 hours, ours minus the sample equals
+the sample's RET.PREM minus the table's RET.PREM:
+
+| Employee | Ours | Sample | Difference |
+|---|---|---|---|
+| BLUT H | 113.00 | 112.20 | +0.80 |
+| CABAN R | 74.68 | 74.08 | +0.60 |
+| SOBEK W | 95.88 | 95.08 | +0.80 |
+| REYNOLDS J | 317.01 | 319.01 | −2.00 |
+| RICHARD D | 362.16 | 364.16 | −2.00 |
+
+So on these lines the difference is the page's own defect, M6-4
+finding 1, seen from the other side. Our run of the 1960 program
+prints the correct premium. M6-1 cause 1 expected a difference. The
+run shows that the difference is the 1962 processor's, not ours.
+
+On the six lines below 40 hours, C2 adds the pay of the hours not
+worked, less its FICA and WHT:
+
+| Employee | Hours | C1 | C2 | Ours | Sample |
+|---|---|---|---|---|---|
+| CASPERIAN J | 20.0 | +0.50 | +84.26 | 165.36 | 80.60 |
+| CATLETT H | 31.0 | −0.50 | +51.66 | 225.44 | 174.28 |
+| DORR D | 32.5 | −2.00 | +55.35 | 289.87 | 236.52 |
+| SMITH B | 30.0 | +0.30 | +23.78 | 94.76 | 70.68 |
+| WILLIAMS P | 37.0 | −2.00 | +24.57 | 316.69 | 294.12 |
+| WOO J | 39.0 | −2.00 | +9.84 | 370.94 | 363.10 |
+
+The model leaves no residue. So the SET arithmetic, the FICA cap, the
+WHT floor and the lookup through the 11-character item carry no
+unexplained difference. The gross pay, the WHT and the FICA of each
+line do not print. Their agreement with the model is an inference
+from the net pay, not a reading of a printed column.
+
+### What the run changes
+
+- The CORRESPONDING finding above is confirmed. It is now the cause of
+  most differences. The class is a defect of the 1960 program, because
+  the compiler applies J's rule and J outranks F.
+- M6-1 expected the employee number, the name, the date and the hours
+  to check. The hours alone check. M6-1 expected gross pay, WHT and
+  FICA to check on the five lines of 40 hours. They do not print.
+- M6-1 expected no total to check. The grand-total hours check.
+- The fold into M6-9 must carry this classification and the two new
+  items of C3.
 
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
