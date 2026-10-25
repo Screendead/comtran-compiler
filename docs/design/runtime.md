@@ -533,7 +533,9 @@ Nothing fixes the radix of the split, and no unsealed evidence survives
 handler throws. Design decision.** The SYS)184 path and the edited fetch
 each park the result with one `STO`. The edited store loads its source
 with one `CLA`. All three read the accumulator alone. The refusals are
-in the M4-9 and M4-10 records. SYS)184 and SYS)275 throw
+in the M4-9 and M4-10 records. The operand fetch of 2026-10-25 also
+calls SYS)184 and parks with one `STO`, and it refuses the same way
+(`m6-acceptance.md` M6-9). SYS)184 and SYS)275 throw
 `UnimplementedRuntimeEntry` on a count above 10, so the untaken shape
 cannot pass silently.
 

@@ -419,10 +419,10 @@ void main() {
       );
     });
 
-    test('an external-decimal chain operand', () {
+    test('an external-decimal SET target', () {
       expect(
-        _refuses(['            SET NUM = EXT + TOT.']),
-        'an arithmetic operand of externalDecimal (no sample instance)',
+        _refuses(['            SET EXT = NUM + TOT.']),
+        'an external-decimal store (M6-9)',
       );
     });
 
@@ -433,17 +433,46 @@ void main() {
       );
     });
 
-    test('an external ADD source', () {
-      expect(
-        _refuses(['            ADD EXT TO NUM.']),
-        'an arithmetic operand of externalDecimal (no sample instance)',
-      );
-    });
-
     test('an external ADD target', () {
       expect(
         _refuses(['            ADD NUM TO EXT.']),
-        'an arithmetic operand of externalDecimal (no sample instance)',
+        'an external-decimal store (M6-9)',
+      );
+    });
+
+    test('a numeric comparison of unequal scales', () {
+      expect(
+        _refuses(['            IF FRAC GT NUM THEN STOP RUN.']),
+        'a numeric comparison of unequal scales (no sample instance)',
+      );
+    });
+
+    test('a subscripted external-decimal operand', () {
+      expect(
+        _refuses(
+          ['            SET NUM = ECEL (IDX) + NUM.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'ETAB', level: '1', quantity: '12'),
+            dataCard(name: 'ECEL', level: '2', mode: 'E', description: '999'),
+          ],
+        ),
+        'a subscripted external-decimal operand (M6-9)',
+      );
+    });
+
+    test('an eighth temporary cell', () {
+      final List<String> names = [for (var i = 1; i <= 8; i++) 'EX$i'];
+      expect(
+        _refuses(
+          ['            SET NUM = ${names.join(' + ')}.'],
+          data: [
+            ..._data(),
+            for (final String name in names)
+              dataCard(name: name, level: '1', mode: 'E', description: '9'),
+          ],
+        ),
+        'a temporary cell past the TS) reservation (M4-4)',
       );
     });
 
@@ -1148,6 +1177,43 @@ void main() {
               level: '1',
               mode: 'I',
               justify: 'R',
+              description: '99999999999',
+            ),
+          ],
+        ),
+        'an external-decimal convert of more than 10 digits (RT-4)',
+      );
+    });
+
+    test('an external-decimal convert into more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            MOVE EXT TO WIDEI.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'WIDEI',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '99999999999',
+            ),
+          ],
+        ),
+        'an external-decimal convert of more than 10 digits (RT-4)',
+      );
+    });
+
+    test('an external-decimal fetch of more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            IF WIDEE GT NUM THEN STOP RUN.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'WIDEE',
+              level: '1',
+              mode: 'E',
               description: '99999999999',
             ),
           ],
