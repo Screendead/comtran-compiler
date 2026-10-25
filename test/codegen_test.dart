@@ -2076,4 +2076,89 @@ void main() {
       ]);
     });
   });
+
+  group('the S filler of a numeric source (F p. 80)', () {
+    /// The units of [procedure] over [data], from START on, each a label,
+    /// a tab, and the word.
+    List<String> lines(List<String> data, List<String> procedure) {
+      final SemanticResult semantics = runJob(data: data, procedure: procedure);
+      expect(ids(semantics), isEmpty);
+      final List<AssemblyUnit> units = runCodegen(semantics).units;
+      final int start = units.indexWhere(
+        (AssemblyUnit u) => u.labels.contains('START'),
+      );
+      return [
+        for (final AssemblyUnit u in units.skip(start))
+          '${u.labels.join(' ')}\t${u.operation} ${u.operand}',
+      ];
+    }
+
+    List<String> steps(List<String> data, String statement) => [
+      for (final String line in lines(data, [
+        '      START.  $statement',
+        '            STOP RUN.',
+      ]))
+        if (line.contains('TXI SYS)')) line,
+    ];
+
+    String field(String name, String pic, {String mode = 'E'}) => dataCard(
+      name: name,
+      level: '1',
+      mode: mode,
+      justify: mode == 'I' ? 'R' : '',
+      description: pic,
+    );
+
+    test('the convert counts the stored characters', () {
+      expect(
+        steps([
+          field('EXT', 'VS9'),
+          field('INT', 'V99', mode: 'I'),
+        ], 'MOVE EXT TO INT.'),
+        ['\tTXI SYS)184,1,1'],
+      );
+    });
+
+    test('a trailing S run is a zero step behind the move', () {
+      // The S positions are 10 to the 3, so no high-order digit drops.
+      expect(
+        steps([
+          field('EXT', '999SSS'),
+          dataCard(name: 'EDT', level: '1', description: '888889'),
+        ], 'MOVE EXT TO EDT.'),
+        [
+          '\tTXI SYS)185,1,0',
+          '\tTXI SYS)193,1,3',
+          '\tTXI SYS)211,1,3',
+          '\tTXI SYS)225,1,6',
+        ],
+      );
+    });
+
+    test('a leading S is a zero step ahead of the move', () {
+      expect(
+        steps([
+          field('EXT', 'VS9'),
+          dataCard(name: 'EDT', level: '1', description: '9.99'),
+        ], 'MOVE EXT TO EDT.'),
+        [
+          '\tTXI SYS)185,1,4',
+          '\tTXI SYS)212,1,2',
+          '\tTXI SYS)193,1,1',
+          '\tTXI SYS)225,1,3',
+        ],
+      );
+    });
+
+    test('the edited fetch counts the stored digit positions', () {
+      // The `$` is an insertion character, which SYS)269 counts not.
+      expect(
+        steps([
+          dataCard(name: 'ESRC', level: '1', description: r'$899SSS'),
+          field('INT', '9(4)SSS', mode: 'I'),
+        ], 'ADD ESRC TO INT.'),
+        ['\tTXI SYS)268,1,1', '\tTXI SYS)269,1,3', '\tTXI SYS)275,1,3'],
+      );
+    });
+  });
 }

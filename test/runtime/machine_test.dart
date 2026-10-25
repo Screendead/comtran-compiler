@@ -655,6 +655,47 @@ final List<String> _wordStrideByte = <String>[
   '      *FINISH',
 ];
 
+/// Four reads of a source with an `S` position, each field followed by
+/// digits a read past it would take: `VS9` holds 5 (.05) ahead of a 7,
+/// `999SSS` holds 123 (123000) ahead of 456, and `$899SSS` holds $123
+/// (123000) ahead of 45 (F p. 80).
+final List<String> _sFillers = <String>[
+  '      *DATA',
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: r"'57123456$12345'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'LEAD', level: '2', mode: 'E', description: 'VS9'),
+  dataCard(name: 'LNXT', level: '2', mode: 'E', description: '9'),
+  dataCard(name: 'TRAIL', level: '2', mode: 'E', description: '999SSS'),
+  dataCard(name: 'TNXT', level: '2', mode: 'E', description: '999'),
+  dataCard(name: 'ESRC', level: '2', description: r'$899SSS'),
+  dataCard(name: 'ENXT', level: '2', mode: 'E', description: '99'),
+  dataCard(
+    name: 'INT',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: 'V99',
+  ),
+  dataCard(
+    name: 'SUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9(4)SSS',
+  ),
+  dataCard(name: 'ELEAD', level: '1', description: '9.99'),
+  dataCard(name: 'ETRAIL', level: '1', description: '888889'),
+  '      *PROCEDURE',
+  '      START.  MOVE LEAD TO INT.',
+  '            MOVE LEAD TO ELEAD.',
+  '            MOVE TRAIL TO ETRAIL.',
+  '            ADD ESRC TO SUM.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program that never reaches its `STOP RUN`.
 final List<String> _loop = <String>[
   '      *DATA',
@@ -1267,6 +1308,16 @@ void main() {
       expect(subject.printed, <String>['AT 4,00 STOP RUN']);
       // 2.476 half-adjusts to 2.48.
       expect(glyphsAt(subject, addressOf(job, 'NET'), 10), r'    $2.48 ');
+    });
+
+    test('a source with an S position reads its stored digits alone', () {
+      final (JobCompilation job, Machine subject) = compiled(_sFillers);
+      // A read of the digit count takes the next field's digits: 57,
+      // 0.57, 456000 and 123450.
+      expect(subject.state.read(addressOf(job, 'INT')), 5);
+      expect(glyphsAt(subject, addressOf(job, 'ELEAD'), 4), '0.05');
+      expect(glyphsAt(subject, addressOf(job, 'ETRAIL'), 6), '123000');
+      expect(subject.state.read(addressOf(job, 'SUM')), 123);
     });
 
     test('a located external-decimal store writes into the buffer', () {

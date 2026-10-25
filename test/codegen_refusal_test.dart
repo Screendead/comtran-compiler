@@ -246,6 +246,33 @@ void main() {
       );
     });
 
+    test('an S position inside or behind the stored digits', () {
+      // F p. 80 shows an S run after the V and a trailing run with no V;
+      // any other S stands for a zero no stored character carries.
+      const reason =
+          'an S position inside or behind the stored digits (F p. 80)';
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'INNER', level: '1', mode: 'E', description: '9S9'),
+        dataCard(name: 'BEHIND', level: '1', mode: 'E', description: '9V9S'),
+        dataCard(name: 'EINNER', level: '1', description: r'$8S9'),
+      ];
+      for (final statement in [
+        'MOVE INNER TO NUM.',
+        'MOVE BEHIND TO NUM.',
+        'MOVE INNER TO EDT.',
+        'MOVE EINNER TO EDT.',
+        'ADD EINNER TO NUM.',
+        'SET NUM = INNER + 1.',
+      ]) {
+        expect(
+          _refuses(['            $statement'], data: data),
+          reason,
+          reason: statement,
+        );
+      }
+    });
+
     test('a subscripted figurative target', () {
       expect(
         _refuses(['            MOVE ZERO TO TAB CELL (IDX).']),
