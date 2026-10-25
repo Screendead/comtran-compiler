@@ -278,6 +278,22 @@ final List<String> _editedChain = <String>[
   '      *FINISH',
 ];
 
+/// A program that moves an edited field into a narrower one (M6-9):
+/// statement 146,00's pictorials over [net], then F p. 43's `99999` row
+/// into an edited receiver over [ext].
+List<String> _droppedDigits(String net, String ext) => <String>[
+  '      *DATA',
+  dataCard(name: 'NET', level: '1', description: r'$88889.99-'),
+  dataCard(name: 'AMT', level: '1', description: r'$***9.99'),
+  dataCard(name: 'EXF', level: '1', mode: 'E', description: '99999'),
+  dataCard(name: 'EDF', level: '1', description: '999.9'),
+  '      *PROCEDURE',
+  '      START.  SET NET = $net, MOVE NET TO AMT.',
+  '            SET EXF = $ext, MOVE EXF TO EDF.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program that stores into an external-decimal field of a located
 /// input record (M6-9): the store's `MZE` reference names the record's
 /// base locator.
@@ -952,6 +968,27 @@ void main() {
       expect(glyphsAt(subject, addressOf(job, 'NETPAY'), 10), r'  $307.39 ');
       // 40.00 less 105.11 is -65.11, and the trailing minus prints.
       expect(glyphsAt(subject, addressOf(job, 'NETNEG'), 10), r'   $65.11-');
+    });
+
+    test('an edit run drops zero high-order digits and arms nothing', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _droppedDigits('8889.99', '234'),
+      );
+      expect(subject.printed, <String>['AT 7,00 STOP RUN']);
+      expect(glyphsAt(subject, addressOf(job, 'AMT'), 8), r'$8889.99');
+      expect(glyphsAt(subject, addressOf(job, 'EDF'), 5), '234.0');
+      expect(subject.state.read(overflowCell), 0);
+    });
+
+    test('an edit run drops a significant digit and arms SYS)130', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _droppedDigits('12345.67', '1234'),
+      );
+      expect(subject.printed, <String>['AT 7,00 STOP RUN']);
+      // The low-order digits print, as F p. 43's `01234` gives `2340`.
+      expect(glyphsAt(subject, addressOf(job, 'AMT'), 8), r'$2345.67');
+      expect(glyphsAt(subject, addressOf(job, 'EDF'), 5), '234.0');
+      expect(subject.state.read(overflowCell), isNot(0));
     });
 
     test('a located external-decimal store writes into the buffer', () {
