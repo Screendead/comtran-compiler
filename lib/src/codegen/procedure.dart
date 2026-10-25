@@ -986,10 +986,10 @@ final class _Text {
     return fieldClass == FieldClass.group ? FieldClass.alphameric : fieldClass;
   }
 
-  /// Every attested SET target, ADD target and DO index is internal
-  /// decimal. The external-decimal store is an open item of M6-9, so it
-  /// refuses under its own shape; any other class has no attested
-  /// arithmetic form and refuses.
+  /// Every attested SET target, ADD target, DO index and subscript
+  /// variable is internal decimal. The external-decimal store is an open
+  /// item of M6-9, so it refuses under its own shape; any other class
+  /// has no attested arithmetic form and refuses.
   DataItem _decimal(DataItem item) {
     if (_sem(item).fieldClass == FieldClass.externalDecimal) {
       _unruled('an external-decimal store (M6-9)');
@@ -1020,13 +1020,19 @@ final class _Text {
       _op(op, _blockWord(StorageBlock.ts, cell));
       return;
     }
+    // A read outside a fetch scope would take the characters as binary.
+    assert(
+      _sem(item).fieldClass != FieldClass.externalDecimal,
+      'an external-decimal operand read outside its fetch scope',
+    );
     _loadBaseOf(item);
     _opItem(op, item);
   }
 
   /// The temporary cell of each external-decimal operand the open fetch
   /// scope converted. The `SYM)n` suffix counts from 1 (`image.dart`);
-  /// the one printed instance, `ANA TS)1` ([J 90.02.04]), agrees.
+  /// the one printed instance, `ANA TS)1` ([J 90.02.04]), is consistent
+  /// with it.
   final Map<DataItem, int> _fetched = Map<DataItem, int>.identity();
   bool _fetching = false;
 
@@ -1075,8 +1081,10 @@ final class _Text {
           }
           if (name.subscripts.isNotEmpty &&
               _sem(item).fieldClass == FieldClass.externalDecimal) {
-            // The fetch sets SYS)132 from a fixed descriptor; no sample
-            // operand is both subscripted and converted.
+            // The fetch sets SYS)132 from a fixed descriptor. No sample
+            // arithmetic operand is both subscripted and converted; the
+            // subscripted MOVE source sets the pointer from its indicator,
+            // `LDI PI)2 / STI SYS)132` at LOC 01445–01450.
             _unruled('a subscripted external-decimal operand (M6-9)');
           }
           items.add(item);
@@ -2666,9 +2674,13 @@ final class _Text {
         }
         return;
       }
-      for (final NameReference target in clause.targets) {
-        _addPair(source, _item(target)!);
-      }
+      // One scope for the clause: the source converts once, and every
+      // pair reads its cell, as statement 221's edited source parks once.
+      _withFetches([source], () {
+        for (final NameReference target in clause.targets) {
+          _addPair(source, _item(target)!);
+        }
+      });
       return;
     }
     _unruled('an ADD of a literal (no sample instance)');

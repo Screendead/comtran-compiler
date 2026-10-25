@@ -724,7 +724,7 @@ the report our run prints against the page.
     time;
   - the 11-character table stride, which carries codegen defect 7 with
     it (`docs/HANDOVER.md`);
-  - `STOP n` at run time: the halt and the resume (Open Question 69).
+  - `STOP n` at run time: the halt and the resume (Open Question 69);
   - a numeric comparison of unequal scales, added 2026-10-25 by the
     fetch decision below.
 
@@ -866,10 +866,10 @@ the report our run prints against the page.
 
   A field of a located record replaces the first two words with the
   three words `CAL BL)n`, `ACL CP)+n` and `SLW SYS)132`, as at LOC 00571
-  to 00573 of the 1962 sample. The arithmetic then reads `TS)k` where it read the field: `CLA`,
-  `ADD`, `SUB`, `LDQ`, `MPY` or `CAS`. For example, `SET NUM = EXT +
-  NUM` compiles to the five words above, then `CLA TS)1`, `ADD NUM`
-  and `STO NUM`. The evidence:
+  to 00573 of the 1962 sample. The arithmetic then reads `TS)k` where
+  it read the field: `CLA`, `ADD`, `SUB`, `LDQ`, `MPY` or `CAS`. For
+  example, `SET NUM = EXT + NUM` compiles to the five words above, then
+  `CLA TS)1`, `ADD NUM` and `STO NUM`. The evidence:
 
   - The convert is the attested form of statement 202,00, the MOVE of
     an external-decimal field to an internal one, at LOC 00571 to 00575
@@ -888,11 +888,14 @@ the report our run prints against the page.
     none (M4-4 as amended). The cells take the `SYM)n` form, and our
     `SYM)n` suffix counts from 1 (`BL)1` is the first word of its
     block). J states no rule for the count. Its one example, `ANA
-    TS)1`, agrees with ours.
+    TS)1`, is consistent with ours.
 
   These are the rules of the scope:
 
-  - A SET, one ADD pair, and one numeric comparison each open a scope.
+  - A SET, one ADD clause, one ADD CORRESPONDING pair, and one numeric
+    comparison each open a scope. The clause scope converts the source
+    once for all its targets, as the edited source of statement 221
+    parks once (amended 2026-10-25).
     All the fetches of the scope come before its first word, so no
     convert can overwrite a live accumulator or MQ.
   - One field read two times in a scope converts once and takes one
@@ -935,11 +938,11 @@ the report our run prints against the page.
   - `a numeric comparison of unequal scales (no sample instance)`.
     `CAS` compares two words as integers. Each attested comparison of a
     field with a word has the same scale on the two sides, and the
-    scaled zero has its own build. Before this decision no unequal pair
-    reached the compare, because the first such pair in the applied
-    deck reads an external-decimal field. Without the refusal, `HOURS`
-    at `99V9` against `40` compares 4.0 hours. This shape is not in the
-    list of eight above. The decision below withdraws this refusal.
+    scaled zero has its own build. The refusal is a general fix and not
+    a fetch fix. Before it, every unequal pair compiled wrong: `IF FRAC
+    GT NUM`, at `9V9` against `999`, compiled to `CLA FRAC / CAS NUM`.
+    This shape is the ninth item of the list above. The decision below
+    withdraws this refusal.
 
   The tests:
 
@@ -954,7 +957,7 @@ the report our run prints against the page.
   - `test/f_corpus_test.dart` pins the next stop. The applied deck
     fetches HOURS at statement 141,00, `IF DETAIL HOURS IS GREATER THAN
     40`, and stops on the shape `a numeric comparison of unequal
-    scales`. That is a ninth item for the list.
+    scales`. That is the ninth item of the list.
 
   The two listings do not change, because the change is in code
   generation only. `test/goldens/90.05-payroll.code` does not change,
@@ -976,7 +979,10 @@ the report our run prints against the page.
   The skip vector mirrors when the upscaled side is the right operand.
   For example, `IF HRS GT 40` with HRS an external `99V9` compiles to
   the fetch into `TS)1`, then `LDQ` the pooled 40, `MPY` the pooled 10,
-  `XCA` and `CAS TS)1`. The less slot is the true outcome. The evidence:
+  `XCA` and `CAS TS)1`. The less slot is the true outcome. The rule
+  covers every pair of names and literals, so `IF FRAC GT NUM` now
+  compiles to `LDQ NUM`, `MPY` the pooled 10, `XCA` and `CAS FRAC`. The
+  evidence:
 
   - [J 02.04.07]: "Numeric fields are compared arithmetically without
     regard to length." `CAS` compares two words as integers, so the

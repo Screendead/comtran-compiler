@@ -552,6 +552,19 @@ void main() {
       ]);
     });
 
+    test('an ADD to two targets converts its source once', () {
+      expect(fetch('            ADD EXT TO NUM, NUM.'), [
+        ...convertExt,
+        'STO TS)1',
+        'CLA NUM',
+        'ADD TS)1',
+        'STO NUM',
+        'CLA NUM',
+        'ADD TS)1',
+        'STO NUM',
+      ]);
+    });
+
     test('a located comparand sets its pointer from its base', () {
       expect(fetch('            IF IFLD GT NUM THEN STOP RUN.').take(8), [
         'CAL BL)2',
