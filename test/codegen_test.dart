@@ -413,10 +413,12 @@ void main() {
     });
 
     test('a parenthesised product takes the same words', () {
-      expect(
-        product('            SET NUM = (NUM * TOT) * 2.'),
-        product('            SET NUM = NUM * TOT * 2.'),
-      );
+      expect(product('            SET NUM = (NUM * TOT) * 2.'), [
+        'LDQ TOT',
+        'MPY NUM',
+        'MPY CP)+2',
+        'STQ NUM',
+      ]);
     });
 
     test('the shape of statement 141,00 scales back once at the store', () {

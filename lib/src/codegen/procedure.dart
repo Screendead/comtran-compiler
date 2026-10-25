@@ -2896,11 +2896,12 @@ final class _Text {
       // The product of a product (M6-9): the inner product is already
       // the MQ half, so the factor's word multiplies it with no `XCA`,
       // the one-word step of 01224 to 01225. That `MPY` reads the MQ
-      // alone, so the inner product must fit one word.
+      // alone, so the inner product must fit one word. The inner shape
+      // emits first, so its own refusal wins over the digit count.
+      final int scale = _product(complex);
       if (_digits(complex) > 10) {
         _unruled('a product of a product past 10 digits (no sample instance)');
       }
-      final int scale = _product(complex);
       _leafOperand(leaf)(Op.mpy);
       return scale + _naturalScale(leaf);
     }
@@ -2919,10 +2920,14 @@ final class _Text {
   }
 
   /// The most decimal digits [expr] can hold at its natural scale. A
-  /// chain of two or more terms takes one more digit for the carry.
+  /// chain of n terms takes the digits of n - 1 more for the carry,
+  /// since n terms each below 10 to the k sum below n times 10 to the k.
+  ///
+  /// The caller has already emitted [expr], so every node is one the
+  /// chain and the product admit.
   int _digits(ArithExpr expr) => switch (expr) {
     NameOperand(:final name) => _sem(_item(name)!).digits,
-    LiteralOperand(:final literal) => literal.text.replaceFirst('.', '').length,
+    LiteralOperand(:final literal) => '${_literalValue(literal).$1}'.length,
     TruthExpr() => 1,
     BinaryExpr(:final left, :final right) when expr.operator.text == '*' =>
       _digits(left) + _digits(right),
@@ -2934,8 +2939,8 @@ final class _Text {
               )
               .reduce((int a, int b) => a > b ? a : b) +
           _naturalScale(expr) +
-          1,
-    _ => _unruled('the digits of ${expr.runtimeType}'),
+          '${_additiveTerms(expr).length - 1}'.length,
+    _ => throw StateError('the digits of an unemitted ${expr.runtimeType}'),
   };
 
   /// Prepares [leaf] as a factor and returns the emitter of the word

@@ -1083,10 +1083,10 @@ the report our run prints against the page.
   instance)`. The count is ours:
 
   - a field: its declared digits;
-  - a literal: its keyed digits;
+  - a literal: the digits of its value;
   - a product: the sum of its factors;
-  - a chain: its widest integer part, plus the chain scale, plus one
-    digit for the carry.
+  - a chain of n terms: its widest integer part, plus the chain scale,
+    plus the digits of n - 1 for the carry.
 
   At statement 141,00 the inner product holds at most 4 + 5 = 9 digits.
   The outer product takes no new check, because the store tail also
@@ -1122,8 +1122,6 @@ the report our run prints against the page.
     compiles its product and stops at its store, because DETAIL GROSS
     is an external-decimal field. The shape is `an external-decimal
     store (M6-9)`, the second item of the list.
-
-  The two listings and `test/goldens/90.05-payroll.code` do not change.
 
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as

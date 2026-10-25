@@ -265,6 +265,15 @@ void main() {
       );
     });
 
+    test('the operator inside a product of a product', () {
+      // The inner shape emits before the digit count, so its own
+      // refusal wins at any depth (M6-9).
+      expect(
+        _refuses(['            SET NUM = NUM / TOT * IDX * NUM.']),
+        'the operator / (notes section 7)',
+      );
+    });
+
     test('a subscripted chain operand, one term', () {
       expect(
         _refuses(['            SET NUM = TAB CELL (IDX).']),
