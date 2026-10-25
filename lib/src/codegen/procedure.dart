@@ -3097,6 +3097,18 @@ final class _Text {
     required _Cont trueTo,
     required _Cont falseTo,
   }) {
+    if (_lesserScaled(acc, storage) case final ArithExpr low?) {
+      final high = identical(low, acc) ? storage : acc;
+      _alignedBuild(low, _operandScale(high) - _operandScale(low));
+      _compareStorage(high);
+      _vector(
+        relation,
+        identical(low, relation.right),
+        trueTo: trueTo,
+        falseTo: falseTo,
+      );
+      return;
+    }
     switch (acc) {
       case LiteralOperand(:final literal) when _literalValue(literal).$1 != 0:
         _unruled('a nonzero literal comparand (no sample instance)');
@@ -3112,19 +3124,65 @@ final class _Text {
         if (name.subscripts.isNotEmpty) {
           _unruled('a subscripted accumulator comparand (no sample instance)');
         }
-        if ((storage is NameOperand || storage is LiteralOperand) &&
-            _operandScale(acc) != _operandScale(storage)) {
-          // `CAS` compares the two words as integers, and every attested
-          // pair of a name and a word has one scale; the alignment has
-          // no sample form.
-          _unruled(
-            'a numeric comparison of unequal scales (no sample instance)',
-          );
-        }
         _read(Op.cla, item);
       default:
         _unruled('a comparison of ${acc.runtimeType}');
     }
+    _compareStorage(storage);
+    _vector(relation, mirrored, trueTo: trueTo, falseTo: falseTo);
+  }
+
+  /// The side of a name-or-literal pair that the alignment upscales, or
+  /// null when the two scales agree. A zero in the accumulator keeps its
+  /// own build.
+  ArithExpr? _lesserScaled(ArithExpr acc, ArithExpr storage) {
+    for (final operand in <ArithExpr>[acc, storage]) {
+      if (operand is! NameOperand && operand is! LiteralOperand) {
+        return null;
+      }
+    }
+    if (_builtInAccumulator(acc)) {
+      return null;
+    }
+    final int accScale = _operandScale(acc);
+    final int storageScale = _operandScale(storage);
+    if (accScale == storageScale) {
+      return null;
+    }
+    return accScale < storageScale ? acc : storage;
+  }
+
+  /// The aligned side of a comparison: `LDQ` the operand, `MPY` the power
+  /// of ten, `XCA` — the zero build's three words (the attested 00656–00660
+  /// and 01241–01243). The literal pools as keyed (catalogue 4.7).
+  void _alignedBuild(ArithExpr low, int deficit) {
+    if (low case LiteralOperand(:final literal)) {
+      _wordGuard('${_literalValue(literal).$1.abs()}'.length, deficit);
+      _scaledLoad(() => _op(Op.ldq, _cp(_numericLiteral(literal))), deficit);
+      return;
+    }
+    final NameReference name = (low as NameOperand).name;
+    if (name.subscripts.isNotEmpty) {
+      _unruled('a subscripted accumulator comparand (no sample instance)');
+    }
+    final DataItem item = _operand(_item(name)!);
+    _wordGuard(_sem(item).digits, deficit);
+    _scaledLoad(() => _read(Op.ldq, item), deficit);
+  }
+
+  /// The `XCA` keeps the low word of the product, so the aligned value
+  /// must fit ten digits; past that it needs the AC-MQ pair the scaling
+  /// routines of J 90.02.13 take (§8.5 Open Question 28).
+  void _wordGuard(int digits, int deficit) {
+    if (digits + deficit > 10) {
+      _unruled(
+        'an aligned comparand of more than 10 digits (no sample instance)',
+      );
+    }
+  }
+
+  /// The storage side of a numeric comparison: the `CAS` operand.
+  void _compareStorage(ArithExpr storage) {
     switch (storage) {
       case LiteralOperand(:final literal):
         _op(Op.cas, _cp(_numericLiteral(literal)));
@@ -3145,7 +3203,6 @@ final class _Text {
       default:
         _unruled('a comparison of ${storage.runtimeType}');
     }
-    _vector(relation, mirrored, trueTo: trueTo, falseTo: falseTo);
   }
 
   /// The positional-indicator prologue of a subscripted comparand:
@@ -3165,18 +3222,21 @@ final class _Text {
   bool _zero(Token figurative) => figurative.text.startsWith('ZERO');
 
   /// The zero side of a numeric comparison, built and scaled to the
-  /// storage operand: `LDQ` the pooled zero, `MPY` the scale, `XCA`
-  /// (the attested 00656–00660 and 01241–01243). Both attested sites
-  /// scale, so the unscaled variant has no generated form.
+  /// storage operand (the attested 00656–00660 and 01241–01243). Both
+  /// attested sites scale, so the unscaled variant has no generated form.
   void _zeroBuild(ArithExpr storage) {
     final int deficit = _operandScale(storage);
     if (deficit == 0) {
       _unruled('an unscaled zero comparand (no sample instance)');
     }
-    final _Sym zero = _cp(_pool.seed(0));
-    final _Sym scale = _cp(_pool.machineWord(_pow10(deficit)));
-    _op(Op.ldq, zero);
-    _op(Op.mpy, scale);
+    _scaledLoad(() => _op(Op.ldq, _cp(_pool.seed(0))), deficit);
+  }
+
+  /// [load] into the MQ, then `MPY` the power of ten and `XCA`, which
+  /// leaves the upscaled value in the accumulator.
+  void _scaledLoad(void Function() load, int deficit) {
+    load();
+    _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
     _xca();
   }
 

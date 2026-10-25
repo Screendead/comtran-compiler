@@ -440,10 +440,36 @@ void main() {
       );
     });
 
-    test('a numeric comparison of unequal scales', () {
+    test('a subscripted comparand of lesser scale', () {
       expect(
-        _refuses(['            IF FRAC GT NUM THEN STOP RUN.']),
-        'a numeric comparison of unequal scales (no sample instance)',
+        _refuses(['            IF FRAC GT TAB CELL (IDX) THEN STOP RUN.']),
+        'a subscripted accumulator comparand (no sample instance)',
+      );
+    });
+
+    test('an aligned literal past ten digits', () {
+      expect(
+        _refuses(['            IF FRAC GT 1234567890 THEN STOP RUN.']),
+        'an aligned comparand of more than 10 digits (no sample instance)',
+      );
+    });
+
+    test('an aligned field past ten digits', () {
+      expect(
+        _refuses(
+          ['            IF FRAC GT BIG THEN STOP RUN.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'BIG',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '9(10)',
+            ),
+          ],
+        ),
+        'an aligned comparand of more than 10 digits (no sample instance)',
       );
     });
 
