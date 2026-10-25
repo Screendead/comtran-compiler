@@ -207,8 +207,7 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    passes it to no internal-decimal arm, so `MOVE NUM TO TAB CELL (I)`
    compiles to `CLA NUM / STO CELL` and writes the first cell on every
    pass. The DO FOR decision of M6-9 found it on 2026-10-25. The
-   sample's subscripted moves are sources only, and the applied deck
-   has no subscripted MOVE target.
+   sample's subscripted moves are sources only.
 9. **A SET or ADD into a subscript variable updates no indicator.**
    `_subscriptRecomputation` (`lib/src/codegen/procedure.dart`) has
    one caller, the MOVE. So `SET IDX = 3` stores the index and leaves
@@ -220,12 +219,13 @@ moves it has changed the sample's path. The three divides at LOC 00424,
 
 10. **The subscript store drops the byte of a field inside a word.**
     `_subscriptRecomputation` builds the base `NAME-n` with a zero
-    decrement, the 1962 defect at `RETPREM-2` (M6-4 finding 1). The
-    golden needs that word at the sample's site. Elsewhere a reader
-    through SYS)132 then reads from byte 0: over items of `99`, `9999`
+    decrement, the 1962 defect at `RETPREM-2` (M6-4 finding 1), which the
+    golden needs at the sample's site. Elsewhere SYS)132 reads from byte 0: over items of `99`, `9999`
     and `9(6)`, `MOVE THREE TO IDX` then `MOVE B (IDX) TO NB` gives 300
-    for 3. Whether to refuse the shape or handle it is Jack's call. The
-    PR 150 review found it on 2026-10-25. The applied deck has no
+    for 3. Jack ruled on 2026-10-25: the several-indicator drop is the
+    1962 compiler's own defect. It stays, documented. The one-indicator
+    case follows the open combined question (record
+    `review/2026-10-25-codegen-defects-8-11`). The applied deck has no
     subscript store.
 11. **A sub-chain in a chain overwrites the outer park.** The arm
     `BinaryExpr() when _additive(term)` (`procedure.dart`:3031) calls
@@ -836,9 +836,8 @@ The golden-diff panel is the one item left.
 
 **Amended 2026-08-10 at Jack's request.** The punch grid moved above the deck
 and became editable: a click cuts or fills one hole, and the deck text becomes
-the card that results. The compiler decides what that text is, so a hole
-combination no character matches puts the card into the `!` punch form (D0.5)
-rather than into an error. The deck also prints the compiler's own diagnostics
+the card that results. A hole combination no character matches puts the
+card into the `!` punch form (D0.5), not into an error. The deck also prints the compiler's own diagnostics
 under it, the Compile button greys out while the panels already answer to the
 typed text, and each run prints how long it took.
 
@@ -856,8 +855,7 @@ obliges a change to a page.
 Every push to master deploys, so each H rule binds the same pull request that
 makes the change. `test/web_copy_test.dart` enforces D5 across the text files in `web/`, and
 checks that the roadmap page carries a station for every codename in the
-glossary above. Nothing compares the two states; H2 is the rule that keeps
-them in step.
+glossary above. H2 keeps the two states in step; nothing compares them.
 
 **W2 — the sources.** The documents page. It holds the language reference, both
 manual conversions, both source PDFs (17 MB), and each of the 345 page scans
@@ -872,14 +870,16 @@ surface, under the rule above.
 
 **W4 — teach and run.** The tutorial page, with the W1 editor and no second
 editor. The run button runs the sample over its reconstructed input
-tapes, `test/fixtures/90.05-tapes/` (M6 stage 1, 2026-09-13).
+tapes, `test/fixtures/90.05-tapes/` (M6 stage 1, 2026-09-13). The tutorial
+warns of defect 10: a table that packs several fields in one word, with one
+index driving more than one, is routine. The 1962 payroll's premium table is one.
 
 ### Later, and not scheduled
 
-Three entries in `docs/opportunities.md` have the site as their natural home.
-Each stays in that file, and none is promised here: the evidence chain from a
+Three entries in `docs/opportunities.md` suit the site.
+Each stays there, and none is promised here: the evidence chain from a
 generated instruction to its page scan (O8), the archive of decided questions,
-built from the review records that already exist as HTML (O11), and the
+built from the existing HTML review records (O11), and the
 evidence tier of a rule, shown where the compiler acts on it (O3).
 
 ### What the track cuts, and why
