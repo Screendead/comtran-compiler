@@ -606,8 +606,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      convert leaves the accumulator, so the park is `STO`.
 
   `RIR`, `SIR` and `RFT` print M4-8's fourth OCTAL rendering, so
-  `encode.dart` gives them a word form of their own. Three shapes refuse
-  beside the three named above:
+  `encode.dart` gives them a word form of their own. Two shapes refuse
+  beside the two in (c); a third compiles:
 
   - a scale alignment of a sub-chain;
   - a product of a product, compiled since 2026-10-25 (M6-9);

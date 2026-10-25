@@ -586,8 +586,8 @@ final class _Text {
   }
 
   /// The in-line address word `PZE LOC,,BYTE` ([J 90.02.14]). All 25
-  /// attested sites name a fixed location, so the word takes no tag and
-  /// the located form has none (catalogue 4.3).
+  /// attested sites name a fixed location, so the word takes no tag. A
+  /// located item takes the `MZE` form of [_externalStore] instead.
   void _pze(DataItem item) {
     // The test precedes [_ref]: a located reference reads its record's
     // base register, and no caller guards one for this word.
@@ -2638,9 +2638,17 @@ final class _Text {
       _figurativeFill(target, word);
       return;
     }
+    // The target refuses before the first word of the chain.
+    if (target.subscripts.isNotEmpty) {
+      _unruled('a subscripted SET target (no sample instance)');
+    }
+    final DataItem item = _operand(_item(target)!);
+    if (_sem(item).fieldClass == FieldClass.externalDecimal) {
+      _checkExternalTarget(item);
+    }
     _withFetches(
       _operandsOf([clause.value]),
-      () => _store(target, _chain(clause.value), truncated: clause.truncated),
+      () => _store(item, _chain(clause.value), truncated: clause.truncated),
     );
   }
 
@@ -3028,15 +3036,8 @@ final class _Text {
   /// otherwise — `XCA / ACL half / LRS 35 / DVP scale / STQ`, the
   /// half-adjust suppressed under TRUNCATED (catalogue 4.7; D4.1). A
   /// value in the accumulator takes the tail without its `XCA` (M6-9).
-  void _store(NameReference target, _Value value, {required bool truncated}) {
-    if (target.subscripts.isNotEmpty) {
-      _unruled('a subscripted SET target (no sample instance)');
-    }
-    final DataItem item = _operand(_item(target)!);
+  void _store(DataItem item, _Value value, {required bool truncated}) {
     final external = _sem(item).fieldClass == FieldClass.externalDecimal;
-    if (external) {
-      _checkExternalTarget(item);
-    }
     final int targetScale = _sem(item).fractionDigits;
     if (value.scale == targetScale) {
       if (external) {
@@ -3103,8 +3104,8 @@ final class _Text {
     _movpakClears();
   }
 
-  /// The two external-decimal targets the store cannot write, refused
-  /// before the first word of the arithmetic that feeds it.
+  /// The two external-decimal targets the store cannot write. Both
+  /// callers refuse them before the first word of the arithmetic.
   void _checkExternalTarget(DataItem item) {
     final ItemSemantics s = _sem(item);
     if (s.doublePrecision) {

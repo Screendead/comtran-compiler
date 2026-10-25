@@ -436,8 +436,9 @@ the sign bit clear is the pointer itself. `MZE BL)NN,,CP)+NN`
 and the displacement constant. That is the sum the in-line `CAL BL)NN /
 ACL CP)+NN / SLW` builds ([J 90.02.11] Case 2). The external-decimal
 store emits the `MZE` form for a target in a located record (M6-9,
-amended 2026-10-25). The handler does not decode `MON PI)NN,,0`
-([J 90.02.15]), because no emitted word holds it.
+amended 2026-10-25). The handler throws a `StateError` on any other
+prefix, `MON PI)NN,,0` ([J 90.02.15]) among them, because no emitted
+word holds one.
 
 **The advanced pointers are not written back. Design decision.** No
 source says whether MOVPAK returns them. Every site that reads a pointer
@@ -480,7 +481,7 @@ convention" ([J 90.02.18]). Each step ends the move. Added 2026-10-25
 with the external-decimal store (M6-9).
 
 The handler writes the accumulator's magnitude as that many digits,
-high order first:
+high order first, with zeros in the unused high-order positions:
 
 - SYS)186 writes no sign. A negative value stores its magnitude.
 - SYS)187 and SYS)188 overpunch the last digit as the edited tags 1 and
@@ -490,6 +491,12 @@ high order first:
 **The source is the accumulator alone, as for SYS)267.** The generator
 moves a value in the MQ with `XCA` before the call. More than ten
 characters is the AC-MQ pair, which the handler refuses (below).
+
+**The high-order fill is zeros. Design decision under D0.4; Jack can
+overturn it.** [J 90.02.18] does not say zero or blank. The
+[J 02.05.05] chart lists "digits and leading blanks" as what an
+external field holds, so blank fill is also legal data. Zeros keep
+every position a digit.
 
 **A longer value drops its high-order digits, and arms nothing. Design
 decision.** [J 90.02.18] lists no overflow test step for the three

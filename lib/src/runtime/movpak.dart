@@ -129,8 +129,13 @@ final class _Movpak {
   /// base locator plus the displacement constant, the sum the in-line
   /// `CAL / ACL / SLW` builds ([J 90.02.11] Case 2).
   int _addressReference(int word) {
-    if (Word36.sign(word) == 0) {
+    final int prefix = Word36.prefix(word);
+    if (prefix == 0) {
       return word;
+    }
+    if (prefix != 4) {
+      // `MON PI)NN,,0` ([J 90.02.15]) has no emitter (RT-4).
+      throw StateError('an address word of prefix $prefix');
     }
     final MachineState state = _machine.state;
     return (state.read(Word36.address(word)) +

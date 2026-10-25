@@ -733,8 +733,8 @@ the report our run prints against the page.
     chain-store decision below.
 
   No decision below changes the two listings or
-  `test/goldens/90.05-payroll.code`, because each changes code
-  generation only, on shapes the sample does not hold.
+  `test/goldens/90.05-payroll.code`, because each acts on shapes the
+  sample does not hold.
 
   **Decided 2026-10-24: `FILE record IN file`. A design decision
   under D0.4; Jack can overturn it.** This is the third item of the

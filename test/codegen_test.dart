@@ -412,10 +412,22 @@ void main() {
       ]);
     });
 
-    test('a parenthesised product takes the same words', () {
+    test('a parenthesised product multiplies the MQ with no XCA', () {
       expect(product('            SET NUM = (NUM * TOT) * 2.'), [
         'LDQ TOT',
         'MPY NUM',
+        'MPY CP)+2',
+        'STQ NUM',
+      ]);
+    });
+
+    test('a literal counts the digits of its value', () {
+      // 00000001 holds one digit, so the inner product holds 7. Its
+      // eight keyed digits would count 14 and refuse.
+      expect(product('            SET NUM = NUM * TOT * 00000001 * 2.'), [
+        'LDQ TOT',
+        'MPY NUM',
+        'MPY CP)+1',
         'MPY CP)+2',
         'STQ NUM',
       ]);
@@ -894,6 +906,65 @@ void main() {
         'TXI SYS)186,1,3',
       ]);
     });
+  });
+
+  test('ADD CORRESPONDING stores an external-decimal pair (M6-9)', () {
+    final SemanticResult semantics = runJob(
+      data: [
+        dataCard(name: 'SRC', level: '1'),
+        dataCard(
+          name: 'X',
+          level: '2',
+          mode: 'I',
+          justify: 'R',
+          description: '999',
+        ),
+        dataCard(name: 'Y', level: '2', mode: 'E', description: '999'),
+        dataCard(name: 'DST', level: '1'),
+        dataCard(name: 'X', level: '2', mode: 'E', description: '999'),
+        dataCard(name: 'Y', level: '2', mode: 'E', description: '999'),
+      ],
+      procedure: [
+        '            ADD CORRESPONDING SRC TO DST.',
+        '            STOP RUN.',
+      ],
+    );
+    expect(ids(semantics), isEmpty);
+    final List<String> words = [
+      for (final AssemblyUnit u in runCodegen(semantics).units)
+        '${u.operation} ${u.operand}',
+    ];
+    // Each pair converts its fields, adds, and stores through SYS)186.
+    expect(
+      words.sublist(words.indexOf('BSS 1') + 1, words.indexOf('TSX SYS)178,4')),
+      [
+        'LDI CP)+6',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'STO TS)1',
+        'CLA TS)1',
+        'ADD 1)X',
+        'TSX SYS)180,4',
+        'PZE 2)X,,0',
+        'TXI SYS)186,1,3',
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'STO TS)1',
+        'LDI CP)+8',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'STO TS)2',
+        'CLA TS)2',
+        'ADD TS)1',
+        'TSX SYS)180,4',
+        'PZE 2)Y,,3',
+        'TXI SYS)186,1,3',
+      ],
+    );
   });
 
   group('the scaling store of a chain value (M6-9)', () {
