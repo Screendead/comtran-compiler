@@ -1732,8 +1732,12 @@ the report our run prints against the page.
     below it takes one more `MPY`, as a product term of a chain does.
   - A computed or upscaled other side parks with one word: `STQ` from
     the MQ, `STO` from the accumulator. The cell is the next `TS)`
-    cell past the fetches of the scope. A park inside a truth function
-    takes the cell above any outer park.
+    cell past the fetches of the scope. A `TS)` park inside a truth
+    function takes the cell above any outer `TS)` park.
+  - Each chain numbers its `RS)` cells from 0. A truth function after
+    a parked term of a chain therefore refuses an expression
+    comparison. One in the first term runs before any park, so its
+    chain reads its own cells first.
   - Both sides expressions: the right one first, parked, then the left.
 
   The evidence: [J 02.04.07], "Numeric fields are compared
@@ -1755,19 +1759,22 @@ the report our run prints against the page.
     value with attested words.
 
   The refusals: `an expression comparand of more than 10 digits (no
-  sample instance)`, because `CAS` reads one word; `a comparison of
-  FigurativeOperand against an expression (no sample instance)`,
-  because the attested zero build puts the zero in the accumulator and
-  no site makes it the `CAS` operand; and `a temporary cell past the
+  sample instance)`, because `CAS` reads one word; `a zero comparand
+  against an expression (no sample instance)`, for ZERO and a zero
+  literal, because the attested zero build puts the zero in the
+  accumulator and no site makes it the `CAS` operand, as on the plain
+  path; `an expression comparison inside a truth function after a
+  parked term (no sample instance)`; and `a temporary cell past the
   TS) reservation (M4-4)` for the park. The two pins that reached the
   default arms with an expression now pin a truth function there.
 
   The tests: `test/codegen_test.dart` asserts the words of both
   statements, a mirrored side, a chain below a field, two expressions,
   and a truth function's park. `test/codegen_refusal_test.dart` pins
-  the three refusals. `test/runtime/machine_test.dart` runs both shapes
+  the four refusals. `test/runtime/machine_test.dart` runs both shapes
   over external fields: 130.00, 144.00, 150.00 and 143.9999 against
-  144.00, and 13 * 2 against 25.99, 26.00 and 26.01.
+  144.00, and 13 * 2 against 25.99, 26.00 and 26.01. It also runs a
+  truth function in the first term, true and false.
   `test/f_corpus_test.dart` pins the next stop. Statement 162,00, `MOVE
   CORRESPONDING MASTER TO BONDORDER`, refuses `a move of
   externalDecimal to externalDecimal (notes section 7)`.

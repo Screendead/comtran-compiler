@@ -680,11 +680,34 @@ void main() {
       );
     });
 
-    test('a figurative comparand against an expression', () {
+    test('a zero comparand against an expression', () {
+      // ZERO, 0, and a scaled 0.00, which would be built and parked.
+      for (final zero in ['ZERO', '0', '0.00']) {
+        expect(
+          _refuses(['            IF NUM + 1 GT $zero THEN STOP RUN.']),
+          'a zero comparand against an expression (no sample instance)',
+          reason: zero,
+        );
+      }
+    });
+
+    test('a truth function against an expression', () {
       expect(
-        _refuses(['            IF NUM + 1 GT ZERO THEN STOP RUN.']),
-        'a comparison of FigurativeOperand against an expression '
-        '(no sample instance)',
+        _refuses(['            IF TR (NUM GT TOT) GT NUM + 1 THEN STOP RUN.']),
+        'a comparison of TruthExpr against an expression (no sample instance)',
+      );
+    });
+
+    test('an expression comparison inside a later term of a chain', () {
+      // NUM * 2 parks in RS)1 ahead of the truth function, whose chain
+      // would number its own cells from RS)0 over it.
+      expect(
+        _refuses([
+          '            IF NUM * 2 + TR (NUM + 1 GT FRAC) * 1 GT 15 THEN',
+          '            STOP RUN.',
+        ]),
+        'an expression comparison inside a truth function after a parked '
+        'term (no sample instance)',
       );
     });
 
