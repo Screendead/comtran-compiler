@@ -1856,12 +1856,12 @@ the report our run prints against the page.
 
   **Decided 2026-10-25: the comparison of a field across a word
   boundary (codegen defect 12). A design decision under D0.4; Jack can
-  overturn it.** The run over PR 145's tapes found it. Statement 130,00
-  compares DETAIL and MASTER EMPLOYEE.NUMBER, each `A(6)`, at bytes 4
+  overturn it.** The run over the tapes of PR 145 (pending, not merged, at this
+  writing) found it. Statement 130,00 compares DETAIL and MASTER EMPLOYEE.NUMBER, each `A(6)`, at bytes 4
   and 1. The extraction loaded the first word only, so no detail
   matched its master. An equal-length comparison of two alphameric
-  fields is basic COMTRAN ([J 02.04.07] rule 2), so the shape compiled
-  in 1962. The extraction now takes the next word into the MQ:
+  fields is basic COMTRAN ([J 02.04.07] rules 2 and 4; rule 4: "All non-format fields ...
+  are compared alphamerically"), so the shape compiled in 1962. The extraction now takes the next word into the MQ:
 
   ```
   CAL    2)EMPLOYEE.NUMBER,1
@@ -1888,7 +1888,7 @@ the report our run prints against the page.
     This field fits in one word after the shift. SYS)162 also has no
     handler, and its OP word has no site.
   - *Spill and reload through RS.* `SLW RS)k / CAL RS)k` also clears
-    Q, but costs two words where `ANA` costs one.
+    Q, but costs two words where `ANA` costs one (its mask word is one shared pool word).
   - *Refuse the shape.* Jack's rule of 2026-09-14 bars it.
 
   A HIGH.VALUE comparand takes the existing spill path with the same

@@ -3761,10 +3761,10 @@ final class _Text {
         }
       }
     }
-    // Every attested pair compares equal lengths inside one word. The
-    // D3.3 fold and the D5.3 truncation each wait for a site, and the
-    // longer field takes the SYS)162 path M4-11 leaves to a later
-    // chunk, the compound-condition precedent.
+    // Every attested pair compares equal lengths; a field may cross one
+    // word boundary since 2026-10-25 (M6-9). The D3.3 fold and the D5.3 truncation each wait for a
+    // site, and the longer field takes the SYS)162 path M4-11 leaves to
+    // a later chunk, the compound-condition precedent.
     if (_compareChars(acc) != _compareChars(storage)) {
       _unruled('an unequal-length alphameric comparison (no sample instance)');
     }
@@ -3820,10 +3820,11 @@ final class _Text {
     _ => 6,
   };
 
+  bool _needsMask(ItemSemantics sem) => sem.byte != 0 || sem.storageChars < 6;
+
   bool _extracted(ArithExpr operand) {
     if (operand case NameOperand(:final name)) {
-      final ItemSemantics sem = _sem(_item(name)!);
-      return sem.byte != 0 || sem.storageChars < 6;
+      return _needsMask(_sem(_item(name)!));
     }
     return false;
   }
@@ -3844,7 +3845,7 @@ final class _Text {
     }
     // The shift also moves the bit above the field into Q, and LAS
     // reads Q, so a shifted six-character field takes the mask too.
-    if (sem.byte != 0 || sem.storageChars < 6) {
+    if (_needsMask(sem)) {
       _op(
         Op.ana,
         _cp(_pool.machineWord(_extractMask(0, sem.storageChars - 1))),
