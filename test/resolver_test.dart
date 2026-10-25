@@ -127,13 +127,54 @@ void main() {
         ],
       );
       expect(ids(result), isEmpty);
-      expect(
-        [
-          for (final DictionaryEntry e in result.dictionary.named('S'))
-            e.section,
+      final [DictionaryEntry outer, DictionaryEntry inner] = result.dictionary
+          .named('S');
+      expect(outer.scope, isNull);
+      expect(inner.scope, same(outer.sentence));
+    });
+
+    test('labels of two same-name sections under different parents keep '
+        'apart (D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      P1.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "      X.          DISPLAY 'A'.",
+          '            END S.',
+          '            END P1.',
+          '      P2.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "      X.          DISPLAY 'B'.",
+          '            END S.',
+          '            END P2.',
+          '            STOP RUN.',
         ],
-        [null, 'S'],
       );
+      expect(ids(result), isEmpty);
+    });
+
+    test('a section keeps apart from a same-path section one level down '
+        '(D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      P.          BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            END P.',
+          '      Q.          BEGIN SECTION.',
+          '      P.          BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            END P.',
+          '            END Q.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), isEmpty);
     });
 
     test('sections of one name under different parents are legal '

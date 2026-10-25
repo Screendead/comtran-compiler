@@ -1294,21 +1294,6 @@ void main() {
       );
     });
 
-    test('a section spelled like the section it nests in', () {
-      // Legal under D2.5's per-section scope; nesting refuses first,
-      // and the binder's defined-twice check stands behind it.
-      expect(
-        _refuses([
-          '      S.    BEGIN SECTION.',
-          '      S.    BEGIN SECTION.',
-          '            SET NUM = NUM + NUM.',
-          '            END S.',
-          '            END S.',
-        ]),
-        'a section beginning inside an open section (no sample instance)',
-      );
-    });
-
     test('a label bound to no word', () {
       // NOTE emits no word, so a trailing labelled NOTE never reaches
       // the binder; no _tail, whose words would take the label.

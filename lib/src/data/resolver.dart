@@ -57,10 +57,11 @@ final class NameResolver extends ClauseWalk with OperandWalk {
   /// the console-key test (J 02.06.17).
   final Set<NameReference> keysConditions = Set.identity();
 
-  /// The innermost section enclosing each sentence; a sentence of the
-  /// outermost scope is absent. A statement label scopes to this
-  /// section, and so does a one-word transfer target (D2.5).
-  final Map<Sentence, String> sectionScopes = Map.identity();
+  /// The opening sentence of the innermost section enclosing each
+  /// sentence; a sentence of the outermost scope is absent. A statement
+  /// label scopes to this section, and so does a one-word transfer
+  /// target (D2.5).
+  final Map<Sentence, Sentence> sectionScopes = Map.identity();
 
   @override
   final Set<Sentence> deletedSentences = Set.identity();
@@ -177,7 +178,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
   void _enterProcedureNames(List<Sentence> sentences) {
     // Statement labels scope to their section (D2.5); a BEGIN SECTION
     // sentence's label is the section's name.
-    final sectionStack = <String>[];
+    final sectionStack = <Sentence>[];
     for (final sentence in sentences) {
       if (sectionStack.isNotEmpty) {
         sectionScopes[sentence] = sectionStack.last;
@@ -207,7 +208,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
         final NameKind kind = opensSection
             ? NameKind.section
             : NameKind.statement;
-        final String? scope = sectionStack.isEmpty ? null : sectionStack.last;
+        final Sentence? scope = sectionStack.isEmpty ? null : sectionStack.last;
         // A section's name is a procedure-name of its enclosing scope
         // (F p. 26), so labels and section names share that scope.
         final bool collides = dictionary
@@ -216,7 +217,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
               (DictionaryEntry e) =>
                   (e.kind == NameKind.statement ||
                       e.kind == NameKind.section) &&
-                  e.section == scope,
+                  identical(e.scope, scope),
             );
         if (collides) {
           diagnostics.reportAt(
@@ -226,11 +227,11 @@ final class NameResolver extends ClauseWalk with OperandWalk {
             operands: [label],
           );
         }
-        _enter(label, kind, anchor, sentence: sentence, section: scope);
+        _enter(label, kind, anchor, sentence: sentence, scope: scope);
       }
       if (opensSection) {
         // The 18-level nesting limit is the parser's msg 915 (D9.7).
-        sectionStack.add(label ?? '');
+        sectionStack.add(sentence);
       }
       if (clauseTree(sentence.clauses).any((Clause c) => c is EndClause) &&
           sectionStack.isNotEmpty) {
@@ -245,15 +246,9 @@ final class NameResolver extends ClauseWalk with OperandWalk {
     SourceCard anchor, {
     DataItem? item,
     Sentence? sentence,
-    String? section,
+    Sentence? scope,
   }) {
-    dictionary.add(
-      name,
-      kind,
-      item: item,
-      sentence: sentence,
-      section: section,
-    );
+    dictionary.add(name, kind, item: item, sentence: sentence, scope: scope);
     names.enter(anchor);
   }
 

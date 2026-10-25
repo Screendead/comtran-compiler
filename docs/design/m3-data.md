@@ -574,16 +574,15 @@ starts from a fully resolved program and generates code only.
     one is stated (M3-18; M3-20).
   - **Procedure names (D2.5).** Two namespaces: program-global for data,
     record, synonym, and environment names; per-section for statement
-    labels and section names; a section name belongs to its enclosing
-    section. A collision within a section's scope draws msg 166 at the
-    second definition. `DO A B` reads as statement name B qualified by
-    section name A (D2.5). A one-word reference to two sections draws
-    msg 166.
+    labels and section names, each in its enclosing section. A
+    collision within one scope draws msg 166 at the second definition.
+    `DO A B` reads as label or section B qualified by section name A
+    (D2.5). A one-word reference to two sections draws msg 166.
 
-    *Amended 2026-10-25: section names join the per-section scope (D2.5).
-    A section "must be identified by a procedure-name" ([F p. 26]). No
-    text makes section names program-unique; a design record outranks
-    the code (CLAUDE.md section 6).*
+    *Amended 2026-10-25 (D2.5 outranks this record and the code,
+    CLAUDE.md section 6): section names join the per-section scope, as a
+    section "must be identified by a procedure-name" ([F p. 26]); no text
+    makes them program-unique. `DO A B` took only a statement name B.*
   - **CALL (D4.13).** The old.name resolves through the triage: more than
     one field draws 166, none draws 108. A subscripted old.name draws
     msg 936 and the pair is dropped. A synonym equal to an existing
