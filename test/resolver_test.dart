@@ -97,6 +97,26 @@ void main() {
       expect(ids(result), isEmpty);
     });
 
+    test('a second section of the same name draws 166,00 (D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S1.         BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S1.',
+          '      S1.         BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), ['166,00']);
+      expect(
+        [for (final DictionaryEntry e in result.dictionary.named('S1')) e.kind],
+        [NameKind.section, NameKind.section],
+      );
+    });
+
     test('an END inside an IF arm closes the section scope (msg 179)', () {
       final SemanticResult result = runJob(
         data: const [],
