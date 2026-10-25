@@ -94,8 +94,8 @@ Every other row points at its own record.
 | [D4.13](#d413--call-non-unique-oldname-and-qualified-synonyms) | CALL: non-unique old.name and qualified synonyms | Locked |
 | [D4.14](#d414--integer-against-a-trailing-s-scaled-field) | "Integer" against a trailing-S scaled field | Jack's call |
 | **[D5 — Control flow (§8.5.5)](#d5--control-flow-855)** | | |
-| [D5.1](#d51--do--for-termination-is-an-equality-test) | DO … FOR termination is an equality test | Locked |
-| [D5.2](#d52--two-index-do-indexname1-is-set-to-p1--q1) | Two-index DO: "index.name.1 is set to p.1 + q.1" | Locked |
+| [D5.1](#d51--do--for-termination-is-an-equality-test) | DO … FOR termination is an equality test | Amended |
+| [D5.2](#d52--two-index-do-indexname1-is-set-to-p1--q1) | Two-index DO: "index.name.1 is set to p.1 + q.1" | Amended |
 | [D5.3](#d53--tests-for-not-greater-or-less-conditions-unequal-length-comparison) | "Tests for NOT greater or less conditions" (unequal-length comparison) | Locked |
 | [D5.4](#d54--go-to-out-of-a-do-addressed-closed-procedure) | GO TO out of a DO-addressed (closed) procedure | Locked |
 | [D5.5](#d55--assigned-go-to-object-time-range-behaviour) | Assigned GO TO: object-time range behaviour | Locked |
