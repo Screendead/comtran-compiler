@@ -1717,19 +1717,17 @@ final class _Text {
       final int chars = _strideChars(item);
       if (chars % 6 == 0) {
         strides.add(_pool.stride(chars ~/ 6));
-        bases.add(_subscriptBase(item));
         partial.add(false);
       } else {
         // The indicator is the MOVPAK pointer itself, word in the
         // address and byte in the decrement (`LDI PI)2 / STI SYS)132`
-        // at LOC 01445-01446), so the stride and the base carry a byte
-        // too (M6-9).
+        // at LOC 01445-01446), so the stride carries a byte too (M6-9).
         strides.add(
           _pool.stride(pzeWord(decrement: chars % 6, address: chars ~/ 6)),
         );
-        bases.add(_subscriptBase(item, byte: _sem(item).byte));
         partial.add(true);
       }
+      bases.add(_subscriptBase(item));
     }
     if (driven.isEmpty) {
       _unruled('a DO FOR driving no indicator');
@@ -1892,14 +1890,16 @@ final class _Text {
     }
   }
 
-  /// The subscript base `NAME+0`, the entry a positional indicator is
-  /// set from: the item's own first word, and under a stride of part of
-  /// a word its [byte] in the decrement (M6-9).
-  PoolHandle _subscriptBase(DataItem item, {int? byte}) {
+  /// The DO FOR base `NAME+0`, the entry a positional indicator is set
+  /// from: the item's own first word and byte. The indicator is a MOVPAK
+  /// pointer, so a field inside a word needs its byte (M6-9); the
+  /// sample's `PZE 2)RATE+0` is at byte 0 and prints none.
+  PoolHandle _subscriptBase(DataItem item) {
+    final int byte = _sem(item).byte;
     final (int address, Relocation relocation) = _dataAddress(item);
     return _pool.base(
-      '${_printedName(item)}+0${byte == null ? '' : ',,$byte'}',
-      word: pzeWord(decrement: byte ?? 0, address: address),
+      '${_printedName(item)}+0${byte == 0 ? '' : ',,$byte'}',
+      word: pzeWord(decrement: byte, address: address),
       control: standardControl(Relocation.constant, relocation),
     );
   }

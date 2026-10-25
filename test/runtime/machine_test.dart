@@ -475,6 +475,46 @@ final List<String> _byteStride = <String>[
   '      *FINISH',
 ];
 
+/// A loop over twelve items of two whole words: A `99`, B `9999` at
+/// byte 2, and C `9(6)`. Item k holds A = k, B = k and C = 100 + k, so a
+/// reader that took B from byte 0 would read `0k00` for k below 10.
+final List<String> _wordStrideByte = <String>[
+  '      *DATA',
+  dataCard(name: 'TABLE', level: '1'),
+  for (var k = 1; k <= 12; k++)
+    dataCard(
+      level: '2',
+      description:
+          "'${'$k'.padLeft(2, '0')}${'$k'.padLeft(4, '0')}"
+          "${'${100 + k}'.padLeft(6, '0')}'",
+    ),
+  dataCard(type: 'REDEF', description: 'TABLE'),
+  dataCard(name: 'TAB', level: '1', quantity: '12'),
+  dataCard(name: 'A', level: '2', description: '99'),
+  dataCard(name: 'B', level: '2', description: '9999'),
+  dataCard(name: 'C', level: '2', description: '9(6)'),
+  dataCard(name: 'INDEX', level: '1', description: '99'),
+  dataCard(name: 'SB', level: '1', description: '9(6)'),
+  for (final String name in ['NB', 'NG', 'SN'])
+    dataCard(
+      name: name,
+      level: '1',
+      mode: 'I',
+      justify: 'R',
+      description: '9(6)',
+    ),
+  '      *PROCEDURE',
+  '      START.  DO RTN FOR INDEX = 1(1)12.',
+  '            STOP RUN.',
+  '      RTN.  BEGIN SECTION.',
+  '            ADD B (INDEX) TO SB.',
+  '            IF B (INDEX) GT 6 THEN SET NG = NG + 1.',
+  '            MOVE B (INDEX) TO NB.',
+  '            SET SN = SN + NB.',
+  '            END RTN.',
+  '      *FINISH',
+];
+
 /// A program that never reaches its `STOP RUN`.
 final List<String> _loop = <String>[
   '      *DATA',
@@ -1007,6 +1047,16 @@ void main() {
 
       expect(glyphsAt(subject, addressOf(job, 'SI'), 6), total(1));
       expect(glyphsAt(subject, addressOf(job, 'ST'), 6), total(2));
+    });
+
+    test('a whole-word stride reads a field from its own byte', () {
+      final (JobCompilation job, Machine subject) = compiled(_wordStrideByte);
+      // 1 + ... + 12 is 78. A read from byte 0 gives 6600 for the sum.
+      expect(glyphsAt(subject, addressOf(job, 'SB'), 6), '000078');
+      // B exceeds 6 for k = 7 to 12. A read from byte 0 counts 9.
+      expect(subject.state.read(addressOf(job, 'NG')), 6);
+      // The subscripted MOVE source reads through the same pointer.
+      expect(subject.state.read(addressOf(job, 'SN')), 78);
     });
 
     test('a labelled section runs from the entry point it takes', () {
