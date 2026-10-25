@@ -2161,4 +2161,58 @@ void main() {
       );
     });
   });
+
+  group('an external-decimal convert into a located target', () {
+    test('reloads the locator the convert overwrote', () {
+      // The SET leaves BL)2 in register 1; the convert's TXI writes the
+      // register, so the store reloads it with the guard pair.
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+          dataCard(name: 'IFLD', level: '2', mode: 'E', description: '999'),
+          dataCard(name: 'IPAD', level: '2', description: 'AAA'),
+          dataCard(
+            name: 'INUM',
+            level: '2',
+            mode: 'I',
+            justify: 'R',
+            description: '9(6)',
+          ),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 2',
+          ),
+          environmentCard(type: 'SPECIF', options: "TAPE1,UNIT1 'D1'"),
+        ],
+        procedure: [
+          '      START.  OPEN ALL FILES, GET IREC, AT END GO TO RTN.',
+          '            SET INUM = 5.',
+          '            MOVE IFLD TO INUM.',
+          '      RTN.  STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int convert = words.indexOf('TXI SYS)184,1,3');
+      expect(words.sublist(convert - 7, convert + 4), [
+        'LAC BL)2,1',
+        'TXL SYS)294,1,0',
+        'STO INUM,1',
+        'CAL BL)2',
+        'ACL CP)+8',
+        'SLW SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'LAC BL)2,1',
+        'TXL SYS)294,1,0',
+        'STO INUM,1',
+      ]);
+    });
+  });
 }

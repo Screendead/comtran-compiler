@@ -2281,9 +2281,11 @@ final class _Text {
         }
         _setup(source, subscripted: sourceSubscripted, target: false);
         _externalConvert(source);
+        // The convert has written register 1, so a locator it held
+        // reloads before the store reads it.
+        _movpakClears();
         _loadBaseOf(target);
         _opItem(Op.sto, target);
-        _movpakClears();
       case (FieldClass.externalDecimal, FieldClass.externalDecimal):
         _externalRun(
           source,
