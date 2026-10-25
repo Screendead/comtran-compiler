@@ -1,0 +1,23 @@
+  test('the verbatim deck prints its golden', () {
+    _printsGolden(fVerbatimDeckPath, 'test/goldens/f-payroll.listing');
+  });
+
+  test('the applied deck prints its golden', () {
+    _printsGolden(fAppliedDeckPath, 'test/goldens/f-payroll-j.listing');
+  });
+
+  test('the verbatim deck refuses its first GET', () {
+    // No FILE card lists MASTER, so statement 3,00 has no input file.
+    expect(
+      _refusal(fVerbatimDeckPath),
+      'a GET record on 0 input files (no sample instance)',
+    );
+  });
+
+  test('the applied deck refuses its first unequal-scale comparison', () {
+    // The external-decimal fetch compiles (M6-9), so statement 141,00,
+    // `IF DETAIL HOURS IS GREATER THAN 40`, fetches HOURS and stops on
+    // the compare: HOURS is `99V9` and the literal 40 has no fraction.
+    expect(
+      _refusal(fAppliedDeckPath),
+      'a numeric comparison of unequal scales (no sample instance)',

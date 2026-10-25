@@ -1,0 +1,70 @@
+490-  '165,00': 2,
+491-  // C3: "'NAME.1' IS NOT UNIQUE IN THIS SECTION." — the duplicate definition
+492-  // loses its binding; the entry is the lost unit.
+493:  '166,00': 3,
+
+330-  '107,00': 3,
+331-  // C4: "'NAME.1' IS AN UNDEFINED SYMBOL." — D9.2 C4 example; an undefined
+332-  // symbol also blocks compile-and-go (J 02.01.02).
+333:  '108,00': 4,
+
+310-  '100,00': 2,
+311-  // C2: "'NAME.1' IS AN IMPROPERLY QUALIFIED NAME." — the name operand
+312-  // cannot resolve.
+313:  '101,00': 2,
+
+52-  '8,00': 3,
+53-  // C4: "RECORD 'NAME.2' MUST BE ON A -FILE- CARD." — the record has no
+54-  // file, so all I/O for that record is lost.
+55:  '9,00': 4,
+
+80-  '18,00': 5,
+81-  // C4: "MUST BE ON AN OUTPUT -FILE- CARD." — the record-to-file binding is
+82-  // lost.
+83:  '19,00': 4,
+
+85-  // wrong; the file cannot be written.
+86-  '20,00': 4,
+87-  // C3: "'NAME.1' IS NOT A FILE." — the referring statement is lost.
+88:  '21,00': 3,
+
+513-  '174,00': 1,
+514-  // C4: "NO -STOP RUN- IN PROGRAM." — D9.2 C4 example; a whole-program
+515-  // property.
+516:  '175,00': 4,
+
+336-  '109,00': 5,
+337-  // C4: "-COPY- AND -LIBRARY- ARE NOT YET HANDLED BY SYSTEM." — D9.8 fixes
+338-  // severity 4. No B.2 row (D9.3).
+339:  '110,00': 4,
+
+628-  // 110's recognized-but-unimplemented COPY at 4.
+629-  '905,00': 4,
+630-  // C2 (ours): the conflicting coding is ignored - clause-level loss.
+631:  '906,00': 2,
+
+253-  '80,00': 2,
+254-  // C3: "CONFLICT BETWEEN LEVEL … AND -REDEF-." — without a level the entry
+255-  // has no place in the hierarchy; same unit as 194.
+256:  '81,00': 3,
+
+250-  '79,00': 2,
+251-  // C2: "CONFLICT BETWEEN JUSTIFICATION AS GIVEN BY ORIGINAL DEFINITION AND
+252-  // -REDEF-." — one attribute is lost.
+253:  '80,00': 2,
+
+603-  '205,00': 5,
+604-  // C1: "HAS INEFFICIENT FORMAT" — D9.2 names this as a C1 example; D9.11
+605-  // fixes severity 1, criterion invented.
+606:  '206,00': 1,
+
+571-  '194,00': 3,
+572-  // C3: "CANNOT FILE RECORD 'NAME.2' IN THIS FILE" — the FILE statement is
+573-  // lost; the file itself stays well formed.
+574:  '195,00': 3,
+
+87-  // C3: "'NAME.1' IS NOT A FILE." — the referring statement is lost.
+88-  '21,00': 3,
+89-  // C3: "'NAME.1' IS NOT AN OUTPUT FILE." — the referring statement is lost.
+90:  '22,00': 3,
+

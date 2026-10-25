@@ -1,0 +1,21 @@
+    if (atEnd == null) {
+      // E = 0: SYS)265 rides in the exit word ([J 90.02.29]), which no
+      // sample site attests filled.
+      _unruled('a GET with no AT END (notes section 7)');
+    }
+    final RecordInfo? info = _rosterRecord(clause.name.text);
+    if (info == null) {
+      _unruled('a GET of a name no FILE card lists (no sample instance)');
+    }
+    if (_duplicateFiles) {
+      _unruled('a GET where two FILE cards share a name (no sample instance)');
+    }
+    if (info.inputFiles.length != 1) {
+      // Zero files, or the two-input-file program behind msg 11.
+      _unruled(
+        'a GET record on ${info.inputFiles.length} input files '
+        '(no sample instance)',
+      );
+    }
+    final int? locator = _baseLocators[info.item];
+    if (locator == null) {

@@ -1,0 +1,26 @@
+  void _file(FileClause clause) {
+    final RecordInfo? info = _rosterRecord(clause.record.text);
+    if (info == null) {
+      _unruled('a FILE of a name no FILE card lists (no sample instance)');
+    }
+    if (_duplicateFiles) {
+      _unruled('a FILE where two FILE cards share a name (no sample instance)');
+    }
+    final String? named = clause.inFile?.text;
+    if (named != null) {
+      // The IN form names the file, so the record may sit on several
+      // (J 02.07.08 b; M6-9).
+      if (!info.outputFiles.contains(named)) {
+        _unruled(
+          'FILE record IN a file that is not an output file of the record '
+          '(no sample instance)',
+        );
+      }
+    } else if (info.outputFiles.length != 1) {
+      _unruled(
+        'a FILE record on ${info.outputFiles.length} output files '
+        '(no sample instance)',
+      );
+    }
+    final String file = named ?? info.outputFiles.single;
+    final int length = _recordWords(info.item);

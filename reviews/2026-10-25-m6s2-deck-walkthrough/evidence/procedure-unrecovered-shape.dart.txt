@@ -1,0 +1,17 @@
+/// A refusal of this recovery, not a diagnostic of the program.
+///
+/// The sample never reaches the refusing site, so no generated shape
+/// is attested and none is invented (the notes, section 7). The 1962
+/// compiler had code for the shape, so no [J 90.04] message and no
+/// severity fits: the refusal rides outside the D10.2 stream, enters
+/// no sink and no listing. The driver catches it per job, and a later
+/// job still compiles (J 90.04.02's shape; M4-2 as amended).
+final class UnrecoveredShape implements Exception {
+  UnrecoveredShape(this.shape);
+
+  /// The unattested shape, named for the report.
+  final String shape;
+
+  @override
+  String toString() => 'unrecovered shape: $shape';
+}
