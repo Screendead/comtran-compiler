@@ -1155,7 +1155,7 @@ void main() {
       return words.sublist(start, words.indexOf('TSX SYS)178,4'));
     }
 
-    /// The words of GROSS's edited store at LOC 00374 to 00400. The
+    /// The shape of GROSS's edited store at LOC 00374 to 00400. The
     /// dollar adds 8 to the edit control, and the trailing minus puts
     /// sign convention 3 in the control word's tag.
     const call = <String>[

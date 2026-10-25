@@ -294,6 +294,24 @@ List<String> _droppedDigits(String net, String ext) => <String>[
   '      *FINISH',
 ];
 
+/// A program whose chain sits above its edited target's scale (M6-9):
+/// the scaling tail ends in `XCA` and the SYS)180 call.
+final List<String> _editedTail = <String>[
+  '      *DATA',
+  dataCard(
+    name: 'FR3',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9V999',
+  ),
+  dataCard(name: 'NET', level: '1', description: r'$88889.99-'),
+  '      *PROCEDURE',
+  '      START.  SET FR3 = 1.238, SET NET = FR3 + FR3.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program that stores into an external-decimal field of a located
 /// input record (M6-9): the store's `MZE` reference names the record's
 /// base locator.
@@ -1029,6 +1047,13 @@ void main() {
       expect(glyphsAt(subject, addressOf(job, 'AMT'), 8), r'$2345.67');
       expect(glyphsAt(subject, addressOf(job, 'EDF'), 5), '234.0');
       expect(subject.state.read(overflowCell), isNot(0));
+    });
+
+    test('a chain above the edited scale rounds through the tail', () {
+      final (JobCompilation job, Machine subject) = compiled(_editedTail);
+      expect(subject.printed, <String>['AT 4,00 STOP RUN']);
+      // 2.476 half-adjusts to 2.48.
+      expect(glyphsAt(subject, addressOf(job, 'NET'), 10), r'    $2.48 ');
     });
 
     test('a located external-decimal store writes into the buffer', () {

@@ -1602,14 +1602,14 @@ the report our run prints against the page.
 
   - *The split divide on a computed digit count.* The bound would be
     ours, and SYS)267 drops the excess already.
-  - *Refuse a chain above the target scale.* The tail is attested on a
-    value in the accumulator at LOC 00423 to 00425, and the decision
-    above ends it in `XCA` and SYS)180.
+  - *Refuse a chain above the target scale.* `LRS 35 / DVP` on a value
+    in the accumulator, with no `XCA`, is attested at LOC 00423 to
+    00425, and the decision above ends the tail in `XCA` and SYS)180.
   - *Park the chain in a cell for the MOVE path's `CLA`.* A cell and two
     words more, as the external store found.
   - *The `MZE` form for a located target.* [J 90.02.14] Case 2 gives it,
     but no edited store of the sample is located, and PAYRECORD is an
-    output record. It refuses.
+    output record. A located target refuses.
 
   The refusals, ahead of the first word of the chain: `an edited store
   of more than 10 digits (RT-4)`, `an in-line address word for a

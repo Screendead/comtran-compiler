@@ -3168,10 +3168,11 @@ final class _Text {
   /// The store: one word on equal scale, the scaling tail otherwise. A
   /// product in the MQ takes five words, `XCA / ACL half / LRS 35 / DVP
   /// scale / STQ` (catalogue 4.7); a chain in the accumulator takes the
-  /// four after the `XCA` (M6-9). TRUNCATED drops the `ACL` (D4.1).
+  /// four after the `XCA` (M6-9). An external or edited target ends the
+  /// tail in `XCA` and the SYS)180 call in place of the `STQ` (M6-9).
+  /// TRUNCATED drops the `ACL` (D4.1).
   void _store(DataItem item, _Value value, {required bool truncated}) {
     final FieldClass to = _sem(item).fieldClass;
-    // Both classes store through SYS)180 from the accumulator.
     final bool sys180 =
         to == FieldClass.externalDecimal || to == FieldClass.edited;
     final int targetScale = _sem(item).fractionDigits;
@@ -3272,7 +3273,8 @@ final class _Text {
   /// first word of the chain.
   void _checkEditedTarget(DataItem item) {
     if (_sem(item).doublePrecision) {
-      // SYS)267 renders the accumulator alone (RT-5).
+      // SYS)267 renders the accumulator alone, and RT-4 refuses more
+      // than 10 digits on every path that reads it.
       _unruled('an edited store of more than 10 digits (RT-4)');
     }
     if (_located(item)) {
