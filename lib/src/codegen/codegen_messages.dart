@@ -27,3 +27,11 @@ const Message msgDoReentersActiveProcedure = Message.ours(
   "-DO- OF 'NAME.1' CAN RE-ENTER AN ACTIVE PROCEDURE. THE PENDING "
       'RETURN IS LOST. (NON-HISTORICAL.)',
 );
+
+/// Ours, default mode: an OPEN ALL FILES after a CLOSE ALL FILES in the
+/// same straight run, which J forbids ([J 02.04.06]; D6.3).
+const Message msgReopenAfterCloseAll = Message.ours(
+  '948,00',
+  '-OPEN ALL FILES- FOLLOWS -CLOSE ALL FILES-. FILES CLOSED BY THAT FORM '
+      'MAY NOT BE REOPENED. (NON-HISTORICAL.)',
+);

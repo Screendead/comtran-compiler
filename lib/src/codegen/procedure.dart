@@ -377,6 +377,13 @@ final class _Text {
   /// reading is the one implemented.
   final Map<int, int> _registerHolds = <int, int>{};
 
+  /// Whether a CLOSE ALL FILES precedes in the straight run: no label
+  /// since, and no GO TO, STOP RUN or END (D6.3; msg 948). An END
+  /// needs its own clear: msg 179 is severity 3, so an END that shares
+  /// a labelled sentence still compiles, and only an unlabelled END
+  /// sentence gets a generated name.
+  bool _closedAll = false;
+
   /// Registers assigned this statement, in operand order (M4-9).
   final Map<int, int> _statementRegisters = <int, int>{};
 
@@ -424,6 +431,7 @@ final class _Text {
   void label(String name) {
     _pending.add(name);
     _registerHolds.clear();
+    _closedAll = false;
   }
 
   /// Emits one written object word: [operation] and [control] now, the
@@ -1529,9 +1537,17 @@ final class _Text {
         _op(Op.axt, _Sym(() => '0', () => 0, Relocation.constant));
       case EndClause():
         _endClause(clause);
+        _closedAll = false;
       case OpenClause(:final allFiles):
         if (!allFiles) {
           _unruled('an OPEN naming files (notes section 7)');
+        }
+        if (_closedAll && checks != null) {
+          _report(
+            msgReopenAfterCloseAll,
+            at: clause.verb,
+            clause: _clauseNumber,
+          );
         }
         _tsx(175); // [J 90.02.14].
         _pzeIoc1();
@@ -1543,10 +1559,15 @@ final class _Text {
         _tsx(177); // [J 90.02.14].
         _pzeIoc1();
         _callClears();
+        _closedAll = true;
       case StopClause(:final run):
         _stop(clause, run: run);
+        if (run) {
+          _closedAll = false;
+        }
       case GoToClause():
         _goTo(clause);
+        _closedAll = false;
       case DoClause():
         _do(clause);
       case GetClause():
