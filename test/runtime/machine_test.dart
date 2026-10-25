@@ -1051,9 +1051,9 @@ void main() {
 
     test('a whole-word stride reads a field from its own byte', () {
       final (JobCompilation job, Machine subject) = compiled(_wordStrideByte);
-      // 1 + ... + 12 is 78. A read from byte 0 gives 6600 for the sum.
+      // 1 + ... + 12 is 78. A read from byte 0 gives 7800 for the sum.
       expect(glyphsAt(subject, addressOf(job, 'SB'), 6), '000078');
-      // B exceeds 6 for k = 7 to 12. A read from byte 0 counts 9.
+      // B exceeds 6 for k = 7 to 12. A read from byte 0 counts 12.
       expect(subject.state.read(addressOf(job, 'NG')), 6);
       // The subscripted MOVE source reads through the same pointer.
       expect(subject.state.read(addressOf(job, 'SN')), 78);
