@@ -1288,8 +1288,8 @@ the report our run prints against the page.
   and exits all the same.
 
   The refusal `an external-decimal subscript variable (M6-9)` stays. It
-  fires on a store into the index outside the loop, and the deck has
-  none. The loop checks the index as a store target first, so an
+  fires on any other store into the index, inside the loop body or
+  outside it, and the deck has none. The loop checks the index as a store target first, so an
   index of more than 10 digits refuses before the loop's first word.
 
   The tests: `test/codegen_test.dart` asserts the words, the convert

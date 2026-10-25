@@ -991,12 +991,12 @@ final class _Text {
   }
 
   /// Every attested subscript variable is internal decimal. An external
-  /// one stores the field inside the fitted recomputation run (M4-6), so
-  /// it refuses under its own shape, the [use]; any other class has no
-  /// attested arithmetic form and refuses.
-  DataItem _decimal(DataItem item, String use) {
+  /// one would be read inside the fitted recomputation run (M4-6), so it
+  /// refuses under its own shape; any other class has no attested
+  /// arithmetic form and refuses.
+  DataItem _decimal(DataItem item) {
     if (_sem(item).fieldClass == FieldClass.externalDecimal) {
-      _unruled('an external-decimal $use (M6-9)');
+      _unruled('an external-decimal subscript variable (M6-9)');
     }
     return _operand(item);
   }
@@ -2422,7 +2422,7 @@ final class _Text {
     }
     // The subscript variable is the value; the block scales it by the
     // table's stride and offsets it by the table's base.
-    final DataItem variable = _decimal(_item(target)!, 'subscript variable');
+    final DataItem variable = _decimal(_item(target)!);
     for (final (PoolHandle stride, _Sym base, DataItem table) in blocks) {
       _opItem(Op.ldq, variable);
       _op(Op.mpy, _cp(stride));

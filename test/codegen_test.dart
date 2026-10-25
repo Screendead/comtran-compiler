@@ -1142,7 +1142,7 @@ void main() {
           '            DO RTN FOR $index = $bounds.',
           '            STOP RUN.',
           '      RTN.  BEGIN SECTION.',
-          '            MOVE NUM TO TAB CELL ($index).',
+          '            IF NUM LT TAB CELL ($index) THEN STOP RUN.',
           '            END RTN.',
         ],
       );
@@ -1165,17 +1165,17 @@ void main() {
 
     test('the loop stores, steps and tests the index through its cell', () {
       expect(loop('EXI', '1(1)12'), [
-        'AXT GN)004,4',
+        'AXT GN)005,4',
         'SXA RTN,4',
         'CLA CP)+1',
         'TSX SYS)180,4',
         'PZE EXI,,0',
         'TXI SYS)186,1,2',
-        'CLA GN)006',
+        'CLA GN)007',
         'STO PI)1',
         'EQU RTN+1',
         'TRA RTN+1',
-        'LDI CP)+8',
+        'LDI CP)+10',
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,2',
@@ -1193,7 +1193,7 @@ void main() {
         'STO PI)1',
         'CLA CP)+2',
         'SUB TS)1',
-        'TPL GN)003',
+        'TPL GN)004',
       ]);
     });
 
@@ -1201,8 +1201,8 @@ void main() {
       final AssemblyUnit head = units(
         'EXI',
         '1(1)12',
-      ).firstWhere((AssemblyUnit u) => u.labels.contains('GN)004'));
-      expect('${head.operation} ${head.operand}', 'LDI CP)+8');
+      ).firstWhere((AssemblyUnit u) => u.labels.contains('GN)005'));
+      expect('${head.operation} ${head.operand}', 'LDI CP)+10');
     });
 
     test('a minus-overpunched index stores through SYS)187', () {
