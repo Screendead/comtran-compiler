@@ -2186,6 +2186,36 @@ void main() {
       ]);
     });
 
+    test('an external index takes the constant increment too', () {
+      // The step reads no binary index, so the external-decimal refusal
+      // of the recomputation does not apply.
+      final SemanticResult semantics = runJob(
+        data: [
+          ...pad,
+          dataCard(name: 'TAB', level: '1', quantity: '3'),
+          internal('CELL', '999', level: '2'),
+          dataCard(name: 'I', level: '1', mode: 'E', description: '9'),
+          internal('NUM', '999'),
+        ],
+        procedure: [
+          '      START.  SET I = I + 1.',
+          '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), ['206,00']);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int step = words.indexOf('ADD PI)1');
+      expect(words.sublist(step - 1, step + 2), [
+        'CLA CP)+1',
+        'ADD PI)1',
+        'STO PI)1',
+      ]);
+    });
+
     test('an ADD into a subscript variable recomputes its indicator', () {
       final List<String> all = lines(cells, [
         '      START.  ADD NUM TO I.',
