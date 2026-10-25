@@ -200,9 +200,7 @@ comparison of SEARCH needs no conversion. How the program addresses an
 
 ## Using the tapes
 
-The applied deck does not compile to the end yet: the generator stops
-at the external-decimal store of statement 141,00. When it compiles,
-copy the directory before a run, because the run writes its output
+Copy the directory before a run, because the run writes its output
 tapes beside the inputs:
 
 ```sh
