@@ -2166,7 +2166,7 @@ void main() {
     });
 
     test('the edited fetch counts the stored digit positions', () {
-      // The `$` is an insertion character, which SYS)269 counts not.
+      // The `$` is an insertion character, which SYS)269 does not count.
       expect(
         steps([
           dataCard(name: 'ESRC', level: '1', description: r'$899SSS'),

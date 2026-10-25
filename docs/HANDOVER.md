@@ -176,15 +176,15 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    pair of unequal scales (:2590). The edited-source branch of `_add`
    (:2526) skips that check.
 3. **An `S` source position was read as a stored character. Handled on
-   this branch, pending Jack's ruling on review record
-   `review/2026-10-25-codegen-defects-8-11`.** Each count now takes the
-   stored digits. An `S` inside or behind them refuses, and so does an
-   edit run whose drop reaches them. A convert into another scale
-   still does not rescale (defect 1, draft PR #167).
+   this branch, pending Jack's ruling on
+   `review/2026-10-25-codegen-defects-8-11`.** Counts now take the
+   stored digits. An `S` between them, or behind them under a `V` or
+   point, refuses, as does an edit run whose drop reaches them. A
+   convert into another scale never rescales (defect 1, draft PR #167).
 4. **A `STO` through the register the convert overwrote. Handled on
    this branch, pending the same ruling.** The store now reloads the
-   locator. The run was already right, because the move restores
-   register 1 (RT-3).
+   locator. The run was already right: the move restores register 1
+   (RT-3).
 5. **A leading run that mixes `8` and `*` compiles.** The control word
    has one address field for the leading run, so it cannot say which
    cells take a blank and which an asterisk. `$8*89.99` compiles with no
