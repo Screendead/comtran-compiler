@@ -363,6 +363,101 @@ void main() {
     });
   });
 
+  group('the comparison of unequal scales (M6-9)', () {
+    /// The words of [statement] up to its STOP RUN, with NUM at `999`,
+    /// FRAC at `9V9`, and HRS an external `99V9`.
+    List<String> compare(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(
+            name: 'FRAC',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '9V9',
+          ),
+          dataCard(name: 'HRS', level: '1', mode: 'E', description: '99V9'),
+        ],
+        procedure: [statement, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      // The procedure begins past the three one-word data cells.
+      final int start = words.indexOf('BSS 0') + 4;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    // The upscaled side holds the accumulator and the other side is the
+    // `CAS` operand. GT then takes the less slot when the upscaled side
+    // is the right operand, and the greater slot when it is the left.
+    test('a literal of lesser scale goes into the accumulator', () {
+      expect(compare('            IF FRAC GT 4 THEN STOP RUN.'), [
+        'LDQ CP)+2',
+        'MPY CP)+3',
+        'XCA ',
+        'CAS FRAC',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
+    });
+
+    test('a literal on the left takes the same words', () {
+      expect(
+        compare('            IF 4 LT FRAC THEN STOP RUN.'),
+        compare('            IF FRAC GT 4 THEN STOP RUN.'),
+      );
+    });
+
+    test('a name of lesser scale is upscaled against a literal', () {
+      expect(compare('            IF NUM GT 4.5 THEN STOP RUN.'), [
+        'LDQ NUM',
+        'MPY CP)+3',
+        'XCA ',
+        'CAS CP)+2',
+        'TRA *+3',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
+    });
+
+    test('two names compare at the greater scale', () {
+      expect(compare('            IF FRAC GT NUM THEN STOP RUN.'), [
+        'LDQ NUM',
+        'MPY CP)+2',
+        'XCA ',
+        'CAS FRAC',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
+    });
+
+    test('a fetched field compares with 40 from its cell', () {
+      expect(compare('            IF HRS GT 40 THEN STOP RUN.'), [
+        'LDI CP)+10',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'STO TS)1',
+        'LDQ CP)+2',
+        'MPY CP)+3',
+        'XCA ',
+        'CAS TS)1',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
+    });
+  });
+
   group('the external-decimal fetch (M6-9)', () {
     /// The words from the first fetch to the end of [statement], with
     /// EXT and EXU external decimal, NUM internal, and IFLD a field of
@@ -451,6 +546,19 @@ void main() {
       expect(fetch('            ADD EXT TO NUM.'), [
         ...convertExt,
         'STO TS)1',
+        'CLA NUM',
+        'ADD TS)1',
+        'STO NUM',
+      ]);
+    });
+
+    test('an ADD to two targets converts its source once', () {
+      expect(fetch('            ADD EXT TO NUM, NUM.'), [
+        ...convertExt,
+        'STO TS)1',
+        'CLA NUM',
+        'ADD TS)1',
+        'STO NUM',
         'CLA NUM',
         'ADD TS)1',
         'STO NUM',

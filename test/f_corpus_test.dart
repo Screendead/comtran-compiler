@@ -51,13 +51,13 @@ void main() {
     );
   });
 
-  test('the applied deck refuses its first unequal-scale comparison', () {
-    // The external-decimal fetch compiles (M6-9), so statement 141,00,
-    // `IF DETAIL HOURS IS GREATER THAN 40`, fetches HOURS and stops on
-    // the compare: HOURS is `99V9` and the literal 40 has no fraction.
+  test('the applied deck refuses its first product of a product', () {
+    // The comparison of unequal scales compiles (M6-9), so statement
+    // 141,00 compares HOURS with 40 and stops in its THEN arm: `(DETAIL
+    // HOURS - 40) * MASTER RATE * 1.5` multiplies a product.
     expect(
       _refusal(fAppliedDeckPath),
-      'a numeric comparison of unequal scales (no sample instance)',
+      'a product of a product (no sample instance)',
     );
   });
 }

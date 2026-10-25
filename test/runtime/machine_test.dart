@@ -89,6 +89,44 @@ final List<String> _external = <String>[
   '      *FINISH',
 ];
 
+/// A program that compares operands of unequal scales (M6-9). EXT reads
+/// 40.0 through the REDEF row, as HOURS does in the applied deck. Each
+/// flag of NUM, and TOT, comes out wrong if the compare skips the
+/// alignment.
+final List<String> _scales = <String>[
+  '      *DATA',
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'400'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'EXT', level: '2', mode: 'E', description: '99V9'),
+  dataCard(
+    name: 'FRAC',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9V9',
+  ),
+  dataCard(name: 'FIVE', level: '1', mode: 'I', justify: 'R', description: '9'),
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9999',
+  ),
+  dataCard(name: 'TOT', level: '1', mode: 'I', justify: 'R', description: '9'),
+  '      *PROCEDURE',
+  '      START.  SET FRAC = 4.5, SET FIVE = 5.',
+  '            IF FRAC GT 4 THEN SET NUM = NUM + 1.',
+  '            IF FRAC GT 5 THEN SET NUM = NUM + 10.',
+  '            IF EXT = 40 THEN SET NUM = NUM + 100.',
+  '            IF EXT GT 40 THEN SET NUM = NUM + 1000.',
+  '            IF FRAC LT FIVE THEN SET TOT = TOT + 1.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program whose entry point is a labelled section (D2.1). The `GO TO`
 /// ahead of the section runs only if the entry lands on `GN)000`.
 final List<String> _section = <String>[
@@ -517,6 +555,15 @@ void main() {
       expect(subject.state.read(addressOf(job, 'TOT')), 575);
       // 4.25 is greater than 4.00 and not greater than 4.25.
       expect(subject.state.read(addressOf(job, 'NUM')), 1);
+    });
+
+    test('a comparison aligns its scales by the decimal point', () {
+      final (JobCompilation job, Machine subject) = compiled(_scales);
+      expect(subject.printed, <String>['AT 16,00 STOP RUN']);
+      // 4.5 > 4, 4.5 > 5 is false, 40.0 = 40, and 40.0 > 40 is false.
+      expect(subject.state.read(addressOf(job, 'NUM')), 101);
+      // 4.5 < 5: unaligned, the compare reads 45 against 5.
+      expect(subject.state.read(addressOf(job, 'TOT')), 1);
     });
 
     test('a labelled section runs from the entry point it takes', () {
