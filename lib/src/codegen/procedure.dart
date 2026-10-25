@@ -2292,8 +2292,7 @@ final class _Text {
           _scaledLoad(_xca, deficit);
         } else if (deficit < 0) {
           // This arm drops low-order digits only. It drops no leading
-          // digit a shorter target cannot hold; that gap predates the
-          // alignment.
+          // digit a shorter target cannot hold.
           // A MOVE drops low-order digits (F p. 42), so the divide takes
           // no half-adjust: the split's `LRS 35 / DVP` (00424–00425),
           // and the quotient stores from the MQ (00634–00635).
