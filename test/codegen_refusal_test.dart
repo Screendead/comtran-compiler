@@ -344,20 +344,6 @@ void main() {
       );
     });
 
-    test('a numeric comparison of an expression', () {
-      expect(
-        _refuses(['            IF NUM + TOT GT NUM THEN STOP RUN.']),
-        startsWith('a comparison of '),
-      );
-    });
-
-    test('a numeric comparison against an expression', () {
-      expect(
-        _refuses(['            IF NUM GT TOT + NUM THEN STOP RUN.']),
-        startsWith('a comparison of '),
-      );
-    });
-
     test('an alphameric comparison of a literal', () {
       expect(
         _refuses(["            IF 'ABC' = ALF THEN STOP RUN."]),
@@ -626,6 +612,50 @@ void main() {
           ],
         ),
         'an aligned comparand of more than 10 digits (no sample instance)',
+      );
+    });
+
+    test('an expression comparand past ten digits', () {
+      expect(
+        _refuses(
+          ['            IF BIG * BIG GT 1 THEN STOP RUN.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'BIG',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '9(6)',
+            ),
+          ],
+        ),
+        'an expression comparand of more than 10 digits (no sample instance)',
+      );
+    });
+
+    test('a figurative comparand against an expression', () {
+      expect(
+        _refuses(['            IF NUM + 1 GT ZERO THEN STOP RUN.']),
+        'a comparison of FigurativeOperand against an expression '
+        '(no sample instance)',
+      );
+    });
+
+    test('a comparison park past the TS) reservation', () {
+      // Seven fetches fill TS)1 to TS)7, and the upscaled 1 needs an
+      // eighth cell.
+      final List<String> names = [for (var i = 1; i <= 7; i++) 'E$i'];
+      expect(
+        _refuses(
+          ['            IF ${names.join(' + ')} LT 1 THEN STOP RUN.'],
+          data: [
+            ..._data(),
+            for (final String name in names)
+              dataCard(name: name, level: '1', mode: 'E', description: '9V9'),
+          ],
+        ),
+        'a temporary cell past the TS) reservation (M4-4)',
       );
     });
 

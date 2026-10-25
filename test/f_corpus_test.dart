@@ -51,11 +51,13 @@ void main() {
     );
   });
 
-  test('the applied deck refuses the comparison of FICA.ROUTINE', () {
-    // Statement 146,00 moves NETPAY's `$88889.99-` into CHECK AMOUNT's
-    // `$***9.99` through the SYS)204 test step (M6-9). Statement 152,00,
-    // `IF MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00`, then
-    // compares an expression.
-    expect(_refusal(fAppliedDeckPath), 'a comparison of BinaryExpr');
+  test('the applied deck refuses the move of BOND.ROUTINE', () {
+    // Statements 152,00 and 156,00 compare expressions (M6-9).
+    // Statement 162,00, `MOVE CORRESPONDING MASTER TO BONDORDER`, then
+    // moves an external-decimal field to an external-decimal field.
+    expect(
+      _refusal(fAppliedDeckPath),
+      'a move of externalDecimal to externalDecimal (notes section 7)',
+    );
   });
 }

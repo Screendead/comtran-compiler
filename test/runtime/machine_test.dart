@@ -294,6 +294,31 @@ List<String> _droppedDigits(String net, String ext) => <String>[
   '      *FINISH',
 ];
 
+/// A program that compares the expressions of the applied deck's
+/// statements 152,00 and 156,00 (M6-9), with every operand external at
+/// the deck's pictorials. FIRST reads 1 when the THEN arm of 152 runs
+/// and 2 when the OTHERWISE arm does; SECOND does the same for 156.
+List<String> _expressionCompare(
+  String fica,
+  String gross,
+  String ex,
+) => <String>[
+  '      *DATA',
+  dataCard(name: 'FICA', level: '1', mode: 'E', description: '999V99'),
+  dataCard(name: 'GROSS', level: '1', mode: 'E', description: '99999V99'),
+  dataCard(name: 'EX', level: '1', mode: 'E', description: '99'),
+  for (final String name in <String>['FIRST', 'SECOND'])
+    dataCard(name: name, level: '1', mode: 'I', justify: 'R', description: '9'),
+  '      *PROCEDURE',
+  '      START.  SET FICA = $fica, SET GROSS = $gross, SET EX = $ex.',
+  '            IF FICA + 0.03 * GROSS IS LESS THAN 144.00 THEN SET',
+  '            FIRST = 1 OTHERWISE SET FIRST = 2.',
+  '            IF 13 * EX IS LESS THAN GROSS THEN SET SECOND = 1',
+  '            OTHERWISE SET SECOND = 2.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program whose chain sits above its edited target's scale (M6-9):
 /// the scaling tail ends in `XCA` and the SYS)180 call.
 final List<String> _editedTail = <String>[
@@ -1058,6 +1083,43 @@ void main() {
       expect(glyphsAt(subject, addressOf(job, 'AMT'), 8), r'$8889.99');
       expect(glyphsAt(subject, addressOf(job, 'EDF'), 5), '234.0');
       expect(subject.state.read(overflowCell), isNot(0));
+    });
+
+    test('a comparison of expressions takes the branch of its value', () {
+      // (FICA, GROSS, EX) and the arms of 152 and 156 they take.
+      const cases = <(String, String, String, int, int)>[
+        // 100.00 + 30.00 is below 144.00; 26 is below 1000.00.
+        ('100.00', '1000.00', '2', 1, 1),
+        // 114.00 + 30.00 equals 144.00, so LT is false.
+        ('114.00', '1000.00', '2', 2, 1),
+        // 120.00 + 30.00 is above 144.00.
+        ('120.00', '1000.00', '2', 2, 1),
+        // 113.99 + 30.0099 is 143.9999. A chain rounded to the scale of
+        // 144.00 would read 144.00 and take the OTHERWISE arm.
+        ('113.99', '1000.33', '2', 1, 1),
+        // 13 * 2 equals 26.00, so LT is false; 26 is below 26.01.
+        ('0.00', '26.00', '2', 1, 2),
+        ('0.00', '26.01', '2', 1, 1),
+        ('0.00', '25.99', '2', 1, 2),
+      ];
+      for (final (String fica, String gross, String ex, int first, int second)
+          in cases) {
+        final (JobCompilation job, Machine subject) = compiled(
+          _expressionCompare(fica, gross, ex),
+        );
+        final reason = 'FICA $fica, GROSS $gross, EX $ex';
+        expect(subject.printed, <String>['AT 9,00 STOP RUN'], reason: reason);
+        expect(
+          subject.state.read(addressOf(job, 'FIRST')),
+          first,
+          reason: reason,
+        );
+        expect(
+          subject.state.read(addressOf(job, 'SECOND')),
+          second,
+          reason: reason,
+        );
+      }
     });
 
     test('a chain above the edited scale rounds through the tail', () {
