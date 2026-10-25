@@ -214,6 +214,38 @@ void main() {
       );
     });
 
+    test('an external-decimal move of unequal shapes', () {
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'EXW', level: '1', mode: 'E', description: '9999'),
+        dataCard(name: 'EXF', level: '1', mode: 'E', description: '99V9'),
+      ];
+      // A wider target, then an equal width at another scale.
+      expect(
+        _refuses(['            MOVE EXT TO EXW.'], data: data),
+        'an external-decimal move of unequal shapes (no sample instance)',
+      );
+      expect(
+        _refuses(['            MOVE EXT TO EXF.'], data: data),
+        'an external-decimal move of unequal shapes (no sample instance)',
+      );
+    });
+
+    test('an external-decimal move with an S position', () {
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'SEXT', level: '1', mode: 'E', description: '99S'),
+      ];
+      expect(
+        _refuses(['            MOVE SEXT TO EXT.'], data: data),
+        'an external-decimal move with an S position (RT-4)',
+      );
+      expect(
+        _refuses(['            MOVE EXT TO SEXT.'], data: data),
+        'an external-decimal move with an S position (RT-4)',
+      );
+    });
+
     test('a subscripted figurative target', () {
       expect(
         _refuses(['            MOVE ZERO TO TAB CELL (IDX).']),

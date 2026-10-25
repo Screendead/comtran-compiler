@@ -55,13 +55,26 @@ void main() {
     });
 
     test('a bare step resumes past itself and keeps the move', () {
-      for (final entry in <int>[193, 198, 211, 212, 214, 216, 240, 268, 269]) {
+      for (final entry in <int>[
+        183,
+        191,
+        193,
+        198,
+        211,
+        212,
+        214,
+        216,
+        227,
+        240,
+        268,
+        269,
+      ]) {
         shape('SYS)$entry', <int>[txi(entry, 1)], 1, ends: false);
       }
     });
 
     test('a terminator resumes past itself and ends the move', () {
-      for (final entry in <int>[225, 226, 275]) {
+      for (final entry in <int>[223, 225, 226, 275]) {
         shape('SYS)$entry', <int>[txi(entry, 0)], 1, ends: true);
       }
     });

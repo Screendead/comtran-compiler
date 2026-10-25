@@ -2263,6 +2263,13 @@ final class _Text {
         _loadBaseOf(target);
         _opItem(Op.sto, target);
         _movpakClears();
+      case (FieldClass.externalDecimal, FieldClass.externalDecimal):
+        _externalRun(
+          source,
+          target,
+          sourceSubscripted: sourceSubscripted,
+          targetSubscripted: targetSubscripted,
+        );
       default:
         _unruled('a move of ${from.name} to ${to.name} (notes section 7)');
     }
@@ -2285,6 +2292,43 @@ final class _Text {
     _oct(_controlWord(target));
     _editSteps(source, target, fromEdited: fromEdited);
     _txi(fromEdited ? 226 : 225, _sem(target).digits);
+    _movpakClears();
+  }
+
+  /// The external-to-external move (M6-9): the two pointers, the MOVPAK
+  /// entry, the SYS)183 head with the target's sign convention, one
+  /// move step, and the terminator ([J 90.02.15], [J 90.02.16]). A
+  /// signed source moves under SYS)227, whose last character is
+  /// examined for the source sign (Note 1).
+  void _externalRun(
+    DataItem source,
+    DataItem target, {
+    required bool sourceSubscripted,
+    required bool targetSubscripted,
+  }) {
+    final ItemSemantics s = _sem(source);
+    final ItemSemantics t = _sem(target);
+    if (s.shape!.sCount > 0 || t.shape!.sCount > 0) {
+      // An `S` is a digit the field represents and does not store
+      // (F p. 80), and every step counts characters.
+      _unruled('an external-decimal move with an S position (RT-4)');
+    }
+    if (s.digits != t.digits || s.fractionDigits != t.fractionDigits) {
+      _unruled(
+        'an external-decimal move of unequal shapes (no sample instance)',
+      );
+    }
+    _setup(target, subscripted: targetSubscripted, target: true);
+    _setup(source, subscripted: sourceSubscripted, target: false);
+    _tsx(182);
+    _txi(183, switch (t.shape!.sign) {
+      SignConvention.overpunchMinus => 1,
+      SignConvention.overpunchPlus => 2,
+      // An external field signs by overpunch alone ([J 02.05.05] note 1).
+      _ => 0,
+    });
+    _txi(s.shape!.sign == SignConvention.none ? 191 : 227, s.digits);
+    _txi(223, t.digits);
     _movpakClears();
   }
 

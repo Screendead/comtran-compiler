@@ -2,8 +2,9 @@
 /// F28-8043 Appendix 1, keyed as printed, and the same program with the
 /// five §9.8 divergences of M6-7 as amended. No 1962 listing of
 /// either one survives, so each golden is decision-conformance,
-/// not an oracle. The listing cannot carry a refusal, so the two
-/// refusal tests pin what the generator stopped on.
+/// not an oracle. The listing cannot carry a refusal, so the verbatim
+/// deck's refusal test pins what the generator stopped on, and the
+/// applied deck's test pins the object deck it now punches.
 library;
 
 import 'dart:io';
@@ -18,46 +19,61 @@ import 'support/deck_fixtures.dart';
 /// nothing (`test/fixtures/f-payroll-deck-notes.md`).
 const List<String> _pageHead = <String>['--date=06/01/60', '--time=1.00'];
 
-void _printsGolden(String deck, String golden) {
+void _printsGolden(String deck, String golden, {required int exitCode}) {
   final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
     'run',
     'comtran:comtranc',
     deck,
     ..._pageHead,
   ]);
-  // Both decks stop the generator, so the run ends in a refusal.
-  expect(run.exitCode, 1, reason: '${run.stderr}');
+  expect(run.exitCode, exitCode, reason: '${run.stderr}');
   expect(run.stdout, File(golden).readAsStringSync());
 }
 
-String _refusal(String deck) => compileDeck(
-  decodeCanon(File(deck).readAsBytesSync()),
-).jobs.single.unrecovered!.shape;
+JobCompilation _job(String deck) =>
+    compileDeck(decodeCanon(File(deck).readAsBytesSync())).jobs.single;
 
 void main() {
   test('the verbatim deck prints its golden', () {
-    _printsGolden(fVerbatimDeckPath, 'test/goldens/f-payroll.listing');
+    // The generator refuses the deck, so the run ends in a refusal.
+    _printsGolden(
+      fVerbatimDeckPath,
+      'test/goldens/f-payroll.listing',
+      exitCode: 1,
+    );
   });
 
   test('the applied deck prints its golden', () {
-    _printsGolden(fAppliedDeckPath, 'test/goldens/f-payroll-j.listing');
+    _printsGolden(
+      fAppliedDeckPath,
+      'test/goldens/f-payroll-j.listing',
+      exitCode: 0,
+    );
   });
 
   test('the verbatim deck refuses its first GET', () {
     // No FILE card lists MASTER, so statement 3,00 has no input file.
     expect(
-      _refusal(fVerbatimDeckPath),
+      _job(fVerbatimDeckPath).unrecovered!.shape,
       'a GET record on 0 input files (no sample instance)',
     );
   });
 
-  test('the applied deck refuses the move of BOND.ROUTINE', () {
-    // Statements 152,00 and 156,00 compare expressions (M6-9).
-    // Statement 162,00, `MOVE CORRESPONDING MASTER TO BONDORDER`, then
-    // moves an external-decimal field to an external-decimal field.
-    expect(
-      _refusal(fAppliedDeckPath),
-      'a move of externalDecimal to externalDecimal (notes section 7)',
-    );
+  test('the applied deck compiles to an object deck', () {
+    // Statement 162,00, `MOVE CORRESPONDING MASTER TO BONDORDER`, was
+    // the last refusal (M6-9). It moves BONDENOMINATION alone, because
+    // MASTER holds EMPLOYEE.NUMBER, NAME and DATE under DATA
+    // (J 02.04.04 b).
+    final JobCompilation job = _job(fAppliedDeckPath);
+    expect(job.unrecovered, isNull);
+    final List<String> words = [
+      for (final AssemblyUnit u in job.codegen!.units)
+        '${u.operation} ${u.operand}',
+    ];
+    expect(words.where((String w) => w.startsWith('TXI SYS)183')), [
+      'TXI SYS)183,1,0',
+    ]);
+    const options = ListingOptions(date: '06/01/60', time: '1.00');
+    expect(jobDeck(job, options)!.cards, hasLength(67));
   });
 }

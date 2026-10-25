@@ -178,6 +178,51 @@ void main() {
     });
   });
 
+  group('SYS)183, external decimal to external decimal (J 90.02.16)', () {
+    /// The run `TXI SYS)183,1,convention / TXI SYS)step,1,count / TXI
+    /// SYS)223,1,count` from [image] into a target of asterisks.
+    Machine run(int convention, int step, int count, String image) => dispatch(
+      words: <int>[txi(183, convention), txi(step, count), txi(223, count)],
+      sourceImage: <int>[characters(image)],
+      targetImage: <int>[characters('******')],
+    );
+
+    test('SYS)191 moves the digits, and blanks arrive as zeros', () {
+      final Machine subject = run(0, 191, 5, ' 2750 ');
+      expect(glyphsAt(subject, targetArea, 6), '02750*');
+      expect(subject.state.read(conditionCell), 0);
+      expect(subject.state.xrRead(1), junkCount);
+    });
+
+    test('SYS)227 reads the sign and SYS)223 overpunches it', () {
+      // `N` is 5 over an 11 punch, `E` 5 over a 12 (D0.6).
+      expect(glyphsAt(run(1, 227, 3, '27N   '), targetArea, 3), '27N');
+      expect(glyphsAt(run(2, 227, 3, '27N   '), targetArea, 3), '27N');
+      expect(glyphsAt(run(1, 227, 3, '27E   '), targetArea, 3), '275');
+      expect(glyphsAt(run(2, 227, 3, '27E   '), targetArea, 3), '27E');
+    });
+
+    test('convention 0 writes the magnitude alone', () {
+      expect(glyphsAt(run(0, 227, 3, '27N   '), targetArea, 3), '275');
+    });
+
+    test('SYS)191 reads no sign, so an overpunch is improper data', () {
+      final Machine subject = run(2, 191, 3, '27N   ');
+      expect(glyphsAt(subject, targetArea, 3), '27E');
+      expect(subject.state.read(conditionCell), isNot(0));
+    });
+
+    test('a count that misses the steps is a broken program', () {
+      expect(
+        () => dispatch(
+          words: <int>[txi(183, 0), txi(191, 2), txi(223, 3)],
+          sourceImage: <int>[characters('123   ')],
+        ),
+        throwsA(isA<StateError>()),
+      );
+    });
+  });
+
   group('SYS)268, 269 and 275, an edited field to a register (J 90.02.30)', () {
     test('the attested five-digit fetch lands in the accumulator', () {
       // The one site: `TXI SYS)268,1,1 / TXI SYS)269,1,5 /
