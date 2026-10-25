@@ -472,6 +472,20 @@ void main() {
       expect(_ids(job), isEmpty);
     });
 
+    test('an END that shares a labelled sentence ends the run', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES, DO S.',
+          '            GO TO LAST.',
+          '      S.  BEGIN SECTION.',
+          '      E.  CLOSE ALL FILES, END S.',
+          '            OPEN ALL FILES.',
+          '      LAST.  STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), ['179,00']);
+    });
+
     test("an END's label ends the straight run", () {
       final JobCompilation job = _compile(
         program([

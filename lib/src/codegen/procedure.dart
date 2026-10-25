@@ -378,9 +378,10 @@ final class _Text {
   final Map<int, int> _registerHolds = <int, int>{};
 
   /// Whether a CLOSE ALL FILES precedes in the straight run: no label
-  /// since, and no GO TO or STOP RUN (D6.3; msg 948). An END needs no
-  /// clear of its own: it stands alone in its sentence (msg 179), and
-  /// that sentence's label or the END's generated name clears the flag.
+  /// since, and no GO TO, STOP RUN or END (D6.3; msg 948). An END
+  /// needs its own clear: msg 179 is severity 3, so an END that shares
+  /// a labelled sentence still compiles, and only an unlabelled END
+  /// sentence gets a generated name.
   bool _closedAll = false;
 
   /// Registers assigned this statement, in operand order (M4-9).
@@ -1536,6 +1537,7 @@ final class _Text {
         _op(Op.axt, _Sym(() => '0', () => 0, Relocation.constant));
       case EndClause():
         _endClause(clause);
+        _closedAll = false;
       case OpenClause(:final allFiles):
         if (!allFiles) {
           _unruled('an OPEN naming files (notes section 7)');
