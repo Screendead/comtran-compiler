@@ -180,6 +180,44 @@ final List<String> _product = <String>[
   '      *FINISH',
 ];
 
+/// A program that stores into external-decimal fields (M6-9). HRS reads
+/// 45.0 through the REDEF row. GROSS is unsigned, MINUS carries a minus
+/// overpunch and PLUS a plus overpunch.
+final List<String> _externalStore = <String>[
+  '      *DATA',
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'450'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'HRS', level: '2', mode: 'E', description: '99V9'),
+  dataCard(
+    name: 'RATE',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '99V999',
+  ),
+  dataCard(name: 'GROSS', level: '1', mode: 'E', description: '99999V99'),
+  dataCard(name: 'MINUS', level: '1', mode: 'E', description: '9V9R'),
+  dataCard(name: 'PLUS', level: '1', mode: 'E', description: '9V9I'),
+  dataCard(
+    name: 'BACK',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9V99',
+  ),
+  '      *PROCEDURE',
+  '      START.  SET RATE = 2.505.',
+  '            SET GROSS = (HRS - 40) * RATE * 1.5.',
+  '            ADD GROSS TO GROSS.',
+  '            SET MINUS = (HRS - 47.5) * 1.1.',
+  '            SET PLUS = (HRS - 40) * 1.05.',
+  '            SET BACK = MINUS.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program whose entry point is a labelled section (D2.1). The `GO TO`
 /// ahead of the section runs only if the entry lands on `GN)000`.
 final List<String> _section = <String>[
@@ -633,6 +671,22 @@ void main() {
       expect(subject.state.read(addressOf(job, 'GROSS')), 1879);
       // 5.0 * 2.5 * 1.5 is 18.75 exactly.
       expect(subject.state.read(addressOf(job, 'GROSS2')), 1875);
+    });
+
+    test('an external-decimal store writes the characters back', () {
+      final (JobCompilation job, Machine subject) = compiled(_externalStore);
+      expect(subject.printed, <String>['AT 17,00 STOP RUN']);
+      // 5.0 * 2.505 * 1.5 rounds to 18.79, and the ADD doubles it.
+      expect(glyphsAt(subject, addressOf(job, 'GROSS'), 7), '0003758');
+      // -2.5 * 1.1 is -2.75; `N` is 5 over an 11 punch.
+      expect(glyphsAt(subject, addressOf(job, 'MINUS'), 3), '27N');
+      // 5.0 * 1.05 is 5.25; `E` is 5 over a 12 punch.
+      expect(glyphsAt(subject, addressOf(job, 'PLUS'), 3), '52E');
+      // The fetch reads the overpunched field back to its value.
+      expect(
+        subject.state.read(addressOf(job, 'BACK')),
+        Word36.fromSignMagnitude(1, 275),
+      );
     });
 
     test('a labelled section runs from the entry point it takes', () {

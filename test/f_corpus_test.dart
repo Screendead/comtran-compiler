@@ -51,10 +51,14 @@ void main() {
     );
   });
 
-  test('the applied deck refuses its first external-decimal store', () {
-    // The product of a product compiles (M6-9), so statement 141,00
-    // computes `(DETAIL HOURS - 40) * MASTER RATE * 1.5` and stops on
-    // its store: DETAIL GROSS is an external-decimal field.
-    expect(_refusal(fAppliedDeckPath), 'an external-decimal store (M6-9)');
+  test('the applied deck refuses its first scaling store of a chain', () {
+    // The external-decimal store compiles (M6-9), so statement 141,00
+    // compiles whole. Statement 142,00, `SET DETAIL GROSS = DETAIL GROSS
+    // + MASTER RATE * 40`, computes a chain at scale 3 in the
+    // accumulator and stops on its store into a field of scale 2.
+    expect(
+      _refusal(fAppliedDeckPath),
+      'a scaling store of a chain value (no sample instance)',
+    );
   });
 }

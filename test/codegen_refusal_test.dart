@@ -437,10 +437,74 @@ void main() {
       );
     });
 
-    test('an external-decimal SET target', () {
+    test('an external-decimal DO FOR index', () {
       expect(
-        _refuses(['            SET EXT = NUM + TOT.']),
-        'an external-decimal store (M6-9)',
+        _refuses(['            DO RTN FOR EXT = 1(1)12.']),
+        'an external-decimal DO FOR index (M6-9)',
+      );
+    });
+
+    test('an external-decimal subscript variable', () {
+      expect(
+        _refuses(
+          [
+            '            MOVE ZEROS TO EXI.',
+            '            IF XCEL (EXI) GT NUM THEN STOP RUN.',
+          ],
+          data: [
+            ..._data(),
+            dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
+            dataCard(name: 'XTAB', level: '1', quantity: '12'),
+            dataCard(
+              name: 'XCEL',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+          ],
+          flagged: ['206,00'],
+        ),
+        'an external-decimal subscript variable (M6-9)',
+      );
+    });
+
+    test('an external-decimal field named twice in one ADD clause', () {
+      expect(
+        _refuses(['            ADD EXT TO EXT, NUM.']),
+        'an ADD clause that names an external-decimal field twice '
+        '(no sample instance)',
+      );
+    });
+
+    test('an external-decimal store of more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            SET WIDEE = NUM.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'WIDEE',
+              level: '1',
+              mode: 'E',
+              description: '99999999999',
+            ),
+          ],
+        ),
+        'an external-decimal store of more than 10 digits (RT-4)',
+      );
+    });
+
+    test('an external-decimal store into an S position', () {
+      expect(
+        _refuses(
+          ['            SET SEXT = NUM.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'SEXT', level: '1', mode: 'E', description: '99S'),
+          ],
+        ),
+        'an external-decimal store into an S position (RT-4)',
       );
     });
 
@@ -448,13 +512,6 @@ void main() {
       expect(
         _refuses(['            SET NUM = EDT + TOT.']),
         'an arithmetic operand of edited (no sample instance)',
-      );
-    });
-
-    test('an external ADD target', () {
-      expect(
-        _refuses(['            ADD NUM TO EXT.']),
-        'an external-decimal store (M6-9)',
       );
     });
 
