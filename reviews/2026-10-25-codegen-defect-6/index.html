@@ -236,7 +236,7 @@ The run stops only once the 02.01.02 gate reaches <code>--run</code>; until then
 the CLOSE sets a flag; any label clears it (a sentence label, an IF's OTHERWISE and join labels); so do GO TO, STOP RUN and END.
 A DO does not, since control returns. This is the same boundary at which the register cache already clears
 (<a href="https://github.com/Screendead/comtran-compiler/blob/fca3157/lib/src/codegen/procedure.dart#L422">procedure.dart:422</a>, &ldquo;A label ends the straight run&rdquo;).</p>
-<p class="consequence">Every path to the OPEN passes the CLOSE, so the one false alarm is a CLOSE ALL that closed nothing. It misses a CLOSE inside a DO'd procedure and every loop.
+<p class="consequence">Every path to the OPEN passes the CLOSE, so the one false alarm is a CLOSE ALL that closed nothing. It misses a CLOSE inside a DO'd procedure, every loop, and any IF between the two, even one with no transfer in it: the IF's join label ends the run. <em>Corrected 2026-10-25: the first version named only the DO and the loop.</em>
 18 lines. To widen later: replace the flag.</p></div>
 <div class="opt"><h3>(ii) Text order anywhere</h3>
 <p class="consequence">Fires on correct programs. <code>START. GO TO INIT. / FINI. CLOSE ALL FILES, STOP RUN. / INIT. OPEN ALL FILES, &hellip; GO TO FINI.</code>
