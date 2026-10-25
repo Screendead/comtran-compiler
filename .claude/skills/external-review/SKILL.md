@@ -1,9 +1,9 @@
 ---
 name: external-review
-description: Run the two-family external review loop on a pull request — invoke Grok and the Anthropic reviewer in Chrome with the fixed REVIEW.md lines, relay each review to the PR verbatim, adjudicate each round, and merge on convergence.
+description: Run the two-reviewer loop on a pull request — start a Fable and an Opus subagent at medium effort with the fixed REVIEW.md prompts, relay each review to the PR verbatim, adjudicate each round, and merge on convergence.
 ---
 
-# External review
+# The review loop
 
 The charter is `EXTERNAL-REVIEW.md` at the repository root. This skill
 is the procedure that runs it. Read the charter first. Where this file
@@ -18,40 +18,26 @@ and the charter disagree, the charter wins.
    report it to Jack and wait for his merge.
 2. The pull request is open, the section 4 gate passed locally, and CI
    is green on the head.
-3. Chrome runs on this machine with logged-in sessions for grok.com and
-   the Anthropic reviewer's surface. Start it with
-   `open -a "Google Chrome"` if it is not running.
-4. Load the Claude-in-Chrome tools in one ToolSearch batch.
 
 ## A round
 
-1. Call `tabs_context_mcp` first. Round 1: create one fresh tab per
-   reviewer. Round 2 on: reuse each reviewer's chat tab from round 1.
-2. Configure before you send, and verify visually: Grok on Expert
-   mode; the Anthropic reviewer on Fable 5 with maximum reasoning. A
-   review on the wrong configuration is void.
-3. Type the charter's fixed line. Type nothing else. Do not record the
-   session. Make no GIF, and keep no image of a reviewer tab. A
-   reviewer tab shows the titles of Jack's other chats. The verbatim
-   review on the pull request is the audit trail.
-4. Wait. A review takes minutes. Poll no more than once each minute.
-   Poll with `read_page` and `filter: "interactive"`. It works on
-   grok.com and on claude.ai. A "Stop response" button means the
-   reviewer still writes. `read_page` truncates each text node near 100
-   characters, so it gives the verdict line but no verbatim review. If a
-   surface denies `read_page`, fall back to `javascript_tool`, which
-   returns `document.body.innerText`. Keep that call to one plain read.
-   The harness classifier blocks a call that encodes or enumerates the
-   page text. After one such block, each later `javascript_tool` call on
-   that tab fails.
-5. If a reviewer stalls or asks a question, send the charter's one
-   recovery line. The charter sets the failure limit.
-6. Copy each finished review with the message's own copy button, then
-   read the clipboard with `pbpaste`. This gives the exact markdown. It
-   discards what Jack had on the clipboard, so tell him. Do not share
-   the chat. Post one PR comment per review:
+1. Round 1: start two fresh subagents in one message, so that they run
+   at the same time. Use the Agent tool with
+   `subagent_type: "general-purpose"` and `run_in_background: true`.
+   Give one `model: "fable"` and the other `model: "opus"`, and give
+   both `effort: "medium"`. Never use `subagent_type: "fork"`: a fork
+   inherits the author's context, and round 1 must be isolated.
+2. Send the charter's fixed prompt and nothing else. Round 2 on:
+   continue each subagent with SendMessage and the charter's re-review
+   prompt.
+3. Wait for the completion notifications. Do not poll.
+4. If a reviewer ends without a VERDICT line, or asks a question, send
+   the charter's one recovery prompt. The charter sets the failure
+   limit.
+5. Post one PR comment per review, with the review text exactly as the
+   subagent returned it:
 
-       ## External review — round <N> — <reviewer>
+       ## Review — round <N> — <Fable|Opus> reviewer
 
        Head reviewed: `<sha>`.
 
@@ -64,8 +50,8 @@ and the charter disagree, the charter wins.
 2. Run the section 4 gate, push, and post one adjudication comment:
    `## Author adjudication — round <N>`, the per-finding record, and
    the new head.
-3. Open the next round in the same chats with the charter's re-review
-   line.
+3. Open the next round with the charter's re-review prompt to each
+   reviewer.
 
 ## Convergence
 
