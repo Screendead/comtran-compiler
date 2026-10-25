@@ -51,13 +51,14 @@ void main() {
     );
   });
 
-  test('the applied deck refuses its first product of a product', () {
-    // The comparison of unequal scales compiles (M6-9), so statement
-    // 141,00 compares HOURS with 40 and stops in its THEN arm: `(DETAIL
-    // HOURS - 40) * MASTER RATE * 1.5` multiplies a product.
+  test('the applied deck refuses the bypass of MOVE NETPAY TO CHECK', () {
+    // Statement 145,00 sets PAYRECORD NETPAY, an edited field, through
+    // SYS)267 (M6-9). Statement 146,00 then moves NETPAY's `$88889.99-`
+    // into CHECK AMOUNT's `$***9.99`, an edit run that drops high-order
+    // digits.
     expect(
       _refusal(fAppliedDeckPath),
-      'a product of a product (no sample instance)',
+      'an edit run that bypasses source digits (no sample instance)',
     );
   });
 }

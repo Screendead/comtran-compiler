@@ -31,6 +31,95 @@ void main() {
         );
       }
     });
+    test('SYS)180 adds an MZE reference to its base locator', () {
+      // `MZE BL)NN,,CP)+NN`: the locator holds the record's first word
+      // and the constant the displacement, the sum the in-line `CAL /
+      // ACL / SLW` builds (J 90.02.11 Case 2; J 90.02.14 Case 2).
+      const int base = start + 0x40;
+      const int displacement = start + 0x41;
+      final Machine subject = machine(<int, int>{
+        start: tsx(180),
+        start + 1: Word36.signBit | pze(base, displacement),
+        start + 2: txi(243, 1),
+        start + 3: endOfJob,
+        base: pze(targetArea, 0),
+        displacement: pze(1, 3),
+        targetArea + 1: characters('000000'),
+      });
+      expect(subject.run(maxSteps: 20).outcome, RunOutcome.endOfJob);
+      expect(subject.state.read(targetCell), pze(targetArea + 1, 3));
+      expect(subject.state.read(targetArea + 1), characters('000 00'));
+    });
+
+    test('SYS)180 refuses a MON reference, which nothing emits', () {
+      // `MON PI)NN,,0` (J 90.02.15) carries prefix 5, and RT-4 decodes
+      // only PZE and MZE.
+      final Machine subject = machine(<int, int>{
+        start: tsx(180),
+        start + 1: Word36.signBit | (1 << 33) | pze(targetArea, 0),
+        start + 2: txi(243, 1),
+        start + 3: endOfJob,
+      });
+      expect(
+        () => subject.run(maxSteps: 20),
+        throwsA(
+          isA<StateError>().having(
+            (StateError e) => e.message,
+            'message',
+            'an address word of prefix 5',
+          ),
+        ),
+      );
+    });
+  });
+
+  group('SYS)186, 187 and 188, internal to external decimal (J 90.02.18)', () {
+    /// The store the generator emits, `TSX SYS)180,4 / PZE target,,0 /
+    /// TXI SYS)entry,1,count`, over an accumulator of [sign] and
+    /// [magnitude], into a target of asterisks.
+    Machine develop(int entry, int count, int magnitude, {int sign = 0}) {
+      final Machine subject = machine(<int, int>{
+        start: tsx(180),
+        start + 1: pze(targetArea, 0),
+        start + 2: txi(entry, count),
+        start + 3: endOfJob,
+        targetArea: characters('******'),
+      });
+      subject.state
+        ..acMagnitude = magnitude
+        ..acSign = sign;
+      expect(subject.run(maxSteps: 20).outcome, RunOutcome.endOfJob);
+      expect(subject.state.xrRead(1), junkCount);
+      return subject;
+    }
+
+    test('SYS)186 writes the digits and no sign', () {
+      expect(glyphsAt(develop(186, 4, 123), targetArea, 6), '0123**');
+      expect(glyphsAt(develop(186, 4, 123, sign: 1), targetArea, 6), '0123**');
+    });
+
+    test('SYS)187 overpunches a minus and leaves a plus digit plain', () {
+      // `L` is 3 over an 11 punch (D0.6).
+      expect(glyphsAt(develop(187, 3, 123), targetArea, 3), '123');
+      expect(glyphsAt(develop(187, 3, 123, sign: 1), targetArea, 3), '12L');
+    });
+
+    test('SYS)188 overpunches both signs', () {
+      // `C` is 3 over a 12 punch.
+      expect(glyphsAt(develop(188, 3, 123), targetArea, 3), '12C');
+      expect(glyphsAt(develop(188, 3, 123, sign: 1), targetArea, 3), '12L');
+    });
+
+    test('an overpunched zero is the 11-0 or the 12-0 punch', () {
+      expect(codeAt(develop(187, 2, 10, sign: 1), targetArea, 1), octal('52'));
+      expect(codeAt(develop(188, 2, 10), targetArea, 1), octal('32'));
+    });
+
+    test('a longer value drops its high-order digits and arms nothing', () {
+      final Machine subject = develop(186, 3, 12345);
+      expect(glyphsAt(subject, targetArea, 4), '345*');
+      expect(subject.state.read(conditionCell), 0);
+    });
   });
 
   group('SYS)184, external decimal to internal decimal (J 90.02.16)', () {
