@@ -1113,7 +1113,7 @@ void main() {
     });
 
     test('a numeric literal too long for a machine word', () {
-      for (final String digits in ['34359738368', '12345678901234567890']) {
+      for (final digits in ['34359738368', '12345678901234567890']) {
         expect(
           _refuses(['            SET TOT = NUM + $digits.']),
           'a numeric literal too long for a machine word (no sample instance)',
