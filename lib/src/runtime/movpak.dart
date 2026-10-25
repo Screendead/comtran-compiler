@@ -311,9 +311,10 @@ final class _Movpak {
 
   /// SYS)191 and SYS)193 move the count in external-decimal digits and
   /// SYS)198 the count in digit positions of an edited source
-  /// ([J 90.02.16], [J 90.02.17], [J 90.02.19]). None carries a sign
-  /// note, so none reads the source's sign (RT-5). SYS)227 carries Note
-  /// 1 of [J 90.02.16], so its last character gives the sign.
+  /// ([J 90.02.16], [J 90.02.17], [J 90.02.19]). These three carry no
+  /// sign note, so none reads the source's sign (RT-5). SYS)227, the
+  /// exception, carries Note 1 of [J 90.02.16], so its last character
+  /// gives the sign.
   RunOutcome? _moveDigits(
     int entry, {
     required bool edited,

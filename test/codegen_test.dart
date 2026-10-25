@@ -770,10 +770,41 @@ void main() {
       final List<String> words = compare(
         '            IF TR (FRAC + 1 GT 1) * 1 + FRAC GT 1 THEN STOP RUN.',
       );
-      expect(words.take(3), ['LDQ CP)+1', 'MPY CP)+2', 'STQ TS)1']);
-      expect(words, contains('STQ TS)2'));
-      expect(words.where((String w) => w == 'CAS TS)1'), hasLength(1));
-      expect(words.where((String w) => w == 'CAS TS)2'), hasLength(1));
+      // The outer park of the upscaled 1 is TS)1, so the inner one takes
+      // TS)2. The inner chain reads its RS)0 before the outer chain parks
+      // its first term in RS)1.
+      expect(words, [
+        'LDQ CP)+1',
+        'MPY CP)+2',
+        'STQ TS)1',
+        'RIR 777777',
+        'LDQ CP)+1',
+        'MPY CP)+2',
+        'STQ TS)2',
+        'LDQ CP)+1',
+        'MPY CP)+2',
+        'STQ RS)0',
+        'CLA FRAC',
+        'ADD RS)0',
+        'CAS TS)2',
+        'TRA *+3',
+        'TRA *+3',
+        'TRA *+2',
+        'SIR 000001',
+        'PXA 0,0',
+        'RFT 000001',
+        'CLA CP)+1',
+        'XCA ',
+        'MPY CP)+1',
+        'MPY CP)+2',
+        'STQ RS)1+0',
+        'CLA RS)1',
+        'ADD FRAC',
+        'CAS TS)1',
+        'TRA *+3',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
     });
   });
 
@@ -1519,6 +1550,102 @@ void main() {
         'TXI SYS)183,1,2',
         'TXI SYS)227,1,5',
         'TXI SYS)223,1,5',
+      ]);
+    });
+  });
+
+  group('the comparison of a field across a word boundary (M6-9)', () {
+    /// The words from the first word after the GET to the end of
+    /// [statement]. IF4 is `A(6)` at byte 4 of a located input record,
+    /// the shape of DETAIL EMPLOYEE.NUMBER at statement 130,00; WF4 is
+    /// the same field unlocated, and WF1 an `A(6)` at byte 1.
+    List<String> compare(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+          dataCard(level: '2', description: 'AAAA'),
+          dataCard(name: 'IF4', level: '2', description: 'A(6)'),
+          dataCard(name: 'WG4', level: '1'),
+          dataCard(level: '2', description: 'AAAA'),
+          dataCard(name: 'WF4', level: '2', description: 'A(6)'),
+          dataCard(name: 'WG1', level: '1'),
+          dataCard(level: '2', description: 'A'),
+          dataCard(name: 'WF1', level: '2', description: 'A(6)'),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          '            GET IREC, AT END GO TO RTN.',
+          statement,
+          '      RTN.  STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('TRA RTN') + 1;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    test('each field takes its next word into the MQ', () {
+      expect(compare('            IF WF4 = WF1 THEN STOP RUN.'), [
+        'CAL WF4',
+        'LDQ WF4+1',
+        'LGL 24',
+        'ANA CP)+4',
+        'SLW RS)0',
+        'CAL WF1',
+        'LDQ WF1+1',
+        'LGL 6',
+        'ANA CP)+4',
+        'LAS RS)0',
+        'TRA GN)006',
+        'TRA *+2',
+        'TRA GN)006',
+      ]);
+    });
+
+    test('a located field reads its next word through the base', () {
+      expect(compare('            IF IF4 = WF1 THEN STOP RUN.'), [
+        'LAC BL)2,1',
+        'TXL SYS)294,1,0',
+        'CAL IF4,1',
+        'LDQ IF4+1,1',
+        'LGL 24',
+        'ANA CP)+4',
+        'SLW RS)0',
+        'CAL WF1',
+        'LDQ WF1+1',
+        'LGL 6',
+        'ANA CP)+4',
+        'LAS RS)0',
+        'TRA GN)006',
+        'TRA *+2',
+        'TRA GN)006',
+      ]);
+    });
+
+    test('a field against HIGH.VALUE spills the constant', () {
+      expect(compare('            IF IF4 = HIGH.VALUE THEN STOP RUN.'), [
+        'CAL CP)+4',
+        'SLW RS)0',
+        'LAC BL)2,1',
+        'TXL SYS)294,1,0',
+        'CAL IF4,1',
+        'LDQ IF4+1,1',
+        'LGL 24',
+        'ANA CP)+5',
+        'LAS RS)0',
+        'TRA GN)006',
+        'TRA *+2',
+        'TRA GN)006',
       ]);
     });
   });

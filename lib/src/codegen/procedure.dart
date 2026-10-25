@@ -1068,6 +1068,11 @@ final class _Text {
   final Map<DataItem, int> _fetched = Map<DataItem, int>.identity();
   bool _fetching = false;
 
+  /// The comparison parks still live past the fetch cells (M6-9). A
+  /// truth function inside the accumulator side of an expression
+  /// comparison parks above them.
+  int _parked = 0;
+
   /// Runs [body] with every external-decimal item of [operands] fetched
   /// ahead of it into its own temporary cell (M6-9). The fetches run
   /// before the first word of the body, so no convert can clobber a
@@ -2321,12 +2326,7 @@ final class _Text {
     _setup(target, subscripted: targetSubscripted, target: true);
     _setup(source, subscripted: sourceSubscripted, target: false);
     _tsx(182);
-    _txi(183, switch (t.shape!.sign) {
-      SignConvention.overpunchMinus => 1,
-      SignConvention.overpunchPlus => 2,
-      // An external field signs by overpunch alone ([J 02.05.05] note 1).
-      _ => 0,
-    });
+    _txi(183, _signCode(t.shape!.sign));
     _txi(s.shape!.sign == SignConvention.none ? 191 : 227, s.digits);
     _txi(223, t.digits);
     _movpakClears();
@@ -2986,6 +2986,7 @@ final class _Text {
       final int scale = _naturalScale(term);
       chainScale = scale > chainScale ? scale : chainScale;
     }
+    final int live = _liveResultCells;
     // One entry per term: the word the assembly emits for it, with the
     // guard that word must carry. The NET sentence pins the placement:
     // the guard for `1)BONDEDUCTION` sits at 00727, between the fifth
@@ -3050,6 +3051,7 @@ final class _Text {
             : Op.add,
       );
     }
+    _liveResultCells = live; // The assembly has read every park.
     return (scale: chainScale, register: _Register.ac);
   }
 
@@ -3057,6 +3059,7 @@ final class _Text {
   /// word the assembly reads it back with. The park names the register
   /// the value sits in: `STQ` after a multiply, `STO` after a chain.
   void Function(Op op) _park(int cell, _Register register) {
+    _liveResultCells++;
     _op(
       register == _Register.mq ? Op.stq : Op.sto,
       _resultCell(cell, offset: cell != 0 && register == _Register.mq),
@@ -3064,6 +3067,11 @@ final class _Text {
     final _Sym read = _resultCell(cell);
     return (Op op) => _op(op, read);
   }
+
+  /// The `RS)` parks of the open chains that the assembly has yet to
+  /// read. Each chain numbers its cells from 0, so a chain nested inside
+  /// a truth function would overwrite them (M6-9).
+  int _liveResultCells = 0;
 
   bool _additive(BinaryExpr expr) =>
       expr.operator.text == '+' || expr.operator.text == '-';
@@ -3429,7 +3437,21 @@ final class _Text {
     required _Cont trueTo,
     required _Cont falseTo,
   }) {
+    if (_liveResultCells > 0) {
+      // The chain of this comparison would number its RS) cells from 0
+      // over the outer chain's parks.
+      _unruled(
+        'an expression comparison inside a truth function after a parked '
+        'term (no sample instance)',
+      );
+    }
     for (final side in <ArithExpr>[relation.left, relation.right]) {
+      if (_builtInAccumulator(side)) {
+        // The attested zero build puts the zero in the accumulator, and
+        // no site makes it the `CAS` operand (msg 82,00 bars the other
+        // figuratives).
+        _unruled('a zero comparand against an expression (no sample instance)');
+      }
       if (side is! BinaryExpr &&
           side is! NameOperand &&
           side is! LiteralOperand) {
@@ -3448,34 +3470,36 @@ final class _Text {
     final ArithExpr storage = leftInAccumulator
         ? relation.right
         : relation.left;
-    _Sym? park;
-    if (storage is BinaryExpr || _naturalScale(storage) < scale) {
-      park = _comparisonPark();
-      final _Sym cell = park;
+    if (storage is! BinaryExpr && _naturalScale(storage) == scale) {
+      _accumulatorSide(acc as BinaryExpr, scale);
+      _compareStorage(storage);
+    } else {
+      final _Sym parkCell = _comparisonPark();
       if (storage is BinaryExpr) {
         final _Register register = _alignedExpression(storage, scale);
-        _op(register == _Register.mq ? Op.stq : Op.sto, cell);
+        _op(register == _Register.mq ? Op.stq : Op.sto, parkCell);
       } else {
         _alignedBuild(
           storage,
           scale - _naturalScale(storage),
-          finish: () => _op(Op.stq, cell),
+          finish: () => _op(Op.stq, parkCell),
         );
       }
-    }
-    if (park != null) {
+      // A refusal aborts the job's code generation, so neither count
+      // needs a finally to restore it.
       _parked++;
-    }
-    if (_alignedExpression(acc as BinaryExpr, scale) == _Register.mq) {
-      _xca();
-    }
-    if (park != null) {
+      _accumulatorSide(acc as BinaryExpr, scale);
       _parked--;
-      _op(Op.cas, park);
-    } else {
-      _compareStorage(storage);
+      _op(Op.cas, parkCell);
     }
     _vector(relation, !leftInAccumulator, trueTo: trueTo, falseTo: falseTo);
+  }
+
+  /// Emits [expr] at [scale] and leaves it in the accumulator.
+  void _accumulatorSide(BinaryExpr expr, int scale) {
+    if (_alignedExpression(expr, scale) == _Register.mq) {
+      _xca();
+    }
   }
 
   /// Emits [expr] at [scale] and returns the register it ends in. A
@@ -3505,8 +3529,6 @@ final class _Text {
     }
     return _blockWord(StorageBlock.ts, cell);
   }
-
-  int _parked = 0;
 
   bool _builtInAccumulator(ArithExpr operand) => switch (operand) {
     FigurativeOperand() => true,
@@ -3711,8 +3733,9 @@ final class _Text {
   };
 
   /// The alphameric comparison (catalogue 4.8): each operand costs its
-  /// prologue, its load, and its extraction — `LGL` off byte zero,
-  /// `ANA` under six characters — and when both need extraction the
+  /// prologue, its load, and its extraction — `LDQ` of the next word
+  /// across a boundary, `LGL` off byte zero, `ANA` off byte zero or
+  /// under six characters — and when both need extraction the
   /// first spills to result storage and the compare reads the cell.
   void _alphamericComparison(
     ArithExpr acc,
@@ -3808,12 +3831,20 @@ final class _Text {
   /// The extraction: `LGL` six bits a character brings the field to
   /// character 0, and the mask extracts characters 0 on (the attested
   /// `LGL 18` and `CP)+30`, shared by both operands of statement 200).
+  /// A field across a word boundary takes its next word into the MQ
+  /// first, so the shift carries its tail in (codegen defect 12, M6-9).
   void _emitExtraction(NameReference name) {
-    final ItemSemantics sem = _sem(_item(name)!);
+    final DataItem item = _item(name)!;
+    final ItemSemantics sem = _sem(item);
+    if (sem.byte + sem.storageChars > 6) {
+      _opItem(Op.ldq, item, plus: 1);
+    }
     if (sem.byte != 0) {
       _shift(Op.lgl, 6 * sem.byte);
     }
-    if (sem.storageChars < 6) {
+    // The shift also moves the bit above the field into Q, and LAS
+    // reads Q, so a shifted six-character field takes the mask too.
+    if (sem.byte != 0 || sem.storageChars < 6) {
       _op(
         Op.ana,
         _cp(_pool.machineWord(_extractMask(0, sem.storageChars - 1))),

@@ -741,8 +741,8 @@ the report our run prints against the page.
   - a SET into an edited field, added 2026-10-25 by the edited store
     decision below;
   - a MOVE of an external-decimal field to an external-decimal field,
-    added 2026-10-25 by the stop the decision on expression comparisons
-    below pinned.
+    added 2026-10-25, the stop that the expression-comparison decision
+    below found.
 
   No decision below changes the two listings or
   `test/goldens/90.05-payroll.code`, because each acts on shapes the
@@ -1732,8 +1732,12 @@ the report our run prints against the page.
     below it takes one more `MPY`, as a product term of a chain does.
   - A computed or upscaled other side parks with one word: `STQ` from
     the MQ, `STO` from the accumulator. The cell is the next `TS)`
-    cell past the fetches of the scope. A park inside a truth function
-    takes the cell above any outer park.
+    cell past the fetches of the scope. A `TS)` park inside a truth
+    function takes the cell above any outer `TS)` park.
+  - Each chain numbers its `RS)` cells from 0. A truth function after
+    a parked term of a chain therefore refuses an expression
+    comparison. One in the first term runs before any park, so its
+    chain reads its own cells first.
   - Both sides expressions: the right one first, parked, then the left.
 
   The evidence: [J 02.04.07], "Numeric fields are compared
@@ -1755,19 +1759,22 @@ the report our run prints against the page.
     value with attested words.
 
   The refusals: `an expression comparand of more than 10 digits (no
-  sample instance)`, because `CAS` reads one word; `a comparison of
-  FigurativeOperand against an expression (no sample instance)`,
-  because the attested zero build puts the zero in the accumulator and
-  no site makes it the `CAS` operand; and `a temporary cell past the
+  sample instance)`, because `CAS` reads one word; `a zero comparand
+  against an expression (no sample instance)`, for ZERO and a zero
+  literal, because the attested zero build puts the zero in the
+  accumulator and no site makes it the `CAS` operand, as on the plain
+  path; `an expression comparison inside a truth function after a
+  parked term (no sample instance)`; and `a temporary cell past the
   TS) reservation (M4-4)` for the park. The two pins that reached the
   default arms with an expression now pin a truth function there.
 
   The tests: `test/codegen_test.dart` asserts the words of both
   statements, a mirrored side, a chain below a field, two expressions,
   and a truth function's park. `test/codegen_refusal_test.dart` pins
-  the three refusals. `test/runtime/machine_test.dart` runs both shapes
+  the four refusals. `test/runtime/machine_test.dart` runs both shapes
   over external fields: 130.00, 144.00, 150.00 and 143.9999 against
-  144.00, and 13 * 2 against 25.99, 26.00 and 26.01.
+  144.00, and 13 * 2 against 25.99, 26.00 and 26.01. It also runs a
+  truth function in the first term, true and false.
   `test/f_corpus_test.dart` pins the next stop. Statement 162,00, `MOVE
   CORRESPONDING MASTER TO BONDORDER`, refuses `a move of
   externalDecimal to externalDecimal (notes section 7)`.
@@ -1846,6 +1853,54 @@ the report our run prints against the page.
   from the sample's own source table in the corpus's layouts (M6-1 as
   amended). It diffs values and not bytes, and M6-1 as amended names
   the columns that can be compared.
+
+  **Decided 2026-10-25: the comparison of a field across a word
+  boundary (codegen defect 12). A design decision under D0.4; Jack can
+  overturn it.** The run over PR 145's tapes found it. Statement 130,00
+  compares DETAIL and MASTER EMPLOYEE.NUMBER, each `A(6)`, at bytes 4
+  and 1. The extraction loaded the first word only, so no detail
+  matched its master. An equal-length comparison of two alphameric
+  fields is basic COMTRAN ([J 02.04.07] rule 2), so the shape compiled
+  in 1962. The extraction now takes the next word into the MQ:
+
+  ```
+  CAL    2)EMPLOYEE.NUMBER,1
+  LDQ    2)EMPLOYEE.NUMBER+1,1   the next word, through the same base
+  LGL    24                      six bits a character
+  ANA    CP)+n                   OCT 777777777777
+  SLW    RS)0
+  ```
+
+  The evidence:
+
+  - Statement 200 of the sample extracts by `CAL / LGL 18 / ANA
+    CP)+30` (M4-11). The new form adds one `LDQ` ahead of the shift.
+  - The two-word move chain (catalogue 4.5) already addresses the
+    next word of a field as `NAME+1`, with the field's own tag.
+  - `LGL` shifts the AC and the MQ as one register, and `LAS` reads Q
+    (external: 22-6528-4). A shift off byte zero moves the bit above
+    the field into Q, so the full mask clears it. A field under six
+    characters takes its own mask, as before.
+
+  The rejected options:
+
+  - *SYS)162.* M4-11 keeps it for a field that one word cannot hold.
+    This field fits in one word after the shift. SYS)162 also has no
+    handler, and its OP word has no site.
+  - *Spill and reload through RS.* `SLW RS)k / CAL RS)k` also clears
+    Q, but costs two words where `ANA` costs one.
+  - *Refuse the shape.* Jack's rule of 2026-09-14 bars it.
+
+  A HIGH.VALUE comparand takes the existing spill path with the same
+  extraction (statement 136,00). The refusals of a field over six
+  characters and of unequal lengths stay. `test/codegen_test.dart`
+  asserts the words, unlocated, located and against HIGH.VALUE.
+  `test/runtime/machine_test.dart` compares two such fields equal,
+  less and greater, and against HIGH.VALUE after statement 137,00's
+  move. The applied deck takes six `LDQ` and six `ANA` words and
+  punches 68 cards. Neither listing golden nor
+  `test/goldens/90.05-payroll.code` changes: no sample comparand
+  crosses a word.
 
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
