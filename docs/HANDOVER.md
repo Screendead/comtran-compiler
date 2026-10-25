@@ -152,14 +152,13 @@ RETIREMENT.PREM by TABLE.ITEM's 11 characters. Three items stay open:
 - the comparison whose sides are expressions;
 - the SYS)190 bypass steps.
 
-M6-9 holds the evidence for each item. Then write the
-two tapes from the sample's source table, in the corpus's layouts.
-Run the applied deck over them, and diff the values against the
-sample's report. M6-1 as amended names the columns that can be
-compared and the three causes that separate the rest. Codegen defect
-7 below is now a refusal on the stride's path. The nine codegen
-defects stay open, and each fix must leave `test/goldens/90.05-payroll.code` as it
-stands.
+M6-9 holds the evidence for each item. Then write the two tapes from
+the sample's source table, in the corpus's layouts. Run the applied
+deck over them, and diff the values against the sample's report. M6-1
+as amended names the columns that can be compared and the three
+causes that separate the rest. Codegen defect 7 below is now a
+refusal on the stride's path. The nine codegen defects stay open, and
+each fix must leave `test/goldens/90.05-payroll.code` as it stands.
 
 **One question waits for Jack, and no work waits on his answer.**
 M6-9 asks whether "compile" in his rule means the diagnostic listing
@@ -222,8 +221,8 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    short. Refused since 2026-10-25, not fixed.** `_strideWords`
    (`lib/src/codegen/procedure.dart`) returned `strideChars ~/ 6`, so
    an 11-character TABLE.ITEM strode one word. It now refuses the
-   stride. The 1960 corpus found
-   it on 2026-09-14 (M6-8). The corpus's table item is 11 characters,
+   stride. The 1960 corpus found it on 2026-09-14 (M6-8). The
+   corpus's table item is 11 characters,
    and chunk 2b designs how a positional indicator addresses that
    stride (M6-1 as amended; M6-9).
 8. **A subscripted MOVE target drops its subscript.** `_moveUnit`

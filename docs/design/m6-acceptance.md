@@ -1348,10 +1348,14 @@ the report our run prints against the page.
   - **The order.** Indicator order is `PI)` order, the order of first
     reference. The prologue, the increment block and the EQU lines
     follow it.
-  - **The names.** The run is 3 + 2·M names: one unbound name, the
-    body-entry EQU, the increment block, and then one pair per
-    indicator, the first name unbound and the second bound to the
-    base. For M = 1 that is the fitted run 084 to 088 of M4-6. Both
+  - **The names.** The run is 3 + 2·M names:
+    - one unbound name;
+    - the body-entry EQU;
+    - the increment block;
+    - one pair per indicator, the first name unbound and the second
+      bound to the base.
+
+    For M = 1 that is the fitted run 084 to 088 of M4-6. Both
     groupings of the notes give the same DO FOR run, so the extension
     does not choose between them.
   - **The EQU lines.** Every table-base EQU heads the block, as the

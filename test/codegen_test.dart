@@ -1228,7 +1228,7 @@ void main() {
     /// compares NUM with each of [cells] subscripted by IDX: the
     /// table-base EQUs ahead of the AXT, then every word to the TPL.
     /// An EQU prints as its label and its operand.
-    List<String> loop(List<String> data, List<String> cells) {
+    List<String> indicatorLoop(List<String> data, List<String> cells) {
       final SemanticResult semantics = runJob(
         data: [...data, cell('NUM', '1'), cell('IDX', '1')],
         procedure: [
@@ -1258,12 +1258,13 @@ void main() {
 
     test('two tables each take a base, a pair of names, and a stride', () {
       expect(
-        loop(
+        indicatorLoop(
           [
             dataCard(name: 'TAB', level: '1', quantity: '12'),
             cell('CELL', '2'),
             dataCard(name: 'TAB2', level: '1', quantity: '12'),
             cell('CEL2', '2'),
+            cell('PAD2', '2'),
           ],
           ['CELL', 'CEL2'],
         ),
@@ -1271,8 +1272,8 @@ void main() {
           // 004 is never bound, 005 and 006 are the body entry and the
           // increment, and each indicator takes a pair: 007 and 008,
           // then 009 and 010, the second name bound.
-          'GN)008 EQU CP)+10',
-          'GN)010 EQU CP)+11',
+          'GN)008 EQU CP)+11',
+          'GN)010 EQU CP)+12',
           'AXT GN)006,4',
           'SXA RTN,4',
           'CLA CP)+1',
@@ -1289,7 +1290,8 @@ void main() {
           'CLA CP)+1',
           'ADD PI)1',
           'STO PI)1',
-          'CLA CP)+1',
+          // TAB2's element is two words, so its stride is its own entry.
+          'CLA CP)+3',
           'ADD PI)2',
           'STO PI)2',
           'CLA CP)+2',
@@ -1306,7 +1308,7 @@ void main() {
         cell('B', '2'),
         cell('C', '2'),
       ];
-      expect(loop(data, ['A', 'B', 'C']), [
+      expect(indicatorLoop(data, ['A', 'B', 'C']), [
         'GN)009 EQU CP)+12',
         'GN)011 EQU CP)+13',
         'GN)013 EQU CP)+14',
