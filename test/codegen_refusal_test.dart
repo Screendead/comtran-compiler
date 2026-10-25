@@ -279,6 +279,29 @@ void main() {
       }
     });
 
+    test('an edit run whose drop passes a trailing S run', () {
+      // `999SSS` against a target of one or two integer digits drops
+      // more digits than the field stores.
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'TRAIL', level: '1', mode: 'E', description: '999SSS'),
+        dataCard(name: 'ETRAIL', level: '1', description: r'$899SSS'),
+        dataCard(name: 'NARROW', level: '1', description: '88'),
+        dataCard(name: 'POINT', level: '1', description: '9.99'),
+      ];
+      for (final statement in [
+        'MOVE TRAIL TO NARROW.',
+        'MOVE TRAIL TO POINT.',
+        'MOVE ETRAIL TO POINT.',
+      ]) {
+        expect(
+          _refuses(['            $statement'], data: data),
+          'an edit run that moves no source digit (no sample instance)',
+          reason: statement,
+        );
+      }
+    });
+
     test('a subscripted figurative target', () {
       expect(
         _refuses(['            MOVE ZERO TO TAB CELL (IDX).']),

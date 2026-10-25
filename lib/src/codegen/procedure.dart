@@ -2301,8 +2301,9 @@ final class _Text {
         }
         _setup(source, subscripted: sourceSubscripted, target: false);
         _externalConvert(source);
-        // The convert has written register 1, so a locator it held
-        // reloads before the store reads it.
+        // Register 1 counts as lost after every MOVPAK sequence (notes
+        // question 2), though the call preserves it (RT-3), so outside
+        // a CORRESPONDING expansion a locator it held reloads here.
         _movpakClears();
         _loadBaseOf(target);
         _opItem(Op.sto, target);
@@ -2397,8 +2398,10 @@ final class _Text {
     final int dropped = sourceInteger > targetInteger
         ? sourceInteger - targetInteger
         : 0;
-    if (dropped == stored) {
-      // No site drops every source digit. Note 3's SYS)232 and SYS)234
+    if (dropped >= stored) {
+      // No site drops every source digit. Past a trailing S run the
+      // drop can exceed the stored digits, and the kept digits are then
+      // the run's zeros alone. Note 3's SYS)232 and SYS)234
       // test the last character, but no site shows when a run takes them.
       _unruled('an edit run that moves no source digit (no sample instance)');
     }

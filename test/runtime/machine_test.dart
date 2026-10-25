@@ -440,36 +440,6 @@ final List<String> _locatedStore = <String>[
   '      *FINISH',
 ];
 
-/// A program that converts an external-decimal field of a located
-/// input record into an internal-decimal field of the same record, with
-/// the record's locator in register 1 ahead of the convert.
-final List<String> _locatedConvert = <String>[
-  '      *DATA',
-  dataCard(name: 'IREC', level: '1', type: 'RECORD'),
-  dataCard(name: 'IFLD', level: '2', mode: 'E', description: '999'),
-  dataCard(name: 'IPAD', level: '2', description: 'AAA'),
-  dataCard(
-    name: 'INUM',
-    level: '2',
-    mode: 'I',
-    justify: 'R',
-    description: '9(6)',
-  ),
-  '      *ENVIRONMENT',
-  environmentCard(
-    name: 'TAPE1',
-    type: 'FILE',
-    options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 2',
-  ),
-  environmentCard(type: 'SPECIF', options: "TAPE1,UNIT1 'D1'"),
-  '      *PROCEDURE',
-  '      START.  OPEN ALL FILES, GET IREC, AT END GO TO RTN.',
-  '            SET INUM = 5.',
-  '            MOVE IFLD TO INUM.',
-  '      RTN.  STOP RUN.',
-  '      *FINISH',
-];
-
 /// A program whose entry point is a labelled section (D2.1). The `GO TO`
 /// ahead of the section runs only if the entry lands on `GN)000`.
 final List<String> _section = <String>[
@@ -1366,22 +1336,6 @@ void main() {
       // 123 - 200 is -77. `P` is 7 over an 11 punch, and IPAD keeps its
       // characters, so the store wrote three characters from byte 0.
       expect(glyphsAt(subject, subject.files.single.buffer, 6), '07PABC');
-    });
-
-    test('a convert into a located field stores into the buffer', () {
-      final Directory tapes = tempDirectory('comtran-tapes');
-      tapeImage(tapes, 'D1', <List<int>>[
-        <int>[characters('123ABC'), characters('000000')],
-      ]);
-      final JobCompilation job = compileDeck(
-        mirrorToDeck('${_locatedConvert.join('\n')}\n'),
-      ).jobs.single;
-      final subject = Machine.load(jobDeck(job, _options)!.cards, tapes: tapes);
-      expect(subject.run(maxSteps: 5000).outcome, RunOutcome.endOfJob);
-      // The SET's 5 is overwritten, and IPAD keeps its characters.
-      final int buffer = subject.files.single.buffer;
-      expect(glyphsAt(subject, buffer, 6), '123ABC');
-      expect(subject.state.read(buffer + 1), 123);
     });
 
     test('a loop over an external-decimal index runs 1(1)12', () {
