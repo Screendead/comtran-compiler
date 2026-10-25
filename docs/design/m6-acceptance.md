@@ -730,7 +730,9 @@ the report our run prints against the page.
   - a scaling store of a chain value, added 2026-10-25 by the store
     decision below;
   - an external-decimal DO FOR index, added 2026-10-25 by the
-    store decision below.
+    store decision below;
+  - a DO FOR driving three indicators, added 2026-10-25 by the DO FOR
+    decision below.
 
   No decision below changes the two listings or
   `test/goldens/90.05-payroll.code`, because each acts on shapes the
@@ -1148,6 +1150,7 @@ the report our run prints against the page.
   external-decimal field twice (no sample instance)`, because a cell
   would go stale; `an external-decimal store of more than 10 digits
   (RT-4)`; and `an external-decimal store into an S position (RT-4)`.
+  The DO FOR decision below withdraws the first.
 
   The tests: `test/codegen_test.dart` asserts the words,
   `test/codegen_refusal_test.dart` pins the five refusals, and
@@ -1205,6 +1208,93 @@ the report our run prints against the page.
   and -2.485 as -2.49, internal and external. `test/f_corpus_test.dart`
   pins the next stop: statement 144,00, `DO SEARCH FOR INDEX = 1(1)12`,
   refuses `an external-decimal DO FOR index (M6-9)`.
+
+  **Decided 2026-10-25: the external-decimal DO FOR index. A design
+  decision under D0.4; Jack can overturn it.** This is the eleventh item
+  of the list above, and the eighth item done. The loop of M4-13 keeps
+  every word, and three words change. The `STO` of the index becomes
+  the external-decimal store. The `CLA` of the index becomes a fetch
+  into `TS)1`, then `CLA TS)1`. The `SUB` of the index reads `TS)1`:
+
+  ```
+  AXT    GN)a,4
+  SXA    P,4
+  CLA    CP)+p
+  TSX    SYS)180,4      the store of p
+  PZE    index,,byte
+  TXI    SYS)186,1,digits
+  CLA    table-base
+  STO    PI)1
+  TRA    P+1
+  GN)a   LDI CP)+n      the fetch of the index
+  STI    SYS)132
+  TSX    SYS)182,4
+  TXI    SYS)184,1,digits
+  STO    TS)1
+  CLA    TS)1
+  ADD    CP)+q
+  STO    TS)1           the park of i + q
+  TSX    SYS)180,4      the store of i + q
+  PZE    index,,byte
+  TXI    SYS)186,1,digits
+  CLA    stride
+  ADD    PI)1
+  STO    PI)1
+  CLA    CP)+r
+  SUB    TS)1
+  TPL    GN)b
+  ```
+
+  The loop holds 20 + 5·M words, where the internal loop holds 11 + 5·M.
+  A minus or plus overpunch takes SYS)187 or SYS)188, as for every
+  store. The evidence:
+
+  - The loop is LOC 00702 to 00721 of the 1962 sample. Only the three
+    words that read or write the index change.
+  - The fetch and the store are the two decisions above, unchanged. The
+    increment block is one fetch scope. The scope opens at the block's
+    head, so the back edge enters on the convert.
+  - [J 02.04.05] #6 converts operands of any format "in all cases",
+    and message 206,00 calls the format inefficient, not illegal. The
+    converts are that inefficiency.
+  - The M4-6 name run does not change. The table-base EQU heads the
+    block, and the body-entry EQU stands before the `TRA`, so both
+    fitted placements hold. Only the words between them grow.
+
+  **The park.** The stride words use the accumulator between the store
+  and the exit test. So the stepped value parks in `TS)1` before the
+  store, and the test reads the cell. Without the park, the `SUB`
+  would read the field's characters as a binary word.
+
+  The rejected options:
+
+  - *A fetch before the exit test.* Five words where one does, and the
+    field cannot change between the store and the test.
+  - *A convert in place.* It saves two words. The fetch decision keeps
+    one form at every site.
+  - *A cell that lives across passes.* The body can write the index,
+    and a cell never outlives its scope.
+  - *Keep the refusal.* The 1962 processor compiled the shape (Jack's
+    rule of 2026-09-14).
+
+  The open item: SYS)186 has no test step, so a `99` index that steps
+  past 99 drops its high digit in the field. The test reads the cell
+  and exits all the same.
+
+  The refusal `an external-decimal subscript variable (M6-9)` stays. It
+  fires on a store into the index outside the loop, and the deck has
+  none. The loop checks the index as a store target first, so an
+  index of more than 10 digits refuses before the loop's first word.
+
+  The tests: `test/codegen_test.dart` asserts the words, the convert
+  under the increment label, and SYS)187 for a `9R` index.
+  `test/codegen_refusal_test.dart` pins the long index.
+  `test/runtime/machine_test.dart` runs a loop 1(1)12 over an
+  external `99` index. The body runs 12 times, and the index reads
+  `13`. `test/f_corpus_test.dart` pins the next stop. Statement 144,00
+  refuses `a DO FOR driving two indicators (M4-6; no sample
+  instance)`, because statement 166,00 subscripts RATE,
+  INSURANCE.PREM and RETIREMENT.PREM by INDEX.
 
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
