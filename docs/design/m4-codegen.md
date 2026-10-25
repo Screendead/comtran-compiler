@@ -807,7 +807,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   - an END inside an open paragraph and an open section;
   - a procedure open at the end of the text;
   - a DO FOR index undefined (behind msg 108) or located;
-  - a DO FOR driving two indicators — the M4-6 name run fits one.
+  - a DO FOR driving two indicators — withdrawn 2026-10-25 (M6-9).
 
 ## STOP and the statement stamps
 

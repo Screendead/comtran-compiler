@@ -958,28 +958,45 @@ void main() {
       );
     });
 
-    test('a DO FOR driving two indicators', () {
-      expect(
-        _refuses(
-          [
-            '            IF NUM = TAB CELL (IDX) THEN STOP RUN.',
-            '            IF NUM = TAB2 CEL2 (IDX) THEN STOP RUN.',
-            '            DO RTN FOR IDX = 1(1)12.',
-          ],
-          data: [
-            ..._data(),
-            dataCard(name: 'TAB2', level: '1', quantity: '12'),
-            dataCard(
-              name: 'CEL2',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
-          ],
+    group('a table stride of part of a word (M6-9)', () {
+      // An element of 11 characters, as the corpus's TABLE.ITEM: a word
+      // of internal decimal and five characters. Codegen defect 7
+      // stepped it one word.
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'T11', level: '1', quantity: '12'),
+        dataCard(
+          name: 'F11',
+          level: '2',
+          mode: 'I',
+          justify: 'R',
+          description: '999',
         ),
-        'a DO FOR driving two indicators (M4-6; no sample instance)',
-      );
+        dataCard(name: 'G11', level: '2', description: 'A(5)'),
+      ];
+      const shape =
+          'a table stride of 11 characters, not a whole number of words '
+          '(M6-9)';
+
+      test('in a DO FOR', () {
+        expect(
+          _refuses([
+            '            IF NUM = T11 F11 (IDX) THEN STOP RUN.',
+            '            DO RTN FOR IDX = 1(1)12.',
+          ], data: data),
+          shape,
+        );
+      });
+
+      test('in a subscript store', () {
+        expect(
+          _refuses([
+            '            IF NUM = T11 F11 (IDX) THEN STOP RUN.',
+            '            MOVE NUM TO IDX.',
+          ], data: data),
+          shape,
+        );
+      });
     });
 
     test('a transfer to an undefined procedure', () {

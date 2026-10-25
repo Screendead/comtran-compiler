@@ -51,14 +51,14 @@ void main() {
     );
   });
 
-  test('the applied deck refuses a DO FOR driving three indicators', () {
-    // The external-decimal DO FOR index compiles (M6-9). Statement
-    // 144,00, `DO SEARCH FOR INDEX = 1(1)12`, steps the indicators of
-    // RATE, INSURANCE.PREM and RETIREMENT.PREM, which statement 166,00
-    // subscripts by INDEX.
+  test('the applied deck refuses the stride of TABLE.ITEM', () {
+    // The DO FOR drives the three indicators of RATE, INSURANCE.PREM and
+    // RETIREMENT.PREM (M6-9). Statement 144,00, `DO SEARCH FOR INDEX =
+    // 1(1)12`, then steps them by TABLE.ITEM's 11 characters, which is
+    // not a whole number of words.
     expect(
       _refusal(fAppliedDeckPath),
-      'a DO FOR driving two indicators (M4-6; no sample instance)',
+      'a table stride of 11 characters, not a whole number of words (M6-9)',
     );
   });
 }
