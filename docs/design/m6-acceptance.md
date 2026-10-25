@@ -730,7 +730,7 @@ the report our run prints against the page.
   - a scaling store of a chain value, added 2026-10-25 by the store
     decision below;
   - an external-decimal DO FOR index, added 2026-10-25 by the
-    chain-store decision below.
+    store decision below.
 
   No decision below changes the two listings or
   `test/goldens/90.05-payroll.code`, because each acts on shapes the
@@ -1194,7 +1194,8 @@ the report our run prints against the page.
     stores -2.48. Every attested half-adjust is `ACL`.
   - *`XCA`, then the tail as printed.* Two words that cancel.
   - *Rescale each term before the sum.* Each divide loses fraction
-    digits, and [F p. 115] rounds the result, not its terms.
+    digits. [F p. 115] defines ROUND on "a number", and we read that
+    number as the result, not its terms.
 
   The refusal `a store below the target scale (no sample instance)`
   stays.

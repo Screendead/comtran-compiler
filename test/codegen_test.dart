@@ -1065,6 +1065,58 @@ void main() {
       ]);
       expect(chain('            SET EXM = FRAC - 4.').last, 'TXI SYS)187,1,3');
     });
+
+    test('a located target loads its base ahead of the half-adjust', () {
+      // Statement 142,00's DETAIL GROSS: the base load and its guard
+      // come after the chain and before the tail.
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+          dataCard(
+            name: 'IGRS',
+            level: '2',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(
+            name: 'FRAC',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '9V9',
+          ),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          '            GET IREC, AT END GO TO RTN.',
+          '            SET IGRS = FRAC + FRAC.',
+          '      RTN.  STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('TRA RTN') + 1;
+      expect(words.sublist(start, words.indexOf('TSX SYS)178,4')), [
+        'CLA FRAC',
+        'ADD FRAC',
+        'LAC BL)2,1',
+        'TXL SYS)294,1,0',
+        'ACL CP)+4',
+        'LRS 35',
+        'DVP CP)+5',
+        'STQ IGRS,1',
+      ]);
+    });
   });
 
   group('the external-decimal DO FOR index (M6-9)', () {

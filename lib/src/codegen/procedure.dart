@@ -3052,10 +3052,10 @@ final class _Text {
   static const int _everyIndicator = 0x3FFFF;
   static const int _truthIndicator = 0x1;
 
-  /// The store: one word on equal scale, the five-word scaling tail
-  /// otherwise — `XCA / ACL half / LRS 35 / DVP scale / STQ`, the
-  /// half-adjust suppressed under TRUNCATED (catalogue 4.7; D4.1). A
-  /// value in the accumulator takes the tail without its `XCA` (M6-9).
+  /// The store: one word on equal scale, the scaling tail otherwise. A
+  /// product in the MQ takes five words, `XCA / ACL half / LRS 35 / DVP
+  /// scale / STQ` (catalogue 4.7); a chain in the accumulator takes the
+  /// four after the `XCA` (M6-9). TRUNCATED drops the `ACL` (D4.1).
   void _store(DataItem item, _Value value, {required bool truncated}) {
     final external = _sem(item).fieldClass == FieldClass.externalDecimal;
     final int targetScale = _sem(item).fractionDigits;
@@ -3139,8 +3139,9 @@ final class _Text {
     }
   }
 
-  /// `LRS 35` leaves the whole product in the MQ half, which is what
-  /// `DVP` divides.
+  /// `LRS 35` moves the accumulator's value, a product's low half after
+  /// its `XCA` or a chain, into the MQ half, which is what `DVP`
+  /// divides.
   static const int _storeShift = 35;
 
   // --- IF and the comparisons (catalogue 4.8) -----------------------------
