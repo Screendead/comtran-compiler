@@ -654,7 +654,9 @@ the report our run prints against the page.
      SYS)190 notes on
      `comtran-manuals/J28-6169/images/page-158.png` may distinguish
      them, and nobody measured that page. The code and the comment
-     stay as they are, and chunk 2b carries the check.
+     stay as they are, and chunk 2b carries the check. (Amended
+     2026-10-25: the check is done. The SYS)190 decision below holds
+     it.)
 
   **The refusals are stricter than Jack's rule, by design.**
   `UnrecoveredShape` says so in its own words: "The 1962 compiler had
@@ -1615,6 +1617,71 @@ the report our run prints against the page.
   `$***9.99` and refuses `an edit run that bypasses source digits (no
   sample instance)`. That is the SYS)190 bypass item of the list.
 
+  **Decided 2026-10-25: the SYS)190 bypass steps. A design decision
+  under D0.4; Jack can overturn it.** This is the sixth item of the
+  list above, and the twelfth item done. An edit run whose source has more integer
+  digits than its target now emits a test step for the excess, ahead
+  of the move:
+
+  ```
+  TSX    SYS)182,4
+  TXI    SYS)190,1,13
+  OCT    000004000003
+  TXI    SYS)204,1,1        the dropped digit
+  TXI    SYS)198,1,6
+  TXI    SYS)226,1,6
+  ```
+
+  That is statement 146,00, `$88889.99-` into `$***9.99`. An external
+  source takes SYS)201 under SYS)185. The handler reads the count in
+  digit positions as SYS)198 does, and moves none of them. A non-zero
+  digit among them sets SYS)130. The evidence:
+
+  - [J 90.02.10]: SYS)130 records "the truncation of significant high
+    order values (i.e. overflow)". A high-order drop is that
+    truncation, so the count is NUMBER-OF-CHARACTERS-TO-TEST-FOR-OVERFLOW.
+    D4.2 already sets the arming rule for the test steps, so this
+    decision does not amend D4.2.
+  - A low-order drop is not overflow. It is the bypass count, and
+    neither site needs it.
+  - The scan, `comtran-manuals/J28-6169/images/page-158.png`, is a clean
+    typeset page with no marginal notes. It prints Note 2 under SYS)202
+    only, and Note 3 under SYS)230, 234 and 238. Its wording agrees with
+    the conversion. So the notes separate SYS)202, the bypass that
+    reads a sign, from SYS)208. They do not separate SYS)196 from
+    SYS)204.
+  - The numbering pairs the two edited-source families: 192 and 194
+    move, 195 and 196 test, 197 and 198 move, 200 and 202 bypass, 203
+    and 204 test, 207 and 208 bypass ([J 90.02.20], [J 90.02.21]).
+    LOC 01376 attests SYS)198, so SYS)204 is the test step of the
+    same set.
+
+  The rejected options:
+
+  - *SYS)196.* No text separates it from SYS)204. The run prints the
+    same image under either. Only the step number in the object
+    listing changes, and a change back is one constant.
+  - *A test that only reads, then a bypass.* Each note speaks of the
+    characters "processed under control of this instruction", so a
+    test step consumes its count. The extra word changes no output.
+  - *A drop that arms nothing*, as SYS)267 does. SYS)267 has no test
+    step. SYS)190 has one, and D4.2 arms SYS)130 through it.
+
+  The refusals: `an edit run that bypasses source digits (no sample
+  instance)` stays for the low-order drop. `an edit run that moves no
+  source digit (no sample instance)` is new: the test would read the
+  source's last character, which Note 3 gives to SYS)232 and SYS)234.
+
+  The tests: `test/codegen_test.dart` asserts the words of statement
+  146,00 and of [F p. 43]'s `99999` row into an edited `999.9`.
+  `test/runtime/movpak_edit_test.dart` runs the steps.
+  `test/runtime/machine_test.dart` runs both shapes. 8889.99 prints
+  `$8889.99` and SYS)130 stays 0. 12345.67 prints `$2345.67` and sets
+  SYS)130. The `01234` row prints `234.0`, as F's `2340`, and sets it.
+  `test/f_corpus_test.dart` pins the next stop. Statement 152,00, `IF
+  MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00`, refuses `a
+  comparison of BinaryExpr`. That is the fourth verdict above.
+
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
   amended). It diffs values and not bytes, and M6-1 as amended names
@@ -1666,6 +1733,8 @@ the report our run prints against the page.
 [J 90.02.17]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.18]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.19]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.20]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.21]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.30]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.04]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#appendix-9004
 [J 90.04.01]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#error-messages-and-severity-codes
