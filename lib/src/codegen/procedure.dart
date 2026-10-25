@@ -3733,8 +3733,9 @@ final class _Text {
   };
 
   /// The alphameric comparison (catalogue 4.8): each operand costs its
-  /// prologue, its load, and its extraction — `LGL` off byte zero,
-  /// `ANA` under six characters — and when both need extraction the
+  /// prologue, its load, and its extraction — `LDQ` of the next word
+  /// across a boundary, `LGL` off byte zero, `ANA` off byte zero or
+  /// under six characters — and when both need extraction the
   /// first spills to result storage and the compare reads the cell.
   void _alphamericComparison(
     ArithExpr acc,
@@ -3830,12 +3831,20 @@ final class _Text {
   /// The extraction: `LGL` six bits a character brings the field to
   /// character 0, and the mask extracts characters 0 on (the attested
   /// `LGL 18` and `CP)+30`, shared by both operands of statement 200).
+  /// A field across a word boundary takes its next word into the MQ
+  /// first, so the shift carries its tail in (codegen defect 12, M6-9).
   void _emitExtraction(NameReference name) {
-    final ItemSemantics sem = _sem(_item(name)!);
+    final DataItem item = _item(name)!;
+    final ItemSemantics sem = _sem(item);
+    if (sem.byte + sem.storageChars > 6) {
+      _opItem(Op.ldq, item, plus: 1);
+    }
     if (sem.byte != 0) {
       _shift(Op.lgl, 6 * sem.byte);
     }
-    if (sem.storageChars < 6) {
+    // The shift also moves the bit above the field into Q, and LAS
+    // reads Q, so a shifted six-character field takes the mask too.
+    if (sem.byte != 0 || sem.storageChars < 6) {
       _op(
         Op.ana,
         _cp(_pool.machineWord(_extractMask(0, sem.storageChars - 1))),

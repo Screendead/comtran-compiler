@@ -318,6 +318,40 @@ final List<String> _externalMove = <String>[
   '      *FINISH',
 ];
 
+/// A program that compares two `A(6)` fields across a word boundary
+/// (M6-9), the shape of statement 130,00: F4 at byte 4 and F1 at byte
+/// 1. The character above each field is `A`, whose low bit is 1, so a
+/// shift that leaves Q set reads the field as greater. ISEQ, ISLT and ISHI
+/// read 1 on the THEN arm and 2 on the OTHERWISE arm; SENT does the
+/// same for F4 against HIGH.VALUE after statement 137,00's move. A
+/// literal reaches each field through a whole-word field, because a
+/// literal moved across a word boundary has no sample form.
+List<String> _wordBoundaryCompare(String left, String right) => <String>[
+  '      *DATA',
+  dataCard(name: 'G4', level: '1'),
+  dataCard(name: 'P4', level: '2', description: 'AAAA'),
+  dataCard(name: 'F4', level: '2', description: 'A(6)'),
+  dataCard(name: 'G1', level: '1'),
+  dataCard(name: 'P1', level: '2', description: 'A'),
+  dataCard(name: 'F1', level: '2', description: 'A(6)'),
+  dataCard(name: 'SL', level: '1', description: 'A(6)'),
+  dataCard(name: 'SR', level: '1', description: 'A(6)'),
+  for (final String name in <String>['ISEQ', 'ISLT', 'ISHI', 'SENT'])
+    dataCard(name: name, level: '1', mode: 'I', justify: 'R', description: '9'),
+  '      *PROCEDURE',
+  "      START.  MOVE 'AAAA' TO P4, MOVE 'A' TO P1.",
+  "            MOVE '$left' TO SL, MOVE '$right' TO SR.",
+  '            MOVE SL TO F4, MOVE SR TO F1.',
+  '            IF F4 = F1 THEN SET ISEQ = 1 OTHERWISE SET ISEQ = 2.',
+  '            IF F4 LT F1 THEN SET ISLT = 1 OTHERWISE SET ISLT = 2.',
+  '            IF F4 = HIGH.VALUE THEN SET ISHI = 1 OTHERWISE SET ISHI = 2.',
+  '            MOVE HIGH.VALUE TO F4.',
+  '            IF F4 = HIGH.VALUE THEN SET SENT = 1 OTHERWISE SET',
+  '            SENT = 2.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program that compares the expressions of the applied deck's
 /// statements 152,00 and 156,00 (M6-9), with every operand external at
 /// the deck's pictorials. FIRST reads 1 when the THEN arm of 152 runs
@@ -1180,6 +1214,31 @@ void main() {
           second,
           reason: reason,
         );
+      }
+    });
+
+    test('a field across a word boundary compares all six characters', () {
+      // (F4, F1, ISEQ, ISLT): the last character of each sits in the next
+      // word, so a compare of the first word alone reads every pair
+      // below as unequal or misordered.
+      const cases = <(String, String, int, int)>[
+        ('ABCDEF', 'ABCDEF', 1, 2),
+        ('ABCDEF', 'ABCDEG', 2, 1),
+        ('ABCDEG', 'ABCDEF', 2, 2),
+        ('BBCDEF', 'ABCDEF', 2, 2),
+      ];
+      for (final (String left, String right, int eq, int lt) in cases) {
+        final (JobCompilation job, Machine subject) = compiled(
+          _wordBoundaryCompare(left, right),
+        );
+        final reason = 'F4 $left, F1 $right';
+        expect(subject.printed, <String>['AT 21,00 STOP RUN'], reason: reason);
+        expect(glyphsAt(subject, addressOf(job, 'G4'), 4), 'AAAA');
+        int at(String name) => subject.state.read(addressOf(job, name));
+        expect(at('ISEQ'), eq, reason: reason);
+        expect(at('ISLT'), lt, reason: reason);
+        expect(at('ISHI'), 2, reason: reason);
+        expect(at('SENT'), 1, reason: reason);
       }
     });
 
