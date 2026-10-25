@@ -730,6 +730,10 @@ the report our run prints against the page.
   - a scaling store of a chain value, added 2026-10-25 by the store
     decision below.
 
+  No decision below changes the two listings or
+  `test/goldens/90.05-payroll.code`, because each changes code
+  generation only, on shapes the sample does not hold.
+
   **Decided 2026-10-24: `FILE record IN file`. A design decision
   under D0.4; Jack can overturn it.** This is the third item of the
   list above, and the first item done. The generator now compiles the
@@ -779,8 +783,6 @@ the report our run prints against the page.
   - `test/codegen_test.dart` asserts the call on one file and on two.
   - `test/codegen_refusal_test.dart` pins the new refusal.
   - `test/f_corpus_test.dart` moved the pin to statement 139,00.
-
-  The two listings and `test/goldens/90.05-payroll.code` do not change.
 
   **Decided 2026-10-24: `STOP n`. A design decision under D0.4; Jack
   can overturn it.** This is the last item of the list above, and the
@@ -837,8 +839,6 @@ the report our run prints against the page.
     The line prints, and the statement after the halt runs.
   - `test/f_corpus_test.dart` moved the pin to the fetch of HOURS at
     statement 141,00.
-
-  The two listings and `test/goldens/90.05-payroll.code` do not change.
 
   **Decided 2026-10-25: the external-decimal fetch. A design decision
   under D0.4; Jack can overturn it.** This is the first item of the
@@ -943,8 +943,6 @@ the report our run prints against the page.
   - `test/f_corpus_test.dart` moved the pin to the comparison of
     statement 141,00.
 
-  The two listings and `test/goldens/90.05-payroll.code` do not change.
-
   **Decided 2026-10-25: the comparison of unequal scales. A design
   decision under D0.4; Jack can overturn it.** This is the ninth item
   of the list above, and the fourth item done. When the two sides of a
@@ -1013,8 +1011,6 @@ the report our run prints against the page.
     four of the five give the wrong value.
   - `test/f_corpus_test.dart` moved the pin to the product of
     statement 141,00.
-
-  The two listings and `test/goldens/90.05-payroll.code` do not change.
 
   **Amended 2026-10-25, after the PR 143 review.** The alignment
   admitted a nonzero literal in the accumulator when the scales differ,
@@ -1156,7 +1152,9 @@ the report our run prints against the page.
   `test/runtime/movpak_test.dart` runs each step and the `MZE` sum.
   `test/runtime/machine_test.dart` runs the shape of statement 141,00,
   then `ADD GROSS TO GROSS`: the field reads `0003758`. A minus field
-  reads `27N`, a plus field `52E`, and a fetch reads -2.75 back.
+  reads `27N`, a plus field `52E`, and a fetch reads -2.75 back. A
+  located field, read from a tape, takes the `MZE` store and reads
+  `07P` in the buffer.
   `test/f_corpus_test.dart` pins the next stop. Statement 141,00
   compiles whole. Statement 142,00, `SET DETAIL GROSS = DETAIL GROSS +
   MASTER RATE * 40`, refuses `a scaling store of a chain value (no
