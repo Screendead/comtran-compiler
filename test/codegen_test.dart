@@ -1549,7 +1549,40 @@ void main() {
       final List<String> all = lines();
       // One word and five characters; six characters less one word.
       expect(all, containsAll(['\tOCT 000005000001', '\tOCT 000005777777']));
-      expect(all, containsAll(['\tPZE R+0,,0', '\tPZE I+0,,5']));
+      expect(all, containsAll(['\tPZE R+0', '\tPZE I+0,,5']));
+    });
+
+    test('a whole-word stride keeps three words and the byte of its base', () {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'TAB', level: '1', quantity: '12'),
+          dataCard(name: 'A', level: '2', description: '99'),
+          dataCard(name: 'B', level: '2', description: '9999'),
+          dataCard(name: 'C', level: '2', description: '9(6)'),
+          dataCard(name: 'TOT', level: '1', description: '9999'),
+          dataCard(name: 'IDX', level: '1', description: '99'),
+        ],
+        procedure: [
+          '            DO RTN FOR IDX = 1(1)12.',
+          '            STOP RUN.',
+          '      RTN.  BEGIN SECTION.',
+          '            ADD TAB B (IDX) TO TOT.',
+          '            END RTN.',
+        ],
+      );
+      expect(ids(semantics), ['206,00']);
+      final List<String> all = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.labels.join(' ')}\t${u.operation} ${u.operand}',
+      ];
+      // B starts at byte 2 of the item's first word.
+      expect(all, contains('\tPZE B+0,,2'));
+      final int step = all.indexOf('\tADD PI)1');
+      expect(all.sublist(step - 1, step + 2), [
+        '\tCLA CP)+3',
+        '\tADD PI)1',
+        '\tSTO PI)1',
+      ]);
     });
 
     test('the readers set SYS)132 from the indicator', () {

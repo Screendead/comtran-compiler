@@ -1446,9 +1446,20 @@ the report our run prints against the page.
   ```
 
   The prologue sets the indicator from a base that carries the field's
-  byte. For TABLE.ITEM the bases are `PZE RATE+0,,0`,
-  `PZE INSURANCE.PREM+0,,5` and `PZE RETIREMENT.PREM+0,,2`. A
-  whole-word stride keeps the sample's words and its `NAME+0` base.
+  byte, for every stride. For TABLE.ITEM the bases are `PZE RATE+0`,
+  `PZE INSURANCE.PREM+0,,5` and `PZE RETIREMENT.PREM+0,,2`. A base at
+  byte 0 prints no byte, so the sample's `PZE 2)RATE+0` does not
+  change. A whole-word stride keeps the sample's three step words.
+
+  **Amended 2026-10-25, after the PR 150 review.** The first build
+  gave a whole-word stride the base `NAME+0` with a zero decrement.
+  The readers below then read a field at byte 2 from byte 0: over
+  items of `99`, `9999` and `9(6)`, `ADD B (INDEX)` summed 007800 for
+  000078. The subscripted MOVE source read the same wrong characters
+  before this decision, because it also sets SYS)132 from the
+  indicator. Every DO FOR base now carries its byte.
+  `test/runtime/machine_test.dart` runs the ADD, a comparison and the
+  MOVE over that table.
 
   **The indicator form.** An indicator is the MOVPAK pointer itself:
   the word in the address field and the byte in the decrement. The
@@ -1503,7 +1514,8 @@ the report our run prints against the page.
   - The external comparand reads through a descriptor, not through
     `LAC PI)n,r / CAS 0,r`.
   - The base carries its byte. The 1962 subscript store drops it
-    (M6-4 finding 1), and that site keeps its words.
+    (M6-4 finding 1), and that site keeps its words (codegen defect
+    10, `docs/HANDOVER.md`).
 
   The rejected options:
 
