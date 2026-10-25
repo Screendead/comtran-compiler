@@ -77,12 +77,17 @@ final RegExp _headingCode = RegExp(
   r'^(?:appendix |section )?(\d\d\.\d\d)(?:[ :]|$)',
   caseSensitive: false,
 );
-final RegExp _slugStrip = RegExp(r'[^\p{L}\p{N}_ -]', unicode: true);
+final RegExp _slugStrip = RegExp(
+  r'[^\p{L}\p{M}\p{Nd}\p{Nl}\p{Pc} -]',
+  unicode: true,
+);
 final RegExp _escape = RegExp(r'\\([!-/:-@\[-`{-~])');
 
 /// The GitHub anchor of one heading [text], before deduplication:
-/// lowercase, everything except a letter, a digit, an underscore, a
-/// space or a hyphen removed, then every space turned into a hyphen.
+/// lowercase, everything except a letter, a mark, a decimal or letter
+/// number, a connector such as the underscore, a space or a hyphen
+/// removed, then every space turned into a hyphen. github-slugger strips
+/// a superscript digit, so `2¹⁵−1` gives `21`.
 String slugify(String text) =>
     text.toLowerCase().replaceAll(_slugStrip, '').replaceAll(' ', '-');
 
