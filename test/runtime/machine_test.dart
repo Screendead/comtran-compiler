@@ -90,9 +90,9 @@ final List<String> _external = <String>[
 ];
 
 /// A program that compares operands of unequal scales (M6-9). EXT reads
-/// 40.0 through the REDEF row, as HOURS does in the applied deck. Each
-/// flag of NUM, and TOT, comes out wrong if the compare skips the
-/// alignment.
+/// 40.0 through the REDEF row, as HOURS does in the applied deck. If
+/// the compare skips the alignment, four of the five comparisons give
+/// the wrong value; only 4.5 GT 4 stays true.
 final List<String> _scales = <String>[
   '      *DATA',
   dataCard(name: 'AREA', level: '1'),
@@ -123,6 +123,59 @@ final List<String> _scales = <String>[
   '            IF EXT = 40 THEN SET NUM = NUM + 100.',
   '            IF EXT GT 40 THEN SET NUM = NUM + 1000.',
   '            IF FRAC LT FIVE THEN SET TOT = TOT + 1.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A program that loads a nonzero literal of equal scale into the
+/// accumulator (M6-9). A vector read the wrong way round gives NUM 10.
+final List<String> _literalLeft = <String>[
+  '      *DATA',
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  '      *PROCEDURE',
+  '      START.  IF 5 GT NUM THEN SET NUM = NUM + 1.',
+  '            IF 5 LT NUM THEN SET NUM = NUM + 10.',
+  '            IF 4 LT 5 THEN SET NUM = NUM + 100.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A program that computes the shape of the applied deck's statement
+/// 141,00 (M6-9). HRS reads 45.0 through the REDEF row, so the product
+/// is 5.0 * RATE * 1.5 at scale 5, and the store divides it by 1000.
+final List<String> _product = <String>[
+  '      *DATA',
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'450'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'HRS', level: '2', mode: 'E', description: '99V9'),
+  for (final String name in <String>['RATE', 'EVEN'])
+    dataCard(
+      name: name,
+      level: '1',
+      mode: 'I',
+      justify: 'R',
+      description: '99V999',
+    ),
+  for (final String name in <String>['GROSS', 'GROSS2'])
+    dataCard(
+      name: name,
+      level: '1',
+      mode: 'I',
+      justify: 'R',
+      description: '99999V99',
+    ),
+  '      *PROCEDURE',
+  '      START.  SET RATE = 2.505, SET EVEN = 2.500.',
+  '            SET GROSS = (HRS - 40) * RATE * 1.5.',
+  '            SET GROSS2 = (HRS - 40) * EVEN * 1.5.',
   '            STOP RUN.',
   '      *FINISH',
 ];
@@ -564,6 +617,22 @@ void main() {
       expect(subject.state.read(addressOf(job, 'NUM')), 101);
       // 4.5 < 5: unaligned, the compare reads 45 against 5.
       expect(subject.state.read(addressOf(job, 'TOT')), 1);
+    });
+
+    test('a nonzero literal compares from the accumulator', () {
+      final (JobCompilation job, Machine subject) = compiled(_literalLeft);
+      // 5 > 0, 5 < 1 is false, and 4 < 5.
+      expect(subject.state.read(addressOf(job, 'NUM')), 101);
+    });
+
+    test('a product of a product scales back once at the store', () {
+      final (JobCompilation job, Machine subject) = compiled(_product);
+      expect(subject.printed, <String>['AT 13,00 STOP RUN']);
+      // 5.0 * 2.505 * 1.5 is 18.7875, and the half-adjust stores 18.79.
+      // A product that dropped the scale of 1.5 would store 187.88.
+      expect(subject.state.read(addressOf(job, 'GROSS')), 1879);
+      // 5.0 * 2.5 * 1.5 is 18.75 exactly.
+      expect(subject.state.read(addressOf(job, 'GROSS2')), 1875);
     });
 
     test('a labelled section runs from the entry point it takes', () {

@@ -256,6 +256,15 @@ void main() {
       );
     });
 
+    test('the operator inside a product', () {
+      // A quotient as the complex factor keeps its own refusal, not the
+      // digit count of the product of a product (M6-9).
+      expect(
+        _refuses(['            SET NUM = NUM / TOT * IDX.']),
+        'the operator / (notes section 7)',
+      );
+    });
+
     test('a subscripted chain operand, one term', () {
       expect(
         _refuses(['            SET NUM = TAB CELL (IDX).']),
@@ -443,7 +452,7 @@ void main() {
     test('a subscripted comparand of lesser scale', () {
       expect(
         _refuses(['            IF FRAC GT TAB CELL (IDX) THEN STOP RUN.']),
-        'a subscripted accumulator comparand (no sample instance)',
+        'a subscripted comparand that needs upscaling (no sample instance)',
       );
     });
 
@@ -689,12 +698,12 @@ void main() {
       );
     });
 
-    test('a product of a product', () {
-      // The `XCA` step reads the complex factor in the accumulator, and
-      // a product finishes in the MQ.
+    test('a product of a product past 10 digits', () {
+      // The chained `MPY` reads the MQ alone, and NUM * TOT * NUM * TOT
+      // can hold 12 digits, past one word (M6-9).
       expect(
-        _refuses(['            SET NUM = NUM * TOT * IDX.']),
-        'a product of a product (no sample instance)',
+        _refuses(['            SET NUM = NUM * TOT * NUM * TOT * IDX.']),
+        'a product of a product past 10 digits (no sample instance)',
       );
     });
 
@@ -727,13 +736,6 @@ void main() {
   });
 
   group('the B4 refusal sites (M4-11)', () {
-    test('a nonzero literal comparand', () {
-      expect(
-        _refuses(['            IF 5 GT NUM THEN STOP RUN.']),
-        'a nonzero literal comparand (no sample instance)',
-      );
-    });
-
     test('a subscripted accumulator comparand', () {
       expect(
         _refuses(['            IF TAB CELL (IDX) GT NUM THEN STOP RUN.']),

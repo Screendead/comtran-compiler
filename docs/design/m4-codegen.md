@@ -606,11 +606,11 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      convert leaves the accumulator, so the park is `STO`.
 
   `RIR`, `SIR` and `RFT` print M4-8's fourth OCTAL rendering, so
-  `encode.dart` gives them a word form of their own. Three shapes refuse
+  `encode.dart` gives them a word form of their own. Three shapes refused
   beside the three named above:
 
   - a scale alignment of a sub-chain;
-  - a product of a product;
+  - a product of a product, compiled since 2026-10-25 (M6-9);
   - an edited ADD source past 10 digits, from 2026-09-06.
 
   `test/codegen_refusal_test.dart` pins one program per site.
@@ -709,7 +709,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   The one-site cell and register choices are underdetermined; the
   chunk B4 record holds the rejected formulations. Six unattested
   variants refuse (M4-2 as amended):
-  - a nonzero literal comparand;
+  - a nonzero literal comparand, until 2026-10-25 (M6-9);
   - a subscripted accumulator comparand;
   - an unscaled zero;
   - a subscripted alphameric comparand;
