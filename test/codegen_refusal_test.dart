@@ -76,6 +76,7 @@ String _refuses(
   List<String>? data,
   List<String> environment = const [],
   List<String> flagged = const [],
+  List<String>? frontEnd,
 }) {
   final SemanticResult semantics = runJob(
     data: data ?? _data(),
@@ -84,6 +85,11 @@ String _refuses(
   );
   expect(ids(semantics), flagged, reason: 'the program must reach the sizers');
   expect(semantics.stopped, isFalse);
+  if (frontEnd != null) {
+    expect([
+      for (final Diagnostic d in semantics.parse.diagnostics) d.message.number,
+    ], frontEnd);
+  }
   try {
     runCodegen(semantics);
   } on UnrecoveredShape catch (refusal) {
@@ -1133,6 +1139,28 @@ void main() {
       );
     });
 
+    test('a numeric literal too long for a machine word', () {
+      for (final digits in ['34359738368', '12345678901234567890']) {
+        expect(
+          _refuses(['            SET TOT = NUM + $digits.']),
+          'a numeric literal too long for a machine word (no sample instance)',
+        );
+      }
+    });
+
+    test('the largest word-sized numeric literal compiles', () {
+      final CodegenResult result = runCodegen(
+        runJob(
+          data: _data(),
+          procedure: ['            SET TOT = NUM + 34359738367.', ..._tail],
+        ),
+      );
+      expect(
+        result.units.where((AssemblyUnit u) => u.word == 34359738367),
+        isNotEmpty,
+      );
+    });
+
     test('a located DO FOR index', () {
       expect(
         _refuses(
@@ -1277,6 +1305,22 @@ void main() {
       );
     });
 
+    test('a label spelled like a section of another scope', () {
+      // Legal under D2.5's per-section scope; the flat binder would
+      // keep only the later address.
+      expect(
+        _refuses([
+          '      S.    BEGIN SECTION.',
+          '            SET NUM = NUM + NUM.',
+          '            END S.',
+          '      P.    BEGIN SECTION.',
+          '      S.    SET NUM = NUM + TOT.',
+          '            END P.',
+        ]),
+        'a procedure name defined twice (no sample instance)',
+      );
+    });
+
     test('a label bound to no word', () {
       // NOTE emits no word, so a trailing labelled NOTE never reaches
       // the binder; no _tail, whose words would take the label.
@@ -1319,6 +1363,30 @@ void main() {
           'a procedure open at the end of the text (no sample instance)',
         );
       }
+    });
+  });
+
+  group('a diagnosed program that reaches code generation', () {
+    test('an undefined operand', () {
+      expect(
+        _refuses(['            SET TOT = NUM + ZZZ.'], flagged: ['108,00']),
+        'an operand that names no data item (no sample instance)',
+      );
+    });
+
+    test('an improperly qualified operand', () {
+      expect(
+        _refuses(['            SET TOT = NUM OF TOT.'], flagged: ['101,00']),
+        'an operand that names no data item (no sample instance)',
+      );
+    });
+
+    test('a numeric literal with two decimal points', () {
+      // The lexer's 53,00 is a front-end diagnostic, outside ids().
+      expect(
+        _refuses(['            SET TOT = NUM + 1.2.3.'], frontEnd: ['53,00']),
+        'a numeric literal with two decimal points (no sample instance)',
+      );
     });
   });
 
