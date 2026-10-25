@@ -1853,11 +1853,19 @@ final class _Text {
   /// The stride: the repeated ancestor's element words (catalogue 5.3,
   /// the STR entry). A positional indicator names the referenced field,
   /// and the repetition can sit on an enclosing group — `RATE` under
-  /// the twelve-element `TABLE.ITEM`.
+  /// the twelve-element `TABLE.ITEM`. A stride of part of a word would
+  /// step an indicator's byte as well as its word, and no attested step
+  /// carries the one into the other (M6-9).
   int _strideWords(DataItem table) {
     for (DataItem? each = table; each != null; each = each.parent) {
       final ItemSemantics sem = _sem(each);
       if (sem.quantity > 1) {
+        if (sem.strideChars % 6 != 0) {
+          _unruled(
+            'a table stride of ${sem.strideChars} characters, '
+            'not a whole number of words (M6-9)',
+          );
+        }
         return sem.strideChars ~/ 6;
       }
     }
