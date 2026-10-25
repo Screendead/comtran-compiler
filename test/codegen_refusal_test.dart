@@ -506,6 +506,18 @@ void main() {
         ),
         'an external-decimal store into an S position (RT-4)',
       );
+      // The target refuses before the chain, so the divide never
+      // reaches its own refusal.
+      expect(
+        _refuses(
+          ['            SET SEXT = NUM / TOT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'SEXT', level: '1', mode: 'E', description: '99S'),
+          ],
+        ),
+        'an external-decimal store into an S position (RT-4)',
+      );
     });
 
     test('an edited chain operand', () {
@@ -746,15 +758,6 @@ void main() {
   });
 
   group('the B3 refusal sites (M4-10)', () {
-    test('a scaling store of a chain value', () {
-      // The tail opens on `XCA`, which reads the MQ half, and a chain
-      // finishes in the accumulator.
-      expect(
-        _refuses(['            SET NUM = FRAC + FRAC.']),
-        'a scaling store of a chain value (no sample instance)',
-      );
-    });
-
     test('a scale alignment of a sub-chain', () {
       // The sub-chain's scale is below the chain's, and no one word
       // aligns a value the accumulator holds.
@@ -769,6 +772,18 @@ void main() {
       // can hold 12 digits, past one word (M6-9).
       expect(
         _refuses(['            SET NUM = NUM * TOT * NUM * TOT * IDX.']),
+        'a product of a product past 10 digits (no sample instance)',
+      );
+    });
+
+    test('an eleven-term chain counts two carry digits', () {
+      // Eleven terms of 3 digits sum to 5 digits, and 123456 adds 6:
+      // 11, past one word. One carry digit would count 10.
+      expect(
+        _refuses([
+          '            SET NUM = (NUM + NUM + NUM + NUM + NUM + NUM + NUM',
+          '            + NUM + NUM + NUM + NUM) * 123456 * 2.',
+        ]),
         'a product of a product past 10 digits (no sample instance)',
       );
     });

@@ -50,6 +50,27 @@ void main() {
       expect(subject.state.read(targetCell), pze(targetArea + 1, 3));
       expect(subject.state.read(targetArea + 1), characters('000 00'));
     });
+
+    test('SYS)180 refuses a MON reference, which nothing emits', () {
+      // `MON PI)NN,,0` (J 90.02.15) carries prefix 5, and RT-4 decodes
+      // only PZE and MZE.
+      final Machine subject = machine(<int, int>{
+        start: tsx(180),
+        start + 1: Word36.signBit | (1 << 33) | pze(targetArea, 0),
+        start + 2: txi(243, 1),
+        start + 3: endOfJob,
+      });
+      expect(
+        () => subject.run(maxSteps: 20),
+        throwsA(
+          isA<StateError>().having(
+            (StateError e) => e.message,
+            'message',
+            'an address word of prefix 5',
+          ),
+        ),
+      );
+    });
   });
 
   group('SYS)186, 187 and 188, internal to external decimal (J 90.02.18)', () {

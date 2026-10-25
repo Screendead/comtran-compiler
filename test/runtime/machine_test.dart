@@ -218,6 +218,39 @@ final List<String> _externalStore = <String>[
   '      *FINISH',
 ];
 
+/// A program that stores chains of scale 3 into fields of scale 2
+/// (M6-9). UP, DOWN, NEG and CUT are internal; EUP, EDOWN and ENEG are
+/// external, ENEG with a minus overpunch.
+final List<String> _chainStore = <String>[
+  '      *DATA',
+  for (final (String name, String picture) in <(String, String)>[
+    ('RATE', '99V999'),
+    ('LOW', '99V999'),
+    ('UP', '99V99'),
+    ('DOWN', '99V99'),
+    ('NEG', '99V99'),
+    ('CUT', '99V99'),
+  ])
+    dataCard(
+      name: name,
+      level: '1',
+      mode: 'I',
+      justify: 'R',
+      description: picture,
+    ),
+  dataCard(name: 'EUP', level: '1', mode: 'E', description: '9V99'),
+  dataCard(name: 'EDOWN', level: '1', mode: 'E', description: '9V99'),
+  dataCard(name: 'ENEG', level: '1', mode: 'E', description: '9V9R'),
+  '      *PROCEDURE',
+  '      START.  SET RATE = 2.505, SET LOW = 2.504.',
+  '            SET UP = RATE + 1, SET DOWN = LOW + 1.',
+  '            SET NEG = RATE - 4.99, SET CUT = RATE + 1 TRUNCATED.',
+  '            SET EUP = RATE + 1, SET EDOWN = LOW + 1.',
+  '            SET ENEG = RATE - 4.99.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program that stores into an external-decimal field of a located
 /// input record (M6-9): the store's `MZE` reference names the record's
 /// base locator.
@@ -709,6 +742,25 @@ void main() {
         subject.state.read(addressOf(job, 'BACK')),
         Word36.fromSignMagnitude(1, 275),
       );
+    });
+
+    test('a chain rounds away from zero at the store', () {
+      final (JobCompilation job, Machine subject) = compiled(_chainStore);
+      expect(subject.printed, <String>['AT 15,00 STOP RUN']);
+      // 3.505 rounds up to 3.51, and 3.504 down to 3.50.
+      expect(subject.state.read(addressOf(job, 'UP')), 351);
+      expect(subject.state.read(addressOf(job, 'DOWN')), 350);
+      // -2.485 rounds to -2.49. An `ADD` of the half would give -2.48.
+      expect(
+        subject.state.read(addressOf(job, 'NEG')),
+        Word36.fromSignMagnitude(1, 249),
+      );
+      // TRUNCATED drops the 5.
+      expect(subject.state.read(addressOf(job, 'CUT')), 350);
+      expect(glyphsAt(subject, addressOf(job, 'EUP'), 3), '351');
+      expect(glyphsAt(subject, addressOf(job, 'EDOWN'), 3), '350');
+      // `R` is 9 over an 11 punch.
+      expect(glyphsAt(subject, addressOf(job, 'ENEG'), 3), '24R');
     });
 
     test('a located external-decimal store writes into the buffer', () {

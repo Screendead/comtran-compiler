@@ -728,11 +728,13 @@ the report our run prints against the page.
   - a numeric comparison of unequal scales, added 2026-10-25 by the
     fetch decision below.
   - a scaling store of a chain value, added 2026-10-25 by the store
-    decision below.
+    decision below;
+  - an external-decimal DO FOR index, added 2026-10-25 by the
+    chain-store decision below.
 
   No decision below changes the two listings or
-  `test/goldens/90.05-payroll.code`, because each changes code
-  generation only, on shapes the sample does not hold.
+  `test/goldens/90.05-payroll.code`, because each acts on shapes the
+  sample does not hold.
 
   **Decided 2026-10-24: `FILE record IN file`. A design decision
   under D0.4; Jack can overturn it.** This is the third item of the
@@ -1155,11 +1157,53 @@ the report our run prints against the page.
   reads `27N`, a plus field `52E`, and a fetch reads -2.75 back. A
   located field, read from a tape, takes the `MZE` store and reads
   `07P` in the buffer.
-  `test/f_corpus_test.dart` pins the next stop. Statement 141,00
-  compiles whole. Statement 142,00, `SET DETAIL GROSS = DETAIL GROSS +
-  MASTER RATE * 40`, refuses `a scaling store of a chain value (no
-  sample instance)`: the chain is at scale 3 in the accumulator, and
-  the tail opens on `XCA`. This shape is the tenth item of the list.
+  `test/f_corpus_test.dart` moved the pin to the store of statement
+  142,00, which the next decision takes.
+
+  **Decided 2026-10-25: the scaling store of a chain value. A design
+  decision under D0.4; Jack can overturn it.** This is the tenth item
+  of the list above, and the seventh item done. A value in the
+  accumulator at a scale above the target's takes the scaling tail of
+  D4.1 without its `XCA`:
+
+  ```
+  ...                   the chain, in the accumulator
+  ACL    half           omitted under TRUNCATED
+  LRS    35
+  DVP    10**d
+  STQ    target         or XCA and the SYS)180 store
+  ```
+
+  Statement 142,00 divides by 10 with the half-adjust 5. A one-term
+  chain takes the same words. The evidence:
+
+  - The `XCA` of LOC 00631 moves the product's low half into the
+    accumulator. A chain already ends there (M4-10), as `CLA RS)1 /
+    SUB RS)0` at LOC 00625 to 00626 shows.
+  - `LRS 35 / DVP` on a value in the accumulator, with no `XCA`, is
+    attested at LOC 00423 to 00425 on `CLA 5)NETPAY`.
+  - D4.1: a SET rounds and TRUNCATED drops the `ACL` alone. `ACL` adds
+    to the magnitude, so a negative chain rounds away from zero, as a
+    product does.
+  - The four words are the product's words after its `XCA`, so the
+    tail adds no bound the product path lacks.
+
+  The rejected options:
+
+  - *`ADD half`.* It moves a negative value toward zero, so -2.485
+    stores -2.48. Every attested half-adjust is `ACL`.
+  - *`XCA`, then the tail as printed.* Two words that cancel.
+  - *Rescale each term before the sum.* Each divide loses fraction
+    digits, and [F p. 115] rounds the result, not its terms.
+
+  The refusal `a store below the target scale (no sample instance)`
+  stays.
+
+  The tests: `test/codegen_test.dart` asserts the words.
+  `test/runtime/machine_test.dart` stores 3.505 as 3.51, 3.504 as 3.50
+  and -2.485 as -2.49, internal and external. `test/f_corpus_test.dart`
+  pins the next stop: statement 144,00, `DO SEARCH FOR INDEX = 1(1)12`,
+  refuses `an external-decimal DO FOR index (M6-9)`.
 
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
@@ -1178,6 +1222,7 @@ the report our run prints against the page.
 [F p. 100]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [F p. 101]: ../../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
 [F p. 107]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
+[F p. 115]: ../../comtran-manuals/F28-8043/a3-glossary.md#appendix-3-glossary
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
 [J 02.01.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-cmple-card
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
