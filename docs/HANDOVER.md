@@ -71,7 +71,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1437 Dart tests pass, measured 2026-10-25, and 154 extension
+Test baseline: 1441 Dart tests pass, measured 2026-10-25, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -104,10 +104,6 @@ records, closes every file, and reaches end of job.
 `test/runtime/machine_test.dart` asserts that run and the reports it
 writes.
 
-Both carried items are closed. A labeled PROGRAM.START names the entry
-point, and `GN)000` stays on the first procedure word (D2.1 as amended
-2026-09-06).
-
 **M6 stage 1 is complete (2026-09-13).** `docs/design/m6-acceptance.md`
 holds its decisions. The input tapes do not survive, so stage 1
 reconstructed them from the printed report and the record descriptions
@@ -137,15 +133,16 @@ and adds `STOP RUN` after it.
 
 **The next task is chunk 2b's run.** All fourteen items of M6-9's
 design list are done (2026-10-24 and 2026-10-25). The applied deck
-compiles to the end with no refusal, and punches 67 cards. Write the
+compiles to the end with no refusal, and punches 68 cards. Write the
 two tapes from the sample's source table, in the corpus's layouts. Run
 the applied deck over them, and diff the values against the sample's report. M6-1
 as amended names the columns that can be compared and the three
 causes that separate the rest. Expect BONDORDER's EMPLOYEE.NUMBER,
 NAME and DATE to stay unmoved: MASTER holds them under DATA, so they do
-not correspond ([J 02.04.04]; M6-9). Codegen defect 7 below is fixed for
-the DO FOR. The other ten codegen defects stay open, and each fix
-must leave `test/goldens/90.05-payroll.code` as it stands.
+not correspond ([J 02.04.04]; M6-9). With codegen defect 12 fixed, the
+run over PR 145's tapes reaches end of job. Defect 7 is fixed for the
+DO FOR. The other ten defects stay open, and each fix must leave
+`test/goldens/90.05-payroll.code` as it stands.
 
 **One question waits for Jack, and no work waits on his answer.**
 M6-9 asks whether "compile" in his rule means the diagnostic listing
@@ -234,8 +231,14 @@ moves it has changed the sample's path. The three divides at LOC 00424,
     `BinaryExpr() when _additive(term)` (`procedure.dart`:3031) calls
     `_chain`, whose cells start at 0. `SET X = NUM * 2 + (NUM * 3 + 1)`
     parks both products in `RS)1` and stores 3N + 3N + 1, not
-    2N + 3N + 1. The PR 153 review found it on 2026-10-25, on master
-    before that PR. The applied deck does not reach the arm.
+    2N + 3N + 1. The PR 153 review found it on 2026-10-25. The applied
+    deck does not reach the arm.
+12. **An alphameric comparison read one word of a field across a word
+    boundary. Fixed on 2026-10-25.** Statement 130,00 compares two
+    `A(6)` fields at bytes 4 and 1, so no detail matched its master,
+    and the run read DETAIL.FILE past its file mark. The extraction
+    now loads the next word into the MQ and masks the shifted field
+    (M6-9).
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
