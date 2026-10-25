@@ -151,9 +151,11 @@ final class TransferChecker extends ClauseWalk with OperandWalk {
   }
 
   /// The D2.5 target model. A one-word target is a statement label of
-  /// the referencing sentence's own section, else a section name, else
-  /// a statement label of the outermost scope; `A B` is section A's
-  /// label B. [absent] speaks for a target that names none of these.
+  /// the referencing sentence's own section, else a section name of any
+  /// scope, else a statement label of the outermost scope; `A B` is
+  /// section A's label B. Two candidates at one step draw msg 166: no
+  /// record makes the innermost section win. [absent] speaks for a
+  /// target that names none of these.
   DictionaryEntry? _resolveProcedure(
     NameReference reference, {
     Message? absent,

@@ -61,8 +61,8 @@ final class DictionaryEntry {
   /// [NameKind.section].
   final Sentence? sentence;
 
-  /// The owning section's name for a section-scoped statement label;
-  /// `null` for the outermost scope and for every other kind.
+  /// The enclosing section's name for a statement label or a section
+  /// name; `null` for the outermost scope and for every other kind.
   final String? section;
 
   /// The 1-based sequence number among identical names, in encounter

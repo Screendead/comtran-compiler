@@ -208,12 +208,15 @@ final class NameResolver extends ClauseWalk with OperandWalk {
             ? NameKind.section
             : NameKind.statement;
         final String? scope = sectionStack.isEmpty ? null : sectionStack.last;
+        // A section's name is a procedure-name of its enclosing scope
+        // (F p. 26), so labels and section names share that scope.
         final bool collides = dictionary
             .named(label)
             .any(
               (DictionaryEntry e) =>
-                  (e.kind == NameKind.statement && e.section == scope) ||
-                  e.kind == NameKind.section && kind == NameKind.section,
+                  (e.kind == NameKind.statement ||
+                      e.kind == NameKind.section) &&
+                  e.section == scope,
             );
         if (collides) {
           diagnostics.reportAt(
@@ -223,13 +226,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
             operands: [label],
           );
         }
-        _enter(
-          label,
-          kind,
-          anchor,
-          sentence: sentence,
-          section: kind == NameKind.statement ? scope : null,
-        );
+        _enter(label, kind, anchor, sentence: sentence, section: scope);
       }
       if (opensSection) {
         // The 18-level nesting limit is the parser's msg 915 (D9.7).
