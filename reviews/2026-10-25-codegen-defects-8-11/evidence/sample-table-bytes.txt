@@ -1,0 +1,5 @@
+RATE word=4 byte=0
+TABLE.ITEM word=0 byte=0
+RATE word=0 byte=0
+INSPREM word=1 byte=0
+RETPREM word=1 byte=3

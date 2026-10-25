@@ -1,0 +1,686 @@
+diff --git a/lib/src/codegen/procedure.dart b/lib/src/codegen/procedure.dart
+index feabfec..4e79368 100644
+--- a/lib/src/codegen/procedure.dart
++++ b/lib/src/codegen/procedure.dart
+@@ -2246,9 +2246,19 @@ final class _Text {
+     }
+     switch ((from, to)) {
+       case (FieldClass.internalDecimal, FieldClass.edited):
++        if (targetSubscripted) {
++          // SYS)180 takes its target from the in-line `PZE` word, and no
++          // site shows that word built from an indicator.
++          _unruled('a subscripted edited-store target (no sample instance)');
++        }
+         _editedStore(source, target, subscripted: sourceSubscripted);
+       case (FieldClass.internalDecimal, FieldClass.internalDecimal):
+-        _internalMove(source, target, sourceSubscripted: sourceSubscripted);
++        _internalMove(
++          source,
++          target,
++          sourceSubscripted: sourceSubscripted,
++          targetSubscripted: targetSubscripted,
++        );
+       case (FieldClass.externalDecimal, FieldClass.edited) ||
+           (FieldClass.edited, FieldClass.edited):
+         _editRun(
+@@ -2265,8 +2275,12 @@ final class _Text {
+         }
+         _setup(source, subscripted: sourceSubscripted, target: false);
+         _externalConvert(source);
+-        _loadBaseOf(target);
+-        _opItem(Op.sto, target);
++        if (targetSubscripted) {
++          _elementStore(target);
++        } else {
++          _loadBaseOf(target);
++          _opItem(Op.sto, target);
++        }
+         _movpakClears();
+       case (FieldClass.externalDecimal, FieldClass.externalDecimal):
+         _externalRun(
+@@ -2495,6 +2509,7 @@ final class _Text {
+     DataItem source,
+     DataItem target, {
+     bool sourceSubscripted = false,
++    bool targetSubscripted = false,
+   }) {
+     if (sourceSubscripted) {
+       _unruled('a subscripted internal-decimal move (no sample instance)');
+@@ -2508,15 +2523,33 @@ final class _Text {
+     }
+     _loadBaseOf(source);
+     _opItem(Op.cla, source);
++    if (targetSubscripted) {
++      _elementStore(target);
++      return;
++    }
+     _loadBaseOf(target);
+     _opItem(Op.sto, target);
+   }
+ 
++  /// The store of the accumulator into the element [target]'s indicator
++  /// addresses: the comparand's prologue, then `STO 0,r`, the form of
++  /// the attested `CAS 0,2` at 01412 with `STO` in place of `CAS`.
++  void _elementStore(DataItem target) {
++    final int register = _indicatorPrologue(target);
++    _op(Op.sto, _Sym(() => '0', () => 0, Relocation.constant), tag: register);
++  }
++
+   /// A store into a subscript variable recomputes every positional
+   /// indicator it drives, five words and a two-name later-pass run
+   /// each, in reverse first-reference order — fitted to the one site,
+   /// where `RETPREM-2` takes `CP)+38` ahead of `INSPREM-2` though
+   /// INSPREM is declared and referenced first (M4-6).
++  ///
++  /// The indicator is a MOVPAK pointer, so the base of one driven
++  /// indicator carries its field's byte, as the DO FOR base does. A
++  /// store that drives several keeps the one site's bases, whose zero
++  /// decrement drops RETPREM's byte 3 (M6-4 finding 1): the golden
++  /// needs that word.
+   void _subscriptRecomputation(NameReference target) {
+     final driven = <DataItem>[
+       for (final (DataItem item, String notation)
+@@ -2541,9 +2574,10 @@ final class _Text {
+         // wrong word, silently.
+         _unruled('a table base ahead of address zero (no sample instance)');
+       }
++      final int byte = driven.length == 1 ? _sem(table).byte : 0;
+       final PoolHandle base = _pool.base(
+-        '${_printedName(table)}-$strideWords',
+-        word: pzeWord(address: address),
++        '${_printedName(table)}-$strideWords${byte == 0 ? '' : ',,$byte'}',
++        word: pzeWord(decrement: byte, address: address),
+         control: standardControl(Relocation.constant, relocation),
+       );
+       final String bound = _mint();
+@@ -2797,6 +2831,7 @@ final class _Text {
+     final NameReference target = clause.targets.single;
+     if (clause.value case FigurativeOperand(:final word)) {
+       _figurativeFill(target, word);
++      _subscriptRecomputation(target);
+       return;
+     }
+     // The target refuses before the first word of the chain.
+@@ -2817,6 +2852,50 @@ final class _Text {
+       _operandsOf([clause.value]),
+       () => _store(item, _chain(clause.value), truncated: clause.truncated),
+     );
++    // Every store into a subscript variable moves its indicators
++    // (J 02.04.07.01; M4-10), not only a MOVE's.
++    final int? step = _constantIncrement(item, clause.value);
++    if (step != null) {
++      _subscriptIncrement(target, step);
++    } else {
++      _subscriptRecomputation(target);
++    }
++  }
++
++  /// The c of `SET K = K + c`, with c an integer literal and K of scale
++  /// zero: the constant increment of M4-10. Null for any other value.
++  int? _constantIncrement(DataItem item, ArithExpr value) {
++    if (value case BinaryExpr(
++      left: NameOperand(:final name),
++      right: LiteralOperand(:final literal),
++      :final operator,
++    ) when operator.text == '+' && name.subscripts.isEmpty) {
++      if (!identical(_item(name), item) ||
++          literal.kind != TokenKind.numericLiteral ||
++          _sem(item).fractionDigits != 0) {
++        return null;
++      }
++      final (int c, int scale) = _literalValue(literal);
++      return scale == 0 ? c : null;
++    }
++    return null;
++  }
++
++  /// The constant increment of every indicator [target] drives: the
++  /// stride times [step], added in place — `CLA CP)+1 / ADD PI)6 /
++  /// STO PI)6` ([J 90.02.05]; M4-10), the DO FOR's step at LOC 00714
++  /// to 00716. The order is the recomputation's.
++  void _subscriptIncrement(NameReference target, int step) {
++    for (final (DataItem table, String notation)
++        in semantics.positionalIndicators.reversed) {
++      if (notation != target.text) {
++        continue;
++      }
++      final _Sym indicator = _blockWord(StorageBlock.pi, _indicator(table));
++      _op(Op.cla, _cp(_pool.stride(_strideWords(table) * step)));
++      _op(Op.add, indicator);
++      _op(Op.sto, indicator);
++    }
+   }
+ 
+   void _add(AddClause clause) {
+@@ -2852,6 +2931,7 @@ final class _Text {
+         for (final NameReference target in clause.targets) {
+           final DataItem item = _item(target)!;
+           _withFetches([item], () => _addBody(item, () => _op(Op.add, park)));
++          _subscriptRecomputation(target);
+         }
+         return;
+       }
+@@ -2887,6 +2967,7 @@ final class _Text {
+           _addPair(source, target);
+         }
+       }, subscripted: <DataItem>{if (name.subscripts.isNotEmpty) source});
++      clause.targets.forEach(_subscriptRecomputation);
+       return;
+     }
+     _unruled('an ADD of a literal (no sample instance)');
+@@ -2986,7 +3067,20 @@ final class _Text {
+       final int scale = _naturalScale(term);
+       chainScale = scale > chainScale ? scale : chainScale;
+     }
+-    final int live = _liveResultCells;
++    final Set<int> outer = {..._parkedCells};
++    // The k-th cell that holds no park of an enclosing chain. At the top
++    // level every cell is free, so the numbering is the M4-10 rule's.
++    int free(int k) {
++      var cell = -1;
++      for (var seen = -1; seen < k;) {
++        cell++;
++        if (!outer.contains(cell)) {
++          seen++;
++        }
++      }
++      return cell;
++    }
++
+     // One entry per term: the word the assembly emits for it, with the
+     // guard that word must carry. The NET sentence pins the placement:
+     // the guard for `1)BONDEDUCTION` sits at 00727, between the fifth
+@@ -3001,8 +3095,9 @@ final class _Text {
+       }
+       final int deficit = chainScale - _naturalScale(term);
+       // The cell a computed term parks in: the count of the chain's
+-      // operands that follow it in source order (M4-10).
+-      final int cell = terms.length - 1 - i;
++      // operands that follow it in source order (M4-10), counted over
++      // the cells an enclosing chain has not parked in.
++      final int cell = free(terms.length - 1 - i);
+       switch (term) {
+         case NameOperand(:final name) when deficit == 0:
+           final DataItem item = _operand(_item(name)!);
+@@ -3051,7 +3146,10 @@ final class _Text {
+             : Op.add,
+       );
+     }
+-    _liveResultCells = live; // The assembly has read every park.
++    // The assembly has read every park.
++    _parkedCells
++      ..clear()
++      ..addAll(outer);
+     return (scale: chainScale, register: _Register.ac);
+   }
+ 
+@@ -3059,7 +3157,7 @@ final class _Text {
+   /// word the assembly reads it back with. The park names the register
+   /// the value sits in: `STQ` after a multiply, `STO` after a chain.
+   void Function(Op op) _park(int cell, _Register register) {
+-    _liveResultCells++;
++    _parkedCells.add(cell);
+     _op(
+       register == _Register.mq ? Op.stq : Op.sto,
+       _resultCell(cell, offset: cell != 0 && register == _Register.mq),
+@@ -3068,10 +3166,10 @@ final class _Text {
+     return (Op op) => _op(op, read);
+   }
+ 
+-  /// The `RS)` parks of the open chains that the assembly has yet to
+-  /// read. Each chain numbers its cells from 0, so a chain nested inside
+-  /// a truth function would overwrite them (M6-9).
+-  int _liveResultCells = 0;
++  /// The `RS)` cells parked by the open chains that the assembly has yet
++  /// to read. A nested chain skips them. The chain of a comparison
++  /// inside a truth function does not, so it refuses after a park (M6-9).
++  final Set<int> _parkedCells = <int>{};
+ 
+   bool _additive(BinaryExpr expr) =>
+       expr.operator.text == '+' || expr.operator.text == '-';
+@@ -3437,7 +3535,7 @@ final class _Text {
+     required _Cont trueTo,
+     required _Cont falseTo,
+   }) {
+-    if (_liveResultCells > 0) {
++    if (_parkedCells.isNotEmpty) {
+       // The chain of this comparison would number its RS) cells from 0
+       // over the outer chain's parks.
+       _unruled(
+diff --git a/test/codegen_refusal_test.dart b/test/codegen_refusal_test.dart
+index 53e5789..fea3693 100644
+--- a/test/codegen_refusal_test.dart
++++ b/test/codegen_refusal_test.dart
+@@ -200,6 +200,20 @@ void main() {
+       );
+     });
+ 
++    test('a subscripted edited-store target', () {
++      expect(
++        _refuses(
++          ['            MOVE NUM TO ETAB ECEL (IDX).'],
++          data: [
++            ..._data(),
++            dataCard(name: 'ETAB', level: '1', quantity: '12'),
++            dataCard(name: 'ECEL', level: '2', description: '888889'),
++          ],
++        ),
++        'a subscripted edited-store target (no sample instance)',
++      );
++    });
++
+     test('a subscripted internal-decimal move', () {
+       expect(
+         _refuses(['            MOVE TAB CELL (IDX) TO NUM.']),
+@@ -508,6 +522,33 @@ void main() {
+       );
+     });
+ 
++    test('a SET into an external-decimal subscript variable', () {
++      // The SET now recomputes the indicators its target drives, as the
++      // MOVE does, and the recomputation reads the variable as binary.
++      expect(
++        _refuses(
++          [
++            '            SET EXI = 3.',
++            '            IF XCEL (EXI) GT NUM THEN STOP RUN.',
++          ],
++          data: [
++            ..._data(),
++            dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
++            dataCard(name: 'XTAB', level: '1', quantity: '12'),
++            dataCard(
++              name: 'XCEL',
++              level: '2',
++              mode: 'I',
++              justify: 'R',
++              description: '999',
++            ),
++          ],
++          flagged: ['206,00'],
++        ),
++        'an external-decimal subscript variable (M6-9)',
++      );
++    });
++
+     test('an external-decimal field named twice in one ADD clause', () {
+       expect(
+         _refuses(['            ADD EXT TO EXT, NUM.']),
+diff --git a/test/codegen_test.dart b/test/codegen_test.dart
+index 11c6ae6..2b89100 100644
+--- a/test/codegen_test.dart
++++ b/test/codegen_test.dart
+@@ -2076,4 +2076,240 @@ void main() {
+       ]);
+     });
+   });
++
++  group('the subscript store and the subscripted target (M6-9)', () {
++    String internal(String name, String pic, {String level = '1'}) => dataCard(
++      name: name,
++      level: level,
++      mode: 'I',
++      justify: 'R',
++      description: pic,
++    );
++
++    /// Two words ahead of every table keep each base `NAME-n` at or above
++    /// address zero.
++    final List<String> pad = [internal('P1', '9'), internal('P2', '9')];
++
++    /// The units of [procedure] over [data], from START on, each a label,
++    /// a tab, and the word.
++    List<String> lines(List<String> data, List<String> procedure) {
++      final SemanticResult semantics = runJob(data: data, procedure: procedure);
++      expect(ids(semantics), isEmpty);
++      final List<AssemblyUnit> units = runCodegen(semantics).units;
++      final int start = units.indexWhere(
++        (AssemblyUnit u) => u.labels.contains('START'),
++      );
++      return [
++        for (final AssemblyUnit u in units.skip(start))
++          '${u.labels.join(' ')}\t${u.operation} ${u.operand}',
++      ];
++    }
++
++    List<String> upTo(List<String> all, String last) =>
++        all.sublist(0, all.indexOf(last) + 1);
++
++    final List<String> cells = [
++      ...pad,
++      dataCard(name: 'TAB', level: '1', quantity: '3'),
++      internal('CELL', '999', level: '2'),
++      internal('I', '9'),
++      internal('NUM', '999'),
++    ];
++
++    test('an internal-decimal target stores through its indicator', () {
++      // The comparand's prologue of 01410-01411, then STO where 01412
++      // has CAS.
++      expect(
++        upTo(
++          lines(cells, [
++            '      START.  MOVE NUM TO TAB CELL (I).',
++            '            STOP RUN.',
++          ]),
++          '\tSTO 0,1',
++        ),
++        [
++          'GN)000 START\tCLA NUM',
++          '\tLAC PI)1,1',
++          '\tTXL SYS)294,1,0',
++          '\tSTO 0,1',
++        ],
++      );
++    });
++
++    test('an external-decimal source converts, then stores the same way', () {
++      final List<String> all = lines(
++        [...cells, dataCard(name: 'EXT', level: '1', description: '999')],
++        ['      START.  MOVE EXT TO TAB CELL (I).', '            STOP RUN.'],
++      );
++      expect(upTo(all, '\tSTO 0,1').sublist(3), [
++        '\tTXI SYS)184,1,3',
++        '\tLAC PI)1,1',
++        '\tTXL SYS)294,1,0',
++        '\tSTO 0,1',
++      ]);
++    });
++
++    test('a SET into a subscript variable recomputes its indicator', () {
++      final List<String> all = lines(cells, [
++        '      START.  SET I = 2.',
++        '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
++        '            STOP RUN.',
++      ]);
++      // The five words of 01421-01425 behind the store.
++      expect(upTo(all, '\tSTO PI)1'), [
++        'GN)000 START\tCLA CP)+2',
++        '\tSTO I',
++        'GN)002\tEQU CP)+9',
++        '\tLDQ I',
++        '\tMPY CP)+1',
++        '\tXCA ',
++        '\tADD GN)002',
++        '\tSTO PI)1',
++      ]);
++    });
++
++    test('a constant increment adds the stride to the indicator', () {
++      final List<String> all = lines(cells, [
++        '      START.  SET I = I + 2.',
++        '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
++        '            STOP RUN.',
++      ]);
++      // The shape of J 90.02.05, `CLA CP)+1 / ADD PI)6 / STO PI)6`. Two
++      // elements of one word each are 2 words, the pool word of the 2.
++      expect(upTo(all, '\tSTO PI)1'), [
++        'GN)000 START\tCLA I',
++        '\tADD CP)+2',
++        '\tSTO I',
++        '\tCLA CP)+2',
++        '\tADD PI)1',
++        '\tSTO PI)1',
++      ]);
++    });
++
++    test('an external index takes the constant increment too', () {
++      // The step reads no binary index, so the external-decimal refusal
++      // of the recomputation does not apply.
++      final SemanticResult semantics = runJob(
++        data: [
++          ...pad,
++          dataCard(name: 'TAB', level: '1', quantity: '3'),
++          internal('CELL', '999', level: '2'),
++          dataCard(name: 'I', level: '1', mode: 'E', description: '9'),
++          internal('NUM', '999'),
++        ],
++        procedure: [
++          '      START.  SET I = I + 1.',
++          '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
++          '            STOP RUN.',
++        ],
++      );
++      expect(ids(semantics), ['206,00']);
++      final List<String> words = [
++        for (final AssemblyUnit u in runCodegen(semantics).units)
++          '${u.operation} ${u.operand}',
++      ];
++      final int step = words.indexOf('ADD PI)1');
++      expect(words.sublist(step - 1, step + 2), [
++        'CLA CP)+1',
++        'ADD PI)1',
++        'STO PI)1',
++      ]);
++    });
++
++    test('an ADD into a subscript variable recomputes its indicator', () {
++      final List<String> all = lines(cells, [
++        '      START.  ADD NUM TO I.',
++        '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
++        '            STOP RUN.',
++      ]);
++      expect(upTo(all, '\tSTO PI)1'), [
++        'GN)000 START\tCLA I',
++        '\tADD NUM',
++        '\tSTO I',
++        'GN)002\tEQU CP)+8',
++        '\tLDQ I',
++        '\tMPY CP)+1',
++        '\tXCA ',
++        '\tADD GN)002',
++        '\tSTO PI)1',
++      ]);
++    });
++
++    test('the base of one driven indicator carries its byte', () {
++      final List<String> all = lines(
++        [
++          ...pad,
++          dataCard(name: 'TAB', level: '1', quantity: '12'),
++          dataCard(name: 'A', level: '2', description: '99'),
++          dataCard(name: 'B', level: '2', description: '9999'),
++          dataCard(name: 'C', level: '2', description: '9(6)'),
++          internal('IDX', '99'),
++          internal('NUM', '99'),
++          internal('NB', '9(6)'),
++        ],
++        [
++          '      START.  MOVE NUM TO IDX.',
++          '            MOVE TAB B (IDX) TO NB.',
++          '            STOP RUN.',
++        ],
++      );
++      expect(all, contains('\tPZE B-2,,2'));
++    });
++
++    test('the bases of several driven indicators keep the sample words', () {
++      // RETPREM sits at byte 3 of the element's second word. The one
++      // site with two indicators drops it (M6-4 finding 1), and this
++      // shape keeps that site's words.
++      final SemanticResult semantics = runJob(
++        data: [
++          ...pad,
++          dataCard(name: 'TABLE.ITEM', level: '1', quantity: '3'),
++          dataCard(name: 'RATE', level: '2', description: '9(6)'),
++          dataCard(name: 'INSPREM', level: '2', description: '9V99'),
++          dataCard(name: 'RETPREM', level: '2', description: '9V99'),
++          internal('POS', '9'),
++          internal('WI', '9V99'),
++          internal('WR', '9V99'),
++        ],
++        procedure: [
++          '      START.  MOVE POS TO POS.',
++          '            MOVE INSPREM (POS) TO WI.',
++          '            MOVE RETPREM (POS) TO WR.',
++          '            STOP RUN.',
++        ],
++      );
++      final List<AssemblyUnit> pool = [
++        for (final AssemblyUnit u in runCodegen(semantics).units)
++          if (u.operand.endsWith('PREM-2')) u,
++      ];
++      expect([for (final u in pool) u.operand], ['RETPREM-2', 'INSPREM-2']);
++      expect(pool.first.word, pool.last.word);
++    });
++
++    test('a sub-chain parks clear of the outer chain', () {
++      final List<String> all = lines(
++        [internal('NUM', '999'), internal('X', '9(5)')],
++        [
++          '      START.  SET X = NUM * 2 + (NUM * 3 + 1).',
++          '            STOP RUN.',
++        ],
++      );
++      // NUM * 2 parks in RS)1, so the inner chain's first park takes the
++      // next free cell, RS)2, not RS)1.
++      expect(upTo(all, '\tSTO X'), [
++        'GN)000 START\tLDQ CP)+2',
++        '\tMPY NUM',
++        '\tSTQ RS)1+0',
++        '\tLDQ CP)+3',
++        '\tMPY NUM',
++        '\tSTQ RS)2+0',
++        '\tCLA RS)2',
++        '\tADD CP)+1',
++        '\tSTO RS)0',
++        '\tCLA RS)1',
++        '\tADD RS)0',
++        '\tSTO X',
++      ]);
++    });
++  });
+ }
+diff --git a/test/runtime/machine_test.dart b/test/runtime/machine_test.dart
+index d1f1453..b33aedf 100644
+--- a/test/runtime/machine_test.dart
++++ b/test/runtime/machine_test.dart
+@@ -615,6 +615,13 @@ final List<String> _byteStride = <String>[
+   '      *FINISH',
+ ];
+ 
++/// The index card of [_wordStrideByte], which ends its table.
++final String _byteIndex = dataCard(
++  name: 'INDEX',
++  level: '1',
++  description: '99',
++);
++
+ /// A loop over twelve items of two whole words: A `99`, B `9999` at
+ /// byte 2, and C `9(6)`. Item k holds A = k, B = k and C = 100 + k, so a
+ /// reader that took B from byte 0 would read `0k00` for k below 10.
+@@ -633,7 +640,7 @@ final List<String> _wordStrideByte = <String>[
+   dataCard(name: 'A', level: '2', description: '99'),
+   dataCard(name: 'B', level: '2', description: '9999'),
+   dataCard(name: 'C', level: '2', description: '9(6)'),
+-  dataCard(name: 'INDEX', level: '1', description: '99'),
++  _byteIndex,
+   dataCard(name: 'SB', level: '1', description: '9(6)'),
+   for (final String name in ['NB', 'NG', 'SN'])
+     dataCard(
+@@ -655,6 +662,56 @@ final List<String> _wordStrideByte = <String>[
+   '      *FINISH',
+ ];
+ 
++/// An internal-decimal field of [pic] at [level].
++String _internal(String name, String pic, {String level = '1'}) => dataCard(
++  name: name,
++  level: level,
++  mode: 'I',
++  justify: 'R',
++  description: pic,
++);
++
++/// Moves the index through 1, 3, 1, 2 and 3 by a MOVE, a SET, a SET of
++/// a difference, an ADD and a constant increment, and reads A, an
++/// external table holding 1, 2 and 3, after each step. Then stores 7
++/// into element 2 of a three-word table through a subscripted target.
++final List<String> _subscriptStores = <String>[
++  '      *DATA',
++  _internal('P1', '9'),
++  _internal('P2', '9'),
++  dataCard(name: 'TAB', level: '1', quantity: '3'),
++  _internal('CELL', '999', level: '2'),
++  dataCard(name: 'TABLE', level: '1'),
++  for (var k = 1; k <= 3; k++)
++    dataCard(level: '2', description: "'${'$k'.padLeft(6, '0')}'"),
++  dataCard(type: 'REDEF', description: 'TABLE'),
++  dataCard(name: 'ATAB', level: '1', quantity: '3'),
++  dataCard(name: 'A', level: '2', mode: 'E', description: '9(6)'),
++  for (final String name in ['I', 'ONE', 'NUM', 'WS', 'WM', 'WA', 'WI'])
++    _internal(name, '9(6)'),
++  '      *PROCEDURE',
++  '      START.  SET ONE = 1, MOVE ONE TO I.',
++  '            SET I = 3, MOVE A (I) TO WS.',
++  '            SET I = I - 2, MOVE A (I) TO WM.',
++  '            ADD ONE TO I, MOVE A (I) TO WA.',
++  '            SET I = I + 1, MOVE A (I) TO WI.',
++  '            SET I = I - 1, SET NUM = 7, MOVE NUM TO CELL (I).',
++  '            STOP RUN.',
++  '      *FINISH',
++];
++
++/// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
++final List<String> _subChain = <String>[
++  '      *DATA',
++  _internal('NUM', '999'),
++  _internal('X', '9(5)'),
++  '      *PROCEDURE',
++  '      START.  SET NUM = 5.',
++  '            SET X = NUM * 2 + (NUM * 3 + 1).',
++  '            STOP RUN.',
++  '      *FINISH',
++];
++
+ /// A program that never reaches its `STOP RUN`.
+ final List<String> _loop = <String>[
+   '      *DATA',
+@@ -1334,6 +1391,48 @@ void main() {
+       expect(subject.state.read(addressOf(job, 'SN')), 78);
+     });
+ 
++    test('a SET, an ADD and a subscripted MOVE target move the element', () {
++      final (JobCompilation job, Machine subject) = compiled(_subscriptStores);
++      // Each store moved the indicator to the element the index names.
++      expect(subject.state.read(addressOf(job, 'WS')), 3);
++      expect(subject.state.read(addressOf(job, 'WM')), 1);
++      expect(subject.state.read(addressOf(job, 'WA')), 2);
++      expect(subject.state.read(addressOf(job, 'WI')), 3);
++      final int tab = addressOf(job, 'TAB');
++      expect(
++        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
++        <int>[0, 7, 0],
++      );
++    });
++
++    test('a subscript store reads a field from its own byte', () {
++      // The loop above sets its indicators from the DO FOR base; here
++      // one MOVE sets the index, so the subscript store's base does.
++      final (JobCompilation job, Machine subject) = compiled(<String>[
++        '      *DATA',
++        // The base `B-2` must stay at or above address zero.
++        _internal('P1', '9'),
++        _internal('P2', '9'),
++        ..._wordStrideByte.sublist(1, _wordStrideByte.indexOf(_byteIndex)),
++        _internal('THREE', '99'),
++        _internal('IDX', '99'),
++        _internal('NB', '9(6)'),
++        '      *PROCEDURE',
++        '      START.  SET THREE = 3, MOVE THREE TO IDX.',
++        '            MOVE B (IDX) TO NB.',
++        '            STOP RUN.',
++        '      *FINISH',
++      ]);
++      // A read from byte 0 gives 300.
++      expect(subject.state.read(addressOf(job, 'NB')), 3);
++    });
++
++    test('a sub-chain inside a chain keeps the outer park', () {
++      final (JobCompilation job, Machine subject) = compiled(_subChain);
++      // Both products in one cell would give 3·5 + 3·5 + 1 = 31.
++      expect(subject.state.read(addressOf(job, 'X')), 26);
++    });
++
+     test('a labelled section runs from the entry point it takes', () {
+       // `test/codegen_test.dart` pins the entry word on PROGRAM.START.
+       // NUM reads 1 only if the run entered the section: the `GO TO`

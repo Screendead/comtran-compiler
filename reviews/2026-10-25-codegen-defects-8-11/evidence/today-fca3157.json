@@ -1,0 +1,574 @@
+{
+  "D8-int-int": {
+    "source": [
+      "      *DATA",
+      "      PAD1             1           IR9",
+      "      PAD2             1           IR9",
+      "      TAB              1          3",
+      "      CELL             2           IR999",
+      "      I                1           IR9",
+      "      TWO              1           IR9",
+      "      NUM              1           IR999",
+      "      *PROCEDURE",
+      "      START.  SET TWO = 2, MOVE TWO TO I.",
+      "            SET NUM = 7.",
+      "            MOVE NUM TO CELL (I).",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "GN)000 START  CLA CP)+2",
+      "STO TWO",
+      "CLA TWO",
+      "STO I",
+      "GN)001  EQU CP)+8",
+      "LDQ I",
+      "MPY CP)+1",
+      "XCA",
+      "ADD GN)001",
+      "STO PI)1",
+      "CLA CP)+3",
+      "STO NUM",
+      "CLA NUM",
+      "STO CELL",
+      "TSX SYS)178,4"
+    ],
+    "pool": [
+      "PZE CP)+4,,CP)+5  000107000106",
+      "PZE CP)+6,,CP)+7  000111000110",
+      "PZE IOC)1  000000000001",
+      "PZE IOC)29  000000000035",
+      "PZE CELL-1  000000000001"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 11,00 STOP RUN"
+    ],
+    "values": {
+      "TAB": 7,
+      "TAB+1": 0,
+      "TAB+2": 0
+    }
+  },
+  "D8-ext-int": {
+    "source": [
+      "      *DATA",
+      "      PAD1             1           IR9",
+      "      PAD2             1           IR9",
+      "      TAB              1          3",
+      "      CELL             2           IR999",
+      "      I                1           IR9",
+      "      TWO              1           IR9",
+      "      AREA             1",
+      "                       2             '007'",
+      "                        REDEF        AREA",
+      "      VIEW             1",
+      "      EXT              2           E 999",
+      "      *PROCEDURE",
+      "      START.  SET TWO = 2, MOVE TWO TO I.",
+      "            MOVE EXT TO CELL (I).",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "GN)000 START  CLA CP)+2",
+      "STO TWO",
+      "CLA TWO",
+      "STO I",
+      "GN)003  EQU CP)+7",
+      "LDQ I",
+      "MPY CP)+1",
+      "XCA",
+      "ADD GN)003",
+      "STO PI)1",
+      "LDI CP)+8",
+      "STI SYS)132",
+      "TSX SYS)182,4",
+      "TXI SYS)184,1,3",
+      "STO CELL",
+      "TSX SYS)178,4"
+    ],
+    "pool": [
+      "PZE CP)+3,,CP)+4  000107000106",
+      "PZE CP)+5,,CP)+6  000111000110",
+      "PZE IOC)1  000000000001",
+      "PZE IOC)29  000000000035",
+      "PZE CELL-1  000000000001",
+      "PZE EXT,,0  000000000007"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 14,00 STOP RUN"
+    ],
+    "values": {
+      "TAB": 7,
+      "TAB+1": 0,
+      "TAB+2": 0
+    }
+  },
+  "D8-int-edited": {
+    "source": [
+      "      *DATA",
+      "      PAD1             1           IR9",
+      "      PAD2             1           IR9",
+      "      ETAB             1          3",
+      "      EDT              2             888889",
+      "      I                1           IR9",
+      "      TWO              1           IR9",
+      "      NUM              1           IR999",
+      "      *PROCEDURE",
+      "      START.  SET TWO = 2, MOVE TWO TO I.",
+      "            SET NUM = 7.",
+      "            MOVE NUM TO EDT (I).",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "GN)000 START  CLA CP)+2",
+      "STO TWO",
+      "CLA TWO",
+      "STO I",
+      "GN)001  EQU CP)+8",
+      "LDQ I",
+      "MPY CP)+1",
+      "XCA",
+      "ADD GN)001",
+      "STO PI)1",
+      "CLA CP)+3",
+      "STO NUM",
+      "CLA NUM",
+      "TSX SYS)180,4",
+      "PZE EDT,,0",
+      "TRA SYS)267,0,0",
+      "OCT 000006000005",
+      "AXT 6,1",
+      "TSX SYS)178,4"
+    ],
+    "pool": [
+      "PZE CP)+4,,CP)+5  000113000112",
+      "PZE CP)+6,,CP)+7  000115000114",
+      "PZE IOC)1  000000000001",
+      "PZE IOC)29  000000000035",
+      "PZE EDT-1  000000000001"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 11,00 STOP RUN"
+    ],
+    "values": {
+      "ETAB": "     7",
+      "ETAB+1": "000000"
+    }
+  },
+  "D9-set": {
+    "source": [
+      "      *DATA",
+      "      PAD1             1           IR9",
+      "      PAD2             1           IR9",
+      "      TABLE            1",
+      "                       2             '000001'",
+      "                       2             '000002'",
+      "                       2             '000003'",
+      "                        REDEF        TABLE",
+      "      TAB              1          3",
+      "      A                2           E 9(6)",
+      "      I                1           IR9",
+      "      ONE              1           IR9",
+      "      WA               1           IR9(6)",
+      "      *PROCEDURE",
+      "      START.  SET ONE = 1, MOVE ONE TO I.",
+      "            SET I = 3.",
+      "            MOVE A (I) TO WA.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "GN)000 START  CLA CP)+1",
+      "STO ONE",
+      "CLA ONE",
+      "STO I",
+      "GN)005  EQU CP)+7",
+      "LDQ I",
+      "MPY CP)+1",
+      "XCA",
+      "ADD GN)005",
+      "STO PI)1",
+      "CLA CP)+2",
+      "STO I",
+      "LDI PI)1",
+      "STI SYS)132",
+      "TSX SYS)182,4",
+      "TXI SYS)184,1,6",
+      "STO WA",
+      "TSX SYS)178,4"
+    ],
+    "pool": [
+      "PZE CP)+3,,CP)+4  000111000110",
+      "PZE CP)+5,,CP)+6  000113000112",
+      "PZE IOC)1  000000000001",
+      "PZE IOC)29  000000000035",
+      "PZE A-1  000000000001"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 16,00 STOP RUN"
+    ],
+    "values": {
+      "I": 3,
+      "WA": 1
+    }
+  },
+  "D9-add": {
+    "source": [
+      "      *DATA",
+      "      PAD1             1           IR9",
+      "      PAD2             1           IR9",
+      "      TABLE            1",
+      "                       2             '000001'",
+      "                       2             '000002'",
+      "                       2             '000003'",
+      "                        REDEF        TABLE",
+      "      TAB              1          3",
+      "      A                2           E 9(6)",
+      "      I                1           IR9",
+      "      ONE              1           IR9",
+      "      TWO              1           IR9",
+      "      WA               1           IR9(6)",
+      "      *PROCEDURE",
+      "      START.  SET ONE = 1, SET TWO = 2, MOVE ONE TO I.",
+      "            ADD TWO TO I.",
+      "            MOVE A (I) TO WA.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "GN)000 START  CLA CP)+1",
+      "STO ONE",
+      "CLA CP)+2",
+      "STO TWO",
+      "CLA ONE",
+      "STO I",
+      "GN)005  EQU CP)+7",
+      "LDQ I",
+      "MPY CP)+1",
+      "XCA",
+      "ADD GN)005",
+      "STO PI)1",
+      "CLA I",
+      "ADD TWO",
+      "STO I",
+      "LDI PI)1",
+      "STI SYS)132",
+      "TSX SYS)182,4",
+      "TXI SYS)184,1,6",
+      "STO WA",
+      "TSX SYS)178,4"
+    ],
+    "pool": [
+      "PZE CP)+3,,CP)+4  000115000114",
+      "PZE CP)+5,,CP)+6  000117000116",
+      "PZE IOC)1  000000000001",
+      "PZE IOC)29  000000000035",
+      "PZE A-1  000000000001"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 17,00 STOP RUN"
+    ],
+    "values": {
+      "I": 3,
+      "WA": 1
+    }
+  },
+  "D9-increment": {
+    "source": [
+      "      *DATA",
+      "      PAD1             1           IR9",
+      "      PAD2             1           IR9",
+      "      TABLE            1",
+      "                       2             '000001'",
+      "                       2             '000002'",
+      "                       2             '000003'",
+      "                        REDEF        TABLE",
+      "      TAB              1          3",
+      "      A                2           E 9(6)",
+      "      I                1           IR9",
+      "      ONE              1           IR9",
+      "      WA               1           IR9(6)",
+      "      *PROCEDURE",
+      "      START.  SET ONE = 1, MOVE ONE TO I.",
+      "            SET I = I + 2.",
+      "            MOVE A (I) TO WA.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "GN)000 START  CLA CP)+1",
+      "STO ONE",
+      "CLA ONE",
+      "STO I",
+      "GN)005  EQU CP)+7",
+      "LDQ I",
+      "MPY CP)+1",
+      "XCA",
+      "ADD GN)005",
+      "STO PI)1",
+      "CLA I",
+      "ADD CP)+2",
+      "STO I",
+      "LDI PI)1",
+      "STI SYS)132",
+      "TSX SYS)182,4",
+      "TXI SYS)184,1,6",
+      "STO WA",
+      "TSX SYS)178,4"
+    ],
+    "pool": [
+      "PZE CP)+3,,CP)+4  000112000111",
+      "PZE CP)+5,,CP)+6  000114000113",
+      "PZE IOC)1  000000000001",
+      "PZE IOC)29  000000000035",
+      "PZE A-1  000000000001"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 16,00 STOP RUN"
+    ],
+    "values": {
+      "I": 3,
+      "WA": 1
+    }
+  },
+  "D10-one": {
+    "source": [
+      "      *DATA",
+      "      PAD1             1           IR9",
+      "      PAD2             1           IR9",
+      "      TABLE            1",
+      "                       2             '010001000101'",
+      "                       2             '020002000102'",
+      "                       2             '030003000103'",
+      "                       2             '040004000104'",
+      "                       2             '050005000105'",
+      "                       2             '060006000106'",
+      "                       2             '070007000107'",
+      "                       2             '080008000108'",
+      "                       2             '090009000109'",
+      "                       2             '100010000110'",
+      "                       2             '110011000111'",
+      "                       2             '120012000112'",
+      "                        REDEF        TABLE",
+      "      TAB              1         12",
+      "      A                2             99",
+      "      B                2             9999",
+      "      C                2             9(6)",
+      "      IDX              1           IR99",
+      "      THREE            1           IR99",
+      "      NB               1           IR9(6)",
+      "      *PROCEDURE",
+      "      START.  SET THREE = 3, MOVE THREE TO IDX.",
+      "            MOVE B (IDX) TO NB.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "GN)000 START  CLA CP)+2",
+      "STO THREE",
+      "CLA THREE",
+      "STO IDX",
+      "GN)014  EQU CP)+8",
+      "LDQ IDX",
+      "MPY CP)+3",
+      "XCA",
+      "ADD GN)014",
+      "STO PI)1",
+      "LDI PI)1",
+      "STI SYS)132",
+      "TSX SYS)182,4",
+      "TXI SYS)184,1,4",
+      "STO NB",
+      "TSX SYS)178,4"
+    ],
+    "pool": [
+      "PZE CP)+4,,CP)+5  000135000134",
+      "PZE CP)+6,,CP)+7  000137000136",
+      "PZE IOC)1  000000000001",
+      "PZE IOC)29  000000000035",
+      "PZE B-2  000000000000"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 26,00 STOP RUN"
+    ],
+    "values": {
+      "NB": 300
+    }
+  },
+  "D10-two": {
+    "source": [
+      "      *DATA",
+      "      PAD1             1           IR9",
+      "      PAD2             1           IR9",
+      "      TABLE            1",
+      "                       2             '000000111122'",
+      "                       2             '000000211222'",
+      "                       2             '000000311322'",
+      "                        REDEF        TABLE",
+      "      TABLE.ITEM       1          3",
+      "      RATE             2             9(6)",
+      "      INSPREM          2             9V99",
+      "      RETPREM          2             9V99",
+      "      POS              1           IR9",
+      "      THREE            1           IR9",
+      "      WI               1           IR9V99",
+      "      WR               1           IR9V99",
+      "      *PROCEDURE",
+      "      START.  SET THREE = 3, MOVE THREE TO POS.",
+      "            MOVE INSPREM (POS) TO WI.",
+      "            MOVE RETPREM (POS) TO WR.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "GN)000 START  CLA CP)+2",
+      "STO THREE",
+      "CLA THREE",
+      "STO POS",
+      "GN)005  EQU CP)+8",
+      "GN)007  EQU CP)+9",
+      "LDQ POS",
+      "MPY CP)+3",
+      "XCA",
+      "ADD GN)005",
+      "STO PI)2",
+      "LDQ POS",
+      "MPY CP)+3",
+      "XCA",
+      "ADD GN)007",
+      "STO PI)1",
+      "LDI PI)1",
+      "STI SYS)132",
+      "TSX SYS)182,4",
+      "TXI SYS)184,1,3",
+      "STO WI",
+      "LDI PI)2",
+      "STI SYS)132",
+      "TSX SYS)182,4",
+      "TXI SYS)184,1,3",
+      "STO WR",
+      "TSX SYS)178,4"
+    ],
+    "pool": [
+      "PZE CP)+4,,CP)+5  000127000126",
+      "PZE CP)+6,,CP)+7  000131000130",
+      "PZE IOC)1  000000000001",
+      "PZE IOC)29  000000000035",
+      "PZE RETPREM-2  000000000001",
+      "PZE INSPREM-2  000000000001"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 19,00 STOP RUN"
+    ],
+    "values": {
+      "WI": 311,
+      "WR": 311
+    }
+  },
+  "D11-sum": {
+    "source": [
+      "      *DATA",
+      "      NUM              1           IR999",
+      "      X                1           IR9(5)",
+      "      *PROCEDURE",
+      "      START.  SET NUM = 5.",
+      "            SET X = NUM * 2 + (NUM * 3 + 1).",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "GN)000 START  CLA CP)+2",
+      "STO NUM",
+      "LDQ CP)+3",
+      "MPY NUM",
+      "STQ RS)1+0",
+      "LDQ CP)+4",
+      "MPY NUM",
+      "STQ RS)1+0",
+      "CLA RS)1",
+      "ADD CP)+1",
+      "STO RS)0",
+      "CLA RS)1",
+      "ADD RS)0",
+      "STO X",
+      "TSX SYS)178,4"
+    ],
+    "pool": [
+      "PZE CP)+5,,CP)+6  000102000101",
+      "PZE CP)+7,,CP)+8  000104000103",
+      "PZE IOC)1  000000000001",
+      "PZE IOC)29  000000000035"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 5,00 STOP RUN"
+    ],
+    "values": {
+      "X": 31
+    }
+  },
+  "D11-product": {
+    "source": [
+      "      *DATA",
+      "      NUM              1           IR999",
+      "      X                1           IR9(5)",
+      "      *PROCEDURE",
+      "      START.  SET NUM = 5.",
+      "            SET X = NUM * 2 + (NUM * 3 + 1) * 2.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "GN)000 START  CLA CP)+2",
+      "STO NUM",
+      "LDQ CP)+3",
+      "MPY NUM",
+      "STQ RS)1+0",
+      "LDQ CP)+4",
+      "MPY NUM",
+      "STQ RS)1+0",
+      "CLA RS)1",
+      "ADD CP)+1",
+      "XCA",
+      "MPY CP)+3",
+      "STQ RS)0",
+      "CLA RS)1",
+      "ADD RS)0",
+      "STO X",
+      "TSX SYS)178,4"
+    ],
+    "pool": [
+      "PZE CP)+5,,CP)+6  000104000103",
+      "PZE CP)+7,,CP)+8  000106000105",
+      "PZE IOC)1  000000000001",
+      "PZE IOC)29  000000000035"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 5,00 STOP RUN"
+    ],
+    "values": {
+      "X": 47
+    }
+  }
+}
