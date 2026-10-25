@@ -728,7 +728,9 @@ the report our run prints against the page.
   - a numeric comparison of unequal scales, added 2026-10-25 by the
     fetch decision below.
   - a scaling store of a chain value, added 2026-10-25 by the store
-    decision below.
+    decision below;
+  - an external-decimal DO FOR index, added 2026-10-25 by the
+    chain-store decision below.
 
   No decision below changes the two listings or
   `test/goldens/90.05-payroll.code`, because each changes code
@@ -1183,8 +1185,8 @@ the report our run prints against the page.
   - D4.1: a SET rounds and TRUNCATED drops the `ACL` alone. `ACL` adds
     to the magnitude, so a negative chain rounds away from zero, as a
     product does.
-  - A carry of the `ACL` lands in P, and `LRS 35` shifts it into the
-    dividend, so the tail adds no bound.
+  - The four words are the product's words after its `XCA`, so the
+    tail adds no bound the product path lacks.
 
   The rejected options:
 

@@ -136,15 +136,15 @@ the course that ruling overturns, and M6-7 as amended corrects the
 `STOP` row: `STOP n` is legal, so the applied deck keeps `STOP 1234`
 and adds `STOP RUN` after it.
 
-**The next task is chunk 2b.** M6-9's design list has ten items.
+**The next task is chunk 2b.** M6-9's design list has eleven items.
 Seven items are done: `FILE record IN file` and `STOP n`
 (2026-10-24), the external-decimal fetch and store, the comparison of
 unequal scales, the product of a product, and the scaling store of a
 chain value (2026-10-25). The applied deck now compiles statement
 142,00 whole. It stops at statement 144,00, `DO SEARCH FOR INDEX =
 1(1)12`, with `an external-decimal DO FOR index (M6-9)`: the store of
-an external index changes the fitted loop run of M4-6. The list does
-not name this shape yet. Four items stay open:
+an external index changes the fitted loop run of M4-6. The chain-store
+decision added the shape to the list. Four items stay open:
 
 - the external-decimal DO FOR index, the next task;
 - the comparison whose sides are expressions;
