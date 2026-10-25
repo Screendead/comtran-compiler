@@ -1360,4 +1360,32 @@ void main() {
       expect(run.stderr, isNot(contains('error:')));
     });
   });
+
+  group('the applied 1960 deck', () {
+    test('its tapes print the reports of test/goldens/f-payroll-j.report', () {
+      // The five reports the run writes, byte for byte. The golden is
+      // our output; test/f_acceptance_test.dart classifies its distance
+      // from the 1962 sample's report (m6-f-tapes.md, the run).
+      final Directory tapes = tempDirectory('comtran-f-tapes');
+      for (final unit in <String>['D1', 'C2']) {
+        File('$fTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
+      }
+      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
+        'run',
+        'comtran:comtranc',
+        fAppliedDeckPath,
+        '--run',
+        '--tapes=${tapes.path}',
+        '--list-tapes',
+      ]);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      const display = 'AT 140,00 STOP RUN\n';
+      final stdout = '${run.stdout}';
+      expect(stdout, contains('AT 139,00 STOP 1234\n$display'));
+      expect(
+        stdout.substring(stdout.indexOf(display) + display.length),
+        File('test/goldens/f-payroll-j.report').readAsStringSync(),
+      );
+    });
+  });
 }
