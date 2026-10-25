@@ -633,7 +633,8 @@ the report our run prints against the page.
      Definition §5.3.2 lists J's tightenings, and operand shape is not
      among them. The sites are statements 152,00 and 156,00 of the
      applied deck, and the refusal is the default arm of the numeric
-     comparison.
+     comparison. (Amended 2026-10-25: both compile. The decision on the
+     comparison whose sides are expressions holds it.)
   5. **A product of a product.** [J 02.04.05.01] b: "the expression
      A*B*C will be taken to mean (A*B)*C".
      [F p. 107], rule 4, states the same.
@@ -1693,6 +1694,77 @@ the report our run prints against the page.
   `test/f_corpus_test.dart` pins the next stop. Statement 152,00, `IF
   MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00`, refuses `a
   comparison of BinaryExpr`. That is the fourth verdict above.
+
+  **Decided 2026-10-25: the comparison whose sides are expressions. A
+  design decision under D0.4; Jack can overturn it.** This is the fourth
+  item of the list above, and the thirteenth item done. Both sides
+  compare at the greater of their two scales. The left expression, or
+  the one expression, ends in the accumulator. The other side is the
+  `CAS` operand. When that side must be upscaled or computed, it is
+  built first and parked in a temporary cell. Statement 152,00:
+
+  ```
+  ...                   the fetches of FICA and GROSS, TS)1 and TS)2
+  LDQ    CP)+a          144.00
+  MPY    CP)+b          100
+  STQ    TS)3
+  LDQ    TS)1           the chain, at scale 4
+  MPY    CP)+b
+  STQ    RS)1+0
+  LDQ    CP)+c          0.03
+  MPY    TS)2
+  STQ    RS)0
+  CLA    RS)1
+  ADD    RS)0
+  CAS    TS)3
+  ```
+
+  The vector follows, and mirrors when the accumulator holds the right
+  side. Statement 156,00 parks nothing. The product `13 * EXEMPTIONS`
+  ends in the MQ at scale 0, so `MPY` 100 and `XCA` align it against
+  GROSS. The rules:
+
+  - A chain below the other side's scale aligns each term to that
+    scale, with the chain's attested `LDQ / MPY / STQ` park. A product
+    below it takes one more `MPY`, as a product term of a chain does.
+  - A computed or upscaled other side parks with one word: `STQ` from
+    the MQ, `STO` from the accumulator. The cell is the next `TS)`
+    cell past the fetches of the scope. A park inside a truth function
+    takes the cell above any outer park.
+  - Both sides expressions: the right one first, parked, then the left.
+
+  The evidence: [J 02.04.07], "Numeric fields are compared
+  arithmetically without regard to length", so the two integers take
+  one scale. Each word is a word of the chain, the product or the
+  aligned build above. [J 90.02.04] gives `TS)` cells to "temporarily
+  store an item".
+
+  The rejected options:
+
+  - *Lower the expression with the divide tail.* It rounds or drops
+    fraction digits, so 113.99 + 0.03 * 1000.33, which is 143.9999,
+    would compare equal to 144.00.
+  - *The expression first, then park it.* The plain side then takes
+    `LDQ / MPY / XCA` and the park costs one word more.
+  - *Park in `RS)`.* The chain numbers its own `RS)` cells, and a park
+    there needs a cell past them in a reservation fitted to the sample.
+  - *`XCA / MPY / XCA` after a chain.* The term alignment gives the same
+    value with attested words.
+
+  The refusals: `an expression comparand of more than 10 digits (no
+  sample instance)`, because `CAS` reads one word; `a comparison of
+  FigurativeOperand against an expression (no sample instance)`; and `a
+  temporary cell past the TS) reservation (M4-4)` for the park.
+
+  The tests: `test/codegen_test.dart` asserts the words of both
+  statements, a mirrored side, a chain below a field, two expressions,
+  and a truth function's park. `test/codegen_refusal_test.dart` pins
+  the three refusals. `test/runtime/machine_test.dart` runs both shapes
+  over external fields: 130.00, 144.00, 150.00 and 143.9999 against
+  144.00, and 13 * 2 against 25.99, 26.00 and 26.01.
+  `test/f_corpus_test.dart` pins the next stop. Statement 162,00, `MOVE
+  CORRESPONDING MASTER TO BONDORDER`, refuses `a move of
+  externalDecimal to externalDecimal (notes section 7)`.
 
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
