@@ -582,6 +582,232 @@ void main() {
     });
   });
 
+  group('the comparison of an expression (M6-9)', () {
+    /// The words of [statement] up to its STOP RUN, with FICA, GROSS and
+    /// EXEMPTIONS external at the applied deck's pictorials, and NUM and
+    /// FRAC internal at `999` and `9V9`.
+    List<String> compare(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'FICA', level: '1', mode: 'E', description: '999V99'),
+          dataCard(
+            name: 'GROSS',
+            level: '1',
+            mode: 'E',
+            description: '99999V99',
+          ),
+          dataCard(
+            name: 'EXEMPTIONS',
+            level: '1',
+            mode: 'E',
+            description: '99',
+          ),
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(
+            name: 'FRAC',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '9V9',
+          ),
+          dataCard(
+            name: 'BIG',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '9(8)',
+          ),
+        ],
+        procedure: [statement, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      // The procedure begins past the six one-word data cells.
+      final int start = words.indexOf('BSS 0') + 7;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    // The fetches of FICA and GROSS come first, into TS)1 and TS)2.
+    const fetches = <String>[
+      'LDI CP)+11',
+      'STI SYS)132',
+      'TSX SYS)182,4',
+      'TXI SYS)184,1,5',
+      'STO TS)1',
+      'LDI CP)+12',
+      'STI SYS)132',
+      'TSX SYS)182,4',
+      'TXI SYS)184,1,7',
+      'STO TS)2',
+    ];
+
+    test('statement 152 parks the upscaled literal, then the chain', () {
+      // The chain is at scale 4, so 144.00 is upscaled by 100 into TS)3.
+      // LT takes the less slot, which falls into the THEN arm.
+      expect(
+        compare(
+          '            IF FICA + 0.03 * GROSS IS LESS THAN 144.00 THEN '
+          'STOP RUN.',
+        ),
+        [
+          ...fetches,
+          'LDQ CP)+3',
+          'MPY CP)+4',
+          'STQ TS)3',
+          'LDQ TS)1',
+          'MPY CP)+4',
+          'STQ RS)1+0',
+          'LDQ CP)+2',
+          'MPY TS)2',
+          'STQ RS)0',
+          'CLA RS)1',
+          'ADD RS)0',
+          'CAS TS)3',
+          'TRA GN)001',
+          'TRA GN)001',
+        ],
+      );
+    });
+
+    test('an expression on the right mirrors the vector', () {
+      // 144.00 GT the chain is the chain LT 144.00, the less slot again.
+      final List<String> words = compare(
+        '            IF 144.00 GT FICA + 0.03 * GROSS THEN STOP RUN.',
+      );
+      expect(words.sublist(words.length - 3), [
+        'CAS TS)3',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
+    });
+
+    test('statement 156 upscales the product in the MQ', () {
+      // 13 * EXEMPTIONS is at scale 0 and GROSS at scale 2.
+      expect(
+        compare(
+          '            IF 13 * EXEMPTIONS IS LESS THAN GROSS THEN STOP RUN.',
+        ),
+        [
+          'LDI CP)+10',
+          'STI SYS)132',
+          'TSX SYS)182,4',
+          'TXI SYS)184,1,2',
+          'STO TS)1',
+          'LDI CP)+11',
+          'STI SYS)132',
+          'TSX SYS)182,4',
+          'TXI SYS)184,1,7',
+          'STO TS)2',
+          'LDQ CP)+2',
+          'MPY TS)1',
+          'MPY CP)+3',
+          'XCA ',
+          'CAS TS)2',
+          'TRA GN)001',
+          'TRA GN)001',
+        ],
+      );
+    });
+
+    test('a chain below the other side aligns its terms', () {
+      // The chain takes scale 1 from FRAC, so each term parks upscaled.
+      expect(compare('            IF NUM + 1 LT FRAC THEN STOP RUN.'), [
+        'LDQ NUM',
+        'MPY CP)+2',
+        'STQ RS)1+0',
+        'LDQ CP)+1',
+        'MPY CP)+2',
+        'STQ RS)0',
+        'CLA RS)1',
+        'ADD RS)0',
+        'CAS FRAC',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
+    });
+
+    test('two expressions park the right one first', () {
+      expect(compare('            IF NUM + 1 = FRAC * 2 THEN STOP RUN.'), [
+        'LDQ CP)+2',
+        'MPY FRAC',
+        'STQ TS)1',
+        'LDQ NUM',
+        'MPY CP)+3',
+        'STQ RS)1+0',
+        'LDQ CP)+1',
+        'MPY CP)+3',
+        'STQ RS)0',
+        'CLA RS)1',
+        'ADD RS)0',
+        'CAS TS)1',
+        'TRA GN)001',
+        'TRA *+2',
+        'TRA GN)001',
+      ]);
+    });
+
+    test('an expression of equal scale compares with no park', () {
+      expect(compare('            IF NUM - 1 GT NUM THEN STOP RUN.'), [
+        'CLA NUM',
+        'SUB CP)+1',
+        'CAS NUM',
+        'TRA *+3',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
+    });
+
+    test('a truth function inside the expression parks above it', () {
+      final List<String> words = compare(
+        '            IF TR (FRAC + 1 GT 1) * 1 + FRAC GT 1 THEN STOP RUN.',
+      );
+      // The outer park of the upscaled 1 is TS)1, so the inner one takes
+      // TS)2. The inner chain reads its RS)0 before the outer chain parks
+      // its first term in RS)1.
+      expect(words, [
+        'LDQ CP)+1',
+        'MPY CP)+2',
+        'STQ TS)1',
+        'RIR 777777',
+        'LDQ CP)+1',
+        'MPY CP)+2',
+        'STQ TS)2',
+        'LDQ CP)+1',
+        'MPY CP)+2',
+        'STQ RS)0',
+        'CLA FRAC',
+        'ADD RS)0',
+        'CAS TS)2',
+        'TRA *+3',
+        'TRA *+3',
+        'TRA *+2',
+        'SIR 000001',
+        'PXA 0,0',
+        'RFT 000001',
+        'CLA CP)+1',
+        'XCA ',
+        'MPY CP)+1',
+        'MPY CP)+2',
+        'STQ RS)1+0',
+        'CLA RS)1',
+        'ADD FRAC',
+        'CAS TS)1',
+        'TRA *+3',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
+    });
+  });
+
   group('the external-decimal fetch (M6-9)', () {
     /// The words from the first fetch to the end of [statement], with
     /// EXT and EXU external decimal, NUM internal, and IFLD a field of

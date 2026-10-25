@@ -344,17 +344,17 @@ void main() {
       );
     });
 
-    test('a numeric comparison of an expression', () {
+    test('a numeric comparison of a truth function', () {
       expect(
-        _refuses(['            IF NUM + TOT GT NUM THEN STOP RUN.']),
-        startsWith('a comparison of '),
+        _refuses(['            IF TR (NUM GT TOT) GT NUM THEN STOP RUN.']),
+        'a comparison of TruthExpr',
       );
     });
 
-    test('a numeric comparison against an expression', () {
+    test('a numeric comparison against a truth function', () {
       expect(
-        _refuses(['            IF NUM GT TOT + NUM THEN STOP RUN.']),
-        startsWith('a comparison of '),
+        _refuses(['            IF NUM GT TR (NUM GT TOT) THEN STOP RUN.']),
+        'a comparison of TruthExpr',
       );
     });
 
@@ -626,6 +626,73 @@ void main() {
           ],
         ),
         'an aligned comparand of more than 10 digits (no sample instance)',
+      );
+    });
+
+    test('an expression comparand past ten digits', () {
+      expect(
+        _refuses(
+          ['            IF BIG * BIG GT 1 THEN STOP RUN.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'BIG',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '9(6)',
+            ),
+          ],
+        ),
+        'an expression comparand of more than 10 digits (no sample instance)',
+      );
+    });
+
+    test('a zero comparand against an expression', () {
+      // ZERO, 0, and a scaled 0.00, which would be built and parked.
+      for (final zero in ['ZERO', '0', '0.00']) {
+        expect(
+          _refuses(['            IF NUM + 1 GT $zero THEN STOP RUN.']),
+          'a zero comparand against an expression (no sample instance)',
+          reason: zero,
+        );
+      }
+    });
+
+    test('a truth function against an expression', () {
+      expect(
+        _refuses(['            IF TR (NUM GT TOT) GT NUM + 1 THEN STOP RUN.']),
+        'a comparison of TruthExpr against an expression (no sample instance)',
+      );
+    });
+
+    test('an expression comparison inside a later term of a chain', () {
+      // NUM * 2 parks in RS)1 ahead of the truth function, whose chain
+      // would number its own cells from RS)0 over it.
+      expect(
+        _refuses([
+          '            IF NUM * 2 + TR (NUM + 1 GT FRAC) * 1 GT 15 THEN',
+          '            STOP RUN.',
+        ]),
+        'an expression comparison inside a truth function after a parked '
+        'term (no sample instance)',
+      );
+    });
+
+    test('a comparison park past the TS) reservation', () {
+      // Seven fetches fill TS)1 to TS)7, and the upscaled 1 needs an
+      // eighth cell.
+      final List<String> names = [for (var i = 1; i <= 7; i++) 'E$i'];
+      expect(
+        _refuses(
+          ['            IF ${names.join(' + ')} LT 1 THEN STOP RUN.'],
+          data: [
+            ..._data(),
+            for (final String name in names)
+              dataCard(name: name, level: '1', mode: 'E', description: '9V9'),
+          ],
+        ),
+        'a temporary cell past the TS) reservation (M4-4)',
       );
     });
 

@@ -1068,6 +1068,11 @@ final class _Text {
   final Map<DataItem, int> _fetched = Map<DataItem, int>.identity();
   bool _fetching = false;
 
+  /// The comparison parks still live past the fetch cells (M6-9). A
+  /// truth function inside the accumulator side of an expression
+  /// comparison parks above them.
+  int _parked = 0;
+
   /// Runs [body] with every external-decimal item of [operands] fetched
   /// ahead of it into its own temporary cell (M6-9). The fetches run
   /// before the first word of the body, so no convert can clobber a
@@ -2914,7 +2919,9 @@ final class _Text {
   }
 
   /// Emits the chain of [value] and returns what it computed and where.
-  _Value _chain(ArithExpr value) {
+  /// A chain of several terms aligns them to at least [floor], the scale
+  /// of a comparison's other side (M6-9).
+  _Value _chain(ArithExpr value, {int floor = 0}) {
     final List<(ArithExpr, Token?)> terms = _additiveTerms(value);
     if (terms.length == 1) {
       final ArithExpr term = terms.single.$1;
@@ -2935,11 +2942,12 @@ final class _Text {
           _unruled('a chain of ${term.runtimeType} (no sample instance)');
       }
     }
-    var chainScale = 0;
+    var chainScale = floor;
     for (final (ArithExpr term, _) in terms) {
       final int scale = _naturalScale(term);
       chainScale = scale > chainScale ? scale : chainScale;
     }
+    final int live = _liveResultCells;
     // One entry per term: the word the assembly emits for it, with the
     // guard that word must carry. The NET sentence pins the placement:
     // the guard for `1)BONDEDUCTION` sits at 00727, between the fifth
@@ -3004,6 +3012,7 @@ final class _Text {
             : Op.add,
       );
     }
+    _liveResultCells = live; // The assembly has read every park.
     return (scale: chainScale, register: _Register.ac);
   }
 
@@ -3011,6 +3020,7 @@ final class _Text {
   /// word the assembly reads it back with. The park names the register
   /// the value sits in: `STQ` after a multiply, `STO` after a chain.
   void Function(Op op) _park(int cell, _Register register) {
+    _liveResultCells++;
     _op(
       register == _Register.mq ? Op.stq : Op.sto,
       _resultCell(cell, offset: cell != 0 && register == _Register.mq),
@@ -3018,6 +3028,11 @@ final class _Text {
     final _Sym read = _resultCell(cell);
     return (Op op) => _op(op, read);
   }
+
+  /// The `RS)` parks of the open chains that the assembly has yet to
+  /// read. Each chain numbers its cells from 0, so a chain nested inside
+  /// a truth function would overwrite them (M6-9).
+  int _liveResultCells = 0;
 
   bool _additive(BinaryExpr expr) =>
       expr.operator.text == '+' || expr.operator.text == '-';
@@ -3357,17 +3372,124 @@ final class _Text {
       final subscripted = Set<DataItem>.identity();
       _withFetches(
         _operandsOf([acc, storage], subscripted),
-        () => _numericComparison(
-          acc,
-          storage,
-          relation,
-          rightInAccumulator,
-          trueTo: trueTo,
-          falseTo: falseTo,
-        ),
+        () => relation.left is BinaryExpr || relation.right is BinaryExpr
+            ? _expressionComparison(relation, trueTo: trueTo, falseTo: falseTo)
+            : _numericComparison(
+                acc,
+                storage,
+                relation,
+                rightInAccumulator,
+                trueTo: trueTo,
+                falseTo: falseTo,
+              ),
         subscripted: subscripted,
       );
     }
+  }
+
+  /// A numeric comparison with an expression on one side or both (M6-9).
+  /// Both sides compare at the greater of their scales. The left
+  /// expression, or the one expression, ends in the accumulator. The
+  /// other side is the `CAS` operand: a name or a literal as it stands,
+  /// or built first and parked in a temporary cell when it must be
+  /// upscaled or computed.
+  void _expressionComparison(
+    Relation relation, {
+    required _Cont trueTo,
+    required _Cont falseTo,
+  }) {
+    if (_liveResultCells > 0) {
+      // The chain of this comparison would number its RS) cells from 0
+      // over the outer chain's parks.
+      _unruled(
+        'an expression comparison inside a truth function after a parked '
+        'term (no sample instance)',
+      );
+    }
+    for (final side in <ArithExpr>[relation.left, relation.right]) {
+      if (_builtInAccumulator(side)) {
+        // The attested zero build puts the zero in the accumulator, and
+        // no site makes it the `CAS` operand (msg 82,00 bars the other
+        // figuratives).
+        _unruled('a zero comparand against an expression (no sample instance)');
+      }
+      if (side is! BinaryExpr &&
+          side is! NameOperand &&
+          side is! LiteralOperand) {
+        _unruled(
+          'a comparison of ${side.runtimeType} against an expression '
+          '(no sample instance)',
+        );
+      }
+    }
+    final int scale = math.max(
+      _naturalScale(relation.left),
+      _naturalScale(relation.right),
+    );
+    final leftInAccumulator = relation.left is BinaryExpr;
+    final ArithExpr acc = leftInAccumulator ? relation.left : relation.right;
+    final ArithExpr storage = leftInAccumulator
+        ? relation.right
+        : relation.left;
+    if (storage is! BinaryExpr && _naturalScale(storage) == scale) {
+      _accumulatorSide(acc as BinaryExpr, scale);
+      _compareStorage(storage);
+    } else {
+      final _Sym parkCell = _comparisonPark();
+      if (storage is BinaryExpr) {
+        final _Register register = _alignedExpression(storage, scale);
+        _op(register == _Register.mq ? Op.stq : Op.sto, parkCell);
+      } else {
+        _alignedBuild(
+          storage,
+          scale - _naturalScale(storage),
+          finish: () => _op(Op.stq, parkCell),
+        );
+      }
+      _parked++;
+      try {
+        _accumulatorSide(acc as BinaryExpr, scale);
+      } finally {
+        _parked--;
+      }
+      _op(Op.cas, parkCell);
+    }
+    _vector(relation, !leftInAccumulator, trueTo: trueTo, falseTo: falseTo);
+  }
+
+  /// Emits [expr] at [scale] and leaves it in the accumulator.
+  void _accumulatorSide(BinaryExpr expr, int scale) {
+    if (_alignedExpression(expr, scale) == _Register.mq) {
+      _xca();
+    }
+  }
+
+  /// Emits [expr] at [scale] and returns the register it ends in. A
+  /// chain aligns its terms to the scale; a product below it takes one
+  /// more `MPY`, as a product term of a chain does. The value must fit
+  /// the one word that `CAS` reads.
+  _Register _alignedExpression(BinaryExpr expr, int scale) {
+    final _Value value = _chain(expr, floor: scale);
+    if (value.scale < scale) {
+      _op(Op.mpy, _cp(_pool.machineWord(_pow10(scale - value.scale))));
+    }
+    if (_digits(expr) + scale - _naturalScale(expr) > 10) {
+      _unruled(
+        'an expression comparand of more than 10 digits (no sample instance)',
+      );
+    }
+    return value.register;
+  }
+
+  /// The temporary cell past the fetch cells and the parks still live
+  /// (M6-9). A truth function inside the accumulator side parks above
+  /// the outer park.
+  _Sym _comparisonPark() {
+    final int cell = _fetched.length + 1 + _parked;
+    if (cell > temporaryStorageWords) {
+      _unruled('a temporary cell past the TS) reservation (M4-4)');
+    }
+    return _blockWord(StorageBlock.ts, cell);
   }
 
   bool _builtInAccumulator(ArithExpr operand) => switch (operand) {
@@ -3459,10 +3581,17 @@ final class _Text {
   /// The aligned side of a comparison: `LDQ` the operand, `MPY` the power
   /// of ten, `XCA` — the zero build's three words (the attested 00656–00660
   /// and 01241–01243). The literal pools as keyed (catalogue 4.7).
-  void _alignedBuild(ArithExpr low, int deficit) {
+  ///
+  /// [finish] is the word that ends it: `XCA`, or the park of an
+  /// expression comparison (M6-9).
+  void _alignedBuild(ArithExpr low, int deficit, {void Function()? finish}) {
     if (low case LiteralOperand(:final literal)) {
       _wordGuard('${_literalValue(literal).$1}'.length, deficit);
-      _scaledLoad(() => _op(Op.ldq, _cp(_numericLiteral(literal))), deficit);
+      _scaledLoad(
+        () => _op(Op.ldq, _cp(_numericLiteral(literal))),
+        deficit,
+        finish: finish,
+      );
       return;
     }
     final NameReference name = (low as NameOperand).name;
@@ -3473,7 +3602,7 @@ final class _Text {
       );
     }
     _wordGuard(_sem(item).digits, deficit);
-    _scaledLoad(() => _read(Op.ldq, item), deficit);
+    _scaledLoad(() => _read(Op.ldq, item), deficit, finish: finish);
   }
 
   /// The `XCA` keeps the low word of the product, so the aligned value
@@ -3547,11 +3676,16 @@ final class _Text {
   }
 
   /// [load] into the MQ, then `MPY` the power of ten and `XCA`, which
-  /// leaves the upscaled value in the accumulator.
-  void _scaledLoad(void Function() load, int deficit) {
+  /// leaves the upscaled value in the accumulator, or [finish] in place
+  /// of the `XCA`.
+  void _scaledLoad(
+    void Function() load,
+    int deficit, {
+    void Function()? finish,
+  }) {
     load();
     _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
-    _xca();
+    (finish ?? _xca)();
   }
 
   int _operandScale(ArithExpr operand) => switch (operand) {
