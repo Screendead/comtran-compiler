@@ -1038,13 +1038,24 @@ void main() {
       expect(subject.state.read(overflowCell), 0);
     });
 
-    test('an edit run drops a significant digit and arms SYS)130', () {
+    test('an edited source drops a significant digit and arms SYS)130', () {
       final (JobCompilation job, Machine subject) = compiled(
-        _droppedDigits('12345.67', '1234'),
+        _droppedDigits('12345.67', '234'),
       );
       expect(subject.printed, <String>['AT 7,00 STOP RUN']);
-      // The low-order digits print, as F p. 43's `01234` gives `2340`.
+      // The low-order digits print. The EDF move drops a zero.
       expect(glyphsAt(subject, addressOf(job, 'AMT'), 8), r'$2345.67');
+      expect(glyphsAt(subject, addressOf(job, 'EDF'), 5), '234.0');
+      expect(subject.state.read(overflowCell), isNot(0));
+    });
+
+    test('the F p. 43 row drops a significant digit and arms SYS)130', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _droppedDigits('8889.99', '1234'),
+      );
+      expect(subject.printed, <String>['AT 7,00 STOP RUN']);
+      // `01234` gives `234.0`, as F's `2340`. The AMT move drops a zero.
+      expect(glyphsAt(subject, addressOf(job, 'AMT'), 8), r'$8889.99');
       expect(glyphsAt(subject, addressOf(job, 'EDF'), 5), '234.0');
       expect(subject.state.read(overflowCell), isNot(0));
     });
