@@ -974,27 +974,54 @@ void main() {
         ),
         dataCard(name: 'G11', level: '2', description: 'A(5)'),
       ];
-      const shape =
-          'a table stride of 11 characters, not a whole number of words '
-          '(M6-9)';
-
-      test('in a DO FOR', () {
+      test('in a whole-word read, which drops the byte', () {
+        // The DO FOR steps the byte now; `CAS 0,r` cannot read it.
         expect(
           _refuses([
-            '            IF NUM = T11 F11 (IDX) THEN STOP RUN.',
             '            DO RTN FOR IDX = 1(1)12.',
+            '            IF NUM = T11 F11 (IDX) THEN STOP RUN.',
           ], data: data),
-          shape,
+          'a whole-word read of an element whose stride is 11 characters '
+          '(M6-9)',
         );
+      });
+
+      group('an external field read with and without its subscript', () {
+        // One cell serves an item in a fetch scope.
+        final List<String> external = [
+          ..._data(),
+          dataCard(name: 'XT', level: '1', quantity: '12'),
+          dataCard(name: 'XF', level: '2', description: '99'),
+        ];
+        const shape =
+            'an external-decimal field read with and without its '
+            'subscript (no sample instance)';
+
+        test('in a comparison', () {
+          expect(
+            _refuses([
+              '            IF XF (IDX) GT XF THEN STOP RUN.',
+            ], data: external),
+            shape,
+          );
+        });
+
+        test('in an ADD', () {
+          expect(
+            _refuses(['            ADD XF (IDX) TO XF.'], data: external),
+            shape,
+          );
+        });
       });
 
       test('in a subscript store', () {
         expect(
           _refuses([
-            '            IF NUM = T11 F11 (IDX) THEN STOP RUN.',
             '            MOVE NUM TO IDX.',
+            '            IF NUM = T11 F11 (IDX) THEN STOP RUN.',
           ], data: data),
-          shape,
+          'a table stride of 11 characters, not a whole number of words '
+          '(M6-9)',
         );
       });
     });

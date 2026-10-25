@@ -1252,6 +1252,8 @@ the report our run prints against the page.
   ```
 
   The loop holds 21 + 5·M words, where the internal loop holds 11 + 5·M.
+  Each indicator of a stride of part of a word adds 3 (amended
+  2026-10-25, the stride decision below).
   A minus or plus overpunch takes SYS)187 or SYS)188, as for every
   store. The evidence:
 
@@ -1348,10 +1350,14 @@ the report our run prints against the page.
   - **The order.** Indicator order is `PI)` order, the order of first
     reference. The prologue, the increment block and the EQU lines
     follow it.
-  - **The names.** The run is 3 + 2·M names: one unbound name, the
-    body-entry EQU, the increment block, and then one pair per
-    indicator, the first name unbound and the second bound to the
-    base. For M = 1 that is the fitted run 084 to 088 of M4-6. Both
+  - **The names.** The run is 3 + 2·M names:
+    - one unbound name;
+    - the body-entry EQU;
+    - the increment block;
+    - one pair per indicator, the first name unbound and the second
+      bound to the base.
+
+    For M = 1 that is the fitted run 084 to 088 of M4-6. Both
     groupings of the notes give the same DO FOR run, so the extension
     does not choose between them.
   - **The EQU lines.** Every table-base EQU heads the block, as the
@@ -1406,6 +1412,9 @@ the report our run prints against the page.
   No refusal is added for a base inside a word: it would fire on
   `PZE RETPREM-2` in the sample.
 
+  **Amended 2026-10-25.** The stride decision below builds the stride
+  in the loop. The refusal stays for the subscript store.
+
   The tests: `test/codegen_test.dart` asserts the words for two
   tables, and for three fields of one table with one stride entry.
   `test/codegen_refusal_test.dart` pins the stride refusal in a loop
@@ -1415,6 +1424,137 @@ the report our run prints against the page.
   each count reads 12 and the sums read 78, 1278 and 2478.
   `test/f_corpus_test.dart` pins the next stop. Statement 144,00 now
   refuses the stride of TABLE.ITEM, 11 characters.
+
+  **Decided 2026-10-25: the stride of part of a word. A design
+  decision under D0.4; Jack can overturn it.** This is the seventh item
+  of the list above, and the tenth item done. A DO FOR now steps an
+  indicator by a stride that is not a whole number of words. The step
+  carries the byte into the word. Each such indicator takes six words
+  in the increment block, where a whole-word stride takes three:
+
+  ```
+  CLA    stride         PZE 1,,5 for 11 characters
+  ADD    PI)n
+  SUB    CP)+k          OCT 000005777777, 6·2^18 − 1
+  TPL    *+2
+  ADD    CP)+k
+  STO    PI)n
+  ```
+
+  The prologue sets the indicator from a base that carries the field's
+  byte, for every stride. For TABLE.ITEM the bases are `PZE RATE+0`,
+  `PZE INSURANCE.PREM+0,,5` and `PZE RETIREMENT.PREM+0,,2`. A base at
+  byte 0 prints no byte, so the sample's `PZE 2)RATE+0` does not
+  change. A whole-word stride keeps the sample's three step words.
+
+  **Amended 2026-10-25, after the PR 150 review.** The first build
+  gave a whole-word stride the base `NAME+0` with a zero decrement.
+  The readers below then read a field at byte 2 from byte 0: over
+  items of `99`, `9999` and `9(6)`, `ADD B (INDEX)` summed 007800 for
+  000078. The subscripted MOVE source read the same wrong characters
+  before this decision, because it also sets SYS)132 from the
+  indicator. Every DO FOR base now carries its byte.
+  `test/runtime/machine_test.dart` runs the ADD, a comparison and the
+  MOVE over that table.
+
+  **The indicator form.** An indicator is the MOVPAK pointer itself:
+  the word in the address field and the byte in the decrement. The
+  evidence:
+
+  - [J 02.04.07] says a positional indicator holds "the location (word
+    and byte)".
+  - LOC 01445 to 01446 of the 1962 sample copy `PI)2` into SYS)132
+    with `LDI` and `STI`, and add nothing. So the indicator has the
+    form of the pointer.
+  - [J 90.02.11] gives SYS)132 as `PZE LOC,,BYTE`, and the sample's
+    `PZE INS.PREM,,3` prints the byte in the decrement.
+
+  **The carry.** The decrement sits above the address, so the word is
+  `byte·2^18 + word`. The rules:
+
+  - The `ADD` of `PZE 1,,5` adds 5 to the byte and 1 to the word. Only
+    the carry is missing.
+  - The `SUB` of k leaves `(byte − 6)·2^18 + word + 1`. The address is
+    below 2^15, so the value is positive exactly when the byte reached
+    6. It is then the carried pointer: the byte less 6, the word plus 1.
+  - When the value is negative, the `ADD` of k restores the sum. The
+    value is never zero, so the sign of zero does not matter.
+  - The byte stays below 11, so one carry is always enough.
+
+  The sequence uses only attested opcodes: `TPL` at the exit test of
+  LOC 00721, `*+n` at LOC 01413. The sequence itself has no listing.
+
+  **The readers.** A subscripted external-decimal operand of a
+  comparison or an ADD now converts through its indicator into a
+  temporary cell:
+
+  ```
+  LDI    PI)n
+  STI    SYS)132
+  TSX    SYS)182,4
+  TXI    SYS)184,1,digits
+  STO    TS)k
+  ```
+
+  These are the words of LOC 01445 to 01450, the subscripted MOVE
+  source, with the park of the fetch decision in place of the store.
+  The handler reads characters from the pointer's byte, so a reader
+  through a descriptor reads any stride. The arithmetic then reads the
+  cell. The fetch decision's refusal `a subscripted external-decimal
+  operand (M6-9)` stays for SET, because the chain has no subscripted
+  operand form.
+
+  These answer the three reasons of the DO FOR decision above:
+
+  - The step carries in three words of attested opcodes.
+  - The external comparand reads through a descriptor, not through
+    `LAC PI)n,r / CAS 0,r`.
+  - The base carries its byte. The 1962 subscript store drops it
+    (M6-4 finding 1), and that site keeps its words (codegen defect
+    10, `docs/HANDOVER.md`).
+
+  The rejected options:
+
+  - *Recompute the indicator from the index.* `LDQ`, `MPY` by 11,
+    `DVP` by 6, `ALS 18` and `ORS` give the same pointer in 11 words.
+    The loop then gives up the attested step of LOC 00714 to 00716.
+  - *A `CAS` vector for the carry.* `CAS k`, its three `TRA` words
+    and `SUB k` give the same pointer in eight words, two more.
+  - *A runtime that takes a byte past 5.* [J 90.02.11] gives the byte of
+    SYS)132 as "(0-5)".
+  - *Drop the base byte, as the 1962 subscript store does.* That is a
+    defect at one site, and the DO FOR has no listing that repeats it.
+    INSURANCE.PREM would then read RATE's last character.
+
+  The open items: the prologue sets each indicator to element 1 for any
+  p, and the step adds one stride for any q. The deck is `1(1)12`, so
+  neither changes its code. Both are older than this decision.
+
+  The refusals:
+
+  - `a whole-word read of an element whose stride is 11 characters
+    (M6-9)`, for an internal comparand through `LAC PI)n,r`. The `CAS
+    0,r` reads the word and drops the byte.
+  - `a table stride of 11 characters, not a whole number of words
+    (M6-9)` stays for the subscript store, which multiplies a word
+    count. The deck has no MOVE into INDEX.
+  - `an external-decimal field read with and without its subscript (no
+    sample instance)`, because one cell serves an item in a scope.
+
+  The tests:
+
+  - `test/codegen_test.dart` asserts the step words, the pool words
+    and the reader words, and gives two tables different strides.
+  - `test/codegen_refusal_test.dart` pins the three refusals.
+  - `test/runtime/machine_test.dart` loops 1(1)12 over the deck's six
+    TABLE rows. Each pass compares RATE, INSURANCE.PREM and
+    RETIREMENT.PREM of item k with a whole-word copy, so each count
+    reads 12. The bytes run 0, 5, 4, 3, 2, 1, so the carry fires at
+    exactly 6 and past it. The two ADD sums read the row totals.
+  - `test/f_corpus_test.dart` pins the next stop. Statement 145,00
+    refuses `an arithmetic operand of edited (no sample instance)`,
+    because its SET target PAYRECORD NETPAY is edited. Statement
+    166,00, the readers above, comes later in the text.
 
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as

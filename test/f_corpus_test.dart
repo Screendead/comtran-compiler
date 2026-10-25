@@ -51,14 +51,14 @@ void main() {
     );
   });
 
-  test('the applied deck refuses the stride of TABLE.ITEM', () {
-    // The DO FOR drives the three indicators of RATE, INSURANCE.PREM and
-    // RETIREMENT.PREM (M6-9). Statement 144,00, `DO SEARCH FOR INDEX =
-    // 1(1)12`, then steps them by TABLE.ITEM's 11 characters, which is
-    // not a whole number of words.
+  test('the applied deck refuses the edited SET target of NET', () {
+    // Statement 144,00 steps the three indicators of RATE,
+    // INSURANCE.PREM and RETIREMENT.PREM by TABLE.ITEM's 11 characters
+    // (M6-9). Statement 145,00 then sets PAYRECORD NETPAY, an edited
+    // field, to a chain of six external-decimal fields.
     expect(
       _refusal(fAppliedDeckPath),
-      'a table stride of 11 characters, not a whole number of words (M6-9)',
+      'an arithmetic operand of edited (no sample instance)',
     );
   });
 }

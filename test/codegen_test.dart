@@ -1228,7 +1228,7 @@ void main() {
     /// compares NUM with each of [cells] subscripted by IDX: the
     /// table-base EQUs ahead of the AXT, then every word to the TPL.
     /// An EQU prints as its label and its operand.
-    List<String> loop(List<String> data, List<String> cells) {
+    List<String> indicatorLoop(List<String> data, List<String> cells) {
       final SemanticResult semantics = runJob(
         data: [...data, cell('NUM', '1'), cell('IDX', '1')],
         procedure: [
@@ -1258,12 +1258,13 @@ void main() {
 
     test('two tables each take a base, a pair of names, and a stride', () {
       expect(
-        loop(
+        indicatorLoop(
           [
             dataCard(name: 'TAB', level: '1', quantity: '12'),
             cell('CELL', '2'),
             dataCard(name: 'TAB2', level: '1', quantity: '12'),
             cell('CEL2', '2'),
+            cell('PAD2', '2'),
           ],
           ['CELL', 'CEL2'],
         ),
@@ -1271,8 +1272,8 @@ void main() {
           // 004 is never bound, 005 and 006 are the body entry and the
           // increment, and each indicator takes a pair: 007 and 008,
           // then 009 and 010, the second name bound.
-          'GN)008 EQU CP)+10',
-          'GN)010 EQU CP)+11',
+          'GN)008 EQU CP)+11',
+          'GN)010 EQU CP)+12',
           'AXT GN)006,4',
           'SXA RTN,4',
           'CLA CP)+1',
@@ -1289,7 +1290,8 @@ void main() {
           'CLA CP)+1',
           'ADD PI)1',
           'STO PI)1',
-          'CLA CP)+1',
+          // TAB2's element is two words, so its stride is its own entry.
+          'CLA CP)+3',
           'ADD PI)2',
           'STO PI)2',
           'CLA CP)+2',
@@ -1306,7 +1308,7 @@ void main() {
         cell('B', '2'),
         cell('C', '2'),
       ];
-      expect(loop(data, ['A', 'B', 'C']), [
+      expect(indicatorLoop(data, ['A', 'B', 'C']), [
         'GN)009 EQU CP)+12',
         'GN)011 EQU CP)+13',
         'GN)013 EQU CP)+14',
@@ -1338,6 +1340,147 @@ void main() {
         'CLA CP)+2',
         'SUB IDX',
         'TPL GN)006',
+      ]);
+    });
+  });
+
+  group('the stride of part of a word (M6-9)', () {
+    /// The shape of statements 144,00 and 166,00: TAB is twelve packed
+    /// items of 11 characters, R `99V999`, I and T `9V99`, all external
+    /// decimal, and IDX an external `99`. Each line is a label, a tab,
+    /// and the word.
+    List<String> lines() {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'TAB', level: '1', quantity: '12'),
+          dataCard(name: 'R', level: '2', description: '99V999'),
+          dataCard(name: 'I', level: '2', description: '9V99'),
+          dataCard(name: 'T', level: '2', description: '9V99'),
+          dataCard(name: 'MAS', level: '1', description: '99V999'),
+          dataCard(name: 'TOT', level: '1', description: '9V99'),
+          dataCard(name: 'IDX', level: '1', description: '99'),
+        ],
+        procedure: [
+          '            DO RTN FOR IDX = 1(1)12.',
+          '            STOP RUN.',
+          '      RTN.  BEGIN SECTION.',
+          '            IF MAS GT TAB R (IDX) THEN STOP RUN.',
+          '            ADD TAB I (IDX) TO TOT.',
+          '            END RTN.',
+        ],
+      );
+      expect(ids(semantics), ['206,00', '206,00']);
+      return [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.labels.join(' ')}\t${u.operation} ${u.operand}',
+      ];
+    }
+
+    List<String> between(List<String> all, String first, String last) {
+      final int start = all.indexOf(first);
+      return all.sublist(start, all.indexOf(last, start) + 1);
+    }
+
+    test('each indicator steps its byte and carries at six', () {
+      expect(between(lines(), '\tCLA CP)+3', '\tTPL GN)004'), [
+        '\tCLA CP)+3',
+        '\tADD PI)1',
+        '\tSUB CP)+4',
+        '\tTPL *+2',
+        '\tADD CP)+4',
+        '\tSTO PI)1',
+        '\tCLA CP)+3',
+        '\tADD PI)2',
+        '\tSUB CP)+4',
+        '\tTPL *+2',
+        '\tADD CP)+4',
+        '\tSTO PI)2',
+        '\tCLA CP)+2',
+        '\tSUB TS)1',
+        '\tTPL GN)004',
+      ]);
+    });
+
+    test('the stride, the carry and the bases carry a byte', () {
+      final List<String> all = lines();
+      // One word and five characters; six characters less one word.
+      expect(all, containsAll(['\tOCT 000005000001', '\tOCT 000005777777']));
+      expect(all, containsAll(['\tPZE R+0', '\tPZE I+0,,5']));
+    });
+
+    test('a whole-word stride keeps three words and the byte of its base', () {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'TAB', level: '1', quantity: '12'),
+          dataCard(name: 'A', level: '2', description: '99'),
+          dataCard(name: 'B', level: '2', description: '9999'),
+          dataCard(name: 'C', level: '2', description: '9(6)'),
+          dataCard(name: 'TOT', level: '1', description: '9999'),
+          dataCard(name: 'IDX', level: '1', description: '99'),
+        ],
+        procedure: [
+          '            DO RTN FOR IDX = 1(1)12.',
+          '            STOP RUN.',
+          '      RTN.  BEGIN SECTION.',
+          '            ADD TAB B (IDX) TO TOT.',
+          '            END RTN.',
+        ],
+      );
+      expect(ids(semantics), ['206,00']);
+      final List<String> all = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.labels.join(' ')}\t${u.operation} ${u.operand}',
+      ];
+      // B starts at byte 2 of the item's first word.
+      expect(all, contains('\tPZE B+0,,2'));
+      final int step = all.indexOf('\tADD PI)1');
+      expect(all.sublist(step - 1, step + 2), [
+        '\tCLA CP)+3',
+        '\tADD PI)1',
+        '\tSTO PI)1',
+      ]);
+    });
+
+    test('the readers set SYS)132 from the indicator', () {
+      expect(between(lines(), 'RTN\tAXT 0', '\tTXI SYS)186,1,3'), [
+        'RTN\tAXT 0',
+        '\tLDI CP)+14',
+        '\tSTI SYS)132',
+        '\tTSX SYS)182,4',
+        '\tTXI SYS)184,1,5',
+        '\tSTO TS)1',
+        // The subscripted fetch of LOC 01445 to 01450, into a cell.
+        '\tLDI PI)1',
+        '\tSTI SYS)132',
+        '\tTSX SYS)182,4',
+        '\tTXI SYS)184,1,5',
+        '\tSTO TS)2',
+        '\tCLA TS)1',
+        '\tCAS TS)2',
+        '\tTRA *+3',
+        '\tTRA GN)001',
+        '\tTRA GN)001',
+        '\tTSX SYS)178,4',
+        '\tPZE CP)+9,,CP)+10',
+        '\tPZE CP)+7,,CP)+8',
+        '\tTSX SYS)177,4',
+        '\tPZE IOC)1',
+        '\tTXI IOC)40,0',
+        'GN)001\tLDI PI)2',
+        '\tSTI SYS)132',
+        '\tTSX SYS)182,4',
+        '\tTXI SYS)184,1,3',
+        '\tSTO TS)1',
+        '\tLDI CP)+15',
+        '\tSTI SYS)132',
+        '\tTSX SYS)182,4',
+        '\tTXI SYS)184,1,3',
+        '\tSTO TS)2',
+        '\tCLA TS)2',
+        '\tADD TS)1',
+        '\tTSX SYS)180,4',
+        '\tPZE TOT,,0',
+        '\tTXI SYS)186,1,3',
       ]);
     });
   });
