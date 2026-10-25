@@ -1106,6 +1106,28 @@ void main() {
       );
     });
 
+    test('an undefined operand', () {
+      expect(
+        _refuses(['            SET TOT = NUM + ZZZ.'], flagged: ['108,00']),
+        'an operand that names no data item (no sample instance)',
+      );
+    });
+
+    test('an improperly qualified operand', () {
+      expect(
+        _refuses(['            SET TOT = NUM OF TOT.'], flagged: ['101,00']),
+        'an operand that names no data item (no sample instance)',
+      );
+    });
+
+    test('a numeric literal with two decimal points', () {
+      // The lexer's 53,00 is a front-end diagnostic, outside ids().
+      expect(
+        _refuses(['            SET TOT = NUM + 1.2.3.']),
+        'a numeric literal with two decimal points (no sample instance)',
+      );
+    });
+
     test('a located DO FOR index', () {
       expect(
         _refuses(
