@@ -1637,7 +1637,7 @@ final class _Text {
   );
 
   /// DO FOR (catalogue 4.1): 11 + 5·M words, M the positional
-  /// indicators the loop index drives, and 20 + 5·M for an external
+  /// indicators the loop index drives, and 21 + 5·M for an external
   /// index (M6-9); a five-name later-pass run, binding the body-entry
   /// EQU, the increment block, and the table-base EQU (M4-6, the fitted
   /// grouping).

@@ -890,7 +890,8 @@ the report our run prints against the page.
   - A SET, one ADD clause, one ADD CORRESPONDING pair, and one numeric
     comparison each open a scope. The clause scope converts the source
     once for all its targets, as the edited source of statement 221
-    parks once (amended 2026-10-25).
+    parks once (amended 2026-10-25). A DO FOR increment block also
+    opens a scope (amended 2026-10-25, the DO FOR decision below).
     All the fetches of the scope come before its first word, so no
     convert can overwrite a live accumulator or MQ.
   - One field read two times in a scope converts once and takes one
@@ -1212,9 +1213,14 @@ the report our run prints against the page.
   **Decided 2026-10-25: the external-decimal DO FOR index. A design
   decision under D0.4; Jack can overturn it.** This is the eleventh item
   of the list above, and the eighth item done. The loop of M4-13 keeps
-  every word, and three words change. The `STO` of the index becomes
-  the external-decimal store. The `CLA` of the index becomes a fetch
-  into `TS)1`, then `CLA TS)1`. The `SUB` of the index reads `TS)1`:
+  every word that does not touch the index. The four that do change,
+  and one word is added:
+
+  - Each `STO` of the index becomes the external-decimal store.
+  - The `CLA` of the index becomes a fetch into `TS)1`, then
+    `CLA TS)1`.
+  - The `SUB` of the index reads `TS)1`.
+  - The added word is the park, `STO TS)1`.
 
   ```
   AXT    GN)a,4
@@ -1245,12 +1251,12 @@ the report our run prints against the page.
   TPL    GN)b
   ```
 
-  The loop holds 20 + 5·M words, where the internal loop holds 11 + 5·M.
+  The loop holds 21 + 5·M words, where the internal loop holds 11 + 5·M.
   A minus or plus overpunch takes SYS)187 or SYS)188, as for every
   store. The evidence:
 
-  - The loop is LOC 00702 to 00721 of the 1962 sample. Only the three
-    words that read or write the index change.
+  - The loop is LOC 00702 to 00721 of the 1962 sample. Only the words
+    that read or write the index change, and the park is added.
   - The fetch and the store are the two decisions above, unchanged. The
     increment block is one fetch scope. The scope opens at the block's
     head, so the back edge enters on the convert.
