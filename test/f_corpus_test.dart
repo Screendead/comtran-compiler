@@ -74,7 +74,7 @@ void main() {
       'TXI SYS)183,1,0',
     ]);
     const options = ListingOptions(date: '06/01/60', time: '1.00');
-    // Six comparisons of a field across a word boundary each take an
+    // Six comparands across a word boundary each take an
     // `LDQ` and an `ANA` (codegen defect 12), past one card.
     expect(jobDeck(job, options)!.cards, hasLength(68));
   });
