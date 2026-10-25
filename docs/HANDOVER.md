@@ -58,7 +58,7 @@ Terms that appear without expansion:
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
-| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). All fourteen of its items are merged. The applied deck compiles and punches 68 cards. Its run reaches end of job; the run, its report golden and its acceptance test land with PR #145 and branch `m6s2-run`. Then stage 2 is complete | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
+| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). All fourteen of its items are merged. Done 2026-10-25: the applied deck runs over its tapes to end of job, and `test/f_acceptance_test.dart` classifies its report against the sample's | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
 | M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -116,7 +116,7 @@ The acceptance test diffs that report against our reading of the page,
 `INSPREM (POS)`, the page shows it on every line, and our object
 program reproduces it.
 
-**M6 stage 2 is complete once PR #145 and `m6s2-run` merge.**
+**M6 stage 2 is complete (2026-10-25).**
 `docs/design/m6-acceptance.md` M6-6 to M6-9 hold it. The 1960 program
 is keyed as printed (`test/fixtures/f-payroll.ctd`), and its listing,
 55 messages of 12 kinds, is the first diagnostic corpus. The applied
@@ -131,11 +131,14 @@ the course that ruling overturns, and M6-7 as amended corrects the
 `STOP` row: `STOP n` is legal, so the applied deck keeps `STOP 1234`
 and adds `STOP RUN` after it.
 
-**Chunk 2b's run is done (2026-10-25).** The applied deck runs over
-PR 145's tapes to end of job. `docs/design/m6-f-tapes.md`, "The run",
+**Chunk 2b's run is done (2026-10-25).** The applied deck runs over its
+tapes to end of job. `docs/design/m6-f-tapes.md`, "The run",
 classifies every column against the sample's report and finds no new
 compiler defect. Most differences are the CORRESPONDING finding
 ([J 02.04.04]): fields under DATA pair with nothing.
+
+**One record task is open:** fold `docs/design/m6-f-tapes.md` into
+M6-9 of `docs/design/m6-acceptance.md`, as its header promises.
 
 **No compiler task follows. The next work is Jack's calls:**
 

@@ -8,7 +8,11 @@ library;
 
 import 'dart:io';
 
+import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
+
+import '../tool/sample_tapes_source.dart';
+import 'support/deck_fixtures.dart';
 
 /// The lines of each report in [path], keyed by the heading line.
 Map<String, List<String>> _reports(String path) {
@@ -56,23 +60,64 @@ final class _Theirs {
   int get bonds => _cents(text.substring(107, 117));
 }
 
-/// The rate in mills of each matched employee, in tape order
-/// (`tool/sample_tapes_source.dart`).
-const List<int> _rates = <int>[
-  3400, 5333, 7000, 9000, 2350, 2900, 3000, 9990, 9990, 11000, 12000, //
+/// One TABLE item of the applied deck: RATE in mills, INSURANCE.PREM
+/// and RETIREMENT.PREM in cents.
+typedef _Item = ({int rate, int insurance, int retirement});
+
+/// The deck's TABLE, read from its six 22-character constants
+/// (statements 102,00 to 107,00), two 11-character items to a constant.
+List<_Item> _table() => <_Item>[
+  for (final Match constant in RegExp(r"'(\d{22})'").allMatches(
+    deckToMirror(decodeCanon(File(fAppliedDeckPath).readAsBytesSync())),
+  ))
+    for (final int at in <int>[0, 11])
+      (
+        rate: int.parse(constant[1]!.substring(at, at + 5)),
+        insurance: int.parse(constant[1]!.substring(at + 5, at + 8)),
+        retirement: int.parse(constant[1]!.substring(at + 8, at + 11)),
+      ),
 ];
 
-/// The deck's TABLE (statements 102,00 to 107,00): each item's RATE in
-/// mills and its RETIREMENT.PREM in cents.
-const List<(int, int)> _table = <(int, int)>[
-  (999, 60), (1499, 60), (1999, 90), (2499, 90), (2999, 120), (3499, 120),
-  (3999, 150), (4499, 150), (4999, 180), (6499, 250), (7999, 350),
-  (99999, 500), //
-];
+/// [numerator] / [denominator], rounded half up: a SET rounds (D4.1).
+int _round(int numerator, int denominator) =>
+    (numerator + denominator ~/ 2) ~/ denominator;
 
-/// The retirement premium of the first item whose rate is not below
-/// [rate], the item SEARCH stops on (statement 166,00).
-int _retirement(int rate) => _table.firstWhere((item) => rate <= item.$1).$2;
+/// The net pay in cents of [master] for [hoursTenths], as the procedure
+/// of either program computes it. [fortyHourWeek] pays 40 hours, as the
+/// 1960 program does below 40 (statement 142,00); otherwise the hours
+/// worked are paid, as statement 203,00 of the 1962 sample does.
+/// [retirementIsInsurance] reads INS.PREM for RET.PREM, the 1962
+/// processor's defect (M6-4 finding 1).
+int _net(
+  Master master,
+  int hoursTenths,
+  List<_Item> table, {
+  required bool fortyHourWeek,
+  required bool retirementIsInsurance,
+}) {
+  // Mills times tenths of an hour is a hundred-thousandth of a dollar.
+  final int gross = _round(
+    master.rate * (fortyHourWeek ? 400 : hoursTenths),
+    100,
+  );
+  // Both FICA sentences pay 3 percent up to 144.00 a year.
+  final int fica = master.ficaYtd * 100 + 3 * gross < 1440000
+      ? _round(3 * gross, 100)
+      : 14400 - master.ficaYtd;
+  final int taxable = gross - 1300 * master.exemptions;
+  final int wht = taxable > 0 ? _round(18 * taxable, 100) : 0;
+  // SEARCH stops on the first item whose rate is not below the master's.
+  final _Item item = table.firstWhere((item) => master.rate <= item.rate);
+  final int retirement = retirementIsInsurance
+      ? item.insurance
+      : item.retirement;
+  return gross -
+      fica -
+      wht -
+      item.insurance -
+      retirement -
+      master.bondDeduction;
+}
 
 void main() {
   final Map<String, List<String>> ours = _reports(
@@ -120,27 +165,52 @@ void main() {
     }
   });
 
-  test('net pay differs by the 1962 RET = INS defect, and by the 40-hour '
-      'week below 40 hours', () {
-    // Cause 1: the 1962 page prints RET.PREM equal to INS.PREM (M6-4
-    // finding 1). Our 11-character lookup reads the true premium, so
-    // ours = theirs + their RET.PREM - the table's RET.PREM.
-    // Cause 2: below 40 hours the 1960 program pays a 40-hour week
-    // (M6-1 cause 2), so six lines add the pay of the hours not worked,
-    // less its FICA and WHT (D4.1 rounding).
-    const fortyHourWeek = <int, int>{
-      1: 8426, // CASPERIAN J, 20.0 hours
-      2: 5166, // CATLETT H, 31.0 hours
-      3: 5535, // DORR D, 32.5 hours
-      5: 2378, // SMITH B, 30.0 hours
-      8: 2457, // WILLIAMS P, 37.0 hours
-      10: 984, // WOO J, 39.0 hours
+  test('a model of both programs gives every net pay to the cent', () {
+    final List<_Item> table = _table();
+    expect(table, hasLength(12));
+    final byNumber = <String, Master>{
+      for (final master in masters) master.number: master,
     };
+    final paid = <(Master, int)>[
+      for (final detail in details)
+        if (byNumber[detail.number] case final Master master)
+          (master, int.parse(detail.hours)),
+    ];
+    expect(paid, hasLength(11));
     for (var i = 0; i < 11; i++) {
+      final (Master master, int hours) = paid[i];
+      // No line exceeds 40 hours, so neither overtime arm fires.
+      expect(hours, lessThanOrEqualTo(400));
+      final int ours1960 = _net(
+        master,
+        hours,
+        table,
+        fortyHourWeek: true,
+        retirementIsInsurance: false,
+      );
+      final int sample1962 = _net(
+        master,
+        hours,
+        table,
+        fortyHourWeek: false,
+        retirementIsInsurance: true,
+      );
+      expect(mine[i].net, ours1960, reason: master.name);
+      expect(theirs[i].net, sample1962, reason: master.name);
+      // Cause 1: the page prints RET.PREM equal to INS.PREM, and our
+      // lookup through the 11-character item reads the true premium.
       expect(theirs[i].retirement, theirs[i].insurance);
-      final int lookup = theirs[i].retirement - _retirement(_rates[i]);
-      expect(lookup, isNot(0));
-      expect(mine[i].net, theirs[i].net + lookup + (fortyHourWeek[i] ?? 0));
+      final int hoursWorked = _net(
+        master,
+        hours,
+        table,
+        fortyHourWeek: false,
+        retirementIsInsurance: false,
+      );
+      expect(hoursWorked - sample1962, isNot(0));
+      // Cause 2: the 40-hour week (M6-1 cause 2) moves exactly the
+      // lines below 40 hours.
+      expect(ours1960 - hoursWorked != 0, hours < 400, reason: master.name);
     }
   });
 
@@ -204,7 +274,9 @@ void main() {
     // The 1960 program files the bond order in ERROR.FILE (definition
     // section 9.8). CORRESPONDING pairs BONDENOMINATION alone, so the
     // number, the date and the name stay zero.
-    expect(errors.removeAt(15), '${'0' * 12}03750${'0' * 15}');
+    final bondOrder = '${'0' * 12}03750${'0' * 15}';
+    expect(errors.indexOf(bondOrder), 15);
+    errors.remove(bondOrder);
     expect(sample['BONDORDERFILE REPORT']!.single, contains(' 3750 '));
     for (var i = 0; i < page.length; i++) {
       final String line = errors[i];

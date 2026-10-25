@@ -111,6 +111,14 @@ the report our run prints against the page.
   settle. The last kind is recorded and left. Evidence for it exists
   and is sealed until M7 (D0.9).
 
+  **Amended 2026-10-25, after the run.** `docs/design/m6-f-tapes.md`,
+  "The run", holds the classification. The run changes three
+  expectations above. The CORRESPONDING rule pairs few fields of the
+  1960 records ([J 02.04.04]; §8.5.4-l). So of the columns above, the
+  hours alone check. Gross pay, the withholding tax and the FICA
+  deduction do not print on any line, so they cannot check. The
+  grand-total hours check, and no other total does.
+
 ## The page
 
 - **M6-2. The scan is read along its own baselines.** The page is
