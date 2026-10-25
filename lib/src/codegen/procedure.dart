@@ -2854,7 +2854,48 @@ final class _Text {
     );
     // Every store into a subscript variable moves its indicators
     // (J 02.04.07.01; M4-10), not only a MOVE's.
-    _subscriptRecomputation(target);
+    final int? step = _constantIncrement(item, clause.value);
+    if (step != null) {
+      _subscriptIncrement(target, step);
+    } else {
+      _subscriptRecomputation(target);
+    }
+  }
+
+  /// The c of `SET K = K + c`, with c an integer literal and K of scale
+  /// zero: the constant increment of M4-10. Null for any other value.
+  int? _constantIncrement(DataItem item, ArithExpr value) {
+    if (value case BinaryExpr(
+      left: NameOperand(:final name),
+      right: LiteralOperand(:final literal),
+      :final operator,
+    ) when operator.text == '+' && name.subscripts.isEmpty) {
+      if (!identical(_item(name), item) ||
+          literal.kind != TokenKind.numericLiteral ||
+          _sem(item).fractionDigits != 0) {
+        return null;
+      }
+      final (int c, int scale) = _literalValue(literal);
+      return scale == 0 ? c : null;
+    }
+    return null;
+  }
+
+  /// The constant increment of every indicator [target] drives: the
+  /// stride times [step], added in place — `CLA CP)+1 / ADD PI)6 /
+  /// STO PI)6` ([J 90.02.05]; M4-10), the DO FOR's step at LOC 00714
+  /// to 00716. The order is the recomputation's.
+  void _subscriptIncrement(NameReference target, int step) {
+    for (final (DataItem table, String notation)
+        in semantics.positionalIndicators.reversed) {
+      if (notation != target.text) {
+        continue;
+      }
+      final _Sym indicator = _blockWord(StorageBlock.pi, _indicator(table));
+      _op(Op.cla, _cp(_pool.stride(_strideWords(table) * step)));
+      _op(Op.add, indicator);
+      _op(Op.sto, indicator);
+    }
   }
 
   void _add(AddClause clause) {

@@ -671,10 +671,10 @@ String _internal(String name, String pic, {String level = '1'}) => dataCard(
   description: pic,
 );
 
-/// Stores 7 into element 2 of a three-word table through a MOVE whose
-/// target is subscripted, after a SET and an ADD move the index from 1
-/// to 3 and back to 2. A, an external table holding 1, 2 and 3, is read
-/// after each step.
+/// Moves the index through 1, 3, 1, 2 and 3 by a MOVE, a SET, a SET of
+/// a difference, an ADD and a constant increment, and reads A, an
+/// external table holding 1, 2 and 3, after each step. Then stores 7
+/// into element 2 of a three-word table through a subscripted target.
 final List<String> _subscriptStores = <String>[
   '      *DATA',
   _internal('P1', '9'),
@@ -687,13 +687,15 @@ final List<String> _subscriptStores = <String>[
   dataCard(type: 'REDEF', description: 'TABLE'),
   dataCard(name: 'ATAB', level: '1', quantity: '3'),
   dataCard(name: 'A', level: '2', mode: 'E', description: '9(6)'),
-  for (final String name in ['I', 'ONE', 'NUM', 'WS', 'WA'])
+  for (final String name in ['I', 'ONE', 'NUM', 'WS', 'WM', 'WA', 'WI'])
     _internal(name, '9(6)'),
   '      *PROCEDURE',
   '      START.  SET ONE = 1, MOVE ONE TO I.',
   '            SET I = 3, MOVE A (I) TO WS.',
-  '            ADD ONE TO I, SET I = I - 2, MOVE A (I) TO WA.',
-  '            SET NUM = 7, MOVE NUM TO CELL (I).',
+  '            SET I = I - 2, MOVE A (I) TO WM.',
+  '            ADD ONE TO I, MOVE A (I) TO WA.',
+  '            SET I = I + 1, MOVE A (I) TO WI.',
+  '            SET I = I - 1, SET NUM = 7, MOVE NUM TO CELL (I).',
   '            STOP RUN.',
   '      *FINISH',
 ];
@@ -1391,10 +1393,11 @@ void main() {
 
     test('a SET, an ADD and a subscripted MOVE target move the element', () {
       final (JobCompilation job, Machine subject) = compiled(_subscriptStores);
-      // The SET moved the indicator to element 3, and the ADD and SET
-      // back to element 2.
+      // Each store moved the indicator to the element the index names.
       expect(subject.state.read(addressOf(job, 'WS')), 3);
+      expect(subject.state.read(addressOf(job, 'WM')), 1);
       expect(subject.state.read(addressOf(job, 'WA')), 2);
+      expect(subject.state.read(addressOf(job, 'WI')), 3);
       final int tab = addressOf(job, 'TAB');
       expect(
         <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],

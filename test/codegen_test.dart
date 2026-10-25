@@ -2168,6 +2168,24 @@ void main() {
       ]);
     });
 
+    test('a constant increment adds the stride to the indicator', () {
+      final List<String> all = lines(cells, [
+        '      START.  SET I = I + 2.',
+        '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
+        '            STOP RUN.',
+      ]);
+      // The shape of J 90.02.05, `CLA CP)+1 / ADD PI)6 / STO PI)6`. Two
+      // elements of one word each are 2 words, the pool word of the 2.
+      expect(upTo(all, '\tSTO PI)1'), [
+        'GN)000 START\tCLA I',
+        '\tADD CP)+2',
+        '\tSTO I',
+        '\tCLA CP)+2',
+        '\tADD PI)1',
+        '\tSTO PI)1',
+      ]);
+    });
+
     test('an ADD into a subscript variable recomputes its indicator', () {
       final List<String> all = lines(cells, [
         '      START.  ADD NUM TO I.',
