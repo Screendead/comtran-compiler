@@ -440,6 +440,63 @@ final List<String> _locatedStore = <String>[
   '      *FINISH',
 ];
 
+/// A program that moves and adds across unequal scales (F p. 42). EXT
+/// reads 040 and EXF 12.34 through the REDEF row, and ED3 reads 037.
+final List<String> _alignedMoves = <String>[
+  '      *DATA',
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'0401234037'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'EXT', level: '2', mode: 'E', description: '999'),
+  dataCard(name: 'EXF', level: '2', mode: 'E', description: '99V99'),
+  dataCard(name: 'ED3', level: '2', description: '899'),
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  dataCard(
+    name: 'AMT',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '99V99',
+  ),
+  dataCard(
+    name: 'FIN',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '99V9',
+  ),
+  dataCard(
+    name: 'TOT',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999V99',
+  ),
+  dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
+  dataCard(
+    name: 'BIG',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9(5)',
+  ),
+  dataCard(name: 'ED5', level: '1', description: '889.9'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 123, MOVE NUM TO EDT.',
+  '            SET BIG = 1234, MOVE BIG TO ED5.',
+  '            MOVE EXT TO AMT, MOVE EXF TO FIN.',
+  '            SET TOT = 1.25, ADD ED3 TO TOT, ADD NUM TO TOT.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program whose entry point is a labelled section (D2.1). The `GO TO`
 /// ahead of the section runs only if the entry lands on `GN)000`.
 final List<String> _section = <String>[
@@ -1332,6 +1389,20 @@ void main() {
       expect(subject.state.read(addressOf(job, 'NG')), 6);
       // The subscripted MOVE source reads through the same pointer.
       expect(subject.state.read(addressOf(job, 'SN')), 78);
+    });
+
+    test('a MOVE and an ADD align by the decimal point', () {
+      final (JobCompilation job, Machine subject) = compiled(_alignedMoves);
+      expect(subject.printed, <String>['AT 19,00 STOP RUN']);
+      // 123 renders as $123.00, not as $1.23.
+      expect(glyphsAt(subject, addressOf(job, 'EDT'), 8), r' $123.00');
+      // F p. 43 row 5: 01234 into 999V9 drops its leading digit, 2340.
+      expect(glyphsAt(subject, addressOf(job, 'ED5'), 5), '234.0');
+      // 040 into 99V99 is 40.00, and 12.34 into 99V9 drops to 12.3.
+      expect(subject.state.read(addressOf(job, 'AMT')), 4000);
+      expect(subject.state.read(addressOf(job, 'FIN')), 123);
+      // 1.25 + 37 + 123.
+      expect(subject.state.read(addressOf(job, 'TOT')), 16125);
     });
 
     test('a labelled section runs from the entry point it takes', () {
