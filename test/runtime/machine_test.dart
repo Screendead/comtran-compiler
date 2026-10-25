@@ -167,8 +167,17 @@ final List<String> _alignedMoves = <String>[
     description: '999V99',
   ),
   dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
+  dataCard(
+    name: 'BIG',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9(5)',
+  ),
+  dataCard(name: 'ED5', level: '1', description: '889.9'),
   '      *PROCEDURE',
   '      START.  SET NUM = 123, MOVE NUM TO EDT.',
+  '            SET BIG = 1234, MOVE BIG TO ED5.',
   '            MOVE EXT TO AMT, MOVE EXF TO FIN.',
   '            SET TOT = 1.25, ADD ED3 TO TOT, ADD NUM TO TOT.',
   '            STOP RUN.',
@@ -616,9 +625,11 @@ void main() {
 
     test('a MOVE and an ADD align by the decimal point', () {
       final (JobCompilation job, Machine subject) = compiled(_alignedMoves);
-      expect(subject.printed, <String>['AT 16,00 STOP RUN']);
+      expect(subject.printed, <String>['AT 19,00 STOP RUN']);
       // 123 renders as $123.00, not as $1.23.
       expect(glyphsAt(subject, addressOf(job, 'EDT'), 8), r' $123.00');
+      // F p. 43 row 5: 01234 into 999V9 drops its leading digit, 2340.
+      expect(glyphsAt(subject, addressOf(job, 'ED5'), 5), '234.0');
       // 040 into 99V99 is 40.00, and 12.34 into 99V9 drops to 12.3.
       expect(subject.state.read(addressOf(job, 'AMT')), 4000);
       expect(subject.state.read(addressOf(job, 'FIN')), 123);
