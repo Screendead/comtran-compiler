@@ -1155,8 +1155,9 @@ void main() {
       return words.sublist(start, words.indexOf('TSX SYS)178,4'));
     }
 
-    /// GROSS's edited store at LOC 00374 to 00400, with the trailing
-    /// minus as sign convention 3 in the control word's tag.
+    /// The words of GROSS's edited store at LOC 00374 to 00400. The
+    /// dollar adds 8 to the edit control, and the trailing minus puts
+    /// sign convention 3 in the control word's tag.
     const call = <String>[
       'TSX SYS)180,4',
       'PZE NET,,0',

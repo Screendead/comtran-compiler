@@ -1567,8 +1567,9 @@ the report our run prints against the page.
   a point. The control word is `OCT 000005300004`: five integer digits,
   sign convention 3 in the tag, four protected positions. The evidence:
 
-  - The sample attests the five words at its 25 edited stores. GROSS at
-    LOC 00374 to 00400 prints `OCT 000005000004` for `$88889.99`.
+  - The sample attests the five words at its 25 edited stores. GROSS,
+    `88889.99`, at LOC 00374 to 00400 prints `TXI SYS)267,1,4`, the
+    point alone, and `OCT 000005000004`.
   - [J 90.02.15]: under SYS)180 the source "is in a machine register".
     The external store decision above already puts the call behind a
     chain. This decision changes only the step words.
