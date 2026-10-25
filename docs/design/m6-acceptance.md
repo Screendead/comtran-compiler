@@ -741,7 +741,8 @@ the report our run prints against the page.
   - a SET into an edited field, added 2026-10-25 by the edited store
     decision below;
   - a MOVE of an external-decimal field to an external-decimal field,
-    added 2026-10-25 by the decision on expression comparisons below.
+    added 2026-10-25 by the stop the decision on expression comparisons
+    below pinned.
 
   No decision below changes the two listings or
   `test/goldens/90.05-payroll.code`, because each acts on shapes the
@@ -1816,7 +1817,7 @@ the report our run prints against the page.
 
   - *Fetch, then store.* SYS)182 and 184, then SYS)180 and 186, is
     built already. It goes through the accumulator, which [J 02.04.03]
-    a) rules out, and [J 90.02.15] names a mover for the pair.
+    a) makes unnecessary, and [J 90.02.15] names a mover for the pair.
   - *The source pointer first.* The example of [J 90.02.16] sets
     SYS)132 first. Catalogue 4.3 finds the target first at all nine
     two-cell sites of the sample, and the edit run follows the sample.
