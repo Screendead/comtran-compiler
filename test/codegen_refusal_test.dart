@@ -206,6 +206,20 @@ void main() {
       );
     });
 
+    test('a subscripted edited-store target', () {
+      expect(
+        _refuses(
+          ['            MOVE NUM TO ETAB ECEL (IDX).'],
+          data: [
+            ..._data(),
+            dataCard(name: 'ETAB', level: '1', quantity: '12'),
+            dataCard(name: 'ECEL', level: '2', description: '888889'),
+          ],
+        ),
+        'a subscripted edited-store target (no sample instance)',
+      );
+    });
+
     test('a subscripted internal-decimal move', () {
       expect(
         _refuses(['            MOVE TAB CELL (IDX) TO NUM.']),
@@ -494,6 +508,33 @@ void main() {
         _refuses(
           [
             '            MOVE ZEROS TO EXI.',
+            '            IF XCEL (EXI) GT NUM THEN STOP RUN.',
+          ],
+          data: [
+            ..._data(),
+            dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
+            dataCard(name: 'XTAB', level: '1', quantity: '12'),
+            dataCard(
+              name: 'XCEL',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+          ],
+          flagged: ['206,00'],
+        ),
+        'an external-decimal subscript variable (M6-9)',
+      );
+    });
+
+    test('a SET into an external-decimal subscript variable', () {
+      // The SET now recomputes the indicators its target drives, as the
+      // MOVE does, and the recomputation reads the variable as binary.
+      expect(
+        _refuses(
+          [
+            '            SET EXI = 3.',
             '            IF XCEL (EXI) GT NUM THEN STOP RUN.',
           ],
           data: [

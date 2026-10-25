@@ -2266,9 +2266,19 @@ final class _Text {
     }
     switch ((from, to)) {
       case (FieldClass.internalDecimal, FieldClass.edited):
+        if (targetSubscripted) {
+          // SYS)180 takes its target from the in-line `PZE` word, and no
+          // site shows that word built from an indicator.
+          _unruled('a subscripted edited-store target (no sample instance)');
+        }
         _editedStore(source, target, subscripted: sourceSubscripted);
       case (FieldClass.internalDecimal, FieldClass.internalDecimal):
-        _internalMove(source, target, sourceSubscripted: sourceSubscripted);
+        _internalMove(
+          source,
+          target,
+          sourceSubscripted: sourceSubscripted,
+          targetSubscripted: targetSubscripted,
+        );
       case (FieldClass.externalDecimal, FieldClass.edited) ||
           (FieldClass.edited, FieldClass.edited):
         _editRun(
@@ -2285,8 +2295,12 @@ final class _Text {
         }
         _setup(source, subscripted: sourceSubscripted, target: false);
         _externalConvert(source);
-        _loadBaseOf(target);
-        _opItem(Op.sto, target);
+        if (targetSubscripted) {
+          _elementStore(target);
+        } else {
+          _loadBaseOf(target);
+          _opItem(Op.sto, target);
+        }
         _movpakClears();
       case (FieldClass.externalDecimal, FieldClass.externalDecimal):
         _externalRun(
@@ -2515,6 +2529,7 @@ final class _Text {
     DataItem source,
     DataItem target, {
     bool sourceSubscripted = false,
+    bool targetSubscripted = false,
   }) {
     if (sourceSubscripted) {
       _unruled('a subscripted internal-decimal move (no sample instance)');
@@ -2528,8 +2543,20 @@ final class _Text {
     }
     _loadBaseOf(source);
     _opItem(Op.cla, source);
+    if (targetSubscripted) {
+      _elementStore(target);
+      return;
+    }
     _loadBaseOf(target);
     _opItem(Op.sto, target);
+  }
+
+  /// The store of the accumulator into the element [target]'s indicator
+  /// addresses: the comparand's prologue, then `STO 0,r`, the form of
+  /// the attested `CAS 0,2` at 01412 with `STO` in place of `CAS`.
+  void _elementStore(DataItem target) {
+    final int register = _indicatorPrologue(target);
+    _op(Op.sto, _Sym(() => '0', () => 0, Relocation.constant), tag: register);
   }
 
   /// A store into a subscript variable recomputes every positional
@@ -2537,6 +2564,12 @@ final class _Text {
   /// each, in reverse first-reference order — fitted to the one site,
   /// where `RETPREM-2` takes `CP)+38` ahead of `INSPREM-2` though
   /// INSPREM is declared and referenced first (M4-6).
+  ///
+  /// The indicator is a MOVPAK pointer, so the base of one driven
+  /// indicator carries its field's byte, as the DO FOR base does. A
+  /// store that drives several keeps the one site's bases, whose zero
+  /// decrement drops RETPREM's byte 3 (M6-4 finding 1): the golden
+  /// needs that word.
   void _subscriptRecomputation(NameReference target) {
     final driven = <DataItem>[
       for (final (DataItem item, String notation)
@@ -2561,9 +2594,10 @@ final class _Text {
         // wrong word, silently.
         _unruled('a table base ahead of address zero (no sample instance)');
       }
+      final int byte = driven.length == 1 ? _sem(table).byte : 0;
       final PoolHandle base = _pool.base(
-        '${_printedName(table)}-$strideWords',
-        word: pzeWord(address: address),
+        '${_printedName(table)}-$strideWords${byte == 0 ? '' : ',,$byte'}',
+        word: pzeWord(decrement: byte, address: address),
         control: standardControl(Relocation.constant, relocation),
       );
       final String bound = _mint();
@@ -2817,6 +2851,7 @@ final class _Text {
     final NameReference target = clause.targets.single;
     if (clause.value case FigurativeOperand(:final word)) {
       _figurativeFill(target, word);
+      _subscriptRecomputation(target);
       return;
     }
     // The target refuses before the first word of the chain.
@@ -2837,6 +2872,51 @@ final class _Text {
       _operandsOf([clause.value]),
       () => _store(item, _chain(clause.value), truncated: clause.truncated),
     );
+    // A SET moves the indicators its target drives, as a MOVE does
+    // (J 02.04.07.01; M4-10). The CORRESPONDING forms return before
+    // any update.
+    final int? step = _constantIncrement(item, clause.value);
+    if (step != null) {
+      _subscriptIncrement(target, step);
+    } else {
+      _subscriptRecomputation(target);
+    }
+  }
+
+  /// The c of `SET K = K + c`, with c an integer literal and K of scale
+  /// zero: the constant increment of M4-10. Null for any other value.
+  int? _constantIncrement(DataItem item, ArithExpr value) {
+    if (value case BinaryExpr(
+      left: NameOperand(:final name),
+      right: LiteralOperand(:final literal),
+      :final operator,
+    ) when operator.text == '+' && name.subscripts.isEmpty) {
+      if (!identical(_item(name), item) ||
+          literal.kind != TokenKind.numericLiteral ||
+          _sem(item).fractionDigits != 0) {
+        return null;
+      }
+      final (int c, int scale) = _literalValue(literal);
+      return scale == 0 ? c : null;
+    }
+    return null;
+  }
+
+  /// The constant increment of every indicator [target] drives: the
+  /// stride times [step], added in place — `CLA CP)+1 / ADD PI)6 /
+  /// STO PI)6` ([J 90.02.05]; M4-10), the DO FOR's step at LOC 00714
+  /// to 00716. The order is the recomputation's.
+  void _subscriptIncrement(NameReference target, int step) {
+    for (final (DataItem table, String notation)
+        in semantics.positionalIndicators.reversed) {
+      if (notation != target.text) {
+        continue;
+      }
+      final _Sym indicator = _blockWord(StorageBlock.pi, _indicator(table));
+      _op(Op.cla, _cp(_pool.stride(_strideWords(table) * step)));
+      _op(Op.add, indicator);
+      _op(Op.sto, indicator);
+    }
   }
 
   void _add(AddClause clause) {
@@ -2872,6 +2952,7 @@ final class _Text {
         for (final NameReference target in clause.targets) {
           final DataItem item = _resolved(target);
           _withFetches([item], () => _addBody(item, () => _op(Op.add, park)));
+          _subscriptRecomputation(target);
         }
         return;
       }
@@ -2907,6 +2988,7 @@ final class _Text {
           _addPair(source, target);
         }
       }, subscripted: <DataItem>{if (name.subscripts.isNotEmpty) source});
+      clause.targets.forEach(_subscriptRecomputation);
       return;
     }
     _unruled('an ADD of a literal (no sample instance)');
@@ -3006,7 +3088,20 @@ final class _Text {
       final int scale = _naturalScale(term);
       chainScale = scale > chainScale ? scale : chainScale;
     }
-    final int live = _liveResultCells;
+    final Set<int> outer = {..._parkedCells};
+    // The k-th cell that holds no park of an enclosing chain. At the top
+    // level every cell is free, so the numbering is the M4-10 rule's.
+    int free(int k) {
+      var cell = -1;
+      for (var seen = -1; seen < k;) {
+        cell++;
+        if (!outer.contains(cell)) {
+          seen++;
+        }
+      }
+      return cell;
+    }
+
     // One entry per term: the word the assembly emits for it, with the
     // guard that word must carry. The NET sentence pins the placement:
     // the guard for `1)BONDEDUCTION` sits at 00727, between the fifth
@@ -3021,8 +3116,9 @@ final class _Text {
       }
       final int deficit = chainScale - _naturalScale(term);
       // The cell a computed term parks in: the count of the chain's
-      // operands that follow it in source order (M4-10).
-      final int cell = terms.length - 1 - i;
+      // operands that follow it in source order (M4-10), counted over
+      // the cells an enclosing chain has not parked in.
+      final int cell = free(terms.length - 1 - i);
       switch (term) {
         case NameOperand(:final name) when deficit == 0:
           final DataItem item = _operand(_resolved(name));
@@ -3071,7 +3167,10 @@ final class _Text {
             : Op.add,
       );
     }
-    _liveResultCells = live; // The assembly has read every park.
+    // The assembly has read every park.
+    _parkedCells
+      ..clear()
+      ..addAll(outer);
     return (scale: chainScale, register: _Register.ac);
   }
 
@@ -3079,7 +3178,7 @@ final class _Text {
   /// word the assembly reads it back with. The park names the register
   /// the value sits in: `STQ` after a multiply, `STO` after a chain.
   void Function(Op op) _park(int cell, _Register register) {
-    _liveResultCells++;
+    _parkedCells.add(cell);
     _op(
       register == _Register.mq ? Op.stq : Op.sto,
       _resultCell(cell, offset: cell != 0 && register == _Register.mq),
@@ -3088,10 +3187,10 @@ final class _Text {
     return (Op op) => _op(op, read);
   }
 
-  /// The `RS)` parks of the open chains that the assembly has yet to
-  /// read. Each chain numbers its cells from 0, so a chain nested inside
-  /// a truth function would overwrite them (M6-9).
-  int _liveResultCells = 0;
+  /// The `RS)` cells parked by the open chains that the assembly has yet
+  /// to read. A nested chain skips them. The chain of a comparison
+  /// inside a truth function does not, so it refuses after a park (M6-9).
+  final Set<int> _parkedCells = <int>{};
 
   bool _additive(BinaryExpr expr) =>
       expr.operator.text == '+' || expr.operator.text == '-';
@@ -3457,7 +3556,7 @@ final class _Text {
     required _Cont trueTo,
     required _Cont falseTo,
   }) {
-    if (_liveResultCells > 0) {
+    if (_parkedCells.isNotEmpty) {
       // The chain of this comparison would number its RS) cells from 0
       // over the outer chain's parks.
       _unruled(

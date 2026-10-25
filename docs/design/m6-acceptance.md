@@ -1301,9 +1301,10 @@ the report our run prints against the page.
 
   The refusal `an external-decimal subscript variable (M6-9)` stays. It
   fires on a MOVE into the index, inside the loop body or outside it,
-  and the deck has none. A SET or ADD into the index does not reach it,
-  because neither recomputes an indicator (codegen defect 9,
-  `docs/HANDOVER.md`). The loop checks the index as a store target
+  and the deck has none. Amended 2026-10-25 (codegen defect 9,
+  `docs/HANDOVER.md`): a SET or ADD into the index now recomputes its
+  indicators and reaches the refusal too, except `SET K = K + c`,
+  which steps them in place and reads no binary index. The loop checks the index as a store target
   first, so an index of more than 10 digits refuses before the loop's
   first word.
 

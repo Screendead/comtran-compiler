@@ -108,6 +108,15 @@ String dataCard({
   return line.trimRight();
 }
 
+/// One internal-decimal, right-justified field of [pic] at [level].
+String internalCard(String name, String pic, {String level = '1'}) => dataCard(
+  name: name,
+  level: level,
+  mode: 'I',
+  justify: 'R',
+  description: pic,
+);
+
 /// Builds one Environment Description Division card at its documented
 /// columns.
 ///

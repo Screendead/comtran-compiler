@@ -141,7 +141,8 @@ causes that separate the rest. Expect BONDORDER's EMPLOYEE.NUMBER,
 NAME and DATE to stay unmoved: MASTER holds them under DATA, so they do
 not correspond ([J 02.04.04]; M6-9). With codegen defect 12 fixed, the
 run over pending PR 145's tapes reaches end of job. Defect 7 is fixed for the
-DO FOR. The other ten defects stay open, and each fix must leave
+DO FOR. Defects 8 to 11 are handled on this branch, pending Jack's
+ruling. The other six stay open, and each fix must leave
 `test/goldens/90.05-payroll.code` as it stands.
 
 **One question waits for Jack, and no work waits on his answer.**
@@ -202,37 +203,34 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    FOR now steps the indicator's byte, carries it into the word, and
    sets every base with its byte (M6-9). The subscript store and a
    whole-word read through `LAC PI)n,r` still refuse such a stride.
-8. **A subscripted MOVE target drops its subscript.** `_moveUnit`
-   (`lib/src/codegen/procedure.dart`) takes `targetSubscripted` and
-   passes it to no internal-decimal arm, so `MOVE NUM TO TAB CELL (I)`
-   compiles to `CLA NUM / STO CELL` and writes the first cell on every
-   pass. The DO FOR decision of M6-9 found it on 2026-10-25. The
-   sample's subscripted moves are sources only, and the applied deck
-   has no subscripted MOVE target.
-9. **A SET or ADD into a subscript variable updates no indicator.**
-   `_subscriptRecomputation` (`lib/src/codegen/procedure.dart`) has
-   one caller, the MOVE. So `SET IDX = 3` stores the index and leaves
-   every positional indicator it drives on the old element. M4-10 asks
-   for the update at every store into a subscript variable
-   ([J 02.04.07.01]). The DO FOR decision of M6-9 found it on
-   2026-10-25. The sample's one subscript store is a MOVE, and the
-   applied deck stores into INDEX only through its DO FOR.
-
-10. **The subscript store drops the byte of a field inside a word.**
-    `_subscriptRecomputation` builds the base `NAME-n` with a zero
-    decrement, the 1962 defect at `RETPREM-2` (M6-4 finding 1). The
-    golden needs that word at the sample's site. Elsewhere a reader
-    through SYS)132 then reads from byte 0: over items of `99`, `9999`
-    and `9(6)`, `MOVE THREE TO IDX` then `MOVE B (IDX) TO NB` gives 300
-    for 3. Whether to refuse the shape or handle it is Jack's call. The
-    PR 150 review found it on 2026-10-25. The applied deck has no
-    subscript store.
-11. **A sub-chain in a chain overwrites the outer park.** The arm
-    `BinaryExpr() when _additive(term)` (`procedure.dart`:3031) calls
-    `_chain`, whose cells start at 0. `SET X = NUM * 2 + (NUM * 3 + 1)`
-    parks both products in `RS)1` and stores 3N + 3N + 1, not
-    2N + 3N + 1. The PR 153 review found it on 2026-10-25. The applied
-    deck does not reach the arm.
+8. **A subscripted MOVE target dropped its subscript. Handled on this
+   branch, pending Jack's ruling on review record
+   `review/2026-10-25-codegen-defects-8-11`.** `MOVE NUM TO CELL (I)`
+   wrote the first cell on every pass. An internal-decimal target now
+   stores through `LAC PI)n,r / TXL SYS)294,r,0 / STO 0,r`, the
+   comparand form of LOC 01410 to 01412. An edited target refuses `a
+   subscripted edited-store target (no sample instance)`.
+9. **A SET or ADD into a subscript variable updated no indicator.
+   Handled on this branch, pending the same ruling.** Each SET and
+   each plain ADD target now updates the indicators it drives (M4-10;
+   [J 02.04.07.01]). `SET K = K + c` steps them in place; any other
+   store recomputes. A new refusal: `SET EXI = 3` into an
+   external-decimal index refuses `an external-decimal subscript
+   variable (M6-9)`, as the MOVE did. Master compiled it and moved no
+   indicator. Open: MOVE and ADD CORRESPONDING still update no
+   indicator, and the in-place step cannot correct an indicator that
+   no store has set.
+10. **The subscript store dropped the byte of a field inside a word.
+    Handled on this branch for a store that drives one indicator,
+    pending the same ruling.** Its base now carries the byte, so
+    `MOVE B (IDX) TO NB` gives 3, not 300. A store that drives several
+    keeps the zero decrement: the golden needs `PZE RETPREM-2` (M6-4
+    finding 1). Such a store over a field inside a word still reads
+    from byte 0.
+11. **A sub-chain in a chain overwrote the outer park. Handled on this
+    branch, pending the same ruling.** A nested chain now counts only
+    the cells no enclosing chain has parked in, so
+    `SET X = NUM * 2 + (NUM * 3 + 1)` gives 2N + 3N + 1.
 12. **An alphameric comparison read one word of a field across a word
     boundary. Fixed on 2026-10-25.** Statement 130,00 compares two
     `A(6)` fields at bytes 4 and 1, so no detail matched its master,
