@@ -3762,7 +3762,7 @@ final class _Text {
       }
     }
     // Every attested pair compares equal lengths; a field may cross one
-    // word boundary since 2026-10-25 (M6-9). The D3.3 fold and the D5.3
+    // word boundary (M6-9, decided 2026-10-25). The D3.3 fold and the D5.3
     // truncation each wait for a site, and the longer field takes the
     // SYS)162 path M4-11 leaves to a later chunk, the compound-condition
     // precedent.
