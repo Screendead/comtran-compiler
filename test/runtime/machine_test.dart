@@ -294,6 +294,31 @@ final List<String> _section = <String>[
   '      *FINISH',
 ];
 
+/// A program that loops 1(1)12 over an external-decimal index (M6-9).
+/// Each pass counts in NUM. The comparison reads CELL (EXI), so the
+/// loop drives an indicator, and is never true over a zero table.
+final List<String> _externalIndex = <String>[
+  '      *DATA',
+  dataCard(name: 'TAB', level: '1', quantity: '12'),
+  for (final String name in ['CELL', 'NUM'])
+    dataCard(
+      name: name,
+      level: name == 'CELL' ? '2' : '1',
+      mode: 'I',
+      justify: 'R',
+      description: '999',
+    ),
+  dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
+  '      *PROCEDURE',
+  '      START.  DO RTN FOR EXI = 1(1)12.',
+  '            STOP RUN.',
+  '      RTN.  BEGIN SECTION.',
+  '            SET NUM = NUM + 1.',
+  '            IF NUM LT CELL (EXI) THEN STOP RUN.',
+  '            END RTN.',
+  '      *FINISH',
+];
+
 /// A program that never reaches its `STOP RUN`.
 final List<String> _loop = <String>[
   '      *DATA',
@@ -776,6 +801,14 @@ void main() {
       // 123 - 200 is -77. `P` is 7 over an 11 punch, and IPAD keeps its
       // characters, so the store wrote three characters from byte 0.
       expect(glyphsAt(subject, subject.files.single.buffer, 6), '07PABC');
+    });
+
+    test('a loop over an external-decimal index runs 1(1)12', () {
+      final (JobCompilation job, Machine subject) = compiled(_externalIndex);
+      expect(subject.printed, <String>['AT 6,00 STOP RUN']);
+      expect(subject.state.read(addressOf(job, 'NUM')), 12);
+      // The exit leaves the index at the first value past 12.
+      expect(glyphsAt(subject, addressOf(job, 'EXI'), 2), '13');
     });
 
     test('a labelled section runs from the entry point it takes', () {

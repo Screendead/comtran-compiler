@@ -990,10 +990,10 @@ final class _Text {
     return fieldClass == FieldClass.group ? FieldClass.alphameric : fieldClass;
   }
 
-  /// Every attested DO index and subscript variable is internal decimal.
-  /// An external one reads and stores the field inside a fitted word run
-  /// (M4-6), so it refuses under its own shape, the [use]; any other
-  /// class has no attested arithmetic form and refuses.
+  /// Every attested subscript variable is internal decimal. An external
+  /// one stores the field inside the fitted recomputation run (M4-6), so
+  /// it refuses under its own shape, the [use]; any other class has no
+  /// attested arithmetic form and refuses.
   DataItem _decimal(DataItem item, String use) {
     if (_sem(item).fieldClass == FieldClass.externalDecimal) {
       _unruled('an external-decimal $use (M6-9)');
@@ -1637,9 +1637,10 @@ final class _Text {
   );
 
   /// DO FOR (catalogue 4.1): 11 + 5·M words, M the positional
-  /// indicators the loop index drives; a five-name later-pass run,
-  /// binding the body-entry EQU, the increment block, and the
-  /// table-base EQU (M4-6, the fitted grouping).
+  /// indicators the loop index drives, and 20 + 5·M for an external
+  /// index (M6-9); a five-name later-pass run, binding the body-entry
+  /// EQU, the increment block, and the table-base EQU (M4-6, the fitted
+  /// grouping).
   void _doFor(DoClause clause) {
     if (clause.indices.length > 1) {
       _unruled('a multi-index DO (notes section 7)');
@@ -1650,7 +1651,12 @@ final class _Text {
     if (indexItem == null) {
       _unruled('a DO FOR index with no data definition (no sample instance)');
     }
-    _decimal(indexItem, 'DO FOR index');
+    _operand(indexItem);
+    final bool external =
+        _sem(indexItem).fieldClass == FieldClass.externalDecimal;
+    if (external) {
+      _checkExternalTarget(indexItem);
+    }
     if (_located(indexItem)) {
       // The expansion reads and stores the index with no base load
       // in its word count.
@@ -1696,7 +1702,11 @@ final class _Text {
     _op(Op.axt, _labelSym(increment), tag: 4);
     _op(Op.sxa, _labelSym(clause.procedure.text), tag: 4);
     _op(Op.cla, _cp(bounds[0]));
-    _opItem(Op.sto, indexItem);
+    if (external) {
+      _externalStore(indexItem, _Register.ac);
+    } else {
+      _opItem(Op.sto, indexItem);
+    }
     for (final (DataItem item, _) in driven) {
       _op(Op.cla, _Sym(() => tableBase, baseCell.value, Relocation.relative));
       _op(Op.sto, _blockWord(StorageBlock.pi, _indicator(item)));
@@ -1709,21 +1719,31 @@ final class _Text {
     _op(Op.tra, entry);
     label(increment);
     // The increment block: step the index, step each indicator by its
-    // stride, and take the D5.1 magnitude exit.
-    _opItem(Op.cla, indexItem);
-    _op(Op.add, _cp(bounds[1]));
-    _opItem(Op.sto, indexItem);
-    for (var i = 0; i < driven.length; i++) {
-      final _Sym indicator = _blockWord(
-        StorageBlock.pi,
-        _indicator(driven[i].$1),
-      );
-      _op(Op.cla, _cp(strides[i]));
-      _op(Op.add, indicator);
-      _op(Op.sto, indicator);
-    }
-    _op(Op.cla, _cp(bounds[2]));
-    _opItem(Op.sub, indexItem);
+    // stride, and take the D5.1 magnitude exit. An external index
+    // converts into its cell at the block's head, and the stepped value
+    // parks there too, because the stride words reuse the accumulator
+    // before the exit test reads the value (M6-9).
+    _withFetches(external ? [indexItem] : const <DataItem>[], () {
+      _read(Op.cla, indexItem);
+      _op(Op.add, _cp(bounds[1]));
+      if (external) {
+        _op(Op.sto, _blockWord(StorageBlock.ts, _fetched[indexItem]!));
+        _externalStore(indexItem, _Register.ac);
+      } else {
+        _opItem(Op.sto, indexItem);
+      }
+      for (var i = 0; i < driven.length; i++) {
+        final _Sym indicator = _blockWord(
+          StorageBlock.pi,
+          _indicator(driven[i].$1),
+        );
+        _op(Op.cla, _cp(strides[i]));
+        _op(Op.add, indicator);
+        _op(Op.sto, indicator);
+      }
+      _op(Op.cla, _cp(bounds[2]));
+      _read(Op.sub, indexItem);
+    });
     _op(Op.tpl, _Sym(() => bodyEntry, entry.value, Relocation.relative));
     _callClears();
   }

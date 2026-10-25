@@ -51,13 +51,14 @@ void main() {
     );
   });
 
-  test('the applied deck refuses its first external-decimal DO FOR index', () {
-    // The scaling store of a chain value compiles (M6-9), so statement
-    // 142,00 compiles whole. Statement 144,00, `DO SEARCH FOR INDEX =
-    // 1(1)12`, runs its loop on an external-decimal INDEX.
+  test('the applied deck refuses a DO FOR driving three indicators', () {
+    // The external-decimal DO FOR index compiles (M6-9). Statement
+    // 144,00, `DO SEARCH FOR INDEX = 1(1)12`, steps the indicators of
+    // RATE, INSURANCE.PREM and RETIREMENT.PREM, which statement 166,00
+    // subscripts by INDEX.
     expect(
       _refusal(fAppliedDeckPath),
-      'an external-decimal DO FOR index (M6-9)',
+      'a DO FOR driving two indicators (M4-6; no sample instance)',
     );
   });
 }

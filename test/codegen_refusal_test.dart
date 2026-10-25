@@ -437,10 +437,17 @@ void main() {
       );
     });
 
-    test('an external-decimal DO FOR index', () {
+    test('an external-decimal DO FOR index of more than 10 digits', () {
+      // The loop stores the index, so it refuses before its first word.
       expect(
-        _refuses(['            DO RTN FOR EXT = 1(1)12.']),
-        'an external-decimal DO FOR index (M6-9)',
+        _refuses(
+          ['            DO RTN FOR EXL = 1(1)12.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'EXL', level: '1', mode: 'E', description: '9(11)'),
+          ],
+        ),
+        'an external-decimal store of more than 10 digits (RT-4)',
       );
     });
 
