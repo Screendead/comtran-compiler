@@ -486,7 +486,7 @@ void main() {
       expect(_ids(job), ['179,00']);
     });
 
-    test("an END's label ends the straight run", () {
+    test('an unlabelled END sentence ends the straight run', () {
       final JobCompilation job = _compile(
         program([
           '      START.  OPEN ALL FILES, DO S.',
