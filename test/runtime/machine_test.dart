@@ -278,6 +278,146 @@ final List<String> _editedChain = <String>[
   '      *FINISH',
 ];
 
+/// A program that moves an edited field into a narrower one (M6-9):
+/// statement 146,00's pictorials over [net], then F p. 43's `99999` row
+/// into an edited receiver over [ext].
+List<String> _droppedDigits(String net, String ext) => <String>[
+  '      *DATA',
+  dataCard(name: 'NET', level: '1', description: r'$88889.99-'),
+  dataCard(name: 'AMT', level: '1', description: r'$***9.99'),
+  dataCard(name: 'EXF', level: '1', mode: 'E', description: '99999'),
+  dataCard(name: 'EDF', level: '1', description: '999.9'),
+  '      *PROCEDURE',
+  '      START.  SET NET = $net, MOVE NET TO AMT.',
+  '            SET EXF = $ext, MOVE EXF TO EDF.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A program that moves external fields into external fields (M6-9):
+/// statement 162,00's `999V99` pair, then a minus value into each sign
+/// convention, then a plus value into a plus overpunch.
+final List<String> _externalMove = <String>[
+  '      *DATA',
+  for (final (String name, String picture) in <(String, String)>[
+    ('SRC', '999V99'),
+    ('NEG', '999V9R'),
+    ('SAME', '999V99'),
+    ('MOUT', '999V9R'),
+    ('POUT', '999V9I'),
+    ('UOUT', '999V99'),
+    ('PLUS', '999V9I'),
+  ])
+    dataCard(name: name, level: '1', mode: 'E', description: picture),
+  '      *PROCEDURE',
+  '      START.  SET SRC = 275.33, MOVE SRC TO SAME.',
+  '            SET NEG = 2.75 - 5.50.',
+  '            MOVE NEG TO MOUT, POUT, UOUT.',
+  '            MOVE SRC TO PLUS.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A program that compares two `A(6)` fields across a word boundary
+/// (M6-9), the shape of statement 130,00: F4 at byte 4 and F1 at byte
+/// 1. The character above each field is `A`, whose low bit is 1, so a
+/// shift that leaves Q set reads the field as greater. ISEQ, ISLT and ISHI
+/// read 1 on the THEN arm and 2 on the OTHERWISE arm; SENT does the
+/// same for F4 against HIGH.VALUE after statement 137,00's move. A
+/// literal reaches each field through a whole-word field, because a
+/// literal moved across a word boundary has no sample form.
+List<String> _wordBoundaryCompare(String left, String right) => <String>[
+  '      *DATA',
+  dataCard(name: 'G4', level: '1'),
+  dataCard(name: 'P4', level: '2', description: 'AAAA'),
+  dataCard(name: 'F4', level: '2', description: 'A(6)'),
+  dataCard(name: 'G1', level: '1'),
+  dataCard(name: 'P1', level: '2', description: 'A'),
+  dataCard(name: 'F1', level: '2', description: 'A(6)'),
+  dataCard(name: 'SL', level: '1', description: 'A(6)'),
+  dataCard(name: 'SR', level: '1', description: 'A(6)'),
+  for (final String name in <String>['ISEQ', 'ISLT', 'ISHI', 'SENT'])
+    dataCard(name: name, level: '1', mode: 'I', justify: 'R', description: '9'),
+  '      *PROCEDURE',
+  "      START.  MOVE 'AAAA' TO P4, MOVE 'A' TO P1.",
+  "            MOVE '$left' TO SL, MOVE '$right' TO SR.",
+  '            MOVE SL TO F4, MOVE SR TO F1.',
+  '            IF F4 = F1 THEN SET ISEQ = 1 OTHERWISE SET ISEQ = 2.',
+  '            IF F4 LT F1 THEN SET ISLT = 1 OTHERWISE SET ISLT = 2.',
+  '            IF F4 = HIGH.VALUE THEN SET ISHI = 1 OTHERWISE SET ISHI = 2.',
+  '            MOVE HIGH.VALUE TO F4.',
+  '            IF F4 = HIGH.VALUE THEN SET SENT = 1 OTHERWISE SET',
+  '            SENT = 2.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A program that compares the expressions of the applied deck's
+/// statements 152,00 and 156,00 (M6-9), with every operand external at
+/// the deck's pictorials. FIRST reads 1 when the THEN arm of 152 runs
+/// and 2 when the OTHERWISE arm does; SECOND does the same for 156.
+List<String> _expressionCompare(
+  String fica,
+  String gross,
+  String ex,
+) => <String>[
+  '      *DATA',
+  dataCard(name: 'FICA', level: '1', mode: 'E', description: '999V99'),
+  dataCard(name: 'GROSS', level: '1', mode: 'E', description: '99999V99'),
+  dataCard(name: 'EX', level: '1', mode: 'E', description: '99'),
+  for (final String name in <String>['FIRST', 'SECOND'])
+    dataCard(name: name, level: '1', mode: 'I', justify: 'R', description: '9'),
+  '      *PROCEDURE',
+  '      START.  SET FICA = $fica, SET GROSS = $gross, SET EX = $ex.',
+  '            IF FICA + 0.03 * GROSS IS LESS THAN 144.00 THEN SET',
+  '            FIRST = 1 OTHERWISE SET FIRST = 2.',
+  '            IF 13 * EX IS LESS THAN GROSS THEN SET SECOND = 1',
+  '            OTHERWISE SET SECOND = 2.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A program whose expression comparison holds a truth function that
+/// compares an expression (M6-9). The truth function is the first term,
+/// so its chain reads RS)0 before the outer chain parks in RS)1, and its
+/// park takes TS)2 above the outer TS)1. FLAG reads 1 on the THEN arm.
+List<String> _nestedCompare(String num, String frac) => <String>[
+  '      *DATA',
+  dataCard(name: 'NUM', level: '1', mode: 'I', justify: 'R', description: '99'),
+  dataCard(
+    name: 'FRAC',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9V9',
+  ),
+  dataCard(name: 'FLAG', level: '1', mode: 'I', justify: 'R', description: '9'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = $num, SET FRAC = $frac.',
+  '            IF TR (NUM + 1 GT FRAC) * 1 + NUM * 2 GT 14 THEN SET',
+  '            FLAG = 1 OTHERWISE SET FLAG = 2.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A program whose chain sits above its edited target's scale (M6-9):
+/// the scaling tail ends in `XCA` and the SYS)180 call.
+final List<String> _editedTail = <String>[
+  '      *DATA',
+  dataCard(
+    name: 'FR3',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9V999',
+  ),
+  dataCard(name: 'NET', level: '1', description: r'$88889.99-'),
+  '      *PROCEDURE',
+  '      START.  SET FR3 = 1.238, SET NET = FR3 + FR3.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program that stores into an external-decimal field of a located
 /// input record (M6-9): the store's `MZE` reference names the record's
 /// base locator.
@@ -1049,6 +1189,141 @@ void main() {
       expect(glyphsAt(subject, addressOf(job, 'NETPAY'), 10), r'  $307.39 ');
       // 40.00 less 105.11 is -65.11, and the trailing minus prints.
       expect(glyphsAt(subject, addressOf(job, 'NETNEG'), 10), r'   $65.11-');
+    });
+
+    test('an edit run drops zero high-order digits and arms nothing', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _droppedDigits('8889.99', '234'),
+      );
+      expect(subject.printed, <String>['AT 7,00 STOP RUN']);
+      expect(glyphsAt(subject, addressOf(job, 'AMT'), 8), r'$8889.99');
+      expect(glyphsAt(subject, addressOf(job, 'EDF'), 5), '234.0');
+      expect(subject.state.read(overflowCell), 0);
+    });
+
+    test('an external move keeps the characters and the sign', () {
+      final (JobCompilation job, Machine subject) = compiled(_externalMove);
+      expect(subject.printed, <String>['AT 12,00 STOP RUN']);
+      expect(glyphsAt(subject, addressOf(job, 'SAME'), 5), '27533');
+      // -2.75; `N` is 5 over an 11 punch under either overpunch, and
+      // the unsigned target keeps the magnitude.
+      expect(glyphsAt(subject, addressOf(job, 'MOUT'), 5), '0027N');
+      expect(glyphsAt(subject, addressOf(job, 'POUT'), 5), '0027N');
+      expect(glyphsAt(subject, addressOf(job, 'UOUT'), 5), '00275');
+      // `C` is 3 over a 12 punch.
+      expect(glyphsAt(subject, addressOf(job, 'PLUS'), 5), '2753C');
+      expect(subject.state.read(conditionCell), 0);
+    });
+
+    test('an edited source drops a significant digit and arms SYS)130', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _droppedDigits('12345.67', '234'),
+      );
+      expect(subject.printed, <String>['AT 7,00 STOP RUN']);
+      // The low-order digits print. The EDF move drops a zero.
+      expect(glyphsAt(subject, addressOf(job, 'AMT'), 8), r'$2345.67');
+      expect(glyphsAt(subject, addressOf(job, 'EDF'), 5), '234.0');
+      expect(subject.state.read(overflowCell), isNot(0));
+    });
+
+    test('the F p. 43 row drops a significant digit and arms SYS)130', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _droppedDigits('8889.99', '1234'),
+      );
+      expect(subject.printed, <String>['AT 7,00 STOP RUN']);
+      // `01234` gives `234.0`, as F's `2340`. The AMT move drops a zero.
+      expect(glyphsAt(subject, addressOf(job, 'AMT'), 8), r'$8889.99');
+      expect(glyphsAt(subject, addressOf(job, 'EDF'), 5), '234.0');
+      expect(subject.state.read(overflowCell), isNot(0));
+    });
+
+    test('a comparison of expressions takes the branch of its value', () {
+      // (FICA, GROSS, EX) and the arms of 152 and 156 they take.
+      const cases = <(String, String, String, int, int)>[
+        // 100.00 + 30.00 is below 144.00; 26 is below 1000.00.
+        ('100.00', '1000.00', '2', 1, 1),
+        // 114.00 + 30.00 equals 144.00, so LT is false.
+        ('114.00', '1000.00', '2', 2, 1),
+        // 120.00 + 30.00 is above 144.00.
+        ('120.00', '1000.00', '2', 2, 1),
+        // 113.99 + 30.0099 is 143.9999. A chain rounded to the scale of
+        // 144.00 would read 144.00 and take the OTHERWISE arm.
+        ('113.99', '1000.33', '2', 1, 1),
+        // 13 * 2 equals 26.00, so LT is false; 26 is below 26.01.
+        ('0.00', '26.00', '2', 1, 2),
+        ('0.00', '26.01', '2', 1, 1),
+        ('0.00', '25.99', '2', 1, 2),
+      ];
+      for (final (String fica, String gross, String ex, int first, int second)
+          in cases) {
+        final (JobCompilation job, Machine subject) = compiled(
+          _expressionCompare(fica, gross, ex),
+        );
+        final reason = 'FICA $fica, GROSS $gross, EX $ex';
+        expect(subject.printed, <String>['AT 9,00 STOP RUN'], reason: reason);
+        expect(
+          subject.state.read(addressOf(job, 'FIRST')),
+          first,
+          reason: reason,
+        );
+        expect(
+          subject.state.read(addressOf(job, 'SECOND')),
+          second,
+          reason: reason,
+        );
+      }
+    });
+
+    test('a field across a word boundary compares all six characters', () {
+      // (F4, F1, ISEQ, ISLT): the last character of each sits in the next
+      // word, so a compare of the first word alone reads every pair
+      // below as unequal or misordered.
+      const cases = <(String, String, int, int)>[
+        ('ABCDEF', 'ABCDEF', 1, 2),
+        ('ABCDEF', 'ABCDEG', 2, 1),
+        ('ABCDEG', 'ABCDEF', 2, 2),
+        ('BBCDEF', 'ABCDEF', 2, 2),
+      ];
+      for (final (String left, String right, int eq, int lt) in cases) {
+        final (JobCompilation job, Machine subject) = compiled(
+          _wordBoundaryCompare(left, right),
+        );
+        final reason = 'F4 $left, F1 $right';
+        expect(subject.printed, <String>['AT 21,00 STOP RUN'], reason: reason);
+        expect(glyphsAt(subject, addressOf(job, 'G4'), 4), 'AAAA');
+        int at(String name) => subject.state.read(addressOf(job, name));
+        expect(at('ISEQ'), eq, reason: reason);
+        expect(at('ISLT'), lt, reason: reason);
+        expect(at('ISHI'), 2, reason: reason);
+        expect(at('SENT'), 1, reason: reason);
+      }
+    });
+
+    test('a truth function inside an expression comparison', () {
+      // (NUM, FRAC, FLAG): 1 + 14 is above 14 and 1 + 12 is not. With
+      // the truth function false, 0 + 14 is not above 14.
+      const cases = <(String, String, int)>[
+        ('7', '0.5', 1),
+        ('6', '0.5', 2),
+        ('7', '9.5', 2),
+      ];
+      for (final (String num, String frac, int flag) in cases) {
+        final (JobCompilation job, Machine subject) = compiled(
+          _nestedCompare(num, frac),
+        );
+        expect(
+          subject.state.read(addressOf(job, 'FLAG')),
+          flag,
+          reason: 'NUM $num, FRAC $frac',
+        );
+      }
+    });
+
+    test('a chain above the edited scale rounds through the tail', () {
+      final (JobCompilation job, Machine subject) = compiled(_editedTail);
+      expect(subject.printed, <String>['AT 4,00 STOP RUN']);
+      // 2.476 half-adjusts to 2.48.
+      expect(glyphsAt(subject, addressOf(job, 'NET'), 10), r'    $2.48 ');
     });
 
     test('a located external-decimal store writes into the buffer', () {

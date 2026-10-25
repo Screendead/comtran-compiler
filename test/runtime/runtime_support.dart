@@ -112,6 +112,9 @@ const int sourceCell = 132;
 const int targetCell = 133;
 const int conditionCell = 131;
 
+/// The overflow cell, SYS)130 (D4.2).
+const int overflowCell = 130;
+
 /// The source and target areas every case below reads and writes.
 const int sourceArea = start + 0x100;
 const int targetArea = start + 0x110;
