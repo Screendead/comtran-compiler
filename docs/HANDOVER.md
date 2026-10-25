@@ -141,7 +141,8 @@ causes that separate the rest. Expect BONDORDER's EMPLOYEE.NUMBER,
 NAME and DATE to stay unmoved: MASTER holds them under DATA, so they do
 not correspond ([J 02.04.04]; M6-9). With codegen defect 12 fixed, the
 run over pending PR 145's tapes reaches end of job. Defect 7 is fixed for the
-DO FOR. The other ten defects stay open, and each fix must leave
+DO FOR. Defects 3 and 4 are handled on this branch, pending Jack's
+ruling. The other eight stay open, and each fix must leave
 `test/goldens/90.05-payroll.code` as it stands.
 
 **One question waits for Jack, and no work waits on his answer.**
@@ -174,17 +175,16 @@ moves it has changed the sample's path. The three divides at LOC 00424,
 2. **An edited ADD source is not scale-aligned.** `_addPair` refuses a
    pair of unequal scales (:2590). The edited-source branch of `_add`
    (:2526) skips that check.
-3. **An `S` position in a numeric source is counted as a stored
-   character.** `ItemSemantics.digits` counts the `S` fillers and
-   `storageChars` does not. Three sites punch the digit count where the
-   handler reads characters: :2028, :2079 and :2565. The handler then
-   reads past the field.
-4. **A `STO` through the register the convert has just overwritten.**
-   The external-to-internal path emits `_loadBaseOf(target)` and the
-   `STO` (:2029) before `_movpakClears()`. `_loadBase` (:1036) reuses a
-   register that already holds the target's locator. A target behind the
-   locator in register 1 then stores through the count `TXI SYS)184,1,n`
-   left there. No sample site is on that path.
+3. **An `S` source position was read as a stored character. Handled on
+   this branch, pending Jack's ruling on
+   `review/2026-10-25-codegen-defects-8-11`.** Counts now take the
+   stored digits. An `S` between them, or behind them under a `V` or
+   point, refuses, as does an edit run whose drop reaches them. A
+   convert into another scale never rescales (defect 1, draft PR #167).
+4. **A `STO` through the register the convert overwrote. Handled on
+   this branch, pending the same ruling.** The store now reloads the
+   locator. The run was already right: the move restores register 1
+   (RT-3).
 5. **A leading run that mixes `8` and `*` compiles.** The control word
    has one address field for the leading run, so it cannot say which
    cells take a blank and which an asterisk. `$8*89.99` compiles with no
