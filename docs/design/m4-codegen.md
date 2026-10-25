@@ -581,8 +581,8 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
 
   a. **A value carries the register that holds it.** A product ends in
      the MQ and a chain in the accumulator, so a park writes `STQ` or
-     `STO`, five sites and no exception. The store tail opens on `XCA`,
-     which reads the MQ half, so a scaling store of a chain refuses.
+     `STO`, five sites and no exception. Amended 2026-10-25: a chain takes
+     the scaling tail without its `XCA` (M6-9).
   b. **A computed operand parks in the cell its later operands count**,
      in the section the walk is in: `RS)n` in section 0, `k.RS)n` after
      it (notes 6.2 item 21).
