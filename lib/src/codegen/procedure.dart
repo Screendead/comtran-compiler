@@ -1351,7 +1351,14 @@ final class _Text {
       );
     }
     final String digits = text.replaceFirst('.', '');
-    return (int.parse(digits), point < 0 ? 0 : text.length - point - 1);
+    return (
+      int.tryParse(digits) ??
+          _unruled(
+            'a numeric literal too long for a machine word '
+            '(no sample instance)',
+          ),
+      point < 0 ? 0 : text.length - point - 1,
+    );
   }
 
   PoolHandle _numericLiteral(Token literal) {

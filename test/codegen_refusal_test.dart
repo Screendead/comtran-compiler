@@ -76,6 +76,7 @@ String _refuses(
   List<String>? data,
   List<String> environment = const [],
   List<String> flagged = const [],
+  List<String>? frontEnd,
 }) {
   final SemanticResult semantics = runJob(
     data: data ?? _data(),
@@ -84,6 +85,11 @@ String _refuses(
   );
   expect(ids(semantics), flagged, reason: 'the program must reach the sizers');
   expect(semantics.stopped, isFalse);
+  if (frontEnd != null) {
+    expect([
+      for (final Diagnostic d in semantics.parse.diagnostics) d.message.number,
+    ], frontEnd);
+  }
   try {
     runCodegen(semantics);
   } on UnrecoveredShape catch (refusal) {
@@ -1106,28 +1112,6 @@ void main() {
       );
     });
 
-    test('an undefined operand', () {
-      expect(
-        _refuses(['            SET TOT = NUM + ZZZ.'], flagged: ['108,00']),
-        'an operand that names no data item (no sample instance)',
-      );
-    });
-
-    test('an improperly qualified operand', () {
-      expect(
-        _refuses(['            SET TOT = NUM OF TOT.'], flagged: ['101,00']),
-        'an operand that names no data item (no sample instance)',
-      );
-    });
-
-    test('a numeric literal with two decimal points', () {
-      // The lexer's 53,00 is a front-end diagnostic, outside ids().
-      expect(
-        _refuses(['            SET TOT = NUM + 1.2.3.']),
-        'a numeric literal with two decimal points (no sample instance)',
-      );
-    });
-
     test('a located DO FOR index', () {
       expect(
         _refuses(
@@ -1314,6 +1298,37 @@ void main() {
           'a procedure open at the end of the text (no sample instance)',
         );
       }
+    });
+  });
+
+  group('a diagnosed program that reaches code generation', () {
+    test('an undefined operand', () {
+      expect(
+        _refuses(['            SET TOT = NUM + ZZZ.'], flagged: ['108,00']),
+        'an operand that names no data item (no sample instance)',
+      );
+    });
+
+    test('an improperly qualified operand', () {
+      expect(
+        _refuses(['            SET TOT = NUM OF TOT.'], flagged: ['101,00']),
+        'an operand that names no data item (no sample instance)',
+      );
+    });
+
+    test('a numeric literal with two decimal points', () {
+      // The lexer's 53,00 is a front-end diagnostic, outside ids().
+      expect(
+        _refuses(['            SET TOT = NUM + 1.2.3.'], frontEnd: ['53,00']),
+        'a numeric literal with two decimal points (no sample instance)',
+      );
+    });
+
+    test('a numeric literal too long for a machine word', () {
+      expect(
+        _refuses(['            SET TOT = NUM + 12345678901234567890.']),
+        'a numeric literal too long for a machine word (no sample instance)',
+      );
     });
   });
 
