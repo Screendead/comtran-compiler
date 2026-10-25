@@ -958,30 +958,6 @@ void main() {
       );
     });
 
-    test('a DO FOR driving two indicators', () {
-      expect(
-        _refuses(
-          [
-            '            IF NUM = TAB CELL (IDX) THEN STOP RUN.',
-            '            IF NUM = TAB2 CEL2 (IDX) THEN STOP RUN.',
-            '            DO RTN FOR IDX = 1(1)12.',
-          ],
-          data: [
-            ..._data(),
-            dataCard(name: 'TAB2', level: '1', quantity: '12'),
-            dataCard(
-              name: 'CEL2',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
-          ],
-        ),
-        'a DO FOR driving two indicators (M4-6; no sample instance)',
-      );
-    });
-
     group('a table stride of part of a word (M6-9)', () {
       // An element of 11 characters, as the corpus's TABLE.ITEM: a word
       // of internal decimal and five characters. Codegen defect 7

@@ -319,6 +319,60 @@ final List<String> _externalIndex = <String>[
   '      *FINISH',
 ];
 
+/// A program that loops 1(1)12 and reads three fields of one table
+/// through three indicators (M6-9). Element k holds k, 100 + k and
+/// 200 + k, each a word of external decimal. Each pass moves the three
+/// fields out, counts in NA, NB and NC the fields that read element
+/// k, and sums them in SA, SB and SC.
+final List<String> _indicators = <String>[
+  '      *DATA',
+  dataCard(name: 'TABLE', level: '1'),
+  for (var k = 1; k <= 12; k++)
+    dataCard(
+      level: '2',
+      description:
+          "'${[k, 100 + k, 200 + k].map((v) => '$v'.padLeft(6, '0')).join()}'",
+    ),
+  dataCard(type: 'REDEF', description: 'TABLE'),
+  dataCard(name: 'TAB', level: '1', quantity: '12'),
+  for (final String name in ['A', 'B', 'C'])
+    dataCard(name: name, level: '2', mode: 'E', description: '9(6)'),
+  for (final String name in [
+    'IDX',
+    'WA',
+    'WB',
+    'WC',
+    'KB',
+    'KC',
+    'NA',
+    'NB',
+    'NC',
+    'SA',
+    'SB',
+    'SC',
+  ])
+    dataCard(
+      name: name,
+      level: '1',
+      mode: 'I',
+      justify: 'R',
+      description: '9(6)',
+    ),
+  '      *PROCEDURE',
+  '      START.  DO RTN FOR IDX = 1(1)12.',
+  '            STOP RUN.',
+  '      RTN.  BEGIN SECTION.',
+  '            MOVE A (IDX) TO WA, MOVE B (IDX) TO WB.',
+  '            MOVE C (IDX) TO WC.',
+  '            SET KB = WB - 100, SET KC = WC - 200.',
+  '            IF WA = IDX THEN SET NA = NA + 1.',
+  '            IF KB = IDX THEN SET NB = NB + 1.',
+  '            IF KC = IDX THEN SET NC = NC + 1.',
+  '            SET SA = SA + WA, SET SB = SB + WB, SET SC = SC + WC.',
+  '            END RTN.',
+  '      *FINISH',
+];
+
 /// A program that never reaches its `STOP RUN`.
 final List<String> _loop = <String>[
   '      *DATA',
@@ -809,6 +863,18 @@ void main() {
       expect(subject.state.read(addressOf(job, 'NUM')), 12);
       // The exit leaves the index at the first value past 12.
       expect(glyphsAt(subject, addressOf(job, 'EXI'), 2), '13');
+    });
+
+    test('a loop steps three indicators over one table', () {
+      final (JobCompilation job, Machine subject) = compiled(_indicators);
+      // Each field read element k on each of the 12 passes.
+      for (final count in ['NA', 'NB', 'NC']) {
+        expect(subject.state.read(addressOf(job, count)), 12, reason: count);
+      }
+      // 1 + ... + 12 is 78, and the other two add 1200 and 2400.
+      expect(subject.state.read(addressOf(job, 'SA')), 78);
+      expect(subject.state.read(addressOf(job, 'SB')), 1278);
+      expect(subject.state.read(addressOf(job, 'SC')), 2478);
     });
 
     test('a labelled section runs from the entry point it takes', () {

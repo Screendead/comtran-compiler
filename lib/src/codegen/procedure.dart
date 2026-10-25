@@ -1638,9 +1638,10 @@ final class _Text {
 
   /// DO FOR (catalogue 4.1): 11 + 5·M words, M the positional
   /// indicators the loop index drives, and 21 + 5·M for an external
-  /// index (M6-9); a five-name later-pass run, binding the body-entry
-  /// EQU, the increment block, and the table-base EQU (M4-6, the fitted
-  /// grouping).
+  /// index (M6-9); a later-pass run of 3 + 2·M names, binding the
+  /// body-entry EQU, the increment block, and one table-base EQU per
+  /// indicator (M4-6, the fitted grouping, its last pair repeated per
+  /// indicator; M6-9).
   void _doFor(DoClause clause) {
     if (clause.indices.length > 1) {
       _unruled('a multi-index DO (notes section 7)');
@@ -1665,11 +1666,6 @@ final class _Text {
       for (final (DataItem, String) each in semantics.positionalIndicators)
         if (each.$2 == index.index.text) each,
     ];
-    if (driven.length > 1) {
-      // The M4-6 name run is fitted to one driven indicator; no rule
-      // derives the run for two.
-      _unruled('a DO FOR driving two indicators (M4-6; no sample instance)');
-    }
     final bounds = <PoolHandle>[];
     for (final bound in <ArithExpr>[index.from, index.by, index.to]) {
       if (bound case LiteralOperand(:final literal)) {
@@ -1682,20 +1678,26 @@ final class _Text {
       }
     }
     final strides = <PoolHandle>[];
+    final bases = <PoolHandle>[];
     for (final (DataItem item, _) in driven) {
       strides.add(_tableStride(item));
-      _subscriptBase(item);
+      bases.add(_subscriptBase(item));
+    }
+    if (driven.isEmpty) {
+      _unruled('a DO FOR driving no indicator');
     }
     _generated += 1; // The first name of the run is never bound (M4-6).
     final String bodyEntry = _mint();
     final String increment = _mint();
-    _generated += 1; // The fourth is never bound either (M4-6).
-    final String tableBase = _mint();
-    final PoolHandle base = driven.isEmpty
-        ? _unruled('a DO FOR driving no indicator')
-        : _subscriptBase(driven.first.$1);
-    final _Sym baseCell = _cp(base);
-    equ(tableBase, baseCell.value, operand: baseCell.text);
+    // Every table-base EQU heads the block, in indicator order (M6-9).
+    final tableBases = <_Sym>[];
+    for (final base in bases) {
+      _generated += 1; // The pair's first name is never bound (M4-6).
+      final String name = _mint();
+      final _Sym baseCell = _cp(base);
+      equ(name, baseCell.value, operand: baseCell.text);
+      tableBases.add(_Sym(() => name, baseCell.value, Relocation.relative));
+    }
     // The prologue (the attested 00702): patch the cell to the
     // increment block, then set the index and each indicator off.
     _op(Op.axt, _labelSym(increment), tag: 4);
@@ -1706,9 +1708,9 @@ final class _Text {
     } else {
       _opItem(Op.sto, indexItem);
     }
-    for (final (DataItem item, _) in driven) {
-      _op(Op.cla, _Sym(() => tableBase, baseCell.value, Relocation.relative));
-      _op(Op.sto, _blockWord(StorageBlock.pi, _indicator(item)));
+    for (var i = 0; i < driven.length; i++) {
+      _op(Op.cla, tableBases[i]);
+      _op(Op.sto, _blockWord(StorageBlock.pi, _indicator(driven[i].$1)));
     }
     final _Sym entry = _entrySym(clause.procedure);
     equ(bodyEntry, entry.value, operand: entry.text);

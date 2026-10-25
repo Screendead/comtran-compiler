@@ -1214,6 +1214,134 @@ void main() {
     });
   });
 
+  group('a DO FOR driving several indicators (M6-9)', () {
+    /// An internal `999` item at level [level].
+    String cell(String name, String level) => dataCard(
+      name: name,
+      level: level,
+      mode: 'I',
+      justify: 'R',
+      description: '999',
+    );
+
+    /// The loop of `DO RTN FOR IDX = 1(1)12` over [data], whose body
+    /// compares NUM with each of [cells] subscripted by IDX: the
+    /// table-base EQUs ahead of the AXT, then every word to the TPL.
+    /// An EQU prints as its label and its operand.
+    List<String> loop(List<String> data, List<String> cells) {
+      final SemanticResult semantics = runJob(
+        data: [...data, cell('NUM', '1'), cell('IDX', '1')],
+        procedure: [
+          '            DO RTN FOR IDX = 1(1)12.',
+          '            STOP RUN.',
+          '      RTN.  BEGIN SECTION.',
+          for (final String each in cells)
+            '            IF NUM LT $each (IDX) THEN STOP RUN.',
+          '            END RTN.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          u.operation == 'EQU'
+              ? '${u.labels.single} EQU ${u.operand}'
+              : '${u.operation} ${u.operand}',
+      ];
+      final int axt = words.indexWhere((w) => w.startsWith('AXT GN)'));
+      final int start =
+          words.lastIndexWhere((w) => !w.contains(' EQU '), axt - 1) + 1;
+      return words.sublist(
+        start,
+        words.indexWhere((w) => w.startsWith('TPL '), axt) + 1,
+      );
+    }
+
+    test('two tables each take a base, a pair of names, and a stride', () {
+      expect(
+        loop(
+          [
+            dataCard(name: 'TAB', level: '1', quantity: '12'),
+            cell('CELL', '2'),
+            dataCard(name: 'TAB2', level: '1', quantity: '12'),
+            cell('CEL2', '2'),
+          ],
+          ['CELL', 'CEL2'],
+        ),
+        [
+          // 004 is never bound, 005 and 006 are the body entry and the
+          // increment, and each indicator takes a pair: 007 and 008,
+          // then 009 and 010, the second name bound.
+          'GN)008 EQU CP)+10',
+          'GN)010 EQU CP)+11',
+          'AXT GN)006,4',
+          'SXA RTN,4',
+          'CLA CP)+1',
+          'STO IDX',
+          'CLA GN)008',
+          'STO PI)1',
+          'CLA GN)010',
+          'STO PI)2',
+          'GN)005 EQU RTN+1',
+          'TRA RTN+1',
+          'CLA IDX',
+          'ADD CP)+1',
+          'STO IDX',
+          'CLA CP)+1',
+          'ADD PI)1',
+          'STO PI)1',
+          'CLA CP)+1',
+          'ADD PI)2',
+          'STO PI)2',
+          'CLA CP)+2',
+          'SUB IDX',
+          'TPL GN)005',
+        ],
+      );
+    });
+
+    test('three fields of one table share its stride', () {
+      final List<String> data = [
+        dataCard(name: 'TAB', level: '1', quantity: '12'),
+        cell('A', '2'),
+        cell('B', '2'),
+        cell('C', '2'),
+      ];
+      expect(loop(data, ['A', 'B', 'C']), [
+        'GN)009 EQU CP)+12',
+        'GN)011 EQU CP)+13',
+        'GN)013 EQU CP)+14',
+        'AXT GN)007,4',
+        'SXA RTN,4',
+        'CLA CP)+1',
+        'STO IDX',
+        'CLA GN)009',
+        'STO PI)1',
+        'CLA GN)011',
+        'STO PI)2',
+        'CLA GN)013',
+        'STO PI)3',
+        'GN)006 EQU RTN+1',
+        'TRA RTN+1',
+        'CLA IDX',
+        'ADD CP)+1',
+        'STO IDX',
+        // The element is three words, one pool entry for all three.
+        'CLA CP)+3',
+        'ADD PI)1',
+        'STO PI)1',
+        'CLA CP)+3',
+        'ADD PI)2',
+        'STO PI)2',
+        'CLA CP)+3',
+        'ADD PI)3',
+        'STO PI)3',
+        'CLA CP)+2',
+        'SUB IDX',
+        'TPL GN)006',
+      ]);
+    });
+  });
+
   group('the entry point (D2.1)', () {
     // Compiles [procedure] over one integer item and asserts that the
     // end-of-text entry names the PROGRAM.START word rather than
