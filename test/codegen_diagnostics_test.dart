@@ -447,5 +447,44 @@ void main() {
       );
       expect(_ids(job), isEmpty);
     });
+
+    test('STOP RUN ends the straight run', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES.',
+          '            CLOSE ALL FILES, STOP RUN.',
+          '            OPEN ALL FILES.',
+          '            STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), isEmpty);
+    });
+
+    test('a GO TO ends the straight run', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES.',
+          '            CLOSE ALL FILES, GO TO LAST.',
+          '            OPEN ALL FILES.',
+          '      LAST.  STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), isEmpty);
+    });
+
+    test("an END's label ends the straight run", () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES, DO S.',
+          '            GO TO LAST.',
+          '      S.  BEGIN SECTION.',
+          '            CLOSE ALL FILES.',
+          '            END S.',
+          '            OPEN ALL FILES.',
+          '      LAST.  STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), isEmpty);
+    });
   });
 }

@@ -377,6 +377,12 @@ final class _Text {
   /// reading is the one implemented.
   final Map<int, int> _registerHolds = <int, int>{};
 
+  /// Whether a CLOSE ALL FILES precedes in the straight run: no label
+  /// since, and no GO TO or STOP RUN (D6.3; msg 948). An END needs no
+  /// clear of its own: it stands alone in its sentence (msg 179), and
+  /// that sentence's label or the END's generated name clears the flag.
+  bool _closedAll = false;
+
   /// Registers assigned this statement, in operand order (M4-9).
   final Map<int, int> _statementRegisters = <int, int>{};
 
@@ -426,10 +432,6 @@ final class _Text {
     _registerHolds.clear();
     _closedAll = false;
   }
-
-  /// Whether a CLOSE ALL FILES precedes in the straight run: no label
-  /// since, and no GO TO, STOP RUN or END (D6.3; msg 948).
-  bool _closedAll = false;
 
   /// Emits one written object word: [operation] and [control] now, the
   /// operand text and the 36-bit word after the walk (M4-4). Every
@@ -1534,7 +1536,6 @@ final class _Text {
         _op(Op.axt, _Sym(() => '0', () => 0, Relocation.constant));
       case EndClause():
         _endClause(clause);
-        _closedAll = false;
       case OpenClause(:final allFiles):
         if (!allFiles) {
           _unruled('an OPEN naming files (notes section 7)');
