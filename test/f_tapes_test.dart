@@ -10,6 +10,7 @@ import 'package:comtran/comtran_io.dart';
 import 'package:test/test.dart';
 
 import '../tool/f_tapes_source.dart';
+import '../tool/sample_tapes_source.dart' show characterWord;
 import 'support/deck_fixtures.dart';
 
 List<int> imageOf(String unit) =>
@@ -38,21 +39,26 @@ void main() {
     expect(imageOf('C2'), fDetailImage());
   });
 
-  test('D1 holds 25 masters and C2 14 details, one 14-word block each', () {
-    final List<List<int>> masters = blocksOf('D1');
-    final List<List<int>> details = blocksOf('C2');
-    expect(masters, hasLength(25));
-    expect(details, hasLength(14));
-    for (final block in <List<int>>[...masters, ...details]) {
-      expect(block, hasLength(blockWords));
-    }
-  });
+  test(
+    'D1 holds 25 masters and C2 14 details, in blank-filled 14-word blocks',
+    () {
+      final List<List<int>> masters = blocksOf('D1');
+      final List<List<int>> details = blocksOf('C2');
+      expect(masters, hasLength(25));
+      expect(details, hasLength(14));
+      for (final block in <List<int>>[...masters, ...details]) {
+        expect(block, hasLength(blockWords));
+        // The four characters after the 80 of the record are blank.
+        expect(block.last & 0xFFFFFF, characterWord('') & 0xFFFFFF);
+      }
+    },
+  );
 
   group('the lister prints each record', () {
     final List<String> masters = listTape(imageOf('D1')).toList();
     final List<String> details = listTape(imageOf('C2')).toList();
 
-    test('one line a record, the four fill characters blank', () {
+    test('one line a record, none past 80 characters', () {
       expect(masters, hasLength(25));
       expect(details, hasLength(14));
       for (final line in <String>[...masters, ...details]) {
