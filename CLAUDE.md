@@ -103,7 +103,7 @@ clone does not have them.
 | the other files in `docs/design/` | The per-milestone and per-component design records |
 | `docs/comtran-language-definition.md` | The source language |
 | `REVIEW.md` | The criteria for every code review. `/code-review` injects the file into each review agent. |
-| `EXTERNAL-REVIEW.md` | The external-review charter: the two-family review loop and the merge rule |
+| `EXTERNAL-REVIEW.md` | The review charter: the two-reviewer loop (a Fable and an Opus subagent) and the merge rule |
 
 Two rules keep these apart:
 
@@ -317,14 +317,15 @@ Two consequences to expect:
   ask before you open a pull request: that call is Jack's. Two merge rules
   govern. A pull request that changes a file under `lib/` or under
   `test/goldens/`, or an object-code target under `test/fixtures/`, merges
-  on external-review convergence — both reviewers, `VERDICT: LGTM`, the
-  same head, under the EXTERNAL-REVIEW.md charter. Every other pull
+  on review convergence — both reviewers, `VERDICT: LGTM`, the same
+  head, under the EXTERNAL-REVIEW.md charter. Every other pull
   request is routine maintenance: it skips the loop and merges on Jack's
   instruction. His instruction to merge is also a waiver of the
   convergence requirement. A pull request that changes REVIEW.md, the
   charter, this section, or the external-review skill merges only on his
   instruction. The charter quotes his standing authorization of
-  2026-08-16 in full.
+  2026-08-16 in full, and his instruction of 2026-10-25 that moved the
+  loop to two local subagents.
 - **A question for Jack is a review record, not a chat message.** Whenever work
   stops and waits for him — a human-OCR request, a peer collision under section
   6, an authorization to change a conversion, a choice between designs — build
