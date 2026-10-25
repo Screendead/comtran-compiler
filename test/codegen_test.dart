@@ -363,6 +363,141 @@ void main() {
     });
   });
 
+  group('the external-decimal fetch (M6-9)', () {
+    /// The words from the first fetch to the end of [statement], with
+    /// EXT and EXU external decimal, NUM internal, and IFLD a field of
+    /// a located input record.
+    List<String> fetch(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+          dataCard(name: 'IFLD', level: '2', description: '999'),
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
+          dataCard(name: 'EXU', level: '1', mode: 'E', description: '999'),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          '            GET IREC, AT END GO TO RTN.',
+          statement,
+          '      RTN.  STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('TRA RTN') + 1;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    const convertExt = <String>[
+      'LDI CP)+7',
+      'STI SYS)132',
+      'TSX SYS)182,4',
+      'TXI SYS)184,1,3',
+    ];
+
+    test('a SET operand converts into a temporary cell', () {
+      expect(fetch('            SET NUM = EXT + NUM.'), [
+        ...convertExt,
+        'STO TS)1',
+        'CLA TS)1',
+        'ADD NUM',
+        'STO NUM',
+      ]);
+    });
+
+    test('a factor reads the cell with MPY', () {
+      expect(fetch('            SET NUM = EXT * NUM.'), [
+        ...convertExt,
+        'STO TS)1',
+        'LDQ NUM',
+        'MPY TS)1',
+        'STQ NUM',
+      ]);
+    });
+
+    test('two operands take two cells, and a repeat reads its own', () {
+      expect(fetch('            SET NUM = EXT + EXU - EXT.'), [
+        ...convertExt,
+        'STO TS)1',
+        'LDI CP)+8',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'STO TS)2',
+        'CLA TS)1',
+        'ADD TS)2',
+        'SUB TS)1',
+        'STO NUM',
+      ]);
+    });
+
+    test('an ADD source converts, then adds from the cell', () {
+      expect(fetch('            ADD EXT TO NUM.'), [
+        ...convertExt,
+        'STO TS)1',
+        'CLA NUM',
+        'ADD TS)1',
+        'STO NUM',
+      ]);
+    });
+
+    test('a located comparand sets its pointer from its base', () {
+      expect(fetch('            IF IFLD GT NUM THEN STOP RUN.').take(8), [
+        'CAL BL)2',
+        'ACL CP)+9',
+        'SLW SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'STO TS)1',
+        'CLA TS)1',
+        'CAS NUM',
+      ]);
+    });
+
+    test('a storage comparand converts ahead of the accumulator load', () {
+      expect(fetch('            IF NUM GT EXT THEN STOP RUN.').take(7), [
+        'LDI CP)+9',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'STO TS)1',
+        'CLA NUM',
+        'CAS TS)1',
+      ]);
+    });
+
+    test('a truth function reads the cell its statement fetched', () {
+      final List<String> words = fetch(
+        '            SET NUM = TR (EXT GT NUM) * NUM.',
+      );
+      expect(words.where((String w) => w == 'TSX SYS)182,4'), hasLength(1));
+      expect(words.indexOf('STO TS)1'), lessThan(words.indexOf('CLA TS)1')));
+    });
+
+    test('each clause fetches again', () {
+      final List<String> words = fetch(
+        '            SET NUM = EXT + NUM, SET NUM = EXT + NUM.',
+      );
+      expect(words.where((String w) => w == 'STO TS)1'), hasLength(2));
+    });
+  });
+
   group('the entry point (D2.1)', () {
     // Compiles [procedure] over one integer item and asserts that the
     // end-of-text entry names the PROGRAM.START word rather than

@@ -39,6 +39,7 @@ import '../lexer/source_card.dart';
 import '../lexer/token.dart';
 import '../loader/control_group.dart';
 import '../parser/parser.dart';
+import 'codegen.dart' show temporaryStorageWords;
 import 'codegen_messages.dart';
 import 'control_cards.dart';
 import 'encode.dart';
@@ -986,19 +987,128 @@ final class _Text {
     return fieldClass == FieldClass.group ? FieldClass.alphameric : fieldClass;
   }
 
-  /// Every attested arithmetic operand, SET target, ADD operand,
-  /// numeric-compare operand and DO index is internal decimal; the one
-  /// attested non-binary fetch is the edited ADD source of statement
-  /// 221 (catalogue 4.7), handled at its own site. Any other class has
-  /// no attested arithmetic form and refuses.
+  /// Every attested SET target, ADD target and DO index is internal
+  /// decimal. The external-decimal store is an open item of M6-9, so it
+  /// refuses under its own shape; any other class has no attested
+  /// arithmetic form and refuses.
   DataItem _decimal(DataItem item) {
+    if (_sem(item).fieldClass == FieldClass.externalDecimal) {
+      _unruled('an external-decimal store (M6-9)');
+    }
+    return _operand(item);
+  }
+
+  /// An arithmetic or numeric-compare operand: internal decimal, or
+  /// external decimal read through its fetch (M6-9). The one attested
+  /// edited fetch is the ADD source of statement 221 (catalogue 4.7),
+  /// handled at its own site.
+  DataItem _operand(DataItem item) {
     final FieldClass fieldClass = _sem(item).fieldClass;
-    if (fieldClass != FieldClass.internalDecimal) {
+    if (fieldClass != FieldClass.internalDecimal &&
+        fieldClass != FieldClass.externalDecimal) {
       _unruled(
         'an arithmetic operand of ${fieldClass.name} (no sample instance)',
       );
     }
     return item;
+  }
+
+  /// The word that reads [item] as an operand: the field itself under
+  /// its guard, or the temporary cell its fetch parked it in.
+  void _read(Op op, DataItem item) {
+    final int? cell = _fetched[item];
+    if (cell != null) {
+      _op(op, _blockWord(StorageBlock.ts, cell));
+      return;
+    }
+    _loadBaseOf(item);
+    _opItem(op, item);
+  }
+
+  /// The temporary cell of each external-decimal operand the open fetch
+  /// scope converted, numbered from 1 as `TS)n` ([J 90.02.04]).
+  final Map<DataItem, int> _fetched = Map<DataItem, int>.identity();
+  bool _fetching = false;
+
+  /// Runs [body] with every external-decimal item of [operands] fetched
+  /// ahead of it into its own temporary cell (M6-9). The fetches run
+  /// before the first word of the body, so no convert can clobber a
+  /// live accumulator or MQ. A scope opened inside an open one, the
+  /// truth function's comparison, reads the outer scope's cells.
+  T _withFetches<T>(Iterable<DataItem> operands, T Function() body) {
+    if (_fetching) {
+      return body();
+    }
+    _fetching = true;
+    try {
+      for (final item in operands) {
+        if (_sem(item).fieldClass != FieldClass.externalDecimal ||
+            _fetched.containsKey(item)) {
+          continue;
+        }
+        final int cell = _fetched.length + 1;
+        if (cell > temporaryStorageWords) {
+          _unruled('a temporary cell past the TS) reservation (M4-4)');
+        }
+        _setup(item, target: false);
+        _externalConvert(item);
+        _op(Op.sto, _blockWord(StorageBlock.ts, cell));
+        _movpakClears();
+        _fetched[item] = cell;
+      }
+      return body();
+    } finally {
+      _fetching = false;
+      _fetched.clear();
+    }
+  }
+
+  /// The data items an expression or a relation reads, in source order.
+  List<DataItem> _operandsOf(Iterable<ArithExpr> expressions) {
+    final items = <DataItem>[];
+    void walk(ArithExpr expr) {
+      switch (expr) {
+        case NameOperand(:final name):
+          final DataItem? item = _item(name);
+          if (item == null) {
+            return;
+          }
+          if (name.subscripts.isNotEmpty &&
+              _sem(item).fieldClass == FieldClass.externalDecimal) {
+            // The fetch sets SYS)132 from a fixed descriptor; no sample
+            // operand is both subscripted and converted.
+            _unruled('a subscripted external-decimal operand (M6-9)');
+          }
+          items.add(item);
+        case BinaryExpr(:final left, :final right):
+          walk(left);
+          walk(right);
+        case TruthExpr(condition: Relation(:final left, :final right)):
+          walk(left);
+          walk(right);
+        default:
+          // Every other node refuses at its own site, the unary forms
+          // included (D4.4).
+          break;
+      }
+    }
+
+    expressions.forEach(walk);
+    return items;
+  }
+
+  /// The convert of [item] into the accumulator: the MOVPAK entry and
+  /// the complete SYS)184 call, after the source pointer is set
+  /// ([J 90.02.15]; [J 90.02.16]; statement 202,00).
+  void _externalConvert(DataItem item) {
+    if (_sem(item).doublePrecision) {
+      // Every park is one `STO`, which stores the accumulator alone, and
+      // no unsealed source fixes the AC-MQ split radix
+      // (`docs/design/runtime.md` RT-4).
+      _unruled('an external-decimal convert of more than 10 digits (RT-4)');
+    }
+    _tsx(182);
+    _txi(184, _sem(item).digits);
   }
 
   // --- The register cache (notes question 2, settled above) ---------------
@@ -2035,15 +2145,12 @@ final class _Text {
           targetSubscripted: targetSubscripted,
         );
       case (FieldClass.externalDecimal, FieldClass.internalDecimal):
-        if (_sem(source).doublePrecision || _sem(target).doublePrecision) {
-          // The convert parks with one `STO`, which stores the
-          // accumulator alone, and no unsealed source fixes the AC-MQ
-          // split radix (`docs/design/runtime.md` RT-4).
+        if (_sem(target).doublePrecision) {
+          // The same one-`STO` park as the convert's own refusal.
           _unruled('an external-decimal convert of more than 10 digits (RT-4)');
         }
         _setup(source, subscripted: sourceSubscripted, target: false);
-        _tsx(182);
-        _txi(184, _sem(source).digits); // The complete call ([J 90.02.16]).
+        _externalConvert(source);
         _loadBaseOf(target);
         _opItem(Op.sto, target);
         _movpakClears();
@@ -2519,7 +2626,10 @@ final class _Text {
       _figurativeFill(target, word);
       return;
     }
-    _store(target, _chain(clause.value), truncated: clause.truncated);
+    _withFetches(
+      _operandsOf([clause.value]),
+      () => _store(target, _chain(clause.value), truncated: clause.truncated),
+    );
   }
 
   void _add(AddClause clause) {
@@ -2607,9 +2717,8 @@ final class _Text {
     if (_sem(source).fractionDigits != _sem(target).fractionDigits) {
       _unruled('an ADD pair of unequal scales (notes section 7)');
     }
-    final DataItem addend = _decimal(source);
-    _loadBaseOf(addend);
-    _addBody(target, () => _opItem(Op.add, addend));
+    final DataItem addend = _operand(source);
+    _withFetches([addend], () => _addBody(target, () => _read(Op.add, addend)));
   }
 
   void _addBody(DataItem target, void Function() addend) {
@@ -2630,9 +2739,7 @@ final class _Text {
           if (name.subscripts.isNotEmpty) {
             _unruled('a subscripted chain operand (no sample instance)');
           }
-          final DataItem item = _decimal(_item(name)!);
-          _loadBaseOf(item);
-          _opItem(Op.cla, item);
+          _read(Op.cla, _operand(_item(name)!));
           return (scale: _naturalScale(term), register: _Register.ac);
         case LiteralOperand(:final literal):
           // The one-term chain (notes 3.3).
@@ -2667,11 +2774,8 @@ final class _Text {
       final int cell = terms.length - 1 - i;
       switch (term) {
         case NameOperand(:final name) when deficit == 0:
-          final DataItem item = _decimal(_item(name)!);
-          assembly.add((Op op) {
-            _loadBaseOf(item);
-            _opItem(op, item);
-          });
+          final DataItem item = _operand(_item(name)!);
+          assembly.add((Op op) => _read(op, item));
         case LiteralOperand(:final literal) when deficit == 0:
           final _Sym at = _cp(_numericLiteral(literal));
           assembly.add((Op op) => _op(op, at));
@@ -2681,9 +2785,7 @@ final class _Text {
           if (term case LiteralOperand(:final literal)) {
             _op(Op.ldq, _cp(_numericLiteral(literal)));
           } else if (term case NameOperand(:final name)) {
-            final DataItem item = _decimal(_item(name)!);
-            _loadBaseOf(item);
-            _opItem(Op.ldq, item);
+            _read(Op.ldq, _operand(_item(name)!));
           }
           _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
           assembly.add(_park(cell, _Register.mq));
@@ -2810,11 +2912,8 @@ final class _Text {
         if (name.subscripts.isNotEmpty) {
           _unruled('a subscripted factor (no sample instance)');
         }
-        final DataItem item = _decimal(_item(name)!);
-        return (Op op) {
-          _loadBaseOf(item);
-          _opItem(op, item);
-        };
+        final DataItem item = _operand(_item(name)!);
+        return (Op op) => _read(op, item);
       default:
         _unruled('a factor of ${leaf.runtimeType}');
     }
@@ -2956,13 +3055,16 @@ final class _Text {
         falseTo: falseTo,
       );
     } else {
-      _numericComparison(
-        acc,
-        storage,
-        relation,
-        rightInAccumulator,
-        trueTo: trueTo,
-        falseTo: falseTo,
+      _withFetches(
+        _operandsOf([acc, storage]),
+        () => _numericComparison(
+          acc,
+          storage,
+          relation,
+          rightInAccumulator,
+          trueTo: trueTo,
+          falseTo: falseTo,
+        ),
       );
     }
   }
@@ -3006,12 +3108,20 @@ final class _Text {
       case LiteralOperand():
         _zeroBuild(storage);
       case NameOperand(:final name):
-        final DataItem item = _decimal(_item(name)!);
+        final DataItem item = _operand(_item(name)!);
         if (name.subscripts.isNotEmpty) {
           _unruled('a subscripted accumulator comparand (no sample instance)');
         }
-        _loadBaseOf(item);
-        _opItem(Op.cla, item);
+        if ((storage is NameOperand || storage is LiteralOperand) &&
+            _operandScale(acc) != _operandScale(storage)) {
+          // `CAS` compares the two words as integers, and every attested
+          // pair of a name and a word has one scale; the alignment has
+          // no sample form.
+          _unruled(
+            'a numeric comparison of unequal scales (no sample instance)',
+          );
+        }
+        _read(Op.cla, item);
       default:
         _unruled('a comparison of ${acc.runtimeType}');
     }
@@ -3019,7 +3129,7 @@ final class _Text {
       case LiteralOperand(:final literal):
         _op(Op.cas, _cp(_numericLiteral(literal)));
       case NameOperand(:final name):
-        final DataItem item = _decimal(_item(name)!);
+        final DataItem item = _operand(_item(name)!);
         if (name.subscripts.isNotEmpty) {
           final int register = _indicatorPrologue(item);
           // The element the indicator addresses: `CAS 0,r`, the word
@@ -3030,8 +3140,7 @@ final class _Text {
             tag: register,
           );
         } else {
-          _loadBaseOf(item);
-          _opItem(Op.cas, item);
+          _read(Op.cas, item);
         }
       default:
         _unruled('a comparison of ${storage.runtimeType}');

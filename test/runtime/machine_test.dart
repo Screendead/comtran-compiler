@@ -57,6 +57,38 @@ final List<String> _halt = <String>[
   '      *FINISH',
 ];
 
+/// A program that computes with an external-decimal field (M6-9). The
+/// literal row under REDEF gives EXT the characters `0425`, so EXT
+/// reads 4.25.
+final List<String> _external = <String>[
+  '      *DATA',
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'0425'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'EXT', level: '2', mode: 'E', description: '99V99'),
+  dataCard(
+    name: 'TOT',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999V99',
+  ),
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  '      *PROCEDURE',
+  '      START.  SET TOT = EXT + 1.50.',
+  '            IF EXT GT 4.00 THEN SET NUM = NUM + 1.',
+  '            IF EXT GT 4.25 THEN SET NUM = NUM + 10.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program whose entry point is a labelled section (D2.1). The `GO TO`
 /// ahead of the section runs only if the entry lands on `GN)000`.
 final List<String> _section = <String>[
@@ -475,6 +507,15 @@ void main() {
         'AT 2,00 STOP 1234',
         'AT 4,00 STOP RUN',
       ]);
+      expect(subject.state.read(addressOf(job, 'NUM')), 1);
+    });
+
+    test('an external-decimal operand converts and computes', () {
+      final (JobCompilation job, Machine subject) = compiled(_external);
+      expect(subject.printed, <String>['AT 11,00 STOP RUN']);
+      // 4.25 + 1.50, at the scale of TOT.
+      expect(subject.state.read(addressOf(job, 'TOT')), 575);
+      // 4.25 is greater than 4.00 and not greater than 4.25.
       expect(subject.state.read(addressOf(job, 'NUM')), 1);
     });
 

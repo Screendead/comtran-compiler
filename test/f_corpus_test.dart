@@ -51,13 +51,13 @@ void main() {
     );
   });
 
-  test('the applied deck refuses its first external-decimal operand', () {
-    // STOP n compiles (M6-9), so generation reaches COMPUTE.PAY,
-    // statement 141,00, and stops at `IF DETAIL HOURS IS GREATER THAN
-    // 40`: HOURS is an external-decimal field.
+  test('the applied deck refuses its first unequal-scale comparison', () {
+    // The external-decimal fetch compiles (M6-9), so statement 141,00,
+    // `IF DETAIL HOURS IS GREATER THAN 40`, fetches HOURS and stops on
+    // the compare: HOURS is `99V9` and the literal 40 has no fraction.
     expect(
       _refusal(fAppliedDeckPath),
-      'an arithmetic operand of externalDecimal (no sample instance)',
+      'a numeric comparison of unequal scales (no sample instance)',
     );
   });
 }
