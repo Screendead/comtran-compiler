@@ -111,6 +111,12 @@ error stream and names itself. The error exit prints no line of the
 tool's own, because SYS)294 has already printed the monitor's message
 on the display (RT-2).
 
+**Amended 2026-10-25.** The run skips a job whose maximum severity is
+above 1. D7.6 suppresses execution for that job, and [J 02.01.02]
+states the same rule. The tool prints `job N: not run: maximum severity
+S` on the error stream. The exit status stays 0, because D11.2 lets
+only severity 5 change it.
+
 ### The stage-4 set and what waits
 
 M4-17 charters about 130 runtime entries. Stage 4 built the entries an
@@ -874,6 +880,7 @@ Three edited pictorials reach no control word, so codegen refuses them
 [F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [F p. 80]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
 [F p. 81]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
+[J 02.01.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-cmple-card
 [J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
 [J 02.05.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.05.06]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials

@@ -697,6 +697,58 @@ final List<String> _guard = <String>[
   '      *FINISH',
 ];
 
+/// [_source] with [statements] for its procedure and [data] after its
+/// two fields: the shape of each severity band's program (D7.6).
+List<String> _gated(List<String> statements, {List<String> data = const []}) =>
+    <String>[
+      ..._source.sublist(0, 3),
+      ...data,
+      '      *PROCEDURE',
+      ...statements,
+      '      *FINISH',
+    ];
+
+/// One program per severity band below 5, each with the start of the
+/// message that sets its maximum severity.
+final Map<int, (List<String>, String)> _bands = {
+  1: (
+    _gated(['      START.  SET TOT = NUM + 1.', '            STOP RUN']),
+    'PREVIOUS CARD NOT PROPERLY TERMINATED',
+  ),
+  2: (
+    _gated(
+      ['      START.  SET TOT = NUM + 1.', '            STOP RUN.'],
+      data: [
+        dataCard(name: 'GRP', level: '1', justify: 'R'),
+        dataCard(
+          name: 'SUB',
+          level: '2',
+          mode: 'I',
+          justify: 'R',
+          description: '99',
+        ),
+      ],
+    ),
+    'DATA NOT ON FORMAT DESCRIPTION LEVEL',
+  ),
+  3: (
+    _gated([
+      '      START.  SET TOT = NUM + 1.',
+      '            FROB TOT.',
+      '            STOP RUN.',
+    ]),
+    'STATEMENT WITHOUT PROPER VERB',
+  ),
+  4: (
+    _gated([
+      '      START.  SET TOT = NUM + 1.',
+      '            COPY X.',
+      '            STOP RUN.',
+    ]),
+    '-COPY- AND -LIBRARY-',
+  ),
+};
+
 /// Writes the two input tapes the sample reads: one master record and
 /// one detail record, whose employee number is the lower of the two.
 /// The comparison then takes LOW.DETAIL, which files an error record at
@@ -1352,6 +1404,26 @@ void main() {
         contains('error: job 1: still running after 1000000 steps'),
       );
     });
+
+    test('a maximum severity of 1 runs the program', () {
+      final (List<String> source, String message) = _bands[1]!;
+      final ProcessResult run = _compileAndRun(source);
+      expect(run.stdout, contains('    1    $message'));
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(run.stdout, contains('AT 4,00 STOP RUN'));
+    });
+
+    for (final severity in <int>[2, 3, 4]) {
+      test('a maximum severity of $severity punches but does not run', () {
+        final (List<String> source, String message) = _bands[severity]!;
+        final ProcessResult run = _compileAndRun(source);
+        expect(run.stdout, contains('    $severity    $message'));
+        // Only severity 5 fails the process (D11.2).
+        expect(run.exitCode, 0, reason: '${run.stderr}');
+        expect(run.stdout, isNot(contains(RegExp('^AT ', multiLine: true))));
+        expect(run.stderr, 'job 1: not run: maximum severity $severity\n');
+      });
+    }
 
     test('an error exit fails the job on the monitor message alone', () {
       final ProcessResult run = _compileAndRun(_guard);
