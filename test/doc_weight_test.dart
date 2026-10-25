@@ -14,8 +14,9 @@ const Map<String, int> budgets = <String, int>{
   'docs/design/decisions.md': 50000,
   'docs/HANDOVER.md': 9000,
   'docs/design/m3-data.md': 9000,
-  // M6-9 records one decision per chunk 2b item.
-  'docs/design/m6-acceptance.md': 16000,
+  // M6-9 records one decision per chunk 2b item, and the tapes and the
+  // run of chunk 2b.
+  'docs/design/m6-acceptance.md': 18500,
   // Locked by Jack, 2026-08-09. This number never rises again. A stage 2
   // amendment that needs room pays for it by deleting prose from the same
   // record.

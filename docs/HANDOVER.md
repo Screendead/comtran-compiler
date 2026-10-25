@@ -132,13 +132,10 @@ the course that ruling overturns, and M6-7 as amended corrects the
 and adds `STOP RUN` after it.
 
 **Chunk 2b's run is done (2026-10-25).** The applied deck runs over its
-tapes to end of job. `docs/design/m6-f-tapes.md`, "The run",
-classifies every column against the sample's report and finds no new
-compiler defect. Most differences are the CORRESPONDING finding
+tapes to end of job. M6-9 of `docs/design/m6-acceptance.md`, "the
+run", classifies every column against the sample's report and finds no
+new compiler defect. Most differences are the CORRESPONDING finding
 ([J 02.04.04]): fields under DATA pair with nothing.
-
-**One record task is open:** fold `docs/design/m6-f-tapes.md` into
-M6-9 of `docs/design/m6-acceptance.md`, as its header promises.
 
 **No compiler task follows. The next work is Jack's calls:**
 
