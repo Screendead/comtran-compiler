@@ -100,10 +100,15 @@ CORRESPONDING section) pairs two fields only, at statements 146,00 and
 - DETAIL HOURS to PAYRECORD HOURS;
 - DETAIL BONDENOMINATION to PAYRECORD BONDENOMINATION.
 
-Under that rule, no statement writes the employee number, the name,
+Under that rule, no statement fills the employee number, the name,
 the date, the gross pay, the withholding tax, the FICA deduction or
-the bond deduction of a PAYRECORD line. Of the PAYFILE columns that
-M6-1 expects to check, the hours alone get a writer. The same rule
+the bond deduction of an employee line from the detail record. Of the
+PAYFILE columns that M6-1 expects to check on an employee line, the
+hours alone get a writer. The totals lines are a separate case.
+Statements 138,00 and 148,00 pair GROSS, WHT, FICA, BONDEDUCTION and
+NETPAY of the two totals records with PAYRECORD, and statement 148,00
+moves blanks into the employee number and the name. M6-1 expects no
+total to check, and this finding does not change that. The same rule
 pairs no field with CURRENT DEPARTMENT or PAYRECORD DEPARTMENT. The
 department break of statement 148,00 therefore compares two fields
 that no statement fills from a record.
