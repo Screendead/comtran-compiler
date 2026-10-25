@@ -2872,8 +2872,9 @@ final class _Text {
       _operandsOf([clause.value]),
       () => _store(item, _chain(clause.value), truncated: clause.truncated),
     );
-    // Every store into a subscript variable moves its indicators
-    // (J 02.04.07.01; M4-10), not only a MOVE's.
+    // A SET moves the indicators its target drives, as a MOVE does
+    // (J 02.04.07.01; M4-10). The CORRESPONDING forms return before
+    // any update.
     final int? step = _constantIncrement(item, clause.value);
     if (step != null) {
       _subscriptIncrement(target, step);

@@ -2078,17 +2078,9 @@ void main() {
   });
 
   group('the subscript store and the subscripted target (M6-9)', () {
-    String internal(String name, String pic, {String level = '1'}) => dataCard(
-      name: name,
-      level: level,
-      mode: 'I',
-      justify: 'R',
-      description: pic,
-    );
-
     /// Two words ahead of every table keep each base `NAME-n` at or above
     /// address zero.
-    final List<String> pad = [internal('P1', '9'), internal('P2', '9')];
+    final List<String> pad = [internalCard('P1', '9'), internalCard('P2', '9')];
 
     /// The units of [procedure] over [data], from START on, each a label,
     /// a tab, and the word.
@@ -2111,9 +2103,9 @@ void main() {
     final List<String> cells = [
       ...pad,
       dataCard(name: 'TAB', level: '1', quantity: '3'),
-      internal('CELL', '999', level: '2'),
-      internal('I', '9'),
-      internal('NUM', '999'),
+      internalCard('CELL', '999', level: '2'),
+      internalCard('I', '9'),
+      internalCard('NUM', '999'),
     ];
 
     test('an internal-decimal target stores through its indicator', () {
@@ -2193,9 +2185,9 @@ void main() {
         data: [
           ...pad,
           dataCard(name: 'TAB', level: '1', quantity: '3'),
-          internal('CELL', '999', level: '2'),
+          internalCard('CELL', '999', level: '2'),
           dataCard(name: 'I', level: '1', mode: 'E', description: '9'),
-          internal('NUM', '999'),
+          internalCard('NUM', '999'),
         ],
         procedure: [
           '      START.  SET I = I + 1.',
@@ -2235,6 +2227,44 @@ void main() {
       ]);
     });
 
+    test('a figurative SET into a subscript variable recomputes', () {
+      final List<String> all = lines(cells, [
+        '      START.  SET I = ZERO.',
+        '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
+        '            STOP RUN.',
+      ]);
+      final int fill = all.indexWhere((String w) => w.contains('SYS)244'));
+      expect(all.sublist(fill + 1, all.indexOf('\tSTO PI)1') + 1), [
+        'GN)002\tEQU CP)+8',
+        '\tLDQ I',
+        '\tMPY CP)+1',
+        '\tXCA ',
+        '\tADD GN)002',
+        '\tSTO PI)1',
+      ]);
+    });
+
+    test('an ADD of an edited source recomputes after its store', () {
+      final List<String> all = lines(
+        [...cells, dataCard(name: 'ED', level: '1', description: '89')],
+        [
+          '      START.  ADD ED TO I.',
+          '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
+          '            STOP RUN.',
+        ],
+      );
+      final int store = all.indexOf('\tSTO I');
+      expect(all.sublist(store, all.indexOf('\tSTO PI)1') + 1), [
+        '\tSTO I',
+        'GN)002\tEQU CP)+8',
+        '\tLDQ I',
+        '\tMPY CP)+1',
+        '\tXCA ',
+        '\tADD GN)002',
+        '\tSTO PI)1',
+      ]);
+    });
+
     test('the base of one driven indicator carries its byte', () {
       final List<String> all = lines(
         [
@@ -2243,9 +2273,9 @@ void main() {
           dataCard(name: 'A', level: '2', description: '99'),
           dataCard(name: 'B', level: '2', description: '9999'),
           dataCard(name: 'C', level: '2', description: '9(6)'),
-          internal('IDX', '99'),
-          internal('NUM', '99'),
-          internal('NB', '9(6)'),
+          internalCard('IDX', '99'),
+          internalCard('NUM', '99'),
+          internalCard('NB', '9(6)'),
         ],
         [
           '      START.  MOVE NUM TO IDX.',
@@ -2267,9 +2297,9 @@ void main() {
           dataCard(name: 'RATE', level: '2', description: '9(6)'),
           dataCard(name: 'INSPREM', level: '2', description: '9V99'),
           dataCard(name: 'RETPREM', level: '2', description: '9V99'),
-          internal('POS', '9'),
-          internal('WI', '9V99'),
-          internal('WR', '9V99'),
+          internalCard('POS', '9'),
+          internalCard('WI', '9V99'),
+          internalCard('WR', '9V99'),
         ],
         procedure: [
           '      START.  MOVE POS TO POS.',
@@ -2288,7 +2318,7 @@ void main() {
 
     test('a sub-chain parks clear of the outer chain', () {
       final List<String> all = lines(
-        [internal('NUM', '999'), internal('X', '9(5)')],
+        [internalCard('NUM', '999'), internalCard('X', '9(5)')],
         [
           '      START.  SET X = NUM * 2 + (NUM * 3 + 1).',
           '            STOP RUN.',

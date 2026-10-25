@@ -615,18 +615,9 @@ final List<String> _byteStride = <String>[
   '      *FINISH',
 ];
 
-/// The index card of [_wordStrideByte], which ends its table.
-final String _byteIndex = dataCard(
-  name: 'INDEX',
-  level: '1',
-  description: '99',
-);
-
-/// A loop over twelve items of two whole words: A `99`, B `9999` at
-/// byte 2, and C `9(6)`. Item k holds A = k, B = k and C = 100 + k, so a
-/// reader that took B from byte 0 would read `0k00` for k below 10.
-final List<String> _wordStrideByte = <String>[
-  '      *DATA',
+/// Twelve items of two whole words: A `99`, B `9999` at byte 2, and
+/// C `9(6)`. Item k holds A = k, B = k and C = 100 + k.
+final List<String> _wordStrideTable = <String>[
   dataCard(name: 'TABLE', level: '1'),
   for (var k = 1; k <= 12; k++)
     dataCard(
@@ -640,7 +631,14 @@ final List<String> _wordStrideByte = <String>[
   dataCard(name: 'A', level: '2', description: '99'),
   dataCard(name: 'B', level: '2', description: '9999'),
   dataCard(name: 'C', level: '2', description: '9(6)'),
-  _byteIndex,
+];
+
+/// A loop over [_wordStrideTable]. A reader that took B from byte 0
+/// would read `0k00` for k below 10.
+final List<String> _wordStrideByte = <String>[
+  '      *DATA',
+  ..._wordStrideTable,
+  dataCard(name: 'INDEX', level: '1', description: '99'),
   dataCard(name: 'SB', level: '1', description: '9(6)'),
   for (final String name in ['NB', 'NG', 'SN'])
     dataCard(
@@ -662,25 +660,16 @@ final List<String> _wordStrideByte = <String>[
   '      *FINISH',
 ];
 
-/// An internal-decimal field of [pic] at [level].
-String _internal(String name, String pic, {String level = '1'}) => dataCard(
-  name: name,
-  level: level,
-  mode: 'I',
-  justify: 'R',
-  description: pic,
-);
-
 /// Moves the index through 1, 3, 1, 2 and 3 by a MOVE, a SET, a SET of
 /// a difference, an ADD and a constant increment, and reads A, an
 /// external table holding 1, 2 and 3, after each step. Then stores 7
 /// into element 2 of a three-word table through a subscripted target.
 final List<String> _subscriptStores = <String>[
   '      *DATA',
-  _internal('P1', '9'),
-  _internal('P2', '9'),
+  internalCard('P1', '9'),
+  internalCard('P2', '9'),
   dataCard(name: 'TAB', level: '1', quantity: '3'),
-  _internal('CELL', '999', level: '2'),
+  internalCard('CELL', '999', level: '2'),
   dataCard(name: 'TABLE', level: '1'),
   for (var k = 1; k <= 3; k++)
     dataCard(level: '2', description: "'${'$k'.padLeft(6, '0')}'"),
@@ -688,7 +677,7 @@ final List<String> _subscriptStores = <String>[
   dataCard(name: 'ATAB', level: '1', quantity: '3'),
   dataCard(name: 'A', level: '2', mode: 'E', description: '9(6)'),
   for (final String name in ['I', 'ONE', 'NUM', 'WS', 'WM', 'WA', 'WI'])
-    _internal(name, '9(6)'),
+    internalCard(name, '9(6)'),
   '      *PROCEDURE',
   '      START.  SET ONE = 1, MOVE ONE TO I.',
   '            SET I = 3, MOVE A (I) TO WS.',
@@ -703,8 +692,8 @@ final List<String> _subscriptStores = <String>[
 /// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
 final List<String> _subChain = <String>[
   '      *DATA',
-  _internal('NUM', '999'),
-  _internal('X', '9(5)'),
+  internalCard('NUM', '999'),
+  internalCard('X', '9(5)'),
   '      *PROCEDURE',
   '      START.  SET NUM = 5.',
   '            SET X = NUM * 2 + (NUM * 3 + 1).',
@@ -1411,12 +1400,12 @@ void main() {
       final (JobCompilation job, Machine subject) = compiled(<String>[
         '      *DATA',
         // The base `B-2` must stay at or above address zero.
-        _internal('P1', '9'),
-        _internal('P2', '9'),
-        ..._wordStrideByte.sublist(1, _wordStrideByte.indexOf(_byteIndex)),
-        _internal('THREE', '99'),
-        _internal('IDX', '99'),
-        _internal('NB', '9(6)'),
+        internalCard('P1', '9'),
+        internalCard('P2', '9'),
+        ..._wordStrideTable,
+        internalCard('THREE', '99'),
+        internalCard('IDX', '99'),
+        internalCard('NB', '9(6)'),
         '      *PROCEDURE',
         '      START.  SET THREE = 3, MOVE THREE TO IDX.',
         '            MOVE B (IDX) TO NB.',
