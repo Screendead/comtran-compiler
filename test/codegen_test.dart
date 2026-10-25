@@ -1489,6 +1489,71 @@ void main() {
     });
   });
 
+  group('the external-to-external move (M6-9)', () {
+    /// The words from the first word after the GET to the end of
+    /// [statement]. IFLD is `999V99` in a located input record, the
+    /// source of statement 162,00; EXT is external `999V99`, EXM
+    /// `999V9R` and EXP `999V9I` overpunched.
+    List<String> move(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+          dataCard(name: 'IFLD', level: '2', description: '999V99'),
+          dataCard(name: 'EXT', level: '1', mode: 'E', description: '999V99'),
+          dataCard(name: 'EXM', level: '1', mode: 'E', description: '999V9R'),
+          dataCard(name: 'EXP', level: '1', mode: 'E', description: '999V9I'),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          '            GET IREC, AT END GO TO RTN.',
+          statement,
+          '      RTN.  STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('TRA RTN') + 1;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    test('the shape of statement 162,00 takes the SYS)183 run', () {
+      expect(move('            MOVE IFLD TO EXT.'), [
+        'LDI CP)+7',
+        'STI SYS)133',
+        'CAL BL)2',
+        'ACL CP)+8',
+        'SLW SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)183,1,0',
+        'TXI SYS)191,1,5',
+        'TXI SYS)223,1,5',
+      ]);
+    });
+
+    test('the target sign picks the convention', () {
+      expect(move('            MOVE EXT TO EXM.')[5], 'TXI SYS)183,1,1');
+      expect(move('            MOVE EXT TO EXP.')[5], 'TXI SYS)183,1,2');
+    });
+
+    test('a signed source moves under SYS)227', () {
+      expect(move('            MOVE EXM TO EXP.').sublist(4), [
+        'TSX SYS)182,4',
+        'TXI SYS)183,1,2',
+        'TXI SYS)227,1,5',
+        'TXI SYS)223,1,5',
+      ]);
+    });
+  });
+
   group('the external-decimal DO FOR index (M6-9)', () {
     /// The units of `DO RTN FOR index = [bounds]` over CELL (index).
     /// EXI is external `99`, EXM external `9R` (two digits), and NUM and CELL

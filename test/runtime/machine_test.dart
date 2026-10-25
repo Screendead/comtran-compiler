@@ -294,6 +294,30 @@ List<String> _droppedDigits(String net, String ext) => <String>[
   '      *FINISH',
 ];
 
+/// A program that moves external fields into external fields (M6-9):
+/// statement 162,00's `999V99` pair, then a minus value into each sign
+/// convention, then a plus value into a plus overpunch.
+final List<String> _externalMove = <String>[
+  '      *DATA',
+  for (final (String name, String picture) in <(String, String)>[
+    ('SRC', '999V99'),
+    ('NEG', '999V9R'),
+    ('SAME', '999V99'),
+    ('MOUT', '999V9R'),
+    ('POUT', '999V9I'),
+    ('UOUT', '999V99'),
+    ('PLUS', '999V9I'),
+  ])
+    dataCard(name: name, level: '1', mode: 'E', description: picture),
+  '      *PROCEDURE',
+  '      START.  SET SRC = 275.33, MOVE SRC TO SAME.',
+  '            SET NEG = 2.75 - 5.50.',
+  '            MOVE NEG TO MOUT, POUT, UOUT.',
+  '            MOVE SRC TO PLUS.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program that compares the expressions of the applied deck's
 /// statements 152,00 and 156,00 (M6-9), with every operand external at
 /// the deck's pictorials. FIRST reads 1 when the THEN arm of 152 runs
@@ -1084,6 +1108,20 @@ void main() {
       expect(glyphsAt(subject, addressOf(job, 'AMT'), 8), r'$8889.99');
       expect(glyphsAt(subject, addressOf(job, 'EDF'), 5), '234.0');
       expect(subject.state.read(overflowCell), 0);
+    });
+
+    test('an external move keeps the characters and the sign', () {
+      final (JobCompilation job, Machine subject) = compiled(_externalMove);
+      expect(subject.printed, <String>['AT 12,00 STOP RUN']);
+      expect(glyphsAt(subject, addressOf(job, 'SAME'), 5), '27533');
+      // -2.75; `N` is 5 over an 11 punch under either overpunch, and
+      // the unsigned target keeps the magnitude.
+      expect(glyphsAt(subject, addressOf(job, 'MOUT'), 5), '0027N');
+      expect(glyphsAt(subject, addressOf(job, 'POUT'), 5), '0027N');
+      expect(glyphsAt(subject, addressOf(job, 'UOUT'), 5), '00275');
+      // `C` is 3 over a 12 punch.
+      expect(glyphsAt(subject, addressOf(job, 'PLUS'), 5), '2753C');
+      expect(subject.state.read(conditionCell), 0);
     });
 
     test('an edited source drops a significant digit and arms SYS)130', () {

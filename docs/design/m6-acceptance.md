@@ -739,7 +739,10 @@ the report our run prints against the page.
   - a DO FOR driving three indicators, added 2026-10-25 by the DO FOR
     decision below;
   - a SET into an edited field, added 2026-10-25 by the edited store
-    decision below.
+    decision below;
+  - a MOVE of an external-decimal field to an external-decimal field,
+    added 2026-10-25 by the stop the decision on expression comparisons
+    below pinned.
 
   No decision below changes the two listings or
   `test/goldens/90.05-payroll.code`, because each acts on shapes the
@@ -1776,6 +1779,76 @@ the report our run prints against the page.
   CORRESPONDING MASTER TO BONDORDER`, refuses `a move of
   externalDecimal to externalDecimal (notes section 7)`.
 
+  **Decided 2026-10-25: the external-to-external move. A design
+  decision under D0.4; Jack can overturn it.** This is the fourteenth
+  item of the list above, and the fourteenth item done. The shape
+  compiled in 1962: [F p. 42] rule 1 lets numeric fields move to
+  numeric fields, J revokes nothing, and [J 90.01.02] vii restricts
+  only figurative moves. The move takes the SYS)183 run:
+
+  ```
+  LDI    CP)+n          the target pointer
+  STI    SYS)133
+  CAL    BL)2           the source pointer, a located record
+  ACL    CP)+m
+  SLW    SYS)132
+  TSX    SYS)182,4
+  TXI    SYS)183,1,0    TARGET-SIGN-CONVENTION
+  TXI    SYS)191,1,5
+  TXI    SYS)223,1,5
+  ```
+
+  That is statement 162,00. `MOVE CORRESPONDING MASTER TO BONDORDER`
+  matches one pair, BONDENOMINATION to BONDENOMINATION, `999V99` on
+  both sides. MASTER holds EMPLOYEE.NUMBER, NAME and DATE under DATA,
+  and BONDORDER does not, so those three do not correspond
+  ([J 02.04.04] example b). The run leaves them as they are. A target
+  overpunch takes convention 1 or 2, as the store's SYS)187 and 188
+  do. A signed source moves under SYS)227 in place of SYS)191. The
+  evidence:
+
+  - [J 90.02.15]: SYS)183 "moves external decimal fields to external
+    decimal fields".
+  - [J 90.02.16] prints the whole run as an example: two pointers,
+    `TSX SYS)182,4`, `TXI SYS)183,1,1`, `TXI SYS)191,1,10` and `TXI
+    SYS)223,1,10`. Its Note 1 marks SYS)227: "The last character
+    processed under control of this instruction is examined for source
+    field sign."
+  - [J 02.04.03] a): fields of the same format move "direct", with no
+    intermediate form.
+
+  A target of convention 0 writes the magnitude, so a minus source
+  loses its sign. That is our reading of "no sign".
+
+  The rejected options:
+
+  - *Fetch, then store.* SYS)182 and 184, then SYS)180 and 186, is
+    built already. It goes through the accumulator, which [J 02.04.03]
+    a) makes unnecessary, and [J 90.02.15] names a mover for the pair.
+  - *The source pointer first.* The example of [J 90.02.16] sets
+    SYS)132 first. Catalogue 4.3 finds the target first at all nine
+    two-cell sites of the sample, and the edit run follows the sample.
+    The order changes no result.
+  - *SYS)191 for a signed source.* It carries no sign note, so the
+    sign would be lost.
+
+  The refusals: `an external-decimal move of unequal shapes (no sample
+  instance)`, because the steps SYS)199, 205, 209 and 210 have no
+  handler and no site needs them; `an external-decimal move with an S
+  position (RT-4)`, because each step counts characters.
+
+  The tests: `test/codegen_test.dart` asserts the words of statement
+  162,00, both overpunch conventions, and SYS)227.
+  `test/codegen_refusal_test.dart` pins the two refusals.
+  `test/runtime/movpak_test.dart` runs each step.
+  `test/runtime/machine_test.dart` moves 275.33, then -2.75 into each
+  convention: `0027N`, `0027N` and `00275`.
+
+  **The applied deck now compiles to the end.** No refusal remains. It
+  punches an object deck of 67 cards. `test/f_corpus_test.dart` pins
+  the deck and the one SYS)183 run, and the applied listing golden
+  does not change.
+
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
   amended). It diffs values and not bytes, and M6-1 as amended names
@@ -1798,6 +1871,8 @@ the report our run prints against the page.
 [J 02.01.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-cmple-card
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.03.03.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-effect-of-data-storage-mode-on-arithmetic-efficiency
+[J 02.04.03]: ../../comtran-manuals/J28-6169/02-compiler.md#2-display
+[J 02.04.04]: ../../comtran-manuals/J28-6169/02-compiler.md#3-move
 [J 02.04.05]: ../../comtran-manuals/J28-6169/02-compiler.md#4-corresponding-option-with-move-and-add
 [J 02.04.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
 [J 02.04.06]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
