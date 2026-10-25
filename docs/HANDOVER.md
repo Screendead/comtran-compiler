@@ -58,7 +58,7 @@ Terms that appear without expansion:
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
-| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). All fourteen of its items compile since 2026-10-24 and 2026-10-25. The applied deck now compiles to the end and punches a 68-card object deck | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
+| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). All fourteen of its items are merged. The applied deck compiles and punches 68 cards. Its run reaches end of job; the run, its report golden and its acceptance test land with PR #145 and branch `m6s2-run`. Then stage 2 is complete | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
 | M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -71,8 +71,8 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1441 Dart tests pass, measured 2026-10-25, and 154 extension
-tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
+Test baseline: 1457 Dart tests pass and 154 extension tests pass, both
+measured 2026-10-25. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
 manual's own payroll sample through every phase to the object deck. Add
@@ -88,7 +88,7 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — M6 stage 2
+## The next task — Jack's calls, then M7
 
 **M4 is complete (2026-09-06). M5 is complete (2026-09-13).**
 `docs/design/runtime.md` RT-1 to RT-5 hold the machine assembly and the
@@ -116,7 +116,7 @@ The acceptance test diffs that report against our reading of the page,
 `INSPREM (POS)`, the page shows it on every line, and our object
 program reproduces it.
 
-**M6 stage 2 is in progress; chunk 2a landed 2026-09-14.**
+**M6 stage 2 is complete once PR #145 and `m6s2-run` merge.**
 `docs/design/m6-acceptance.md` M6-6 to M6-9 hold it. The 1960 program
 is keyed as printed (`test/fixtures/f-payroll.ctd`), and its listing,
 55 messages of 12 kinds, is the first diagnostic corpus. The applied
@@ -131,23 +131,24 @@ the course that ruling overturns, and M6-7 as amended corrects the
 `STOP` row: `STOP n` is legal, so the applied deck keeps `STOP 1234`
 and adds `STOP RUN` after it.
 
-**The next task is chunk 2b's run.** All fourteen items of M6-9's
-design list are done (2026-10-24 and 2026-10-25). The applied deck
-compiles to the end with no refusal, and punches 68 cards. Write the
-two tapes from the sample's source table, in the corpus's layouts. Run
-the applied deck over them, and diff the values against the sample's report. M6-1
-as amended names the columns that can be compared and the three
-causes that separate the rest. Expect BONDORDER's EMPLOYEE.NUMBER,
-NAME and DATE to stay unmoved: MASTER holds them under DATA, so they do
-not correspond ([J 02.04.04]; M6-9). With codegen defect 12 fixed, the
-run over PR 145's tapes reaches end of job. Defect 7 is fixed for the
-DO FOR. The other ten defects stay open, and each fix must leave
-`test/goldens/90.05-payroll.code` as it stands.
+**Chunk 2b's run is done (2026-10-25).** The applied deck runs over
+PR 145's tapes to end of job. `docs/design/m6-f-tapes.md`, "The run",
+classifies every column against the sample's report and finds no new
+compiler defect. Most differences are the CORRESPONDING finding
+([J 02.04.04]): fields under DATA pair with nothing.
 
-**One question waits for Jack, and no work waits on his answer.**
-M6-9 asks whether "compile" in his rule means the diagnostic listing
-or the object deck. It argues the question both ways and recommends
-the listing. Chunk 2b works on the applied deck either way.
+**No compiler task follows. The next work is Jack's calls:**
+
+1. `review/2026-09-14-m6s2-rule` item 2: does "compile" in his rule
+   mean the diagnostic listing or the object deck? The walkthrough is
+   `review/2026-10-25-m6s2-deck-walkthrough`.
+2. `review/2026-10-25-codegen-defects-1-2`, with its prototype branch
+   `defects-1-2-align`.
+3. Codegen defects 3 to 6 and 8 to 11 below: refuse each shape or
+   handle it.
+
+**Then M7, on Jack's word.** M7 opens the sealed archive (D0.9) and
+measures our reconstruction against the surviving processor.
 
 ### Codegen defects the runtime exposed
 
