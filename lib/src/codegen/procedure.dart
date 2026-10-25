@@ -616,12 +616,16 @@ final class _Text {
 
   /// A calling-sequence parameter pair, `PZE first,,second`: the first
   /// operand in the address field, the second in the decrement
-  /// ([J 90.02.14]; [J 90.02.28]; the notes, section 2.6).
-  void _pzePair(_Sym first, _Sym second) => _emit(
-    'PZE',
+  /// ([J 90.02.14]; [J 90.02.28]; the notes, section 2.6). The [minus]
+  /// form is the `MZE BL)NN,,CP)+NN` address reference of a located
+  /// item ([J 90.02.14] Case 2).
+  void _pzePair(_Sym first, _Sym second, {bool minus = false}) => _emit(
+    minus ? 'MZE' : 'PZE',
     WordForm.prefix,
     () => '${first.text()},,${second.text()}',
-    () => pzeWord(decrement: second.value(), address: first.value()),
+    () =>
+        (minus ? Word36.signBit : 0) |
+        pzeWord(decrement: second.value(), address: first.value()),
     control: standardControl(second.relocation, first.relocation),
   );
 
@@ -986,13 +990,13 @@ final class _Text {
     return fieldClass == FieldClass.group ? FieldClass.alphameric : fieldClass;
   }
 
-  /// Every attested SET target, ADD target, DO index and subscript
-  /// variable is internal decimal. The external-decimal store is an open
-  /// item of M6-9, so it refuses under its own shape; any other class
-  /// has no attested arithmetic form and refuses.
-  DataItem _decimal(DataItem item) {
+  /// Every attested DO index and subscript variable is internal decimal.
+  /// An external one reads and stores the field inside a fitted word run
+  /// (M4-6), so it refuses under its own shape, the [use]; any other
+  /// class has no attested arithmetic form and refuses.
+  DataItem _decimal(DataItem item, String use) {
     if (_sem(item).fieldClass == FieldClass.externalDecimal) {
-      _unruled('an external-decimal store (M6-9)');
+      _unruled('an external-decimal $use (M6-9)');
     }
     return _operand(item);
   }
@@ -1646,7 +1650,7 @@ final class _Text {
     if (indexItem == null) {
       _unruled('a DO FOR index with no data definition (no sample instance)');
     }
-    _decimal(indexItem);
+    _decimal(indexItem, 'DO FOR index');
     if (_located(indexItem)) {
       // The expansion reads and stores the index with no base load
       // in its word count.
@@ -2399,7 +2403,7 @@ final class _Text {
     }
     // The subscript variable is the value; the block scales it by the
     // table's stride and offsets it by the table's base.
-    final DataItem variable = _decimal(_item(target)!);
+    final DataItem variable = _decimal(_item(target)!, 'subscript variable');
     for (final (PoolHandle stride, _Sym base, DataItem table) in blocks) {
       _opItem(Op.ldq, variable);
       _op(Op.mpy, _cp(stride));
@@ -2670,15 +2674,33 @@ final class _Text {
         _op(Op.sto, park);
         _movpakClears();
         for (final NameReference target in clause.targets) {
-          _addBody(_item(target)!, () => _op(Op.add, park));
+          final DataItem item = _item(target)!;
+          _withFetches([item], () => _addBody(item, () => _op(Op.add, park)));
         }
         return;
       }
+      final targets = <DataItem>[
+        for (final NameReference target in clause.targets) _item(target)!,
+      ];
+      final read = <DataItem>[source, ...targets];
+      if (targets.length > 1 &&
+          read.any(
+            (DataItem item) =>
+                _sem(item).fieldClass == FieldClass.externalDecimal &&
+                read.where((DataItem each) => identical(each, item)).length > 1,
+          )) {
+        // Each cell holds the value from before the clause, and a later
+        // pair would read it after an earlier pair stored the field.
+        _unruled(
+          'an ADD clause that names an external-decimal field twice '
+          '(no sample instance)',
+        );
+      }
       // One scope for the clause: the source converts once, and every
       // pair reads its cell, as statement 221's edited source parks once.
-      _withFetches([source], () {
-        for (final NameReference target in clause.targets) {
-          _addPair(source, _item(target)!);
+      _withFetches(read, () {
+        for (final target in targets) {
+          _addPair(source, target);
         }
       });
       return;
@@ -2730,15 +2752,25 @@ final class _Text {
       _unruled('an ADD pair of unequal scales (notes section 7)');
     }
     final DataItem addend = _operand(source);
-    _withFetches([addend], () => _addBody(target, () => _read(Op.add, addend)));
+    _withFetches([
+      addend,
+      target,
+    ], () => _addBody(target, () => _read(Op.add, addend)));
   }
 
   void _addBody(DataItem target, void Function() addend) {
-    final DataItem item = _decimal(target);
-    _loadBaseOf(item);
-    _opItem(Op.cla, item);
+    final DataItem item = _operand(target);
+    final external = _sem(item).fieldClass == FieldClass.externalDecimal;
+    if (external) {
+      _checkExternalTarget(item);
+    }
+    _read(Op.cla, item);
     addend();
-    _opItem(Op.sto, item);
+    if (external) {
+      _externalStore(item, _Register.ac);
+    } else {
+      _opItem(Op.sto, item);
+    }
   }
 
   /// Emits the chain of [value] and returns what it computed and where.
@@ -2896,11 +2928,12 @@ final class _Text {
       // The product of a product (M6-9): the inner product is already
       // the MQ half, so the factor's word multiplies it with no `XCA`,
       // the one-word step of 01224 to 01225. That `MPY` reads the MQ
-      // alone, so the inner product must fit one word.
+      // alone, so the inner product must fit one word. The inner shape
+      // emits first, so its own refusal wins over the digit count.
+      final int scale = _product(complex);
       if (_digits(complex) > 10) {
         _unruled('a product of a product past 10 digits (no sample instance)');
       }
-      final int scale = _product(complex);
       _leafOperand(leaf)(Op.mpy);
       return scale + _naturalScale(leaf);
     }
@@ -2919,10 +2952,14 @@ final class _Text {
   }
 
   /// The most decimal digits [expr] can hold at its natural scale. A
-  /// chain of two or more terms takes one more digit for the carry.
+  /// chain of n terms takes the digits of n - 1 more for the carry,
+  /// since n terms each below 10 to the k sum below n times 10 to the k.
+  ///
+  /// The caller has already emitted [expr], so every node is one the
+  /// chain and the product admit.
   int _digits(ArithExpr expr) => switch (expr) {
     NameOperand(:final name) => _sem(_item(name)!).digits,
-    LiteralOperand(:final literal) => literal.text.replaceFirst('.', '').length,
+    LiteralOperand(:final literal) => '${_literalValue(literal).$1}'.length,
     TruthExpr() => 1,
     BinaryExpr(:final left, :final right) when expr.operator.text == '*' =>
       _digits(left) + _digits(right),
@@ -2934,8 +2971,8 @@ final class _Text {
               )
               .reduce((int a, int b) => a > b ? a : b) +
           _naturalScale(expr) +
-          1,
-    _ => _unruled('the digits of ${expr.runtimeType}'),
+          '${_additiveTerms(expr).length - 1}'.length,
+    _ => throw StateError('the digits of an unemitted ${expr.runtimeType}'),
   };
 
   /// Prepares [leaf] as a factor and returns the emitter of the word
@@ -2994,9 +3031,17 @@ final class _Text {
     if (target.subscripts.isNotEmpty) {
       _unruled('a subscripted SET target (no sample instance)');
     }
-    final DataItem item = _decimal(_item(target)!);
+    final DataItem item = _operand(_item(target)!);
+    final external = _sem(item).fieldClass == FieldClass.externalDecimal;
+    if (external) {
+      _checkExternalTarget(item);
+    }
     final int targetScale = _sem(item).fractionDigits;
     if (value.scale == targetScale) {
+      if (external) {
+        _externalStore(item, value.register);
+        return;
+      }
       _loadBaseOf(item);
       _opItem(value.register == _Register.mq ? Op.stq : Op.sto, item);
       return;
@@ -3013,14 +3058,64 @@ final class _Text {
     // The half-adjust is referenced first, so it pools first.
     final _Sym? half = truncated ? null : _cp(_pool.machineWord(divisor ~/ 2));
     final _Sym scale = _cp(_pool.machineWord(divisor));
-    _loadBaseOf(item);
+    if (!external) {
+      _loadBaseOf(item);
+    }
     _xca();
     if (half != null) {
       _op(Op.acl, half);
     }
     _shift(Op.lrs, _storeShift);
     _op(Op.dvp, scale);
-    _opItem(Op.stq, item);
+    if (external) {
+      _externalStore(item, _Register.mq);
+    } else {
+      _opItem(Op.stq, item);
+    }
+  }
+
+  /// The external-decimal store (M6-9): the value into the accumulator,
+  /// then the SYS)180 skeleton of the edited store with one convert step
+  /// ([J 90.02.15]; [J 90.02.18]). The step follows the target's sign:
+  /// SYS)186 unsigned, SYS)187 a minus overpunch, SYS)188 a plus
+  /// overpunch, the three values of SYS)183's TARGET-SIGN-CONVENTION.
+  void _externalStore(DataItem item, _Register register) {
+    final ItemSemantics s = _sem(item);
+    if (register == _Register.mq) {
+      _xca();
+    }
+    _tsx(180);
+    if (_located(item)) {
+      _pzePair(
+        _blockWord(StorageBlock.bl, _baseLocators[_recordOf(item)!]!),
+        _cp(_descriptor(item)),
+        minus: true,
+      );
+    } else {
+      _pze(item);
+    }
+    _txi(switch (s.shape!.sign) {
+      SignConvention.overpunchMinus => 187,
+      SignConvention.overpunchPlus => 188,
+      // An external field signs by overpunch alone ([J 02.05.05] note 1).
+      _ => 186,
+    }, s.digits);
+    _movpakClears();
+  }
+
+  /// The two external-decimal targets the store cannot write, refused
+  /// before the first word of the arithmetic that feeds it.
+  void _checkExternalTarget(DataItem item) {
+    final ItemSemantics s = _sem(item);
+    if (s.doublePrecision) {
+      // One word holds the value (`docs/design/runtime.md` RT-4).
+      _unruled('an external-decimal store of more than 10 digits (RT-4)');
+    }
+    if (s.shape!.sCount > 0) {
+      // An `S` is a digit the field represents and does not store
+      // (F p. 80), and the step writes one character per digit.
+      _unruled('an external-decimal store into an S position (RT-4)');
+    }
   }
 
   /// `LRS 35` leaves the whole product in the MQ half, which is what

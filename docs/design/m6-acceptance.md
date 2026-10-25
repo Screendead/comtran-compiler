@@ -727,6 +727,12 @@ the report our run prints against the page.
   - `STOP n` at run time: the halt and the resume (Open Question 69);
   - a numeric comparison of unequal scales, added 2026-10-25 by the
     fetch decision below.
+  - a scaling store of a chain value, added 2026-10-25 by the store
+    decision below.
+
+  No decision below changes the two listings or
+  `test/goldens/90.05-payroll.code`, because each changes code
+  generation only, on shapes the sample does not hold.
 
   **Decided 2026-10-24: `FILE record IN file`. A design decision
   under D0.4; Jack can overturn it.** This is the third item of the
@@ -776,14 +782,7 @@ the report our run prints against the page.
 
   - `test/codegen_test.dart` asserts the call on one file and on two.
   - `test/codegen_refusal_test.dart` pins the new refusal.
-  - `test/f_corpus_test.dart` pinned the next stop. The applied deck
-    then compiled past statement 131,00 and stopped at statement
-    139,00, `STOP 1234`, on the shape `STOP n`. The STOP n decision
-    below moved the pin.
-
-  The two listings do not change, because the change is in code
-  generation only. `test/goldens/90.05-payroll.code` does not change,
-  because the sample has no IN form.
+  - `test/f_corpus_test.dart` moved the pin to statement 139,00.
 
   **Decided 2026-10-24: `STOP n`. A design decision under D0.4; Jack
   can overturn it.** This is the last item of the list above, and the
@@ -838,16 +837,8 @@ the report our run prints against the page.
     decimal n.
   - `test/runtime/machine_test.dart` runs a program through a halt.
     The line prints, and the statement after the halt runs.
-  - `test/f_corpus_test.dart` pinned the next stop. The applied deck
-    then compiled past statement 139,00. It stopped at statement 141,00,
-    `IF DETAIL HOURS IS GREATER THAN 40`, on the shape `an arithmetic
-    operand of externalDecimal`. HOURS is an external-decimal field,
-    so this is the first item of the list, the external-decimal fetch.
-    The fetch decision below moved the pin.
-
-  The two listings do not change, because the change is in code
-  generation only. `test/goldens/90.05-payroll.code` does not change,
-  because the sample has no STOP n.
+  - `test/f_corpus_test.dart` moved the pin to the fetch of HOURS at
+    statement 141,00.
 
   **Decided 2026-10-25: the external-decimal fetch. A design decision
   under D0.4; Jack can overturn it.** This is the first item of the
@@ -925,9 +916,8 @@ the report our run prints against the page.
 
   The generator refuses five shapes on this path:
 
-  - `an external-decimal store (M6-9)`. A SET target, an ADD target, a
-    DO index or a subscript variable of external decimal needs the
-    store, which is the next item of the list.
+  - `an external-decimal store (M6-9)`, for an external target. The
+    store decision below withdraws it.
   - `a subscripted external-decimal operand (M6-9)`. The fetch sets
     SYS)132 from a fixed descriptor, and no sample operand is both
     subscripted and converted.
@@ -936,13 +926,9 @@ the report our run prints against the page.
   - `an external-decimal convert of more than 10 digits (RT-4)`, as
     for the MOVE. The park is one `STO`.
   - `a numeric comparison of unequal scales (no sample instance)`.
-    `CAS` compares two words as integers. Each attested comparison of a
-    field with a word has the same scale on the two sides, and the
-    scaled zero has its own build. The refusal is a general fix and not
-    a fetch fix. Before it, every unequal pair compiled wrong: `IF FRAC
-    GT NUM`, at `9V9` against `999`, compiled to `CLA FRAC / CAS NUM`.
-    This shape is the ninth item of the list above. The decision below
-    withdraws this refusal.
+    Before it, every unequal pair compiled wrong: `IF FRAC GT NUM`, at
+    `9V9` against `999`, compiled to `CLA FRAC / CAS NUM`. The decision
+    below withdraws this refusal.
 
   The tests:
 
@@ -954,14 +940,8 @@ the report our run prints against the page.
   - `test/runtime/machine_test.dart` runs a program over an
     external-decimal field that holds 4.25. `SET TOT = EXT + 1.50`
     stores 5.75. `EXT GT 4.00` is true, and `EXT GT 4.25` is false.
-  - `test/f_corpus_test.dart` pins the next stop. The applied deck
-    fetches HOURS at statement 141,00, `IF DETAIL HOURS IS GREATER THAN
-    40`, and stops on the shape `a numeric comparison of unequal
-    scales`. That is the ninth item of the list.
-
-  The two listings do not change, because the change is in code
-  generation only. `test/goldens/90.05-payroll.code` does not change,
-  because the sample has no external-decimal operand.
+  - `test/f_corpus_test.dart` moved the pin to the comparison of
+    statement 141,00.
 
   **Decided 2026-10-25: the comparison of unequal scales. A design
   decision under D0.4; Jack can overturn it.** This is the ninth item
@@ -1029,13 +1009,8 @@ the report our run prints against the page.
   - `test/runtime/machine_test.dart` runs `4.5 GT 4`, `4.5 GT 5`,
     `40.0 = 40`, `40.0 GT 40` and `4.5 LT 5`. Without the alignment,
     four of the five give the wrong value.
-  - `test/f_corpus_test.dart` pins the next stop. Statement 141,00
-    compiles its comparison and stops in its THEN arm, `(DETAIL HOURS
-    - 40) * MASTER RATE * 1.5`, with the shape `a product of a
-    product`. That is the fifth item of the list. The product decision
-    below moved the pin.
-
-  The two listings and `test/goldens/90.05-payroll.code` do not change.
+  - `test/f_corpus_test.dart` moved the pin to the product of
+    statement 141,00.
 
   **Amended 2026-10-25, after the PR 143 review.** The alignment
   admitted a nonzero literal in the accumulator when the scales differ,
@@ -1083,10 +1058,10 @@ the report our run prints against the page.
   instance)`. The count is ours:
 
   - a field: its declared digits;
-  - a literal: its keyed digits;
+  - a literal: the digits of its value;
   - a product: the sum of its factors;
-  - a chain: its widest integer part, plus the chain scale, plus one
-    digit for the carry.
+  - a chain of n terms: its widest integer part, plus the chain scale,
+    plus the digits of n - 1 for the carry.
 
   At statement 141,00 the inner product holds at most 4 + 5 = 9 digits.
   The outer product takes no new check, because the store tail also
@@ -1118,12 +1093,73 @@ the report our run prints against the page.
     HRS an external field that holds 45.0. A RATE of 2.505 stores
     18.79, and a RATE of 2.500 stores 18.75. A product that dropped the
     scale of 1.5 would store 187.88.
-  - `test/f_corpus_test.dart` pins the next stop. Statement 141,00
-    compiles its product and stops at its store, because DETAIL GROSS
-    is an external-decimal field. The shape is `an external-decimal
-    store (M6-9)`, the second item of the list.
+  - `test/f_corpus_test.dart` moved the pin to the store of statement
+    141,00.
 
-  The two listings and `test/goldens/90.05-payroll.code` do not change.
+  **Decided 2026-10-25: the external-decimal store. A design decision
+  under D0.4; Jack can overturn it.** This is the second item of the
+  list above, and the sixth item done. A SET or ADD target of external
+  decimal takes the SYS)180 skeleton of the edited store (catalogue
+  4.6), with one convert step in place of the edit words:
+
+  ```
+  ...                   the value, in the accumulator
+  TSX    SYS)180,4
+  PZE    target,,byte
+  TXI    SYS)186,1,digits
+  ```
+
+  A value in the MQ takes `XCA` first, in place of the `STQ`. A field
+  of a located record takes `MZE BL)n,,CP)+k`, with `CP)+k` the
+  displacement constant of the fetch. An ADD target reads the cell of
+  its fetch. The evidence:
+
+  - [J 90.02.15]: under SYS)180 the source "is in a machine register",
+    and the target pointer is set "in the same manner as SYS)179". The
+    sample attests the pair at its 25 edited stores. [J 90.02.14] Case
+    2 gives the `MZE` form for a located item; no listing shows it.
+  - [J 90.02.18]: each step converts "from internal decimal in the AC
+    or AC-MQ".
+  - SYS)186 is "unsigned", SYS)187 "overpunch minus" and SYS)188
+    "overpunch plus". An external field signs by overpunch alone
+    ([J 02.05.05] note 1), and SYS)183 numbers the same three
+    conventions. So a pictorial with no sign takes SYS)186, a final J
+    to R letter SYS)187, and a final A to I letter SYS)188.
+
+  The two open items: a value of more digits drops its high-order
+  digits and arms nothing, as SYS)267 does (RT-5; D4.2), because
+  [J 90.02.18] gives no test step. The value rounds in the tail of D4.1
+  before the store, and §8.5.4-a stays open.
+
+  The rejected options:
+
+  - *Preset SYS)133, then SYS)182.* [J 90.02.11] permits it, but the
+    located preset overwrites the accumulator, so it would have to
+    come before the arithmetic. SYS)180 has a located form of its own.
+  - *A handler that reads the MQ.* No word of the call names the
+    register, and RT-5 reads the accumulator alone.
+  - *Park and reload.* Two words and a cell, where `XCA` is one word.
+
+  The refusals: `an external-decimal DO FOR index (M6-9)` and `an
+  external-decimal subscript variable (M6-9)`, because the store
+  changes the fitted run of M4-6; `an ADD clause that names an
+  external-decimal field twice (no sample instance)`, because a cell
+  would go stale; `an external-decimal store of more than 10 digits
+  (RT-4)`; and `an external-decimal store into an S position (RT-4)`.
+
+  The tests: `test/codegen_test.dart` asserts the words,
+  `test/codegen_refusal_test.dart` pins the five refusals, and
+  `test/runtime/movpak_test.dart` runs each step and the `MZE` sum.
+  `test/runtime/machine_test.dart` runs the shape of statement 141,00,
+  then `ADD GROSS TO GROSS`: the field reads `0003758`. A minus field
+  reads `27N`, a plus field `52E`, and a fetch reads -2.75 back. A
+  located field, read from a tape, takes the `MZE` store and reads
+  `07P` in the buffer.
+  `test/f_corpus_test.dart` pins the next stop. Statement 141,00
+  compiles whole. Statement 142,00, `SET DETAIL GROSS = DETAIL GROSS +
+  MASTER RATE * 40`, refuses `a scaling store of a chain value (no
+  sample instance)`: the chain is at scale 3 in the accumulator, and
+  the tail opens on `XCA`. This shape is the tenth item of the list.
 
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
@@ -1152,6 +1188,7 @@ the report our run prints against the page.
 [J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
 [J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-record
+[J 02.05.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.06.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
 [J 02.07.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-record-types
 [J 02.07.08]: ../../comtran-manuals/J28-6169/02-compiler.md#1-forms-of-the-command
@@ -1163,6 +1200,7 @@ the report our run prints against the page.
 [J 90.02.03]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.04]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.10]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
+[J 90.02.11]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.12]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.13]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers

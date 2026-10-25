@@ -606,7 +606,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
      convert leaves the accumulator, so the park is `STO`.
 
   `RIR`, `SIR` and `RFT` print M4-8's fourth OCTAL rendering, so
-  `encode.dart` gives them a word form of their own. Three shapes refused
+  `encode.dart` gives them a word form of their own. Three shapes refuse
   beside the three named above:
 
   - a scale alignment of a sub-chain;
@@ -707,7 +707,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   - **A truth function's false outcomes** land one word past the
     vector, over the `SIR` (statement 215's `*+3` and `*+2`).
   The one-site cell and register choices are underdetermined; the
-  chunk B4 record holds the rejected formulations. Six unattested
+  chunk B4 record holds the rejected formulations. Five unattested
   variants refuse (M4-2 as amended):
   - a nonzero literal comparand, until 2026-10-25 (M6-9);
   - a subscripted accumulator comparand;

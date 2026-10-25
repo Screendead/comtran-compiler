@@ -72,6 +72,9 @@ final class _Movpak {
     180: () => _enter(setsTarget: true),
     182: () => _enter(setsTarget: false),
     184: _externalToInternal,
+    186: () => _internalToExternal(186),
+    187: () => _internalToExternal(187),
+    188: () => _internalToExternal(188),
     185: () => _editedHead(185),
     190: () => _editedHead(190),
     193: () => _moveDigits(193, edited: false),
@@ -105,7 +108,7 @@ final class _Movpak {
     }
     final MachineState state = _machine.state;
     if (setsTarget) {
-      state.write(_targetCell, _machine.parameter(1));
+      state.write(_targetCell, _addressReference(_machine.parameter(1)));
     }
     final int caller = state.xrRead(1);
     state.xrWrite(1, 0);
@@ -119,6 +122,20 @@ final class _Movpak {
       target: _Bytes(state, state.read(_targetCell)),
     );
     return null;
+  }
+
+  /// The pointer an in-line address reference names ([J 90.02.14]):
+  /// `PZE LOC,,BYTE` is the pointer itself, and `MZE BL)NN,,CP)+NN` the
+  /// base locator plus the displacement constant, the sum the in-line
+  /// `CAL / ACL / SLW` builds ([J 90.02.11] Case 2).
+  int _addressReference(int word) {
+    if (Word36.sign(word) == 0) {
+      return word;
+    }
+    final MachineState state = _machine.state;
+    return (state.read(Word36.address(word)) +
+            state.read(Word36.decrement(word))) &
+        Word36.wordMask;
   }
 
   /// The step discipline of RT-3. The cursor sits on the handler's own
@@ -160,6 +177,28 @@ final class _Movpak {
     _singlePrecision(184, count);
     _convert(session, count, edited: false);
     _toAccumulator(session);
+    _end(session);
+    return null;
+  }
+
+  /// SYS)186, SYS)187 and SYS)188 write the accumulator as
+  /// NUMBER-OF-CHARACTERS-TO-DEVELOP external-decimal characters and end
+  /// the move ([J 90.02.18]). SYS)186 writes no sign; SYS)187 and
+  /// SYS)188 overpunch the last digit under the minus and the plus
+  /// convention, the edited tags 1 and 2 (RT-5). A longer value drops its
+  /// high-order digits and arms nothing, as SYS)267 does (RT-4).
+  RunOutcome? _internalToExternal(int entry) {
+    final (_Session session, int count) = _step(entry);
+    _singlePrecision(entry, count);
+    final MachineState state = _machine.state;
+    final List<int> digits = _decimalDigits(state.acMagnitude, count);
+    for (var i = 0; i < count; i++) {
+      session.target.write(
+        i == count - 1 && entry != 186
+            ? _overpunch(digits[i], entry - 186, state.acSign)
+            : digits[i],
+      );
+    }
     _end(session);
     return null;
   }

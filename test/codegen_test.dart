@@ -413,10 +413,12 @@ void main() {
     });
 
     test('a parenthesised product takes the same words', () {
-      expect(
-        product('            SET NUM = (NUM * TOT) * 2.'),
-        product('            SET NUM = NUM * TOT * 2.'),
-      );
+      expect(product('            SET NUM = (NUM * TOT) * 2.'), [
+        'LDQ TOT',
+        'MPY NUM',
+        'MPY CP)+2',
+        'STQ NUM',
+      ]);
     });
 
     test('the shape of statement 141,00 scales back once at the store', () {
@@ -713,6 +715,184 @@ void main() {
         '            SET NUM = EXT + NUM, SET NUM = EXT + NUM.',
       );
       expect(words.where((String w) => w == 'STO TS)1'), hasLength(2));
+    });
+  });
+
+  group('the external-decimal store (M6-9)', () {
+    /// The words from the first word after the GET to the end of
+    /// [statement]. EXT is external `999`, EXM `99R` and EXP `99I`
+    /// overpunched, EXF external `9V9`; NUM is internal `999` and FRAC
+    /// internal `9V9`; IFLD is a field of a located input record and
+    /// EDT an edited field.
+    List<String> store(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+          dataCard(name: 'IFLD', level: '2', description: '999'),
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(
+            name: 'FRAC',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '9V9',
+          ),
+          dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
+          dataCard(name: 'EXM', level: '1', mode: 'E', description: '99R'),
+          dataCard(name: 'EXP', level: '1', mode: 'E', description: '99I'),
+          dataCard(name: 'EXF', level: '1', mode: 'E', description: '9V9'),
+          dataCard(name: 'EDT', level: '1', description: r'$889'),
+        ],
+        environment: [
+          environmentCard(
+            name: 'TAPE1',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          '            GET IREC, AT END GO TO RTN.',
+          statement,
+          '      RTN.  STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('TRA RTN') + 1;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    const fetchExt = <String>[
+      'LDI CP)+7',
+      'STI SYS)132',
+      'TSX SYS)182,4',
+      'TXI SYS)184,1,3',
+      'STO TS)1',
+    ];
+
+    test('an unsigned target takes SYS)186 behind the SYS)180 call', () {
+      expect(store('            SET EXT = NUM.'), [
+        'CLA NUM',
+        'TSX SYS)180,4',
+        'PZE EXT,,0',
+        'TXI SYS)186,1,3',
+      ]);
+    });
+
+    test('a minus overpunch takes SYS)187 and a plus one SYS)188', () {
+      expect(store('            SET EXM = NUM.').last, 'TXI SYS)187,1,3');
+      expect(store('            SET EXP = NUM.').last, 'TXI SYS)188,1,3');
+    });
+
+    test('a located target takes the MZE address reference', () {
+      expect(store('            SET IFLD = NUM.'), [
+        'CLA NUM',
+        'TSX SYS)180,4',
+        'MZE BL)2,,CP)+7',
+        'TXI SYS)186,1,3',
+      ]);
+    });
+
+    test('a value in the MQ moves to the accumulator first', () {
+      expect(store('            SET EXF = NUM * FRAC.'), [
+        'LDQ FRAC',
+        'MPY NUM',
+        'XCA ',
+        'TSX SYS)180,4',
+        'PZE EXF,,0',
+        'TXI SYS)186,1,2',
+      ]);
+    });
+
+    test('the scaling tail ends in the store, not in STQ', () {
+      expect(store('            SET EXF = FRAC * FRAC.'), [
+        'LDQ FRAC',
+        'MPY FRAC',
+        'XCA ',
+        'ACL CP)+4',
+        'LRS 35',
+        'DVP CP)+5',
+        'XCA ',
+        'TSX SYS)180,4',
+        'PZE EXF,,0',
+        'TXI SYS)186,1,2',
+      ]);
+    });
+
+    test('a SET reads the target through its fetch, then stores it', () {
+      expect(store('            SET EXT = EXT + NUM.'), [
+        ...fetchExt,
+        'CLA TS)1',
+        'ADD NUM',
+        'TSX SYS)180,4',
+        'PZE EXT,,0',
+        'TXI SYS)186,1,3',
+      ]);
+    });
+
+    test('an ADD target converts, adds, and stores back', () {
+      expect(store('            ADD NUM TO EXT.'), [
+        ...fetchExt,
+        'CLA TS)1',
+        'ADD NUM',
+        'TSX SYS)180,4',
+        'PZE EXT,,0',
+        'TXI SYS)186,1,3',
+      ]);
+    });
+
+    test('an ADD to two targets converts both ahead of the first', () {
+      expect(store('            ADD NUM TO EXT, EXM.'), [
+        ...fetchExt,
+        'LDI CP)+8',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'STO TS)2',
+        'CLA TS)1',
+        'ADD NUM',
+        'TSX SYS)180,4',
+        'PZE EXT,,0',
+        'TXI SYS)186,1,3',
+        'CLA TS)2',
+        'ADD NUM',
+        'TSX SYS)180,4',
+        'PZE EXM,,0',
+        'TXI SYS)187,1,3',
+      ]);
+    });
+
+    test('a field added to itself takes one cell', () {
+      expect(store('            ADD EXT TO EXT.'), [
+        ...fetchExt,
+        'CLA TS)1',
+        'ADD TS)1',
+        'TSX SYS)180,4',
+        'PZE EXT,,0',
+        'TXI SYS)186,1,3',
+      ]);
+    });
+
+    test('an edited ADD source parks before the target converts', () {
+      final List<String> words = store('            ADD EDT TO EXT.');
+      expect(words.indexOf('STO RS)1'), lessThan(words.indexOf('STO TS)1')));
+      expect(words.sublist(words.indexOf('STO TS)1')), [
+        'STO TS)1',
+        'CLA TS)1',
+        'ADD RS)1',
+        'TSX SYS)180,4',
+        'PZE EXT,,0',
+        'TXI SYS)186,1,3',
+      ]);
     });
   });
 
