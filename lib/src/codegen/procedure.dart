@@ -893,6 +893,13 @@ final class _Text {
 
   DataItem? _item(NameReference name) => semantics.dataResolutions[name];
 
+  /// The item [name] resolves to. A name the resolver left unbound drew
+  /// its diagnostic (108,00 or 101,00, among others) below the stop
+  /// severity, and no generated shape is attested for it.
+  DataItem _resolved(NameReference name) =>
+      _item(name) ??
+      _unruled('an operand that names no data item (no sample instance)');
+
   ItemSemantics _sem(DataItem item) => semantics.semantics[item]!;
 
   /// The record entry [item] lies under, or `null` outside one.
@@ -1327,7 +1334,8 @@ final class _Text {
   /// keying rule covers decimal digits only, so any other literal kind
   /// has no attested pool form and refuses. A sign is never in the
   /// token: the parser carries it as [UnaryExpr], and every such path
-  /// refuses.
+  /// refuses. A pool literal is one 36-bit word, so a value above the
+  /// word's 35-bit magnitude refuses too; it would truncate silently.
   (int, int) _literalValue(Token literal) {
     if (literal.kind != TokenKind.numericLiteral) {
       final kind = literal.kind == TokenKind.floatingLiteral
@@ -1337,8 +1345,20 @@ final class _Text {
     }
     final String text = literal.text;
     final int point = text.indexOf('.');
+    if (point != text.lastIndexOf('.')) {
+      // The lexer drew 53,00 at severity 2 and kept the token whole.
+      _unruled(
+        'a numeric literal with two decimal points (no sample instance)',
+      );
+    }
     final String digits = text.replaceFirst('.', '');
-    return (int.parse(digits), point < 0 ? 0 : text.length - point - 1);
+    final int? value = int.tryParse(digits);
+    if (value == null || value > Word36.magnitudeMask) {
+      _unruled(
+        'a numeric literal too long for a machine word (no sample instance)',
+      );
+    }
+    return (value, point < 0 ? 0 : text.length - point - 1);
   }
 
   PoolHandle _numericLiteral(Token literal) {
@@ -2142,11 +2162,11 @@ final class _Text {
         case FigurativeOperand(:final Token word):
           _figurativeFill(target, word);
         case LiteralOperand(:final Token literal) when _alphameric(literal):
-          _literalInsert(_item(target)!, literal);
+          _literalInsert(_resolved(target), literal);
         case NameOperand(:final NameReference name):
           _moveUnit(
-            _item(name)!,
-            _item(target)!,
+            _resolved(name),
+            _resolved(target),
             sourceSubscripted: name.subscripts.isNotEmpty,
             targetSubscripted: target.subscripts.isNotEmpty,
           );
@@ -2604,7 +2624,7 @@ final class _Text {
     }
     // The subscript variable is the value; the block scales it by the
     // table's stride and offsets it by the table's base.
-    final DataItem variable = _decimal(_item(target)!);
+    final DataItem variable = _decimal(_resolved(target));
     for (final (PoolHandle stride, _Sym base, DataItem table) in blocks) {
       _opItem(Op.ldq, variable);
       _op(Op.mpy, _cp(stride));
@@ -2626,7 +2646,7 @@ final class _Text {
     if (target.subscripts.isNotEmpty) {
       _unruled('a subscripted figurative target (notes section 7)');
     }
-    final DataItem item = _item(target)!;
+    final DataItem item = _resolved(target);
     _setup(item, target: true);
     _tsx(182);
     // The count is the target's storage extent, not its digit count
@@ -2843,7 +2863,7 @@ final class _Text {
     if (target.subscripts.isNotEmpty) {
       _unruled('a subscripted SET target (no sample instance)');
     }
-    final DataItem item = _item(target)!;
+    final DataItem item = _resolved(target);
     final FieldClass to = _sem(item).fieldClass;
     if (to == FieldClass.edited) {
       _checkEditedTarget(item);
@@ -2874,7 +2894,7 @@ final class _Text {
       return;
     }
     if (clause.source case NameOperand(:final name)) {
-      final DataItem source = _item(name)!;
+      final DataItem source = _resolved(name);
       final external = _sem(source).fieldClass == FieldClass.externalDecimal;
       if (name.subscripts.isNotEmpty && !external) {
         _unruled('a subscripted ADD source (no sample instance)');
@@ -2890,7 +2910,7 @@ final class _Text {
         _op(Op.sto, park);
         _movpakClears();
         for (final NameReference target in clause.targets) {
-          final DataItem item = _item(target)!;
+          final DataItem item = _resolved(target);
           final int deficit = _addDeficit(source, item);
           _withFetches([item], () {
             if (deficit == 0) {
@@ -2905,7 +2925,7 @@ final class _Text {
         return;
       }
       final targets = <DataItem>[
-        for (final NameReference target in clause.targets) _item(target)!,
+        for (final NameReference target in clause.targets) _resolved(target),
       ];
       final read = <DataItem>[source, ...targets];
       if (name.subscripts.isNotEmpty &&
@@ -3041,7 +3061,7 @@ final class _Text {
           if (name.subscripts.isNotEmpty) {
             _unruled('a subscripted chain operand (no sample instance)');
           }
-          _read(Op.cla, _operand(_item(name)!));
+          _read(Op.cla, _operand(_resolved(name)));
           return (scale: _naturalScale(term), register: _Register.ac);
         case LiteralOperand(:final literal):
           // The one-term chain (notes 3.3).
@@ -3077,7 +3097,7 @@ final class _Text {
       final int cell = terms.length - 1 - i;
       switch (term) {
         case NameOperand(:final name) when deficit == 0:
-          final DataItem item = _operand(_item(name)!);
+          final DataItem item = _operand(_resolved(name));
           assembly.add((Op op) => _read(op, item));
         case LiteralOperand(:final literal) when deficit == 0:
           final _Sym at = _cp(_numericLiteral(literal));
@@ -3088,7 +3108,7 @@ final class _Text {
           if (term case LiteralOperand(:final literal)) {
             _op(Op.ldq, _cp(_numericLiteral(literal)));
           } else if (term case NameOperand(:final name)) {
-            _read(Op.ldq, _operand(_item(name)!));
+            _read(Op.ldq, _operand(_resolved(name)));
           }
           _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
           assembly.add(_park(cell, _Register.mq));
@@ -3224,7 +3244,7 @@ final class _Text {
   /// The caller has already emitted [expr], so every node is one the
   /// chain and the product admit.
   int _digits(ArithExpr expr) => switch (expr) {
-    NameOperand(:final name) => _sem(_item(name)!).digits,
+    NameOperand(:final name) => _sem(_resolved(name)).digits,
     LiteralOperand(:final literal) => '${_literalValue(literal).$1}'.length,
     TruthExpr() => 1,
     BinaryExpr(:final left, :final right) when expr.operator.text == '*' =>
@@ -3253,7 +3273,7 @@ final class _Text {
         if (name.subscripts.isNotEmpty) {
           _unruled('a subscripted factor (no sample instance)');
         }
-        final DataItem item = _operand(_item(name)!);
+        final DataItem item = _operand(_resolved(name));
         return (Op op) => _read(op, item);
       default:
         _unruled('a factor of ${leaf.runtimeType}');
@@ -3612,7 +3632,7 @@ final class _Text {
   bool _alphamericCompare(Relation relation) {
     for (final operand in <ArithExpr>[relation.left, relation.right]) {
       if (operand case NameOperand(:final name)) {
-        if (_moveClass(_item(name)!) == FieldClass.alphameric) {
+        if (_moveClass(_resolved(name)) == FieldClass.alphameric) {
           return true;
         }
       }
@@ -3656,7 +3676,7 @@ final class _Text {
       case LiteralOperand():
         _zeroBuild(storage);
       case NameOperand(:final name):
-        final DataItem item = _operand(_item(name)!);
+        final DataItem item = _operand(_resolved(name));
         if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
           _unruled('a subscripted accumulator comparand (no sample instance)');
         }
@@ -3705,7 +3725,7 @@ final class _Text {
       return;
     }
     final NameReference name = (low as NameOperand).name;
-    final DataItem item = _operand(_item(name)!);
+    final DataItem item = _operand(_resolved(name));
     if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
       _unruled(
         'a subscripted comparand that needs upscaling (no sample instance)',
@@ -3732,7 +3752,7 @@ final class _Text {
       case LiteralOperand(:final literal):
         _op(Op.cas, _cp(_numericLiteral(literal)));
       case NameOperand(:final name):
-        final DataItem item = _operand(_item(name)!);
+        final DataItem item = _operand(_resolved(name));
         if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
           final int register = _indicatorPrologue(item);
           // The element the indicator addresses: `CAS 0,r`, the word
@@ -3799,7 +3819,7 @@ final class _Text {
   }
 
   int _operandScale(ArithExpr operand) => switch (operand) {
-    NameOperand(:final name) => _sem(_item(name)!).fractionDigits,
+    NameOperand(:final name) => _sem(_resolved(name)).fractionDigits,
     LiteralOperand(:final literal) => _literalValue(literal).$2,
     _ => 0,
   };
@@ -3824,7 +3844,7 @@ final class _Text {
         if (name.subscripts.isNotEmpty) {
           _unruled('a subscripted alphameric comparand (no sample instance)');
         }
-        final FieldClass fieldClass = _moveClass(_item(name)!);
+        final FieldClass fieldClass = _moveClass(_resolved(name));
         if (fieldClass != FieldClass.alphameric) {
           _unruled(
             'an alphameric comparison of ${fieldClass.name} '
@@ -3851,8 +3871,8 @@ final class _Text {
         }
         _op(Op.cal, _cp(_pool.machineWord(_highValueWord)));
       case NameOperand(:final name):
-        _loadBaseOf(_item(name)!);
-        _opItem(Op.cal, _item(name)!);
+        _loadBaseOf(_resolved(name));
+        _opItem(Op.cal, _resolved(name));
         _emitExtraction(name);
       default:
         _unruled('a comparison of ${acc.runtimeType}');
@@ -3860,8 +3880,8 @@ final class _Text {
     var flip = mirrored;
     if (!_extracted(storage)) {
       if (storage case NameOperand(:final name)) {
-        _loadBaseOf(_item(name)!);
-        _opItem(Op.las, _item(name)!);
+        _loadBaseOf(_resolved(name));
+        _opItem(Op.las, _resolved(name));
       } else {
         // A literal or figurative here would need a pool word no
         // sample site attests.
@@ -3870,8 +3890,8 @@ final class _Text {
     } else {
       final operand = storage as NameOperand;
       _op(Op.slw, _resultCell(0)); // The spill (the attested RS)0).
-      _loadBaseOf(_item(operand.name)!);
-      _opItem(Op.cal, _item(operand.name)!);
+      _loadBaseOf(_resolved(operand.name));
+      _opItem(Op.cal, _resolved(operand.name));
       _emitExtraction(operand.name);
       _op(Op.las, _resultCell(0));
       // The spill swaps the machine's sides: the accumulator now holds
@@ -3889,7 +3909,7 @@ final class _Text {
   /// The character length a comparand compares: its field's, or the
   /// full word of a figurative constant.
   int _compareChars(ArithExpr operand) => switch (operand) {
-    NameOperand(:final name) => _sem(_item(name)!).storageChars,
+    NameOperand(:final name) => _sem(_resolved(name)).storageChars,
     _ => 6,
   };
 
@@ -3897,7 +3917,7 @@ final class _Text {
 
   bool _extracted(ArithExpr operand) {
     if (operand case NameOperand(:final name)) {
-      return _needsMask(_sem(_item(name)!));
+      return _needsMask(_sem(_resolved(name)));
     }
     return false;
   }
@@ -3908,7 +3928,7 @@ final class _Text {
   /// A field across a word boundary takes its next word into the MQ
   /// first, so the shift carries its tail in (codegen defect 12, M6-9).
   void _emitExtraction(NameReference name) {
-    final DataItem item = _item(name)!;
+    final DataItem item = _resolved(name);
     final ItemSemantics sem = _sem(item);
     if (sem.byte + sem.storageChars > 6) {
       _opItem(Op.ldq, item, plus: 1);
@@ -3975,7 +3995,7 @@ final class _Text {
   }
 
   int _naturalScale(ArithExpr expr) => switch (expr) {
-    NameOperand(:final name) => _sem(_item(name)!).fractionDigits,
+    NameOperand(:final name) => _sem(_resolved(name)).fractionDigits,
     LiteralOperand(:final literal) => _literalValue(literal).$2,
     TruthExpr() => 0,
     BinaryExpr(:final left, :final right) when expr.operator.text == '*' =>

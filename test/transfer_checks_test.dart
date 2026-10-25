@@ -105,6 +105,59 @@ void main() {
       expect(ids(outside), ['128,00']);
     });
 
+    test('a one-word target takes the label of its own section, not '
+        "a same-name section's (D2.5)", () {
+      // P2's X is DO-addressed, so a transfer that reached it draws
+      // 128; P1's GO TO X stays inside P1's S.
+      List<String> program(String transfer) => [
+        '      P1.         BEGIN SECTION.',
+        '      S.          BEGIN SECTION.',
+        "      X.          DISPLAY 'A'.",
+        '            GO TO X.',
+        '            END S.',
+        '            END P1.',
+        '      P2.         BEGIN SECTION.',
+        '      S.          BEGIN SECTION.',
+        "      X.          DISPLAY 'B'.",
+        '            DO X.',
+        '            $transfer',
+        '            END S.',
+        '            END P2.',
+        '            STOP RUN.',
+      ];
+      expect(
+        ids(runJob(data: const [], procedure: program("DISPLAY 'C'."))),
+        isEmpty,
+      );
+      expect(ids(runJob(data: const [], procedure: program('GO TO X.'))), [
+        '128,00',
+      ]);
+    });
+
+    test('a two-word target names a section the qualifier encloses '
+        '(D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '            DO P1 S.',
+          '            DO P3 S.',
+          '      P1.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            END P1.',
+          '      P2.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            END P2.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), ['188,00']);
+      expect(result.semanticDiagnostics.single.operands, ['P3 S']);
+    });
+
     test('a two-word target is section A label B (D2.5)', () {
       final SemanticResult result = runJob(
         data: const [],
