@@ -836,11 +836,17 @@ Three edited pictorials reach no control word, so codegen refuses them
 (`m4-codegen.md` M4-9 item (f)):
 
 - an `S` position, because it is a digit the field represents and does
-  not store ([F p. 80]) while every MOVPAK count is a digit count;
+  not store ([F p. 80]) while every target count is a digit count;
 - a suppression character behind the leading run, because the address
   field carries the leading run alone;
 - irregular comma grouping, because the prefix carries the first
   comma's offset alone.
+
+**Amended 2026-10-25 (branch `defects-3-4-handle`).** This list said
+"every MOVPAK count is a digit count". That is now true of the target
+counts only. A source count is the count of stored digit positions,
+so an `S` source is no longer refused ([F p. 80]). The target refusal
+stands.
 
 ### Open items
 
