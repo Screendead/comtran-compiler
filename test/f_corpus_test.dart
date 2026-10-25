@@ -51,14 +51,14 @@ void main() {
     );
   });
 
-  test('the applied deck refuses the edited SET target of NET', () {
-    // Statement 144,00 steps the three indicators of RATE,
-    // INSURANCE.PREM and RETIREMENT.PREM by TABLE.ITEM's 11 characters
-    // (M6-9). Statement 145,00 then sets PAYRECORD NETPAY, an edited
-    // field, to a chain of six external-decimal fields.
+  test('the applied deck refuses the bypass of MOVE NETPAY TO CHECK', () {
+    // Statement 145,00 sets PAYRECORD NETPAY, an edited field, through
+    // SYS)267 (M6-9). Statement 146,00 then moves NETPAY's `$88889.99-`
+    // into CHECK AMOUNT's `$***9.99`, an edit run that drops high-order
+    // digits.
     expect(
       _refusal(fAppliedDeckPath),
-      'an arithmetic operand of edited (no sample instance)',
+      'an edit run that bypasses source digits (no sample instance)',
     );
   });
 }

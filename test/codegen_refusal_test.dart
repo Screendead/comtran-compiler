@@ -534,6 +534,68 @@ void main() {
       );
     });
 
+    test('an edited ADD target', () {
+      expect(
+        _refuses(
+          ['            ADD NUM TO WEDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'WEDT', level: '1', description: r'$889'),
+          ],
+        ),
+        'an arithmetic operand of edited (no sample instance)',
+      );
+    });
+
+    test('an edited SET target below the chain scale', () {
+      expect(
+        _refuses(['            SET EDT = NUM + TOT.']),
+        'a store below the target scale (no sample instance)',
+      );
+    });
+
+    test('an edited SET target refuses before the chain', () {
+      // Each target refusal fires ahead of the edited chain operand.
+      expect(
+        _refuses(
+          ['            SET WIDEDT = EDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'WIDEDT', level: '1', description: '88888888899.99'),
+          ],
+        ),
+        'an edited store of more than 10 digits (RT-4)',
+      );
+      expect(
+        _refuses(
+          ['            SET SEDT = EDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'SEDT', level: '1', description: '88S.99'),
+          ],
+        ),
+        'an edited field with an S position (RT-5)',
+      );
+      expect(
+        _refuses(
+          ['            SET IEDT = EDT.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'IREC', level: '1', type: 'RECORD'),
+            dataCard(name: 'IEDT', level: '2', description: r'$889.99'),
+          ],
+          environment: [
+            environmentCard(
+              name: 'TAPE1',
+              type: 'FILE',
+              options: 'INPUT,BCD,TAPE,IREC,BLOCKSIZE 5',
+            ),
+          ],
+        ),
+        'an in-line address word for a located item (catalogue 4.3)',
+      );
+    });
+
     test('a subscripted comparand of lesser scale', () {
       expect(
         _refuses(['            IF FRAC GT TAB CELL (IDX) THEN STOP RUN.']),

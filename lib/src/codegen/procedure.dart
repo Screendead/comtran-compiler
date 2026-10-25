@@ -2401,6 +2401,13 @@ final class _Text {
       _shift(Op.lrs, 35);
       _op(Op.dvp, _cp(divisor));
     }
+    _editedCall(target);
+  }
+
+  /// The SYS)180 call of the edited store, with the accumulator holding
+  /// the value: the address word, the SYS)267 step, its control word
+  /// and its digit count (catalogue 4.6).
+  void _editedCall(DataItem target) {
     _tsx(180);
     _pze(target);
     final int control = _editControl(target);
@@ -2421,7 +2428,7 @@ final class _Text {
       _txi(267, control);
     }
     _oct(_controlWord(target));
-    _axt(t.digits, 1);
+    _axt(_sem(target).digits, 1);
     _movpakClears();
   }
 
@@ -2739,9 +2746,15 @@ final class _Text {
     if (target.subscripts.isNotEmpty) {
       _unruled('a subscripted SET target (no sample instance)');
     }
-    final DataItem item = _operand(_item(target)!);
-    if (_sem(item).fieldClass == FieldClass.externalDecimal) {
-      _checkExternalTarget(item);
+    final DataItem item = _item(target)!;
+    final FieldClass to = _sem(item).fieldClass;
+    if (to == FieldClass.edited) {
+      _checkEditedTarget(item);
+    } else {
+      _operand(item);
+      if (to == FieldClass.externalDecimal) {
+        _checkExternalTarget(item);
+      }
     }
     _withFetches(
       _operandsOf([clause.value]),
@@ -3143,11 +3156,14 @@ final class _Text {
   /// scale / STQ` (catalogue 4.7); a chain in the accumulator takes the
   /// four after the `XCA` (M6-9). TRUNCATED drops the `ACL` (D4.1).
   void _store(DataItem item, _Value value, {required bool truncated}) {
-    final external = _sem(item).fieldClass == FieldClass.externalDecimal;
+    final FieldClass to = _sem(item).fieldClass;
+    // Both classes store through SYS)180 from the accumulator.
+    final bool sys180 =
+        to == FieldClass.externalDecimal || to == FieldClass.edited;
     final int targetScale = _sem(item).fractionDigits;
     if (value.scale == targetScale) {
-      if (external) {
-        _externalStore(item, value.register);
+      if (sys180) {
+        _sys180Store(item, value.register);
         return;
       }
       _loadBaseOf(item);
@@ -3161,7 +3177,7 @@ final class _Text {
     // The half-adjust is referenced first, so it pools first.
     final _Sym? half = truncated ? null : _cp(_pool.machineWord(divisor ~/ 2));
     final _Sym scale = _cp(_pool.machineWord(divisor));
-    if (!external) {
+    if (!sys180) {
       _loadBaseOf(item);
     }
     // A product moves its low half into the accumulator; a chain is
@@ -3174,11 +3190,24 @@ final class _Text {
     }
     _shift(Op.lrs, _storeShift);
     _op(Op.dvp, scale);
-    if (external) {
-      _externalStore(item, _Register.mq);
+    if (sys180) {
+      _sys180Store(item, _Register.mq);
     } else {
       _opItem(Op.stq, item);
     }
+  }
+
+  /// The SYS)180 store of [register] into an external or an edited
+  /// field (M6-9).
+  void _sys180Store(DataItem item, _Register register) {
+    if (_sem(item).fieldClass == FieldClass.externalDecimal) {
+      _externalStore(item, register);
+      return;
+    }
+    if (register == _Register.mq) {
+      _xca();
+    }
+    _editedCall(item);
   }
 
   /// The external-decimal store (M6-9): the value into the accumulator,
@@ -3223,6 +3252,20 @@ final class _Text {
       // (F p. 80), and the step writes one character per digit.
       _unruled('an external-decimal store into an S position (RT-4)');
     }
+  }
+
+  /// The edited targets the store cannot write, refused before the
+  /// first word of the chain.
+  void _checkEditedTarget(DataItem item) {
+    if (_sem(item).doublePrecision) {
+      // SYS)267 renders the accumulator alone (RT-5).
+      _unruled('an edited store of more than 10 digits (RT-4)');
+    }
+    if (_located(item)) {
+      // The address word of the edited store is `PZE` alone.
+      _unruled('an in-line address word for a located item (catalogue 4.3)');
+    }
+    _controlWord(item);
   }
 
   /// `LRS 35` moves the accumulator's value, a product's low half after
