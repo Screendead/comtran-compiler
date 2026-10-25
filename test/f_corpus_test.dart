@@ -51,14 +51,11 @@ void main() {
     );
   });
 
-  test('the applied deck refuses the bypass of MOVE NETPAY TO CHECK', () {
-    // Statement 145,00 sets PAYRECORD NETPAY, an edited field, through
-    // SYS)267 (M6-9). Statement 146,00 then moves NETPAY's `$88889.99-`
-    // into CHECK AMOUNT's `$***9.99`, an edit run that drops high-order
-    // digits.
-    expect(
-      _refusal(fAppliedDeckPath),
-      'an edit run that bypasses source digits (no sample instance)',
-    );
+  test('the applied deck refuses the comparison of FICA.ROUTINE', () {
+    // Statement 146,00 moves NETPAY's `$88889.99-` into CHECK AMOUNT's
+    // `$***9.99` through the SYS)204 test step (M6-9). Statement 152,00,
+    // `IF MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00`, then
+    // compares an expression.
+    expect(_refusal(fAppliedDeckPath), 'a comparison of BinaryExpr');
   });
 }

@@ -280,6 +280,52 @@ void main() {
       expect(image(subject), '  123.40');
     });
 
+    /// Statement 146,00's step list: `$88889.99-` into `$***9.99`,
+    /// edit control 13, one digit tested and six moved (M6-9).
+    Machine dropsOne(String source) => editRun(
+      <int>[
+        txi(190, 13),
+        control(integer: 4, protected: 3),
+        txi(204, 1),
+        txi(198, 6),
+        txi(226, 6),
+      ],
+      sourceImage: <int>[
+        characters(source.substring(0, 6)),
+        characters(source.substring(6).padRight(6)),
+      ],
+    );
+
+    test('SYS)204 reads a zero high-order digit and arms nothing', () {
+      final Machine subject = dropsOne(r'$08889.99-');
+      expect(image(subject), r'$8889.99');
+      expect(subject.state.read(overflowCell), 0);
+    });
+
+    test('SYS)204 drops a significant digit and arms SYS)130', () {
+      final Machine subject = dropsOne(r'$12345.67-');
+      expect(image(subject), r'$2345.67');
+      expect(subject.state.read(overflowCell), isNot(0));
+      expect(subject.state.read(conditionCell), 0);
+    });
+
+    test('SYS)201 tests the F p. 43 row and arms SYS)130', () {
+      // `99999` holding 01234 into `999.9`: the 1 is dropped (F p. 43).
+      final Machine subject = editRun(
+        <int>[
+          txi(185, 4),
+          control(integer: 3),
+          txi(201, 2),
+          txi(193, 3),
+          txi(211, 1),
+          txi(225, 4),
+        ],
+        sourceImage: <int>[characters('01234 ')],
+      );
+      expect(image(subject), '234.0');
+      expect(subject.state.read(overflowCell), isNot(0));
+    });
+
     test('an invalid source character arms SYS)131 and renders', () {
       // D4.3: the low four bits of `.` (octal 33) are the digit 11,
       // which prints the code's own glyph. No exception, and no stop.

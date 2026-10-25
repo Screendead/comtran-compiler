@@ -1155,7 +1155,7 @@ void main() {
       return words.sublist(start, words.indexOf('TSX SYS)178,4'));
     }
 
-    /// The words of GROSS's edited store at LOC 00374 to 00400. The
+    /// The shape of GROSS's edited store at LOC 00374 to 00400. The
     /// dollar adds 8 to the edit control, and the trailing minus puts
     /// sign convention 3 in the control word's tag.
     const call = <String>[
@@ -1203,6 +1203,62 @@ void main() {
         'DVP CP)+3',
         'XCA ',
         ...call,
+      ]);
+    });
+  });
+
+  group('the edit run that drops high-order digits (M6-9)', () {
+    /// The words of [statement] up to its STOP RUN. NET is edited
+    /// `$88889.99-` and AMT edited `$***9.99`, statement 146,00's pair;
+    /// EXF is external `99999` and EDF edited `999.9`, F p. 43's row with
+    /// an edited receiver.
+    List<String> run(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'NET', level: '1', description: r'$88889.99-'),
+          dataCard(name: 'AMT', level: '1', description: r'$***9.99'),
+          dataCard(name: 'EXF', level: '1', mode: 'E', description: '99999'),
+          dataCard(name: 'EDF', level: '1', description: '999.9'),
+        ],
+        procedure: [statement, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('TSX SYS)182,4') - 4;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    test('the shape of statement 146,00 tests one digit under SYS)204', () {
+      expect(run('            MOVE NET TO AMT.'), [
+        'LDI CP)+6',
+        'STI SYS)133',
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)190,1,13',
+        'OCT 000004000003',
+        'TXI SYS)204,1,1',
+        'TXI SYS)198,1,6',
+        'TXI SYS)226,1,6',
+      ]);
+    });
+
+    test('the F p. 43 row tests two digits under SYS)201', () {
+      expect(run('            MOVE EXF TO EDF.'), [
+        'LDI CP)+6',
+        'STI SYS)133',
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)185,1,4',
+        'OCT 000003000000',
+        'TXI SYS)201,1,2',
+        'TXI SYS)193,1,3',
+        'TXI SYS)211,1,1',
+        'TXI SYS)225,1,4',
       ]);
     });
   });

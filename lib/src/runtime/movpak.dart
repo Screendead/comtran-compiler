@@ -22,6 +22,9 @@ Map<int, RuntimeEntry> movpak(Machine machine) => _Movpak(machine).entries;
 const int _sourceCell = 132;
 const int _targetCell = 133;
 
+/// The overflow cell (D4.2). Nothing reads or clears it.
+const int _overflowCell = 130;
+
 /// The improper-data condition cell (D4.3). Nothing reads or clears it.
 const int _conditionCell = 131;
 
@@ -79,6 +82,8 @@ final class _Movpak {
     190: () => _editedHead(190),
     193: () => _moveDigits(193, edited: false),
     198: () => _moveDigits(198, edited: true),
+    201: () => _testOverflow(201, edited: false),
+    204: () => _testOverflow(204, edited: true),
     211: () => _zeroDigits(211),
     212: () => _zeroDigits(212),
     214: () => _zeroDigits(214),
@@ -274,6 +279,21 @@ final class _Movpak {
   RunOutcome? _moveDigits(int entry, {required bool edited}) {
     final (_Session session, int count) = _step(entry);
     _convert(session, count, edited: edited, readsSign: false);
+    _next(session);
+    return null;
+  }
+
+  /// SYS)201 and SYS)204 read the count in source digit positions, the
+  /// high-order excess, and move none of them ([J 90.02.17],
+  /// [J 90.02.19]). A non-zero digit among them arms SYS)130 (D4.2).
+  RunOutcome? _testOverflow(int entry, {required bool edited}) {
+    final (_Session session, int count) = _step(entry);
+    final int kept = session.digits.length;
+    _convert(session, count, edited: edited, readsSign: false);
+    if (session.digits.skip(kept).any((int d) => d != 0)) {
+      _machine.state.write(_overflowCell, 1);
+    }
+    session.digits.removeRange(kept, session.digits.length);
     _next(session);
     return null;
   }

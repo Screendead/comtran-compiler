@@ -2288,13 +2288,15 @@ final class _Text {
     _movpakClears();
   }
 
-  /// The steps between the head and the terminator: leading zeros, the
-  /// move itself, then trailing zeros ([J 90.02.17]).
+  /// The steps between the head and the terminator: the overflow test,
+  /// leading zeros, the move itself, then trailing zeros ([J 90.02.17],
+  /// [J 90.02.19]).
   ///
-  /// A source wider than the target on either side needs the overflow
-  /// test and the bypass steps, and no site emits either, so the two
-  /// step numbers the manual offers cannot be told apart (catalogue 4.6;
-  /// M4-2 as amended).
+  /// The source's excess high-order digits go to the test step, which
+  /// reads them and moves none (D4.2). Under SYS)190 the test is SYS)204;
+  /// no text separates it from SYS)196, so the pick is ours (M6-9). A
+  /// source wider on the low-order side needs a bypass step, and no site
+  /// emits one.
   void _editSteps(
     DataItem source,
     DataItem target, {
@@ -2304,13 +2306,24 @@ final class _Text {
     final ItemSemantics t = _sem(target);
     final int sourceInteger = s.digits - s.fractionDigits;
     final int targetInteger = t.digits - t.fractionDigits;
-    if (sourceInteger > targetInteger || s.fractionDigits > t.fractionDigits) {
+    if (s.fractionDigits > t.fractionDigits) {
       _unruled('an edit run that bypasses source digits (no sample instance)');
+    }
+    final int dropped = sourceInteger > targetInteger
+        ? sourceInteger - targetInteger
+        : 0;
+    if (dropped == s.digits) {
+      // No site drops every source digit. Note 3's SYS)232 and SYS)234
+      // test the last character, but no site shows when a run takes them.
+      _unruled('an edit run that moves no source digit (no sample instance)');
+    }
+    if (dropped > 0) {
+      _txi(fromEdited ? 204 : 201, dropped);
     }
     if (targetInteger > sourceInteger) {
       _txi(fromEdited ? 214 : 212, targetInteger - sourceInteger);
     }
-    _txi(fromEdited ? 198 : 193, s.digits);
+    _txi(fromEdited ? 198 : 193, s.digits - dropped);
     if (t.fractionDigits > s.fractionDigits) {
       _txi(fromEdited ? 216 : 211, t.fractionDigits - s.fractionDigits);
     }
@@ -3154,10 +3167,11 @@ final class _Text {
   /// The store: one word on equal scale, the scaling tail otherwise. A
   /// product in the MQ takes five words, `XCA / ACL half / LRS 35 / DVP
   /// scale / STQ` (catalogue 4.7); a chain in the accumulator takes the
-  /// four after the `XCA` (M6-9). TRUNCATED drops the `ACL` (D4.1).
+  /// four after the `XCA` (M6-9). An external or edited target ends the
+  /// tail in `XCA` and the SYS)180 call in place of the `STQ` (M6-9).
+  /// TRUNCATED drops the `ACL` (D4.1).
   void _store(DataItem item, _Value value, {required bool truncated}) {
     final FieldClass to = _sem(item).fieldClass;
-    // Both classes store through SYS)180 from the accumulator.
     final bool sys180 =
         to == FieldClass.externalDecimal || to == FieldClass.edited;
     final int targetScale = _sem(item).fractionDigits;
@@ -3258,7 +3272,8 @@ final class _Text {
   /// first word of the chain.
   void _checkEditedTarget(DataItem item) {
     if (_sem(item).doublePrecision) {
-      // SYS)267 renders the accumulator alone (RT-5).
+      // SYS)267 renders the accumulator alone, and RT-4 refuses more
+      // than 10 digits on every path that reads it.
       _unruled('an edited store of more than 10 digits (RT-4)');
     }
     if (_located(item)) {

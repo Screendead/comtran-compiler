@@ -793,15 +793,29 @@ void main() {
     });
 
     test('an edit run that bypasses source digits', () {
+      // Three fraction digits into EDT's two: the low-order drop.
       expect(
         _refuses(
           ['            MOVE WIDE TO EDT.'],
           data: [
             ..._data(),
-            dataCard(name: 'WIDE', level: '1', mode: 'E', description: '99999'),
+            dataCard(name: 'WIDE', level: '1', mode: 'E', description: '9V999'),
           ],
         ),
         'an edit run that bypasses source digits (no sample instance)',
+      );
+    });
+
+    test('an edit run that moves no source digit', () {
+      expect(
+        _refuses(
+          ['            MOVE EXT TO CENTS.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'CENTS', level: '1', description: r'$.99'),
+          ],
+        ),
+        'an edit run that moves no source digit (no sample instance)',
       );
     });
 
