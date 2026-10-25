@@ -1,0 +1,97 @@
+diff --git a/lib/src/codegen/codegen_messages.dart b/lib/src/codegen/codegen_messages.dart
+index 8fed98c..70a6641 100644
+--- a/lib/src/codegen/codegen_messages.dart
++++ b/lib/src/codegen/codegen_messages.dart
+@@ -27,3 +27,11 @@ const Message msgDoReentersActiveProcedure = Message.ours(
+   "-DO- OF 'NAME.1' CAN RE-ENTER AN ACTIVE PROCEDURE. THE PENDING "
+       'RETURN IS LOST. (NON-HISTORICAL.)',
+ );
++
++/// Ours, default mode: an OPEN ALL FILES after a CLOSE ALL FILES in the
++/// same straight run, which J forbids ([J 02.04.06]; D6.3).
++const Message msgReopenAfterCloseAll = Message.ours(
++  '948,00',
++  '-OPEN ALL FILES- FOLLOWS -CLOSE ALL FILES-. FILES CLOSED BY THAT FORM '
++      'MAY NOT BE REOPENED. (NON-HISTORICAL.)',
++);
+diff --git a/lib/src/codegen/procedure.dart b/lib/src/codegen/procedure.dart
+index feabfec..a79e5c3 100644
+--- a/lib/src/codegen/procedure.dart
++++ b/lib/src/codegen/procedure.dart
+@@ -424,8 +424,13 @@ final class _Text {
+   void label(String name) {
+     _pending.add(name);
+     _registerHolds.clear();
++    _closedAll = false;
+   }
+ 
++  /// Whether a CLOSE ALL FILES precedes in the straight run: no label
++  /// since, and no GO TO, STOP RUN or END (D6.3; msg 948).
++  bool _closedAll = false;
++
+   /// Emits one written object word: [operation] and [control] now, the
+   /// operand text and the 36-bit word after the walk (M4-4). Every
+   /// caller knows each field's relocation class at the reference, so
+@@ -1509,10 +1514,21 @@ final class _Text {
+         _op(Op.axt, _Sym(() => '0', () => 0, Relocation.constant));
+       case EndClause():
+         _endClause(clause);
++        _closedAll = false;
+       case OpenClause(:final allFiles):
+         if (!allFiles) {
+           _unruled('an OPEN naming files (notes section 7)');
+         }
++        if (_closedAll) {
++          if (checks != null) {
++            _report(
++              msgReopenAfterCloseAll,
++              at: clause.verb,
++              clause: _clauseNumber,
++            );
++          }
++          return;
++        }
+         _tsx(175); // [J 90.02.14].
+         _pzeIoc1();
+         _callClears();
+@@ -1523,10 +1539,15 @@ final class _Text {
+         _tsx(177); // [J 90.02.14].
+         _pzeIoc1();
+         _callClears();
++        _closedAll = true;
+       case StopClause(:final run):
+         _stop(clause, run: run);
++        if (run) {
++          _closedAll = false;
++        }
+       case GoToClause():
+         _goTo(clause);
++        _closedAll = false;
+       case DoClause():
+         _do(clause);
+       case GetClause():
+diff --git a/lib/src/lexer/severities.dart b/lib/src/lexer/severities.dart
+index 7f31541..6d53e21 100644
+--- a/lib/src/lexer/severities.dart
++++ b/lib/src/lexer/severities.dart
+@@ -738,4 +738,7 @@ const Map<String, int> messageSeverities = {
+   // C2 (ours, --pedantic only, D5.7; M4-18): an error by that record's
+   // own word - the pending return is lost at run time.
+   '947,00': 2,
++  // C4 (ours, D6.3): J forbids the reopen - a program that cannot run
++  // correctly.
++  '948,00': 3,
+ };
+diff --git a/test/severities_test.dart b/test/severities_test.dart
+index 27e8f96..7d6d237 100644
+--- a/test/severities_test.dart
++++ b/test/severities_test.dart
+@@ -19,7 +19,7 @@ void main() {
+       '928,00', '929,00', '930,00', '931,00', '932,00', '933,00',
+       '934,00', '935,00', '936,00', '937,00', '938,00', '939,00',
+       '940,00', '941,00', '942,00', '943,00', '944,00', '945,00',
+-      '946,00', '947,00',
++      '946,00', '947,00', '948,00',
+     ]);
+   });
+ 

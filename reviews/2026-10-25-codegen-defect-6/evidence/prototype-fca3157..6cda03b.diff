@@ -1,0 +1,241 @@
+diff --git a/docs/design/message-checklist.tsv b/docs/design/message-checklist.tsv
+index 685fb51..7ad822c 100644
+--- a/docs/design/message-checklist.tsv
++++ b/docs/design/message-checklist.tsv
+@@ -252,6 +252,7 @@ id	class	disposition	component	b2	test	note	text
+ 945,00	C1	enforced	name resolution	ours (D9.7)	test/resolver_test.dart: --pedantic notes a record.name old.name with 945,00	M3 stage 2; --pedantic only (M3-21: D4.13's deferred note)	A RECORD NAME IS USED AS THE OLD NAME OF A -CALL-. ACCEPTED. (NON-HISTORICAL.)
+ 946,00	C1	enforced	code generator	ours (D9.7)	test/codegen_diagnostics_test.dart: a zero, negative or non-dividing step, or p above r, notes	M4 stage 2 chunk B8; --pedantic only (M4-18: D5.1's constant-parameter note under the decoded magnitude exit, M4-13)	-DO- ... -FOR- 'NAME.1' PARAMETERS DO NOT STEP FROM THE INITIAL TO THE TERMINAL VALUE. ACCEPTED. (NON-HISTORICAL.)
+ 947,00	C2	enforced	code generator	ours (D9.7)	test/codegen_diagnostics_test.dart: two paragraphs that DO each other note at both calls	M4 stage 2 chunk B8; --pedantic only (M4-18: D5.7's static DO call-graph cycle, an error by that record's word; the class is ours)	-DO- OF 'NAME.1' CAN RE-ENTER AN ACTIVE PROCEDURE. THE PENDING RETURN IS LOST. (NON-HISTORICAL.)
++948,00	C4	enforced	code generator	ours (D9.7)	test/codegen_diagnostics_test.dart: an OPEN in the straight run after the close draws it	codegen defect 6; default mode (D6.3: the statically determinable reopen after CLOSE ALL FILES, J 02.04.06)	-OPEN ALL FILES- FOLLOWS -CLOSE ALL FILES-. FILES CLOSED BY THAT FORM MAY NOT BE REOPENED. (NON-HISTORICAL.)
+ 937,00	C1	enforced	input/output binder	ours (D9.7)	test/verb_binder_test.dart: a POOL BUFFERCOUNT below its groups draws 937,00	M3 stage 2 (M3-18 POOL and GROUP buffer minimums)	-POOL- 'NAME.1' -BUFFERCOUNT- IS BELOW ITS MINIMUM. THE MINIMUM IS USED. (NON-HISTORICAL.)
+ 938,00	C1	enforced	input/output binder	ours (D9.7)	test/verb_binder_test.dart: a GROUP BUFFERCOUNT below its OPENCOUNT draws 938,00 and is	M3 stage 2 (M3-18 POOL and GROUP buffer minimums)	-GROUP- -BUFFERCOUNT- IS BELOW ITS -OPENCOUNT-. THE -OPENCOUNT- IS USED. (NON-HISTORICAL.)
+ 939,00	C3	enforced	input/output binder	ours (D9.7)	test/verb_binder_test.dart: a GROUP whose first item is no pool draws 939,00	M3 stage 2 (M3-18; J 02.06.14 requires the pool name first)	-GROUP- CARD ITEM 'NAME.1' IS NOT A -POOL- NAME. THE -GROUP- IS NOT ASSIGNED. (NON-HISTORICAL.)
+diff --git a/lib/src/codegen/codegen_messages.dart b/lib/src/codegen/codegen_messages.dart
+index 8fed98c..70a6641 100644
+--- a/lib/src/codegen/codegen_messages.dart
++++ b/lib/src/codegen/codegen_messages.dart
+@@ -27,3 +27,11 @@ const Message msgDoReentersActiveProcedure = Message.ours(
+   "-DO- OF 'NAME.1' CAN RE-ENTER AN ACTIVE PROCEDURE. THE PENDING "
+       'RETURN IS LOST. (NON-HISTORICAL.)',
+ );
++
++/// Ours, default mode: an OPEN ALL FILES after a CLOSE ALL FILES in the
++/// same straight run, which J forbids ([J 02.04.06]; D6.3).
++const Message msgReopenAfterCloseAll = Message.ours(
++  '948,00',
++  '-OPEN ALL FILES- FOLLOWS -CLOSE ALL FILES-. FILES CLOSED BY THAT FORM '
++      'MAY NOT BE REOPENED. (NON-HISTORICAL.)',
++);
+diff --git a/lib/src/codegen/procedure.dart b/lib/src/codegen/procedure.dart
+index feabfec..6e29424 100644
+--- a/lib/src/codegen/procedure.dart
++++ b/lib/src/codegen/procedure.dart
+@@ -424,8 +424,13 @@ final class _Text {
+   void label(String name) {
+     _pending.add(name);
+     _registerHolds.clear();
++    _closedAll = false;
+   }
+ 
++  /// Whether a CLOSE ALL FILES precedes in the straight run: no label
++  /// since, and no GO TO, STOP RUN or END (D6.3; msg 948).
++  bool _closedAll = false;
++
+   /// Emits one written object word: [operation] and [control] now, the
+   /// operand text and the 36-bit word after the walk (M4-4). Every
+   /// caller knows each field's relocation class at the reference, so
+@@ -1509,10 +1514,18 @@ final class _Text {
+         _op(Op.axt, _Sym(() => '0', () => 0, Relocation.constant));
+       case EndClause():
+         _endClause(clause);
++        _closedAll = false;
+       case OpenClause(:final allFiles):
+         if (!allFiles) {
+           _unruled('an OPEN naming files (notes section 7)');
+         }
++        if (_closedAll && checks != null) {
++          _report(
++            msgReopenAfterCloseAll,
++            at: clause.verb,
++            clause: _clauseNumber,
++          );
++        }
+         _tsx(175); // [J 90.02.14].
+         _pzeIoc1();
+         _callClears();
+@@ -1523,10 +1536,15 @@ final class _Text {
+         _tsx(177); // [J 90.02.14].
+         _pzeIoc1();
+         _callClears();
++        _closedAll = true;
+       case StopClause(:final run):
+         _stop(clause, run: run);
++        if (run) {
++          _closedAll = false;
++        }
+       case GoToClause():
+         _goTo(clause);
++        _closedAll = false;
+       case DoClause():
+         _do(clause);
+       case GetClause():
+diff --git a/lib/src/lexer/severities.dart b/lib/src/lexer/severities.dart
+index 7f31541..f30afb2 100644
+--- a/lib/src/lexer/severities.dart
++++ b/lib/src/lexer/severities.dart
+@@ -738,4 +738,7 @@ const Map<String, int> messageSeverities = {
+   // C2 (ours, --pedantic only, D5.7; M4-18): an error by that record's
+   // own word - the pending return is lost at run time.
+   '947,00': 2,
++  // C4 (ours, D6.3): J forbids the reopen - a program that cannot run
++  // correctly.
++  '948,00': 4,
+ };
+diff --git a/probe/probe.dart b/probe/probe.dart
+new file mode 100644
+index 0000000..ee071ce
+--- /dev/null
++++ b/probe/probe.dart
+@@ -0,0 +1,56 @@
++// Writes the defect 6 probe decks as canon files. Run from the
++// repository root: dart run probe/probe.dart OUTDIR
++import 'dart:io';
++
++import 'package:comtran/comtran_io.dart';
++
++import '../test/support/deck_fixtures.dart' show dataCard, environmentCard;
++
++List<String> program(List<String> procedure) => <String>[
++  '      *DATA',
++  dataCard(name: 'OREC', level: '1', type: 'RECORD'),
++  dataCard(name: 'OFLD', level: '2', description: 'AAA'),
++  dataCard(name: 'WORDS', level: '1'),
++  dataCard(name: 'ONE', level: '2', description: "'ONE'"),
++  dataCard(name: 'TWO', level: '2', description: "'TWO'"),
++  '      *ENVIRONMENT',
++  environmentCard(
++    name: 'TAPE1',
++    type: 'FILE',
++    options: 'OUTPUT,BCD,TAPE,OREC,BLOCKSIZE 1',
++  ),
++  environmentCard(type: 'SPECIF', options: "TAPE1,UNIT1 'D1'"),
++  '      *PROCEDURE',
++  ...procedure,
++  '      *FINISH',
++];
++
++final Map<String, List<String>> probes = {
++  // The fired case: a reopen in the straight run after CLOSE ALL FILES.
++  'reopen': program([
++    '      START.  OPEN ALL FILES, MOVE ONE TO OFLD, FILE OREC.',
++    '            CLOSE ALL FILES.',
++    '            OPEN ALL FILES, MOVE TWO TO OFLD, FILE OREC.',
++    '            STOP RUN.',
++  ]),
++  // A label between the two: rule (i) is silent.
++  'labelled': program([
++    '      START.  OPEN ALL FILES, MOVE ONE TO OFLD, FILE OREC.',
++    '            CLOSE ALL FILES.',
++    '      AGAIN.  OPEN ALL FILES, MOVE TWO TO OFLD, FILE OREC.',
++    '            STOP RUN.',
++  ]),
++  // The sample's shape: CLOSE ALL FILES, STOP RUN. Silent.
++  'sample-shape': program([
++    '      START.  OPEN ALL FILES, MOVE ONE TO OFLD, FILE OREC.',
++    '            CLOSE ALL FILES, STOP RUN.',
++  ]),
++};
++
++void main(List<String> args) {
++  final out = Directory(args.single)..createSync(recursive: true);
++  for (final MapEntry<String, List<String>> probe in probes.entries) {
++    final List<CardImage> cards = mirrorToDeck('${probe.value.join('\n')}\n');
++    File('${out.path}/${probe.key}.ctd').writeAsBytesSync(encodeCanon(cards));
++  }
++}
+diff --git a/test/codegen_diagnostics_test.dart b/test/codegen_diagnostics_test.dart
+index 2fb63bc..b0c85dd 100644
+--- a/test/codegen_diagnostics_test.dart
++++ b/test/codegen_diagnostics_test.dart
+@@ -396,4 +396,56 @@ void main() {
+       );
+     });
+   });
++
++  group('msg 948, a reopen after CLOSE ALL FILES (D6.3)', () {
++    List<String> program(List<String> procedure) => [
++      '      *DATA',
++      dataCard(name: 'OREC', level: '1', type: 'RECORD'),
++      dataCard(name: 'OFLD', level: '2', description: 'AAA'),
++      '      *ENVIRONMENT',
++      environmentCard(
++        name: 'TAPE1',
++        type: 'FILE',
++        options: 'OUTPUT,BCD,TAPE,OREC,BLOCKSIZE 1',
++      ),
++      '      *PROCEDURE',
++      ...procedure,
++      '      *FINISH',
++    ];
++
++    test('an OPEN in the straight run after the close draws it', () {
++      final JobCompilation job = _compile(
++        program([
++          '      START.  OPEN ALL FILES.',
++          '            CLOSE ALL FILES.',
++          '            OPEN ALL FILES.',
++          '            STOP RUN.',
++        ]),
++      );
++      expect(_ids(job), ['948,00']);
++      expect(job.diagnostics.single.clause, 1);
++    });
++
++    test('a label between the two ends the straight run', () {
++      final JobCompilation job = _compile(
++        program([
++          '      START.  OPEN ALL FILES.',
++          '            CLOSE ALL FILES.',
++          '      AGAIN.  OPEN ALL FILES.',
++          '            STOP RUN.',
++        ]),
++      );
++      expect(_ids(job), isEmpty);
++    });
++
++    test("the sample's CLOSE ALL FILES, STOP RUN is silent", () {
++      final JobCompilation job = _compile(
++        program([
++          '      START.  OPEN ALL FILES.',
++          '            CLOSE ALL FILES, STOP RUN.',
++        ]),
++      );
++      expect(_ids(job), isEmpty);
++    });
++  });
+ }
+diff --git a/test/message_checklist_test.dart b/test/message_checklist_test.dart
+index 5074f47..efa2d35 100644
+--- a/test/message_checklist_test.dart
++++ b/test/message_checklist_test.dart
+@@ -73,6 +73,7 @@ final Map<String, Message> _ours = {
+     msgCallOldNameIsRecord,
+     msgLoopParametersDoNotStep,
+     msgDoReentersActiveProcedure,
++    msgReopenAfterCloseAll,
+   ])
+     m.number: m,
+ };
+diff --git a/test/severities_test.dart b/test/severities_test.dart
+index 27e8f96..7d6d237 100644
+--- a/test/severities_test.dart
++++ b/test/severities_test.dart
+@@ -19,7 +19,7 @@ void main() {
+       '928,00', '929,00', '930,00', '931,00', '932,00', '933,00',
+       '934,00', '935,00', '936,00', '937,00', '938,00', '939,00',
+       '940,00', '941,00', '942,00', '943,00', '944,00', '945,00',
+-      '946,00', '947,00',
++      '946,00', '947,00', '948,00',
+     ]);
+   });
+ 

@@ -1,0 +1,29 @@
+        DATE 10/25/26  TIME  5.73  ACCOUNT                     ID.                         PAGE  1
+
+
+                                *DATA
+                   1,00   71175 OREC             1RECORD
+                   2,00   71177 OFLD             2             AAA
+                   3,00   71200 WORDS            1
+                   4,00   71201 ONE              2             'ONE'
+                   5,00   71202 TWO              2             'TWO'
+
+                                *ENVIRONMENT
+                   6,00         TAPE1             FILE  OUTPUT,BCD,TAPE,OREC,BLOCKSIZE 1
+                   7,00                           SPECIFTAPE1,UNIT1 'D1'
+
+                                *PROCEDURE
+                   8,00   71204 START.  OPEN ALL FILES, MOVE ONE TO OFLD, FILE OREC.
+                   9,00               CLOSE ALL FILES.
+                  10,00   71205 AGAIN.  OPEN ALL FILES, MOVE TWO TO OFLD, FILE OREC.
+                  11,00               STOP RUN.
+
+  CTD
+  CTE
+
+  NO ERRORS WERE DETECTED DURING COMPILATION
+AT 11,00 STOP RUN
+TAPE1 REPORT
+
+TWO
+exit 0
