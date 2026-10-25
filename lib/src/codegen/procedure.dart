@@ -1334,7 +1334,8 @@ final class _Text {
   /// keying rule covers decimal digits only, so any other literal kind
   /// has no attested pool form and refuses. A sign is never in the
   /// token: the parser carries it as [UnaryExpr], and every such path
-  /// refuses.
+  /// refuses. A pool literal is one 36-bit word, so a value above the
+  /// word's 35-bit magnitude refuses too; it would truncate silently.
   (int, int) _literalValue(Token literal) {
     if (literal.kind != TokenKind.numericLiteral) {
       final kind = literal.kind == TokenKind.floatingLiteral
@@ -1351,14 +1352,13 @@ final class _Text {
       );
     }
     final String digits = text.replaceFirst('.', '');
-    return (
-      int.tryParse(digits) ??
-          _unruled(
-            'a numeric literal too long for a machine word '
-            '(no sample instance)',
-          ),
-      point < 0 ? 0 : text.length - point - 1,
-    );
+    final int? value = int.tryParse(digits);
+    if (value == null || value > Word36.magnitudeMask) {
+      _unruled(
+        'a numeric literal too long for a machine word (no sample instance)',
+      );
+    }
+    return (value, point < 0 ? 0 : text.length - point - 1);
   }
 
   PoolHandle _numericLiteral(Token literal) {

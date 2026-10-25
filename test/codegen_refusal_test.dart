@@ -1112,6 +1112,28 @@ void main() {
       );
     });
 
+    test('a numeric literal too long for a machine word', () {
+      for (final String digits in ['34359738368', '12345678901234567890']) {
+        expect(
+          _refuses(['            SET TOT = NUM + $digits.']),
+          'a numeric literal too long for a machine word (no sample instance)',
+        );
+      }
+    });
+
+    test('the largest word-sized numeric literal compiles', () {
+      final CodegenResult result = runCodegen(
+        runJob(
+          data: _data(),
+          procedure: ['            SET TOT = NUM + 34359738367.', ..._tail],
+        ),
+      );
+      expect(
+        result.units.where((AssemblyUnit u) => u.word == 34359738367),
+        isNotEmpty,
+      );
+    });
+
     test('a located DO FOR index', () {
       expect(
         _refuses(
@@ -1321,13 +1343,6 @@ void main() {
       expect(
         _refuses(['            SET TOT = NUM + 1.2.3.'], frontEnd: ['53,00']),
         'a numeric literal with two decimal points (no sample instance)',
-      );
-    });
-
-    test('a numeric literal too long for a machine word', () {
-      expect(
-        _refuses(['            SET TOT = NUM + 12345678901234567890.']),
-        'a numeric literal too long for a machine word (no sample instance)',
       );
     });
   });
