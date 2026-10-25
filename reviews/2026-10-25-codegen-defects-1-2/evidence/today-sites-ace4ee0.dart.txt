@@ -1,0 +1,118 @@
+          target,
+          fromEdited: from == FieldClass.edited,
+          sourceSubscripted: sourceSubscripted,
+          targetSubscripted: targetSubscripted,
+        );
+      case (FieldClass.externalDecimal, FieldClass.internalDecimal):
+        if (_sem(target).doublePrecision) {
+          // The same one-`STO` park as the convert's own refusal.
+          _unruled('an external-decimal convert of more than 10 digits (RT-4)');
+        }
+        _setup(source, subscripted: sourceSubscripted, target: false);
+        _externalConvert(source);
+        _loadBaseOf(target);
+
+  /// The register-source edited store (catalogue 4.6): the 25 `SYS)180`
+  /// sites, a load and the constant five-word call, with the digit-split
+  /// divide when the source represents more digits than the target.
+  void _editedStore(
+    DataItem source,
+    DataItem target, {
+    bool subscripted = false,
+  }) {
+    if (subscripted) {
+      _unruled('a subscripted edited-store source (no sample instance)');
+    }
+    final ItemSemantics s = _sem(source);
+    final ItemSemantics t = _sem(target);
+    if (s.doublePrecision) {
+      // The load is one `CLA`, which reads the accumulator's word alone
+      // (`docs/design/runtime.md` RT-4).
+      _unruled('an edited store of more than 10 digits (RT-4)');
+    }
+    _loadBaseOf(source);
+    _opItem(Op.cla, source);
+    if (s.digits > t.digits) {
+      // The split divisor is 10 to the target's digit count — the one
+      // value all three attested sites share, `CP)+24`.
+      final PoolHandle divisor = _pool.machineWord(_pow10(t.digits));
+      _shift(Op.lrs, 35);
+      _op(Op.dvp, _cp(divisor));
+    }
+    _tsx(180);
+    _pze(target);
+    final int control = _editControl(target);
+    if (control == 0) {
+      // The one site whose edit control computes to zero punches a real
+      // transfer where every other punches the step's `TXI`, and prints
+      // the three-field operand either way (notes 6.2 item 15, LOC
+      // 01327).
+      return;
+    }
+    if (clause.source case NameOperand(:final name)) {
+      if (name.subscripts.isNotEmpty) {
+        _unruled('a subscripted ADD source (no sample instance)');
+      }
+      final DataItem source = _item(name)!;
+      if (_sem(source).fieldClass == FieldClass.edited) {
+        // The non-binary operand fetch (catalogue 4.7): the register
+        // convert of catalogue 4.6, then one word to park it. The
+        // convert leaves its result in the accumulator, so the park is
+        // `STO`, and the source is the one operand the targets follow.
+        _setup(source, target: false);
+        _editedFetch(source);
+        final _Sym park = _resultCell(clause.targets.length);
+        _op(Op.sto, park);
+        _movpakClears();
+        for (final NameReference target in clause.targets) {
+          _addBody(_item(target)!, () => _op(Op.add, park));
+        }
+        return;
+      }
+      // One scope for the clause: the source converts once, and every
+      // pair reads its cell, as statement 221's edited source parks once.
+      _withFetches([source], () {
+        for (final NameReference target in clause.targets) {
+          _addPair(source, _item(target)!);
+        }
+      });
+      return;
+    }
+    _unruled('an ADD of a literal (no sample instance)');
+  }
+
+  /// The edited-field-to-register convert ([J 90.02.30]): the MOVPAK
+  /// entry, the fixed head, one step, and the terminator.
+
+  /// One ADD unit: `CLA target / ADD source / STO target` with the
+  /// guards the operands force. Every attested pair has equal scale;
+  /// the store tail on an ADD has no site (notes section 7).
+  void _addPair(DataItem source, DataItem target) {
+    if (_sem(source).fractionDigits != _sem(target).fractionDigits) {
+      _unruled('an ADD pair of unequal scales (notes section 7)');
+    }
+    final DataItem addend = _operand(source);
+    _withFetches([addend], () => _addBody(target, () => _read(Op.add, addend)));
+  }
+  /// The store: one word on equal scale, the five-word scaling tail
+  /// otherwise — `XCA / ACL half / LRS 35 / DVP scale / STQ`, the
+  /// half-adjust suppressed under TRUNCATED (catalogue 4.7; D4.1).
+  void _store(NameReference target, _Value value, {required bool truncated}) {
+    if (target.subscripts.isNotEmpty) {
+      _unruled('a subscripted SET target (no sample instance)');
+    }
+    final DataItem item = _decimal(_item(target)!);
+    final int targetScale = _sem(item).fractionDigits;
+    if (value.scale == targetScale) {
+      _loadBaseOf(item);
+      _opItem(value.register == _Register.mq ? Op.stq : Op.sto, item);
+      return;
+    }
+    if (value.scale < targetScale) {
+      _unruled('a store below the target scale (no sample instance)');
+    }
+    if (value.register != _Register.mq) {
+      // The tail opens on `XCA`, which reads the MQ half, so it scales a
+      // product and nothing else. Every attested site is one (M4-10).
+      _unruled('a scaling store of a chain value (no sample instance)');
+    }

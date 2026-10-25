@@ -1,0 +1,409 @@
+diff --git a/lib/src/codegen/procedure.dart b/lib/src/codegen/procedure.dart
+index 370bb4c..3b34a4b 100644
+--- a/lib/src/codegen/procedure.dart
++++ b/lib/src/codegen/procedure.dart
+@@ -2159,8 +2159,22 @@ final class _Text {
+         }
+         _setup(source, subscripted: sourceSubscripted, target: false);
+         _externalConvert(source);
++        final int deficit = _moveDeficit(source, target);
++        if (deficit > 0) {
++          // The convert leaves the value in the accumulator, so the
++          // multiply takes the attested `XCA / MPY / XCA` (00627–00631).
++          _xca();
++          _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
++          _xca();
++        } else if (deficit < 0) {
++          // A MOVE drops low-order digits (F p. 42), so the divide takes
++          // no half-adjust: the split's `LRS 35 / DVP` (00424–00425),
++          // and the quotient stores from the MQ (00634–00635).
++          _shift(Op.lrs, _storeShift);
++          _op(Op.dvp, _cp(_pool.machineWord(_pow10(-deficit))));
++        }
+         _loadBaseOf(target);
+-        _opItem(Op.sto, target);
++        _opItem(deficit < 0 ? Op.stq : Op.sto, target);
+         _movpakClears();
+       default:
+         _unruled('a move of ${from.name} to ${to.name} (notes section 7)');
+@@ -2291,9 +2305,27 @@ final class _Text {
+       // (`docs/design/runtime.md` RT-4).
+       _unruled('an edited store of more than 10 digits (RT-4)');
+     }
++    final int deficit = _moveDeficit(source, target);
++    if (deficit < 0) {
++      // The quotient of a downscaling divide is in the MQ, and SYS)180
++      // renders the accumulator. No site moves a quotient across, and
++      // the edit run refuses the same drop.
++      _unruled(
++        'an edited store that drops source fraction digits '
++        '(no sample instance)',
++      );
++    }
+     _loadBaseOf(source);
+-    _opItem(Op.cla, source);
+-    if (s.digits > t.digits) {
++    if (deficit == 0) {
++      _opItem(Op.cla, source);
++    } else {
++      // The aligned build of the comparison: `LDQ / MPY / XCA`
++      // (00641–00643, 00656–00660).
++      _opItem(Op.ldq, source);
++      _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
++      _xca();
++    }
++    if (s.digits + deficit > t.digits) {
+       // The split divisor is 10 to the target's digit count — the one
+       // value all three attested sites share, `CP)+24`.
+       final PoolHandle divisor = _pool.machineWord(_pow10(t.digits));
+@@ -2324,6 +2356,18 @@ final class _Text {
+     _movpakClears();
+   }
+ 
++  /// The fraction digits a MOVE from [source] to [target] adds, negative
++  /// when it drops them. F p. 42 aligns by the decimal point.
++  int _moveDeficit(DataItem source, DataItem target) {
++    final int deficit =
++        _sem(target).fractionDigits - _sem(source).fractionDigits;
++    if (deficit > 0 && _sem(source).digits + deficit > 10) {
++      // The `XCA` keeps the low word of the product (RT-4).
++      _unruled('an aligned move of more than 10 digits (no sample instance)');
++    }
++    return deficit;
++  }
++
+   /// The internal-to-internal move: two words at its one site, equal
+   /// scale and single precision (catalogue 4.6).
+   void _internalMove(
+@@ -2670,7 +2714,15 @@ final class _Text {
+         _op(Op.sto, park);
+         _movpakClears();
+         for (final NameReference target in clause.targets) {
+-          _addBody(_item(target)!, () => _op(Op.add, park));
++          final DataItem item = _item(target)!;
++          final int deficit = _addDeficit(source, item);
++          if (deficit == 0) {
++            _addBody(item, () => _op(Op.add, park));
++          } else {
++            _op(Op.ldq, park);
++            final void Function(Op) aligned = _alignedAddend(deficit);
++            _addBody(item, () => aligned(Op.add));
++          }
+         }
+         return;
+       }
+@@ -2726,11 +2778,37 @@ final class _Text {
+   /// guards the operands force. Every attested pair has equal scale;
+   /// the store tail on an ADD has no site (notes section 7).
+   void _addPair(DataItem source, DataItem target) {
+-    if (_sem(source).fractionDigits != _sem(target).fractionDigits) {
+-      _unruled('an ADD pair of unequal scales (notes section 7)');
+-    }
++    final int deficit = _addDeficit(source, target);
+     final DataItem addend = _operand(source);
+-    _withFetches([addend], () => _addBody(target, () => _read(Op.add, addend)));
++    _withFetches([addend], () {
++      if (deficit == 0) {
++        _addBody(target, () => _read(Op.add, addend));
++        return;
++      }
++      _read(Op.ldq, addend);
++      final void Function(Op) aligned = _alignedAddend(deficit);
++      _addBody(target, () => aligned(Op.add));
++    });
++  }
++
++  /// The fraction digits an ADD source lacks against [target]. A source
++  /// of greater scale needs the scaling store of a chain value, which
++  /// SET refuses as well (M4-10).
++  int _addDeficit(DataItem source, DataItem target) {
++    final int deficit =
++        _sem(target).fractionDigits - _sem(source).fractionDigits;
++    if (deficit < 0) {
++      _unruled('an ADD into a target of lesser scale (no sample instance)');
++    }
++    return deficit;
++  }
++
++  /// The source in the MQ, upscaled and parked as the chain parks a term
++  /// of `SET target = target + source`: `MPY` the power of ten, then
++  /// `STQ RS)0` (the attested 00622–00624). Returns the reader.
++  void Function(Op) _alignedAddend(int deficit) {
++    _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
++    return _park(0, _Register.mq);
+   }
+ 
+   void _addBody(DataItem target, void Function() addend) {
+diff --git a/test/codegen_refusal_test.dart b/test/codegen_refusal_test.dart
+index d72b65e..35c7463 100644
+--- a/test/codegen_refusal_test.dart
++++ b/test/codegen_refusal_test.dart
+@@ -165,10 +165,56 @@ void main() {
+       );
+     });
+ 
+-    test('an ADD pair of unequal scales', () {
++    test('an ADD into a target of lesser scale', () {
+       expect(
+         _refuses(['            ADD FRAC TO NUM.']),
+-        'an ADD pair of unequal scales (notes section 7)',
++        'an ADD into a target of lesser scale (no sample instance)',
++      );
++    });
++
++    test('an edited ADD source into a target of lesser scale', () {
++      expect(
++        _refuses(
++          ['            ADD EDF TO NUM.'],
++          data: [
++            ..._data(),
++            dataCard(name: 'EDF', level: '1', description: '89.9'),
++          ],
++        ),
++        'an ADD into a target of lesser scale (no sample instance)',
++      );
++    });
++
++    test('an edited store that drops source fraction digits', () {
++      expect(
++        _refuses(
++          ['            MOVE FRAC TO EDZ.'],
++          data: [
++            ..._data(),
++            dataCard(name: 'EDZ', level: '1', description: '889'),
++          ],
++        ),
++        'an edited store that drops source fraction digits '
++        '(no sample instance)',
++      );
++    });
++
++    test('an aligned move of more than 10 digits', () {
++      expect(
++        _refuses(
++          ['            MOVE BIG TO EDT.'],
++          data: [
++            ..._data(),
++            dataCard(
++              name: 'BIG',
++              level: '1',
++              mode: 'I',
++              justify: 'R',
++              description: '9(9)',
++            ),
++          ],
++        ),
++        'an aligned move of more than 10 digits (no sample instance)',
+       );
+     });
+ 
+diff --git a/test/codegen_test.dart b/test/codegen_test.dart
+index 189d0e7..f969b9a 100644
+--- a/test/codegen_test.dart
++++ b/test/codegen_test.dart
+@@ -458,6 +458,116 @@ void main() {
+     });
+   });
+ 
++  group('the alignment of a MOVE and an ADD (F p. 42)', () {
++    /// The words of [statement] up to its STOP RUN, with NUM at `999`,
++    /// AMT at `99V99`, EXT an external `999`, EXF an external `99V99`,
++    /// EDT at `$8889.99`, and ED3 an edited `899`.
++    List<String> aligned(String statement) {
++      final SemanticResult semantics = runJob(
++        data: [
++          dataCard(
++            name: 'NUM',
++            level: '1',
++            mode: 'I',
++            justify: 'R',
++            description: '999',
++          ),
++          dataCard(
++            name: 'AMT',
++            level: '1',
++            mode: 'I',
++            justify: 'R',
++            description: '99V99',
++          ),
++          dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
++          dataCard(name: 'EXF', level: '1', mode: 'E', description: '99V99'),
++          dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
++          dataCard(name: 'ED3', level: '1', description: '899'),
++        ],
++        procedure: [statement, '            STOP RUN.'],
++      );
++      expect(ids(semantics), isEmpty);
++      final List<String> words = [
++        for (final AssemblyUnit u in runCodegen(semantics).units)
++          '${u.operation} ${u.operand}',
++      ];
++      // The procedure begins past the six data reservations.
++      final int start = words.indexOf('BSS 0') + 7;
++      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
++    }
++
++    test('an internal source of lesser scale upscales into the edit', () {
++      expect(aligned('            MOVE NUM TO EDT.'), [
++        'LDQ NUM',
++        'MPY CP)+2',
++        'XCA ',
++        'TSX SYS)180,4',
++        'PZE EDT,,0',
++        'TXI SYS)267,1,12',
++        'OCT 000004000003',
++        'AXT 6,1',
++      ]);
++    });
++
++    test('an external source of lesser scale upscales its convert', () {
++      expect(aligned('            MOVE EXT TO AMT.'), [
++        'LDI CP)+7',
++        'STI SYS)132',
++        'TSX SYS)182,4',
++        'TXI SYS)184,1,3',
++        'XCA ',
++        'MPY CP)+2',
++        'XCA ',
++        'STO AMT',
++      ]);
++    });
++
++    test('an external source of greater scale drops its low digits', () {
++      expect(aligned('            MOVE EXF TO NUM.'), [
++        'LDI CP)+7',
++        'STI SYS)132',
++        'TSX SYS)182,4',
++        'TXI SYS)184,1,4',
++        'LRS 35',
++        'DVP CP)+2',
++        'STQ NUM',
++      ]);
++    });
++
++    test('an ADD source of lesser scale parks as the chain parks', () {
++      expect(
++        aligned('            ADD NUM TO AMT.'),
++        aligned('            SET AMT = AMT + NUM.'),
++      );
++      expect(aligned('            ADD NUM TO AMT.'), [
++        'LDQ NUM',
++        'MPY CP)+2',
++        'STQ RS)0',
++        'CLA AMT',
++        'ADD RS)0',
++        'STO AMT',
++      ]);
++    });
++
++    test('an edited ADD source aligns after its park', () {
++      expect(aligned('            ADD ED3 TO AMT.'), [
++        'LDI CP)+7',
++        'STI SYS)132',
++        'TSX SYS)182,4',
++        'TXI SYS)268,1,1',
++        'TXI SYS)269,1,3',
++        'TXI SYS)275,1,3',
++        'STO RS)1',
++        'LDQ RS)1',
++        'MPY CP)+2',
++        'STQ RS)0',
++        'CLA AMT',
++        'ADD RS)0',
++        'STO AMT',
++      ]);
++    });
++  });
++
+   group('the external-decimal fetch (M6-9)', () {
+     /// The words from the first fetch to the end of [statement], with
+     /// EXT and EXU external decimal, NUM internal, and IFLD a field of
+diff --git a/test/runtime/machine_test.dart b/test/runtime/machine_test.dart
+index e31ffcb..d892570 100644
+--- a/test/runtime/machine_test.dart
++++ b/test/runtime/machine_test.dart
+@@ -127,6 +127,63 @@ final List<String> _scales = <String>[
+   '      *FINISH',
+ ];
+ 
++/// A program that moves and adds across unequal scales (F p. 42). EXT
++/// reads 040 and EXF 12.34 through the REDEF row, and ED3 reads 037.
++final List<String> _alignedMoves = <String>[
++  '      *DATA',
++  dataCard(name: 'AREA', level: '1'),
++  dataCard(level: '2', description: "'0401234037'"),
++  dataCard(type: 'REDEF', description: 'AREA'),
++  dataCard(name: 'VIEW', level: '1'),
++  dataCard(name: 'EXT', level: '2', mode: 'E', description: '999'),
++  dataCard(name: 'EXF', level: '2', mode: 'E', description: '99V99'),
++  dataCard(name: 'ED3', level: '2', description: '899'),
++  dataCard(
++    name: 'NUM',
++    level: '1',
++    mode: 'I',
++    justify: 'R',
++    description: '999',
++  ),
++  dataCard(
++    name: 'AMT',
++    level: '1',
++    mode: 'I',
++    justify: 'R',
++    description: '99V99',
++  ),
++  dataCard(
++    name: 'FIN',
++    level: '1',
++    mode: 'I',
++    justify: 'R',
++    description: '99V9',
++  ),
++  dataCard(
++    name: 'TOT',
++    level: '1',
++    mode: 'I',
++    justify: 'R',
++    description: '999V99',
++  ),
++  dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
++  dataCard(
++    name: 'BIG',
++    level: '1',
++    mode: 'I',
++    justify: 'R',
++    description: '9(5)',
++  ),
++  dataCard(name: 'ED5', level: '1', description: '889.9'),
++  '      *PROCEDURE',
++  '      START.  SET NUM = 123, MOVE NUM TO EDT.',
++  '            SET BIG = 1234, MOVE BIG TO ED5.',
++  '            MOVE EXT TO AMT, MOVE EXF TO FIN.',
++  '            SET TOT = 1.25, ADD ED3 TO TOT, ADD NUM TO TOT.',
++  '            STOP RUN.',
++  '      *FINISH',
++];
++
+ /// A program whose entry point is a labelled section (D2.1). The `GO TO`
+ /// ahead of the section runs only if the entry lands on `GN)000`.
+ final List<String> _section = <String>[
+@@ -566,6 +623,20 @@ void main() {
+       expect(subject.state.read(addressOf(job, 'TOT')), 1);
+     });
+ 
++    test('a MOVE and an ADD align by the decimal point', () {
++      final (JobCompilation job, Machine subject) = compiled(_alignedMoves);
++      expect(subject.printed, <String>['AT 19,00 STOP RUN']);
++      // 123 renders as $123.00, not as $1.23.
++      expect(glyphsAt(subject, addressOf(job, 'EDT'), 8), r' $123.00');
++      // F p. 43 row 5: 01234 into 999V9 drops its leading digit, 2340.
++      expect(glyphsAt(subject, addressOf(job, 'ED5'), 5), '234.0');
++      // 040 into 99V99 is 40.00, and 12.34 into 99V9 drops to 12.3.
++      expect(subject.state.read(addressOf(job, 'AMT')), 4000);
++      expect(subject.state.read(addressOf(job, 'FIN')), 123);
++      // 1.25 + 37 + 123.
++      expect(subject.state.read(addressOf(job, 'TOT')), 16125);
++    });
++
+     test('a labelled section runs from the entry point it takes', () {
+       // `test/codegen_test.dart` pins the entry word on PROGRAM.START.
+       // NUM reads 1 only if the run entered the section: the `GO TO`

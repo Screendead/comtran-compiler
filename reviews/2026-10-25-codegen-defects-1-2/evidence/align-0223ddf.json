@@ -1,0 +1,375 @@
+{
+  "P1a-up": {
+    "source": [
+      "      *DATA",
+      "      NUM              1           IR999",
+      "      EDT              1             $8889.99",
+      "      *PROCEDURE",
+      "      START.  SET NUM = 123.",
+      "            MOVE NUM TO EDT.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "BSS 0",
+      "BSS 1",
+      "BSS 2",
+      "CLA CP)+2",
+      "STO NUM",
+      "LDQ NUM",
+      "MPY CP)+3",
+      "XCA",
+      "TSX SYS)180,4",
+      "PZE EDT,,0",
+      "TXI SYS)267,1,12",
+      "OCT 000004000003",
+      "AXT 6,1",
+      "TSX SYS)178,4"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 5,00 STOP RUN"
+    ],
+    "values": {
+      "NUM": 123,
+      "EDT": " $123.00"
+    }
+  },
+  "P1a-up-split": {
+    "source": [
+      "      *DATA",
+      "      BIG              1           IR9(5)",
+      "      ED5              1             889.9",
+      "      *PROCEDURE",
+      "      START.  SET BIG = 1234.",
+      "            MOVE BIG TO ED5.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "BSS 0",
+      "BSS 1",
+      "BSS 1",
+      "CLA CP)+2",
+      "STO BIG",
+      "LDQ BIG",
+      "MPY CP)+3",
+      "XCA",
+      "LRS 35",
+      "DVP CP)+4",
+      "TSX SYS)180,4",
+      "PZE ED5,,0",
+      "TXI SYS)267,1,4",
+      "OCT 000003000002",
+      "AXT 4,1",
+      "TSX SYS)178,4"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 5,00 STOP RUN"
+    ],
+    "values": {
+      "BIG": 1234,
+      "ED5": "234.0"
+    }
+  },
+  "P1a-down": {
+    "source": [
+      "      *DATA",
+      "      AMT              1           IR99V99",
+      "      EDS              1             89.9",
+      "      *PROCEDURE",
+      "      START.  SET AMT = 12.34.",
+      "            MOVE AMT TO EDS.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "refusal": "unrecovered shape: an edited store that drops source fraction digits (no sample instance)"
+  },
+  "P1b-up": {
+    "source": [
+      "      *DATA",
+      "      AREA             1",
+      "                       2             '040'",
+      "                        REDEF        AREA",
+      "      VIEW             1",
+      "      EXT              2           E 999",
+      "      INT              1           IR99V99",
+      "      *PROCEDURE",
+      "      START.  MOVE EXT TO INT.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "BSS 0",
+      "OCT 000400000000",
+      "BSS 1",
+      "LDI CP)+7",
+      "STI SYS)132",
+      "TSX SYS)182,4",
+      "TXI SYS)184,1,3",
+      "XCA",
+      "MPY CP)+2",
+      "XCA",
+      "STO INT",
+      "TSX SYS)178,4"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 8,00 STOP RUN"
+    ],
+    "values": {
+      "INT": 4000
+    }
+  },
+  "P1b-down": {
+    "source": [
+      "      *DATA",
+      "      AREA             1",
+      "                       2             '1234'",
+      "                        REDEF        AREA",
+      "      VIEW             1",
+      "      EXT              2           E 99V99",
+      "      INT              1           IR99V9",
+      "      *PROCEDURE",
+      "      START.  MOVE EXT TO INT.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "BSS 0",
+      "OCT 010203040000",
+      "BSS 1",
+      "LDI CP)+7",
+      "STI SYS)132",
+      "TSX SYS)182,4",
+      "TXI SYS)184,1,4",
+      "LRS 35",
+      "DVP CP)+2",
+      "STQ INT",
+      "TSX SYS)178,4"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 8,00 STOP RUN"
+    ],
+    "values": {
+      "INT": 123
+    }
+  },
+  "P2-up": {
+    "source": [
+      "      *DATA",
+      "      G3               1",
+      "      ED3              2             899",
+      "      TOT              1           IR999V99",
+      "      *PROCEDURE",
+      "      START.  MOVE '037' TO G3.",
+      "            SET TOT = 1.25.",
+      "            ADD ED3 TO TOT.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "BSS 0",
+      "BSS 1",
+      "BSS 1",
+      "CAL CP)+4",
+      "ANS G3",
+      "COM",
+      "ANA CP)+2",
+      "ORS G3",
+      "CLA CP)+3",
+      "STO TOT",
+      "LDI CP)+10",
+      "STI SYS)132",
+      "TSX SYS)182,4",
+      "TXI SYS)268,1,1",
+      "TXI SYS)269,1,3",
+      "TXI SYS)275,1,3",
+      "STO RS)1",
+      "LDQ RS)1",
+      "MPY CP)+5",
+      "STQ RS)0",
+      "CLA TOT",
+      "ADD RS)0",
+      "STO TOT",
+      "TSX SYS)178,4"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 7,00 STOP RUN"
+    ],
+    "values": {
+      "TOT": 3825
+    }
+  },
+  "P2-down": {
+    "source": [
+      "      *DATA",
+      "      G3               1",
+      "      ED3              2             899V99",
+      "      TOT              1           IR9999",
+      "      *PROCEDURE",
+      "      START.  MOVE '03750' TO G3.",
+      "            SET TOT = 100.",
+      "            ADD ED3 TO TOT.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "refusal": "unrecovered shape: an ADD into a target of lesser scale (no sample instance)"
+  },
+  "P2-plain-up": {
+    "source": [
+      "      *DATA",
+      "      SRC              1           IR999",
+      "      TOT              1           IR999V99",
+      "      *PROCEDURE",
+      "      START.  SET SRC = 37, SET TOT = 1.25.",
+      "            ADD SRC TO TOT.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "BSS 0",
+      "BSS 1",
+      "BSS 1",
+      "CLA CP)+2",
+      "STO SRC",
+      "CLA CP)+3",
+      "STO TOT",
+      "LDQ SRC",
+      "MPY CP)+4",
+      "STQ RS)0",
+      "CLA TOT",
+      "ADD RS)0",
+      "STO TOT",
+      "TSX SYS)178,4"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 5,00 STOP RUN"
+    ],
+    "values": {
+      "TOT": 3825
+    }
+  },
+  "S1-set-ext-up": {
+    "source": [
+      "      *DATA",
+      "      AREA             1",
+      "                       2             '040'",
+      "                        REDEF        AREA",
+      "      VIEW             1",
+      "      EXT              2           E 999",
+      "      INT              1           IR99V99",
+      "      *PROCEDURE",
+      "      START.  SET INT = EXT.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "refusal": "unrecovered shape: a store below the target scale (no sample instance)"
+  },
+  "S2-set-int-up": {
+    "source": [
+      "      *DATA",
+      "      NUM              1           IR999",
+      "      INT              1           IR99V99",
+      "      *PROCEDURE",
+      "      START.  SET NUM = 40, SET INT = NUM.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "refusal": "unrecovered shape: a store below the target scale (no sample instance)"
+  },
+  "S3-set-add-up": {
+    "source": [
+      "      *DATA",
+      "      SRC              1           IR999",
+      "      TOT              1           IR999V99",
+      "      *PROCEDURE",
+      "      START.  SET SRC = 37, SET TOT = 1.25.",
+      "            SET TOT = TOT + SRC.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "words": [
+      "BSS 0",
+      "BSS 1",
+      "BSS 1",
+      "CLA CP)+2",
+      "STO SRC",
+      "CLA CP)+3",
+      "STO TOT",
+      "LDQ SRC",
+      "MPY CP)+4",
+      "STQ RS)0",
+      "CLA TOT",
+      "ADD RS)0",
+      "STO TOT",
+      "TSX SYS)178,4"
+    ],
+    "outcome": "endOfJob",
+    "display": [
+      "AT 5,00 STOP RUN"
+    ],
+    "values": {
+      "TOT": 3825
+    }
+  },
+  "S4-set-add-down": {
+    "source": [
+      "      *DATA",
+      "      SRC              1           IR99V99",
+      "      TOT              1           IR9999",
+      "      *PROCEDURE",
+      "      START.  SET SRC = 37.50, SET TOT = 100.",
+      "            SET TOT = TOT + SRC.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "refusal": "unrecovered shape: a scaling store of a chain value (no sample instance)"
+  },
+  "S5-set-ed-add-up": {
+    "source": [
+      "      *DATA",
+      "      G3               1",
+      "      ED3              2             899",
+      "      TOT              1           IR999V99",
+      "      *PROCEDURE",
+      "      START.  MOVE '037' TO G3.",
+      "            SET TOT = 1.25.",
+      "            SET TOT = TOT + ED3.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "refusal": "unrecovered shape: an arithmetic operand of edited (no sample instance)"
+  },
+  "P2-plain-down": {
+    "source": [
+      "      *DATA",
+      "      SRC              1           IR99V99",
+      "      TOT              1           IR9999",
+      "      *PROCEDURE",
+      "      START.  SET SRC = 37.50, SET TOT = 100.",
+      "            ADD SRC TO TOT.",
+      "            STOP RUN.",
+      "      *FINISH"
+    ],
+    "diagnostics": [],
+    "refusal": "unrecovered shape: an ADD into a target of lesser scale (no sample instance)"
+  }
+}
