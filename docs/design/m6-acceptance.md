@@ -741,8 +741,8 @@ the report our run prints against the page.
   - a SET into an edited field, added 2026-10-25 by the edited store
     decision below;
   - a MOVE of an external-decimal field to an external-decimal field,
-    added 2026-10-25 by the stop the decision on expression comparisons
-    below pinned.
+    added 2026-10-25, the stop that the expression-comparison decision
+    below found.
 
   No decision below changes the two listings or
   `test/goldens/90.05-payroll.code`, because each acts on shapes the
