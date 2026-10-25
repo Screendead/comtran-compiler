@@ -1119,6 +1119,94 @@ void main() {
     });
   });
 
+  group('the edited store of a chain value (M6-9)', () {
+    /// The words of [statement] up to its STOP RUN. EXA is external
+    /// `99999V99` and EXB external `999V99`; NUM is internal `999`, FRC
+    /// internal `9V99` and FR3 internal `9V999`; NET is edited
+    /// `$88889.99-`, PAYRECORD NETPAY's pictorial.
+    List<String> chain(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          for (final (String name, String picture) in [
+            ('NUM', '999'),
+            ('FRC', '9V99'),
+            ('FR3', '9V999'),
+          ])
+            dataCard(
+              name: name,
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: picture,
+            ),
+          dataCard(name: 'EXA', level: '1', mode: 'E', description: '99999V99'),
+          dataCard(name: 'EXB', level: '1', mode: 'E', description: '999V99'),
+          dataCard(name: 'NET', level: '1', description: r'$88889.99-'),
+        ],
+        procedure: [statement, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      // The procedure begins past the six data cells.
+      final int start = words.indexOf('BSS 0') + 7;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    /// The words of GROSS's edited store at LOC 00374 to 00400. The
+    /// dollar adds 8 to the edit control, and the trailing minus puts
+    /// sign convention 3 in the control word's tag.
+    const call = <String>[
+      'TSX SYS)180,4',
+      'PZE NET,,0',
+      'TXI SYS)267,1,12',
+      'OCT 000005300004',
+      'AXT 7,1',
+    ];
+
+    test('the shape of statement 145,00 stores the chain through SYS)267', () {
+      expect(chain('            SET NET = EXA - EXB - EXB.'), [
+        'LDI CP)+6',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,7',
+        'STO TS)1',
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,5',
+        'STO TS)2',
+        'CLA TS)1',
+        'SUB TS)2',
+        'SUB TS)2',
+        ...call,
+      ]);
+    });
+
+    test('a product in the MQ moves to the accumulator first', () {
+      expect(chain('            SET NET = NUM * FRC.'), [
+        'LDQ FRC',
+        'MPY NUM',
+        'XCA ',
+        ...call,
+      ]);
+    });
+
+    test('a chain above the target scale takes the tail, then XCA', () {
+      expect(chain('            SET NET = FR3 + FR3.'), [
+        'CLA FR3',
+        'ADD FR3',
+        'ACL CP)+2',
+        'LRS 35',
+        'DVP CP)+3',
+        'XCA ',
+        ...call,
+      ]);
+    });
+  });
+
   group('the external-decimal DO FOR index (M6-9)', () {
     /// The units of `DO RTN FOR index = [bounds]` over CELL (index).
     /// EXI is external `99`, EXM external `9R` (two digits), and NUM and CELL

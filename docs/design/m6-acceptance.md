@@ -732,6 +732,8 @@ the report our run prints against the page.
   - an external-decimal DO FOR index, added 2026-10-25 by the
     store decision below;
   - a DO FOR driving three indicators, added 2026-10-25 by the DO FOR
+    decision below;
+  - a SET into an edited field, added 2026-10-25 by the edited store
     decision below.
 
   No decision below changes the two listings or
@@ -1556,6 +1558,75 @@ the report our run prints against the page.
     because its SET target PAYRECORD NETPAY is edited. Statement
     166,00, the readers above, comes later in the text.
 
+  **Decided 2026-10-25: the edited store of a chain value. A design
+  decision under D0.4; Jack can overturn it.** This is the thirteenth
+  item of the list above, and the eleventh item done. A SET target of
+  edited class takes the edited store of catalogue 4.6 behind the
+  chain, in place of the store's `CLA`:
+
+  ```
+  ...                   the chain, in the accumulator
+  TSX    SYS)180,4
+  PZE    target,,byte
+  TXI    SYS)267,1,edit
+  OCT    control
+  AXT    digits,1
+  ```
+
+  A value in the MQ takes `XCA` first. A chain above the target's
+  scale takes the scaling tail of the decision above, then `XCA`. For
+  PAYRECORD NETPAY, `$88889.99-`, the edit control is 12, a dollar and
+  a point. The control word is `OCT 000005300004`: five integer digits,
+  sign convention 3 in the tag, four protected positions. The evidence:
+
+  - The sample attests the five words at its 25 edited stores. GROSS,
+    `88889.99`, at LOC 00374 to 00400 prints `TXI SYS)267,1,4`, the
+    point alone, and `OCT 000005000004`.
+  - [J 90.02.15]: under SYS)180 the source "is in a machine register".
+    The external store decision above already puts the call behind a
+    chain. This decision changes only the step words.
+  - [J 90.02.17] Note 2 numbers the trailing minus 3. The sample has no
+    signed edited target, so its tags are all 0. The 1960 program
+    writes the SET as printed, and J does not withdraw it (M6-9's
+    reading rule).
+
+  The open item: a value of more digits drops its high-order digits
+  and arms nothing, as SYS)267 does (RT-5; D4.2). A register value has
+  no declared digit count, so the split divide of LOC 00424 has no
+  trigger. The store compares scales, so codegen defect 1 does not
+  reach this path.
+
+  The rejected options:
+
+  - *The split divide on a computed digit count.* The bound would be
+    ours, and SYS)267 drops the excess already.
+  - *Refuse a chain above the target scale.* The tail is attested on a
+    value in the accumulator at LOC 00423 to 00425, and the decision
+    above ends it in `XCA` and SYS)180.
+  - *Park the chain in a cell for the MOVE path's `CLA`.* A cell and two
+    words more, as the external store found.
+  - *The `MZE` form for a located target.* [J 90.02.14] Case 2 gives it,
+    but no edited store of the sample is located, and PAYRECORD is an
+    output record. It refuses.
+
+  The refusals, ahead of the first word of the chain: `an edited store
+  of more than 10 digits (RT-4)`, `an in-line address word for a
+  located item (catalogue 4.3)`, and the control word's own, for
+  example `an edited field with an S position (RT-5)`. `a store below
+  the target scale (no sample instance)` stays. `an arithmetic operand
+  of edited (no sample instance)` stays for a chain operand and an ADD
+  target.
+
+  The tests: `test/codegen_test.dart` asserts the words for the shape
+  of statement 145,00, a product and a tail.
+  `test/codegen_refusal_test.dart` pins the refusals.
+  `test/runtime/machine_test.dart` runs the shape over the deck's six
+  pictorials: 307.39 prints `  $307.39 ` and -65.11 `   $65.11-`.
+  `test/f_corpus_test.dart` pins the next stop. Statement 146,00, `MOVE
+  PAYRECORD NETPAY TO CHECK AMOUNT`, moves `$88889.99-` into
+  `$***9.99` and refuses `an edit run that bypasses source digits (no
+  sample instance)`. That is the SYS)190 bypass item of the list.
+
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
   amended). It diffs values and not bytes, and M6-1 as amended names
@@ -1604,6 +1675,7 @@ the report our run prints against the page.
 [J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.16]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.17]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.18]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.19]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.30]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers

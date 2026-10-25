@@ -58,7 +58,7 @@ Terms that appear without expansion:
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
-| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). `FILE record IN file` and `STOP n` compile since 2026-10-24, and the external-decimal fetch and store, the comparison of unequal scales, the product of a product, the scaling store of a chain value, the external-decimal DO FOR index, the DO FOR driving several indicators and the 11-character table stride since 2026-10-25. The applied deck now stops at statement 145,00, on the edited SET target PAYRECORD NETPAY | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
+| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). Eleven of its thirteen items compile since 2026-10-24 and 2026-10-25. The applied deck now stops at statement 146,00, on the SYS)190 bypass of MOVE NETPAY TO CHECK AMOUNT | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
 | M7 | Not started | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
@@ -71,7 +71,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1387 Dart tests pass, measured 2026-10-25, and 154 extension
+Test baseline: 1402 Dart tests pass, measured 2026-10-25, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -136,19 +136,15 @@ the course that ruling overturns, and M6-7 as amended corrects the
 `STOP` row: `STOP n` is legal, so the applied deck keeps `STOP 1234`
 and adds `STOP RUN` after it.
 
-**The next task is chunk 2b.** M6-9's design list has twelve items.
-Ten items are done: `FILE record IN file` and `STOP n` (2026-10-24),
-the external-decimal fetch and store, the comparison of unequal
-scales, the product of a product, the scaling store of a chain value,
-the external-decimal DO FOR index, the DO FOR driving several
-indicators, and the 11-character table stride (2026-10-25). The
-applied deck now stops at statement 145,00 with `an arithmetic operand
-of edited (no sample instance)`: the SET target PAYRECORD NETPAY is an
-edited field. That shape is not on the list and needs its own
-decision. Two items stay open:
+**The next task is chunk 2b.** M6-9's design list has thirteen items,
+and eleven are done (2026-10-24 and 2026-10-25). The last is the SET
+into an edited field, through SYS)267. The applied deck now stops at
+statement 146,00 with `an edit run that bypasses source digits (no
+sample instance)`: `MOVE PAYRECORD NETPAY TO CHECK AMOUNT` moves
+`$88889.99-` into `$***9.99`. Two items stay open:
 
-- the comparison whose sides are expressions;
-- the SYS)190 bypass steps.
+- the SYS)190 bypass steps, the next stop;
+- the comparison whose sides are expressions.
 
 M6-9 holds the evidence for each item. Then write the two tapes from
 the sample's source table, in the corpus's layouts. Run the applied
