@@ -263,6 +263,7 @@ Do not edit these by hand:
 | `editors/vscode-punchcard/syntaxes/comtran-deck.tmLanguage.json` | `npm run grammar` |
 | every `*.ct` mirror | `dart run comtran:deckconv regen <path>` |
 | `test/fixtures/90.05-tapes/D1.tap` and `C2.tap` | `dart run tool/generate_sample_tapes.dart` |
+| `test/fixtures/f-payroll-tapes/D1.tap` and `C2.tap` | `dart run tool/generate_f_tapes.dart` |
 | the manual-link block at the end of a markdown file | `dart run tool/linkify_manual_refs.dart` |
 
 A golden test guards each one. A hand edit fails that test with no obvious
