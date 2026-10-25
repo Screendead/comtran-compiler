@@ -151,9 +151,12 @@ final class TransferChecker extends ClauseWalk with OperandWalk {
   }
 
   /// The D2.5 target model. A one-word target is a statement label of
-  /// the referencing sentence's own section, else a section name, else
-  /// a statement label of the outermost scope; `A B` is section A's
-  /// label B. [absent] speaks for a target that names none of these.
+  /// the referencing sentence's own section, else a section name of any
+  /// scope, else a statement label of the outermost scope; `A B` is
+  /// the label or section B that a section named A encloses. Two
+  /// candidates at one step draw msg 166: no record makes the innermost
+  /// section win. [absent] speaks for a target that names none of
+  /// these.
   DictionaryEntry? _resolveProcedure(
     NameReference reference, {
     Message? absent,
@@ -162,13 +165,21 @@ final class TransferChecker extends ClauseWalk with OperandWalk {
     final List<DictionaryEntry> named = resolver.dictionary.named(
       reference.words.last.text,
     );
-    List<DictionaryEntry> labelsOf(String? section) => [
+    List<DictionaryEntry> labelsOf(Sentence? scope) => [
       for (final DictionaryEntry entry in named)
-        if (entry.kind == NameKind.statement && entry.section == section) entry,
+        if (entry.kind == NameKind.statement && identical(entry.scope, scope))
+          entry,
     ];
     var candidates = const <DictionaryEntry>[];
     if (reference.words.length == 2) {
-      candidates = labelsOf(reference.words.first.text);
+      final String qualifier = reference.words.first.text;
+      candidates = [
+        for (final DictionaryEntry entry in named)
+          if ((entry.kind == NameKind.statement ||
+                  entry.kind == NameKind.section) &&
+              entry.section == qualifier)
+            entry,
+      ];
     } else if (reference.words.length == 1) {
       candidates = labelsOf(resolver.sectionScopes[currentSentence]);
       if (candidates.isEmpty) {
