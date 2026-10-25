@@ -770,10 +770,41 @@ void main() {
       final List<String> words = compare(
         '            IF TR (FRAC + 1 GT 1) * 1 + FRAC GT 1 THEN STOP RUN.',
       );
-      expect(words.take(3), ['LDQ CP)+1', 'MPY CP)+2', 'STQ TS)1']);
-      expect(words, contains('STQ TS)2'));
-      expect(words.where((String w) => w == 'CAS TS)1'), hasLength(1));
-      expect(words.where((String w) => w == 'CAS TS)2'), hasLength(1));
+      // The outer park of the upscaled 1 is TS)1, so the inner one takes
+      // TS)2. The inner chain reads its RS)0 before the outer chain parks
+      // its first term in RS)1.
+      expect(words, [
+        'LDQ CP)+1',
+        'MPY CP)+2',
+        'STQ TS)1',
+        'RIR 777777',
+        'LDQ CP)+1',
+        'MPY CP)+2',
+        'STQ TS)2',
+        'LDQ CP)+1',
+        'MPY CP)+2',
+        'STQ RS)0',
+        'CLA FRAC',
+        'ADD RS)0',
+        'CAS TS)2',
+        'TRA *+3',
+        'TRA *+3',
+        'TRA *+2',
+        'SIR 000001',
+        'PXA 0,0',
+        'RFT 000001',
+        'CLA CP)+1',
+        'XCA ',
+        'MPY CP)+1',
+        'MPY CP)+2',
+        'STQ RS)1+0',
+        'CLA RS)1',
+        'ADD FRAC',
+        'CAS TS)1',
+        'TRA *+3',
+        'TRA GN)001',
+        'TRA GN)001',
+      ]);
     });
   });
 

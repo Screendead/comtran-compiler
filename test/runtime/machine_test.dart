@@ -319,6 +319,29 @@ List<String> _expressionCompare(
   '      *FINISH',
 ];
 
+/// A program whose expression comparison holds a truth function that
+/// compares an expression (M6-9). The truth function is the first term,
+/// so its chain reads RS)0 before the outer chain parks in RS)1, and its
+/// park takes TS)2 above the outer TS)1. FLAG reads 1 on the THEN arm.
+List<String> _nestedCompare(String num, String frac) => <String>[
+  '      *DATA',
+  dataCard(name: 'NUM', level: '1', mode: 'I', justify: 'R', description: '99'),
+  dataCard(
+    name: 'FRAC',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9V9',
+  ),
+  dataCard(name: 'FLAG', level: '1', mode: 'I', justify: 'R', description: '9'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = $num, SET FRAC = $frac.',
+  '            IF TR (NUM + 1 GT FRAC) * 1 + NUM * 2 GT 14 THEN SET',
+  '            FLAG = 1 OTHERWISE SET FLAG = 2.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program whose chain sits above its edited target's scale (M6-9):
 /// the scaling tail ends in `XCA` and the SYS)180 call.
 final List<String> _editedTail = <String>[
@@ -1118,6 +1141,26 @@ void main() {
           subject.state.read(addressOf(job, 'SECOND')),
           second,
           reason: reason,
+        );
+      }
+    });
+
+    test('a truth function inside an expression comparison', () {
+      // (NUM, FRAC, FLAG): 1 + 14 is above 14 and 1 + 12 is not. With
+      // the truth function false, 0 + 14 is not above 14.
+      const cases = <(String, String, int)>[
+        ('7', '0.5', 1),
+        ('6', '0.5', 2),
+        ('7', '9.5', 2),
+      ];
+      for (final (String num, String frac, int flag) in cases) {
+        final (JobCompilation job, Machine subject) = compiled(
+          _nestedCompare(num, frac),
+        );
+        expect(
+          subject.state.read(addressOf(job, 'FLAG')),
+          flag,
+          reason: 'NUM $num, FRAC $frac',
         );
       }
     });
