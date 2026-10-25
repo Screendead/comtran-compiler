@@ -144,7 +144,7 @@ as amended names the columns that can be compared and the three
 causes that separate the rest. Expect BONDORDER's EMPLOYEE.NUMBER,
 NAME and DATE to stay unmoved: MASTER holds them under DATA, so they do
 not correspond ([J 02.04.04]; M6-9). Codegen defect 7 below is fixed for
-the DO FOR. The other nine codegen defects stay open, and each fix
+the DO FOR. The other ten codegen defects stay open, and each fix
 must leave `test/goldens/90.05-payroll.code` as it stands.
 
 **One question waits for Jack, and no work waits on his answer.**
@@ -230,6 +230,11 @@ moves it has changed the sample's path. The three divides at LOC 00424,
     for 3. Whether to refuse the shape or handle it is Jack's call. The
     PR 150 review found it on 2026-10-25. The applied deck has no
     subscript store.
+11. **An alphameric comparison of a field that crosses a word reads
+    one word.** `_alphamericComparison` refuses more than six
+    characters, not byte plus length past six. The run of the applied
+    deck found it on 2026-10-25 at statement 130,00, and the job stops
+    with a GET ERROR. `docs/design/m6-f-tapes.md`, "The run", holds it.
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
