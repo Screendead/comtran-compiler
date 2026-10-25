@@ -64,7 +64,7 @@ Every other row points at its own record.
 | [D1.4](#d14--alphabetic-vs-alphameric-literal) | "Alphabetic" vs "alphameric" literal | Locked |
 | [D1.5](#d15--reserved-word-equals) | Reserved word EQUALS | Locked |
 | **[D2 — Program structure (§8.5.2)](#d2--program-structure-852)** | | |
-| [D2.1](#d21--programstart--an-undocumented-entry-point-facility) | PROGRAM.START — an undocumented entry-point facility | Locked |
+| [D2.1](#d21--programstart--an-undocumented-entry-point-facility) | PROGRAM.START — an undocumented entry-point facility | Amended |
 | [D2.2](#d22--division-ordering-and-interleaving) | Division ordering and interleaving | Locked |
 | [D2.3](#d23--cards-before-the-first-division-header) | Cards before the first division header | Locked |
 | [D2.4](#d24--serial-number-sequence-checking) | Serial-number sequence checking | Locked |
@@ -74,10 +74,10 @@ Every other row points at its own record.
 | **[D3 — Data description (§8.5.3)](#d3--data-description-853)** | | |
 | [D3.1](#d31--subscript--quantity-nesting-depth-under-j) | Subscript / quantity-nesting depth under J | Locked |
 | [D3.2](#d32--written-form-of-blank-when-zero) | Written form of BLANK WHEN ZERO | Locked |
-| [D3.3](#d33--non-format-field) | "Non-format field" | Locked |
+| [D3.3](#d33--non-format-field) | "Non-format field" | Amended |
 | [D3.4](#d34--the-redef-line-name-and-layout) | The REDEF line: name and layout | Locked |
 | [D3.5](#d35--highest-level-in-the-justification-default) | "Highest level" in the justification default | Locked |
-| [D3.6](#d36--does-the-constants-then-redef-table-technique-survive) | Does the constants-then-REDEF table technique survive? | Locked |
+| [D3.6](#d36--does-the-constants-then-redef-table-technique-survive) | Does the constants-then-REDEF table technique survive? | Amended |
 | **[D4 — Arithmetic and data manipulation (§8.5.4)](#d4--arithmetic-and-data-manipulation-854)** | | |
 | [D4.1](#d41--rounding-threshold-stated-edge-cases-not) | Rounding: threshold stated, edge cases not | Jack's call (part d) |
 | [D4.2](#d42--overflow-with-no-on-overflow-clause) | Overflow with no ON OVERFLOW clause | Locked |
@@ -100,18 +100,18 @@ Every other row points at its own record.
 | [D5.4](#d54--go-to-out-of-a-do-addressed-closed-procedure) | GO TO out of a DO-addressed (closed) procedure | Locked |
 | [D5.5](#d55--assigned-go-to-object-time-range-behaviour) | Assigned GO TO: object-time range behaviour | Locked |
 | [D5.6](#d56--set-conditionname-under-j) | SET condition.name under J | Locked |
-| [D5.7](#d57--nested-and-recursive-do) | Nested and recursive DO | Locked |
+| [D5.7](#d57--nested-and-recursive-do) | Nested and recursive DO | Amended |
 | **[D6 — Input/output (§8.5.6)](#d6--inputoutput-856)** | | |
 | [D6.1](#d61--the-pattern-option--used-but-never-defined) | The PATTERN option — used but never defined | Jack's call |
 | [D6.2](#d62--for-label--labeln-linkage-documented-only-by-a-missing-appendix) | FOR LABEL / LABELN linkage documented only by a missing appendix | Locked |
 | [D6.3](#d63--reopening-a-file-after-a-named-close) | Reopening a file after a named CLOSE | Locked |
-| [D6.4](#d64--the-printer-as-a-direct-file-target) | The printer as a direct FILE target | Locked |
-| [D6.5](#d65--get-on-an-unopened-file-silent-exit-vs-terminate-with-message) | GET on an unopened file: silent exit vs terminate-with-message | Locked |
+| [D6.4](#d64--the-printer-as-a-direct-file-target) | The printer as a direct FILE target | Amended |
+| [D6.5](#d65--get-on-an-unopened-file-silent-exit-vs-terminate-with-message) | GET on an unopened file: silent exit vs terminate-with-message | Amended |
 | [D6.6](#d66--at-end-any-imperative-clause-f-vs-a-single-imperative-statement-only-j) | AT END: "any imperative clause" (F) vs "a single imperative statement only" (J) | Locked |
-| [D6.7](#d67--short-record-blocking-and-the-begin-threshold) | Short-record blocking and the BEGIN threshold | Locked |
+| [D6.7](#d67--short-record-blocking-and-the-begin-threshold) | Short-record blocking and the BEGIN threshold | Amended |
 | **[D7 — Environment, control cards, and processor surface (§8.5.7)](#d7--environment-control-cards-and-processor-surface-857)** | | |
-| [D7.1](#d71--spec-blocksize-0-999-vs-environment-maximum-9999) | *SPEC blocksize "(0-999)" vs Environment maximum 9999 | Locked |
-| [D7.2](#d72--specif-chks-in-appendix-9008) | "SPECIF CHKS" in Appendix 90.08 | Locked |
+| [D7.1](#d71--spec-blocksize-0-999-vs-environment-maximum-9999) | *SPEC blocksize "(0-999)" vs Environment maximum 9999 | Amended |
+| [D7.2](#d72--specif-chks-in-appendix-9008) | "SPECIF CHKS" in Appendix 90.08 | Amended |
 | [D7.3](#d73--who-assigns-the-default-buffercount) | Who assigns the default BUFFERCOUNT | Locked |
 | [D7.4](#d74--include-placement-at-the-end-of-the-present-program) | INCLUDE placement "at the end of the present program" | Amended |
 | [D7.5](#d75--per-message-severity-codes-are-nowhere-specified) | Per-message severity codes are nowhere specified | Locked |
@@ -119,8 +119,8 @@ Every other row points at its own record.
 | [D7.7](#d77--internal-table-limits-are-approximate) | Internal-table limits are approximate | Locked |
 | [D7.8](#d78--which-environment-types-msg-90-covers) | Which environment types msg 90 covers | Locked |
 | [D7.9](#d79--maximum-alphabetic-constant-length) | Maximum alphabetic-constant length | Locked |
-| [D7.10](#d710--file-check-table-listed-in-the-deck-format-never-produced) | File Check Table: listed in the deck format, never produced | Locked |
-| [D7.11](#d711--deckname-with-imbedded-blanks) | Deck.name with imbedded blanks | Jack's call |
+| [D7.10](#d710--file-check-table-listed-in-the-deck-format-never-produced) | File Check Table: listed in the deck format, never produced | Amended |
+| [D7.11](#d711--deckname-with-imbedded-blanks) | Deck.name with imbedded blanks | Amended |
 | [D7.12](#d712--compile-vs-cmple) | *COMPILE vs $CMPLE | Locked |
 | [D7.13](#d713--statement-number-placement) | Statement-number placement | Amended |
 | **[D8 — Transcription and printing artifacts (§8.5.8)](#d8--transcription-and-printing-artifacts-858)** | | |
@@ -451,7 +451,7 @@ record built on it.*
 
 ### D2.1 — PROGRAM.START — an undocumented entry-point facility
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-08-30 and 2026-09-06 — the generator honors a labeled PROGRAM.START (see the amendments below).
 **Decision.** PROGRAM.START is implemented as a reserved procedure-name. Labeling a statement or section with it designates the object-program entry point. At most one PROGRAM.START is allowed per program (msg 141 "MORE THAN ONE -PROGRAM.START-. FIRST USED." on a second occurrence, first one wins, compilation continues); it must label a statement or section (msg 142 otherwise) and is never DO-addressable (msg 143 otherwise). Absent PROGRAM.START, codegen itself resolves the entry point to the LOC of the first *PROCEDURE sentence. In both cases codegen punches that LOC in the object deck's end-of-text special entry, control group 01111, whose data-word address "contains the relative program entry point" ([J 90.03.04]). The Loader's own default start point — first program of combined segments, overridable by a *START card ([J 03.02.08]) — is a distinct mechanism and is not relied on for this.
 
 **Rationale.** No language section defines the facility, but the three diagnostics (msgs 141-143), [J 90.02]'s note that the first object word is "not necessarily PROGRAM.START", and Open Question 12 (Resolved) together fix both the labeled and default behavior. Open Question 12 shows the compiler always punches the transfer address itself: the sample, which has no PROGRAM.START, ends its text deck with `00165 500000000165 01111 START GN)000`, GN)000 being the compiler-generated name of statement 187,00, the first *PROCEDURE sentence, resolving to LOC 00165.
@@ -574,7 +574,7 @@ record built on it.*
 
 ### D3.3 — "Non-format field"
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-08-04 — the group length is the physical extent of the group (see the amendment below).
 **Decision.** The compiler treats a data-description entry with no pictorial clause -- i.e. a group field -- as a 'non-format field' for [J 02.04.07] rule 4: its comparison type is alphameric and its length is the sum of its subfields' lengths. The comparison then follows [J 02.04.07] rule 2b, to which rule 4 is expressly subject. For = / NOT = between unequal-length alphameric operands the fields are always found unequal. The compiler therefore folds the test at compile time. It generates only the transfer to the branch that the constant outcome selects. For `IF A = B THEN GO TO C OTHERWISE GO TO D.` that is the transfer to D. For `IF A NOT = B THEN GO TO D OTHERWISE GO TO C.` it is D again -- the selected branch, not specifically the false branch. For the relative-magnitude operators the lengths are made equal by right truncation of the longer field.
 
 **Rationale.** [J 02.04.07] rule 4 requires comparing 'all non-format fields' alphamerically but never defines the term in 02.05; the only 02.05 definition that fits -- an item with no pictorial, per 02.05.06(c) -- is treated there as alphameric with length equal to the sum of its subfields, matching what the comparison rule needs. Rule 4 is load-bearing in its qualifier 'subject to rules stated in 2b above': group fields are almost always of unequal length, so the 2b path is the normal case, not an edge case. Open Question 42 records that rule 2b is written operator-scoped, and that 'a transfer to D' names the branch the constant outcome selects, not specifically the false branch.
@@ -615,7 +615,7 @@ record built on it.*
 
 ### D3.6 — Does the constants-then-REDEF table technique survive?
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-08-04 — msg 43,00 is the attested message for this restriction (see the amendment below).
 **Decision.** Entries containing constants are legal when they belong to the original definition of an area -- i.e. when they precede the REDEF line that redefines that area. J's restriction against constants applies only inside the REDEF's extent, where the extent starts at the REDEF line and ends at the first item of a level above or equal to the level of the redefined item, or at the next REDEF ([J 02.05.02]). F's canonical constants-then-REDEF table-building technique therefore remains legal with respect to constants. Its card layout is governed separately by the REDEF-line record in this same unit: the first entry after the REDEF must be at the redefined item's level, so F's sample -- REDEF at level 01 over RATE.TABLE with RATE at level 02 -- must be restructured to J's layout, as J itself did for the identical program.
 
 **Rationale.** J forbids constants 'as part or all of the redefinition of an area'. By its own wording that bars constants among the entries that make up the redefinition, not among the entries the REDEF is defined against. This reading is also the only one consistent with F's demonstrated technique, and with [J 90.01.03]'s advice that a record containing an array precede the REDEF. The catalog Resolution settles the constants question only; it says nothing about layout, so the layout must come from the REDEF-line decision rather than from an unqualified 'accepted unchanged'. [J 02.05.02] supplies the extent rule; without it the end of the redefinition, and so the end of the constants ban, is undefined.
@@ -923,7 +923,7 @@ record built on it.*
 
 ### D5.7 — Nested and recursive DO
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-08-28 — the static cycle detection is msg 947 (see the amendment below).
 **Decision.** Accept nested non-recursive DO with no diagnostic and impose no depth limit of our own. Do not implement recursion and do not guard against it. If a procedure is DO'd while already active, directly or indirectly, the second `SXA P,4` overwrites the pending return: the outer activation's return is lost, and the terminal `TRA* P` returns to the inner return address. The emulator reproduces that behavior exactly — a loop or a wild transfer — with no runtime message. Generate no stack, save area or activation record; all working storage stays in the fixed `RS)`, `TS)`, `PI)` and constant-pool blocks.
 
 **Rationale.** Nothing in either manual forbids a DO from a DO'd procedure, and sections nest to depth 18. Open Question 40 shows the return lives in one per-procedure head cell, and 90.02 shows no stack or save area anywhere, with index register 4 reused as data base register and scratch, so no return can survive re-entry.
@@ -981,7 +981,7 @@ record built on it.*
 
 ### D6.4 — The printer as a direct FILE target
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-09-13 — the lister is in the runtime (see the amendment below).
 **Decision.** Implement FILE to tape, to cards, and to the system output unit. The demonstrated report path is the default: print-image BCD records FILE'd to tape and listed off-line. One record is one *or more* print lines. RCDMRK-type one-character record marks delimit the lines inside a record. The sample's CHECK record is a two-line check "to be printed under carriage control on a 720 printer", its two print lines "separated by a record mark (signalled by type RCDMRK) for printer control". The carriage-control character occupies the first character position of each line, described as a constant in the Data Description. Line length comes from the record description. A file whose unit assignment is a printer (PRX) or the system output unit (OU) is handled as a print-image file; extending the RCDMRK line-delimiting and first-character carriage-control convention to such a file is our design decision, since J defines no COMTRAN-level semantics (carriage control, line length) for direct on-line printing. Line length and carriage behavior beyond that come from the emulator's printer device, not from the language.
 
 **Rationale.** [J 02.07.07] limits FILE to tape and cards, yet J's unit vocabulary carries PRX and OU and the sample routes every report file to BCD tape with RCDMRK; so direct on-line printing exists at the unit-assignment level while J defines no COMTRAN-level semantics for it. The sample also settles the record shape: carriage control is a data constant inside the record and record marks separate print lines, so a record is not one print image.
@@ -996,7 +996,7 @@ record built on it.*
 
 ### D6.5 — GET on an unopened file: silent exit vs terminate-with-message
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-09-12 — the end-of-file exit is parameter word 2 (see the amendment below).
 **Decision.** At object time, a GET on a file that is not open takes that GET's own end-of-file disposition. If the GET carries an AT END clause, execute the clause with no message. If it does not, take the standard no-AT-END path: the terminator routine SYS)265 prints the unexpected-end-of-file message and exits to the CT Monitor. Never emit a diagnostic that is specific to the unopened-file condition, at compile time or at object time.
 
 **Rationale.** J's "the end of file exit is taken. No error message is given." denies a specific unopened-file diagnostic, not the generic no-AT-END termination that [J 02.07.06] states; the generated GET sequence carries exactly one end-of-file exit word, which holds SYS)265 whenever AT END is absent.
@@ -1024,7 +1024,7 @@ record built on it.*
 
 ### D6.7 — Short-record blocking and the BEGIN threshold
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-09-13 — IOC)9 blocks the output; BEGIN and SPANS stay unbuilt (see the amendment below).
 **Decision.** Implement blocking as arithmetic, with no threshold rule. Pack records into BLOCKSIZE-word blocks in order. A record must be complete within one block, so if the room left in the current block is smaller than the next record, start a new block. Two records that are each longer than half the blocksize can therefore never share one block; a single record longer than half the blocksize may still sit second in a block when the room left is large enough (J's own Example 1 packs REC3, 192 words, together with a 64-word REC1 in a 256-word block). A record described with BEGIN always starts a new block. No special rule keys off the 10-word or 20-word figures in the 90.05 note.
 
 **Rationale.** [J 90.05.04]'s two statements — that the shorter DEPARTMENT.TOTAL records "will always begin a new buffer" in a 20-word-blocked file, while a 10-word record would need BEGIN "to avoid grouping" — both follow from complete-within-a-block packing, so no 02.06 rule is missing. The entry's gloss is that two such records cannot share a block; generalising it to "a record longer than half the blocksize always begins a new block" is false against J's worked example.
@@ -1041,7 +1041,7 @@ record built on it.*
 
 ### D7.1 — *SPEC blocksize "(0-999)" vs Environment maximum 9999
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-08-30 — the blocksize punches in columns 17 to 20 (see the amendment below).
 **Decision.** Honor Environment FILE BLOCKSIZE values up to 9999 words. The compiler punches the actual blocksize, right-justified, into the generated Loader *SPEC card's four-column blocksize field (columns 17-20, source "FILE - BLOCKSIZE nn", [J 90.08.02]). Read the Loader manual's "normally a number (0-999)" ([J 03.02.05]) as a typographical slip for (0-9999). For a value above 9999 the manuals attest no message: recorded design decision — reject the card with a non-historical diagnostic taken from a reserved message range above the historical 0-209 catalog, so the 1962 message numbers stay intact.
 
 **Rationale.** The *SPEC field is four columns wide, so it can hold values above 999, and the Environment FILE card's own stated maximum is 9999. The entry's Resolution reads "(0-999)" as a typographical slip and directs the compiler to punch Environment blocksizes up to 9999. The 1962 listing shows the field in use (`*SPEC  01  300`), which fixes the punching format but not the above-999 case. Neither msg 91 ("NUMERIC INTEGER MUST FOLLOW -BLOCKSIZE- IN THE -FILE- CARD.") nor msg 209 ("HAS INSUFFICIENT BLOCKSIZE") covers an over-maximum value, so the diagnostic is our decision, not recovered fact.
@@ -1056,7 +1056,7 @@ record built on it.*
 
 ### D7.2 — "SPECIF CHKS" in Appendix 90.08
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-08-30 — column 28 stays blank for a checkpoint file (see the amendment below).
 **Decision.** Implement a single SPECIF checkpoint option pair, CHECKC and CHECKF, as documented at [J 02.06.11]. Read the token "CHKS" in the Appendix 90.08 *FILE-card table as a mislabeling of CHECKC in IBM's own text, not as a second compiler keyword to accept. Punch *FILE column 35 by the full conjunction the table states. Punch C when the FILE card carries CHECKPOINT and the SPECIF card carries CHECKC (printed CHKS). Punch F when the FILE card carries OUTPUT and the SPECIF card carries CHECKF together with LABELS or LABELN. Otherwise leave it blank, because "No check point will be written if neither option is exercised" ([J 02.06.11]).
 
 **Rationale.** A page-scan check confirms the printed token is genuinely CHKS, so the error is IBM's. The entry's Resolution matches CHKS to CHECKC by meaning (checkpoint at reel switch on the checkpoint file), which exactly matches code C; CKSUMS (block checksums) already feeds column 34. The 90.08.01 table sources code C from "FILE CHECKPOINT AND SPECIF CHKS" — both conditions — and its sibling row is equally conditional, so the SPECIF option alone must not punch code C.
@@ -1164,7 +1164,7 @@ record built on it.*
 
 ### D7.10 — File Check Table: listed in the deck format, never produced
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-08-30 — the loader refuses deck types 001, 010 and 011 (see the amendment below).
 **Decision.** The object-deck writer punches no card of deck type 010 (control break table) and no card of deck type 011 (file check table) — not even empty section headers. [J 90.01.04] records the field-test reality in plain words: "CONTRL specifications will have no effect on the object deck produced by the Compiler, i.e., no control break table is punched" and "No file check table is produced in the object deck." The 90.03 format keeps both section types defined, and absence is legal at the format level: "Any section except the text can be missing under certain conditions" ([J 90.03.01]). Read the entry's "the slots exist, empty" as format-level definition, not as emitted cards. Our CT Loader must accept a deck in which both sections are absent.
 
 **Rationale.** The entry's Resolution distinguishes the designed deck format (02.02, 90.03) from field-test reality (90.01). Fidelity to the designed format means keeping the section types defined in our deck model, not punching cards the historical compiler never punched. The 1962 listing settles it: the loader-control-card page shows only *FILE, *SPEC and *CTEXT cards, with *CTEND closing the binary deck. Punching empty 010 or 011 sections would add cards that are not in the sample and would fail oracle 1, the deck diff.
@@ -1179,7 +1179,7 @@ record built on it.*
 
 ### D7.11 — Deck.name with imbedded blanks
 
-**Status.** Jack's call, 2026-08-02. It binds.
+**Status.** Jack's call, 2026-08-02; amended 2026-08-30 — the loader refuses a deck.name with an imbedded blank (see the amendment below). It binds.
 > **Resolved by Jack, 2026-08-02:** the departure is confirmed — default mode accepts silently (the attested field-test behavior, D0.8); --pedantic warns. The definition's §8.5.7 entry is deliberately left unannotated: its evidence is unchanged and the definition stays design-free, so this record is the design supersession of its "at minimum warn" sentence.
 
 **Decision.** In default mode, reproduce the field-test compiler's attested lenient behavior exactly: accept a deck.name containing imbedded blanks with no compile-time diagnostic, and punch it verbatim into columns 1-6 of all generated Loader symbolic control cards. Our CT Loader then implements the documented downstream failure — it refuses execution of the object program for a deck.name of this form ([J 90.01.05] B.5). Leading blanks are a separate matter and are simply ignored by the compiler ([J 02.01.01]); only imbedded blanks are at issue. In --pedantic mode the parser emits a compile-time warning, since [J 02.01.01] states the name "must not include imbedded blanks".
