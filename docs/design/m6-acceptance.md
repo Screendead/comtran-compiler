@@ -1288,9 +1288,12 @@ the report our run prints against the page.
   and exits all the same.
 
   The refusal `an external-decimal subscript variable (M6-9)` stays. It
-  fires on any other store into the index, inside the loop body or
-  outside it, and the deck has none. The loop checks the index as a store target first, so an
-  index of more than 10 digits refuses before the loop's first word.
+  fires on a MOVE into the index, inside the loop body or outside it,
+  and the deck has none. A SET or ADD into the index does not reach it,
+  because neither recomputes an indicator (codegen defect 9,
+  `docs/HANDOVER.md`). The loop checks the index as a store target
+  first, so an index of more than 10 digits refuses before the loop's
+  first word.
 
   The tests: `test/codegen_test.dart` asserts the words, the convert
   under the increment label, and SYS)187 for a `9R` index.
@@ -1301,6 +1304,117 @@ the report our run prints against the page.
   refuses `a DO FOR driving two indicators (M4-6; no sample
   instance)`, because statement 166,00 subscripts RATE,
   INSURANCE.PREM and RETIREMENT.PREM by INDEX.
+
+  **Decided 2026-10-25: the DO FOR driving several indicators. A
+  design decision under D0.4; Jack can overturn it.** This is the
+  twelfth item of the list above, and the ninth item done. A loop
+  whose index subscripts M names now steps M indicators. Each
+  indicator takes the sample's words for its one indicator, repeated
+  in indicator order. For M = 2, internal index:
+
+  ```
+  GN)b1  EQU CP)+x       the base of the first indicator
+  GN)b2  EQU CP)+y       the base of the second
+  AXT    GN)a,4
+  SXA    P,4
+  CLA    CP)+p
+  STO    index
+  CLA    GN)b1
+  STO    PI)1
+  CLA    GN)b2
+  STO    PI)2
+  GN)e   EQU P+1
+  TRA    P+1
+  GN)a   CLA index
+  ADD    CP)+q
+  STO    index
+  CLA    stride1
+  ADD    PI)1
+  STO    PI)1
+  CLA    stride2
+  ADD    PI)2
+  STO    PI)2
+  CLA    CP)+r
+  SUB    index
+  TPL    GN)e
+  ```
+
+  The loop holds 11 + 5·M words, the count of the notes. The rules:
+
+  - **The words.** Each indicator takes `CLA base / STO PI)n` in the
+    prologue and `CLA stride / ADD PI)n / STO PI)n` in the increment
+    block, the attested 00706 to 00707 and 00714 to 00716. M = 1 is
+    unchanged.
+  - **The order.** Indicator order is `PI)` order, the order of first
+    reference. The prologue, the increment block and the EQU lines
+    follow it.
+  - **The names.** The run is 3 + 2·M names: one unbound name, the
+    body-entry EQU, the increment block, and then one pair per
+    indicator, the first name unbound and the second bound to the
+    base. For M = 1 that is the fitted run 084 to 088 of M4-6. Both
+    groupings of the notes give the same DO FOR run, so the extension
+    does not choose between them.
+  - **The EQU lines.** Every table-base EQU heads the block, as the
+    subscript store prints its two EQUs ahead of its blocks.
+  - **The pool.** Each indicator takes its own base, `PZE NAME+0`.
+    Fields of one table share one stride entry (the keying rule).
+
+  The evidence: [J 02.04.07] gives each unique subscripted name its own
+  positional indicator, and [J 02.04.07.01] updates every indicator
+  whose subscript changes. M4-13 already adds "the stride to each
+  affected positional indicator". Only the name run was open.
+
+  The rejected options:
+
+  - *Reverse first-reference order,* as the subscript store walks its
+    indicators (M4-6). That order is fitted to one site. Both orders
+    give correct code.
+  - *One name per extra base, with no unbound name.* The run then
+    differs in shape from the attested pair of the subscript store.
+  - *A direct `CLA CP)+n` for each extra base.* All three attested base
+    references go through an EQU name.
+  - *Keep the refusal.* The 1962 processor compiled the shape (Jack's
+    rule of 2026-09-14), and [J 02.04.07] states the indicators.
+
+  **The stride of part of a word is refused, not built.** Codegen
+  defect 7 stepped an 11-character element by one word and gave no
+  message. `_strideWords` now refuses `a table stride of 11
+  characters, not a whole number of words (M6-9)`, in the loop and in
+  the subscript store. Wrong code becomes a refusal. The design of the
+  stride needs its own decision, for three reasons:
+
+  - [J 02.04.07] says a positional indicator holds "the location (word
+    and byte)". The attested step is one `ADD` of a word count. An
+    11-character stride is one word and five bytes, and an `ADD` of a
+    byte count into the decrement carries nothing into the address. A
+    test-and-adjust sequence has no attested form.
+  - The comparison form `LAC PI)n,r / CAS 0,r` reads a whole word. It
+    cannot address a byte, and statement 166,00 compares through it.
+  - The one attested base of a field inside a word is `PZE RETPREM-2`.
+    Its zero decrement is the 1962 defect of M6-4 finding 1, so the
+    only evidence on the byte of a base is wrong code.
+    INSURANCE.PREM sits at byte 5 and RETIREMENT.PREM at byte 2.
+
+  The rejected options for the stride:
+
+  - *Round the stride up to two words.* [J 02.05.04] D.2 packs an
+    unjustified field "immediately to the right" of the one before, so
+    element 2 starts at word 1, byte 5. Two words would read the wrong
+    characters from element 2 on.
+  - *Keep the truncation.* It is defect 7: silent wrong code.
+
+  No refusal is added for a base inside a word: it would fire on
+  `PZE RETPREM-2` in the sample.
+
+  The tests: `test/codegen_test.dart` asserts the words for two
+  tables, and for three fields of one table with one stride entry.
+  `test/codegen_refusal_test.dart` pins the stride refusal in a loop
+  and in a subscript store. `test/runtime/machine_test.dart` loops
+  1(1)12 over a table of three whole-word external fields, k, 100 + k
+  and 200 + k. Each pass reads element k through each indicator, so
+  each count reads 12 and the sums read 78, 1278 and 2478.
+  `test/f_corpus_test.dart` pins the next stop. Statement 144,00 now
+  refuses the stride of TABLE.ITEM, 11 characters.
 
   **The run.** Chunk 2b runs the applied deck over two tapes written
   from the sample's own source table in the corpus's layouts (M6-1 as
@@ -1328,8 +1442,10 @@ the report our run prints against the page.
 [J 02.04.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
 [J 02.04.06]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
 [J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
+[J 02.04.07.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-record
+[J 02.05.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-param-and-funct
 [J 02.05.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.06.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
 [J 02.07.04]: ../../comtran-manuals/J28-6169/02-compiler.md#6-record-types
