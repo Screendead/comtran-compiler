@@ -1252,6 +1252,8 @@ the report our run prints against the page.
   ```
 
   The loop holds 21 + 5·M words, where the internal loop holds 11 + 5·M.
+  Each indicator of a stride of part of a word adds 3 (amended
+  2026-10-25, the stride decision below).
   A minus or plus overpunch takes SYS)187 or SYS)188, as for every
   store. The evidence:
 
@@ -1504,8 +1506,8 @@ the report our run prints against the page.
   - *Recompute the indicator from the index.* `LDQ`, `MPY` by 11,
     `DVP` by 6, `ALS 18` and `ORS` give the same pointer in 11 words.
     The loop then gives up the attested step of LOC 00714 to 00716.
-  - *A `CAS` vector for the carry.* It takes four words more for the
-    same pointer.
+  - *A `CAS` vector for the carry.* `CAS k / TRA *+2 / TRA *+1 /
+    TRA *+3 / SUB` and `ADD` give the same pointer in four words more.
   - *A runtime that takes a byte past 5.* [J 90.02.11] gives the byte of
     SYS)132 as "(0-5)".
   - *Drop the base byte, as the 1962 subscript store does.* That is a
