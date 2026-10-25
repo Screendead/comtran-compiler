@@ -140,7 +140,7 @@ as amended names the columns that can be compared and the three
 causes that separate the rest. Expect BONDORDER's EMPLOYEE.NUMBER,
 NAME and DATE to stay unmoved: MASTER holds them under DATA, so they do
 not correspond ([J 02.04.04]; M6-9). With codegen defect 12 fixed, the
-run over PR 145's tapes reaches end of job. Defect 7 is fixed for the
+run over pending PR 145's tapes reaches end of job. Defect 7 is fixed for the
 DO FOR. The other ten defects stay open, and each fix must leave
 `test/goldens/90.05-payroll.code` as it stands.
 
