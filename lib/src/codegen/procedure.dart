@@ -2291,6 +2291,9 @@ final class _Text {
           // multiply takes the attested `XCA / MPY / XCA` (00627–00631).
           _scaledLoad(_xca, deficit);
         } else if (deficit < 0) {
+          // This arm drops low-order digits only. It drops no leading
+          // digit a shorter target cannot hold; that gap predates the
+          // alignment.
           // A MOVE drops low-order digits (F p. 42), so the divide takes
           // no half-adjust: the split's `LRS 35 / DVP` (00424–00425),
           // and the quotient stores from the MQ (00634–00635).
@@ -2496,7 +2499,7 @@ final class _Text {
       _opItem(Op.cla, source);
     } else {
       // The aligned build of the comparison: `LDQ / MPY / XCA`
-      // (00641–00643, 00656–00660).
+      // (00656–00660).
       _scaledLoad(() => _opItem(Op.ldq, source), deficit);
     }
     if (s.digits + deficit > t.digits) {
@@ -2912,15 +2915,9 @@ final class _Text {
         for (final NameReference target in clause.targets) {
           final DataItem item = _resolved(target);
           final int deficit = _addDeficit(source, item);
-          _withFetches([item], () {
-            if (deficit == 0) {
-              _addBody(item, () => _op(Op.add, park));
-              return;
-            }
-            _op(Op.ldq, park);
-            final void Function(Op) aligned = _alignedAddend(deficit);
-            _addBody(item, () => aligned(Op.add));
-          });
+          _withFetches([
+            item,
+          ], () => _alignedAdd(item, deficit, (Op op) => _op(op, park)));
         }
         return;
       }
@@ -3003,15 +3000,10 @@ final class _Text {
   void _addPair(DataItem source, DataItem target) {
     final int deficit = _addDeficit(source, target);
     final DataItem addend = _operand(source);
-    _withFetches([addend, target], () {
-      if (deficit == 0) {
-        _addBody(target, () => _read(Op.add, addend));
-        return;
-      }
-      _read(Op.ldq, addend);
-      final void Function(Op) aligned = _alignedAddend(deficit);
-      _addBody(target, () => aligned(Op.add));
-    });
+    _withFetches([
+      addend,
+      target,
+    ], () => _alignedAdd(target, deficit, (Op op) => _read(op, addend)));
   }
 
   /// The fraction digits an ADD source lacks against [target]. A source
@@ -3026,12 +3018,21 @@ final class _Text {
     return deficit;
   }
 
-  /// The source in the MQ, upscaled and parked as the chain parks a term
-  /// of `SET target = target + source`: `MPY` the power of ten, then
-  /// `STQ RS)0` (the attested 00622–00624). Returns the reader.
-  void Function(Op) _alignedAddend(int deficit) {
+  /// The ADD body of [target] with the addend that [read] fetches. An
+  /// addend [deficit] digits short loads into the MQ, upscales, and parks
+  /// as the chain parks a term of `SET target = target + source`: `MPY`
+  /// the power of ten, then `STQ RS)0` (the attested 00622–00624).
+  void _alignedAdd(DataItem target, int deficit, void Function(Op) read) {
+    if (deficit == 0) {
+      _addBody(target, () => read(Op.add));
+      return;
+    }
+    read(Op.ldq);
     _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
-    return _park(0, _Register.mq);
+    final int live = _liveResultCells;
+    final void Function(Op) parked = _park(0, _Register.mq);
+    _addBody(target, () => parked(Op.add));
+    _liveResultCells = live; // The body has read the park.
   }
 
   void _addBody(DataItem target, void Function() addend) {

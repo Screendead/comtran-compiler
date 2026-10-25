@@ -812,7 +812,7 @@ void main() {
     /// The words of [statement] up to its STOP RUN, with NUM at `999`,
     /// AMT at `99V99`, EXT an external `999`, EXF an external `99V99`,
     /// EDT at `$8889.99`, and ED3 an edited `899`.
-    List<String> aligned(String statement) {
+    List<String> aligned(String statement, {List<String> then = const []}) {
       final SemanticResult semantics = runJob(
         data: [
           dataCard(
@@ -834,7 +834,7 @@ void main() {
           dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
           dataCard(name: 'ED3', level: '1', description: '899'),
         ],
-        procedure: [statement, '            STOP RUN.'],
+        procedure: [statement, ...then, '            STOP RUN.'],
       );
       expect(ids(semantics), isEmpty);
       final List<String> words = [
@@ -897,6 +897,16 @@ void main() {
         'ADD RS)0',
         'STO AMT',
       ]);
+    });
+
+    test('an aligned ADD leaves no park open for a later comparison', () {
+      expect(
+        aligned(
+          '            ADD NUM TO AMT.',
+          then: ['            IF NUM + 1 GT AMT THEN STOP RUN.'],
+        ).take(6),
+        ['LDQ NUM', 'MPY CP)+2', 'STQ RS)0', 'CLA AMT', 'ADD RS)0', 'STO AMT'],
+      );
     });
 
     test('an edited ADD source aligns after its park', () {
