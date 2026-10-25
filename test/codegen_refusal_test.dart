@@ -1278,6 +1278,22 @@ void main() {
       );
     });
 
+    test('a label spelled like a section of another scope', () {
+      // Legal under D2.5's per-section scope; the flat binder would
+      // keep only the later address.
+      expect(
+        _refuses([
+          '      S.    BEGIN SECTION.',
+          '            SET NUM = NUM + NUM.',
+          '            END S.',
+          '      P.    BEGIN SECTION.',
+          '      S.    SET NUM = NUM + TOT.',
+          '            END P.',
+        ]),
+        'a procedure name defined twice (no sample instance)',
+      );
+    });
+
     test('a label bound to no word', () {
       // NOTE emits no word, so a trailing labelled NOTE never reaches
       // the binder; no _tail, whose words would take the label.
