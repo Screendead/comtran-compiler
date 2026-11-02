@@ -518,6 +518,27 @@ final List<String> _section = <String>[
   '      *FINISH',
 ];
 
+/// A program with two PROGRAM.START labels (D2.1, msg 141). NUM reads 1
+/// only if the run enters at the first one: entry at `GN)000` skips both
+/// SETs, and entry at the second sets NUM to 2.
+final List<String> _twoStarts = <String>[
+  '      *DATA',
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  '      *PROCEDURE',
+  '            GO TO WRAP.UP.',
+  '      PROGRAM.START.  SET NUM = NUM + 1.',
+  '            GO TO WRAP.UP.',
+  '      PROGRAM.START.  SET NUM = 2.',
+  '      WRAP.UP.  STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program that loops 1(1)12 over an external-decimal index (M6-9).
 /// Each pass counts in NUM. The comparison reads CELL (EXI), so the
 /// loop drives an indicator, and is never true over a zero table.
@@ -1640,6 +1661,13 @@ void main() {
       // NUM reads 1 only if the run entered the section: the `GO TO`
       // ahead of it reaches STOP RUN over an untouched cell (ED-6).
       final (JobCompilation job, Machine subject) = compiled(_section);
+      expect(subject.state.read(addressOf(job, 'NUM')), 1);
+    });
+
+    test('a second PROGRAM.START leaves the entry on the first', () {
+      // Msg 166 holds the job at severity 3, so `--run` would not start
+      // it; the deck loads and runs here regardless.
+      final (JobCompilation job, Machine subject) = compiled(_twoStarts);
       expect(subject.state.read(addressOf(job, 'NUM')), 1);
     });
   });
