@@ -57,6 +57,9 @@ void main() {
     // `procedure.dart` is no export of the barrel, so reaching it proves
     // the walk follows a relative import past the export list.
     expect(trails.keys.map(_file), contains('lib/src/codegen/procedure.dart'));
+    // The run button reaches the machine, so the walk covers the runtime
+    // the browser runs as well as the compiler (roadmap W4).
+    expect(trails.keys.map(_file), contains('lib/src/runtime/machine.dart'));
     expect(<String>[
       for (final MapEntry<Uri, String> hop in trails.entries)
         if (hop.key.toString() == 'dart:io') hop.value,
