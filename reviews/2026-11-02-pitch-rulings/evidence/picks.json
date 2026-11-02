@@ -1,0 +1,11 @@
+[
+{"id":"compile","data":{"at":"2026-11-02T13:11:50.692Z","choice":"listing"},"version":1,"updatedAt":"2026-11-02T13:11:50.883957Z"},
+{"id":"dangling","data":{"at":"2026-11-02T13:12:25.772Z","choice":"949"},"version":1,"updatedAt":"2026-11-02T13:12:25.982866Z"},
+{"id":"defect6","data":{"at":"2026-11-02T13:08:13.204Z","choice":"4i"},"version":1,"updatedAt":"2026-11-02T13:08:13.397804Z"},
+{"id":"defects","data":{"at":"2026-11-02T13:05:56.746Z","choice":"yes"},"version":1,"updatedAt":"2026-11-02T13:05:56.92265Z"},
+{"id":"m7","data":{"at":"2026-11-02T13:14:48.369Z","choice":"later"},"version":2,"updatedAt":"2026-11-02T13:14:48.537027Z"},
+{"id":"merges","data":{"at":"2026-11-02T13:05:08.779Z","choice":"all"},"version":1,"updatedAt":"2026-11-02T13:05:09.072117Z"},
+{"id":"other","data":{"at":"2026-11-02T13:16:38.747Z","note":"The subdomain is live and already points at the GitHub pages site."},"version":3,"updatedAt":"2026-11-02T13:16:38.957723Z"},
+{"id":"subscripts","data":{"at":"2026-11-02T13:14:01.401Z","choice":"diag"},"version":1,"updatedAt":"2026-11-02T13:14:01.598684Z"},
+{"id":"w2copy","data":{"at":"2026-11-02T13:13:34.809Z","choice":"mark"},"version":2,"updatedAt":"2026-11-02T13:13:35.0258Z"}
+]

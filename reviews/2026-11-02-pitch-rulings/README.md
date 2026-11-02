@@ -12,6 +12,8 @@ the answers permanently.
 | `evidence/pitch-page.html` | The pitch page source, from local branch `archive/pitch-2026-11-02` at `48136be` (eleven calls). |
 | `evidence/pitch-page-3dea94e.html` | The same page one commit earlier, with nine calls: the numbering the record uses. |
 | `evidence/calls.json` | The page's `CALLS` literal, evaluated by `tools/extract_calls.js`. |
+| `evidence/picks.json` | Jack's saved picks, read back from the page's database on 2026-11-02 (added with the rulings). |
+| `evidence/dns-check.txt` | The DNS and Pages check that bears on call 9 (added with the rulings). |
 | `tools/extract_calls.js` | Extracts `calls.json` from the page source. |
 | `tools/build_doc.py` | Writes `index.html`. |
 | `tools/house.css` | The house style, copied from `review/2026-10-25-codegen-defects-8-11`. |

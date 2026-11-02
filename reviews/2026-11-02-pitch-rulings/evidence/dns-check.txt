@@ -1,0 +1,8 @@
+Checked 2026-11-02 13:35:34 UTC, from Jack's machine.
+
+$ dig +short comtran.screendead.com A
+(no output)
+$ dig +short comtran.screendead.com CNAME
+(no output)
+$ gh api repos/Screendead/comtran-compiler/pages --jq '{cname, html_url, status}'
+{"cname":null,"html_url":"https://screendead.github.io/comtran-compiler/","status":null}

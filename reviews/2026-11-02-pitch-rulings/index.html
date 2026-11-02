@@ -158,7 +158,31 @@ page saved to its own database with a timestamp.</p>
 </div>
 </section>
 
-
+<section>
+<div class="ruling">
+<p class="tag">Jack's rulings &middot; 2026-11-02 &middot; given on the pitch page</p>
+<p>Jack answered on <a href="https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw">the pitch page</a> by clicking one option per call. The page saved each pick with a
+timestamp, from 13:05:08Z to 13:16:38Z (<code>evidence/picks.json</code>, read back from the page's database the same day).</p>
+<ol>
+<li><strong>Merges:</strong> all, in the pitched order.</li>
+<li><strong>Defects 1&ndash;11:</strong> handle them; defect 10 keeps the 1962 behaviour (ruling of 2026-10-25).</li>
+<li><strong>Defect 6:</strong> message 948,00, severity 4, OPEN kept, straight run only.</li>
+<li><strong>&ldquo;Compile&rdquo;:</strong> the diagnostic listing. The refusals stay, relabelled.</li>
+<li><strong>Dangling continuation:</strong> new message 949,00, class 1, <code>--pedantic</code> only.</li>
+<li><strong>W2 copy rules:</strong> mark every genuine manual typo [sic] and strip the em dashes from the reference. <em>Against the recommendation.</em></li>
+<li><strong>Three silent subscripts:</strong> diagnose all three (79, 182, 71), amending M3-20.</li>
+<li><strong>M7:</strong> after the web track (W3, W4). <em>Against the recommendation.</em></li>
+<li><strong>Anything else:</strong> &ldquo;The subdomain is live and already points at the GitHub pages site.&rdquo; A check the same day found no DNS record (call 9).</li>
+<li><strong>Nameless BEGIN SECTION:</strong> <em>no pick saved; open.</em></li>
+<li><strong>Two PROGRAM.START labels:</strong> <em>no pick saved; open.</em></li>
+</ol>
+<p>In the chat the same day, Jack wrote: &ldquo;i have answered all the questions.&rdquo; The page holds no saved pick for calls 10
+and 11. Commit <code>48136be</code>, which added them, is timed 13:16:32Z; his first pick was saved at 13:05:08Z. Both
+calls stay open, with their recommendations as pitched.</p>
+<p class="mono">The per-call chips below are unchanged: they show the questions as put to him. Each answered call carries
+its ruling under its heading.</p>
+</div>
+</section>
 
 <section>
 <div class="answer">
@@ -180,7 +204,14 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-merges">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 1. May I merge the waiting routine PRs, in order?</h2></div>
-
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; saved 2026-11-02T13:05:08.779Z &middot; pick version 1</p>
+<blockquote><strong>Yes, merge all of them in that order</strong> <span class="key">(pick <code>all</code>)</span></blockquote>
+<p><strong>Read as:</strong> merge the waiting routine pull requests in the pitched order: #145, #157, #158, #166,
+then #121, #161, #165, #162, #164, #172, #173, #174, #176 and W2 (#178).</p>
+<p><span class="inferred">our reading</span> W2 (#178) was built to the recommended option of call 6. Jack picked a different option there, so #178 needs
+the call 6 change before it merges. Every merge to master deploys the public site.</p>
+</div>
 
 <p>Fourteen PRs are green and wait only for your word. None changes the compiler. Order matters: #145 (tapes), then #157 (the 1960 run; both reviewers approved), then #158 (run gate), then #166 (record fold). After that: #121, #161, #165, #162, #164, #172, #173, #174, #176 and W2.</p>
 <span class="label-k">Built, as pitched</span><p>All green in CI. #157 is approved at 465632d and merges with no new commit if #145 goes first.</p>
@@ -204,7 +235,15 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-defects">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 2. Codegen defects 1–11: generate the correct code, or refuse to compile?</h2></div>
-
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; saved 2026-11-02T13:05:56.746Z &middot; pick version 1</p>
+<blockquote><strong>Handle them: generate the correct code wherever the manuals show the code</strong> <span class="key">(pick <code>yes</code>)</span></blockquote>
+<p><strong>Read as:</strong> handle defects 1 to 11. Generate the correct words wherever the manuals attest them.
+Merge #167 (defects 1&ndash;2), #168 (8&ndash;11) and #169 (3&ndash;4) one at a time, each with one more review round.
+Defect 10 keeps the 1962 behaviour, under his ruling of 2026-10-25 (boundary A).</p>
+<p>The same ruling is a dated banner on <code>review/2026-10-25-codegen-defects-1-2</code> and
+<code>review/2026-10-25-codegen-defects-8-11</code>.</p>
+</div>
 
 <p>Defects 1, 2, 3 and 8 to 11 compile today and store wrong values with no message. Two examples: MOVE prints 123 as $1.23, and SET X = NUM*2 + (NUM*3+1) gives 31 instead of 26. Your 14 September rule says that what compiled in 1962 must compile here.</p>
 <span class="label-k">Built, as pitched</span><p>Handle prototypes are approved by both reviewers, with CI green: draft PRs <a href="https://github.com/Screendead/comtran-compiler/pull/167">#167</a> (defects 1–2), <a href="https://github.com/Screendead/comtran-compiler/pull/168">#168</a> (8–11) and <a href="https://github.com/Screendead/comtran-compiler/pull/169">#169</a> (3–4). Interactive records with real runs for each option: <a href="https://claude.ai/artifact/2CNrNBjpUHw12TTidREPG9">defects 1–2</a> and <a href="https://claude.ai/artifact/12ag1k928zMrVzR6UYQtfP">defects 8–11</a>.</p>
@@ -223,7 +262,14 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-defect6">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 3. Defect 6, reopening files after CLOSE ALL FILES: what severity, and how far should the check look?</h2></div>
-
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; saved 2026-11-02T13:08:13.204Z &middot; pick version 1</p>
+<blockquote><strong>Severity 4, keep the OPEN, detect the straight case only</strong> <span class="key">(pick <code>4i</code>)</span></blockquote>
+<p><strong>Read as:</strong> message 948,00 at severity 4. The OPEN stays in the object code. The check fires on the
+straight run only (#170).</p>
+<p><span class="inferred">our reading</span> The option carried the message text shown above. That text is text option A of
+<code>review/2026-10-25-codegen-defect-6</code>, so the pick also chooses text A. That record carries the same banner.</p>
+</div>
 
 <p>J forbids it, and D6.3 says to diagnose it. Today the compiler says nothing, and the run silently overwrites the tape.</p>
 <span class="label-k">Built, as pitched</span><p>Prototype: draft <a href="https://github.com/Screendead/comtran-compiler/pull/170">#170</a>, approved by both reviewers. The <a href="https://claude.ai/artifact/3oq4dhqcKCnBZebkbHwWa2">record</a> shows the listing line and the run for each severity.</p>
@@ -252,7 +298,13 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-compile">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 4. In your 14 September rule, does “compile” mean printing the listing, or punching the object deck?</h2></div>
-
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; saved 2026-11-02T13:11:50.692Z &middot; pick version 1</p>
+<blockquote><strong>The listing</strong> <span class="key">(pick <code>listing</code>)</span></blockquote>
+<p><strong>Read as:</strong> &ldquo;compile&rdquo; in the rule of 2026-09-14 means the diagnostic listing. The two
+refusals stay, and take new labels. No code is invented for the sites the 1962 compiler flagged.</p>
+<p>The same ruling is a dated banner on <code>review/2026-10-25-m6s2-deck-walkthrough</code> (its option 1).</p>
+</div>
 
 <p>The 1960 program as printed draws 55 messages. The 1962 compiler printed its listing but refused to punch an object deck for it.</p>
 <span class="label-k">Built, as pitched</span><p><a href="https://claude.ai/artifact/7yXt4GEWJLgTF9H2drtGnF">Walkthrough</a>: all 191 cards, the 55 messages, and the two readings side by side. No work is blocked on this call.</p>
@@ -276,7 +328,12 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-dangling">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 5. A column 72 continuation with no card after it: what message?</h2></div>
-
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; saved 2026-11-02T13:12:25.772Z &middot; pick version 1</p>
+<blockquote><strong>New message 949,00, class 1, --pedantic only</strong> <span class="key">(pick <code>949</code>)</span></blockquote>
+<p><strong>Read as:</strong> a new message 949,00, class 1, issued under <code>--pedantic</code> only (#177).
+Default output and the goldens do not change.</p>
+</div>
 
 <p>On the last card of a Data or Environment group, a punched column 72 asks for a continuation card that never comes. The compiler accepts this in silence. The manuals do not cover the error, so HANDOVER left the message to you.</p>
 <span class="label-k">Built, as pitched</span><p>Prototype: draft <a href="https://github.com/Screendead/comtran-compiler/pull/177">#177</a>, reviewed. It prints the message only under --pedantic, as D0.8 requires. Default output and the goldens are unchanged.</p>
@@ -300,7 +357,13 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-w2copy">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 6. W2, the sources page: which copy rules apply to the generated pages?</h2></div>
-
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; saved 2026-11-02T13:13:34.809Z &middot; pick version 2</p>
+<blockquote><strong>Mark every typo and strip the dashes from the reference</strong> <span class="key">(pick <code>mark</code>)</span></blockquote>
+<p><strong>Against the recommendation.</strong> <strong>Read as:</strong> mark every genuine manual typo [sic] on the
+generated transcription pages, and strip the em dashes from the language reference.</p>
+<p>W2 (#178) as built follows the recommended option, so it does not yet do either.</p><p class="mono">Pick version 2: the page saved this call 2 times. Only the last value survives; the earlier ones are not recorded.</p>
+</div>
 
 <p>Two of your 10 August rules were written for prose written for the site. Rule E3 marks a manual typo [sic]. Rule D5 bans the em dash. W2 prints whole transcriptions and the whole language reference, which holds about 630 em dashes. web-copy.md section 6 now lists both questions.</p>
 <span class="label-k">Built, as pitched</span><p>Built on branch <code>w2-sources</code>: 358 generated pages, every link and anchor checked by a test, and served and fetched locally. It currently follows the recommended option.</p>
@@ -324,7 +387,12 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-subscripts">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 7. Three subscripts compile without any message</h2></div>
-
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; saved 2026-11-02T13:14:01.401Z &middot; pick version 1</p>
+<blockquote><strong>Diagnose all three</strong> <span class="key">(pick <code>diag</code>)</span></blockquote>
+<p><strong>Read as:</strong> diagnose all three. Message 79 for an alphameric literal subscript, 182 for ZERO,
+71 for a function term. Amend M3-20 to match.</p>
+</div>
 
 <p>The coverage audit found three cases. TAB CELL ('A') takes an alphameric literal. TAB CELL (ZERO) points at no element. A function call as a subscript term is outside F p. 31's forms. No record covers these cases, so none is pinned in a test.</p>
 <span class="label-k">Built, as pitched</span><p>Found and written up on PR #174. Not built: each option is small, and the right one depends on your call.</p>
@@ -343,7 +411,12 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-m7">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 8. When does M7 open the sealed 1963 compiler?</h2></div>
-
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; saved 2026-11-02T13:14:48.369Z &middot; pick version 2</p>
+<blockquote><strong>Later, after the web track (W3, W4)</strong> <span class="key">(pick <code>later</code>)</span></blockquote>
+<p><strong>Against the recommendation.</strong> <strong>Read as:</strong> M7 opens the sealed 1963 compiler after the web
+track, W3 and W4. The seal of D0.9 holds until then.</p><p class="mono">Pick version 2: the page saved this call 2 times. Only the last value survives; the earlier ones are not recorded.</p>
+</div>
 
 <p>M7 compares our reconstruction with the surviving 1963 processor, and that comparison is the project's headline result. Once the seal is open, every later decision is contaminated. Nothing is built for this call: under D0.9, even listing the archive counts as reading it.</p>
 <span class="label-k">Built, as pitched</span><p>Nothing built, by rule.</p>
@@ -367,7 +440,14 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-other">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 9. Anything else</h2></div>
-
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; saved 2026-11-02T13:16:38.747Z &middot; pick version 3</p>
+<blockquote>&ldquo;The subdomain is live and already points at the GitHub pages site.&rdquo;</blockquote>
+<p><strong>Read as:</strong> a statement of fact about the custom domain, not a new call.</p>
+<p><strong>A check the same day disagrees.</strong> At 13:35Z on 2026-11-02, from Jack's machine, no A or CNAME record for
+<code>comtran.screendead.com</code> resolved, and the repository's Pages setting had <code>cname: null</code>
+(<code>evidence/dns-check.txt</code>). This record does not settle which is current.</p><p class="mono">Pick version 3: the page saved this call 3 times. Only the last value survives; the earlier ones are not recorded.</p>
+</div>
 
 <p>Free text. Overrule anything above, or add a call. Also checked today and found correct: a condition entry named ON draws message 178 on its card, and every use of it draws a parser message (J 02.03.02 reserves ON).</p>
 
@@ -377,7 +457,7 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-nameless">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 10. A BEGIN SECTION with no name: diagnose it, and with which message?</h2></div>
-
+<div class="ruling open"><p class="tag">No ruling &middot; still open</p><p>No pick for this call is saved on the page. It remains a question for Jack, with the recommendation below as pitched.</p></div>
 <p class="mono">Added to the page by commit <code>48136be</code>, after the first nine calls. The final page source shows it as CALL 9.</p>
 <p>F p. 26 says a section starts with its name and a period, then BEGIN SECTION. Today <code>S1. BEGIN SECTION, BEGIN SECTION.</code> opens two sections, both named S1, and one END S1 leaves the second one open (only message 66 fires, at the end of the program). An unnamed <code>BEGIN SECTION.</code> followed by a bare <code>END.</code> draws nothing. No 1962 message covers this.</p>
 <span class="label-k">Built, as pitched</span><p>Probed on master today; the cause is <code>procedure_parser.dart:1200</code>, which gives every BEGIN clause the sentence's one label. Not built: the message is your call.</p>
@@ -406,7 +486,7 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 <section class="item needs" id="call-d21">
 <div class="itemhead"><span class="chip call">Your call</span><h2>Call 11. Two PROGRAM.START labels: obey D2.1, or keep the generator's refusal?</h2></div>
-
+<div class="ruling open"><p class="tag">No ruling &middot; still open</p><p>No pick for this call is saved on the page. It remains a question for Jack, with the recommendation below as pitched.</p></div>
 <p class="mono">Added to the page by commit <code>48136be</code>, after the first nine calls. The final page source shows it as CALL 10.</p>
 <p>Locked decision D2.1 says the first label wins, with message 141, and compilation goes on. The code generator refuses the program instead. This is a clash between two of our own authorities, so it is yours to settle. It has waited since 6 September.</p>
 <span class="label-k">Built, as pitched</span><p><code>review/2026-09-06-m4s4-machine-assembly</code>, item 5, holds the evidence.</p>

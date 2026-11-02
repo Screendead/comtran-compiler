@@ -27,9 +27,43 @@ ORDER = ["merges", "defects", "defect6", "compile", "dangling", "w2copy",
          "subscripts", "m7", "other", "nameless", "d21"]
 ADDED_LATE = {"nameless", "d21"}
 
-# Jack's rulings, keyed by call id. Empty until he answers.
-RULINGS = {}
-PICKS = {}
+# Jack's rulings, keyed by call id: how each saved pick is read.
+PICKS = {d["id"]: {**d["data"], "version": d["version"]}
+         for d in json.load(open(os.path.join(REC, "evidence", "picks.json")))}
+INFERRED = '<span class="inferred">our reading</span>'
+RESAVED = ("<p class=\"mono\">Pick version {v}: the page saved this call {v} times. Only the last value survives; "
+           "the earlier ones are not recorded.</p>")
+RULINGS = {
+    "merges": f"""<p><strong>Read as:</strong> merge the waiting routine pull requests in the pitched order: #145, #157, #158, #166,
+then #121, #161, #165, #162, #164, #172, #173, #174, #176 and W2 (#178).</p>
+<p>{INFERRED} W2 (#178) was built to the recommended option of call 6. Jack picked a different option there, so #178 needs
+the call 6 change before it merges. Every merge to master deploys the public site.</p>""",
+    "defects": """<p><strong>Read as:</strong> handle defects 1 to 11. Generate the correct words wherever the manuals attest them.
+Merge #167 (defects 1&ndash;2), #168 (8&ndash;11) and #169 (3&ndash;4) one at a time, each with one more review round.
+Defect 10 keeps the 1962 behaviour, under his ruling of 2026-10-25 (boundary A).</p>
+<p>The same ruling is a dated banner on <code>review/2026-10-25-codegen-defects-1-2</code> and
+<code>review/2026-10-25-codegen-defects-8-11</code>.</p>""",
+    "defect6": f"""<p><strong>Read as:</strong> message 948,00 at severity 4. The OPEN stays in the object code. The check fires on the
+straight run only (#170).</p>
+<p>{INFERRED} The option carried the message text shown above. That text is text option A of
+<code>review/2026-10-25-codegen-defect-6</code>, so the pick also chooses text A. That record carries the same banner.</p>""",
+    "compile": """<p><strong>Read as:</strong> &ldquo;compile&rdquo; in the rule of 2026-09-14 means the diagnostic listing. The two
+refusals stay, and take new labels. No code is invented for the sites the 1962 compiler flagged.</p>
+<p>The same ruling is a dated banner on <code>review/2026-10-25-m6s2-deck-walkthrough</code> (its option 1).</p>""",
+    "dangling": """<p><strong>Read as:</strong> a new message 949,00, class 1, issued under <code>--pedantic</code> only (#177).
+Default output and the goldens do not change.</p>""",
+    "w2copy": """<p><strong>Against the recommendation.</strong> <strong>Read as:</strong> mark every genuine manual typo [sic] on the
+generated transcription pages, and strip the em dashes from the language reference.</p>
+<p>W2 (#178) as built follows the recommended option, so it does not yet do either.</p>""" + RESAVED.format(v=2),
+    "subscripts": """<p><strong>Read as:</strong> diagnose all three. Message 79 for an alphameric literal subscript, 182 for ZERO,
+71 for a function term. Amend M3-20 to match.</p>""",
+    "m7": """<p><strong>Against the recommendation.</strong> <strong>Read as:</strong> M7 opens the sealed 1963 compiler after the web
+track, W3 and W4. The seal of D0.9 holds until then.</p>""" + RESAVED.format(v=2),
+    "other": """<p><strong>Read as:</strong> a statement of fact about the custom domain, not a new call.</p>
+<p><strong>A check the same day disagrees.</strong> At 13:35Z on 2026-11-02, from Jack's machine, no A or CNAME record for
+<code>comtran.screendead.com</code> resolved, and the repository's Pages setting had <code>cname: null</code>
+(<code>evidence/dns-check.txt</code>). This record does not settle which is current.</p>""" + RESAVED.format(v=3),
+}
 
 CSS = open(os.path.join(HERE, "house.css")).read() + """
 .ruling { border:1px solid var(--settled); border-left-width:4px; padding:.7rem 1rem; margin:.6rem 0 1rem; }
@@ -104,9 +138,34 @@ def section(n, cid):
 </section>"""
 
 
-OPEN_NOTE = ("No pick for this call is saved on the page. It remains a question for Jack.")
+OPEN_NOTE = ("No pick for this call is saved on the page. It remains a question for Jack, with the recommendation "
+             "below as pitched.")
 
-TOP = ""
+TOP = f"""<section>
+<div class="ruling">
+<p class="tag">Jack's rulings &middot; 2026-11-02 &middot; given on the pitch page</p>
+<p>Jack answered on <a href="{PAGE_URL}">the pitch page</a> by clicking one option per call. The page saved each pick with a
+timestamp, from 13:05:08Z to 13:16:38Z (<code>evidence/picks.json</code>, read back from the page's database the same day).</p>
+<ol>
+<li><strong>Merges:</strong> all, in the pitched order.</li>
+<li><strong>Defects 1&ndash;11:</strong> handle them; defect 10 keeps the 1962 behaviour (ruling of 2026-10-25).</li>
+<li><strong>Defect 6:</strong> message 948,00, severity 4, OPEN kept, straight run only.</li>
+<li><strong>&ldquo;Compile&rdquo;:</strong> the diagnostic listing. The refusals stay, relabelled.</li>
+<li><strong>Dangling continuation:</strong> new message 949,00, class 1, <code>--pedantic</code> only.</li>
+<li><strong>W2 copy rules:</strong> mark every genuine manual typo [sic] and strip the em dashes from the reference. <em>Against the recommendation.</em></li>
+<li><strong>Three silent subscripts:</strong> diagnose all three (79, 182, 71), amending M3-20.</li>
+<li><strong>M7:</strong> after the web track (W3, W4). <em>Against the recommendation.</em></li>
+<li><strong>Anything else:</strong> &ldquo;The subdomain is live and already points at the GitHub pages site.&rdquo; A check the same day found no DNS record (call 9).</li>
+<li><strong>Nameless BEGIN SECTION:</strong> <em>no pick saved; open.</em></li>
+<li><strong>Two PROGRAM.START labels:</strong> <em>no pick saved; open.</em></li>
+</ol>
+<p>In the chat the same day, Jack wrote: &ldquo;i have answered all the questions.&rdquo; The page holds no saved pick for calls 10
+and 11. Commit <code>{PITCH_SHA[:7]}</code>, which added them, is timed 13:16:32Z; his first pick was saved at 13:05:08Z. Both
+calls stay open, with their recommendations as pitched.</p>
+<p class="mono">The per-call chips below are unchanged: they show the questions as put to him. Each answered call carries
+its ruling under its heading.</p>
+</div>
+</section>"""
 SUMMARY = f"""<ol>
 <li><strong>Eleven calls were put to Jack on 2026-11-02</strong>, on an interactive pitch page, not in a review record.
 This record carries each call as the page put it: the question, the options, the recommendation.</li>
