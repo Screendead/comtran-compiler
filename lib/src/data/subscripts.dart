@@ -88,7 +88,16 @@ final class SubscriptChecker {
         _checkTerm(right, array);
       case UnaryExpr(:final operand):
         _checkTerm(operand, array);
-      case TruthExpr() || FigurativeOperand() || FunctionCall():
+      case FunctionCall(:final function):
+        // F p. 31 admits a name, a literal, or an index expression, and
+        // a function call is none of them (Jack's ruling of 2026-11-02;
+        // M3-20).
+        resolver.report(
+          msgInvalidSubscriptVariable,
+          function.anchor,
+          operands: [array.text],
+        );
+      case TruthExpr() || FigurativeOperand():
         break;
     }
   }
@@ -110,8 +119,8 @@ final class SubscriptChecker {
   void _checkVariable(NameReference variable, NameReference array) {
     final DataItem? item = resolver.dataResolutions[variable];
     if (variable.subscripts.isNotEmpty || item?.typeCode == DataTypeCode.cond) {
-      // A subscript is a name or an index expression (F p. 31);
-      // neither form admits a subscripted name or a condition.
+      // A subscript is a name, a literal, or an index expression
+      // (F p. 31); none admits a subscripted name or a condition.
       resolver.report(
         msgInvalidSubscriptVariable,
         variable.anchor,

@@ -104,7 +104,7 @@ Every other row points at its own record.
 | **[D6 — Input/output (§8.5.6)](#d6--inputoutput-856)** | | |
 | [D6.1](#d61--the-pattern-option--used-but-never-defined) | The PATTERN option — used but never defined | Jack's call |
 | [D6.2](#d62--for-label--labeln-linkage-documented-only-by-a-missing-appendix) | FOR LABEL / LABELN linkage documented only by a missing appendix | Locked |
-| [D6.3](#d63--reopening-a-file-after-a-named-close) | Reopening a file after a named CLOSE | Locked |
+| [D6.3](#d63--reopening-a-file-after-a-named-close) | Reopening a file after a named CLOSE | Amended |
 | [D6.4](#d64--the-printer-as-a-direct-file-target) | The printer as a direct FILE target | Amended |
 | [D6.5](#d65--get-on-an-unopened-file-silent-exit-vs-terminate-with-message) | GET on an unopened file: silent exit vs terminate-with-message | Amended |
 | [D6.6](#d66--at-end-any-imperative-clause-f-vs-a-single-imperative-statement-only-j) | AT END: "any imperative clause" (F) vs "a single imperative statement only" (J) | Locked |
@@ -968,7 +968,7 @@ record built on it.*
 
 ### D6.3 — Reopening a file after a named CLOSE
 
-**Status.** Locked.
+**Status.** Locked; amended 2026-11-02 — Jack's ruling fixes the reopen message, its severity and its scope (see the amendment below).
 **Decision.** Run `CLOSE file.name` through the same IOCS close path as any close, in F's stated order. **Output file:** (1) write any remaining information belonging to the file — the partial block is flushed; (2) write an end-of-file label containing the record count *if labels are specified*; (3) apply the file's close disposition; (4) release the storage area allocated to the file. **Input file:** (1) compare the record count with the count in the end-of-file label if label records are present and end of file has been reached, notifying through external display on disagreement, and ignoring the count if the tape is not at end of file; (2) apply the close disposition; (3) release the storage area. The close disposition is the file's \*SPEC close code, generated from SPECIF CLOSER/CLOSEW. The codes are U rewind and unload (the default when neither is given), R or blank rewind, N no rewind, and S no file mark or trailers and no rewind. J's option set refines F's plain "the tape is rewound", and J outranks F. Marking the File Control Block closed is our design decision. Treat a later OPEN of that file as undefined. In default mode the compiler gives no diagnostic for it — none is attested — and the emulated IOCS runs the ordinary open path against the closed FCB; the observable result of that path is a recorded design decision and is documented as unreliable. Reopening after `CLOSE ALL FILES` is forbidden by J: diagnose it when it is statically determinable; otherwise no object-time message, because none is attested — a runtime message for reopen-after-CLOSE-ALL-FILES is available only under --pedantic and is marked non-historical. `FILE` after CLOSE stays a defined no-operation.
 
 **Rationale.** J forbids reopening only after CLOSE ALL FILES and says nothing about the named form, while F gives the named form's object-time steps in full and [J 02.07.01] defers to F for it. The named CLOSE therefore runs the same close path — including the buffer flush and the storage release — so a reopen is at best undefined and must not be relied on. The \*SPEC close codes are the implemented disposition set, so rewind is not unconditional.
@@ -976,6 +976,16 @@ record built on it.*
 **Implementation.** Parser (CLOSE forms), SYS-IOC runtime (close path in the order above, buffer flush, conditional trailer, \*SPEC close-code dispositions, buffer release, FCB closed flag), diagnostics (statically determinable reopen after CLOSE ALL FILES only). --pedantic: report any OPEN of a previously closed file as a non-historical warning, and add the object-time reopen message.
 
 **Oracle.** decision-conformance only for the reopen behavior; the close path itself is unit-tested against [F p. 41]'s four output steps and three input steps and against the \*SPEC close-code table ([J 03.02.05]; [J 90.08.02]).
+
+*Amended 2026-11-02 (codegen defect 6; Jack's ruling, call 3 of the record `review/2026-11-02-pitch-rulings`).* The statically determinable reopen after `CLOSE ALL FILES` now has a message, a severity and a scope. Message 948,00 reads "-OPEN ALL FILES- FOLLOWS -CLOSE ALL FILES-. FILES CLOSED BY THAT FORM MAY NOT BE REOPENED. (NON-HISTORICAL.)". The message is ours. It fires in default mode, at severity 4. The compiler keeps the OPEN: the object code still calls SYS)175, and the deck is punched. Severity 4 suppresses the run under D7.6. The scope is the straight run only. The ruled option reads "with no label or jump between them". A `CLOSE ALL FILES` followed later by `OPEN ALL FILES` draws the message when none of these stands between them:
+
+- a source label;
+- a generated label: the OTHERWISE arm and the join of an IF, the increment step of a DO FOR, the AT END arm and the join of a GET, and the descriptor word that a FILE of a located record patches;
+- a GO TO, the conditional `GO TO ... WHEN` included;
+- STOP RUN;
+- END.
+
+An IF or a DO FOR between the two therefore ends the straight run, also when it holds no transfer. A plain DO does not end it, because control returns. The compiler does no flow analysis, so a reopen that only a transfer reaches draws nothing. The --pedantic object-time reopen message stays as stated above. `docs/design/message-checklist.tsv` holds the message row.
 
 *Citations:* ([J 02.04.06]; [F p. 41]; [J 02.07.08], 02.07.01; [J 02.06.10]; [J 03.02.05]; [J 90.08.02])
 
@@ -1818,7 +1828,9 @@ The deferred sites stay with their owning milestones, so the flag's coverage is 
 
 **Amended (M3 stage 2, 2026-08-04).** Oracle (2)'s clause "clean in both modes" is superseded. The deferred D4.11 site is live from M3 stage 2, and its note fires on the sample's own doubtful moves. The 90.05 job deck compiles clean in default mode. Under `--pedantic` it draws exactly three 943,00 notes. Each note is clause-confined, so the listing's NUMBER column prints the clause digits (M2-6). Statement 205's MOVE BLANKS clause draws 205,03 twice, one note per blanked edited target. Statement 220's draws 220,03 once ([J 90.05] listing PDF pp. 196–197). D4.11 already excludes the note from any listing used for listing-diff. The diagnostics-only invariant stands.
 
-*Citations:* D0.8; D9.2; D9.7; D9.16; D1.1; D1.3; D9.4; D3.4; D6.6; D7.11; D8.5; D10.5; ([J 02.01.01]); ([F p. 83])
+**Amended 2026-11-02 (the dangling continuation; Jack's ruling, call 5 of the record `review/2026-11-02-pitch-rulings`).** The flag gains one site outside the M2 set. A Data or Environment entry continues while column 72 is punched ([J 02.03.02]). The last card of a Data or Environment group can have column 72 punched, so its entry claims a continuation card that does not follow. Both modes end the entry at that card and keep every punched card. The manuals give no message for the case. Under `--pedantic` the site draws message 949,00, class C1: "COLUMN 72 PUNCHED, BUT NO CONTINUATION CARD FOLLOWS. ENTRY ASSUMED COMPLETE. (NON-HISTORICAL.)" Default mode stays silent. The Procedure analogue is message 62,00 (D9.4). Its text says that a period is assumed, but the entry gets no period, and [J 02.03.02] forbids a period in a Data or Environment entry. So the site takes its own id (D9.7). The site is in `runFrontEnd` (`lib/src/lexer/front_end.dart`). A card that message 144,00 deletes draws no second message. Oracle (4) holds. `test/data_lexer_test.dart` runs one deck that ends a Data group and an Environment group this way. It asserts silence in default mode, and the note under `--pedantic` with each entry unchanged. `test/environment_lexer_test.dart` asserts that a card deleted with 144,00 draws only 144,00.
+
+*Citations:* D0.8; D9.2; D9.7; D9.16; D1.1; D1.3; D9.4; D3.4; D6.6; D7.11; D8.5; D10.5; ([J 02.01.01]); ([J 02.03.02]); ([F p. 83])
 
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 

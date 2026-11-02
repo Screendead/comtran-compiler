@@ -1,7 +1,8 @@
 /// The code generator's diagnostics (M4-18, chunk B8): the eight-class
 /// name tally behind msg 942 (M4-5), the pool counter behind msg 172
-/// (D9.7), the two `--pedantic` notes 946 and 947 (D5.1; D5.7), and the
-/// D10.2 stop shape of the phase (M4-2).
+/// (D9.7), the two `--pedantic` notes 946 and 947 (D5.1; D5.7), the
+/// reopen after CLOSE ALL FILES behind msg 948 (D6.3), and the D10.2
+/// stop shape of the phase (M4-2).
 library;
 
 import 'package:comtran/comtran.dart';
@@ -394,6 +395,224 @@ void main() {
         emitCode(compileDeck(loadJobDeck(), pedantic: true)),
         emitCode(compileDeck(loadJobDeck())),
       );
+    });
+  });
+
+  group('msg 948, a reopen after CLOSE ALL FILES (D6.3)', () {
+    List<String> program(List<String> procedure) => [
+      '      *DATA',
+      dataCard(name: 'OREC', level: '1', type: 'RECORD'),
+      dataCard(name: 'OFLD', level: '2', description: 'AAA'),
+      dataCard(name: 'TAB', level: '1', quantity: '12'),
+      dataCard(
+        name: 'CELL',
+        level: '2',
+        mode: 'I',
+        justify: 'R',
+        description: '999',
+      ),
+      dataCard(
+        name: 'IDX',
+        level: '1',
+        mode: 'I',
+        justify: 'R',
+        description: '99',
+      ),
+      dataCard(
+        name: 'NUM',
+        level: '1',
+        mode: 'I',
+        justify: 'R',
+        description: '999',
+      ),
+      '      *ENVIRONMENT',
+      environmentCard(
+        name: 'TAPE1',
+        type: 'FILE',
+        options: 'OUTPUT,BCD,TAPE,OREC,BLOCKSIZE 1',
+      ),
+      '      *PROCEDURE',
+      ...procedure,
+      '      *FINISH',
+    ];
+
+    test('an OPEN in the straight run after the close draws it', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES.',
+          '            CLOSE ALL FILES.',
+          '            OPEN ALL FILES.',
+          '            STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), ['948,00']);
+      expect(job.diagnostics.single.clause, 1);
+    });
+
+    test('the reopen is severity 4 and keeps its OPEN', () {
+      final List<String> lines = program([
+        '      START.  OPEN ALL FILES.',
+        '            CLOSE ALL FILES.',
+        '            OPEN ALL FILES.',
+        '            STOP RUN.',
+      ]);
+      final DeckCompilation deck = compileDeck(
+        mirrorToDeck('${lines.join('\n')}\n'),
+      );
+      // Severity 4 punches the deck but suppresses execution (D7.6).
+      expect(deck.maxSeverity, 4);
+      expect(deck.jobs.single.unrecovered?.toString(), isNull);
+      expect(deck.jobs.single.codegen!.stopped, isFalse);
+      expect('SYS)175'.allMatches(emitCode(deck)), hasLength(2));
+    });
+
+    /// Compiles [procedure] and expects no diagnostic, with both OPENs
+    /// generated: the silence is the rule's, not a refusal's.
+    void silentReopen(List<String> procedure) {
+      final List<String> lines = program(procedure);
+      final DeckCompilation deck = compileDeck(
+        mirrorToDeck('${lines.join('\n')}\n'),
+      );
+      expect(_ids(deck.jobs.single), isEmpty);
+      expect(deck.jobs.single.unrecovered?.toString(), isNull);
+      expect(deck.jobs.single.codegen!.stopped, isFalse);
+      expect('SYS)175'.allMatches(emitCode(deck)), hasLength(2));
+    }
+
+    test('an IF between the two ends the straight run at its join', () {
+      silentReopen([
+        '      START.  OPEN ALL FILES.',
+        '            CLOSE ALL FILES.',
+        '            IF NUM GT 4 THEN MOVE IDX TO NUM.',
+        '            OPEN ALL FILES.',
+        '            STOP RUN.',
+      ]);
+    });
+
+    test('an IF with an OTHERWISE between the two ends the straight run', () {
+      silentReopen([
+        '      START.  OPEN ALL FILES.',
+        '            CLOSE ALL FILES.',
+        '            IF NUM GT 4 THEN MOVE IDX TO NUM',
+        '              OTHERWISE MOVE NUM TO IDX.',
+        '            OPEN ALL FILES.',
+        '            STOP RUN.',
+      ]);
+    });
+
+    test('a DO FOR between the two ends the straight run', () {
+      silentReopen([
+        '      START.  OPEN ALL FILES.',
+        '            CLOSE ALL FILES.',
+        '            DO RTN FOR IDX = 1(1)12.',
+        '            OPEN ALL FILES.',
+        '            GO TO LAST.',
+        '      RTN.  BEGIN SECTION.',
+        '            MOVE NUM TO TAB CELL (IDX).',
+        '            END RTN.',
+        '      LAST.  STOP RUN.',
+      ]);
+    });
+
+    test('a plain DO between the two leaves the straight run', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES.',
+          '            CLOSE ALL FILES.',
+          '            DO RTN.',
+          '            OPEN ALL FILES.',
+          '            GO TO LAST.',
+          '      RTN.  BEGIN SECTION.',
+          '            MOVE IDX TO NUM.',
+          '            END RTN.',
+          '      LAST.  STOP RUN.',
+        ]),
+      );
+      expect(job.unrecovered, isNull);
+      expect(_ids(job), ['948,00']);
+    });
+
+    test('a conditional GO TO ends the straight run', () {
+      silentReopen([
+        '      START.  OPEN ALL FILES.',
+        '            CLOSE ALL FILES, GO TO LAST WHEN NUM GT 4.',
+        '            OPEN ALL FILES.',
+        '      LAST.  STOP RUN.',
+      ]);
+    });
+
+    test('a close in an IF arm only draws nothing', () {
+      silentReopen([
+        '      START.  OPEN ALL FILES.',
+        '            IF NUM GT 4 THEN CLOSE ALL FILES.',
+        '            OPEN ALL FILES.',
+        '            STOP RUN.',
+      ]);
+    });
+
+    test('a label between the two ends the straight run', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES.',
+          '            CLOSE ALL FILES.',
+          '      AGAIN.  OPEN ALL FILES.',
+          '            STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), isEmpty);
+    });
+
+    test('STOP RUN ends the straight run', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES.',
+          '            CLOSE ALL FILES, STOP RUN.',
+          '            OPEN ALL FILES.',
+          '            STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), isEmpty);
+    });
+
+    test('a GO TO ends the straight run', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES.',
+          '            CLOSE ALL FILES, GO TO LAST.',
+          '            OPEN ALL FILES.',
+          '      LAST.  STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), isEmpty);
+    });
+
+    test('an END that shares a labelled sentence ends the run', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES, DO S.',
+          '            GO TO LAST.',
+          '      S.  BEGIN SECTION.',
+          '      E.  CLOSE ALL FILES, END S.',
+          '            OPEN ALL FILES.',
+          '      LAST.  STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), ['179,00']);
+    });
+
+    test('an unlabelled END sentence ends the straight run', () {
+      final JobCompilation job = _compile(
+        program([
+          '      START.  OPEN ALL FILES, DO S.',
+          '            GO TO LAST.',
+          '      S.  BEGIN SECTION.',
+          '            CLOSE ALL FILES.',
+          '            END S.',
+          '            OPEN ALL FILES.',
+          '      LAST.  STOP RUN.',
+        ]),
+      );
+      expect(_ids(job), isEmpty);
     });
   });
 }

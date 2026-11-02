@@ -130,6 +130,17 @@ FrontEndResult runFrontEnd(
     }
   }
 
+  // A punched column 72 on a group's last card claims a card the group
+  // does not hold (J 02.03.02, §3.b); the entry already ends there in
+  // both modes (D0.8, D11.4). A card deleted with 144,00 is not
+  // reported a second time.
+  void reportDangling(List<SourceCard> lastEntry, List<SourceCard> cards) {
+    final SourceCard last = cards.last;
+    if (identical(lastEntry.last, last) && last.isPunched(72)) {
+      diagnostics.reportAt(msgDanglingContinuation, last, column: 72);
+    }
+  }
+
   try {
     diagnostics.addAll(program.problems);
     for (final DivisionGroup group in program.groups) {
@@ -142,6 +153,9 @@ FrontEndResult runFrontEnd(
           );
           groupScans.add(DataGroupScan._(group, scan));
           number([for (final DataEntry e in scan.entries) e.cards]);
+          if (pedantic && scan.entries.isNotEmpty) {
+            reportDangling(scan.entries.last.cards, group.cards);
+          }
         case Division.environment:
           final EnvironmentScan scan = scanEnvironment(
             group.cards,
@@ -152,6 +166,9 @@ FrontEndResult runFrontEnd(
           // deleted card (144,00) still consumes its statement number —
           // the numbering analogue of decision D9.8.
           number(continuationGroups(group.cards));
+          if (pedantic && scan.specs.isNotEmpty) {
+            reportDangling(scan.specs.last.cards, group.cards);
+          }
         case Division.procedure:
           final ProcedureScan scan = scanProcedure(group.cards, diagnostics);
           groupScans.add(ProcedureGroupScan._(group, scan));

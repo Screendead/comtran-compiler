@@ -1318,11 +1318,12 @@ the report our run prints against the page.
 
   The refusal `an external-decimal subscript variable (M6-9)` stays. It
   fires on a MOVE into the index, inside the loop body or outside it,
-  and the deck has none. A SET or ADD into the index does not reach it,
-  because neither recomputes an indicator (codegen defect 9,
-  `docs/HANDOVER.md`). The loop checks the index as a store target
-  first, so an index of more than 10 digits refuses before the loop's
-  first word.
+  and the deck has none. Amended 2026-11-02 (codegen defect 9,
+  `docs/HANDOVER.md`): a SET or ADD into the index now recomputes its
+  indicators and reaches the refusal too. The one exception is
+  `SET K = K + c`, which steps them in place and reads no binary
+  index. The loop checks the index as a store target first, so an
+  index of more than 10 digits refuses before the loop's first word.
 
   The tests: `test/codegen_test.dart` asserts the words, the convert
   under the increment label, and SYS)187 for a `9R` index.
@@ -1754,7 +1755,10 @@ the report our run prints against the page.
   - Each chain numbers its `RS)` cells from 0. A truth function after
     a parked term of a chain therefore refuses an expression
     comparison. One in the first term runs before any park, so its
-    chain reads its own cells first.
+    chain reads its own cells first. Amended 2026-11-02 (codegen
+    defect 11, `docs/HANDOVER.md`): a nested chain now skips the open
+    parks, so the cells cannot collide. The refusal stays, because no
+    sample site has the shape.
   - Both sides expressions: the right one first, parked, then the left.
 
   The evidence: [J 02.04.07], "Numeric fields are compared

@@ -179,29 +179,27 @@ moves it has changed the sample's path. The three divides at LOC 00424,
 2. **An edited ADD source is not scale-aligned.** `_addPair` refuses a
    pair of unequal scales (:2590). The edited-source branch of `_add`
    (:2526) skips that check. Ruled: handle it. PR #167.
-3. **An `S` position in a numeric source is counted as a stored
-   character.** `ItemSemantics.digits` counts the `S` fillers and
-   `storageChars` does not. Three sites punch the digit count where the
-   handler reads characters: :2028, :2079 and :2565. The handler then
-   reads past the field. Ruled: handle it. PR #169.
-4. **A `STO` through the register the convert has just overwritten.**
-   The external-to-internal path emits `_loadBaseOf(target)` and the
-   `STO` (:2029) before `_movpakClears()`. `_loadBase` (:1036) reuses a
-   register that already holds the target's locator. A target behind the
-   locator in register 1 then stores through the count `TXI SYS)184,1,n`
-   left there. No sample site is on that path. Ruled: handle it.
-   PR #169.
+3. **An `S` source position was read as a stored character. Ruled:
+   handle it. Handled by PR #169.** Counts now take the stored digits.
+   An `S` between them, or behind them under a `V` or point, refuses,
+   as does an edit run whose drop reaches them.
+4. **A `STO` through the register the convert overwrote. Ruled: handle
+   it. Handled by PR #169.** The store now reloads the locator. The run
+   was already right: the move restores register 1 (RT-3).
 5. **A leading run that mixes `8` and `*` compiles.** The control word
    has one address field for the leading run, so it cannot say which
    cells take a blank and which an asterisk. `$8*89.99` compiles with no
    diagnostic. RT-5 lists the shape among its open items. No ruling.
-6. **A reopen after CLOSE ALL FILES draws no diagnostic.** D6.3 asks
-   the compiler to diagnose the statically determinable case. The OPEN
-   emitter (`lib/src/codegen/procedure.dart`:1352) emits `TSX SYS)175,4`
-   for every OPEN ALL FILES and checks nothing. The M5 stage 2 review
-   found it on 2026-09-12. The sample opens once, so it has no site.
-   M5-4 records what the runtime does on the reopen. Ruled: message
-   948,00, severity 4, the OPEN kept, a straight run only. PR #170.
+6. **A reopen after CLOSE ALL FILES drew no diagnostic. Ruled:
+   message 948,00, severity 4, the OPEN kept, a straight run only.
+   Handled by PR #170.** An `OPEN ALL FILES` after a `CLOSE ALL FILES`
+   now draws 948,00 in a straight run (D6.3, amended 2026-11-02). Any
+   label ends the run, a generated one too, so an IF or a DO FOR
+   between the two silences the message. So does any GO TO, a
+   conditional one included, a STOP RUN or an END. The OPEN still emits
+   `TSX SYS)175,4`. Severity 4 punches the deck and bars the run
+   (D7.6). The M5 stage 2 review found the defect on 2026-09-12. M5-4
+   records what the runtime does on the reopen.
 7. **A table item that is not a whole number of words strides too
    short. Fixed for the DO FOR on 2026-10-25.** `_strideWords`
    (`lib/src/codegen/procedure.dart`) returned `strideChars ~/ 6`, so
@@ -209,39 +207,41 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    FOR now steps the indicator's byte, carries it into the word, and
    sets every base with its byte (M6-9). The subscript store and a
    whole-word read through `LAC PI)n,r` still refuse such a stride.
-8. **A subscripted MOVE target drops its subscript.** `_moveUnit`
-   (`lib/src/codegen/procedure.dart`) takes `targetSubscripted` and
-   passes it to no internal-decimal arm, so `MOVE NUM TO TAB CELL (I)`
-   compiles to `CLA NUM / STO CELL` and writes the first cell on every
-   pass. The DO FOR decision of M6-9 found it on 2026-10-25. The
-   sample's subscripted moves are sources only, and the applied deck
-   has no subscripted MOVE target. Ruled: handle it. PR #168.
-9. **A SET or ADD into a subscript variable updates no indicator.**
-   `_subscriptRecomputation` (`lib/src/codegen/procedure.dart`) has
-   one caller, the MOVE. So `SET IDX = 3` stores the index and leaves
-   every positional indicator it drives on the old element. M4-10 asks
-   for the update at every store into a subscript variable
-   ([J 02.04.07.01]). The DO FOR decision of M6-9 found it on
-   2026-10-25. The sample's one subscript store is a MOVE, and the
-   applied deck stores into INDEX only through its DO FOR. Ruled:
-   handle it. PR #168.
-
-10. **The subscript store drops the byte of a field inside a word.**
-    `_subscriptRecomputation` builds the base `NAME-n` with a zero
-    decrement, the 1962 defect at `RETPREM-2` (M6-4 finding 1), which the
-    golden needs at the sample's site. Elsewhere SYS)132 reads from byte 0:
-    over items of `99`, `9999`
-    and `9(6)`, `MOVE THREE TO IDX` then `MOVE B (IDX) TO NB` gives 300
-    for 3. Jack ruled on 2026-10-25: the several-indicator drop is the
-    1962 compiler's own defect. It stays, documented. On 2026-11-02 he
-    ruled that defect 10 keeps the 1962 behaviour. The W4 tutorial
-    must warn of it. The applied deck has no subscript store.
-11. **A sub-chain in a chain overwrites the outer park.** The arm
-    `BinaryExpr() when _additive(term)` (`procedure.dart`:3031) calls
-    `_chain`, whose cells start at 0. `SET X = NUM * 2 + (NUM * 3 + 1)`
-    parks both products in `RS)1` and stores 3N + 3N + 1, not
-    2N + 3N + 1. The PR 153 review found it on 2026-10-25. The applied
-    deck does not reach the arm. Ruled: handle it. PR #168.
+8. **A subscripted MOVE target dropped its subscript. Ruled: handle
+   it. Handled by PR #168.** `MOVE NUM TO CELL (I)` wrote the first
+   cell on every pass. An internal-decimal target now stores through
+   `LAC PI)n,r / TXL SYS)294,r,0 / STO 0,r`, the comparand form of LOC
+   01410 to 01412. After a convert drops fraction digits (defect 1),
+   the quotient stores from the MQ through `STQ 0,r`. An edited target
+   refuses `a subscripted edited-store target (no sample instance)`.
+   An ADD target dropped its subscript too. PR #168 refuses it, and
+   does not handle it: `a subscripted ADD target (no sample instance)`.
+9. **A SET or ADD into a subscript variable updated no indicator.
+   Ruled: handle it. Handled by PR #168.** Each SET and each plain ADD
+   target now updates the indicators it drives (M4-10;
+   [J 02.04.07.01]). `SET K = K + c` steps them in place; any other
+   store recomputes. `SET EXI = 3` into an external-decimal index now
+   refuses `an external-decimal subscript variable (M6-9)`, as the
+   MOVE does. Master compiled it and moved no indicator. Open: MOVE
+   and ADD CORRESPONDING update no indicator, and
+   no store sets the indicator of a literal or expression subscript.
+   `CELL (2)` and `CELL (I + 1)` exit with `BASE LOCATOR NOT LOADED`,
+   and `SET K = K + 2` leaves `A(J, K+1)` stale. The in-place step
+   cannot correct an indicator that no store has set.
+10. **The subscript store dropped the byte of a field inside a word.
+    Ruled: a store that drives several indicators keeps the 1962
+    behaviour (boundary A). PR #168 handles a store that drives one.**
+    The base of a one-indicator store now carries the byte, so
+    `MOVE B (IDX) TO NB` gives 3, not 300. A store that drives several
+    keeps the zero decrement, the 1962 defect at `RETPREM-2` (M6-4
+    finding 1), which the golden needs at the sample's site. Such a
+    store over a field inside a word still reads from byte 0. Jack's
+    ruling of 2026-10-25, kept on 2026-11-02: the 1962 compiler's own
+    defect stays, documented. The W4 tutorial must warn of it.
+11. **A sub-chain in a chain overwrote the outer park. Ruled: handle
+    it. Handled by PR #168.** A nested chain now counts only the cells
+    no enclosing chain has parked in, so
+    `SET X = NUM * 2 + (NUM * 3 + 1)` gives 2N + 3N + 1.
 12. **An alphameric comparison read one word of a field across a word
     boundary. Fixed on 2026-10-25.** Statement 130,00 compares two
     `A(6)` fields at bytes 4 and 1, so no detail matched its master,
@@ -519,7 +519,7 @@ https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw. The record
 | Defect 10 keeps the 1962 behaviour | This file; PR #172 holds the ruling of 2026-10-25 and the tutorial warning |
 | Defect 6: message 948,00, severity 4, the OPEN kept, a straight run only | PR #170 |
 | M6-9: "compile" means the diagnostic listing; the refusals stay and get a new label | PR #182 |
-| Dangling continuation: message 949,00, class 1, `--pedantic` only | PR #177 |
+| Dangling continuation: message 949,00, class 1, `--pedantic` only | PR #177; D11.4 amended 2026-11-02 |
 | W2: mark the genuine manual typos [sic] on the generated transcription pages; remove the em dashes from the language reference | PR #178 |
 | The three silent subscripts draw messages 79, 182 and 71 | Branch `subscript-diagnostics` |
 | M7 opens after W3 and W4 | This file |
@@ -616,15 +616,10 @@ PDF p. 217. It makes every milestone below testable at once.
   of that date makes them chunk 2b's work, because each one compiled in
   1962. `docs/design/m6-acceptance.md` M6-9 holds the list and the
   evidence, and M6-8 as amended holds the course the rule overturns.
-- **Parked, unscheduled — the dangling-continuation diagnostic.** The Data
-  and Environment scanners accept a dangling continuation in silence: a
-  punched column 72 on a division's last card draws no diagnostic
-  (`continuationGroups`, `lib/src/lexer/source_card.dart`). The Procedure
-  scanner reports its analogue under D9.4. Give the other two scanners the
-  same treatment. The manuals are silent on the error case, so the message
-  id and severity are Jack's call at pickup. He ruled on 2026-11-02:
-  message 949,00, class 1, `--pedantic` only. PR #177 carries it, and
-  this bullet closes when it merges.
+- **Done 2026-11-02 — the dangling-continuation diagnostic** (PR #177).
+  A punched column 72 on the last card of a Data or Environment group
+  draws 949,00, class 1, under `--pedantic` only. Jack ruled it on
+  2026-11-02 (D11.4, amended).
 
 ## Parallel tooling track
 

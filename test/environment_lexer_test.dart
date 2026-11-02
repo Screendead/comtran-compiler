@@ -182,6 +182,25 @@ void main() {
       );
       expect(scan.diagnostics.single.message, msgSecondQuoteMissing);
     });
+
+    test('a card deleted with 144,00 draws no 949,00 under --pedantic', () {
+      final FrontEndResult result = runFrontEnd(
+        mirrorToDeck(
+          [
+            '      *ENVIRONMENT',
+            environmentCard(
+              name: 'PAYFILE',
+              type: 'BOGUS',
+              options: 'OUTPUT',
+              continued: true,
+            ),
+            '',
+          ].join('\n'),
+        ),
+        pedantic: true,
+      );
+      expect(result.diagnostics.single.message, msgIllegalEnvironmentType);
+    });
   });
 
   group('the character gate (D9.10)', () {
