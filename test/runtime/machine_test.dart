@@ -964,6 +964,56 @@ final List<String> _literalElements = <String>[
   '      *FINISH',
 ];
 
+/// An ADD, a SET and a MOVE into external-decimal and edited elements
+/// of 2, 3 and 4 characters, so most elements start inside a word. The
+/// DO FOR steps each indicator by its stride in characters (M6-9).
+final List<String> _characterElements = <String>[
+  '      *DATA',
+  internalCard('P1', '9'),
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'001002003'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'XT', level: '1', quantity: '3'),
+  dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+  dataCard(name: 'YT', level: '1', quantity: '3'),
+  dataCard(name: 'YF', level: '2', mode: 'E', description: '99'),
+  dataCard(name: 'DT', level: '1', quantity: '3'),
+  dataCard(name: 'DC', level: '2', description: r'$899'),
+  dataCard(name: 'ET', level: '1', quantity: '3'),
+  dataCard(name: 'EC', level: '2', description: r'$899'),
+  internalCard('I', '9'),
+  internalCard('NUM', '999'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 40.',
+  '            DO RTN FOR I = 1(1)3.',
+  '            STOP RUN.',
+  '      RTN.  BEGIN SECTION.',
+  '            ADD NUM TO XT XF (I).',
+  '            SET NUM = NUM + 1, MOVE NUM TO DT DC (I).',
+  '            SET YT YF (I) = I + 10, SET ET EC (I) = NUM + 100.',
+  '            END RTN.',
+  '      *FINISH',
+];
+
+/// A multi-target ADD whose first target drives the indicator of its
+/// second, an external-decimal element; then that element ADDs to itself.
+final List<String> _laterElementTarget = <String>[
+  '      *DATA',
+  internalCard('I', '9'),
+  internalCard('P1', '9'),
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'100000200000300000'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'XT', level: '1', quantity: '3'),
+  dataCard(name: 'XF', level: '2', mode: 'E', description: '999999'),
+  '      *PROCEDURE',
+  '      START.  SET I = 1, SET P1 = 1.',
+  '            ADD P1 TO I, XT XF (I).',
+  '            ADD XT XF (I) TO XT XF (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
 final List<String> _subChain = <String>[
   '      *DATA',
@@ -1885,6 +1935,33 @@ void main() {
       expect(_words(subject, job, 'TB2', 9), <int>[7, 8, 3, 0, 0, 0, 7, 8, 3]);
       // The DO FOR starts the field indicators at FROM, element 2.
       expect(_words(subject, job, 'TB3', 9), <int>[0, 0, 0, 7, 8, 3, 7, 8, 3]);
+    });
+
+    test('a MON store writes the element its indicator names', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _characterElements,
+      );
+      String field(String name, int count) =>
+          glyphsAt(subject, addressOf(job, name), count);
+      // Each pass adds NUM into element I, then steps NUM: 1 + 40,
+      // 2 + 41, 3 + 42. XT redefines AREA, so AREA labels its words.
+      expect(field('AREA', 9), '041043045');
+      expect(field('YT', 6), '111213');
+      // The dollar sign floats over the suppressed zero (SYS)267).
+      expect(field('DT', 12), r' $41 $42 $43');
+      expect(field('ET', 12), r'$141$142$143');
+    });
+
+    test('a later element target reads the element it stores', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _laterElementTarget,
+      );
+      // I steps to 2 first, so element 2 takes 200000 + 1, then
+      // doubles: 400002.
+      expect(
+        glyphsAt(subject, addressOf(job, 'AREA'), 18),
+        '100000400002300000',
+      );
     });
 
     test('a sub-chain inside a chain keeps the outer park', () {

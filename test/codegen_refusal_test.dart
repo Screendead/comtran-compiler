@@ -171,43 +171,20 @@ void main() {
       );
     });
 
-    group('a subscripted external-decimal store target', () {
-      // SYS)180 takes its target from the in-line `PZE` word.
-      final List<String> data = [
-        ..._data(),
-        dataCard(name: 'XT', level: '1', quantity: '12'),
-        dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
-      ];
-      const shape =
-          'a subscripted external-decimal store target (no sample instance)';
-
-      test('of an ADD', () {
-        expect(
-          _refuses(['            ADD NUM TO XT XF (IDX).'], data: data),
-          shape,
-        );
-      });
-
-      test('of a SET', () {
-        expect(
-          _refuses(['            SET XT XF (IDX) = NUM.'], data: data),
-          shape,
-        );
-      });
-
-      test('of an ADD CORRESPONDING', () {
-        expect(
-          _refuses(
-            ['            ADD CORRESPONDING XG TO XT (IDX).'],
-            data: [
-              ...data,
-              dataCard(name: 'XG', level: '1'),
-              internalCard('XF', '999', level: '2'),
-            ],
-          ),
-          shape,
-        );
-      });
+    test('an external-decimal field added into its own element', () {
+      // One fetch cell serves the field, through its indicator or not.
+      expect(
+        _refuses(
+          ['            ADD XT XF TO XT XF (IDX).'],
+          data: [
+            ..._data(),
+            dataCard(name: 'XT', level: '1', quantity: '12'),
+            dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+          ],
+        ),
+        'an external-decimal field read with and without its subscript '
+        '(no sample instance)',
+      );
     });
 
     group('a subscripted CORRESPONDING source (J 02.04.05)', () {
@@ -372,20 +349,6 @@ void main() {
       expect(
         _refuses(['            MOVE TAB CELL (IDX) TO EDT.']),
         'a subscripted edited-store source (no sample instance)',
-      );
-    });
-
-    test('a subscripted edited-store target', () {
-      expect(
-        _refuses(
-          ['            MOVE NUM TO ETAB ECEL (IDX).'],
-          data: [
-            ..._data(),
-            dataCard(name: 'ETAB', level: '1', quantity: '12'),
-            dataCard(name: 'ECEL', level: '2', description: '888889'),
-          ],
-        ),
-        'a subscripted edited-store target (no sample instance)',
       );
     });
 
@@ -597,27 +560,19 @@ void main() {
       );
     });
 
-    group('a subscripted edited target', () {
-      final List<String> data = [
-        ..._data(),
-        dataCard(name: 'DT', level: '1', quantity: '12'),
-        dataCard(name: 'DC', level: '2', description: '899'),
-      ];
-      const shape = 'a subscripted edited-store target (no sample instance)';
-
-      test('of a SET', () {
-        expect(
-          _refuses(['            SET DT DC (IDX) = NUM.'], data: data),
-          shape,
-        );
-      });
-
-      test('of an ADD', () {
-        expect(
-          _refuses(['            ADD NUM TO DT DC (IDX).'], data: data),
-          shape,
-        );
-      });
+    test('an ADD into an edited element', () {
+      // The plain ADD refuses an edited target the same way.
+      expect(
+        _refuses(
+          ['            ADD NUM TO DT DC (IDX).'],
+          data: [
+            ..._data(),
+            dataCard(name: 'DT', level: '1', quantity: '12'),
+            dataCard(name: 'DC', level: '2', description: '899'),
+          ],
+        ),
+        'an arithmetic operand of edited (no sample instance)',
+      );
     });
 
     test('a store below the target scale', () {

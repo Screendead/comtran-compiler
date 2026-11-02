@@ -2539,6 +2539,172 @@ void main() {
       );
     });
 
+    /// A three-character external-decimal and an edited element, each
+    /// at a stride that is not a whole word.
+    final List<String> characters = [
+      ...cells,
+      dataCard(name: 'XT', level: '1', quantity: '3'),
+      dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+      dataCard(name: 'DT', level: '1', quantity: '3'),
+      dataCard(name: 'DC', level: '2', description: r'$899'),
+      internalCard('FR', '9V9'),
+    ];
+
+    test('an external-decimal SET target takes the MON address word', () {
+      // The store of an unsubscripted target with `MON PI)NN,,0`
+      // (J 90.02.15 Case 3) in place of its `PZE`.
+      expect(
+        upTo(
+          lines(characters, [
+            '      START.  SET XT XF (I) = NUM.',
+            '            STOP RUN.',
+          ]),
+          '\tTXI SYS)186,1,3',
+        ),
+        [
+          'GN)000 START\tCLA NUM',
+          '\tTSX SYS)180,4',
+          '\tMON PI)1,,0',
+          '\tTXI SYS)186,1,3',
+        ],
+      );
+    });
+
+    test('an external-decimal ADD target fetches and stores by PI', () {
+      // The fetch presets SYS)132 as LOC 01445-01446 does; the store
+      // names the same indicator.
+      expect(
+        upTo(
+          lines(characters, [
+            '      START.  ADD NUM TO XT XF (I).',
+            '            STOP RUN.',
+          ]),
+          '\tTXI SYS)186,1,3',
+        ),
+        [
+          'GN)000 START\tLDI PI)1',
+          '\tSTI SYS)132',
+          '\tTSX SYS)182,4',
+          '\tTXI SYS)184,1,3',
+          '\tSTO TS)1',
+          '\tCLA TS)1',
+          '\tADD NUM',
+          '\tTSX SYS)180,4',
+          '\tMON PI)1,,0',
+          '\tTXI SYS)186,1,3',
+        ],
+      );
+    });
+
+    test('an edited ADD source parks, then the element fetches by PI', () {
+      final List<String> all = lines(
+        [...characters, dataCard(name: 'ED', level: '1', description: '89')],
+        ['      START.  ADD ED TO XT XF (I).', '            STOP RUN.'],
+      );
+      expect(upTo(all, '\tTXI SYS)186,1,3').sublist(6), [
+        '\tSTO RS)1',
+        '\tLDI PI)1',
+        '\tSTI SYS)132',
+        '\tTSX SYS)182,4',
+        '\tTXI SYS)184,1,3',
+        '\tSTO TS)1',
+        '\tCLA TS)1',
+        '\tADD RS)1',
+        '\tTSX SYS)180,4',
+        '\tMON PI)1,,0',
+        '\tTXI SYS)186,1,3',
+      ]);
+    });
+
+    test('an ADD CORRESPONDING pair fetches and stores its element', () {
+      final List<String> all = lines(
+        [
+          ...characters,
+          dataCard(name: 'XG', level: '1'),
+          internalCard('XF', '999', level: '2'),
+        ],
+        [
+          '      START.  ADD CORRESPONDING XG TO XT (I).',
+          '            STOP RUN.',
+        ],
+      );
+      // The group XT (I) keeps PI)1; the field takes its own, PI)2.
+      expect(upTo(all, '\tTXI SYS)186,1,3'), [
+        'GN)000 START\tLDI PI)2',
+        '\tSTI SYS)132',
+        '\tTSX SYS)182,4',
+        '\tTXI SYS)184,1,3',
+        '\tSTO TS)1',
+        '\tCLA TS)1',
+        '\tADD 2)XF',
+        '\tTSX SYS)180,4',
+        '\tMON PI)2,,0',
+        '\tTXI SYS)186,1,3',
+      ]);
+    });
+
+    test('an edited SET target takes the MON address word', () {
+      final List<String> all = lines(characters, [
+        '      START.  SET DT DC (I) = FR * FR.',
+        '            STOP RUN.',
+      ]);
+      // The scaling tail ends in `XCA`, then the five-word call.
+      expect(all.sublist(5, 12), [
+        '\tDVP CP)+3',
+        '\tXCA ',
+        '\tTSX SYS)180,4',
+        '\tMON PI)1,,0',
+        '\tTXI SYS)267,1,8',
+        '\tOCT 000003000001',
+        '\tAXT 3,1',
+      ]);
+    });
+
+    test('an edited MOVE target takes the MON address word', () {
+      expect(
+        upTo(
+          lines(characters, [
+            '      START.  MOVE NUM TO DT DC (I).',
+            '            STOP RUN.',
+          ]),
+          '\tAXT 3,1',
+        ),
+        [
+          'GN)000 START\tCLA NUM',
+          '\tTSX SYS)180,4',
+          '\tMON PI)1,,0',
+          '\tTXI SYS)267,1,8',
+          '\tOCT 000003000001',
+          '\tAXT 3,1',
+        ],
+      );
+    });
+
+    test('the MON word punches prefix 5 over the indicator cell', () {
+      final SemanticResult semantics = runJob(
+        data: characters,
+        procedure: [
+          '      START.  ADD NUM TO XT XF (I).',
+          '            STOP RUN.',
+        ],
+      );
+      final List<AssemblyUnit> units = runCodegen(semantics).units;
+      AssemblyUnit unit(String operation, String operand) => units.firstWhere(
+        (AssemblyUnit u) => u.operation == operation && u.operand == operand,
+      );
+      final int mon = unit('MON', 'PI)1,,0').word!;
+      // The fetch's `LDI PI)1` names the same cell.
+      final int ldi = unit('LDI', 'PI)1').word!;
+      expect(Word36.prefix(mon), 5);
+      expect(Word36.decrement(mon), 0);
+      expect(Word36.tag(mon), 0);
+      expect(Word36.address(mon), Word36.address(ldi));
+      expect(
+        unit('MON', 'PI)1,,0').control,
+        standardControl(Relocation.constant, Relocation.relative),
+      );
+    });
+
     test('an ADD target recomputes before the next prologue reads it', () {
       // The element is the one I names after the first store.
       expect(
@@ -2563,6 +2729,89 @@ void main() {
           '\tTXL SYS)294,1,0',
           '\tCLA 0,1',
           '\tADD NUM',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    test('a later external element fetches after the recompute', () {
+      // The fetch reads the element I names after the first store. A
+      // recompute steps by whole words, so the field fills one.
+      expect(
+        upTo(
+          lines(
+            [
+              ...cells,
+              dataCard(name: 'XT', level: '1', quantity: '3'),
+              dataCard(name: 'XF', level: '2', mode: 'E', description: '9' * 6),
+            ],
+            ['      START.  ADD NUM TO I, XT XF (I).', '            STOP RUN.'],
+          ),
+          '\tTXI SYS)186,1,6',
+        ),
+        [
+          'GN)000 START\tCLA I',
+          '\tADD NUM',
+          '\tSTO I',
+          'GN)001\tEQU CP)+6',
+          '\tLDQ I',
+          '\tMPY CP)+1',
+          '\tXCA ',
+          '\tADD GN)001',
+          '\tSTO PI)1',
+          '\tLDI PI)1',
+          '\tSTI SYS)132',
+          '\tTSX SYS)182,4',
+          '\tTXI SYS)184,1,6',
+          '\tSTO TS)1',
+          '\tCLA TS)1',
+          '\tADD NUM',
+          '\tTSX SYS)180,4',
+          '\tMON PI)1,,0',
+          '\tTXI SYS)186,1,6',
+        ],
+      );
+    });
+
+    test('an external element ADDs to itself through one fetch', () {
+      expect(
+        upTo(
+          lines(characters, [
+            '      START.  ADD XT XF (I) TO XT XF (I).',
+            '            STOP RUN.',
+          ]),
+          '\tTXI SYS)186,1,3',
+        ),
+        [
+          'GN)000 START\tLDI PI)1',
+          '\tSTI SYS)132',
+          '\tTSX SYS)182,4',
+          '\tTXI SYS)184,1,3',
+          '\tSTO TS)1',
+          '\tCLA TS)1',
+          '\tADD TS)1',
+          '\tTSX SYS)180,4',
+          '\tMON PI)1,,0',
+          '\tTXI SYS)186,1,3',
+        ],
+      );
+    });
+
+    test('an internal field ADDs into its own element', () {
+      // The plain source reads CELL; the element reads through PI)1.
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  ADD TAB CELL TO TAB CELL (I).',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD CELL',
           '\tSTO 0,1',
         ],
       );

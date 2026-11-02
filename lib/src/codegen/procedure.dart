@@ -625,6 +625,20 @@ final class _Text {
     );
   }
 
+  /// The address reference of an element its positional indicator
+  /// locates, `MON PI)NN,,0` ([J 90.02.15] Case 3). The indicator cell
+  /// holds the element's pointer, word and byte (LOC 01445–01446).
+  void _mon(DataItem item) {
+    final _Sym indicator = _blockWord(StorageBlock.pi, _indicator(item));
+    _emit(
+      'MON',
+      WordForm.prefix,
+      () => '${indicator.text()},,0',
+      () => (5 << 33) | pzeWord(address: indicator.value()),
+      control: standardControl(Relocation.constant, indicator.relocation),
+    );
+  }
+
   /// An in-line constant word, printed as its twelve octal digits.
   void _oct(int value) => _emit(
     'OCT',
@@ -1234,25 +1248,31 @@ final class _Text {
     _fetching = true;
     try {
       for (final item in operands) {
-        if (_sem(item).fieldClass != FieldClass.externalDecimal ||
-            _fetched.containsKey(item)) {
-          continue;
-        }
-        final int cell = _fetched.length + 1;
-        if (cell > temporaryStorageWords) {
-          _unruled('a temporary cell past the TS) reservation (M4-4)');
-        }
-        _setup(item, target: false, subscripted: subscripted.contains(item));
-        _externalConvert(item);
-        _op(Op.sto, _blockWord(StorageBlock.ts, cell));
-        _movpakClears();
-        _fetched[item] = cell;
+        _fetch(item, subscripted: subscripted.contains(item));
       }
       return body();
     } finally {
       _fetching = false;
       _fetched.clear();
     }
+  }
+
+  /// Fetches the external-decimal [item] into the next temporary cell
+  /// of the open scope, unless the scope holds it already.
+  void _fetch(DataItem item, {required bool subscripted}) {
+    if (_sem(item).fieldClass != FieldClass.externalDecimal ||
+        _fetched.containsKey(item)) {
+      return;
+    }
+    final int cell = _fetched.length + 1;
+    if (cell > temporaryStorageWords) {
+      _unruled('a temporary cell past the TS) reservation (M4-4)');
+    }
+    _setup(item, target: false, subscripted: subscripted);
+    _externalConvert(item);
+    _op(Op.sto, _blockWord(StorageBlock.ts, cell));
+    _movpakClears();
+    _fetched[item] = cell;
   }
 
   /// The data items an expression or a relation reads, in source order.
@@ -2464,12 +2484,12 @@ final class _Text {
     }
     switch ((from, to)) {
       case (FieldClass.internalDecimal, FieldClass.edited):
-        if (targetSubscripted) {
-          // SYS)180 takes its target from the in-line `PZE` word, and no
-          // site shows that word built from an indicator.
-          _unruled('a subscripted edited-store target (no sample instance)');
-        }
-        _editedStore(source, target, subscripted: sourceSubscripted);
+        _editedStore(
+          source,
+          target,
+          subscripted: sourceSubscripted,
+          element: targetSubscripted,
+        );
       case (FieldClass.internalDecimal, FieldClass.internalDecimal):
         _internalMove(
           source,
@@ -2692,6 +2712,7 @@ final class _Text {
     DataItem source,
     DataItem target, {
     bool subscripted = false,
+    bool element = false,
   }) {
     if (subscripted) {
       _unruled('a subscripted edited-store source (no sample instance)');
@@ -2728,15 +2749,20 @@ final class _Text {
       _shift(Op.lrs, 35);
       _op(Op.dvp, _cp(divisor));
     }
-    _editedCall(target);
+    _editedCall(target, element: element);
   }
 
   /// The SYS)180 call of the edited store, with the accumulator holding
   /// the value: the address word, the SYS)267 step, its control word
-  /// and its digit count (catalogue 4.6).
-  void _editedCall(DataItem target) {
+  /// and its digit count (catalogue 4.6). An [element] target takes the
+  /// `MON` address word.
+  void _editedCall(DataItem target, {bool element = false}) {
     _tsx(180);
-    _pze(target);
+    if (element) {
+      _mon(target);
+    } else {
+      _pze(target);
+    }
     final int control = _editControl(target);
     if (control == 0) {
       // The one site whose edit control computes to zero punches a real
@@ -3304,6 +3330,7 @@ final class _Text {
               (Op op) => _op(op, park),
               element: target.subscripts.isNotEmpty,
             ),
+            subscripted: <DataItem>{if (target.subscripts.isNotEmpty) item},
           );
           _subscriptRecomputation(target);
         }
@@ -3328,18 +3355,32 @@ final class _Text {
       }
       // One scope for the clause: the source converts once, and every
       // pair reads its cell, as statement 221's edited source parks once.
-      _withFetches(read, () {
-        for (var i = 0; i < targets.length; i++) {
-          _addPair(
-            source,
-            targets[i],
-            element: clause.targets[i].subscripts.isNotEmpty,
-          );
-          // A later target's prologue reads the indicator this store
-          // drives.
-          _subscriptRecomputation(clause.targets[i]);
-        }
-      }, subscripted: <DataItem>{if (name.subscripts.isNotEmpty) source});
+      _withFetches(
+        <DataItem>[
+          source,
+          for (var i = 0; i < targets.length; i++)
+            if (clause.targets[i].subscripts.isEmpty) targets[i],
+        ],
+        () {
+          for (var i = 0; i < targets.length; i++) {
+            final bool element = clause.targets[i].subscripts.isNotEmpty;
+            if (element) {
+              // An earlier store of this clause can move the indicator.
+              _fetch(targets[i], subscripted: true);
+            }
+            _addPair(
+              source,
+              targets[i],
+              element: element,
+              sourceSubscripted: name.subscripts.isNotEmpty,
+            );
+            // A later target's prologue reads the indicator this store
+            // drives.
+            _subscriptRecomputation(clause.targets[i]);
+          }
+        },
+        subscripted: <DataItem>{if (name.subscripts.isNotEmpty) source},
+      );
       return;
     }
     _unruled('an ADD of a literal (no sample instance)');
@@ -3410,6 +3451,15 @@ final class _Text {
   }) {
     final int deficit = _addDeficit(source, target);
     final DataItem addend = _operand(source);
+    if (element != sourceSubscripted &&
+        identical(source, target) &&
+        _sem(source).fieldClass == FieldClass.externalDecimal) {
+      // One fetch cell serves the field, through its indicator or not.
+      _unruled(
+        'an external-decimal field read with and without its subscript '
+        '(no sample instance)',
+      );
+    }
     _withFetches(
       [addend, target],
       () => _alignedAdd(
@@ -3418,7 +3468,10 @@ final class _Text {
         (Op op) => _read(op, addend),
         element: element,
       ),
-      subscripted: <DataItem>{if (sourceSubscripted) addend},
+      subscripted: <DataItem>{
+        if (sourceSubscripted) addend,
+        if (element) target,
+      },
     );
   }
 
@@ -3481,7 +3534,8 @@ final class _Text {
     required bool element,
   }) {
     final DataItem item = _operand(target);
-    if (element) {
+    final external = _sem(item).fieldClass == FieldClass.externalDecimal;
+    if (element && !external) {
       final int register = _indicatorPrologue(item);
       _op(Op.cla, _elementWord, tag: register);
       addend();
@@ -3489,14 +3543,15 @@ final class _Text {
       _releaseElement(item);
       return;
     }
-    final external = _sem(item).fieldClass == FieldClass.externalDecimal;
     if (external) {
       _checkExternalTarget(item);
     }
+    // An external element reads the cell its fetch filled through the
+    // indicator.
     _read(Op.cla, item);
     addend();
     if (external) {
-      _externalStore(item, _Register.ac);
+      _externalStore(item, _Register.ac, element: element);
     } else {
       _opItem(Op.sto, item);
     }
@@ -3801,7 +3856,7 @@ final class _Text {
     final int targetScale = _sem(item).fractionDigits;
     if (value.scale == targetScale) {
       if (sys180) {
-        _sys180Store(item, value.register);
+        _sys180Store(item, value.register, element: element);
         return;
       }
       final Op store = value.register == _Register.mq ? Op.stq : Op.sto;
@@ -3834,7 +3889,7 @@ final class _Text {
     _shift(Op.lrs, _storeShift);
     _op(Op.dvp, scale);
     if (sys180) {
-      _sys180Store(item, _Register.mq);
+      _sys180Store(item, _Register.mq, element: element);
     } else if (element) {
       _elementStore(item, store: Op.stq);
     } else {
@@ -3843,16 +3898,20 @@ final class _Text {
   }
 
   /// The SYS)180 store of [register] into an external or an edited
-  /// field (M6-9).
-  void _sys180Store(DataItem item, _Register register) {
+  /// field (M6-9), or into the [element] its indicator locates.
+  void _sys180Store(
+    DataItem item,
+    _Register register, {
+    required bool element,
+  }) {
     if (_sem(item).fieldClass == FieldClass.externalDecimal) {
-      _externalStore(item, register);
+      _externalStore(item, register, element: element);
       return;
     }
     if (register == _Register.mq) {
       _xca();
     }
-    _editedCall(item);
+    _editedCall(item, element: element);
   }
 
   /// The external-decimal store (M6-9): the value into the accumulator,
@@ -3860,13 +3919,20 @@ final class _Text {
   /// ([J 90.02.15]; [J 90.02.18]). The step follows the target's sign:
   /// SYS)186 unsigned, SYS)187 a minus overpunch, SYS)188 a plus
   /// overpunch, the three values of SYS)183's TARGET-SIGN-CONVENTION.
-  void _externalStore(DataItem item, _Register register) {
+  /// An [element] target takes the `MON` address word.
+  void _externalStore(
+    DataItem item,
+    _Register register, {
+    bool element = false,
+  }) {
     final ItemSemantics s = _sem(item);
     if (register == _Register.mq) {
       _xca();
     }
     _tsx(180);
-    if (_located(item)) {
+    if (element) {
+      _mon(item);
+    } else if (_located(item)) {
       _pzePair(
         _blockWord(StorageBlock.bl, _baseLocators[_recordOf(item)!]!),
         _cp(_descriptor(item)),
@@ -3885,20 +3951,18 @@ final class _Text {
   }
 
   /// The subscripted SET and ADD targets the element store cannot
-  /// write, refused before the first word of the statement. The store
-  /// is `STO 0,r` behind the comparand's prologue, so it writes a whole
-  /// word of internal decimal.
+  /// write, refused before the first word of the statement. An internal
+  /// target stores `STO 0,r` behind the comparand's prologue, so it
+  /// writes a whole word. An external or edited target stores through
+  /// SYS)180 and its `MON` word, whose pointer carries the byte.
   void _checkElementTarget(DataItem item) {
     final FieldClass fieldClass = _sem(item).fieldClass;
-    if (fieldClass == FieldClass.externalDecimal) {
-      // SYS)180 takes its target from the in-line `PZE` word, and no
-      // site shows that word built from an indicator.
-      _unruled(
-        'a subscripted external-decimal store target (no sample instance)',
-      );
-    }
-    if (fieldClass == FieldClass.edited) {
-      _unruled('a subscripted edited-store target (no sample instance)');
+    if (fieldClass == FieldClass.externalDecimal ||
+        fieldClass == FieldClass.edited) {
+      // The `MON` word reads the indicator only at the store, after the
+      // first word; its refusals must come here.
+      _indicator(item);
+      return;
     }
     _checkElement(_operand(item));
   }
