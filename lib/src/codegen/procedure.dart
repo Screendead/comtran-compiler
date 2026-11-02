@@ -1274,23 +1274,29 @@ final class _Text {
     List<NameReference> targets,
     List<(DataItem, DataItem)> pairs,
   ) {
-    // A pair exists only below a source name (legality, 97,00).
+    // Each pair is the plain MOVE with its operands' subscripts
+    // appended (J 02.04.05), every field indexed before the first word
+    // of the clause. A pair exists only below a source name (legality,
+    // 97,00).
     late final NameReference from = (operand as NameOperand).name;
-    _inCorresponding = true;
-    _killPending = false;
-    for (final (DataItem source, DataItem target) in _emissionOrder(
-      targets,
-      pairs,
-    )) {
-      // Each pair is the plain MOVE with its operands' subscripts
-      // appended (J 02.04.05).
-      final NameReference to = targets[_receiverIndex(targets, target)];
+    final List<(DataItem, DataItem, NameReference)> units = [
+      for (final (DataItem source, DataItem target) in _emissionOrder(
+        targets,
+        pairs,
+      ))
+        (source, target, targets[_receiverIndex(targets, target)]),
+    ];
+    for (final (DataItem source, DataItem target, NameReference to) in units) {
       if (from.subscripts.isNotEmpty) {
         _checkAppended(source, from);
       }
       if (to.subscripts.isNotEmpty) {
         _checkAppended(target, to);
       }
+    }
+    _inCorresponding = true;
+    _killPending = false;
+    for (final (DataItem source, DataItem target, NameReference to) in units) {
       _moveUnit(
         source,
         target,
@@ -2687,7 +2693,15 @@ final class _Text {
   /// neither register.
   void _elementStore(DataItem target, {Op store = Op.sto}) {
     _op(store, _elementWord, tag: _indicatorPrologue(target));
+    _releaseElement(target);
   }
+
+  /// Frees the register of [array]'s element once its store has
+  /// written. The address is dead, and each later element of the
+  /// statement loads its own prologue, so a CORRESPONDING group of
+  /// three fields or an ADD of three targets needs no third register.
+  void _releaseElement(DataItem array) =>
+      _statementRegisters.remove(-_indicator(array));
 
   /// The address part of every element read and store: the register
   /// alone reaches the element.
@@ -3089,15 +3103,9 @@ final class _Text {
           in units) {
         if (sourceSubscripted) {
           _checkAppended(source, from);
-          if (_sem(source).fieldClass != FieldClass.externalDecimal) {
-            _unruled('a subscripted ADD source (no sample instance)');
-          }
-          if (identical(source, target) && to.subscripts.isEmpty) {
-            _unruled(
-              'an external-decimal field read with and without its '
-              'subscript (no sample instance)',
-            );
-          }
+          _checkSubscriptedAddSource(source, [
+            if (to.subscripts.isEmpty) target,
+          ]);
         }
         if (to.subscripts.isNotEmpty) {
           _checkAppended(target, to);
@@ -3117,9 +3125,11 @@ final class _Text {
     }
     if (clause.source case NameOperand(:final name)) {
       final DataItem source = _resolved(name);
-      final external = _sem(source).fieldClass == FieldClass.externalDecimal;
-      if (name.subscripts.isNotEmpty && !external) {
-        _unruled('a subscripted ADD source (no sample instance)');
+      if (name.subscripts.isNotEmpty) {
+        _checkSubscriptedAddSource(source, [
+          for (final NameReference target in clause.targets)
+            if (target.subscripts.isEmpty) _resolved(target),
+        ]);
       }
       // The targets refuse before the first word of the clause.
       for (final NameReference target in clause.targets) {
@@ -3157,14 +3167,6 @@ final class _Text {
         for (final NameReference target in clause.targets) _resolved(target),
       ];
       final read = <DataItem>[source, ...targets];
-      if (name.subscripts.isNotEmpty &&
-          targets.any((DataItem each) => identical(each, source))) {
-        // The one cell would serve the element and the plain field.
-        _unruled(
-          'an external-decimal field read with and without its subscript '
-          '(no sample instance)',
-        );
-      }
       if (targets.length > 1 &&
           read.any(
             (DataItem item) =>
@@ -3195,6 +3197,24 @@ final class _Text {
       return;
     }
     _unruled('an ADD of a literal (no sample instance)');
+  }
+
+  /// The refusals of a subscripted ADD [source]. Only an
+  /// external-decimal field fetches through its indicator, and its one
+  /// cell cannot also serve the field as one of [plainTargets].
+  void _checkSubscriptedAddSource(
+    DataItem source,
+    List<DataItem> plainTargets,
+  ) {
+    if (_sem(source).fieldClass != FieldClass.externalDecimal) {
+      _unruled('a subscripted ADD source (no sample instance)');
+    }
+    if (plainTargets.any((DataItem each) => identical(each, source))) {
+      _unruled(
+        'an external-decimal field read with and without its subscript '
+        '(no sample instance)',
+      );
+    }
   }
 
   /// The edited-field-to-register convert ([J 90.02.30]): the MOVPAK
@@ -3320,6 +3340,7 @@ final class _Text {
       _op(Op.cla, _elementWord, tag: register);
       addend();
       _op(Op.sto, _elementWord, tag: register);
+      _releaseElement(item);
       return;
     }
     final external = _sem(item).fieldClass == FieldClass.externalDecimal;

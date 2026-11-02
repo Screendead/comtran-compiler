@@ -2430,9 +2430,9 @@ void main() {
         '      START.  ADD NUM TO TAB CELL (I), FT FC (J).',
         '            STOP RUN.',
       ]);
-      // The second target takes the other register; its source parks
-      // as a plain target's does.
-      expect(upTo(all, '\tSTO 0,2'), [
+      // The first store frees its register for the second target, whose
+      // source parks as a plain target's does.
+      expect(all.sublist(0, 13), [
         'GN)000 START\tLAC PI)1,1',
         '\tTXL SYS)294,1,0',
         '\tCLA 0,1',
@@ -2441,11 +2441,40 @@ void main() {
         '\tLDQ NUM',
         '\tMPY CP)+2',
         '\tSTQ RS)0',
-        '\tLAC PI)2,2',
-        '\tTXL SYS)294,2,0',
-        '\tCLA 0,2',
+        '\tLAC PI)2,1',
+        '\tTXL SYS)294,1,0',
+        '\tCLA 0,1',
         '\tADD RS)0',
-        '\tSTO 0,2',
+        '\tSTO 0,1',
+      ]);
+    });
+
+    test('an ADD of three targets on three indicators reuses XR1', () {
+      final List<String> all = lines(
+        [
+          ...pad,
+          for (final int k in [1, 2, 3]) ...[
+            dataCard(name: 'T$k', level: '1', quantity: '3'),
+            internalCard('C$k', '999', level: '2'),
+          ],
+          internalCard('I', '9'),
+          internalCard('NUM', '999'),
+        ],
+        [
+          '      START.  ADD NUM TO T1 C1 (I), T2 C2 (I), T3 C3 (I).',
+          '            STOP RUN.',
+        ],
+      );
+      // Each store leaves its element address dead, so no target needs
+      // a third register.
+      expect(all.sublist(0, 15), [
+        for (final int k in [1, 2, 3]) ...[
+          '${k == 1 ? 'GN)000 START' : ''}\tLAC PI)$k,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD NUM',
+          '\tSTO 0,1',
+        ],
       ]);
     });
 
@@ -2540,62 +2569,55 @@ void main() {
     });
 
     group('a subscripted CORRESPONDING target (J 02.04.05)', () {
-      /// G and the element of TAB both hold CELL and OTH. Each field of
-      /// `TAB (I)` takes the subscript, so it takes an indicator of its
-      /// own after TAB's: CELL is `PI)2` and OTH is `PI)3`.
+      /// G and the element of TAB both hold CELL, OTH and THR. Each
+      /// field of `TAB (I)` takes the subscript, so it takes an
+      /// indicator of its own after TAB's: `PI)2`, `PI)3` and `PI)4`.
+      /// Each store frees XR1 for the next field.
       final List<String> groups = [
         ...pad,
         dataCard(name: 'G', level: '1'),
         internalCard('CELL', '999', level: '2'),
         internalCard('OTH', '99', level: '2'),
+        internalCard('THR', '9', level: '2'),
         dataCard(name: 'TAB', level: '1', quantity: '3'),
         internalCard('CELL', '999', level: '2'),
         internalCard('OTH', '99', level: '2'),
+        internalCard('THR', '9', level: '2'),
         internalCard('I', '9'),
       ];
+      const fields = <(int, String)>[(2, 'CELL'), (3, 'OTH'), (4, 'THR')];
 
       test('of an ADD reads and stores each field through its prologue', () {
         expect(
-          upTo(
-            lines(groups, [
-              '      START.  ADD CORRESPONDING G TO TAB (I).',
-              '            STOP RUN.',
-            ]),
-            '\tSTO 0,2',
-          ),
+          lines(groups, [
+            '      START.  ADD CORRESPONDING G TO TAB (I).',
+            '            STOP RUN.',
+          ]).sublist(0, 15),
           [
-            'GN)000 START\tLAC PI)2,1',
-            '\tTXL SYS)294,1,0',
-            '\tCLA 0,1',
-            '\tADD 1)CELL',
-            '\tSTO 0,1',
-            '\tLAC PI)3,2',
-            '\tTXL SYS)294,2,0',
-            '\tCLA 0,2',
-            '\tADD 1)OTH',
-            '\tSTO 0,2',
+            for (final (int pi, String name) in fields) ...[
+              '${pi == 2 ? 'GN)000 START' : ''}\tLAC PI)$pi,1',
+              '\tTXL SYS)294,1,0',
+              '\tCLA 0,1',
+              '\tADD 1)$name',
+              '\tSTO 0,1',
+            ],
           ],
         );
       });
 
       test('of a MOVE stores each field through its prologue', () {
         expect(
-          upTo(
-            lines(groups, [
-              '      START.  MOVE CORRESPONDING G TO TAB (I).',
-              '            STOP RUN.',
-            ]),
-            '\tSTO 0,2',
-          ),
+          lines(groups, [
+            '      START.  MOVE CORRESPONDING G TO TAB (I).',
+            '            STOP RUN.',
+          ]).sublist(0, 12),
           [
-            'GN)000 START\tCLA 1)CELL',
-            '\tLAC PI)2,1',
-            '\tTXL SYS)294,1,0',
-            '\tSTO 0,1',
-            '\tCLA 1)OTH',
-            '\tLAC PI)3,2',
-            '\tTXL SYS)294,2,0',
-            '\tSTO 0,2',
+            for (final (int pi, String name) in fields) ...[
+              '${pi == 2 ? 'GN)000 START' : ''}\tCLA 1)$name',
+              '\tLAC PI)$pi,1',
+              '\tTXL SYS)294,1,0',
+              '\tSTO 0,1',
+            ],
           ],
         );
       });
@@ -2607,6 +2629,7 @@ void main() {
           '            STOP RUN.',
         ]);
         expect(all.where((String line) => line.startsWith('\tSTO PI)')), [
+          '\tSTO PI)4',
           '\tSTO PI)3',
           '\tSTO PI)2',
           '\tSTO PI)1',

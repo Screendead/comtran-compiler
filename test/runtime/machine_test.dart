@@ -849,25 +849,33 @@ final List<String> _elementTargets = <String>[
 ];
 
 /// An ADD into the subscript variable and an element of one clause,
-/// then both CORRESPONDING verbs into an element (J 02.04.05).
+/// both CORRESPONDING verbs into an element of three fields
+/// (J 02.04.05), and an ADD into three elements on three indicators.
 final List<String> _correspondingElements = <String>[
   '      *DATA',
   internalCard('P1', '9'),
   dataCard(name: 'G', level: '1'),
   internalCard('CELL', '999', level: '2'),
   internalCard('OTH', '99', level: '2'),
+  internalCard('THR', '9', level: '2'),
   dataCard(name: 'TAB', level: '1', quantity: '3'),
   internalCard('CELL', '999', level: '2'),
   internalCard('OTH', '99', level: '2'),
+  internalCard('THR', '9', level: '2'),
+  dataCard(name: 'T2', level: '1', quantity: '3'),
+  internalCard('C2', '999', level: '2'),
+  dataCard(name: 'T3', level: '1', quantity: '3'),
+  internalCard('C3', '999', level: '2'),
   internalCard('I', '9'),
   internalCard('NUM', '999'),
   '      *PROCEDURE',
   '      START.  SET NUM = 1, SET I = 1.',
   '            ADD NUM TO I, TAB CELL (I).',
-  '            SET G CELL = 7, SET G OTH = 8.',
+  '            SET G CELL = 7, SET G OTH = 8, SET G THR = 3.',
   '            SET I = 1, MOVE CORRESPONDING G TO TAB (I).',
   '            SET I = 3, ADD CORRESPONDING G TO TAB (I).',
   '            ADD CORRESPONDING G TO TAB (I).',
+  '            SET I = 2, ADD NUM TO TAB OTH (I), T2 C2 (I), T3 C3 (I).',
   '            STOP RUN.',
   '      *FINISH',
 ];
@@ -1704,15 +1712,21 @@ void main() {
       final (JobCompilation job, Machine subject) = compiled(
         _correspondingElements,
       );
-      expect(subject.printed, <String>['AT 16,00 STOP RUN']);
-      final int tab = addressOf(job, 'TAB');
+      expect(subject.printed, <String>['AT 23,00 STOP RUN']);
+      List<int> words(String name, int count) {
+        final int at = addressOf(job, name);
+        return <int>[
+          for (var k = 0; k < count; k++) subject.state.read(at + k),
+        ];
+      }
+
       // The ADD of 1 lands in element 2, the I it set; the MOVE fills
-      // element 1, and the two ADDs double element 3.
-      expect(
-        <int>[for (var k = 0; k < 6; k++) subject.state.read(tab + k)],
-        <int>[7, 8, 1, 0, 14, 16],
-      );
-      expect(subject.state.read(addressOf(job, 'I')), 3);
+      // element 1, the two ADDs double element 3, and the last ADD
+      // adds 1 to element 2 of OTH, C2 and C3.
+      expect(words('TAB', 9), <int>[7, 8, 3, 1, 1, 0, 14, 16, 6]);
+      expect(words('T2', 3), <int>[0, 1, 0]);
+      expect(words('T3', 3), <int>[0, 1, 0]);
+      expect(subject.state.read(addressOf(job, 'I')), 2);
     });
 
     test('a sub-chain inside a chain keeps the outer park', () {

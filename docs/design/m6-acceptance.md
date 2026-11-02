@@ -1939,8 +1939,14 @@ the report our run prints against the page.
     designated subscript to the generated instructions" ([J 02.04.05]).
     Each field takes its own indicator. A pair refuses where its plain
     clause refuses.
+  - Each element store frees its index register, because the address
+    is dead after the store. A group of three fields, or an ADD of
+    three targets, needs no third register (M4-9).
+  - The group keeps the indicator of its written subscript. A store of
+    the subscript recomputes it, no word reads it, and it counts
+    toward the 90 indicators of 184,00 ([J 90.01.05]).
 
-  Three refusals stay; no site gives their words:
+  These refusals stay; no site gives their words:
 
   - `a subscripted external-decimal store target` and `a subscripted
     edited-store target`, each `(no sample instance)`: SYS)180 takes an
@@ -2292,6 +2298,7 @@ the report our run prints against the page.
 [J 05.06.04]: ../../comtran-manuals/J28-6169/05-systems-operation.md#b-loader-1
 [J 90.01.02]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.01.03]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
+[J 90.01.05]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.03]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.04]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
