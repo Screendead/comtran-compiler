@@ -744,7 +744,9 @@ notes on the shape:
   it. Format and lint stay in CI: a style failure must not stop a correct site.
 - No path filter guards the workflow. The site prints what the compiler
   prints, so every push to master must redeploy.
-- Jekyll never runs on a workflow artifact. The build writes `.nojekyll` as a guard.
+- Jekyll never runs on a workflow artifact, which is served as uploaded. The
+  build writes `.nojekyll` anyway, as a guard if the source ever moves back to
+  a branch.
 - CI now also runs `dart run tool/build_web.dart`. The site is built and never
   committed, so before this nothing proved that it compiles.
 
@@ -755,10 +757,15 @@ address serves both the page and the WebAssembly module. The domain ruling
 below moves it.
 
 **Verified from a subpath on 2026-08-10**, because a project-page URL carries
-one. Served under `/web/`, the module loads, no request 404s, and the listing
-panel hashes to the golden. The `.wasm` `Content-Type` never matters.
+one. Served under `/web/`, the WebAssembly module loads, both pages find their
+styles and their four crops, no request 404s, and the listing panel holds
+21,865 bytes that hash to the golden. The page fetches the module and hands
+the bytes to `compile`, so the `Content-Type` of `.wasm` on the host never
+matters.
 
-Cloudflare Pages is the escape hatch if bandwidth matters. It costs about a day.
+Cloudflare Pages is the recorded escape hatch, if the bandwidth ever matters.
+Its free tier sets no bandwidth cap, and it reads a `_headers` file, which
+Pages does not. The artifact is the same, so the move costs about a day.
 
 **The project takes a custom domain. Jack's call, 2026-08-10, and he sets it
 up himself.** The likely address is `comtran.screendead.com`. He gave no
@@ -852,7 +859,9 @@ checks that the roadmap page carries a station for every codename in the
 glossary above. Nothing compares the two states; H2 is the rule that keeps
 them in step.
 
-**W2 — the sources.** The documents page. Load one page scan at a time (58 MB).
+**W2 — the sources.** The documents page. It holds the language reference, both
+manual conversions, both source PDFs (17 MB), and each of the 345 page scans
+beside its transcription (58 MB; load one page at a time).
 
 **W2, as built on 2026-11-02** (branch `w2-sources`). It delivers the sources
 page, `web/sources.html`, which `tool/web_sources_source.dart` generates. The
