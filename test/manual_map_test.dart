@@ -125,6 +125,12 @@ void main() {
     expect(slugify('snake_case name'), 'snake_case-name');
   });
 
+  test('a superscript digit is stripped and a combining mark kept, as '
+      'github-slugger does', () {
+    expect(slugify('32766 vs 2¹⁵−1'), '32766-vs-21');
+    expect(slugify('Cafe\u0301'), 'cafe\u0301');
+  });
+
   test('a heading loses its markdown escapes and emphasis', () {
     expect(plainHeading(r'A. The \*FILE Card'), 'A. The *FILE Card');
     expect(slugify(plainHeading(r'\*FILE Card')), 'file-card');

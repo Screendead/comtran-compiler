@@ -145,4 +145,59 @@ void main() {
       expect(sink.stopped, isFalse);
     });
   });
+
+  group('the sink as a list', () {
+    final SourceCard card = sourceCards(['      X']).single;
+    Diagnostic diagnostic(String number) =>
+        Diagnostic(messageCatalog[number]!, card, column: 7);
+
+    test('a replaced entry is recorded like an added one', () {
+      final sink = DiagnosticSink()..add(diagnostic('37,00'));
+      sink[0] = diagnostic('108,00');
+      expect(sink.single.message.number, '108,00');
+      expect(sink.maxSeverity, 4);
+      expect(
+        () => sink[0] = diagnostic('148,00'),
+        throwsA(isA<StopCompilation>()),
+      );
+      expect(sink.stopped, isTrue);
+    });
+
+    test('the length may shrink but never grow', () {
+      final sink = DiagnosticSink()
+        ..add(diagnostic('37,00'))
+        ..add(diagnostic('108,00'))
+        ..length = 1;
+      expect(sink.single.message.number, '37,00');
+      expect(() => sink.length = 2, throwsUnsupportedError);
+    });
+  });
+
+  group('the diagnostic', () {
+    final SourceCard card = sourceCards(['      X']).single;
+
+    test('prints its id, severity, text, and site', () {
+      final Message message = messageCatalog['108,00']!;
+      expect(
+        Diagnostic(message, card, column: 7, operands: ['NOSUCH']).toString(),
+        '108,00 4 ${message.substitute(['NOSUCH'])} (card 1, column 7)',
+      );
+      expect(
+        Diagnostic(message, card).toString(),
+        '108,00 4 ${message.substitute(const [])} (card 1)',
+      );
+      expect(
+        Diagnostic.wholeProgram(message).toString(),
+        '108,00 4 ${message.substitute(const [])} (whole program)',
+      );
+    });
+
+    test('a message with no severity row throws', () {
+      const message = Message.ours('999,99', 'NO ROW.');
+      expect(
+        () => Diagnostic(message, card).severity,
+        throwsA(isA<StateError>()),
+      );
+    });
+  });
 }
