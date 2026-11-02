@@ -88,7 +88,16 @@ final class SubscriptChecker {
         _checkTerm(right, array);
       case UnaryExpr(:final operand):
         _checkTerm(operand, array);
-      case TruthExpr() || FigurativeOperand() || FunctionCall():
+      case FunctionCall(:final function):
+        // F p. 31 admits a name, a literal, or an index expression, and
+        // a function call is none of them (Jack's ruling of 2026-11-02;
+        // M3-20).
+        resolver.report(
+          msgInvalidSubscriptVariable,
+          function.anchor,
+          operands: [array.text],
+        );
+      case TruthExpr() || FigurativeOperand():
         break;
     }
   }

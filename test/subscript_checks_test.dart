@@ -95,6 +95,65 @@ void main() {
       expect(ids(result), ['71,00']);
     });
 
+    group('a function call as a subscript term (F p. 31)', () {
+      List<String> declared(String declaration, String clause) => [
+        '      S.          BEGIN SECTION USING IDX$declaration',
+        '            END S.',
+        '            $clause',
+      ];
+      List<String> fields() => [
+        ..._fields(),
+        dataCard(
+          name: 'FN',
+          level: '1',
+          mode: 'I',
+          justify: 'R',
+          description: '99',
+        ),
+      ];
+
+      test('a declared function draws 71,00 alone', () {
+        final SemanticResult result = runJob(
+          data: fields(),
+          procedure: declared(
+            ' GIVING FN.',
+            'MOVE TAB CELL (FN ((IDX))) TO NUM.',
+          ),
+        );
+        expect(ids(result), ['71,00']);
+        // NAME.1 is the array, not the function (J 90.04).
+        expect(result.semanticDiagnostics.single.operands, ['TAB CELL']);
+      });
+
+      test('a function inside an index expression draws 71,00', () {
+        final SemanticResult result = runJob(
+          data: fields(),
+          procedure: declared(
+            ' GIVING FN.',
+            'MOVE TAB CELL (FN ((IDX)) + 1) TO NUM.',
+          ),
+        );
+        expect(ids(result), ['71,00']);
+      });
+
+      test('a SET or ADD target keeps the function check beside '
+          '71,00', () {
+        for (final clause in [
+          'SET TAB CELL (FN ((IDX))) = 1.',
+          'ADD 1 TO TAB CELL (FN ((IDX))).',
+        ]) {
+          // FN is listed by no GIVING clause, so the function check on
+          // the target's subscript draws 191 (M3-19).
+          final SemanticResult result = runJob(
+            data: fields(),
+            procedure: declared('.', clause),
+          );
+          expect(ids(result), ['71,00', '191,00'], reason: clause);
+          expect(result.semanticDiagnostics.last.operands, ['FN']);
+        }
+      });
+    });
+
     test('an alphameric subscript variable draws 79,00', () {
       final SemanticResult result = _move('TAB CELL (ALPHA)');
       expect(ids(result), ['79,00']);
