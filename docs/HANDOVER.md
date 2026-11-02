@@ -179,18 +179,13 @@ moves it has changed the sample's path. The three divides at LOC 00424,
 2. **An edited ADD source is not scale-aligned.** `_addPair` refuses a
    pair of unequal scales (:2590). The edited-source branch of `_add`
    (:2526) skips that check. Ruled: handle it. PR #167.
-3. **An `S` position in a numeric source is counted as a stored
-   character.** `ItemSemantics.digits` counts the `S` fillers and
-   `storageChars` does not. Three sites punch the digit count where the
-   handler reads characters: :2028, :2079 and :2565. The handler then
-   reads past the field. Ruled: handle it. PR #169.
-4. **A `STO` through the register the convert has just overwritten.**
-   The external-to-internal path emits `_loadBaseOf(target)` and the
-   `STO` (:2029) before `_movpakClears()`. `_loadBase` (:1036) reuses a
-   register that already holds the target's locator. A target behind the
-   locator in register 1 then stores through the count `TXI SYS)184,1,n`
-   left there. No sample site is on that path. Ruled: handle it.
-   PR #169.
+3. **An `S` source position was read as a stored character. Ruled:
+   handle it. Handled by PR #169.** Counts now take the stored digits.
+   An `S` between them, or behind them under a `V` or point, refuses,
+   as does an edit run whose drop reaches them.
+4. **A `STO` through the register the convert overwrote. Ruled: handle
+   it. Handled by PR #169.** The store now reloads the locator. The run
+   was already right: the move restores register 1 (RT-3).
 5. **A leading run that mixes `8` and `*` compiles.** The control word
    has one address field for the leading run, so it cannot say which
    cells take a blank and which an asterisk. `$8*89.99` compiles with no

@@ -1165,7 +1165,26 @@ final class _Text {
       _unruled('an external-decimal convert of more than 10 digits (RT-4)');
     }
     _tsx(182);
-    _txi(184, _sem(item).digits);
+    _txi(184, _storedDigits(item));
+  }
+
+  /// The digit positions [item] stores: its digits less the `S` fillers,
+  /// which no MOVPAK step reads (F p. 80). Where every `S` stands outside
+  /// the stored digits, those digits read alone are the value at the
+  /// item's scale; any other placement has no stored form to read.
+  int _storedDigits(DataItem item) {
+    final ItemSemantics s = _sem(item);
+    final Pictorial? shape = s.shape;
+    if (shape == null || shape.sCount == 0) {
+      return s.digits;
+    }
+    if (!shape.sOutsideStoredDigits) {
+      _unruled(
+        'an S position between the stored digits, or behind them under a '
+        'V or point (F p. 80)',
+      );
+    }
+    return s.digits - shape.sCount;
   }
 
   // --- The register cache (notes question 2, settled above) ---------------
@@ -2292,6 +2311,11 @@ final class _Text {
         }
         _setup(source, subscripted: sourceSubscripted, target: false);
         _externalConvert(source);
+        // Register 1 counts as lost after every MOVPAK sequence (notes
+        // question 2), though the call preserves it (RT-3), so outside
+        // a CORRESPONDING expansion a locator it held reloads for the
+        // store.
+        _movpakClears();
         final int deficit = _moveDeficit(source, target);
         if (deficit > 0) {
           // The convert leaves the value in the accumulator, so the
@@ -2313,7 +2337,6 @@ final class _Text {
           _loadBaseOf(target);
           _opItem(store, target);
         }
-        _movpakClears();
       case (FieldClass.externalDecimal, FieldClass.externalDecimal):
         _externalRun(
           source,
@@ -2394,7 +2417,10 @@ final class _Text {
   }) {
     final ItemSemantics s = _sem(source);
     final ItemSemantics t = _sem(target);
-    final int sourceInteger = s.digits - s.fractionDigits;
+    // An `S` is a zero step, ahead of the move under SYS)212 or behind it
+    // under SYS)211, through the scale; the move reads stored digits.
+    final int stored = _storedDigits(source);
+    final int sourceInteger = stored - s.fractionDigits;
     final int targetInteger = t.digits - t.fractionDigits;
     if (s.fractionDigits > t.fractionDigits) {
       _unruled('an edit run that bypasses source digits (no sample instance)');
@@ -2402,8 +2428,10 @@ final class _Text {
     final int dropped = sourceInteger > targetInteger
         ? sourceInteger - targetInteger
         : 0;
-    if (dropped == s.digits) {
-      // No site drops every source digit. Note 3's SYS)232 and SYS)234
+    if (dropped >= stored) {
+      // No site drops every source digit. Past a trailing S run the
+      // drop can exceed the stored digits, and the kept digits are then
+      // the run's zeros alone. Note 3's SYS)232 and SYS)234
       // test the last character, but no site shows when a run takes them.
       _unruled('an edit run that moves no source digit (no sample instance)');
     }
@@ -2413,7 +2441,7 @@ final class _Text {
     if (targetInteger > sourceInteger) {
       _txi(fromEdited ? 214 : 212, targetInteger - sourceInteger);
     }
-    _txi(fromEdited ? 198 : 193, s.digits - dropped);
+    _txi(fromEdited ? 198 : 193, stored - dropped);
     if (t.fractionDigits > s.fractionDigits) {
       _txi(fromEdited ? 216 : 211, t.fractionDigits - s.fractionDigits);
     }
@@ -3055,7 +3083,7 @@ final class _Text {
       // The park is one `STO` as well (`docs/design/runtime.md` RT-4).
       _unruled('an edited fetch of more than 10 digits (RT-4)');
     }
-    final int digits = _sem(source).digits;
+    final int digits = _storedDigits(source);
     _tsx(182);
     _txi(268, 1);
     _txi(269, digits);
