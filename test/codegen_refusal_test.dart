@@ -1056,6 +1056,14 @@ void main() {
       );
     });
 
+    test('an index expression in two variables', () {
+      // F p. 31 admits a * VARIABLE ± b alone, so no store sets it.
+      expect(
+        _refuses(['            MOVE NUM TO TAB CELL (IDX + IDY).']),
+        'an index expression outside a * VARIABLE ± b (F p. 31)',
+      );
+    });
+
     test('an edit run that bypasses source digits', () {
       // Three fraction digits into EDT's two: the low-order drop.
       expect(

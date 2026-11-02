@@ -54,6 +54,7 @@ final class ProcedureText {
     required this.entry,
     required this.poolWords,
     required this.poolUnits,
+    required this.constantIndicators,
   });
 
   /// The assembly units, program order.
@@ -75,7 +76,14 @@ final class ProcedureText {
   /// their `CP)` addresses — empty on the measuring pass, which has no
   /// addresses to place them at.
   final List<AssemblyUnit> poolUnits;
+
+  /// The load-time word of each indicator whose subscripts are all
+  /// literals, keyed by its `PI)` number (J 02.04.07; M4-4).
+  final Map<int, ElementPointer> constantIndicators;
 }
+
+/// A `PZE NAME+w,,b` word that points at one element of an array.
+typedef ElementPointer = ({String operand, int word, int control});
 
 /// What the measuring pass diagnoses (M4-18): the sink the notes and
 /// the capacity stops enter, and the name tally continued from the
@@ -234,6 +242,9 @@ final class _Sym {
 /// is a displacement the loader leaves alone, so its relocation class
 /// is constant; a transmitted address is relative ([J 90.03.04]).
 typedef _Ref = ({String text, int address, int tag, Relocation relocation});
+
+/// A subscript `a * VARIABLE + b`; a literal has no variable.
+typedef _IndexTerm = ({DataItem? variable, int a, int b});
 
 /// One DO call site: the procedures open around it, the procedure it
 /// names, and where to report a re-entry (D5.7).
@@ -884,6 +895,7 @@ final class _Text {
           ? (name: 'GN)000', location: _origin)
           : (name: programStartName, location: start),
       poolWords: _layout.length,
+      constantIndicators: _constantIndicators,
       poolUnits: <AssemblyUnit>[
         if (placed != null)
           // An `OCT` entry echoes its word as its operand; a `PZE` entry
@@ -994,6 +1006,8 @@ final class _Text {
   /// The indicator list keys on the array and the written subscript
   /// notation together, and codegen holds no copy of the notation, so
   /// two indicators over one array have no rule here (M3-20; M4-9).
+  /// An indicator whose subscripts are all literals takes its value at
+  /// load time (J 02.04.07; M4-10).
   int _indicator(DataItem array) {
     final numbers = <int>[
       for (var i = 0; i < semantics.positionalIndicators.length; i++)
@@ -1002,7 +1016,116 @@ final class _Text {
     if (numbers.length != 1) {
       _unruled('two positional indicators over one array (no sample instance)');
     }
-    return numbers.single;
+    final int indicator = numbers.single;
+    final terms = <_IndexTerm>[
+      for (final ArithExpr subscript
+          in semantics.positionalIndicators[indicator - 1].$3)
+        _indexTerm(subscript),
+    ];
+    if (terms.every((_IndexTerm term) => term.variable == null)) {
+      _constantIndicators.putIfAbsent(
+        indicator,
+        () => _elementPointer(array, <int>[
+          for (final _IndexTerm term in terms) term.b,
+        ]),
+      );
+    }
+    return indicator;
+  }
+
+  final Map<int, ElementPointer> _constantIndicators = <int, ElementPointer>{};
+
+  /// A subscript as `a * VARIABLE + b`, the form F p. 31 admits; a
+  /// literal subscript has no variable and the value b.
+  _IndexTerm _indexTerm(ArithExpr subscript) {
+    final _IndexTerm term = _linearTerm(subscript);
+    if (term.variable != null && term.a < 1) {
+      _outsideIndexForm();
+    }
+    return term;
+  }
+
+  _IndexTerm _linearTerm(ArithExpr expr) {
+    switch (expr) {
+      case LiteralOperand(:final literal):
+        final (int value, int scale) = _literalValue(literal);
+        if (scale != 0) {
+          _outsideIndexForm();
+        }
+        return (variable: null, a: 0, b: value);
+      case NameOperand(:final name) when name.subscripts.isEmpty:
+        return (variable: _resolved(name), a: 1, b: 0);
+      case UnaryExpr(:final operator, :final operand) when operator.text == '-':
+        final _IndexTerm term = _linearTerm(operand);
+        return (variable: term.variable, a: -term.a, b: -term.b);
+      case BinaryExpr(:final left, :final operator, :final right):
+        final _IndexTerm l = _linearTerm(left);
+        final _IndexTerm r = _linearTerm(right);
+        switch (operator.text) {
+          case '+' || '-':
+            if (l.variable != null &&
+                r.variable != null &&
+                !identical(l.variable, r.variable)) {
+              _outsideIndexForm();
+            }
+            final sign = operator.text == '-' ? -1 : 1;
+            return (
+              variable: l.variable ?? r.variable,
+              a: l.a + sign * r.a,
+              b: l.b + sign * r.b,
+            );
+          case '*' when l.variable == null:
+            return (variable: r.variable, a: l.b * r.a, b: l.b * r.b);
+          case '*' when r.variable == null:
+            return (variable: l.variable, a: r.b * l.a, b: r.b * l.b);
+        }
+      default:
+    }
+    _outsideIndexForm();
+  }
+
+  Never _outsideIndexForm() =>
+      _unruled('an index expression outside a * VARIABLE ± b (F p. 31)');
+
+  /// The pointer to one element of [item], [elements] counted from 1 in
+  /// each dimension, outermost first (F p. 78). Element 0 is the base a
+  /// subscript store offsets. Without [withByte] the pointer keeps the
+  /// zero decrement of a store that drives several indicators (M6-4
+  /// finding 1).
+  ElementPointer _elementPointer(
+    DataItem item,
+    List<int> elements, {
+    bool withByte = true,
+  }) {
+    final List<DataItem> dimensions = <DataItem>[
+      for (final DataItem each in ancestorsOf(item))
+        if (_sem(each).quantity > 1) each,
+    ].reversed.toList();
+    if (dimensions.length != elements.length) {
+      _unruled('a subscript count unlike the array dimensions (M3-20)');
+    }
+    int chars = withByte ? _sem(item).byte : 0;
+    for (var i = 0; i < elements.length; i++) {
+      chars += (elements[i] - 1) * _sem(dimensions[i]).strideChars;
+    }
+    final int byte = chars % 6;
+    final int words = (chars - byte) ~/ 6;
+    final (int address, Relocation relocation) = _dataAddress(
+      item,
+      plus: words,
+    );
+    if (address < 0) {
+      // The 15-bit address field would wrap a negative base to a
+      // wrong word, silently.
+      _unruled('a table base ahead of address zero (no sample instance)');
+    }
+    return (
+      operand:
+          '${_printedName(item)}${words < 0 ? '' : '+'}$words'
+          '${byte == 0 ? '' : ',,$byte'}',
+      word: pzeWord(decrement: byte, address: address),
+      control: standardControl(Relocation.constant, relocation),
+    );
   }
 
   /// A group moves and compares as an alphameric field (D3.3).
@@ -1766,11 +1889,14 @@ final class _Text {
       // in its word count.
       _unruled('a located DO FOR index (no sample instance)');
     }
-    final List<DataItem> driven = _driven(index.index.text);
+    final List<(DataItem, int, int)> drives = _driven(indexItem);
     final bounds = <PoolHandle>[];
+    final values = <int>[];
     for (final bound in <ArithExpr>[index.from, index.by, index.to]) {
       if (bound case LiteralOperand(:final literal)) {
         bounds.add(_numericLiteral(literal));
+        final (int value, int scale) = _literalValue(literal);
+        values.add(scale == 0 ? value : -1);
       } else {
         // A field-name or signed bound is legal (F pp. 50-51; D10.7)
         // but the sample's bounds are all plain literals, so neither
@@ -1778,11 +1904,20 @@ final class _Text {
         _unruled('a DO FOR bound of ${bound.runtimeType} (no sample instance)');
       }
     }
+    if (drives.isNotEmpty && (values[0] < 0 || values[1] < 0)) {
+      // An indicator steps by whole elements.
+      _unruled('a fractional DO FOR bound driving an indicator (M4-10)');
+    }
+    final driven = <DataItem>[];
     final strides = <PoolHandle>[];
     final bases = <PoolHandle>[];
     final partial = <bool>[];
-    for (final item in driven) {
-      final int chars = _strideChars(item);
+    // The index takes FROM, then steps by BY, so an indicator of
+    // `a * index + b` starts at element a·FROM + b and steps a·BY
+    // elements (J 02.04.07.01).
+    for (final (DataItem item, int a, int b) in drives) {
+      driven.add(item);
+      final int chars = _strideChars(item) * a * values[1];
       if (chars % 6 == 0) {
         strides.add(_pool.stride(chars ~/ 6));
         partial.add(false);
@@ -1795,7 +1930,12 @@ final class _Text {
         );
         partial.add(true);
       }
-      bases.add(_subscriptBase(item));
+      final ElementPointer base = _elementPointer(item, <int>[
+        a * values[0] + b,
+      ]);
+      bases.add(
+        _pool.base(base.operand, word: base.word, control: base.control),
+      );
     }
     if (driven.isEmpty) {
       _unruled('a DO FOR driving no indicator');
@@ -1958,20 +2098,6 @@ final class _Text {
     }
   }
 
-  /// The DO FOR base `NAME+0`, the entry a positional indicator is set
-  /// from: the item's own first word and byte. The indicator is a MOVPAK
-  /// pointer, so a field inside a word needs its byte (M6-9); the
-  /// sample's `PZE 2)RATE+0` is at byte 0 and prints none.
-  PoolHandle _subscriptBase(DataItem item) {
-    final int byte = _sem(item).byte;
-    final (int address, Relocation relocation) = _dataAddress(item);
-    return _pool.base(
-      '${_printedName(item)}+0${byte == 0 ? '' : ',,$byte'}',
-      word: pzeWord(decrement: byte, address: address),
-      control: standardControl(Relocation.constant, relocation),
-    );
-  }
-
   /// The repeated ancestor's element, in characters. A positional
   /// indicator names the referenced field, and the repetition can sit on
   /// an enclosing group — `RATE` under the twelve-element `TABLE.ITEM`.
@@ -2009,8 +2135,6 @@ final class _Text {
     _op(Op.tpl, _Sym(() => '*+2', () => target, Relocation.relative));
     _op(Op.add, carry);
   }
-
-  PoolHandle _tableStride(DataItem table) => _pool.stride(_strideWords(table));
 
   /// The object entry word of the procedure [name] labels — the return
   /// cell, which `TRA proc+1` skips.
@@ -2669,31 +2793,28 @@ final class _Text {
   /// store that drives several keeps the one site's bases, whose zero
   /// decrement drops RETPREM's byte 3 (M6-4 finding 1): the golden
   /// needs that word.
+  ///
+  /// An indicator of `a * VARIABLE + b` multiplies by a strides and
+  /// offsets from element b, so `K + 1` updates with K (J 02.04.07.01).
   void _subscriptRecomputation(NameReference target) {
-    final List<DataItem> driven = _driven(target.text).reversed.toList();
+    final List<(DataItem, int, int)> driven = _drivenBy(
+      target,
+    ).reversed.toList();
     if (driven.isEmpty) {
       return; // Most moves drive no indicator at all.
     }
     // Both EQU lines print ahead of the update blocks — the attested
     // 01742 and 01743, back to back before LOC 01421.
     final blocks = <(PoolHandle stride, _Sym base, DataItem table)>[];
-    for (final table in driven) {
-      final PoolHandle stride = _tableStride(table);
-      final int strideWords = _strideWords(table);
-      final (int address, Relocation relocation) = _dataAddress(
-        table,
-        plus: -strideWords,
-      );
-      if (address < 0) {
-        // The 15-bit address field would wrap a negative base to a
-        // wrong word, silently.
-        _unruled('a table base ahead of address zero (no sample instance)');
-      }
-      final int byte = driven.length == 1 ? _sem(table).byte : 0;
+    for (final (DataItem table, int a, int b) in driven) {
+      final PoolHandle stride = _pool.stride(_strideWords(table) * a);
+      final ElementPointer pointer = _elementPointer(table, <int>[
+        b,
+      ], withByte: driven.length == 1);
       final PoolHandle base = _pool.base(
-        '${_printedName(table)}-$strideWords${byte == 0 ? '' : ',,$byte'}',
-        word: pzeWord(decrement: byte, address: address),
-        control: standardControl(Relocation.constant, relocation),
+        pointer.operand,
+        word: pointer.word,
+        control: pointer.control,
       );
       final String bound = _mint();
       _generated += 1; // The pair's second name is never bound (M4-6).
@@ -3002,20 +3123,37 @@ final class _Text {
   /// STO PI)6` ([J 90.02.05]; M4-10), the DO FOR's step at LOC 00714
   /// to 00716. The order is the recomputation's.
   void _subscriptIncrement(NameReference target, int step) {
-    for (final DataItem table in _driven(target.text).reversed) {
+    for (final (DataItem table, int a, int _) in _drivenBy(target).reversed) {
       final _Sym indicator = _blockWord(StorageBlock.pi, _indicator(table));
-      _op(Op.cla, _cp(_pool.stride(_strideWords(table) * step)));
+      _op(Op.cla, _cp(_pool.stride(_strideWords(table) * a * step)));
       _op(Op.add, indicator);
       _op(Op.sto, indicator);
     }
   }
 
-  /// The tables whose positional indicator [notation] drives, in the
-  /// order of their indicators.
-  List<DataItem> _driven(String notation) => <DataItem>[
-    for (final (DataItem item, String each) in semantics.positionalIndicators)
-      if (each == notation) item,
-  ];
+  /// The tables whose one-subscript indicator `a * VARIABLE + b`
+  /// [variable] drives, with a and b, in the order of their indicators.
+  List<(DataItem, int, int)> _driven(DataItem variable) =>
+      <(DataItem, int, int)>[
+        for (final (DataItem table, String _, List<ArithExpr> subscripts)
+            in semantics.positionalIndicators)
+          if (subscripts.length == 1)
+            if (_indexTerm(subscripts.single) case (
+              variable: final DataItem driver?,
+              :final int a,
+              :final int b,
+            ) when identical(driver, variable))
+              (table, a, b),
+      ];
+
+  /// The indicators a store into [target] drives. An element store
+  /// drives none.
+  List<(DataItem, int, int)> _drivenBy(NameReference target) {
+    final DataItem? item = _item(target);
+    return item == null || target.subscripts.isNotEmpty
+        ? const <(DataItem, int, int)>[]
+        : _driven(item);
+  }
 
   void _add(AddClause clause) {
     if (clause.truncated || clause.onOverflow != null) {

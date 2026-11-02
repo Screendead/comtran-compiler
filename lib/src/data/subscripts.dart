@@ -34,11 +34,17 @@ final class SubscriptChecker {
   /// (J 02.04.07; the CRYPT Symbolic Register, J 02.08).
   ///
   /// Insertion order is the order of first reference, which is the
-  /// order the object program numbers `PI)1` on (M4-4).
-  final Set<(DataItem, String)> _indicators = {};
+  /// order the object program numbers `PI)1` on (M4-4). The value is
+  /// the first reference's subscripts, from which the generator sets
+  /// the indicator (M4-10).
+  final Map<(DataItem, String), List<ArithExpr>> _indicators = {};
 
   /// The positional indicators the program needs, in `PI)` order.
-  Iterable<(DataItem, String)> get indicators => _indicators;
+  Iterable<(DataItem, String, List<ArithExpr>)> get indicators =>
+      _indicators.entries.map(
+        (MapEntry<(DataItem, String), List<ArithExpr>> each) =>
+            (each.key.$1, each.key.$2, each.value),
+      );
 
   /// One entry per distinct `a * VARIABLE ± b` subscript.
   final Set<String> _indexExpressions = {};
@@ -170,7 +176,10 @@ final class SubscriptChecker {
     // The set is the object program's `PI)` block, so it is collected
     // whatever `--no-table-limits` says (M4-4); the flag lifts the
     // diagnostic alone (D9.7).
-    _indicators.add((array, reference.subscripts.map(_notation).join(',')));
+    _indicators.putIfAbsent((
+      array,
+      reference.subscripts.map(_notation).join(','),
+    ), () => reference.subscripts);
     if (tableLimits && _indicators.length == 91) {
       // The "Appox-Max" 90 positional indicators (J 90.01.05; D9.7
       // rejects the unknown band above the printed number).

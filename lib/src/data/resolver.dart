@@ -79,7 +79,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
   );
 
   /// The program's positional indicators, in `PI)` order (M4-4).
-  Iterable<(DataItem, String)> get positionalIndicators =>
+  Iterable<(DataItem, String, List<ArithExpr>)> get positionalIndicators =>
       _subscripts.indicators;
 
   /// Set while the triage runs over a subscript expression. A condition

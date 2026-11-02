@@ -130,7 +130,7 @@ CodegenResult runCodegen(
       ...counterHead(image),
       ...data,
       ...text.units,
-      ...pointerInitialization(image),
+      ...pointerInitialization(image, text.constantIndicators),
       ...outOfLineBlocks(image, text.poolUnits),
       // The end-of-text line ([J 90.03.04]): the word's address field
       // holds the relative program entry point, and the LOC column

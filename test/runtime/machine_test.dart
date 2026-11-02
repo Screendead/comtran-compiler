@@ -789,6 +789,42 @@ final List<String> _subscriptStores = <String>[
   '      *FINISH',
 ];
 
+/// Three three-word internal tables, and DEEP, an external view of the
+/// constants 1 to 5: two by two, or with [flat] a list of five.
+List<String> _cells(List<String> procedure, {bool flat = false}) => <String>[
+  '      *DATA',
+  // The base `CELL2-2` must stay at or above address zero.
+  internalCard('P1', '9'),
+  internalCard('P2', '9'),
+  for (final String suffix in ['', '2', '3']) ...[
+    dataCard(name: 'TAB$suffix', level: '1', quantity: '3'),
+    internalCard('CELL$suffix', '999', level: '2'),
+  ],
+  dataCard(name: 'TABLE', level: '1'),
+  for (var k = 1; k <= 5; k++)
+    dataCard(level: '2', description: "'${'$k'.padLeft(6, '0')}'"),
+  dataCard(type: 'REDEF', description: 'TABLE'),
+  if (flat) ...[
+    dataCard(name: 'ROWS', level: '1', quantity: '5'),
+    dataCard(name: 'DEEP', level: '2', mode: 'E', description: '9(6)'),
+  ] else ...[
+    dataCard(name: 'SQUARE', level: '1', quantity: '2'),
+    dataCard(name: 'ROW', level: '2', quantity: '2'),
+    dataCard(name: 'DEEP', level: '3', mode: 'E', description: '9(6)'),
+  ],
+  for (final String name in ['I', 'K', 'NUM', 'W', 'S'])
+    internalCard(name, '9(6)'),
+  '      *PROCEDURE',
+  ...procedure,
+  '      *FINISH',
+];
+
+/// [count] words from the first word of [label].
+List<int> _words(Machine subject, JobCompilation job, String label, int count) {
+  final int first = addressOf(job, label);
+  return <int>[for (var k = 0; k < count; k++) subject.state.read(first + k)];
+}
+
 /// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
 final List<String> _subChain = <String>[
   '      *DATA',
@@ -1577,6 +1613,56 @@ void main() {
       ]);
       // A read from byte 0 gives 300.
       expect(subject.state.read(addressOf(job, 'NB')), 3);
+    });
+
+    test('a literal subscript addresses its element from load time', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _cells(<String>[
+          '      START.  SET NUM = 7, MOVE NUM TO CELL (2).',
+          '            MOVE DEEP (2, 1) TO W.',
+          '            STOP RUN.',
+        ]),
+      );
+      // Master exited BASE LOCATOR NOT LOADED: no store set either one.
+      expect(_words(subject, job, 'TAB', 3), <int>[0, 7, 0]);
+      // DEEP (2, 1) is the third word of the two by two table.
+      expect(subject.state.read(addressOf(job, 'W')), 3);
+    });
+
+    test('an index expression follows its variable', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _cells(<String>[
+          '      START.  SET NUM = 7, SET I = 1.',
+          '            MOVE NUM TO CELL (I + 1).',
+          '            MOVE NUM TO CELL2 (2 * I - 1).',
+          // J 02.04.07.01: SET K = K + 2 updates A (J, K + 1).
+          '            SET K = 0, SET K = K + 2.',
+          '            MOVE NUM TO CELL3 (K + 1).',
+          '            STOP RUN.',
+        ]),
+      );
+      expect(_words(subject, job, 'TAB', 3), <int>[0, 7, 0]);
+      expect(_words(subject, job, 'TAB2', 3), <int>[7, 0, 0]);
+      expect(_words(subject, job, 'TAB3', 3), <int>[0, 0, 7]);
+    });
+
+    test('a DO FOR sets the indicator from FROM and steps it by BY', () {
+      // Master set it to element 1 and stepped one element: 6 and 6.
+      for (final (String loop, int sum) in <(String, int)>[
+        ('3(1)5', 3 + 4 + 5),
+        ('1(2)5', 1 + 3 + 5),
+      ]) {
+        final (JobCompilation job, Machine subject) = compiled(
+          _cells(<String>[
+            '      START.  DO RTN FOR I = $loop.',
+            '            STOP RUN.',
+            '      RTN.  BEGIN SECTION.',
+            '            MOVE DEEP (I) TO W, SET S = S + W.',
+            '            END RTN.',
+          ], flat: true),
+        );
+        expect(subject.state.read(addressOf(job, 'S')), sum, reason: loop);
+      }
     });
 
     test('a sub-chain inside a chain keeps the outer park', () {

@@ -2298,6 +2298,58 @@ void main() {
       ]);
     });
 
+    test('an index expression offsets the base and scales the stride', () {
+      final List<String> all = lines(cells, [
+        '      START.  SET I = 2.',
+        '            IF NUM GT TAB CELL (2 * I - 1) THEN STOP RUN.',
+        '            STOP RUN.',
+      ]);
+      // Element 2·I − 1 is element −1 plus I steps of 2: the base two
+      // words ahead of CELL, the multiplier the 2 of the pool.
+      expect(upTo(all, '\tSTO PI)1'), [
+        'GN)000 START\tCLA CP)+2',
+        '\tSTO I',
+        'GN)002\tEQU CP)+9',
+        '\tLDQ I',
+        '\tMPY CP)+2',
+        '\tXCA ',
+        '\tADD GN)002',
+        '\tSTO PI)1',
+      ]);
+      expect(all, contains('\tPZE CELL-2'));
+    });
+
+    test('a constant increment of K steps the indicator of K + 1', () {
+      final List<String> all = lines(cells, [
+        '      START.  SET I = I + 2.',
+        '            IF NUM GT TAB CELL (I + 1) THEN STOP RUN.',
+        '            STOP RUN.',
+      ]);
+      // J 02.04.07.01: SET K = K + 2 updates A (J, K + 1).
+      expect(upTo(all, '\tSTO PI)1').sublist(3), [
+        '\tCLA CP)+2',
+        '\tADD PI)1',
+        '\tSTO PI)1',
+      ]);
+    });
+
+    test('a literal subscript sets its indicator at load time', () {
+      final List<String> all = lines(cells, [
+        '      START.  MOVE NUM TO TAB CELL (2).',
+        '            STOP RUN.',
+      ]);
+      // No store drives the indicator, so counter 2 sets it with the
+      // base locators: element 2 is one word on from CELL.
+      expect(all.sublist(all.indexOf('\tUSE 2')), [
+        '\tUSE 2',
+        '\tORG BL)1',
+        '\tPZE IOC)29',
+        '\tPZE CELL+1',
+        '\tUSE 1',
+        ...all.sublist(all.indexOf('\tUSE 1') + 1),
+      ]);
+    });
+
     test('an external index takes the constant increment too', () {
       // The step reads no binary index, so the external-decimal refusal
       // of the recomputation does not apply.
