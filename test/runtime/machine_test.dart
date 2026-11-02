@@ -672,11 +672,9 @@ final List<String> _byteStride = <String>[
   '      *FINISH',
 ];
 
-/// A loop over twelve items of two whole words: A `99`, B `9999` at
-/// byte 2, and C `9(6)`. Item k holds A = k, B = k and C = 100 + k, so a
-/// reader that took B from byte 0 would read `0k00` for k below 10.
-final List<String> _wordStrideByte = <String>[
-  '      *DATA',
+/// Twelve items of two whole words: A `99`, B `9999` at byte 2, and
+/// C `9(6)`. Item k holds A = k, B = k and C = 100 + k.
+final List<String> _wordStrideTable = <String>[
   dataCard(name: 'TABLE', level: '1'),
   for (var k = 1; k <= 12; k++)
     dataCard(
@@ -690,6 +688,13 @@ final List<String> _wordStrideByte = <String>[
   dataCard(name: 'A', level: '2', description: '99'),
   dataCard(name: 'B', level: '2', description: '9999'),
   dataCard(name: 'C', level: '2', description: '9(6)'),
+];
+
+/// A loop over [_wordStrideTable]. A reader that took B from byte 0
+/// would read `0k00` for k below 10.
+final List<String> _wordStrideByte = <String>[
+  '      *DATA',
+  ..._wordStrideTable,
   dataCard(name: 'INDEX', level: '1', description: '99'),
   dataCard(name: 'SB', level: '1', description: '9(6)'),
   for (final String name in ['NB', 'NG', 'SN'])
@@ -709,6 +714,47 @@ final List<String> _wordStrideByte = <String>[
   '            MOVE B (INDEX) TO NB.',
   '            SET SN = SN + NB.',
   '            END RTN.',
+  '      *FINISH',
+];
+
+/// Moves the index through 1, 3, 1, 2 and 3 by a MOVE, a SET, a SET of
+/// a difference, an ADD and a constant increment, and reads A, an
+/// external table holding 1, 2 and 3, after each step. Then stores 7
+/// into element 2 of a three-word table through a subscripted target.
+final List<String> _subscriptStores = <String>[
+  '      *DATA',
+  internalCard('P1', '9'),
+  internalCard('P2', '9'),
+  dataCard(name: 'TAB', level: '1', quantity: '3'),
+  internalCard('CELL', '999', level: '2'),
+  dataCard(name: 'TABLE', level: '1'),
+  for (var k = 1; k <= 3; k++)
+    dataCard(level: '2', description: "'${'$k'.padLeft(6, '0')}'"),
+  dataCard(type: 'REDEF', description: 'TABLE'),
+  dataCard(name: 'ATAB', level: '1', quantity: '3'),
+  dataCard(name: 'A', level: '2', mode: 'E', description: '9(6)'),
+  for (final String name in ['I', 'ONE', 'NUM', 'WS', 'WM', 'WA', 'WI'])
+    internalCard(name, '9(6)'),
+  '      *PROCEDURE',
+  '      START.  SET ONE = 1, MOVE ONE TO I.',
+  '            SET I = 3, MOVE A (I) TO WS.',
+  '            SET I = I - 2, MOVE A (I) TO WM.',
+  '            ADD ONE TO I, MOVE A (I) TO WA.',
+  '            SET I = I + 1, MOVE A (I) TO WI.',
+  '            SET I = I - 1, SET NUM = 7, MOVE NUM TO CELL (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
+final List<String> _subChain = <String>[
+  '      *DATA',
+  internalCard('NUM', '999'),
+  internalCard('X', '9(5)'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 5.',
+  '            SET X = NUM * 2 + (NUM * 3 + 1).',
+  '            STOP RUN.',
   '      *FINISH',
 ];
 
@@ -1441,6 +1487,84 @@ void main() {
       expect(subject.state.read(addressOf(job, 'NG')), 6);
       // The subscripted MOVE source reads through the same pointer.
       expect(subject.state.read(addressOf(job, 'SN')), 78);
+    });
+
+    test('a SET, an ADD and a subscripted MOVE target move the element', () {
+      final (JobCompilation job, Machine subject) = compiled(_subscriptStores);
+      // Each store moved the indicator to the element the index names.
+      expect(subject.state.read(addressOf(job, 'WS')), 3);
+      expect(subject.state.read(addressOf(job, 'WM')), 1);
+      expect(subject.state.read(addressOf(job, 'WA')), 2);
+      expect(subject.state.read(addressOf(job, 'WI')), 3);
+      final int tab = addressOf(job, 'TAB');
+      expect(
+        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
+        <int>[0, 7, 0],
+      );
+    });
+
+    test('a subscript store reads a field from its own byte', () {
+      // The loop above sets its indicators from the DO FOR base; here
+      // one MOVE sets the index, so the subscript store's base does.
+      final (JobCompilation job, Machine subject) = compiled(<String>[
+        '      *DATA',
+        // The base `B-2` must stay at or above address zero.
+        internalCard('P1', '9'),
+        internalCard('P2', '9'),
+        ..._wordStrideTable,
+        internalCard('THREE', '99'),
+        internalCard('IDX', '99'),
+        internalCard('NB', '9(6)'),
+        '      *PROCEDURE',
+        '      START.  SET THREE = 3, MOVE THREE TO IDX.',
+        '            MOVE B (IDX) TO NB.',
+        '            STOP RUN.',
+        '      *FINISH',
+      ]);
+      // A read from byte 0 gives 300.
+      expect(subject.state.read(addressOf(job, 'NB')), 3);
+    });
+
+    test('a sub-chain inside a chain keeps the outer park', () {
+      final (JobCompilation job, Machine subject) = compiled(_subChain);
+      // Both products in one cell would give 3·5 + 3·5 + 1 = 31.
+      expect(subject.state.read(addressOf(job, 'X')), 26);
+    });
+
+    test('a subscripted MOVE target aligns by the decimal point', () {
+      final (JobCompilation job, Machine subject) = compiled(<String>[
+        '      *DATA',
+        // The bases `UP-1` and `DN-1` must stay at or above address zero.
+        internalCard('P1', '9'),
+        dataCard(name: 'AREA', level: '1'),
+        dataCard(level: '2', description: "'0401234'"),
+        dataCard(type: 'REDEF', description: 'AREA'),
+        dataCard(name: 'VIEW', level: '1'),
+        dataCard(name: 'EXT', level: '2', mode: 'E', description: '999'),
+        dataCard(name: 'EXF', level: '2', mode: 'E', description: '99V99'),
+        dataCard(name: 'UP', level: '1', quantity: '2'),
+        internalCard('UPC', '99V99', level: '2'),
+        dataCard(name: 'DN', level: '1', quantity: '2'),
+        internalCard('DNC', '99V9', level: '2'),
+        internalCard('I', '9'),
+        '      *PROCEDURE',
+        '      START.  SET I = 2.',
+        '            MOVE EXT TO UPC (I), MOVE EXF TO DNC (I).',
+        '            STOP RUN.',
+        '      *FINISH',
+      ]);
+      // 040 into 99V99 is 40.00, and 12.34 into 99V9 drops to 12.3, the
+      // quotient stored from the MQ.
+      final int up = addressOf(job, 'UP');
+      final int dn = addressOf(job, 'DN');
+      expect(
+        <int>[for (var k = 0; k < 2; k++) subject.state.read(up + k)],
+        <int>[0, 4000],
+      );
+      expect(
+        <int>[for (var k = 0; k < 2; k++) subject.state.read(dn + k)],
+        <int>[0, 123],
+      );
     });
 
     test('a MOVE and an ADD align by the decimal point', () {

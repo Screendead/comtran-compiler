@@ -209,39 +209,41 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    FOR now steps the indicator's byte, carries it into the word, and
    sets every base with its byte (M6-9). The subscript store and a
    whole-word read through `LAC PI)n,r` still refuse such a stride.
-8. **A subscripted MOVE target drops its subscript.** `_moveUnit`
-   (`lib/src/codegen/procedure.dart`) takes `targetSubscripted` and
-   passes it to no internal-decimal arm, so `MOVE NUM TO TAB CELL (I)`
-   compiles to `CLA NUM / STO CELL` and writes the first cell on every
-   pass. The DO FOR decision of M6-9 found it on 2026-10-25. The
-   sample's subscripted moves are sources only, and the applied deck
-   has no subscripted MOVE target. Ruled: handle it. PR #168.
-9. **A SET or ADD into a subscript variable updates no indicator.**
-   `_subscriptRecomputation` (`lib/src/codegen/procedure.dart`) has
-   one caller, the MOVE. So `SET IDX = 3` stores the index and leaves
-   every positional indicator it drives on the old element. M4-10 asks
-   for the update at every store into a subscript variable
-   ([J 02.04.07.01]). The DO FOR decision of M6-9 found it on
-   2026-10-25. The sample's one subscript store is a MOVE, and the
-   applied deck stores into INDEX only through its DO FOR. Ruled:
-   handle it. PR #168.
-
-10. **The subscript store drops the byte of a field inside a word.**
-    `_subscriptRecomputation` builds the base `NAME-n` with a zero
-    decrement, the 1962 defect at `RETPREM-2` (M6-4 finding 1), which the
-    golden needs at the sample's site. Elsewhere SYS)132 reads from byte 0:
-    over items of `99`, `9999`
-    and `9(6)`, `MOVE THREE TO IDX` then `MOVE B (IDX) TO NB` gives 300
-    for 3. Jack ruled on 2026-10-25: the several-indicator drop is the
-    1962 compiler's own defect. It stays, documented. On 2026-11-02 he
-    ruled that defect 10 keeps the 1962 behaviour. The W4 tutorial
-    must warn of it. The applied deck has no subscript store.
-11. **A sub-chain in a chain overwrites the outer park.** The arm
-    `BinaryExpr() when _additive(term)` (`procedure.dart`:3031) calls
-    `_chain`, whose cells start at 0. `SET X = NUM * 2 + (NUM * 3 + 1)`
-    parks both products in `RS)1` and stores 3N + 3N + 1, not
-    2N + 3N + 1. The PR 153 review found it on 2026-10-25. The applied
-    deck does not reach the arm. Ruled: handle it. PR #168.
+8. **A subscripted MOVE target dropped its subscript. Ruled: handle
+   it. Handled by PR #168.** `MOVE NUM TO CELL (I)` wrote the first
+   cell on every pass. An internal-decimal target now stores through
+   `LAC PI)n,r / TXL SYS)294,r,0 / STO 0,r`, the comparand form of LOC
+   01410 to 01412. After a convert drops fraction digits (defect 1),
+   the quotient stores from the MQ through `STQ 0,r`. An edited target
+   refuses `a subscripted edited-store target (no sample instance)`.
+   An ADD target dropped its subscript too. PR #168 refuses it, and
+   does not handle it: `a subscripted ADD target (no sample instance)`.
+9. **A SET or ADD into a subscript variable updated no indicator.
+   Ruled: handle it. Handled by PR #168.** Each SET and each plain ADD
+   target now updates the indicators it drives (M4-10;
+   [J 02.04.07.01]). `SET K = K + c` steps them in place; any other
+   store recomputes. `SET EXI = 3` into an external-decimal index now
+   refuses `an external-decimal subscript variable (M6-9)`, as the
+   MOVE does. Master compiled it and moved no indicator. Open: MOVE
+   and ADD CORRESPONDING update no indicator, and
+   no store sets the indicator of a literal or expression subscript.
+   `CELL (2)` and `CELL (I + 1)` exit with `BASE LOCATOR NOT LOADED`,
+   and `SET K = K + 2` leaves `A(J, K+1)` stale. The in-place step
+   cannot correct an indicator that no store has set.
+10. **The subscript store dropped the byte of a field inside a word.
+    Ruled: a store that drives several indicators keeps the 1962
+    behaviour (boundary A). PR #168 handles a store that drives one.**
+    The base of a one-indicator store now carries the byte, so
+    `MOVE B (IDX) TO NB` gives 3, not 300. A store that drives several
+    keeps the zero decrement, the 1962 defect at `RETPREM-2` (M6-4
+    finding 1), which the golden needs at the sample's site. Such a
+    store over a field inside a word still reads from byte 0. Jack's
+    ruling of 2026-10-25, kept on 2026-11-02: the 1962 compiler's own
+    defect stays, documented. The W4 tutorial must warn of it.
+11. **A sub-chain in a chain overwrote the outer park. Ruled: handle
+    it. Handled by PR #168.** A nested chain now counts only the cells
+    no enclosing chain has parked in, so
+    `SET X = NUM * 2 + (NUM * 3 + 1)` gives 2N + 3N + 1.
 12. **An alphameric comparison read one word of a field across a word
     boundary. Fixed on 2026-10-25.** Statement 130,00 compares two
     `A(6)` fields at bytes 4 and 1, so no detail matched its master,

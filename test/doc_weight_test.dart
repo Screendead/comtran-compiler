@@ -12,7 +12,7 @@ const int defaultBudget = 8000;
 const Map<String, int> budgets = <String, int>{
   'docs/comtran-language-definition.md': 115000,
   'docs/design/decisions.md': 50000,
-  'docs/HANDOVER.md': 9500,
+  'docs/HANDOVER.md': 9600,
   'docs/design/m3-data.md': 9100,
   // M6-9 records one decision per chunk 2b item, and the tapes and the
   // run of chunk 2b.
