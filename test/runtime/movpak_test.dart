@@ -51,12 +51,29 @@ void main() {
       expect(subject.state.read(targetArea + 1), characters('000 00'));
     });
 
-    test('SYS)180 refuses a MON reference, which nothing emits', () {
-      // `MON PI)NN,,0` (J 90.02.15) carries prefix 5, and RT-4 decodes
-      // only PZE and MZE.
+    test('SYS)180 reads a MON reference from its positional indicator', () {
+      // `MON PI)NN,,0` (J 90.02.15 Case 3): the indicator holds the
+      // element's pointer, word and byte, as `LDI PI)2 / STI SYS)132`
+      // copies it at LOC 01445-01446.
+      const int indicator = start + 0x40;
       final Machine subject = machine(<int, int>{
         start: tsx(180),
-        start + 1: Word36.signBit | (1 << 33) | pze(targetArea, 0),
+        start + 1: Word36.signBit | (1 << 33) | pze(indicator, 0),
+        start + 2: txi(243, 1),
+        start + 3: endOfJob,
+        indicator: pze(targetArea + 1, 3),
+        targetArea + 1: characters('000000'),
+      });
+      expect(subject.run(maxSteps: 20).outcome, RunOutcome.endOfJob);
+      expect(subject.state.read(targetCell), pze(targetArea + 1, 3));
+      expect(subject.state.read(targetArea + 1), characters('000 00'));
+    });
+
+    test('SYS)180 refuses an address word of any other prefix', () {
+      // RT-4 decodes PZE, MZE and MON alone; `PON` is prefix 1.
+      final Machine subject = machine(<int, int>{
+        start: tsx(180),
+        start + 1: (1 << 33) | pze(targetArea, 0),
         start + 2: txi(243, 1),
         start + 3: endOfJob,
       });
@@ -66,7 +83,7 @@ void main() {
           isA<StateError>().having(
             (StateError e) => e.message,
             'message',
-            'an address word of prefix 5',
+            'an address word of prefix 1',
           ),
         ),
       );
