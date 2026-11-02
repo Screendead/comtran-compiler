@@ -21,3 +21,9 @@ at e7a95d7 (M6-10).
   (run from the repository root); `probe.dart` writes the probe decks
   (copy to `probe/` in a checkout, `dart run probe/probe.dart OUTDIR`);
   `house.css` is the house style.
+
+Addendum, 2026-11-02 (the review of pull request #191): `index.html`
+gains a dated section. After the merge of master (75aead9), every
+indicator whose subscripts are all literals takes its load-time word,
+read or not (69be2c5). Round 1 (dc0a60d) adds 182,00 on literal terms
+that fold below one.

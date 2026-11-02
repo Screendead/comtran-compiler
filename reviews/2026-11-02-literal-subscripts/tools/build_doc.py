@@ -18,6 +18,11 @@ CODE = "1378b8c"
 RECORD = "e7a95d7"
 TESTS = 1609
 BLOB = f"https://github.com/Screendead/comtran-compiler/blob/{RECORD}"
+# The addendum of 2026-11-02 cites the commits after the record.
+MERGE = "75aead9"
+EVERY = "69be2c5"
+ROUND1 = "dc0a60d"
+COMMIT = "https://github.com/Screendead/comtran-compiler/commit"
 
 CSS = open(os.path.join(HERE, "house.css")).read()
 e = html.escape
@@ -201,6 +206,24 @@ the branch. The recompute shape is attested for one subscript only. All-literal 
 </ul>
 <p>Records: M6-10 in <a href="{BLOB}/docs/design/m6-acceptance.md">m6-acceptance.md</a> (the M4 record is locked at its word budget, so it
 points there), and HANDOVER item 9.</p>
+</section>
+
+<section class="item" id="addendum">
+<div class="itemhead"><span class="chip done">Decided</span><h2>Addendum, 2026-11-02: every literal indicator takes its word</h2></div>
+<p>Added after the record, in the review of pull request #191. The sections above describe the code at {CODE} and stand as
+written. The merge of master at <a href="{COMMIT}/{MERGE}">{MERGE}</a> brought pull request #186. It gives each field of a
+subscripted CORRESPONDING operand its own indicator, numbered after every written one. The written group keeps its own
+indicator too (M6-9).</p>
+<p><strong>What broke.</strong> The code at {CODE} set a constant indicator only when a word read it. Nothing reads the group
+indicator of <code>MOVE CORRESPONDING G TO TAB (2)</code>, so it stayed <code>PZE 0</code>, unlike its fields. M6-10 defines a constant
+indicator by its subscripts, not by its readers. The record outranks the code, so one option was viable.</p>
+<p><strong>Decided at <a href="{COMMIT}/{EVERY}">{EVERY}</a>: every indicator whose subscripts are all literals takes its load-time
+word, read or not.</strong> M6-10 now says so. The form check still runs at each indicator's first use.</p>
+<div class="opt"><strong>Rejected: set the group indicator in the two CORRESPONDING paths.</strong> It fixes this case only. Any other
+unread literal indicator would stay empty, and a later reader of M6-10 would find the rule false.</div>
+<p><strong>Round 1 of the review, at <a href="{COMMIT}/{ROUND1}">{ROUND1}</a>.</strong> Literal terms that fold below one, such as
+<code>CELL (2 - 3)</code>, now draw 182,00, as <code>CELL (0)</code> does (M3-20). The job still compiles. Tests pin the two pointer
+refusals that the record did not list: a fractional DO FOR bound, and a subscript count unlike the array dimensions.</p>
 </section>
 
 <footer>
