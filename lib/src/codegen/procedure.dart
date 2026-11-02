@@ -2340,12 +2340,13 @@ final class _Text {
         }
         _setup(source, subscripted: sourceSubscripted, target: false);
         _externalConvert(source);
-        // Register 1 counts as lost after every MOVPAK sequence (notes
-        // question 2), though the call preserves it (RT-3), so outside
-        // a CORRESPONDING expansion a locator it held reloads for the
-        // store.
+        // A locator register 1 held reloads for the store (`_movpakClears`).
         _movpakClears();
-        final int deficit = _moveDeficit(source, target);
+        final int deficit = _moveDeficit(
+          source,
+          target,
+          held: _storedDigits(source),
+        );
         if (deficit > 0) {
           // The convert leaves the value in the accumulator, so the
           // multiply takes the attested `XCA / MPY / XCA` (00627–00631).
@@ -2551,7 +2552,7 @@ final class _Text {
       // (`docs/design/runtime.md` RT-4).
       _unruled('an edited store of more than 10 digits (RT-4)');
     }
-    final int deficit = _moveDeficit(source, target);
+    final int deficit = _moveDeficit(source, target, held: s.digits);
     if (deficit < 0) {
       // The quotient of a downscaling divide is in the MQ, and SYS)180
       // renders the accumulator. No site moves a quotient across, and
@@ -2608,11 +2609,13 @@ final class _Text {
   }
 
   /// The fraction digits a MOVE from [source] to [target] adds, negative
-  /// when it drops them. F p. 42 aligns by the decimal point.
-  int _moveDeficit(DataItem source, DataItem target) {
+  /// when it drops them. F p. 42 aligns by the decimal point. [held] is
+  /// the digit count the accumulator holds before the upscale: a
+  /// convert holds the stored digits alone.
+  int _moveDeficit(DataItem source, DataItem target, {required int held}) {
     final int deficit =
         _sem(target).fractionDigits - _sem(source).fractionDigits;
-    if (deficit > 0 && _sem(source).digits + deficit > 10) {
+    if (deficit > 0 && held + deficit > 10) {
       // The `XCA` keeps the low word of the product (RT-4).
       _unruled('an aligned move of more than 10 digits (no sample instance)');
     }

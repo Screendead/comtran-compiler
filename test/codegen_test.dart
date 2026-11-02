@@ -2520,13 +2520,25 @@ void main() {
       description: pic,
     );
 
-    test('the convert counts the stored characters', () {
+    test('the convert counts the stored digits', () {
       expect(
         steps([
           field('EXT', 'VS9'),
           field('INT', 'V99', mode: 'I'),
         ], 'MOVE EXT TO INT.'),
         ['\tTXI SYS)184,1,1'],
+      );
+    });
+
+    test('the aligned-move limit counts the stored digits', () {
+      // Five stored digits upscale by three to eight; the eight digits
+      // the pictorial represents would pass the limit of ten.
+      expect(
+        lines(
+          [field('EXT', '9(5)SSS'), field('INT', '9(8)', mode: 'I')],
+          ['      START.  MOVE EXT TO INT.', '            STOP RUN.'],
+        ).sublist(3, 8),
+        ['\tTXI SYS)184,1,5', '\tXCA ', '\tMPY CP)+2', '\tXCA ', '\tSTO INT'],
       );
     });
 

@@ -344,12 +344,14 @@ void main() {
         dataCard(name: 'INNER', level: '1', mode: 'E', description: '9S9'),
         dataCard(name: 'BEHIND', level: '1', mode: 'E', description: '9V9S'),
         dataCard(name: 'EINNER', level: '1', description: r'$8S9'),
+        dataCard(name: 'EPOINT', level: '1', description: r'$9.9S'),
       ];
       for (final statement in [
         'MOVE INNER TO NUM.',
         'MOVE BEHIND TO NUM.',
         'MOVE INNER TO EDT.',
         'MOVE EINNER TO EDT.',
+        'MOVE EPOINT TO EDT.',
         'ADD EINNER TO NUM.',
         'SET NUM = INNER + 1.',
       ]) {

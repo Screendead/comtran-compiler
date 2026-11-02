@@ -180,12 +180,15 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    pair of unequal scales (:2590). The edited-source branch of `_add`
    (:2526) skips that check. Ruled: handle it. PR #167.
 3. **An `S` source position was read as a stored character. Ruled:
-   handle it. Handled by PR #169.** Counts now take the stored digits.
-   An `S` between them, or behind them under a `V` or point, refuses,
-   as does an edit run whose drop reaches them.
+   handle it. Handled by PR #169.** The convert, the edit run and the
+   edited fetch now count the stored digits. An `S` between them, or
+   behind them under a `V` or point, refuses, as does an edit run whose
+   drop reaches them. An external-to-external move refuses any `S`.
 4. **A `STO` through the register the convert overwrote. Ruled: handle
-   it. Handled by PR #169.** The store now reloads the locator. The run
-   was already right: the move restores register 1 (RT-3).
+   it. Handled by PR #169.** The store now reloads the locator. Inside
+   a CORRESPONDING expansion it does not: the expansion defers the
+   kill of register 1 to its end. The run was right in both cases: the
+   move restores register 1 (RT-3).
 5. **A leading run that mixes `8` and `*` compiles.** The control word
    has one address field for the leading run, so it cannot say which
    cells take a blank and which an asterisk. `$8*89.99` compiles with no
