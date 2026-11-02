@@ -142,7 +142,7 @@ defect. Most differences are the CORRESPONDING finding
 
 **Jack ruled on M6-9 on 2026-11-02.** "Compile" in his rule means the
 diagnostic listing, not the object deck. The generator's refusals stay
-and get a new label. Master does not carry the new label yet.
+and get a new label. No pull request carries it.
 
 **The next work is the web track.** W2 waits on PR #178; W3 and W4
 follow. The codegen prototypes run the review loop in this order:
@@ -516,9 +516,9 @@ https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw. The record
 |---|---|
 | Merge the routine pull requests | Merged: #121, #161, #162, #164, #165, #173, #174 |
 | Handle codegen defects 1 to 4 and 8 to 11 | PRs #167, #168, #169, reviewed in that order |
-| Defect 10 keeps the 1962 behaviour | Merged, PR #172, with the tutorial warning |
+| Defect 10 keeps the 1962 behaviour | This file; PR #172 holds the ruling of 2026-10-25 and the tutorial warning |
 | Defect 6: message 948,00, severity 4, the OPEN kept, a straight run only | PR #170 |
-| M6-9: "compile" means the diagnostic listing; the refusals stay and get a new label | Not yet made |
+| M6-9: "compile" means the diagnostic listing; the refusals stay and get a new label | No pull request carries it |
 | Dangling continuation: message 949,00, class 1, `--pedantic` only | PR #177 |
 | W2: mark the genuine manual typos [sic] on the generated transcription pages; remove the em dashes from the language reference | PR #178 |
 | The three silent subscripts draw messages 79, 182 and 71 | Branch `subscript-diagnostics` |
