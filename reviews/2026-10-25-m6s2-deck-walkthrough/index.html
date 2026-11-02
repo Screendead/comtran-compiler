@@ -58,6 +58,9 @@ section { display:flex; flex-direction:column; gap:.2rem; }
         border:1px solid currentColor; white-space:nowrap; }
 .chip.call { color:var(--stamp); background:var(--stamp-soft); }
 .chip.done { color:var(--settled); }
+.ruling { border:1px solid var(--settled); border-left-width:4px; padding:.7rem 1rem; margin:1rem 0; }
+.ruling .tag { font-family:var(--mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--settled); margin:0 0 .4rem; }
+.ruling blockquote { margin:.4rem 0; padding-left:.8rem; border-left:2px solid var(--rule); }
 .itemhead { display:flex; gap:.75rem; align-items:baseline; flex-wrap:wrap;
             margin-bottom:.35rem; }
 .item { border-top:1px solid var(--rule); padding-top:1.3rem; }
@@ -193,6 +196,18 @@ textarea { width:100%; min-height:4.5rem; font-family:var(--mono); font-size:.8r
 review/2026-09-14-m6s2-rule &middot; evidence 2026-10-25 &middot; repository at f1dc820</p>
 <h1>The deck reading, walked through</h1>
 </header>
+
+<section>
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; pitch page, call 4</p>
+<p>Jack answered on <a href="https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw">the pitch page of 2026-11-02</a>, an interactive page with no review record behind it, by clicking one option. The page saved the
+pick at 13:11:50Z. The retrofit record <code>review/2026-11-02-pitch-rulings</code> (at <code>3f938c6</code>) carries that page and the saved pick as evidence.</p>
+<blockquote><strong>The listing</strong> (pick <code>listing</code>)</blockquote>
+<p><strong>Read as:</strong> Option 1 of this record. &ldquo;Compile&rdquo; in the rule of 2026-09-14 means the diagnostic listing. Both refusals stay, and take new labels. Nothing is invented.</p>
+<p>The pitch page put this record's question in one line: &ldquo;In your 14 September rule, does &lsquo;compile&rsquo; mean printing the listing, or punching the object deck?&rdquo; It linked this record as the walkthrough.</p>
+<p class="mono">The per-item chips below are unchanged: they show the question as put to him.</p>
+</div>
+</section>
 
 <section class="answer">
 <div class="itemhead"><span class="chip call">Your call</span>
