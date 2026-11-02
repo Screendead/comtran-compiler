@@ -919,8 +919,8 @@ commits it.
 
 Jack closed both copy calls on 2026-11-02 (`docs/design/web-copy.md`,
 section 6). The pages mark the five J28-6169 typos `[sic]`. The language
-definition keeps an em dash only in quotations, code, headings and citations;
-the headings are an open call.
+definition keeps an em dash only in quotations, code, headings, citations
+and four empty table cells; the headings are an open call.
 
 **W3 — the stages.** The step-through. The six `--emit-*` dumps become panels,
 and the reader selects a statement to mark its part in each one. The join key
