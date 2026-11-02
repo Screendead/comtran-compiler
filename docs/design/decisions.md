@@ -445,7 +445,7 @@ record built on it.*
 
 **Oracle.** decision-conformance only
 
-*Citations:* [J 02.03.02]; F pp. 21, 110; [J 90.04.01] msgs 178, 192
+*Citations:* [J 02.03.02]; [F pp. 21], [110]; [J 90.04.01] msgs 178, 192
 
 ## D2 — Program structure (§8.5.2)
 
@@ -542,7 +542,7 @@ record built on it.*
 
 **Oracle.** listing-diff for STOP RUN's generated code: attested at [J 90.05] listing, PDF p. 204, LOC 00521-00526 (`TSX SYS)178,4` / `PZE CP)+26,,CP)+27` / `PZE CP)+28,,CP)+29` / `TSX SYS)177,4` / `PZE IOC)1` / `TXI IOC)40,0`), re-derived and scan-checked under Open Question 47. Decision-conformance only for STOP n's generated code shape and its restart/resume semantics, since Open Question 69 remains open.
 
-*Citations:* F pp. 25, 54; [J 02.04.06] #9; [J 90.04.01] msgs 2, 175; [J 90.02.14]; [J 90.02.08]; [J 05.06.04]; [J 90.05] listing, PDF p. 204
+*Citations:* [F pp. 25], [54]; [J 02.04.06] #9; [J 90.04.01] msgs 2, 175; [J 90.02.14]; [J 90.02.08]; [J 05.06.04]; [J 90.05] listing, PDF p. 204
 
 ## D3 — Data description (§8.5.3)
 
@@ -655,7 +655,7 @@ record built on it.*
 
 **Oracle.** listing-diff against the object listing ([J 90.05] listing, PDF pp. 206, 210–211 — the four `XCA / ACL / LRS 35 / DVP / STQ` SET tails; PDF pp. 203, 209 — the three `CLA / LRS 35 / DVP CP)+24` digit-split stores at LOC 00423–00425, 01112–01114 and 01141–01143; PDF pp. 215–216 — the constant-pool words, including CP)+24, +31, +32, +33, +34). Manual example ([F p. 115] worked cases 126.5027; [F p. 116] 2063.78 truncated against rounded). Decision-conformance only for negative values, for TRUNCATED codegen, for the round-step emission rule, and for the MOVPAK round-step internals.
 
-*Citations:* (F pp. 44, 115–116; [J 90.02.16]–17); Narrowed: ([J 90.02.10], 90.02.16–19, 90.02.23, 90.02.30–32; [J 90.05] listing, PDF pp. 196, 203, 206, 209–211; images/page-148.png, page-157.png, page-162.png, page-169.png, page-206.png, page-210.png); Open Question 26 (F pp. 42–44, 115–116; [J 90.02.10], 90.02.16–19, 90.02.23–24, 90.02.30–32; [J 90.05] listing, PDF pp. 196, 203, 206, 209–211); Open Question 28, for the digit-split divide, the constant-pool values and the TRUNCATED gap ([J 90.02.15], 90.02.17, 90.02.26–27, 90.02.30; [J 90.05] listing, PDF pp. 193, 203, 209, 215–216; images/page-216.png)
+*Citations:* ([F pp. 44], [115–116]; [J 90.02.16]–17); Narrowed: ([J 90.02.10], 90.02.16–19, 90.02.23, 90.02.30–32; [J 90.05] listing, PDF pp. 196, 203, 206, 209–211; images/page-148.png, page-157.png, page-162.png, page-169.png, page-206.png, page-210.png); Open Question 26 ([F pp. 42–44], [115–116]; [J 90.02.10], 90.02.16–19, 90.02.23–24, 90.02.30–32; [J 90.05] listing, PDF pp. 196, 203, 206, 209–211); Open Question 28, for the digit-split divide, the constant-pool values and the TRUNCATED gap ([J 90.02.15], 90.02.17, 90.02.26–27, 90.02.30; [J 90.05] listing, PDF pp. 193, 203, 209, 215–216; images/page-216.png)
 
 ### D4.2 — Overflow with no ON OVERFLOW clause
 
@@ -893,7 +893,7 @@ record built on it.*
 
 **Oracle.** listing-diff (`GO TO END.OF.RUN` from the DO'd END.OF.MASTERS, and the linkage triple plus `TRA* END.OF.MASTERS`; [J 90.05] listing, PDF pp. 195–197, 201–203).
 
-*Citations:* (F pp. 50, 53, 57; [J 90.04.01] msgs 99, 128; [J 90.05] listing PDF pp. 195–197); Open Question 40 ([J 90.05] listing, PDF pp. 195–196, 201–203, 205–207, 210–213, 215)
+*Citations:* ([F pp. 50], [53], [57]; [J 90.04.01] msgs 99, 128; [J 90.05] listing PDF pp. 195–197); Open Question 40 ([J 90.05] listing, PDF pp. 195–196, 201–203, 205–207, 210–213, 215)
 
 ### D5.5 — Assigned GO TO: object-time range behaviour
 
@@ -932,7 +932,7 @@ record built on it.*
 
 **Oracle.** listing-diff for the linkage shape (head cell `AXT 0`, `SXA P,4`, `TRA P+1`, `TRA* P`; [J 90.05] listing, PDF pp. 202–203); decision-conformance only for recursive behavior.
 
-*Citations:* (F pp. 50, 53; [J 90.01.05] f); ([J 90.02.01]–06, 90.02.11; [J 02.08.03]); Open Question 40 ([J 90.05] listing, PDF pp. 195–196, 201–203, 205–207, 210–213, 215)
+*Citations:* ([F pp. 50], [53]; [J 90.01.05] f); ([J 90.02.01]–06, 90.02.11; [J 02.08.03]); Open Question 40 ([J 90.05] listing, PDF pp. 195–196, 201–203, 205–207, 210–213, 215)
 
 *Amended 2026-08-28 (M4 stage 2 chunk B8, `docs/design/m4-codegen.md` M4-13).* The static cycle detection of this record's Implementation is msg 947 (C2, non-historical, `--pedantic` only). A DO — an `AT END DO` included — notes when its procedure can reach, through the DO call graph, the paragraph or section open around the call, itself included; one note per such call. The graph is the generator's own nesting state, static over the text.
 
@@ -1826,7 +1826,9 @@ The deferred sites stay with their owning milestones, so the flag's coverage is 
 [F p. 15]: ../../comtran-manuals/F28-8043/02-language-structure.md#condition-names
 [F p. 18]: ../../comtran-manuals/F28-8043/02-language-structure.md#constants
 [F p. 19]: ../../comtran-manuals/F28-8043/02-language-structure.md#numeric-literals
+[F pp. 21]: ../../comtran-manuals/F28-8043/02-language-structure.md#arithmetic-expressions
 [F p. 25]: ../../comtran-manuals/F28-8043/02-language-structure.md#clauses
+[F pp. 25]: ../../comtran-manuals/F28-8043/02-language-structure.md#clauses
 [F p. 26]: ../../comtran-manuals/F28-8043/02-language-structure.md#sentences
 [F p. 27]: ../../comtran-manuals/F28-8043/02-language-structure.md#divisions
 [F p. 28]: ../../comtran-manuals/F28-8043/02-language-structure.md#punctuation-and-spacing
@@ -1837,15 +1839,21 @@ The deferred sites stay with their owning milestones, so the flag's coverage is 
 [F p. 40]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-get-command
 [F p. 41]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-file-command
 [F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
+[F pp. 42–44]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [F p. 43]: ../../comtran-manuals/F28-8043/03-procedure-description.md#editing-feature
 [F p. 44]: ../../comtran-manuals/F28-8043/03-procedure-description.md#editing-feature-1
+[F pp. 44]: ../../comtran-manuals/F28-8043/03-procedure-description.md#editing-feature-1
 [F p. 46]: ../../comtran-manuals/F28-8043/03-procedure-description.md#truth-functions
 [F p. 47]: ../../comtran-manuals/F28-8043/03-procedure-description.md#set-used-with-condition-names
 [F p. 49]: ../../comtran-manuals/F28-8043/03-procedure-description.md#assigned
+[F pp. 50]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command
 [F pp. 50-51]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command
 [F pp. 50–51]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command
 [F p. 51]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-indexing
+[53]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-data-substitution
+[54]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
 [F p. 54]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
+[57]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-begin-section-and-end-commands
 [F p. 58]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-begin-section-and-end-commands
 [F p. 59]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-include-command
 [F pp. 74-75]: ../../comtran-manuals/F28-8043/04-data-description.md#redef
@@ -1856,8 +1864,10 @@ The deferred sites stay with their owning milestones, so the flag's coverage is 
 [F p. 83]: ../../comtran-manuals/F28-8043/04-data-description.md#quantities-specified-in-named-fields
 [F p. 107]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
 [F p. 109]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#list-of-commercial-translator-commands
+[110]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#list-of-commercial-translator-commands
 [F p. 111]: ../../comtran-manuals/F28-8043/a3-glossary.md#appendix-3-glossary
 [F p. 115]: ../../comtran-manuals/F28-8043/a3-glossary.md#appendix-3-glossary
+[115–116]: ../../comtran-manuals/F28-8043/a3-glossary.md#appendix-3-glossary
 [F p. 116]: ../../comtran-manuals/F28-8043/a3-glossary.md#appendix-3-glossary
 [J 02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0201-compiler-control-cards
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction

@@ -50,7 +50,7 @@ IF OUT.OF.ZONE THEN DO BILLING.ROUTINE.A OTHERWISE
 
 Consequences a compiler writer must observe:
 
-- **At most one conditional clause per sentence** and it must be the first clause ([F p. 25]). There is no nested IF, no ELSE-IF chain, and no multi-sentence conditional scope: both the THEN arm (all comma-separated imperative clauses up to OTHERWISE or the terminating period) and the OTHERWISE arm (all clauses from OTHERWISE to the period) end at the sentence period, and both arms rejoin at the next sentence (F pp. 7, 25).
+- **At most one conditional clause per sentence** and it must be the first clause ([F p. 25]). There is no nested IF, no ELSE-IF chain, and no multi-sentence conditional scope: both the THEN arm (all comma-separated imperative clauses up to OTHERWISE or the terminating period) and the OTHERWISE arm (all clauses from OTHERWISE to the period) end at the sentence period, and both arms rejoin at the next sentence ([F pp. 7], [25]).
 - OTHERWISE may not begin a sentence: "SENTENCE CANNOT START WITH -OTHERWISE-" ([J 90.04.01], message 208,00).
 - Sentence-structure violations are diagnosed and the statement dropped: "ILLEGAL SENTENCE STRUCTURE NOTHING DONE." (196,00); "SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD." (192,00); and the recovery message "-WHEN- SUBSTITUTED FOR -IF- BECAUSE OF IMPROPER USE." (170,00) (all [J 90.04.01]). The last implies the compiler repairs an IF written where the conditional-GO TO's WHEN belongs (see ambiguities).
 - Multi-clause arms in real code (J sample program): `IF MASTER FICA GT 144.00 THEN SET WORKING FICA = WORKING FICA - (MASTER FICA - 144.00), SET MASTER FICA = 144.00.` and `IF M.EMP.NO = HIGH.VALUE THEN GO TO END.OF.RUN OTHERWISE SET D.EMP.NO = HIGH.VALUE, GO TO HIGH.DETAIL.` ([J 90.05], listing PDF p. 196).
@@ -61,7 +61,7 @@ Consequences a compiler writer must observe:
 
 A conditional expression "may be either true or false, depending on conditions existing when the expression is examined"; it may contain data-names, condition-names, arithmetic expressions, and relational expressions, and expressions may be joined by AND and OR into compound conditional expressions ([F p. 21]). The two principal types are (1) relations and (2) condition-names ([F p. 21]).
 
-Conditional expressions appear in exactly these control contexts: the IF clause ([F p. 25]), the WHEN clauses of the conditional GO TO ([F p. 48]), and inside truth functions TR( ) in arithmetic expressions (F pp. 20, 24; see §5.3.5). SET's ON OVERFLOW and GET's AT END phrases are *not* conditional expressions but appended event clauses (F pp. 40, 44; see the SET/arithmetic and Input/Output sections).
+Conditional expressions appear in exactly these control contexts: the IF clause ([F p. 25]), the WHEN clauses of the conditional GO TO ([F p. 48]), and inside truth functions TR( ) in arithmetic expressions ([F pp. 20], [24]; see §5.3.5). SET's ON OVERFLOW and GET's AT END phrases are *not* conditional expressions but appended event clauses ([F pp. 40], [44]; see the SET/arithmetic and Input/Output sections).
 
 #### 5.3.1 Relations
 
@@ -173,7 +173,7 @@ Legal symbol pairs (1 = permissible, 0 = not) ([F p. 106], rule 4):
 | ( | 1 | 0 | 0 | 1 | 1 | 0 |
 | ) | 0 | 1 | 1 | 0 | 0 | 1 |
 
-"Thus, the pair 'OR NOT' is permissible, while 'NOT OR' is not permissible" ([F p. 106]). Note in particular: NOT NOT is not permissible; NOT may be followed by a condition or by "(" but not by another NOT. NOT before a relation is built into the relation spellings themselves (NOT GT, NOT =, NOT LT) ([F p. 21]), and NOT before a condition-name or parenthesized compound negates it (F pp. 23, 105). Parentheses "may be used wherever needed ... in compound conditional expressions for the sake of clarity; where ambiguity would result from their omission, they *must* be used" ([F p. 28], rule 11).
+"Thus, the pair 'OR NOT' is permissible, while 'NOT OR' is not permissible" ([F p. 106]). Note in particular: NOT NOT is not permissible; NOT may be followed by a condition or by "(" but not by another NOT. NOT before a relation is built into the relation spellings themselves (NOT GT, NOT =, NOT LT) ([F p. 21]), and NOT before a condition-name or parenthesized compound negates it ([F pp. 23], [105]). Parentheses "may be used wherever needed ... in compound conditional expressions for the sake of clarity; where ambiguity would result from their omission, they *must* be used" ([F p. 28], rule 11).
 
 Worked interpretations of mixed AND/OR expressions are tabulated at [F pp. 23–24] (e.g. `MARRIED OR OVER.21 AND HOURLY.RATE IS GREATER THAN 3.50` = MARRIED, or the AND-pair, or both; the parenthesized variant regroups it).
 
@@ -357,12 +357,12 @@ BEGIN SECTION USING parameter.1, parameter.2, ...
 ```
 ([F p. 57])
 
-Semantics (F pp. 32–33, 52–53): at object time, data named in the DO's USING phrase is moved *positionally* into the parameter fields named in the BEGIN SECTION's USING phrase ("items of data named in a DO command will be placed in the parameter fields named in the BEGIN SECTION command in the order in which they are named", [F p. 33]); the procedure executes; then results are moved from the function fields (BEGIN SECTION GIVING) to the fields named in the DO's GIVING phrase ([F p. 33]). `DO MIN.ROUT USING R.RATE, E.RATE, M.RATE GIVING MIN.RATE.` is equivalent to three MOVEs in, `DO MIN.ROUT.`, and one MOVE out ([F pp. 52–53]). Literals may be substituted: `DO MIN.ROUT USING INSURED.AGE, BENEFIC.AGE, 70 GIVING LOW.AGE.` ([F p. 53]), as may figurative constants such as HIGH.VALUES ([F pp. 33–34]).
+Semantics ([F pp. 32–33], [52–53]): at object time, data named in the DO's USING phrase is moved *positionally* into the parameter fields named in the BEGIN SECTION's USING phrase ("items of data named in a DO command will be placed in the parameter fields named in the BEGIN SECTION command in the order in which they are named", [F p. 33]); the procedure executes; then results are moved from the function fields (BEGIN SECTION GIVING) to the fields named in the DO's GIVING phrase ([F p. 33]). `DO MIN.ROUT USING R.RATE, E.RATE, M.RATE GIVING MIN.RATE.` is equivalent to three MOVEs in, `DO MIN.ROUT.`, and one MOVE out ([F pp. 52–53]). Literals may be substituted: `DO MIN.ROUT USING INSURED.AGE, BENEFIC.AGE, 70 GIVING LOW.AGE.` ([F p. 53]), as may figurative constants such as HIGH.VALUES ([F pp. 33–34]).
 
 - USING and GIVING are each optional on the DO; omitting USING reuses whatever values are in the parameter fields, omitting GIVING leaves results in the function fields for direct reference ([F p. 33]).
-- A function-name may also be invoked directly in an expression, without a DO, by writing the function-name followed by its argument names in **double parentheses**, comma-separated — e.g. `SET APPROX = 2 * SQUARE.ROOT ((X)) TRUNCATED.` ([F p. 44]); `MOVE MINIMUM ((CALCULATED.PRICE, MARKET.PRICE. HIGH.VALUES)) TO PRICE.LIST.` ([F p. 34] — the period after MARKET.PRICE is an original printing inconsistency preserved by the conversion); rules at F pp. 33–34, 46, 58, and [F p. 28] rule 15. When this technique is used the result can be obtained only from the function field ([F p. 34]).
+- A function-name may also be invoked directly in an expression, without a DO, by writing the function-name followed by its argument names in **double parentheses**, comma-separated — e.g. `SET APPROX = 2 * SQUARE.ROOT ((X)) TRUNCATED.` ([F p. 44]); `MOVE MINIMUM ((CALCULATED.PRICE, MARKET.PRICE. HIGH.VALUES)) TO PRICE.LIST.` ([F p. 34] — the period after MARKET.PRICE is an original printing inconsistency preserved by the conversion); rules at [F pp. 33–34], [46], [58], and [F p. 28] rule 15. When this technique is used the result can be obtained only from the function field ([F p. 34]).
 - Data substitution (object time) must not be confused with name substitution (INCLUDE, processing time) ([F p. 52]) — and INCLUDE is deferred in J ([J 90.01.02]), so no library facilities exist.
-- **F/J divergence — PARAM/FUNCT:** F requires every parameter-name and function-name to be declared in the data description with type codes PARAM and FUNCT (F pp. 34, 73). J: "These two type codes described in the General Information Manual are no longer in the language" ([J 02.05.03]). The USING/GIVING mechanism itself survives in J — the compiler checks argument counts: "TOO MANY -USING- PARAMETERS IN -DO- STATEMENT." (72,00), "TOO FEW -USING- ..." (73,00), "TOO MANY -GIVING- ..." (74,00), "TOO FEW -GIVING- ..." (75,00); and functions: "FUNCTION 'NAME.1' LACKS EXPLICIT SPECIFICATION OF ALL ARGUMENTS." (30,00), "EVALUATION IGNORED FOR FUNCTION 'NAME.1'. TOO MANY ARGUMENTS SPECIFIED." (68,00) (all [J 90.04.01]). In J, parameters and functions are therefore described as ordinary data items.
+- **F/J divergence — PARAM/FUNCT:** F requires every parameter-name and function-name to be declared in the data description with type codes PARAM and FUNCT ([F pp. 34], [73]). J: "These two type codes described in the General Information Manual are no longer in the language" ([J 02.05.03]). The USING/GIVING mechanism itself survives in J — the compiler checks argument counts: "TOO MANY -USING- PARAMETERS IN -DO- STATEMENT." (72,00), "TOO FEW -USING- ..." (73,00), "TOO MANY -GIVING- ..." (74,00), "TOO FEW -GIVING- ..." (75,00); and functions: "FUNCTION 'NAME.1' LACKS EXPLICIT SPECIFICATION OF ALL ARGUMENTS." (30,00), "EVALUATION IGNORED FOR FUNCTION 'NAME.1'. TOO MANY ARGUMENTS SPECIFIED." (68,00) (all [J 90.04.01]). In J, parameters and functions are therefore described as ordinary data items.
 
 #### 5.5.4 DO with named END (early exit from an iteration)
 
@@ -399,7 +399,7 @@ I.e. GO TO the named END sentence terminates the *current iteration* while prese
 ```
 STOP n
 ```
-([F p. 54]) — "where n is an integer. The number n will be displayed when the command is executed, i.e., when the machine halts. Restarting the machine causes execution of the object program to be resumed beginning with the next command in sequence. For a 'dead-end' halt, an unconditional GO TO command placed immediately following the STOP can be used to effect a transfer back to the STOP command" ([F p. 54]). ([F p. 25] also shows the bare example sentence `STOP.` with no operand, and the F payroll example uses `STOP 1234.` (F pp. 92, 101, Appendix 1); see ambiguities.)
+([F p. 54]) — "where n is an integer. The number n will be displayed when the command is executed, i.e., when the machine halts. Restarting the machine causes execution of the object program to be resumed beginning with the next command in sequence. For a 'dead-end' halt, an unconditional GO TO command placed immediately following the STOP can be used to effect a transfer back to the STOP command" ([F p. 54]). ([F p. 25] also shows the bare example sentence `STOP.` with no operand, and the F payroll example uses `STOP 1234.` ([F pp. 92], [101], Appendix 1); see ambiguities.)
 
 **J forms and semantics:** the STOP display subroutine SYS)178 records "the Statement Number of the Stop (in BCD), and the type of STOP (STOP NNN or STOP RUN)" ([J 90.02.14]). At execution ([J 05.06.04]):
 
@@ -472,6 +472,15 @@ The following points, developed above, are recorded in full in the ambiguities r
 
 <!-- manual links; carried from canon by the generator -->
 
+[101]: ../../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
+[105]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#appendix-2-supplementary-information
+[24]: ../../comtran-manuals/F28-8043/02-language-structure.md#and-or-and-not
+[25]: ../../comtran-manuals/F28-8043/02-language-structure.md#clauses
+[44]: ../../comtran-manuals/F28-8043/03-procedure-description.md#editing-feature-1
+[46]: ../../comtran-manuals/F28-8043/03-procedure-description.md#truth-functions
+[52–53]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-indexing
+[58]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-begin-section-and-end-commands
+[73]: ../../comtran-manuals/F28-8043/04-data-description.md#funct
 [F p. 105]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#appendix-2-supplementary-information
 [F p. 106]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-conditional-expressions
 [F p. 108]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
@@ -506,15 +515,22 @@ The following points, developed above, are recorded in full in the ambiguities r
 [F p. 60]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-enter-command
 [F p. 7]: ../../comtran-manuals/F28-8043/01-general-description.md#example-3
 [F p. 72]: ../../comtran-manuals/F28-8043/04-data-description.md#cond
+[F pp. 20]: ../../comtran-manuals/F28-8043/02-language-structure.md#figurative-constants
 [F pp. 21–24]: ../../comtran-manuals/F28-8043/02-language-structure.md#arithmetic-expressions
+[F pp. 23]: ../../comtran-manuals/F28-8043/02-language-structure.md#condition-names-1
 [F pp. 23–24]: ../../comtran-manuals/F28-8043/02-language-structure.md#condition-names-1
+[F pp. 32–33]: ../../comtran-manuals/F28-8043/02-language-structure.md#subscripts
 [F pp. 33–34]: ../../comtran-manuals/F28-8043/02-language-structure.md#functions
+[F pp. 34]: ../../comtran-manuals/F28-8043/02-language-structure.md#functions
+[F pp. 40]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-get-command
 [F pp. 45–46]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-set-command
 [F pp. 48–49]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-add-corresponding-command
 [F pp. 52–53]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-indexing
 [F pp. 54–56]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
 [F pp. 56–57]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-overlap-command
+[F pp. 7]: ../../comtran-manuals/F28-8043/01-general-description.md#example-3
 [F pp. 71–72]: ../../comtran-manuals/F28-8043/04-data-description.md#level-col-23-24
+[F pp. 92]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.03.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0202-compiler-output
