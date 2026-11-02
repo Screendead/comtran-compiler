@@ -190,13 +190,16 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    has one address field for the leading run, so it cannot say which
    cells take a blank and which an asterisk. `$8*89.99` compiles with no
    diagnostic. RT-5 lists the shape among its open items. No ruling.
-6. **A reopen after CLOSE ALL FILES draws no diagnostic.** D6.3 asks
-   the compiler to diagnose the statically determinable case. The OPEN
-   emitter (`lib/src/codegen/procedure.dart`:1352) emits `TSX SYS)175,4`
-   for every OPEN ALL FILES and checks nothing. The M5 stage 2 review
-   found it on 2026-09-12. The sample opens once, so it has no site.
-   M5-4 records what the runtime does on the reopen. Ruled: message
-   948,00, severity 4, the OPEN kept, a straight run only. PR #170.
+6. **A reopen after CLOSE ALL FILES drew no diagnostic. Ruled:
+   message 948,00, severity 4, the OPEN kept, a straight run only.
+   Handled by PR #170.** An `OPEN ALL FILES` after a `CLOSE ALL FILES`
+   now draws 948,00 in a straight run (D6.3, amended 2026-11-02). Any
+   label ends the run, a generated one too, so an IF or a DO FOR
+   between the two silences the message. So does any GO TO, a
+   conditional one included, a STOP RUN or an END. The OPEN still emits
+   `TSX SYS)175,4`. Severity 4 punches the deck and bars the run
+   (D7.6). The M5 stage 2 review found the defect on 2026-09-12. M5-4
+   records what the runtime does on the reopen.
 7. **A table item that is not a whole number of words strides too
    short. Fixed for the DO FOR on 2026-10-25.** `_strideWords`
    (`lib/src/codegen/procedure.dart`) returned `strideChars ~/ 6`, so
