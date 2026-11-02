@@ -640,7 +640,7 @@ starts from a fully resolved program and generates code only.
   | GET RECORD FROM f | BLOCK CONTROL on some, not all, of f's records | 121 |
   | FILE card | FIND LENGTH IN names a field of improper format | 111 |
   | FILE card | PLACE LENGTH IN names a field of improper format | 112 |
-  | job end | no GET or FILE processes any record of file f | 198 |
+  | job end | no GET or FILE binds f (FILE x: x's PRIMARY files only) | 198 |
 
   Notes. Msg 12's preconditions: all records fixed and equal length; the
   BEGIN option; all records standard variable; BLOCK CONTROL. PATTERN
