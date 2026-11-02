@@ -708,10 +708,16 @@ starts from a fully resolved program and generates code only.
   | a subscripted reference to an item with no dimensions | 98 |
   | a subscript count above zero that differs from the dimension count | 70 |
   | a subscript's variable is itself subscripted, or is a condition name | 71 |
+  | a subscript term that calls a function | 71 |
   | a subscript variable of alphameric, edited, or group class | 79 |
   | a subscript variable with fraction or scale positions | 31 |
   | a literal subscript term that is zero, negative, or fractional | 182 |
   | a legal subscript variable format that is not the direct-index form | 206 |
+
+  *Amended 2026-11-02 (Jack's ruling, review/2026-11-02-pitch-rulings):
+  the function row is new. A function call is not a name, a literal,
+  or an index expression ([F p. 31]), so the term draws msg 71, and
+  the function check (M3-19) still runs.
 
   A reference with zero subscripts is the whole-array reference and is
   legal. Msg 206's predicate concretizes D9.11: any format other than
@@ -909,6 +915,7 @@ the golden rewrite.
 
 [F p. 15]: ../../comtran-manuals/F28-8043/02-language-structure.md#condition-names
 [F p. 26]: ../../comtran-manuals/F28-8043/02-language-structure.md#sentences
+[F p. 31]: ../../comtran-manuals/F28-8043/02-language-structure.md#subscripts
 [F p. 33]: ../../comtran-manuals/F28-8043/02-language-structure.md#functions
 [F p. 49]: ../../comtran-manuals/F28-8043/03-procedure-description.md#assigned
 [F p. 53]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-data-substitution
