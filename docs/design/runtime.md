@@ -850,14 +850,17 @@ Three edited pictorials reach no control word, so codegen refuses them
 
 **Amended 2026-10-25 (branch `defects-3-4-handle`).** This list said
 "every MOVPAK count is a digit count". That is now true of the target
-counts only. A source count is now the count of stored digit
-positions ([F p. 80]). Before, it was the digit count, and an `S`
-source read past the field (codegen defect 3). An `S` source still
-refuses in three cases:
+counts only. The source count of three sites is now the count of
+stored digit positions ([F p. 80]): the convert, the edit run and
+the edited fetch. Before, it was the digit count, and an `S` source
+read past the field (codegen defect 3). An `S` source still refuses
+in four cases:
 
 - an `S` between two stored digits;
 - an `S` behind the stored digits under a `V` or point;
-- an edit run whose drop reaches the stored digits.
+- an edit run whose drop reaches the stored digits;
+- any `S` in an external-to-external move, in the source or the
+  target.
 
 The target refusal stands.
 
