@@ -1,0 +1,219 @@
+<title>COMTRAN Calls, November</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Serif:wght@600&display=swap">
+<style>
+/* Layout: one reading column of decision cards; each card is a punched-card stock with its options as selectable rows. */
+:root {
+  --bg: #f4f5f2; --surface: #ffffff; --ink: #1c221f; --muted: #5b6560;
+  --line: #d4d9d4; --card: #efe7cf; --card-ink: #6b5a2c;
+  --pick: #1f5a8a; --pick-soft: #e2edf6; --rec: #2f6b4a; --rec-soft: #e1efe6; --you: #8b2d3a;
+  --display: "IBM Plex Serif", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141816; --surface: #1c211e; --ink: #e4e9e5; --muted: #9aa49e; --line: #2f3632;
+  --card: #3a3424; --card-ink: #e3d3a4; --pick: #8cc0ea; --pick-soft: #1b2c3a;
+  --rec: #7cc59b; --rec-soft: #1f3328; --you: #f0909c; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #141816; --surface: #1c211e; --ink: #e4e9e5; --muted: #9aa49e; --line: #2f3632;
+  --card: #3a3424; --card-ink: #e3d3a4; --pick: #8cc0ea; --pick-soft: #1b2c3a;
+  --rec: #7cc59b; --rec-soft: #1f3328; --you: #f0909c; color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); }
+main { max-width: 780px; margin: 0 auto; padding-block: 36px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 32px; }
+h1 { font: 600 2rem/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 1.2rem/1.3 var(--display); margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+a { color: inherit; }
+code { font: .85em var(--mono); }
+.eyebrow { font: 600 .72rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+header { display: flex; flex-direction: column; gap: 10px; }
+#status { font: .82rem var(--mono); color: var(--muted); }
+.calls { display: flex; flex-direction: column; gap: 18px; }
+.call { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.call .num { font: 600 .72rem var(--mono); color: var(--card-ink); background: var(--card); padding: 2px 8px; border-radius: 2px; align-self: flex-start; letter-spacing: .08em; }
+.call .why { font-size: .92rem; color: var(--muted); }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; text-align: left; font: inherit; color: inherit;
+  background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; cursor: pointer; }
+.opt:hover { border-color: var(--pick); }
+.opt:focus-visible { outline: 2px solid var(--pick); outline-offset: 2px; }
+.opt[aria-pressed="true"] { border-color: var(--pick); background: var(--pick-soft); }
+.opt .dot { width: 14px; height: 14px; border: 2px solid var(--muted); border-radius: 50%; margin-top: 3px; }
+.opt[aria-pressed="true"] .dot { border-color: var(--pick); background: var(--pick); }
+.opt .t { font-weight: 600; }
+.opt .t .rec { font: 600 .66rem var(--mono); color: var(--rec); background: var(--rec-soft); padding: 1px 6px; border-radius: 2px; margin-left: 6px; letter-spacing: .06em; text-transform: uppercase; vertical-align: 2px; }
+.opt .d { grid-column: 2; font-size: .9rem; color: var(--muted); min-width: 0; }
+.opt pre { grid-column: 2; font: .76rem/1.45 var(--mono); background: var(--bg); border: 1px solid var(--line); padding: 6px 8px; margin: 2px 0 0; overflow-x: auto; color: var(--ink); }
+.recwhy { font-size: .9rem; border-left: 3px solid var(--rec); padding-left: 10px; }
+.built { font-size: .85rem; color: var(--muted); }
+.saved { font: .78rem var(--mono); color: var(--pick); min-height: 1em; }
+textarea { font: .9rem var(--body); width: 100%; box-sizing: border-box; min-height: 2.6em; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; }
+ul.plain { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; max-width: 68ch; }
+section { display: flex; flex-direction: column; gap: 12px; }
+@media (prefers-reduced-motion: no-preference) { .opt { transition: background .12s, border-color .12s; } }
+</style>
+
+<main>
+<header>
+  <div class="eyebrow">COMTRAN compiler · 2 November 2026</div>
+  <h1>COMTRAN Calls, November</h1>
+  <p>Nine calls wait for you. Everything else that could move without you has moved. Click one option per call. Each click is saved, and I act on it when you tell me in the chat to read your picks. The recommended option is marked.</p>
+  <p id="status">Connecting to the saved picks…</p>
+</header>
+
+<section aria-labelledby="calls-h">
+  <h2 id="calls-h">The calls</h2>
+  <div class="calls" id="calls"></div>
+</section>
+
+<section aria-labelledby="todo-h">
+  <h2 id="todo-h">Things only you can do</h2>
+  <ul class="plain">
+    <li><b>Send the museum follow-up.</b> The Computer History Museum never answered your 6 August request for the four COMTRAN reproductions. A short follow-up is waiting in your Gmail drafts, in the same thread. Opportunity O12 (a second scan of each manual) stays blocked until they reply.</li>
+    <li><b>Point the custom domain.</b> You chose <code>comtran.screendead.com</code> on 10 August. It needs a DNS record pointing at <code>screendead.github.io</code>. Tell me when it resolves and I will test the Pages deploy against it and update every link.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="done-h">
+  <h2 id="done-h">Finished today</h2>
+  <ul class="plain">
+    <li><a href="https://github.com/Screendead/comtran-compiler/pull/175">#175</a>: the resolver now tracks sections clause by clause, as the parser does. A missed message 166 and two false ones are fixed. This was the only compiler change today. Both reviewers approved it and it is <b>merged</b>.</li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/pull/174">#174</a>: tests only. Rechecked the coverage gaps from the August review: 6 were already covered and 11 now have tests. The check also found three subscripts that no record covers; they are call 7.</li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/pull/173">#173</a>: three stale lines in the design records, corrected against the code.</li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/pull/178">#178</a>: W2, the sources page: all 345 page scans, each beside its transcription, plus the language reference and both PDFs, generated when the site builds. Its two open copy questions are call 6.</li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/pull/176">#176</a>: this list of open work, recorded in HANDOVER.</li>
+  </ul>
+  <p class="built">Held back on purpose: three record fixes in <code>decisions.md</code>, <code>m2-parser.md</code> and HANDOVER. Open PRs already edit those files, and editing them first would force a new commit on #157, which would void its two approvals.</p>
+</section>
+</main>
+
+<script>
+const CALLS = [
+  { id: "merges", title: "May I merge the waiting routine PRs, in order?",
+    why: "Fourteen PRs are green and wait only for your word. None changes the compiler. Order matters: #145 (tapes), then #157 (the 1960 run; both reviewers approved), then #158 (run gate), then #166 (record fold). After that: #121, #161, #165, #162, #164, #172, #173, #174, #176 and W2.",
+    built: "All green in CI. #157 is approved at 465632d and merges with no new commit if #145 goes first.",
+    opts: [
+      { k: "all", t: "Yes, merge all of them in that order", d: "M6 stage 2 closes. The open-work list, W2 and the new tests land after the chain.", rec: true },
+      { k: "chain", t: "Merge only the chain (#145, #157, #158, #166)", d: "M6 stage 2 closes. The routine PRs keep waiting." },
+      { k: "hold", t: "Hold everything", d: "Nothing moves. #157's approval stays valid only while nothing touches its files." } ],
+    recwhy: "Every PR here is routine maintenance that you have already seen pitched, or tests and documents. Waiting longer only builds up merge conflicts." },
+  { id: "defects", title: "Codegen defects 1–11: generate the correct code, or refuse to compile?",
+    why: "Defects 1, 2, 3 and 8 to 11 compile today and store wrong values with no message. Two examples: MOVE prints 123 as $1.23, and SET X = NUM*2 + (NUM*3+1) gives 31 instead of 26. Your 14 September rule says that what compiled in 1962 must compile here.",
+    built: "Handle prototypes are approved by both reviewers, with CI green: draft PRs <a href=\"https://github.com/Screendead/comtran-compiler/pull/167\">#167</a> (defects 1–2), <a href=\"https://github.com/Screendead/comtran-compiler/pull/168\">#168</a> (8–11) and <a href=\"https://github.com/Screendead/comtran-compiler/pull/169\">#169</a> (3–4). Interactive records with real runs for each option: <a href=\"https://claude.ai/artifact/2CNrNBjpUHw12TTidREPG9\">defects 1–2</a> and <a href=\"https://claude.ai/artifact/12ag1k928zMrVzR6UYQtfP\">defects 8–11</a>.",
+    opts: [
+      { k: "yes", t: "Handle them: generate the correct code wherever the manuals show the code", d: "Merge #167, #168 and #169 one at a time, each with one more review round. Defect 10 keeps the 1962 behaviour, as you ruled on 25 October.", rec: true },
+      { k: "no", t: "Refuse them: each shape gets a named message", d: "Close the three drafts. About ten shapes the manuals show stop compiling, including the 1962 manual's own SET K=K+2." } ],
+    recwhy: "A refusal rejects programs that the 1962 compiler accepted, and that breaks your own rule. All three prototypes are already reviewed." },
+  { id: "defect6", title: "Defect 6, reopening files after CLOSE ALL FILES: what severity, and how far should the check look?",
+    why: "J forbids it, and D6.3 says to diagnose it. Today the compiler says nothing, and the run silently overwrites the tape.",
+    built: "Prototype: draft <a href=\"https://github.com/Screendead/comtran-compiler/pull/170\">#170</a>, approved by both reviewers. The <a href=\"https://claude.ai/artifact/3oq4dhqcKCnBZebkbHwWa2\">record</a> shows the listing line and the run for each severity.",
+    opts: [
+      { k: "4i", t: "Severity 4, keep the OPEN, detect the straight case only", d: "Catches a CLOSE ALL FILES followed later by an OPEN ALL FILES, with no label or jump between them. Under the run gate the job compiles but does not run.", rec: true, pre: "948,00  4  -OPEN ALL FILES- FOLLOWS -CLOSE ALL FILES-. FILES CLOSED BY THAT FORM MAY NOT BE REOPENED. (NON-HISTORICAL.)" },
+      { k: "3i", t: "Severity 3, delete the OPEN, straight case only", d: "The job does not run, and the deleted OPEN changes the object deck." },
+      { k: "1i", t: "Severity 1, a note only", d: "The job runs and loses the second tape's data in silence." },
+      { k: "4ii", t: "Severity 4, flag any OPEN later in the text", d: "Wider, but it also flags some correct programs." } ],
+    recwhy: "Severity 4 with the OPEN kept reports the error and leaves the generated code as written. The straight case is the only one the compiler can prove without a flow graph." },
+  { id: "compile", title: "In your 14 September rule, does “compile” mean printing the listing, or punching the object deck?",
+    why: "The 1960 program as printed draws 55 messages. The 1962 compiler printed its listing but refused to punch an object deck for it.",
+    built: "<a href=\"https://claude.ai/artifact/7yXt4GEWJLgTF9H2drtGnF\">Walkthrough</a>: all 191 cards, the 55 messages, and the two readings side by side. No work is blocked on this call.",
+    opts: [
+      { k: "listing", t: "The listing", d: "Our compiler keeps refusing the object deck at those sites. Only the refusal labels change.", rec: true },
+      { k: "deck", t: "The object deck", d: "We would invent code for every site the 1962 compiler flagged: 26 undefined names, GET and FILE with no file, and an empty GRAND." },
+      { k: "sev5", t: "One message kind was severity 5", d: "We would invent a severity that the manuals do not print." } ],
+    recwhy: "Only the listing reading avoids inventing code or a severity with no source." },
+  { id: "dangling", title: "A column 72 continuation with no card after it: what message?",
+    why: "On the last card of a Data or Environment group, a punched column 72 asks for a continuation card that never comes. The compiler accepts this in silence. The manuals do not cover the error, so HANDOVER left the message to you.",
+    built: "Prototype: draft <a href=\"https://github.com/Screendead/comtran-compiler/pull/177\">#177</a>, reviewed. It prints the message only under --pedantic, as D0.8 requires. Default output and the goldens are unchanged.",
+    opts: [
+      { k: "949", t: "New message 949,00, class 1, --pedantic only", d: "The entry keeps every punched card. The note is the same kind as 919 and 920.", rec: true, pre: "2,00  1  COLUMN 72 PUNCHED, BUT NO CONTINUATION CARD FOLLOWS. ENTRY ASSUMED COMPLETE. (NON-HISTORICAL.)" },
+      { k: "62", t: "Reuse the Procedure division's message 62,00", d: "It says a period was assumed, but no period is added. J 02.06.02 forbids a period there.", pre: "2,00  1  PREVIOUS CARD NOT PROPERLY TERMINATED. PERIOD ASSUMED." },
+      { k: "none", t: "No message: keep accepting it in silence", d: "Close #177 and remove the parked item." } ],
+    recwhy: "Message 62's text would be false at this site. A note under --pedantic changes nothing about the 1962 behaviour." },
+  { id: "w2copy", title: "W2, the sources page: which copy rules apply to the generated pages?",
+    why: "Two of your 10 August rules were written for prose written for the site. Rule E3 marks a manual typo [sic]. Rule D5 bans the em dash. W2 prints whole transcriptions and the whole language reference, which holds about 630 em dashes. web-copy.md section 6 now lists both questions.",
+    built: "Built on branch <code>w2-sources</code>: 358 generated pages, every link and anchor checked by a test, and served and fetched locally. It currently follows the recommended option.",
+    opts: [
+      { k: "scope", t: "Apply both rules only to text written for the site", d: "Whole transcriptions show the page exactly as the conversions do, with no [sic]. The reference keeps its dashes.", rec: true },
+      { k: "mark", t: "Mark every typo and strip the dashes from the reference", d: "Needs a typo list, and a mark that copying leaves out. Edits about 630 dashes in the definition." },
+      { k: "nosite", t: "Leave the reference off the site for now", d: "Link to GitHub instead. The scans and transcriptions still ship." } ],
+    recwhy: "The conversions themselves never carry [sic]. This option is the cheapest to reverse and matches what both rules were written for." },
+  { id: "subscripts", title: "Three subscripts compile without any message",
+    why: "The coverage audit found three cases. TAB CELL ('A') takes an alphameric literal. TAB CELL (ZERO) points at no element. A function call as a subscript term is outside F p. 31's forms. No record covers these cases, so none is pinned in a test.",
+    built: "Found and written up on PR #174. Not built: each option is small, and the right one depends on your call.",
+    opts: [
+      { k: "diag", t: "Diagnose all three", d: "Message 79 for the literal, 182 for ZERO, 71 for the function. A small lib change, plus an amendment to M3-20.", rec: true },
+      { k: "record", t: "Record the silence and pin it in a test", d: "No behaviour change. M3-20 states each case as accepted." } ],
+    recwhy: "Each case has a sibling the compiler already rejects with that message. For example, a literal 0 already draws 182." },
+  { id: "m7", title: "When does M7 open the sealed 1963 compiler?",
+    why: "M7 compares our reconstruction with the surviving 1963 processor, and that comparison is the project's headline result. Once the seal is open, every later decision is contaminated. Nothing is built for this call: under D0.9, even listing the archive counts as reading it.",
+    built: "Nothing built, by rule.",
+    opts: [
+      { k: "after", t: "After the open calls above are settled and merged", d: "Settle defects 1–11, defect 6 and the M6-9 question, then unseal. Every reconstruction call is then fixed before anyone looks.", rec: true },
+      { k: "now", t: "Now", d: "Calls 2 to 4 would then be made with the archive in view, and the comparison could no longer measure them." },
+      { k: "later", t: "Later, after the web track (W3, W4)", d: "This delays the headline result to build site features first." } ],
+    recwhy: "The seal is worth what is decided before it breaks. Three open calls are reconstruction decisions, so settle them first." },
+  { id: "other", title: "Anything else", why: "Free text. Overrule anything above, or add a call. Two smaller findings from today are not built yet. First, a condition entry named ON draws no message on IF ON or SET ON. Second, the parser accepts BEGIN SECTION, BEGIN SECTION. in silence, although an END that does not stand alone draws message 179. Nobody has yet checked whether the manuals require BEGIN to stand alone. Both are recorded in HANDOVER (PR #176), and I will look into them next unless you say otherwise.", opts: [], free: true }
+];
+
+const state = { picks: {}, db: null };
+const status = document.getElementById("status");
+
+function render() {
+  document.getElementById("calls").innerHTML = CALLS.map((c, i) => `
+    <article class="call" id="call-${c.id}">
+      <span class="num">CALL ${i + 1}</span>
+      <h3 style="margin:0;font:600 1.05rem var(--body)">${c.title}</h3>
+      <p class="why">${c.why}</p>
+      ${c.built ? `<p class="built"><b>Built:</b> ${c.built}</p>` : ""}
+      ${c.free ? `<label for="free-${c.id}" class="built">Your note</label><textarea id="free-${c.id}" data-call="${c.id}">${(state.picks[c.id] && state.picks[c.id].note) || ""}</textarea>` : `
+      <div class="opts" role="group" aria-label="Options for call ${i + 1}">
+        ${c.opts.map(o => `<button type="button" class="opt" id="opt-${c.id}-${o.k}" data-call="${c.id}" data-k="${o.k}" aria-pressed="${state.picks[c.id] && state.picks[c.id].choice === o.k}">
+          <span class="dot"></span><span class="t">${o.t}${o.rec ? '<span class="rec">Recommended</span>' : ""}</span>
+          <span class="d">${o.d}</span>${o.pre ? `<pre>${o.pre}</pre>` : ""}</button>`).join("")}
+      </div>
+      <p class="recwhy">${c.recwhy}</p>`}
+      <p class="saved" id="saved-${c.id}">${state.picks[c.id] ? "Saved." : ""}</p>
+    </article>`).join("");
+}
+
+async function save(id, data) {
+  const el = document.getElementById("saved-" + id);
+  if (!state.db) { el.textContent = "Not saved: this view cannot store picks. Type it in the chat."; return; }
+  el.textContent = "Saving…";
+  try { await state.db.doc("picks/" + id).set({ ...data, at: new Date().toISOString() }); el.textContent = "Saved."; }
+  catch (e) { el.textContent = "Not saved (" + (e && e.code || "error") + "). Type it in the chat."; }
+}
+
+document.addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const id = b.dataset.call;
+  state.picks[id] = { ...(state.picks[id] || {}), choice: b.dataset.k };
+  document.querySelectorAll(`.opt[data-call="${id}"]`).forEach(x => x.setAttribute("aria-pressed", x === b));
+  save(id, state.picks[id]);
+});
+let t;
+document.addEventListener("input", e => {
+  const a = e.target.closest("textarea[data-call]"); if (!a) return;
+  clearTimeout(t); const id = a.dataset.call;
+  t = setTimeout(() => { state.picks[id] = { note: a.value }; save(id, state.picks[id]); }, 800);
+});
+
+render();
+(async () => {
+  const timer = setTimeout(() => { status.textContent = "Saved picks unavailable here; type your answers in the chat."; }, 10000);
+  const db = window.claude ? await window.claude.use("db") : null;
+  if (!db) { clearTimeout(timer); status.textContent = "Saved picks unavailable here; type your answers in the chat."; return; }
+  state.db = db;
+  try {
+    const snap = await db.collection("picks").get();
+    clearTimeout(timer);
+    (snap.docs || snap).forEach(d => { const v = d.data ? d.data() : d; state.picks[d.id] = v; });
+    render();
+    status.textContent = "Your picks save as you click.";
+  } catch (e) { clearTimeout(timer); status.textContent = "Could not load saved picks; clicks will still try to save."; }
+})();
+</script>
