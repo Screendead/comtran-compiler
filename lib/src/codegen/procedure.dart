@@ -1179,7 +1179,10 @@ final class _Text {
       return s.digits;
     }
     if (!shape.sOutsideStoredDigits) {
-      _unruled('an S position inside or behind the stored digits (F p. 80)');
+      _unruled(
+        'an S position between the stored digits, or behind them under a '
+        'V or point (F p. 80)',
+      );
     }
     return s.digits - shape.sCount;
   }

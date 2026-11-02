@@ -333,11 +333,12 @@ void main() {
       );
     });
 
-    test('an S position inside or behind the stored digits', () {
+    test('an S position between or behind the stored digits', () {
       // F p. 80 shows an S run after the V and a trailing run with no V;
       // any other S stands for a zero no stored character carries.
       const reason =
-          'an S position inside or behind the stored digits (F p. 80)';
+          'an S position between the stored digits, or behind them under a '
+          'V or point (F p. 80)';
       final List<String> data = [
         ..._data(),
         dataCard(name: 'INNER', level: '1', mode: 'E', description: '9S9'),
