@@ -426,6 +426,22 @@ void main() {
       expect(job.diagnostics.single.clause, 1);
     });
 
+    test('the reopen keeps its OPEN and bars the run', () {
+      final List<String> lines = program([
+        '      START.  OPEN ALL FILES.',
+        '            CLOSE ALL FILES.',
+        '            OPEN ALL FILES.',
+        '            STOP RUN.',
+      ]);
+      final DeckCompilation deck = compileDeck(
+        mirrorToDeck('${lines.join('\n')}\n'),
+      );
+      // Severity 4 punches the deck but suppresses execution (D7.6).
+      expect(deck.maxSeverity, 4);
+      expect(deck.jobs.single.codegen!.stopped, isFalse);
+      expect('SYS)175'.allMatches(emitCode(deck)), hasLength(2));
+    });
+
     test('a label between the two ends the straight run', () {
       final JobCompilation job = _compile(
         program([
