@@ -995,6 +995,25 @@ final List<String> _characterElements = <String>[
   '      *FINISH',
 ];
 
+/// A multi-target ADD whose first target drives the indicator of its
+/// second, an external-decimal element; then that element ADDs to itself.
+final List<String> _laterElementTarget = <String>[
+  '      *DATA',
+  internalCard('I', '9'),
+  internalCard('P1', '9'),
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'100000200000300000'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'XT', level: '1', quantity: '3'),
+  dataCard(name: 'XF', level: '2', mode: 'E', description: '999999'),
+  '      *PROCEDURE',
+  '      START.  SET I = 1, SET P1 = 1.',
+  '            ADD P1 TO I, XT XF (I).',
+  '            ADD XT XF (I) TO XT XF (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
 final List<String> _subChain = <String>[
   '      *DATA',
@@ -1931,6 +1950,18 @@ void main() {
       // The dollar sign floats over the suppressed zero (SYS)267).
       expect(field('DT', 12), r' $41 $42 $43');
       expect(field('ET', 12), r'$141$142$143');
+    });
+
+    test('a later element target reads the element it stores', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _laterElementTarget,
+      );
+      // I steps to 2 first, so element 2 takes 200000 + 1, then
+      // doubles: 400002.
+      expect(
+        glyphsAt(subject, addressOf(job, 'AREA'), 18),
+        '100000400002300000',
+      );
     });
 
     test('a sub-chain inside a chain keeps the outer park', () {

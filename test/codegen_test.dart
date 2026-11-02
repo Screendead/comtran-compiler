@@ -2734,6 +2734,89 @@ void main() {
       );
     });
 
+    test('a later external element fetches after the recompute', () {
+      // The fetch reads the element I names after the first store. A
+      // recompute steps by whole words, so the field fills one.
+      expect(
+        upTo(
+          lines(
+            [
+              ...cells,
+              dataCard(name: 'XT', level: '1', quantity: '3'),
+              dataCard(name: 'XF', level: '2', mode: 'E', description: '9' * 6),
+            ],
+            ['      START.  ADD NUM TO I, XT XF (I).', '            STOP RUN.'],
+          ),
+          '\tTXI SYS)186,1,6',
+        ),
+        [
+          'GN)000 START\tCLA I',
+          '\tADD NUM',
+          '\tSTO I',
+          'GN)001\tEQU CP)+6',
+          '\tLDQ I',
+          '\tMPY CP)+1',
+          '\tXCA ',
+          '\tADD GN)001',
+          '\tSTO PI)1',
+          '\tLDI PI)1',
+          '\tSTI SYS)132',
+          '\tTSX SYS)182,4',
+          '\tTXI SYS)184,1,6',
+          '\tSTO TS)1',
+          '\tCLA TS)1',
+          '\tADD NUM',
+          '\tTSX SYS)180,4',
+          '\tMON PI)1,,0',
+          '\tTXI SYS)186,1,6',
+        ],
+      );
+    });
+
+    test('an external element ADDs to itself through one fetch', () {
+      expect(
+        upTo(
+          lines(characters, [
+            '      START.  ADD XT XF (I) TO XT XF (I).',
+            '            STOP RUN.',
+          ]),
+          '\tTXI SYS)186,1,3',
+        ),
+        [
+          'GN)000 START\tLDI PI)1',
+          '\tSTI SYS)132',
+          '\tTSX SYS)182,4',
+          '\tTXI SYS)184,1,3',
+          '\tSTO TS)1',
+          '\tCLA TS)1',
+          '\tADD TS)1',
+          '\tTSX SYS)180,4',
+          '\tMON PI)1,,0',
+          '\tTXI SYS)186,1,3',
+        ],
+      );
+    });
+
+    test('an internal field ADDs into its own element', () {
+      // The plain source reads CELL; the element reads through PI)1.
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  ADD TAB CELL TO TAB CELL (I).',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD CELL',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
     group('a subscripted CORRESPONDING target (J 02.04.05)', () {
       /// G and the element of TAB both hold CELL, OTH and THR. Each
       /// field of `TAB (I)` takes the subscript, so it takes an

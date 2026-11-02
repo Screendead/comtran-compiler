@@ -1937,11 +1937,10 @@ the report our run prints against the page.
   indicator (`docs/HANDOVER.md` item 9). The rejected option is to
   keep the refusals; the 1962 processor compiled these shapes.
 
-  **Prototype 2026-11-02, for Jack's call: the external and edited
-  elements.** This amendment is a draft pull request, not a decision.
-  A subscripted SET, ADD or MOVE target of external or edited class
-  stores through SYS)180. The Case 3 address word of [J 90.02.15]
-  replaces the `PZE` word:
+  **Ruled by Jack 2026-11-02 (call 10, "cellstore"): the external and
+  edited elements.** A subscripted SET, ADD or MOVE target of external
+  or edited class stores through SYS)180. The Case 3 address word of
+  [J 90.02.15] replaces the `PZE` word:
 
   ```
   TSX    SYS)180,4
@@ -1955,7 +1954,8 @@ the report our run prints against the page.
   - The indicator holds the pointer, byte included: `LDI PI)2 / STI
     SYS)132` copies it at LOC 01445. MOVPAK reads the pointer there
     (RT-4), so an element inside a word stores correctly.
-  - An ADD fetches the element through its indicator first.
+  - An ADD fetches the element through its indicator after the
+    earlier stores of the clause, which can move it.
 
   The pairing is our design. Evidence exists and is sealed until M7.
   The rejected options:

@@ -449,7 +449,7 @@ amended 2026-10-25). `MON PI)NN,,0` ([J 90.02.15] Case 3) gives the
 pointer as the word in the positional indicator. The sample copies
 that word into SYS)132 with `LDI PI)2 / STI SYS)132` at LOC 01445 to
 01446. A subscripted external or edited store target emits it (M6-9,
-the prototype of 2026-11-02). The handler throws a `StateError` on any
+Jack's ruling of 2026-11-02). The handler throws a `StateError` on any
 other prefix.
 
 **The advanced pointers are not written back. Design decision.** No

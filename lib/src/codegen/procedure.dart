@@ -634,12 +634,10 @@ final class _Text {
       'MON',
       WordForm.prefix,
       () => '${indicator.text()},,0',
-      () => _monPrefix | pzeWord(address: indicator.value()),
+      () => (5 << 33) | pzeWord(address: indicator.value()),
       control: standardControl(Relocation.constant, indicator.relocation),
     );
   }
-
-  static const int _monPrefix = 5 << 33;
 
   /// An in-line constant word, printed as its twelve octal digits.
   void _oct(int value) => _emit(
@@ -1250,25 +1248,31 @@ final class _Text {
     _fetching = true;
     try {
       for (final item in operands) {
-        if (_sem(item).fieldClass != FieldClass.externalDecimal ||
-            _fetched.containsKey(item)) {
-          continue;
-        }
-        final int cell = _fetched.length + 1;
-        if (cell > temporaryStorageWords) {
-          _unruled('a temporary cell past the TS) reservation (M4-4)');
-        }
-        _setup(item, target: false, subscripted: subscripted.contains(item));
-        _externalConvert(item);
-        _op(Op.sto, _blockWord(StorageBlock.ts, cell));
-        _movpakClears();
-        _fetched[item] = cell;
+        _fetch(item, subscripted: subscripted.contains(item));
       }
       return body();
     } finally {
       _fetching = false;
       _fetched.clear();
     }
+  }
+
+  /// Fetches the external-decimal [item] into the next temporary cell
+  /// of the open scope, unless the scope holds it already.
+  void _fetch(DataItem item, {required bool subscripted}) {
+    if (_sem(item).fieldClass != FieldClass.externalDecimal ||
+        _fetched.containsKey(item)) {
+      return;
+    }
+    final int cell = _fetched.length + 1;
+    if (cell > temporaryStorageWords) {
+      _unruled('a temporary cell past the TS) reservation (M4-4)');
+    }
+    _setup(item, target: false, subscripted: subscripted);
+    _externalConvert(item);
+    _op(Op.sto, _blockWord(StorageBlock.ts, cell));
+    _movpakClears();
+    _fetched[item] = cell;
   }
 
   /// The data items an expression or a relation reads, in source order.
@@ -3352,24 +3356,30 @@ final class _Text {
       // One scope for the clause: the source converts once, and every
       // pair reads its cell, as statement 221's edited source parks once.
       _withFetches(
-        read,
+        <DataItem>[
+          source,
+          for (var i = 0; i < targets.length; i++)
+            if (clause.targets[i].subscripts.isEmpty) targets[i],
+        ],
         () {
           for (var i = 0; i < targets.length; i++) {
+            final bool element = clause.targets[i].subscripts.isNotEmpty;
+            if (element) {
+              // An earlier store of this clause can move the indicator.
+              _fetch(targets[i], subscripted: true);
+            }
             _addPair(
               source,
               targets[i],
-              element: clause.targets[i].subscripts.isNotEmpty,
+              element: element,
+              sourceSubscripted: name.subscripts.isNotEmpty,
             );
             // A later target's prologue reads the indicator this store
             // drives.
             _subscriptRecomputation(clause.targets[i]);
           }
         },
-        subscripted: <DataItem>{
-          if (name.subscripts.isNotEmpty) source,
-          for (var i = 0; i < targets.length; i++)
-            if (clause.targets[i].subscripts.isNotEmpty) targets[i],
-        },
+        subscripted: <DataItem>{if (name.subscripts.isNotEmpty) source},
       );
       return;
     }
@@ -3441,7 +3451,9 @@ final class _Text {
   }) {
     final int deficit = _addDeficit(source, target);
     final DataItem addend = _operand(source);
-    if (element != sourceSubscripted && identical(source, target)) {
+    if (element != sourceSubscripted &&
+        identical(source, target) &&
+        _sem(source).fieldClass == FieldClass.externalDecimal) {
       // One fetch cell serves the field, through its indicator or not.
       _unruled(
         'an external-decimal field read with and without its subscript '
@@ -3947,6 +3959,8 @@ final class _Text {
     final FieldClass fieldClass = _sem(item).fieldClass;
     if (fieldClass == FieldClass.externalDecimal ||
         fieldClass == FieldClass.edited) {
+      // The `MON` word reads the indicator only at the store, after the
+      // first word; its refusals must come here.
       _indicator(item);
       return;
     }
