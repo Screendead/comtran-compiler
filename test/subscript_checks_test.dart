@@ -154,6 +154,22 @@ void main() {
       });
     });
 
+    test('the parser, not M3-20, diagnoses an alphameric literal or a '
+        'figurative subscript term', () {
+      for (final (String subscript, String parserId) in [
+        ("TAB CELL ('A')", '912,00'),
+        ('TAB CELL (ZERO)', '192,00'),
+      ]) {
+        final SemanticResult result = _move(subscript);
+        expect(ids(result), isEmpty, reason: subscript);
+        expect(
+          result.parse.diagnostics.map((Diagnostic d) => d.message.number),
+          contains(parserId),
+          reason: subscript,
+        );
+      }
+    });
+
     test('an alphameric subscript variable draws 79,00', () {
       final SemanticResult result = _move('TAB CELL (ALPHA)');
       expect(ids(result), ['79,00']);

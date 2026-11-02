@@ -716,8 +716,12 @@ starts from a fully resolved program and generates code only.
 
   *Amended 2026-11-02 (Jack's ruling, review/2026-11-02-pitch-rulings):
   the function row is new. A function call is not a name, a literal,
-  or an index expression ([F p. 31]), so the term draws msg 71, and
-  the function check (M3-19) still runs.
+  or an index expression ([F p. 31]). The term draws msg 71. The
+  function check (M3-19) still runs. The ruling also asks for msg 79
+  on an alphameric literal term and msg 182 on ZERO. It assumed that
+  both terms drew nothing. The parser already gives msg 912 to
+  the literal and msg 192 to ZERO (M2-8). This record adds
+  neither. Jack decides that part again.*
 
   A reference with zero subscripts is the whole-array reference and is
   legal. Msg 206's predicate concretizes D9.11: any format other than
