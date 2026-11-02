@@ -83,7 +83,7 @@ Conditional expressions appear in exactly these control contexts: the IF clause 
 - Each relational expression must be completely stated: `HOURLY.RATE IS GREATER THAN 3.50 AND LESS THAN 5.00` is not accepted; both operands must be repeated ([F p. 23], rule 3).
 - Reserved-word inventory relevant to relations: F Appendix 2 lists IS, GREATER, LESS, THAN, EQUAL, GT, LT, NOT ([F p. 110]). J's key-word list additionally reserves **EQUALS** ([J 02.03.02]) although no manual documents an "EQUALS" relational form; see open questions. The sample program uses `IS NOT EQUAL TO`, `NOT GT`, `GT`, `LT`, and `=` ([J 90.05], listing PDF pp. 195–197).
 
-#### 5.3.2 Comparison semantics (J 02.04.C — authoritative)
+#### 5.3.2 Comparison semantics (J 02.04.C, authoritative)
 
 [J 02.04.06]–02.04.07, "C. Conditional Statements", gives the implemented comparison rules:
 
@@ -138,7 +138,7 @@ condition.name   COND    KEYS 'nn'
 
 'nn' is 12 octal digits giving "on" settings; "When the condition.name is tested in a procedure statement only the keys specified in 'nn' are tested for 'on' setting. The specified console keys must all be 'on' for the condition to be true. No 'off' or 'on' test is made for the non-specified keys" ([J 02.06.17]). This gives the object program an operator-controlled switch testable by IF, a facility absent from F. **F/J divergence.**
 
-#### 5.3.4 AND, OR, and NOT — combination rules and precedence
+#### 5.3.4 AND, OR, and NOT: combination rules and precedence
 
 Compound conditions are formed with AND and OR, with parentheses where needed; "The negative form of a conditional expression may also be used; this is obtained by placing the word NOT before the expression" ([F p. 23]). The four interpretation rules ([F p. 23]):
 

@@ -267,7 +267,7 @@ Name    Type     Description
 - **OPENCOUNT nn**: maximum number of files within the group that may be open concurrently during execution; determines the minimum buffer count for the GROUP. Default: "assumed equal to the number of files in the GROUP" ([J 02.06.14]).
 - **BUFFERCOUNT nn**: buffers assigned by the loader to this GROUP; must be ≥ the GROUP's OPENCOUNT. Default: "the loader will attempt to assign at least twice the OPENCOUNT number of buffers to the GROUP." If POOL BUFFERCOUNT or storage limitations prevent this, buffers beyond the minimum are allocated "on the basis of the activity of the files in the GROUP" ([J 02.06.14]); cf. SPECIF ACTIVITY (§7.1.5).
 
-#### 7.1.8 CONTRL card — inter-program areas (deferred)
+#### 7.1.8 CONTRL card: inter-program areas (deferred)
 
 "The CONTRL cards define procedure and/or data areas common to two or more Commercial Translator programs. These programs may be compiled and checked out independently and then merged at object loading time into one running program" ([J 02.06.15]).
 
@@ -292,7 +292,7 @@ Restrictions ([J 02.06.15]–02.06.16):
 
 **Deferral ([J 90.01.04]):** "Mechanization of multiple deck combination has been deferred. CONTRL specifications will have no effect on the object deck produced by the Compiler, i.e., no control break table is punched." Correspondingly, "The control break table is not processed by the loader. This implies that multiple program loading with cross references by means of control breaks is not available" ([J 90.01.05]). (The object-deck layout still reserves a Control Break Table position, [J 02.02]; see the object-deck section.) The compiler nonetheless diagnoses CONTRL card format errors (176,00, [J 90.04]).
 
-#### 7.1.9 OPTION card — collating sequence and space/time conservation
+#### 7.1.9 OPTION card: collating sequence and space/time conservation
 
 "OPTION cards may be used to set compilation mode switches within the compiler" ([J 02.06.16]). The compiler normally generates comparison instructions based on the 709/7090 collating sequence and an object program "conservative of time rather than space"; the OPTION card selects the Commercial (705) collating sequence and/or a time- or space-conservative object program ([J 02.06.16]).
 
@@ -324,7 +324,7 @@ Commercial (705):  Blank   .   ⟨loz⟩   ⟨gm⟩   &   $   *   −   /   ,   
 
 COLLATE COM also changes the figurative constants: HIGH.VALUE is `(` and LOW.VALUE is `0` under the 709/7090 sequence; under COM, HIGH.VALUE is `9` and LOW.VALUE is blank ([J 02.04.01]; see §2/§4 on figurative constants).
 
-#### 7.1.10 COND card — console entry keys
+#### 7.1.10 COND card: console entry keys
 
 "The COND card defines a computer console entry keys setting which may be interrogated by procedure statements" ([J 02.06.17]).
 
@@ -396,7 +396,7 @@ $CMPLE       deck.name      [NODECK]        [,LIST]         [,DICT]
 
 Related deck-level facts a compiler writer should know ([J 02.02], [J 02.03.01]): normal output is a relocatable column-binary deck (symbolic control cards, \*CTEXT, relative binary program deck with Control Break Table / File Check Table / Text, \*CTEND; see the object-deck section, [J 90.03]); the listing assigns statement numbers of the form xxxxx,00 (clause number after the comma; 9999,99 references errors not confined to a single statement); and "Card serial numbers in columns 1-6 of source decks are not sequence checked by the compiler" ([J 02.03.01]). **F/J divergence:** F states serial numbers "will be sequence-checked by the processor" ([F p. 37]).
 
-### 7.3 The library system — COPY, LIBRARY, INCLUDE (F design; deferred in J)
+### 7.3 The library system: COPY, LIBRARY, INCLUDE (F design; deferred in J)
 
 #### 7.3.1 The library concept (F)
 
@@ -444,7 +444,7 @@ The Description columns (38–71) of a data description entry may contain, among
 
 In F's reserved-word list, COND, COPY, FUNCT, LABEL, LIBRARY, PARAM, QUANTITY and REDEF are daggered: "These words have a restricted usage only in data description; they may be used freely in procedure description" ([F p. 110]). In J, LIBRARY (but not COPY) appears in the key-word list of words that "may not be used as Data or Procedure names" ([J 02.03.02]); type codes are recognized positionally in the Type columns.
 
-### 7.4 Program segmentation — OVERLAP and LOAD (F design; deferred in J)
+### 7.4 Program segmentation: OVERLAP and LOAD (F design; deferred in J)
 
 **J status:** "Implementation of these verbs [LOAD and OVERLAP] has been deferred" ([J 90.01.03]); "Deferred implementation of the LOAD-OVERLAP verbs implies that programs may not be segmented into separate memory loads at this time" ([J 90.01.05]). Both remain reserved words in J ([J 02.03.02]). The following is the F design.
 
@@ -477,7 +477,7 @@ LOAD procedure.name
 
 Note the F/J structural distinction: LOAD is a *program* verb (miscellaneous category, with DISPLAY), OVERLAP a *processor* verb ([F p. 35]).
 
-### 7.5 Renaming and linkage — CALL, ENTER, CONTRL
+### 7.5 Renaming and linkage: CALL, ENTER, CONTRL
 
 #### 7.5.1 CALL (processor command)
 
@@ -497,7 +497,7 @@ J amplifications and restrictions:
 - Subscripts in the (old.name) are erroneous: both `CALL (A(J))B.` and `CALL (A(3))B.` are given as incorrect ([J 90.01.01]).
 - CALL's principal implemented role: reducing a qualified (compound) name to a one-word name so it can be referenced in the Environment Description or in CRYPT instructions, where qualified names are forbidden ([J 02.03.03]; [J 90.01.01]; [J 02.08.02]).
 
-#### 7.5.2 ENTER — entering another language
+#### 7.5.2 ENTER: entering another language
 
 F design: "The ENTER command instructs the processor to accept statements in another language" ([F p. 59]):
 
@@ -515,7 +515,7 @@ The returning form is punched with ENTER as an operation code and COMMERCIAL TRA
 
 Language-level linkage between separately compiled COMTRAN programs is the CONTRL card mechanism (§7.1.8) (common procedure/data areas equated at load time via a 6-character loadnm) and it is deferred in J ([J 90.01.04]). Parameter passing at the language level exists only *within* a program, via DO … USING/GIVING and BEGIN SECTION USING … GIVING ([F pp. 57–58]; see §4, Procedure description). The associated Data Description type codes PARAM and FUNCT "are no longer in the language" in J ([J 02.05.03]), a further F/J divergence.
 
-### 7.6 Commentary conventions — NOTE and the period-blank rule
+### 7.6 Commentary conventions: NOTE and the period-blank rule
 
 "The NOTE command enables the programmer to place explanatory information in the listing of the program" ([F p. 59]). General form ([F p. 59]):
 
@@ -529,7 +529,7 @@ NOTE any sentence.
 
 Additional commentary channel in J: "Procedure statements are terminated by the first period (.) followed by a blank. Any information following this period blank is considered to be commentary" ([J 02.03.01]); a period-blank "terminates analysis of the statement except when they appear within an alphabetic literal; any information in the same card which follows the period is assumed to be commentary. No diagnostic comment is made" ([J 90.01.03]). The period-blank terminator is *not* used in the Data and Environment divisions ([J 02.03.02]; [J 02.06.02]).
 
-### 7.7 The CRYPT facility — 709/7090 machine symbolic language ([J 02.08])
+### 7.7 The CRYPT facility: 709/7090 machine symbolic language ([J 02.08])
 
 CRYPT exists only in J; F merely promises access to "the symbolic 'one-for-one' language of the particular machine system" via ENTER ([F p. 59]).
 
