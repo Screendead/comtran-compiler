@@ -867,7 +867,7 @@ The target refusal stands.
 |---|---|
 | an edited source carrying insertion characters | no parameter word describes the source, so a suppressed comma and a suppressed digit are the same blank. The reader of RT-4 classifies characters instead |
 | a target of more than ten digits | SYS)267 would need the AC-MQ pair, whose split radix is unfixed. No site exceeds seven |
-| a leading run mixing `8` and `*` | one address field cannot say which cells take a blank and which an asterisk. The compiler accepts it today |
+| a leading run mixing `8` and `*` | one address field cannot say which cells take a blank and which an asterisk. The compiler punches the 1962 words, so every suppressed cell of the run takes an asterisk and a `$` stays fixed: `$8*89.99` prints 1.23 as `$***1.23`. Under `--pedantic` the field draws 950,00 (D11.4, amended 2026-11-02) |
 | the sign of a rendered zero | [J 02.04.07] scopes its unsigned-zero rule to comparison |
 | a round step inside a render | SYS)220 and SYS)222 are entered by a bare `TRA`, and no site emits either (D4.1(e)) |
 | where the image is built | our renderer builds it in Dart and writes the target once, at the terminator. No emitted word can see the difference |
