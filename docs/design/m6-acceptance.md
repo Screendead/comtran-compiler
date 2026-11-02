@@ -1923,11 +1923,14 @@ the report our run prints against the page.
   crosses a word.
 
   **Decided 2026-11-02: the subscripted SET and ADD targets.** Jack's
-  rule of 2026-09-14 and his ruling of 2026-11-02
-  (`review/2026-11-02-pitch-rulings`) bind it: generate the right
-  words where attested words exist, and refuse only where none do. A
-  SET or ADD target refused (codegen defect 8); a CORRESPONDING operand
-  dropped its subscript. All now store through the indicator:
+  rule of 2026-09-14 binds it: the 1962 processor compiled a
+  subscripted target, so ours must. A SET or ADD target refused
+  (codegen defect 8); a CORRESPONDING operand dropped its subscript.
+
+  No printed code stores into a table cell. The sample's subscripts
+  are all reads; its indexed stores (`STO 1)GROSS,1`) use a record
+  base register. These store words are our design, built from the
+  printed element read and ADD. Evidence exists and is sealed until M7:
 
   - The prologue is `LAC PI)n,r / TXL SYS)294,r,0` (LOC 01410 to
     01411). It follows each MOVPAK sequence and park.
@@ -1959,8 +1962,7 @@ the report our run prints against the page.
     subscripts.
 
   A CORRESPONDING store into a subscript variable still updates no
-  indicator (`docs/HANDOVER.md` item 9). The rejected option is to
-  keep the refusals; the 1962 processor compiled these shapes.
+  indicator (`docs/HANDOVER.md` item 9).
 
   **Decided 2026-10-25: the input tapes of the applied deck. Decided
   under the section 12 standing rule; Jack can overturn it.** Chunk 2b
