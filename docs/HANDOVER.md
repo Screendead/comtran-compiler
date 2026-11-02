@@ -214,8 +214,14 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    01410 to 01412. After a convert drops fraction digits (defect 1),
    the quotient stores from the MQ through `STQ 0,r`. An edited target
    refuses `a subscripted edited-store target (no sample instance)`.
-   An ADD target dropped its subscript too. PR #168 refuses it, and
-   does not handle it: `a subscripted ADD target (no sample instance)`.
+   An ADD target dropped its subscript too, and a SET target refused.
+   Branch `subscripted-targets` handles both (M6-9, decided
+   2026-11-02). An ADD reads and stores the element through one
+   prologue, `CLA 0,r / ADD source / STO 0,r`. A SET stores its chain
+   with `STO 0,r`, or with `STQ 0,r` after the scaling tail. An
+   external-decimal target refuses `a subscripted external-decimal
+   store target (no sample instance)`. An edited SET target refuses as
+   the MOVE does.
 9. **A SET or ADD into a subscript variable updated no indicator.
    Ruled: handle it. Handled by PR #168.** Each SET and each plain ADD
    target now updates the indicators it drives (M4-10;

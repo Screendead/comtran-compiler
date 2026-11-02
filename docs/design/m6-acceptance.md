@@ -1921,6 +1921,36 @@ the report our run prints against the page.
   `test/goldens/90.05-payroll.code` changes: no sample comparand
   crosses a word.
 
+  **Decided 2026-11-02: the subscripted SET and ADD targets.** Two
+  rulings bind it. The first is Jack's rule of 2026-09-14. The second
+  is his ruling of 2026-11-02 on the codegen defects
+  (`review/2026-11-02-pitch-rulings`): generate the right words where
+  attested words exist, and refuse only where none do. A SET target refused, and PR #168 made an ADD
+  target refuse (codegen defect 8, `docs/HANDOVER.md`). Both now store
+  through the indicator:
+
+  - The prologue is `LAC PI)n,r / TXL SYS)294,r,0` (LOC 01410 to 01411).
+  - An ADD is `CLA 0,r / ADD source / STO 0,r`: the body of LOC 00733
+    to 00735, addressed as the `CAS 0,2` at LOC 01412.
+  - A SET stores with `STO 0,r`, or `STQ 0,r` after the scaling tail,
+    as the subscripted MOVE target does.
+  - The prologue follows each MOVPAK sequence, whose `AXT n,1` would
+    overwrite XR1, and each park.
+
+  Three refusals stay, because no site gives their words:
+
+  - `a subscripted external-decimal store target (no sample
+    instance)`: SYS)180 takes an in-line `PZE` word.
+  - `a subscripted edited-store target (no sample instance)`, for the
+    same reason.
+  - `a whole-word read of an element whose stride is 11 characters
+    (M6-9)`: `STO 0,r` writes a whole word.
+
+  The rejected option is to keep both refusals; the 1962 processor
+  compiled both shapes. `test/codegen_test.dart` asserts the words,
+  `test/codegen_refusal_test.dart` pins the refusals, and
+  `test/runtime/machine_test.dart` stores 5, 12 and 4 into TAB.
+
   **Decided 2026-10-25: the input tapes of the applied deck. Decided
   under the section 12 standing rule; Jack can overturn it.** Chunk 2b
   runs the applied deck, `f-payroll-j.ctd`, over two tapes. M6-1 as
