@@ -1953,7 +1953,7 @@ the report our run prints against the page.
   These refusals stay; no site gives their words:
 
   - `a subscripted external-decimal store target` and `a subscripted
-    edited-store target`, each `(no sample instance)`: SYS)180 takes an
+    edited-store target`, each `(no sample instance)`, Jack's open call: SYS)180 takes an
     in-line `PZE` word.
   - `a whole-word read of an element whose stride is 11 characters
     (M6-9)`: `STO 0,r` writes a whole word.
