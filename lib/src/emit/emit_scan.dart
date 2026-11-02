@@ -24,19 +24,22 @@ import 'common.dart';
 
 /// Renders the `--emit-scan` dump for [deck]: the reconstruction label,
 /// then one job section per job.
-String emitScan(DeckCompilation deck) {
-  final buffer = StringBuffer()..writeln(reconstructionLabel);
+String emitScan(DeckCompilation deck) => markScan(deck).text;
+
+/// The scan dump of [deck] with each statement line marked (W3).
+MarkedText markScan(DeckCompilation deck) {
+  final buffer = MarkedText()..writeln(reconstructionLabel);
   for (var i = 0; i < deck.jobs.length; i++) {
     if (i > 0) {
       buffer.writeln();
     }
     buffer.writeln(jobHeader(i + 1));
-    _writeJob(buffer, deck.jobs[i].frontEnd);
+    _writeJob(buffer, deck.jobs[i].frontEnd, i + 1);
   }
-  return buffer.toString();
+  return buffer;
 }
 
-void _writeJob(StringBuffer buffer, FrontEndResult frontEnd) {
+void _writeJob(MarkedText buffer, FrontEndResult frontEnd, int job) {
   final SourceCard? compileCard = frontEnd.program.compileCard;
   if (compileCard != null) {
     buffer.writeln('COMPILE  ${compileCard.textRange(1, 72).trimRight()}');
@@ -49,6 +52,7 @@ void _writeJob(StringBuffer buffer, FrontEndResult frontEnd) {
           _writeUnit(
             buffer,
             frontEnd,
+            job,
             entry.cards.first,
             'ENTRY',
             _dataText(entry),
@@ -59,6 +63,7 @@ void _writeJob(StringBuffer buffer, FrontEndResult frontEnd) {
           _writeUnit(
             buffer,
             frontEnd,
+            job,
             spec.cards.first,
             'SPEC',
             _environmentText(spec),
@@ -69,6 +74,7 @@ void _writeJob(StringBuffer buffer, FrontEndResult frontEnd) {
           _writeUnit(
             buffer,
             frontEnd,
+            job,
             sentence.cards.first,
             'SENTENCE',
             _procedureText(sentence),
@@ -82,15 +88,19 @@ void _writeJob(StringBuffer buffer, FrontEndResult frontEnd) {
 }
 
 void _writeUnit(
-  StringBuffer buffer,
+  MarkedText buffer,
   FrontEndResult frontEnd,
+  int job,
   SourceCard firstCard,
   String kind,
   String text,
 ) {
   final String number =
       frontEnd.statementNumberByCard[firstCard.cardNumber] ?? '9999,99';
-  buffer.writeln('$number  $kind  $text');
+  buffer
+    ..mark = statementMark(job, number)
+    ..writeln('$number  $kind  $text')
+    ..mark = null;
 }
 
 /// The name, level, type, quantity, mode, and justification fields (each

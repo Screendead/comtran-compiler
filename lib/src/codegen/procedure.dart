@@ -461,6 +461,7 @@ final class _Text {
         labels: names,
         control: control,
         form: form,
+        source: _source,
       ),
     );
   }
@@ -749,6 +750,7 @@ final class _Text {
           operand: '',
           location: _location,
           labels: _take(),
+          source: _source,
         ),
       );
     }
@@ -756,7 +758,14 @@ final class _Text {
       _operands.add((_units.length, operand));
     }
     _fixups.add((_units.length, value));
-    _units.add(AssemblyUnit(operation: 'EQU', operand: '', labels: [name]));
+    _units.add(
+      AssemblyUnit(
+        operation: 'EQU',
+        operand: '',
+        labels: [name],
+        source: _source,
+      ),
+    );
   }
 
   /// The next later-pass generated name (M4-6 — the sample's GN)084 on).
@@ -847,6 +856,7 @@ final class _Text {
         word: word(),
         control: unit.control,
         form: unit.form,
+        source: unit.source,
       );
     }
     for (final (int index, String Function() operand) in _operands) {
@@ -859,6 +869,7 @@ final class _Text {
         word: unit.word,
         control: unit.control,
         form: unit.form,
+        source: unit.source,
       );
     }
     for (final (int index, int Function() value) in _fixups) {
@@ -871,6 +882,7 @@ final class _Text {
         word: unit.word,
         control: unit.control,
         form: unit.form,
+        source: unit.source,
       );
     }
     final ProgramImage? placed = image;
@@ -1481,15 +1493,17 @@ final class _Text {
       _card = scan.cards.first;
       final String? name = scan.label;
       _sentenceLabel = name;
+      final String? open = name == null ? null : _openParagraph;
+      if (open != null) {
+        // The previous paragraph's terminal return: the attested
+        // GN)067, named by the IF join label still pending when
+        // END.OF.DETAILS's label closes END.OF.MASTERS. It closes that
+        // paragraph, so it carries the previous sentence's mark.
+        _opIndirect(Op.tra, _labelSym(open));
+        _openParagraph = null;
+      }
+      _source = (statement: _statementNumberOf(scan), clause: 0);
       if (name != null) {
-        final String? open = _openParagraph;
-        if (open != null) {
-          // The previous paragraph's terminal return: the attested
-          // GN)067, named by the IF join label still pending when
-          // END.OF.DETAILS's label closes END.OF.MASTERS.
-          _opIndirect(Op.tra, _labelSym(open));
-          _openParagraph = null;
-        }
         label(name);
         if (_doTargets.contains(name) && !_beginsSection(sentence)) {
           // The call-site-driven return cell (catalogue 4.1).
@@ -1501,12 +1515,17 @@ final class _Text {
       _ordinals = _clauseOrdinals(sentence.clauses);
       sentence.clauses.forEach(_clause);
     }
+    _source = null;
   }
 
   bool _beginsSection(Sentence sentence) =>
       sentence.clauses.any((Clause clause) => clause is BeginSectionClause);
 
   int _statement = 0;
+
+  /// The mark each unit takes (W3): the sentence and clause the walk is
+  /// in, `null` outside the walk.
+  ({int statement, int clause})? _source;
   Map<Clause, int> _ordinals = const <Clause, int>{};
 
   /// The label of the sentence the walk is in, which names the section
@@ -1540,6 +1559,15 @@ final class _Text {
   // --- Clause dispatch ----------------------------------------------------
 
   void _clause(Clause clause) {
+    final ({int statement, int clause})? enclosing = _source;
+    if (enclosing != null && clause.clause != 0) {
+      _source = (statement: enclosing.statement, clause: clause.clause);
+    }
+    _clauseWords(clause);
+    _source = enclosing;
+  }
+
+  void _clauseWords(Clause clause) {
     _clauseNumber = clause.clause;
     switch (clause) {
       case CallClause() || NoteClause() || EnterClause():
