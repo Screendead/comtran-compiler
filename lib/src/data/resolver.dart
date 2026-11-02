@@ -82,6 +82,15 @@ final class NameResolver extends ClauseWalk with OperandWalk {
   Iterable<(DataItem, String, List<ArithExpr>)> get positionalIndicators =>
       _subscripts.indicators;
 
+  /// Counts the indicator of a CORRESPONDING pair's [field] under its
+  /// [group]'s subscripts, after resolution, so the appended indicators
+  /// number after every written one (M6-9).
+  void countAppendedIndicator(
+    DataItem field,
+    NameReference group,
+    ClauseWalk walk,
+  ) => _subscripts.countIndicator(field, group, walk);
+
   /// Set while the triage runs over a subscript expression. A condition
   /// name resolves there, so that M3-20's msg 71 speaks for it in place
   /// of the triage's msg 25 (M3-17: a site-specific row overrides).
@@ -242,7 +251,9 @@ final class NameResolver extends ClauseWalk with OperandWalk {
       }
       // The stack moves clause by clause in the parser's walk order,
       // so it matches the parser's section stack (msgs 64, 65, 179 are
-      // the parser's).
+      // the parser's). A label's scope is the stack before its
+      // sentence, so an END-then-BEGIN sentence (msg 179's) scopes
+      // best-effort.
       for (final Clause clause in clauseTree(sentence.clauses)) {
         if (clause is BeginSectionClause) {
           sectionStack.add((begin: clause, name: label));

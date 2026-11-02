@@ -725,12 +725,13 @@ the report our run prints against the page.
   deliverable of that deck, and the generator stops where no evidence
   describes the code. A refusal does not say that the 1962 processor
   refused the deck. J withholds the deck only at code 5
-  ([J 02.01.01]), and any code above 1 stops the run ([J 90.04.02]).
-  The verbatim deck's highest code is 4 under our table, so J punched
-  it and did not run it. The pitch page of 2026-11-02 said the 1962 compiler
-  refused to punch a deck. That statement is wrong, and the walkthrough
-  record shows it. The applied deck is where chunk 2b works, so nothing
-  in the repository waited on the answer.
+  ([J 02.01.01]), and any code above 1 bars the object program from
+  running ([J 90.04.02]). The verbatim deck's highest code is 4 under
+  our table, so J punched it and did not run it. The pitch page of
+  2026-11-02 said the 1962 compiler refused to punch a deck. That
+  statement is wrong, and the walkthrough record shows it. The applied
+  deck is where chunk 2b works, so nothing in the repository waited on
+  the answer.
 
   **Chunk 2b's design list.** Each item is a recorded decision under
   D0.4, with no listing oracle behind it:
@@ -804,10 +805,9 @@ the report our run prints against the page.
   says "CANNOT FILE RECORD 'NAME.2' IN THIS FILE". Our severity for it
   is 3 (D7.5), and [J 90.04.01] prints no value. At severity 3 the 1962
   processor punched a deck ([J 02.01.01]) and did not run it
-  ([J 90.04.02]). The case
-  is the verbatim deck's case: a listing exists, and no evidence
-  describes the deck. Jack's ruling covers both refusals: each is the
-  listing reading's, and each stays.
+  ([J 90.04.02]). The case is the verbatim deck's case: a listing
+  exists, and no evidence describes the deck. Jack's ruling covers both
+  refusals: each is the listing reading's, and each stays.
 
   The tests:
 
@@ -1922,6 +1922,46 @@ the report our run prints against the page.
   `test/goldens/90.05-payroll.code` changes: no sample comparand
   crosses a word.
 
+  **Decided 2026-11-02: the subscripted SET and ADD targets.** Jack's
+  rule of 2026-09-14 and his ruling of 2026-11-02
+  (`review/2026-11-02-pitch-rulings`) bind it: generate the right
+  words where attested words exist, and refuse only where none do. A
+  SET or ADD target refused (codegen defect 8); a CORRESPONDING operand
+  dropped its subscript. All now store through the indicator:
+
+  - The prologue is `LAC PI)n,r / TXL SYS)294,r,0` (LOC 01410 to
+    01411). It follows each MOVPAK sequence and park.
+  - An ADD is `CLA 0,r / ADD source / STO 0,r`: LOC 00733 to 00735,
+    addressed as the `CAS 0,2` at LOC 01412. Each target updates its
+    indicators before the next target reads them.
+  - A SET stores with `STO 0,r`, or `STQ 0,r` after the scaling tail.
+  - A CORRESPONDING pair is the plain clause with the operand's
+    subscript on each field: "The compiler simply appends the
+    designated subscript to the generated instructions" ([J 02.04.05]).
+    Each field takes its own indicator. A pair refuses where its plain
+    clause refuses.
+  - Each element store frees its index register, because the address
+    is dead after the store. A group of three fields, or an ADD of
+    three targets, needs no third register (M4-9).
+  - The group keeps the indicator of its written subscript. A store of
+    the subscript recomputes it, no word reads it, and it counts
+    toward the 90 indicators of 184,00 ([J 90.01.05]).
+
+  These refusals stay; no site gives their words:
+
+  - `a subscripted external-decimal store target` and `a subscripted
+    edited-store target`, each `(no sample instance)`: SYS)180 takes an
+    in-line `PZE` word.
+  - `a whole-word read of an element whose stride is 11 characters
+    (M6-9)`: `STO 0,r` writes a whole word.
+  - `a CORRESPONDING field its operand's subscript does not index (no
+    sample instance)`: a table inside the element needs two
+    subscripts.
+
+  A CORRESPONDING store into a subscript variable still updates no
+  indicator (`docs/HANDOVER.md` item 9). The rejected option is to
+  keep the refusals; the 1962 processor compiled these shapes.
+
   **Decided 2026-10-25: the input tapes of the applied deck. Decided
   under the section 12 standing rule; Jack can overturn it.** Chunk 2b
   runs the applied deck, `f-payroll-j.ctd`, over two tapes. M6-1 as
@@ -2336,6 +2376,7 @@ the report our run prints against the page.
 [J 90.01.01]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#appendix-9001-deferred-features-restrictions-and-limitations
 [J 90.01.02]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.01.03]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
+[J 90.01.05]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.01]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#introduction
 [J 90.02.03]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing

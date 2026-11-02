@@ -54,7 +54,7 @@ final class SubscriptChecker {
     if (reference.subscripts.isEmpty) {
       return; // A whole-array reference is legal (M3-20).
     }
-    final int dimensions = _dimensionsOf(array);
+    final int dimensions = dimensionsOf(array, mapper.semantics);
     if (dimensions == 0) {
       resolver.report(
         msgArrayDescriptionCheck,
@@ -74,12 +74,6 @@ final class SubscriptChecker {
     }
     _countIndicator(array, reference);
   }
-
-  /// The quantity-bearing ancestors-or-self of [item] (M3-20).
-  int _dimensionsOf(DataItem item) => ancestorsOf(item).where((DataItem each) {
-    final ItemSemantics? sem = mapper.semantics[each];
-    return sem != null && (sem.quantity > 1 || sem.variableLength);
-  }).length;
 
   void _checkTerm(ArithExpr term, NameReference array) {
     switch (term) {
@@ -172,7 +166,19 @@ final class SubscriptChecker {
     }
   }
 
-  void _countIndicator(DataItem array, NameReference reference) {
+  void _countIndicator(DataItem array, NameReference reference) =>
+      countIndicator(array, reference, resolver);
+
+  /// Counts the indicator of [array] under [reference]'s subscripts, and
+  /// reports the cap through [walk], the pass that holds the clause. A
+  /// CORRESPONDING pair counts its field under its group's subscripts:
+  /// "The compiler simply appends the designated subscript to the
+  /// generated instructions" (J 02.04.05; M6-9).
+  void countIndicator(
+    DataItem array,
+    NameReference reference,
+    ClauseWalk walk,
+  ) {
     // The set is the object program's `PI)` block, so it is collected
     // whatever `--no-table-limits` says (M4-4); the flag lifts the
     // diagnostic alone (D9.7).
@@ -183,7 +189,7 @@ final class SubscriptChecker {
     if (tableLimits && _indicators.length == 91) {
       // The "Appox-Max" 90 positional indicators (J 90.01.05; D9.7
       // rejects the unknown band above the printed number).
-      resolver.report(msgSubscriptedNameCapacity, reference.anchor);
+      walk.report(msgSubscriptedNameCapacity, reference.anchor);
     }
   }
 

@@ -171,31 +171,133 @@ void main() {
       );
     });
 
-    test('a subscripted ADD target', () {
-      // Master added into the first element on every pass.
-      expect(
-        _refuses(['            ADD NUM TO TAB CELL (IDX).']),
-        'a subscripted ADD target (no sample instance)',
-      );
+    group('a subscripted external-decimal store target', () {
+      // SYS)180 takes its target from the in-line `PZE` word.
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'XT', level: '1', quantity: '12'),
+        dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+      ];
+      const shape =
+          'a subscripted external-decimal store target (no sample instance)';
+
+      test('of an ADD', () {
+        expect(
+          _refuses(['            ADD NUM TO XT XF (IDX).'], data: data),
+          shape,
+        );
+      });
+
+      test('of a SET', () {
+        expect(
+          _refuses(['            SET XT XF (IDX) = NUM.'], data: data),
+          shape,
+        );
+      });
+
+      test('of an ADD CORRESPONDING', () {
+        expect(
+          _refuses(
+            ['            ADD CORRESPONDING XG TO XT (IDX).'],
+            data: [
+              ...data,
+              dataCard(name: 'XG', level: '1'),
+              internalCard('XF', '999', level: '2'),
+            ],
+          ),
+          shape,
+        );
+      });
     });
 
-    test('a subscripted ADD target of an edited source', () {
-      expect(
-        _refuses(
-          ['            ADD EDN TO TAB CELL (IDX).'],
-          data: [
-            ..._data(),
-            dataCard(name: 'EDN', level: '1', description: '899'),
-          ],
+    group('a subscripted CORRESPONDING source (J 02.04.05)', () {
+      // Each pair is the plain clause with the subscript appended, and
+      // refuses as that clause does.
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'G', level: '1'),
+        internalCard('CELL', '999', level: '2'),
+      ];
+
+      test('of an ADD', () {
+        expect(
+          _refuses([
+            '            ADD CORRESPONDING TAB (IDX) TO G.',
+          ], data: data),
+          'a subscripted ADD source (no sample instance)',
+        );
+      });
+
+      test('of a MOVE', () {
+        expect(
+          _refuses([
+            '            MOVE CORRESPONDING TAB (IDX) TO G.',
+          ], data: data),
+          'a subscripted internal-decimal move (no sample instance)',
+        );
+      });
+
+      test('read with and without its subscript', () {
+        // One cell would serve the element and the plain field.
+        expect(
+          _refuses(
+            ['            ADD CORRESPONDING XT (IDX) TO XT.'],
+            data: [
+              ..._data(),
+              dataCard(name: 'XT', level: '1', quantity: '12'),
+              dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+            ],
+          ),
+          'an external-decimal field read with and without its subscript '
+          '(no sample instance)',
+        );
+      });
+    });
+
+    group("a CORRESPONDING field its operand's subscript does not index", () {
+      // ROW is a table inside the element, so `TB (IDX)` gives it one
+      // subscript of two.
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'G', level: '1'),
+        internalCard('ROW', '999', level: '2'),
+        dataCard(name: 'TB', level: '1', quantity: '3'),
+        dataCard(
+          name: 'ROW',
+          level: '2',
+          quantity: '2',
+          mode: 'I',
+          justify: 'R',
+          description: '999',
         ),
-        'a subscripted ADD target (no sample instance)',
-      );
+      ];
+      const shape =
+          "a CORRESPONDING field its operand's subscript does not index "
+          '(no sample instance)';
+
+      test('as an ADD target', () {
+        expect(
+          _refuses([
+            '            ADD CORRESPONDING G TO TB (IDX).',
+          ], data: data),
+          shape,
+        );
+      });
+
+      test('as a MOVE source', () {
+        expect(
+          _refuses([
+            '            MOVE CORRESPONDING TB (IDX) TO G.',
+          ], data: data),
+          shape,
+        );
+      });
     });
 
     test('an ADD into a target of lesser scale', () {
       expect(
         _refuses(['            ADD FRAC TO NUM.']),
-        'an ADD into a target of lesser scale (no sample instance)',
+        'an ADD into a target of lesser scale (notes section 7)',
       );
     });
 
@@ -208,7 +310,7 @@ void main() {
             dataCard(name: 'EDF', level: '1', description: '89.9'),
           ],
         ),
-        'an ADD into a target of lesser scale (no sample instance)',
+        'an ADD into a target of lesser scale (notes section 7)',
       );
     });
 
@@ -344,12 +446,14 @@ void main() {
         dataCard(name: 'INNER', level: '1', mode: 'E', description: '9S9'),
         dataCard(name: 'BEHIND', level: '1', mode: 'E', description: '9V9S'),
         dataCard(name: 'EINNER', level: '1', description: r'$8S9'),
+        dataCard(name: 'EPOINT', level: '1', description: r'$9.9S'),
       ];
       for (final statement in [
         'MOVE INNER TO NUM.',
         'MOVE BEHIND TO NUM.',
         'MOVE INNER TO EDT.',
         'MOVE EINNER TO EDT.',
+        'MOVE EPOINT TO EDT.',
         'ADD EINNER TO NUM.',
         'SET NUM = INNER + 1.',
       ]) {
@@ -493,11 +597,27 @@ void main() {
       );
     });
 
-    test('a subscripted SET target', () {
-      expect(
-        _refuses(['            SET TAB CELL (IDX) = NUM.']),
-        'a subscripted SET target (no sample instance)',
-      );
+    group('a subscripted edited target', () {
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'DT', level: '1', quantity: '12'),
+        dataCard(name: 'DC', level: '2', description: '899'),
+      ];
+      const shape = 'a subscripted edited-store target (no sample instance)';
+
+      test('of a SET', () {
+        expect(
+          _refuses(['            SET DT DC (IDX) = NUM.'], data: data),
+          shape,
+        );
+      });
+
+      test('of an ADD', () {
+        expect(
+          _refuses(['            ADD NUM TO DT DC (IDX).'], data: data),
+          shape,
+        );
+      });
     });
 
     test('a store below the target scale', () {
@@ -1355,6 +1475,21 @@ void main() {
           '(M6-9)',
         );
       });
+
+      for (final statement in [
+        'ADD NUM TO T11 F11 (IDX).',
+        'SET T11 F11 (IDX) = NUM.',
+      ]) {
+        test('in the element store of $statement', () {
+          // `STO 0,r` writes the word the address names, as `CAS 0,r`
+          // reads it.
+          expect(
+            _refuses(['            $statement'], data: data),
+            'a whole-word read of an element whose stride is 11 '
+            'characters (M6-9)',
+          );
+        });
+      }
 
       group('an external field read with and without its subscript', () {
         // One cell serves an item in a fetch scope.

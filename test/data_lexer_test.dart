@@ -73,27 +73,84 @@ void main() {
     group('a punched column 72 on the last card (949,00)', () {
       // The site is a post-pass in runFrontEnd (D11.4), so these tests
       // run the whole front end.
-      final List<CardImage> deck = mirrorToDeck(
+      List<CardImage> deckOf(List<String> data, List<String> environment) =>
+          mirrorToDeck(
+            [
+              '      *DATA',
+              dataCard(name: 'REC', level: '1', type: 'RECORD'),
+              ...data,
+              '      *ENVIRONMENT',
+              ...environment,
+              '      *PROCEDURE',
+              '      START.  STOP RUN.',
+              '',
+            ].join('\n'),
+          );
+
+      /// Each note as its message, card, column, severity and statement.
+      List<(Message, int, int?, int, String?)> notes(FrontEndResult r) => [
+        for (final Diagnostic d in r.diagnostics)
+          (
+            d.message,
+            d.card!.cardNumber,
+            d.column,
+            d.severity,
+            r.statementNumberByCard[d.card!.cardNumber],
+          ),
+      ];
+
+      /// Each Data entry and Environment specification as plain values.
+      List<List<Object?>> entries(FrontEndResult r) => [
+        for (final GroupScan group in r.groupScans)
+          ...switch (group) {
+            DataGroupScan(:final scan) => [
+              for (final DataEntry e in scan.entries)
+                [
+                  e.name,
+                  e.level,
+                  e.typeText,
+                  e.quantity,
+                  e.modeText,
+                  e.justifyText,
+                  [for (final Token t in e.descriptionTokens) t.text],
+                  [for (final SourceCard c in e.cards) c.cardNumber],
+                ],
+            ],
+            EnvironmentGroupScan(:final scan) => [
+              for (final EnvironmentSpec e in scan.specs)
+                [
+                  e.name,
+                  e.typeText,
+                  [for (final Token t in e.optionTokens) t.text],
+                  [for (final SourceCard c in e.cards) c.cardNumber],
+                ],
+            ],
+            ProcedureGroupScan() => const <List<Object?>>[],
+          },
+      ];
+
+      const options = 'OUTPUT,BCD,TAPE,REC,BLOCKSIZE 1';
+      const optionTexts = [
+        'OUTPUT', ',', 'BCD', ',', 'TAPE', ',', 'REC', ',', //
+        'BLOCKSIZE', '1',
+      ];
+      final List<CardImage> deck = deckOf(
         [
-          '      *DATA',
-          dataCard(name: 'REC', level: '1', type: 'RECORD'),
           dataCard(
             name: 'AMOUNT',
             level: '2',
             description: '999',
             continued: true,
           ),
-          '      *ENVIRONMENT',
+        ],
+        [
           environmentCard(
             name: 'OUTFILE',
             type: 'FILE',
-            options: 'OUTPUT,BCD,TAPE,REC,BLOCKSIZE 1',
+            options: options,
             continued: true,
           ),
-          '      *PROCEDURE',
-          '      START.  STOP RUN.',
-          '',
-        ].join('\n'),
+        ],
       );
 
       test('is silent in default mode', () {
@@ -103,27 +160,69 @@ void main() {
       test('draws 949,00 under --pedantic with each entry unchanged', () {
         final FrontEndResult plain = runFrontEnd(deck);
         final FrontEndResult pedantic = runFrontEnd(deck, pedantic: true);
-        expect(
+        expect(notes(pedantic), [
+          (msgDanglingContinuation, 3, 72, 1, '2,00'),
+          (msgDanglingContinuation, 5, 72, 1, '3,00'),
+        ]);
+        expect(pedantic.statementCount, plain.statementCount);
+        expect(entries(pedantic), entries(plain));
+        expect(entries(plain).skip(1), [
           [
-            for (final Diagnostic d in pedantic.diagnostics)
-              (
-                d.message,
-                d.card!.cardNumber,
-                d.column,
-                d.severity,
-                pedantic.statementNumberByCard[d.card!.cardNumber],
-              ),
+            'AMOUNT',
+            2,
+            '',
+            null,
+            '',
+            '',
+            ['999'],
+            [3],
           ],
           [
-            (msgDanglingContinuation, 3, 72, 1, '2,00'),
-            (msgDanglingContinuation, 5, 72, 1, '3,00'),
+            'OUTFILE',
+            'FILE',
+            optionTexts,
+            [5],
+          ],
+        ]);
+      });
+
+      test('draws 949,00 at the last card of a two-card entry', () {
+        final List<CardImage> twoCard = deckOf(
+          [
+            dataCard(name: 'AMOUNT', level: '2', continued: true),
+            dataCard(description: '999', continued: true),
+          ],
+          [
+            environmentCard(name: 'OUTFILE', type: 'FILE', continued: true),
+            environmentCard(options: options, continued: true),
           ],
         );
-        expect(pedantic.statementCount, plain.statementCount);
-        final data = pedantic.groupScans.first as DataGroupScan;
-        expect(data.scan.entries, hasLength(2));
-        expect(data.scan.entries.last.cards.single.cardNumber, 3);
-        expect(data.scan.entries.last.descriptionTokens.single.text, '999');
+        final FrontEndResult plain = runFrontEnd(twoCard);
+        final FrontEndResult pedantic = runFrontEnd(twoCard, pedantic: true);
+        expect(plain.diagnostics, isEmpty);
+        expect(notes(pedantic), [
+          (msgDanglingContinuation, 4, 72, 1, '2,00'),
+          (msgDanglingContinuation, 7, 72, 1, '3,00'),
+        ]);
+        expect(entries(pedantic), entries(plain));
+        expect(entries(plain).skip(1), [
+          [
+            'AMOUNT',
+            2,
+            '',
+            null,
+            '',
+            '',
+            ['999'],
+            [3, 4],
+          ],
+          [
+            'OUTFILE',
+            'FILE',
+            optionTexts,
+            [6, 7],
+          ],
+        ]);
       });
 
       test('fires before a repeated header, not only at the deck end', () {

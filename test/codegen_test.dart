@@ -811,7 +811,8 @@ void main() {
   group('the alignment of a MOVE and an ADD (F p. 42)', () {
     /// The words of [statement] up to its STOP RUN, with NUM at `999`,
     /// AMT at `99V99`, EXT an external `999`, EXF an external `99V99`,
-    /// EDT at `$8889.99`, and ED3 an edited `899`.
+    /// EDT at `$8889.99`, ED3 an edited `899`, N4 at `9(4)`, and E89 an
+    /// edited `889.9`.
     List<String> aligned(String statement, {List<String> then = const []}) {
       final SemanticResult semantics = runJob(
         data: [
@@ -833,6 +834,14 @@ void main() {
           dataCard(name: 'EXF', level: '1', mode: 'E', description: '99V99'),
           dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
           dataCard(name: 'ED3', level: '1', description: '899'),
+          dataCard(
+            name: 'N4',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '9(4)',
+          ),
+          dataCard(name: 'E89', level: '1', description: '889.9'),
         ],
         procedure: [statement, ...then, '            STOP RUN.'],
       );
@@ -841,8 +850,8 @@ void main() {
         for (final AssemblyUnit u in runCodegen(semantics).units)
           '${u.operation} ${u.operand}',
       ];
-      // The procedure begins past the six data reservations.
-      final int start = words.indexOf('BSS 0') + 7;
+      // The procedure begins past the eight data reservations.
+      final int start = words.indexOf('BSS 0') + 9;
       return words.sublist(start, words.indexOf('TSX SYS)178,4'));
     }
 
@@ -859,15 +868,35 @@ void main() {
       ]);
     });
 
+    test('an upscale past the target digits splits for the edit', () {
+      // 1234 at scale 1 is five digits, one more than `889.9` holds.
+      expect(aligned('            MOVE N4 TO E89.'), [
+        'LDQ N4',
+        'MPY CP)+2',
+        'XCA ',
+        'LRS 35',
+        'DVP CP)+3',
+        'TSX SYS)180,4',
+        'PZE E89,,0',
+        'TXI SYS)267,1,4',
+        'OCT 000003000002',
+        'AXT 4,1',
+      ]);
+    });
+
     test('an external source of lesser scale upscales its convert', () {
+      // EXT's third integer digit does not fit AMT, so the upscaled
+      // value splits on 10^4 before the store (defect 13).
       expect(aligned('            MOVE EXT TO AMT.'), [
-        'LDI CP)+7',
+        'LDI CP)+8',
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
         'XCA ',
         'MPY CP)+2',
         'XCA ',
+        'LRS 35',
+        'DVP CP)+3',
         'STO AMT',
       ]);
     });
@@ -900,12 +929,13 @@ void main() {
     });
 
     test('an aligned ADD leaves no park open for a later comparison', () {
+      // A leaked park makes the comparison refuse; reaching CAS shows none.
       expect(
         aligned(
           '            ADD NUM TO AMT.',
           then: ['            IF NUM + 1 GT AMT THEN STOP RUN.'],
-        ).take(6),
-        ['LDQ NUM', 'MPY CP)+2', 'STQ RS)0', 'CLA AMT', 'ADD RS)0', 'STO AMT'],
+        ),
+        contains('CAS AMT'),
       );
     });
 
@@ -924,6 +954,111 @@ void main() {
         'CLA AMT',
         'ADD RS)0',
         'STO AMT',
+      ]);
+    });
+  });
+
+  group('the leading digits a shorter target cannot hold (defect 13)', () {
+    /// The words of [statement] up to its STOP RUN, with EXA an external
+    /// `999V99`, EX2 an external `99`, T1 at `9V9`, X at `9`, N2 at `99`,
+    /// and TAB a table of three `9V9` cells under the index I.
+    List<String> split(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'EXA', level: '1', mode: 'E', description: '999V99'),
+          dataCard(name: 'EX2', level: '1', mode: 'E', description: '99'),
+          internalCard('T1', '9V9'),
+          internalCard('X', '9'),
+          internalCard('N2', '99'),
+          dataCard(name: 'TAB', level: '1', quantity: '3'),
+          internalCard('CELL', '9V9', level: '2'),
+          internalCard('I', '9'),
+        ],
+        procedure: [statement, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('BSS 0') + 8;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    test('a convert that drops digits at both ends splits, then scales', () {
+      // 123.45 keeps 3.45 as the remainder of 10^3, and the quotient of
+      // 10 stores 3.4.
+      expect(split('            MOVE EXA TO T1.'), [
+        'LDI CP)+8',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,5',
+        'LRS 35',
+        'DVP CP)+2',
+        'LRS 35',
+        'DVP CP)+3',
+        'STQ T1',
+      ]);
+    });
+
+    test('a convert at equal scale stores the remainder', () {
+      expect(split('            MOVE EX2 TO X.'), [
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,2',
+        'LRS 35',
+        'DVP CP)+2',
+        'STO X',
+      ]);
+    });
+
+    test('an internal move splits between its two words', () {
+      expect(split('            MOVE N2 TO X.'), [
+        'CLA N2',
+        'LRS 35',
+        'DVP CP)+2',
+        'STO X',
+      ]);
+    });
+
+    test('a target that holds every digit takes no split', () {
+      expect(split('            MOVE X TO N2.'), ['CLA X', 'STO N2']);
+    });
+
+    test('a convert counts its stored digits, not its S fillers', () {
+      // `999SSS` converts three digits at 10 to the 3, which the upscale
+      // makes six: all fit `9(6)`.
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'EXS', level: '1', mode: 'E', description: '999SSS'),
+          internalCard('N6', '9(6)'),
+        ],
+        procedure: ['            MOVE EXS TO N6.', '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('TXI SYS)184,1,3');
+      expect(words.sublist(start + 1, words.indexOf('TSX SYS)178,4')), [
+        'XCA ',
+        'MPY CP)+2',
+        'XCA ',
+        'STO N6',
+      ]);
+    });
+
+    test('a subscripted target stores the split value the same way', () {
+      expect(split('            MOVE EXA TO TAB CELL (I).').sublist(4), [
+        'LRS 35',
+        'DVP CP)+2',
+        'LRS 35',
+        'DVP CP)+3',
+        'LAC PI)1,1',
+        'TXL SYS)294,1,0',
+        'STQ 0,1',
       ]);
     });
   });
@@ -2261,6 +2396,281 @@ void main() {
       ]);
     });
 
+    final List<String> scaled = [
+      ...cells,
+      dataCard(name: 'FT', level: '1', quantity: '3'),
+      internalCard('FC', '9V9', level: '2'),
+      internalCard('J', '9'),
+      internalCard('FR', '9V9'),
+    ];
+
+    test('an ADD target reads and stores through one prologue', () {
+      // The plain body `CLA / ADD / STO`, the element read and store
+      // both `0,r`.
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  ADD NUM TO TAB CELL (I).',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD NUM',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    test('an ADD aligns its source ahead of the element prologue', () {
+      final List<String> all = lines(scaled, [
+        '      START.  ADD NUM TO TAB CELL (I), FT FC (J).',
+        '            STOP RUN.',
+      ]);
+      // The first store frees its register for the second target, whose
+      // source parks as a plain target's does.
+      expect(all.sublist(0, 13), [
+        'GN)000 START\tLAC PI)1,1',
+        '\tTXL SYS)294,1,0',
+        '\tCLA 0,1',
+        '\tADD NUM',
+        '\tSTO 0,1',
+        '\tLDQ NUM',
+        '\tMPY CP)+2',
+        '\tSTQ RS)0',
+        '\tLAC PI)2,1',
+        '\tTXL SYS)294,1,0',
+        '\tCLA 0,1',
+        '\tADD RS)0',
+        '\tSTO 0,1',
+      ]);
+    });
+
+    test('an ADD of three targets on three indicators reuses XR1', () {
+      final List<String> all = lines(
+        [
+          ...pad,
+          for (final int k in [1, 2, 3]) ...[
+            dataCard(name: 'T$k', level: '1', quantity: '3'),
+            internalCard('C$k', '999', level: '2'),
+          ],
+          internalCard('I', '9'),
+          internalCard('NUM', '999'),
+        ],
+        [
+          '      START.  ADD NUM TO T1 C1 (I), T2 C2 (I), T3 C3 (I).',
+          '            STOP RUN.',
+        ],
+      );
+      // Each store leaves its element address dead, so no target needs
+      // a third register.
+      expect(all.sublist(0, 15), [
+        for (final int k in [1, 2, 3]) ...[
+          '${k == 1 ? 'GN)000 START' : ''}\tLAC PI)$k,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD NUM',
+          '\tSTO 0,1',
+        ],
+      ]);
+    });
+
+    test('an ADD of an edited source parks before the element prologue', () {
+      final List<String> all = lines(
+        [...cells, dataCard(name: 'ED', level: '1', description: '89')],
+        ['      START.  ADD ED TO TAB CELL (I).', '            STOP RUN.'],
+      );
+      // The MOVPAK convert sets XR1, so the prologue follows its park.
+      expect(upTo(all, '\tSTO 0,1').sublist(3), [
+        '\tTXI SYS)268,1,1',
+        '\tTXI SYS)269,1,2',
+        '\tTXI SYS)275,1,2',
+        '\tSTO RS)1',
+        '\tLAC PI)1,1',
+        '\tTXL SYS)294,1,0',
+        '\tCLA 0,1',
+        '\tADD RS)1',
+        '\tSTO 0,1',
+      ]);
+    });
+
+    test('a SET target stores the chain through its indicator', () {
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  SET TAB CELL (I) = NUM + 1.',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tCLA NUM',
+          '\tADD CP)+1',
+          '\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    test('a SET target takes the scaling tail, then STQ', () {
+      expect(
+        upTo(
+          lines(scaled, [
+            '      START.  SET FT FC (I) = FR * FR.',
+            '            STOP RUN.',
+          ]),
+          '\tSTQ 0,1',
+        ),
+        [
+          'GN)000 START\tLDQ FR',
+          '\tMPY FR',
+          '\tXCA ',
+          '\tACL CP)+2',
+          '\tLRS 35',
+          '\tDVP CP)+3',
+          '\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tSTQ 0,1',
+        ],
+      );
+    });
+
+    test('an ADD target recomputes before the next prologue reads it', () {
+      // The element is the one I names after the first store.
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  ADD NUM TO I, TAB CELL (I).',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tCLA I',
+          '\tADD NUM',
+          '\tSTO I',
+          'GN)001\tEQU CP)+6',
+          '\tLDQ I',
+          '\tMPY CP)+1',
+          '\tXCA ',
+          '\tADD GN)001',
+          '\tSTO PI)1',
+          '\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD NUM',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    group('a subscripted CORRESPONDING target (J 02.04.05)', () {
+      /// G and the element of TAB both hold CELL, OTH and THR. Each
+      /// field of `TAB (I)` takes the subscript, so it takes an
+      /// indicator of its own after TAB's: `PI)2`, `PI)3` and `PI)4`.
+      /// Each store frees XR1 for the next field.
+      final List<String> groups = [
+        ...pad,
+        dataCard(name: 'G', level: '1'),
+        internalCard('CELL', '999', level: '2'),
+        internalCard('OTH', '99', level: '2'),
+        internalCard('THR', '9', level: '2'),
+        dataCard(name: 'TAB', level: '1', quantity: '3'),
+        internalCard('CELL', '999', level: '2'),
+        internalCard('OTH', '99', level: '2'),
+        internalCard('THR', '9', level: '2'),
+        internalCard('I', '9'),
+      ];
+      const fields = <(int, String)>[(2, 'CELL'), (3, 'OTH'), (4, 'THR')];
+
+      test('of an ADD reads and stores each field through its prologue', () {
+        expect(
+          lines(groups, [
+            '      START.  ADD CORRESPONDING G TO TAB (I).',
+            '            STOP RUN.',
+          ]).sublist(0, 15),
+          [
+            for (final (int pi, String name) in fields) ...[
+              '${pi == 2 ? 'GN)000 START' : ''}\tLAC PI)$pi,1',
+              '\tTXL SYS)294,1,0',
+              '\tCLA 0,1',
+              '\tADD 1)$name',
+              '\tSTO 0,1',
+            ],
+          ],
+        );
+      });
+
+      test('of a MOVE stores each field through its prologue', () {
+        expect(
+          lines(groups, [
+            '      START.  MOVE CORRESPONDING G TO TAB (I).',
+            '            STOP RUN.',
+          ]).sublist(0, 12),
+          [
+            for (final (int pi, String name) in fields) ...[
+              '${pi == 2 ? 'GN)000 START' : ''}\tCLA 1)$name',
+              '\tLAC PI)$pi,1',
+              '\tTXL SYS)294,1,0',
+              '\tSTO 0,1',
+            ],
+          ],
+        );
+      });
+
+      test('a SET of the subscript recomputes every field indicator', () {
+        final List<String> all = lines(groups, [
+          '      START.  SET I = 2.',
+          '            MOVE CORRESPONDING G TO TAB (I).',
+          '            STOP RUN.',
+        ]);
+        expect(all.where((String line) => line.startsWith('\tSTO PI)')), [
+          '\tSTO PI)4',
+          '\tSTO PI)3',
+          '\tSTO PI)2',
+          '\tSTO PI)1',
+        ]);
+      });
+
+      test('an external source field fetches through its indicator', () {
+        // The words of `ADD XT XF (I) TO G XF`: `SYS)132` takes the
+        // indicator of XF, not of XT.
+        expect(
+          upTo(
+            lines(
+              [
+                ...pad,
+                dataCard(name: 'G', level: '1'),
+                internalCard('XF', '999', level: '2'),
+                dataCard(name: 'XT', level: '1', quantity: '3'),
+                dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+                internalCard('I', '9'),
+              ],
+              [
+                '      START.  ADD CORRESPONDING XT (I) TO G.',
+                '            STOP RUN.',
+              ],
+            ),
+            '\tSTO 1)XF',
+          ),
+          [
+            'GN)000 START\tLDI PI)2',
+            '\tSTI SYS)132',
+            '\tTSX SYS)182,4',
+            '\tTXI SYS)184,1,3',
+            '\tSTO TS)1',
+            '\tCLA 1)XF',
+            '\tADD TS)1',
+            '\tSTO 1)XF',
+          ],
+        );
+      });
+    });
+
     test('a SET into a subscript variable recomputes its indicator', () {
       final List<String> all = lines(cells, [
         '      START.  SET I = 2.',
@@ -2547,13 +2957,25 @@ void main() {
       description: pic,
     );
 
-    test('the convert counts the stored characters', () {
+    test('the convert counts the stored digits', () {
       expect(
         steps([
           field('EXT', 'VS9'),
           field('INT', 'V99', mode: 'I'),
         ], 'MOVE EXT TO INT.'),
         ['\tTXI SYS)184,1,1'],
+      );
+    });
+
+    test('the aligned-move limit counts the stored digits', () {
+      // Five stored digits upscale by three to eight; the eight digits
+      // the pictorial represents would pass the limit of ten.
+      expect(
+        lines(
+          [field('EXT', '9(5)SSS'), field('INT', '9(8)', mode: 'I')],
+          ['      START.  MOVE EXT TO INT.', '            STOP RUN.'],
+        ).sublist(3, 8),
+        ['\tTXI SYS)184,1,5', '\tXCA ', '\tMPY CP)+2', '\tXCA ', '\tSTO INT'],
       );
     });
 

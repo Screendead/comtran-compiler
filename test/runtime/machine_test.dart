@@ -218,6 +218,35 @@ final List<String> _externalStore = <String>[
   '      *FINISH',
 ];
 
+/// A program that moves values into internal-decimal targets with
+/// fewer integer digits (defect 13): EXA `999V99` and EX2 `99` convert,
+/// N2 and NEG move word to word, and CELL is a subscripted `9V9`.
+final List<String> _leadingDigits = <String>[
+  '      *DATA',
+  // P1 and P2 keep the base TAB-1 at or above address zero.
+  internalCard('P1', '9'),
+  internalCard('P2', '9'),
+  dataCard(name: 'TAB', level: '1', quantity: '3'),
+  internalCard('CELL', '9V9', level: '2'),
+  internalCard('I', '9'),
+  dataCard(name: 'EXA', level: '1', mode: 'E', description: '999V99'),
+  dataCard(name: 'EX2', level: '1', mode: 'E', description: '99'),
+  internalCard('T1', '9V9'),
+  internalCard('X', '9'),
+  internalCard('N2', '99'),
+  internalCard('Y', '9'),
+  internalCard('NEG', '99'),
+  internalCard('XN', '9'),
+  '      *PROCEDURE',
+  '      START.  SET EXA = 123.45, MOVE EXA TO T1.',
+  '            SET EX2 = 67, MOVE EX2 TO X.',
+  '            SET N2 = 67, MOVE N2 TO Y.',
+  '            SET NEG = 0 - 67, MOVE NEG TO XN.',
+  '            SET I = 2, MOVE EXA TO TAB CELL (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program that stores chains of scale 3 into fields of scale 2
 /// (M6-9). UP, DOWN, NEG and CUT are internal; EUP, EDOWN and ENEG are
 /// external, ENEG with a minus overpunch.
@@ -825,6 +854,68 @@ List<int> _words(Machine subject, JobCompilation job, String label, int count) {
   return <int>[for (var k = 0; k < count; k++) subject.state.read(first + k)];
 }
 
+/// SET and ADD into elements: I names each element before its store,
+/// and the other elements must stay zero. EXT reads 12 through the
+/// literal row under REDEF.
+final List<String> _elementTargets = <String>[
+  '      *DATA',
+  // The bases `TAB-1` and `FT-1` must stay at or above address zero.
+  internalCard('P1', '9'),
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'012'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'EXT', level: '2', mode: 'E', description: '999'),
+  dataCard(name: 'TAB', level: '1', quantity: '3'),
+  internalCard('CELL', '999', level: '2'),
+  dataCard(name: 'FT', level: '1', quantity: '3'),
+  internalCard('FC', '99V9', level: '2'),
+  internalCard('I', '9'),
+  internalCard('NUM', '999'),
+  internalCard('FR', '9V9'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 4, SET I = 3.',
+  '            ADD NUM TO TAB CELL (I).',
+  '            SET I = 1, SET TAB CELL (I) = NUM + 1.',
+  '            SET I = 2, ADD EXT TO TAB CELL (I).',
+  '            SET FR = 1.5, SET FT FC (I) = FR * FR.',
+  '            ADD NUM TO FT FC (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// An ADD into the subscript variable and an element of one clause,
+/// both CORRESPONDING verbs into an element of three fields
+/// (J 02.04.05), and an ADD into three elements on three indicators.
+final List<String> _correspondingElements = <String>[
+  '      *DATA',
+  internalCard('P1', '9'),
+  dataCard(name: 'G', level: '1'),
+  internalCard('CELL', '999', level: '2'),
+  internalCard('OTH', '99', level: '2'),
+  internalCard('THR', '9', level: '2'),
+  dataCard(name: 'TAB', level: '1', quantity: '3'),
+  internalCard('CELL', '999', level: '2'),
+  internalCard('OTH', '99', level: '2'),
+  internalCard('THR', '9', level: '2'),
+  dataCard(name: 'T2', level: '1', quantity: '3'),
+  internalCard('C2', '999', level: '2'),
+  dataCard(name: 'T3', level: '1', quantity: '3'),
+  internalCard('C3', '999', level: '2'),
+  internalCard('I', '9'),
+  internalCard('NUM', '999'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 1, SET I = 1.',
+  '            ADD NUM TO I, TAB CELL (I).',
+  '            SET G CELL = 7, SET G OTH = 8, SET G THR = 3.',
+  '            SET I = 1, MOVE CORRESPONDING G TO TAB (I).',
+  '            SET I = 3, ADD CORRESPONDING G TO TAB (I).',
+  '            ADD CORRESPONDING G TO TAB (I).',
+  '            SET I = 2, ADD NUM TO TAB OTH (I), T2 C2 (I), T3 C3 (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
 final List<String> _subChain = <String>[
   '      *DATA',
@@ -1339,6 +1430,26 @@ void main() {
       );
     });
 
+    test('a MOVE drops the leading digits its target cannot hold', () {
+      final (JobCompilation job, Machine subject) = compiled(_leadingDigits);
+      expect(subject.printed, <String>['AT 19,00 STOP RUN']);
+      // 123.45 into 9V9 keeps 3.4: the 1 and the 2 drop at the front,
+      // the 5 at the back (F p. 42).
+      expect(subject.state.read(addressOf(job, 'T1')), 34);
+      expect(subject.state.read(addressOf(job, 'X')), 7);
+      expect(subject.state.read(addressOf(job, 'Y')), 7);
+      // The remainder keeps the sign of the dividend.
+      expect(
+        subject.state.read(addressOf(job, 'XN')),
+        Word36.fromSignMagnitude(1, 7),
+      );
+      final int tab = addressOf(job, 'TAB');
+      expect(
+        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
+        <int>[0, 34, 0],
+      );
+    });
+
     test('a chain rounds away from zero at the store', () {
       final (JobCompilation job, Machine subject) = compiled(_chainStore);
       expect(subject.printed, <String>['AT 15,00 STOP RUN']);
@@ -1663,6 +1774,45 @@ void main() {
         );
         expect(subject.state.read(addressOf(job, 'S')), sum, reason: loop);
       }
+    });
+
+    test('a SET and an ADD store into the element the index names', () {
+      final (JobCompilation job, Machine subject) = compiled(_elementTargets);
+      expect(subject.printed, <String>['AT 20,00 STOP RUN']);
+      final int tab = addressOf(job, 'TAB');
+      final int ft = addressOf(job, 'FT');
+      // 4 into element 3, then 4 + 1 into element 1, then 12 into
+      // element 2.
+      expect(
+        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
+        <int>[5, 12, 4],
+      );
+      // 1.5 * 1.5 rounds to 2.3 at the store, and 4 aligns to 4.0: 6.3.
+      expect(
+        <int>[for (var k = 0; k < 3; k++) subject.state.read(ft + k)],
+        <int>[0, 63, 0],
+      );
+    });
+
+    test('a CORRESPONDING clause stores into the element the index names', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _correspondingElements,
+      );
+      expect(subject.printed, <String>['AT 23,00 STOP RUN']);
+      List<int> words(String name, int count) {
+        final int at = addressOf(job, name);
+        return <int>[
+          for (var k = 0; k < count; k++) subject.state.read(at + k),
+        ];
+      }
+
+      // The ADD of 1 lands in element 2, the I it set; the MOVE fills
+      // element 1, the two ADDs double element 3, and the last ADD
+      // adds 1 to element 2 of OTH, C2 and C3.
+      expect(words('TAB', 9), <int>[7, 8, 3, 1, 1, 0, 14, 16, 6]);
+      expect(words('T2', 3), <int>[0, 1, 0]);
+      expect(words('T3', 3), <int>[0, 1, 0]);
+      expect(subject.state.read(addressOf(job, 'I')), 2);
     });
 
     test('a sub-chain inside a chain keeps the outer park', () {

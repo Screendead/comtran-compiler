@@ -144,12 +144,10 @@ ProcedureText generateProcedure(
   }
 }
 
-/// A refusal of this recovery, not a diagnostic of the program.
-///
-/// The refusals for the as-keyed 1960 deck are the diagnostic-listing
-/// reading's, per Jack's ruling of 2026-11-02 (m6-acceptance.md M6-9):
-/// J punches a deck for that program, so the label is "no evidence
-/// describes the code", never "the 1962 compiler refused".
+/// A refusal of this recovery, not a diagnostic of the program. Its
+/// label is "no evidence describes the code", never "the 1962 compiler
+/// refused": under our severities J punches a deck for the as-keyed
+/// 1960 program, which the generator refuses (m6-acceptance.md M6-9).
 ///
 /// The sample never reaches the refusing site, so no generated shape
 /// is attested and none is invented (the notes, section 7). The 1962
@@ -1395,16 +1393,39 @@ final class _Text {
   bool _killPending = false;
 
   void _correspondingUnits(
+    ArithExpr operand,
     List<NameReference> targets,
     List<(DataItem, DataItem)> pairs,
   ) {
+    // Each pair is the plain MOVE with its operands' subscripts
+    // appended (J 02.04.05), every field indexed before the first word
+    // of the clause. A pair exists only below a source name (legality,
+    // 97,00).
+    late final NameReference from = (operand as NameOperand).name;
+    final List<(DataItem, DataItem, NameReference)> units = [
+      for (final (DataItem source, DataItem target) in _emissionOrder(
+        targets,
+        pairs,
+      ))
+        (source, target, targets[_receiverIndex(targets, target)]),
+    ];
+    for (final (DataItem source, DataItem target, NameReference to) in units) {
+      if (from.subscripts.isNotEmpty) {
+        _checkAppended(source, from);
+      }
+      if (to.subscripts.isNotEmpty) {
+        _checkAppended(target, to);
+      }
+    }
     _inCorresponding = true;
     _killPending = false;
-    for (final (DataItem source, DataItem target) in _emissionOrder(
-      targets,
-      pairs,
-    )) {
-      _moveUnit(source, target);
+    for (final (DataItem source, DataItem target, NameReference to) in units) {
+      _moveUnit(
+        source,
+        target,
+        sourceSubscripted: from.subscripts.isNotEmpty,
+        targetSubscripted: to.subscripts.isNotEmpty,
+      );
     }
     _inCorresponding = false;
     if (_killPending) {
@@ -2216,8 +2237,7 @@ final class _Text {
       _unruled('a GET where two FILE cards share a name (no sample instance)');
     }
     if (info.inputFiles.length != 1) {
-      // Zero files, or the two-input-file program behind msg 11. The
-      // listing reading's refusal (M6-9, ruling of 2026-11-02).
+      // Zero files, or the two-input-file program behind msg 11.
       _unruled(
         'a GET record on ${info.inputFiles.length} input files '
         '(no sample instance)',
@@ -2280,7 +2300,6 @@ final class _Text {
       // The IN form names the file, so the record may sit on several
       // (J 02.07.08 b; M6-9).
       if (!info.outputFiles.contains(named)) {
-        // The listing reading's refusal (M6-9, ruling of 2026-11-02).
         _unruled(
           'FILE record IN a file that is not an output file of the record '
           '(no sample instance)',
@@ -2321,6 +2340,7 @@ final class _Text {
   void _move(MoveClause clause) {
     if (clause.corresponding) {
       _correspondingUnits(
+        clause.source,
         clause.targets,
         semantics.correspondingPairs[clause] ?? const [],
       );
@@ -2464,19 +2484,17 @@ final class _Text {
         }
         _setup(source, subscripted: sourceSubscripted, target: false);
         _externalConvert(source);
-        // Register 1 counts as lost after every MOVPAK sequence (notes
-        // question 2), though the call preserves it (RT-3), so outside
-        // a CORRESPONDING expansion a locator it held reloads for the
-        // store.
+        // A locator register 1 held reloads for the store (`_movpakClears`).
         _movpakClears();
-        final int deficit = _moveDeficit(source, target);
+        final int held = _storedDigits(source);
+        final int deficit = _moveDeficit(source, target, held: held);
         if (deficit > 0) {
           // The convert leaves the value in the accumulator, so the
           // multiply takes the attested `XCA / MPY / XCA` (00627–00631).
           _scaledLoad(_xca, deficit);
-        } else if (deficit < 0) {
-          // This arm drops low-order digits only. It drops no leading
-          // digit a shorter target cannot hold.
+        }
+        _leadingSplit(target, deficit, held: held);
+        if (deficit < 0) {
           // A MOVE drops low-order digits (F p. 42), so the divide takes
           // no half-adjust: the split's `LRS 35 / DVP` (00424–00425),
           // and the quotient stores from the MQ (00634–00635).
@@ -2676,7 +2694,7 @@ final class _Text {
       // (`docs/design/runtime.md` RT-4).
       _unruled('an edited store of more than 10 digits (RT-4)');
     }
-    final int deficit = _moveDeficit(source, target);
+    final int deficit = _moveDeficit(source, target, held: s.digits);
     if (deficit < 0) {
       // The quotient of a downscaling divide is in the MQ, and SYS)180
       // renders the accumulator. No site moves a quotient across, and
@@ -2733,11 +2751,13 @@ final class _Text {
   }
 
   /// The fraction digits a MOVE from [source] to [target] adds, negative
-  /// when it drops them. F p. 42 aligns by the decimal point.
-  int _moveDeficit(DataItem source, DataItem target) {
+  /// when it drops them. F p. 42 aligns by the decimal point. [held] is
+  /// the digit count of the value before the upscale: a convert yields
+  /// the stored digits alone.
+  int _moveDeficit(DataItem source, DataItem target, {required int held}) {
     final int deficit =
         _sem(target).fractionDigits - _sem(source).fractionDigits;
-    if (deficit > 0 && _sem(source).digits + deficit > 10) {
+    if (deficit > 0 && held + deficit > 10) {
       // The `XCA` keeps the low word of the product (RT-4).
       _unruled('an aligned move of more than 10 digits (no sample instance)');
     }
@@ -2745,7 +2765,8 @@ final class _Text {
   }
 
   /// The internal-to-internal move: two words at its one site, equal
-  /// scale and single precision (catalogue 4.6).
+  /// scale and single precision (catalogue 4.6), and the digit split
+  /// ahead of the store when the target holds fewer digits.
   void _internalMove(
     DataItem source,
     DataItem target, {
@@ -2764,6 +2785,7 @@ final class _Text {
     }
     _loadBaseOf(source);
     _opItem(Op.cla, source);
+    _leadingSplit(target, 0, held: s.digits);
     if (targetSubscripted) {
       _elementStore(target);
       return;
@@ -2772,15 +2794,46 @@ final class _Text {
     _opItem(Op.sto, target);
   }
 
+  /// Drops from the value in the accumulator the leading digits [target]
+  /// cannot hold (F p. 42; defect 13). The digit-split `LRS 35 / DVP` of
+  /// 00424–00425 leaves the digits that fit as the remainder in the
+  /// accumulator and the excess in the MQ (D4.1 (c)). The value is at the
+  /// finer of the two scales, so a move that drops fraction digits splits
+  /// before its downscaling divide. [held] counts the digits the source
+  /// value carries, which for a convert leaves out the `S` fillers.
+  void _leadingSplit(DataItem target, int deficit, {required int held}) {
+    final int fits = _sem(target).digits;
+    if (held + deficit <= fits) {
+      return;
+    }
+    _shift(Op.lrs, _storeShift);
+    _op(Op.dvp, _cp(_pool.machineWord(_pow10(fits + math.max(0, -deficit)))));
+  }
+
   /// The store of the accumulator, or of the MQ when [store] is `STQ`,
   /// into the element [target]'s indicator addresses: the comparand's
   /// prologue, then `STO 0,r`, the form of the attested `CAS 0,2` at
   /// 01412 with the store in place of `CAS`. The prologue changes
   /// neither register.
   void _elementStore(DataItem target, {Op store = Op.sto}) {
-    final int register = _indicatorPrologue(target);
-    _op(store, _Sym(() => '0', () => 0, Relocation.constant), tag: register);
+    _op(store, _elementWord, tag: _indicatorPrologue(target));
+    _releaseElement(target);
   }
+
+  /// Frees the register of [array]'s element once its store has
+  /// written. The address is dead, and each later element of the
+  /// statement loads its own prologue, so a CORRESPONDING group of
+  /// three fields or an ADD of three targets needs no third register.
+  void _releaseElement(DataItem array) =>
+      _statementRegisters.remove(-_indicator(array));
+
+  /// The address part of every element read and store: the register
+  /// alone reaches the element.
+  static final _Sym _elementWord = _Sym(
+    () => '0',
+    () => 0,
+    Relocation.constant,
+  );
 
   /// A store into a subscript variable recomputes every positional
   /// indicator it drives, five words and a two-name later-pass run
@@ -3071,10 +3124,11 @@ final class _Text {
       return;
     }
     // The target refuses before the first word of the chain.
-    if (target.subscripts.isNotEmpty) {
-      _unruled('a subscripted SET target (no sample instance)');
-    }
     final DataItem item = _resolved(target);
+    final bool element = target.subscripts.isNotEmpty;
+    if (element) {
+      _checkElementTarget(item);
+    }
     final FieldClass to = _sem(item).fieldClass;
     if (to == FieldClass.edited) {
       _checkEditedTarget(item);
@@ -3086,7 +3140,12 @@ final class _Text {
     }
     _withFetches(
       _operandsOf([clause.value]),
-      () => _store(item, _chain(clause.value), truncated: clause.truncated),
+      () => _store(
+        item,
+        _chain(clause.value),
+        truncated: clause.truncated,
+        element: element,
+      ),
     );
     // A SET moves the indicators its target drives, as a MOVE does
     // (J 02.04.07.01; M4-10). The CORRESPONDING forms return before
@@ -3164,20 +3223,57 @@ final class _Text {
         clause.targets,
         semantics.correspondingPairs[clause] ?? const [],
       );
-      for (final (DataItem source, DataItem target) in pairs) {
-        _addPair(source, target);
+      // Each pair is the plain ADD with its operands' subscripts
+      // appended (J 02.04.05), and refuses as that ADD does, before the
+      // first word of the clause. A pair exists only below a source
+      // name (legality, 97,00).
+      late final NameReference from = (clause.source as NameOperand).name;
+      late final bool sourceSubscripted = from.subscripts.isNotEmpty;
+      final List<(DataItem, DataItem, NameReference)> units = [
+        for (final (DataItem source, DataItem target) in pairs)
+          (
+            source,
+            target,
+            clause.targets[_receiverIndex(clause.targets, target)],
+          ),
+      ];
+      for (final (DataItem source, DataItem target, NameReference to)
+          in units) {
+        if (sourceSubscripted) {
+          _checkAppended(source, from);
+          _checkSubscriptedAddSource(source, [
+            if (to.subscripts.isEmpty) target,
+          ]);
+        }
+        if (to.subscripts.isNotEmpty) {
+          _checkAppended(target, to);
+          _checkElementTarget(target);
+        }
+      }
+      for (final (DataItem source, DataItem target, NameReference to)
+          in units) {
+        _addPair(
+          source,
+          target,
+          element: to.subscripts.isNotEmpty,
+          sourceSubscripted: sourceSubscripted,
+        );
       }
       return;
     }
     if (clause.source case NameOperand(:final name)) {
       final DataItem source = _resolved(name);
-      final external = _sem(source).fieldClass == FieldClass.externalDecimal;
-      if (name.subscripts.isNotEmpty && !external) {
-        _unruled('a subscripted ADD source (no sample instance)');
+      if (name.subscripts.isNotEmpty) {
+        _checkSubscriptedAddSource(source, [
+          for (final NameReference target in clause.targets)
+            if (target.subscripts.isEmpty) _resolved(target),
+        ]);
       }
-      // Both arms resolve the target alone, so its subscript would drop.
-      if (clause.targets.any((NameReference t) => t.subscripts.isNotEmpty)) {
-        _unruled('a subscripted ADD target (no sample instance)');
+      // The targets refuse before the first word of the clause.
+      for (final NameReference target in clause.targets) {
+        if (target.subscripts.isNotEmpty) {
+          _checkElementTarget(_resolved(target));
+        }
       }
       if (_sem(source).fieldClass == FieldClass.edited) {
         // The non-binary operand fetch (catalogue 4.7): the register
@@ -3192,9 +3288,15 @@ final class _Text {
         for (final NameReference target in clause.targets) {
           final DataItem item = _resolved(target);
           final int deficit = _addDeficit(source, item);
-          _withFetches([
-            item,
-          ], () => _alignedAdd(item, deficit, (Op op) => _op(op, park)));
+          _withFetches(
+            [item],
+            () => _alignedAdd(
+              item,
+              deficit,
+              (Op op) => _op(op, park),
+              element: target.subscripts.isNotEmpty,
+            ),
+          );
           _subscriptRecomputation(target);
         }
         return;
@@ -3203,14 +3305,6 @@ final class _Text {
         for (final NameReference target in clause.targets) _resolved(target),
       ];
       final read = <DataItem>[source, ...targets];
-      if (name.subscripts.isNotEmpty &&
-          targets.any((DataItem each) => identical(each, source))) {
-        // The one cell would serve the element and the plain field.
-        _unruled(
-          'an external-decimal field read with and without its subscript '
-          '(no sample instance)',
-        );
-      }
       if (targets.length > 1 &&
           read.any(
             (DataItem item) =>
@@ -3227,14 +3321,38 @@ final class _Text {
       // One scope for the clause: the source converts once, and every
       // pair reads its cell, as statement 221's edited source parks once.
       _withFetches(read, () {
-        for (final target in targets) {
-          _addPair(source, target);
+        for (var i = 0; i < targets.length; i++) {
+          _addPair(
+            source,
+            targets[i],
+            element: clause.targets[i].subscripts.isNotEmpty,
+          );
+          // A later target's prologue reads the indicator this store
+          // drives.
+          _subscriptRecomputation(clause.targets[i]);
         }
       }, subscripted: <DataItem>{if (name.subscripts.isNotEmpty) source});
-      clause.targets.forEach(_subscriptRecomputation);
       return;
     }
     _unruled('an ADD of a literal (no sample instance)');
+  }
+
+  /// The refusals of a subscripted ADD [source]. Only an
+  /// external-decimal field fetches through its indicator, and its one
+  /// cell cannot also serve the field as one of [plainTargets].
+  void _checkSubscriptedAddSource(
+    DataItem source,
+    List<DataItem> plainTargets,
+  ) {
+    if (_sem(source).fieldClass != FieldClass.externalDecimal) {
+      _unruled('a subscripted ADD source (no sample instance)');
+    }
+    if (plainTargets.any((DataItem each) => identical(each, source))) {
+      _unruled(
+        'an external-decimal field read with and without its subscript '
+        '(no sample instance)',
+      );
+    }
   }
 
   /// The edited-field-to-register convert ([J 90.02.30]): the MOVPAK
@@ -3274,25 +3392,51 @@ final class _Text {
   ];
 
   /// One ADD unit: `CLA target / ADD source / STO target` with the
-  /// guards the operands force. Every attested pair has equal scale;
-  /// the store tail on an ADD has no site (notes section 7).
-  void _addPair(DataItem source, DataItem target) {
+  /// guards the operands force, the source aligned to the target's
+  /// scale first ([_alignedAdd]).
+  void _addPair(
+    DataItem source,
+    DataItem target, {
+    bool element = false,
+    bool sourceSubscripted = false,
+  }) {
     final int deficit = _addDeficit(source, target);
     final DataItem addend = _operand(source);
-    _withFetches([
-      addend,
-      target,
-    ], () => _alignedAdd(target, deficit, (Op op) => _read(op, addend)));
+    _withFetches(
+      [addend, target],
+      () => _alignedAdd(
+        target,
+        deficit,
+        (Op op) => _read(op, addend),
+        element: element,
+      ),
+      subscripted: <DataItem>{if (sourceSubscripted) addend},
+    );
+  }
+
+  /// A CORRESPONDING field takes its [operand]'s subscript
+  /// ([J 02.04.05]), which must index every dimension of the field.
+  /// The semantic pass counts no indicator for a field it does not.
+  void _checkAppended(DataItem field, NameReference operand) {
+    if (dimensionsOf(field, semantics.semantics) != operand.subscripts.length) {
+      _unruled(
+        "a CORRESPONDING field its operand's subscript does not index "
+        '(no sample instance)',
+      );
+    }
   }
 
   /// The fraction digits an ADD source lacks against [target]. A source
   /// of greater scale needs the store tail, which has no site on an ADD
-  /// (notes section 7).
+  /// (notes section 7). No digit limit refuses the upscale, where
+  /// [_moveDeficit] refuses a MOVE's: the ADD emits the words of
+  /// `SET target = target + source`, which compiles the same product,
+  /// and the excess is D4.2's overflow.
   int _addDeficit(DataItem source, DataItem target) {
     final int deficit =
         _sem(target).fractionDigits - _sem(source).fractionDigits;
     if (deficit < 0) {
-      _unruled('an ADD into a target of lesser scale (no sample instance)');
+      _unruled('an ADD into a target of lesser scale (notes section 7)');
     }
     return deficit;
   }
@@ -3301,22 +3445,42 @@ final class _Text {
   /// addend [deficit] digits short loads into the MQ, upscales, and parks
   /// as the chain parks a term of `SET target = target + source`: `MPY`
   /// the power of ten, then `STQ RS)0` (the attested 00622–00624).
-  void _alignedAdd(DataItem target, int deficit, void Function(Op) read) {
+  void _alignedAdd(
+    DataItem target,
+    int deficit,
+    void Function(Op) read, {
+    required bool element,
+  }) {
     if (deficit == 0) {
-      _addBody(target, () => read(Op.add));
+      _addBody(target, () => read(Op.add), element: element);
       return;
     }
     read(Op.ldq);
     _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
     final void Function(Op) parked = _park(0, _Register.mq);
-    _addBody(target, () => parked(Op.add));
+    _addBody(target, () => parked(Op.add), element: element);
     // The body has read the park. An ADD opens no chain, so cell 0 was
     // free, and a later chain or comparison must find it free again.
     _parkedCells.remove(0);
   }
 
-  void _addBody(DataItem target, void Function() addend) {
+  /// An [element] target reads and stores through one prologue, `CLA
+  /// 0,r` and `STO 0,r`, with the addend between them as at a plain
+  /// target.
+  void _addBody(
+    DataItem target,
+    void Function() addend, {
+    required bool element,
+  }) {
     final DataItem item = _operand(target);
+    if (element) {
+      final int register = _indicatorPrologue(item);
+      _op(Op.cla, _elementWord, tag: register);
+      addend();
+      _op(Op.sto, _elementWord, tag: register);
+      _releaseElement(item);
+      return;
+    }
     final external = _sem(item).fieldClass == FieldClass.externalDecimal;
     if (external) {
       _checkExternalTarget(item);
@@ -3614,7 +3778,15 @@ final class _Text {
   /// four after the `XCA` (M6-9). An external or edited target ends the
   /// tail in `XCA` and the SYS)180 call in place of the `STQ` (M6-9).
   /// TRUNCATED drops the `ACL` (D4.1).
-  void _store(DataItem item, _Value value, {required bool truncated}) {
+  ///
+  /// An [element] target, checked by [_checkElementTarget], stores
+  /// through its indicator in place of the plain store word.
+  void _store(
+    DataItem item,
+    _Value value, {
+    required bool truncated,
+    bool element = false,
+  }) {
     final FieldClass to = _sem(item).fieldClass;
     final bool sys180 =
         to == FieldClass.externalDecimal || to == FieldClass.edited;
@@ -3624,8 +3796,13 @@ final class _Text {
         _sys180Store(item, value.register);
         return;
       }
+      final Op store = value.register == _Register.mq ? Op.stq : Op.sto;
+      if (element) {
+        _elementStore(item, store: store);
+        return;
+      }
       _loadBaseOf(item);
-      _opItem(value.register == _Register.mq ? Op.stq : Op.sto, item);
+      _opItem(store, item);
       return;
     }
     if (value.scale < targetScale) {
@@ -3635,7 +3812,7 @@ final class _Text {
     // The half-adjust is referenced first, so it pools first.
     final _Sym? half = truncated ? null : _cp(_pool.machineWord(divisor ~/ 2));
     final _Sym scale = _cp(_pool.machineWord(divisor));
-    if (!sys180) {
+    if (!sys180 && !element) {
       _loadBaseOf(item);
     }
     // A product moves its low half into the accumulator; a chain is
@@ -3650,6 +3827,8 @@ final class _Text {
     _op(Op.dvp, scale);
     if (sys180) {
       _sys180Store(item, _Register.mq);
+    } else if (element) {
+      _elementStore(item, store: Op.stq);
     } else {
       _opItem(Op.stq, item);
     }
@@ -3695,6 +3874,25 @@ final class _Text {
       _ => 186,
     }, s.digits);
     _movpakClears();
+  }
+
+  /// The subscripted SET and ADD targets the element store cannot
+  /// write, refused before the first word of the statement. The store
+  /// is `STO 0,r` behind the comparand's prologue, so it writes a whole
+  /// word of internal decimal.
+  void _checkElementTarget(DataItem item) {
+    final FieldClass fieldClass = _sem(item).fieldClass;
+    if (fieldClass == FieldClass.externalDecimal) {
+      // SYS)180 takes its target from the in-line `PZE` word, and no
+      // site shows that word built from an indicator.
+      _unruled(
+        'a subscripted external-decimal store target (no sample instance)',
+      );
+    }
+    if (fieldClass == FieldClass.edited) {
+      _unruled('a subscripted edited-store target (no sample instance)');
+    }
+    _checkElement(_operand(item));
   }
 
   /// The two external-decimal targets the store cannot write. Both
@@ -4052,14 +4250,9 @@ final class _Text {
       case NameOperand(:final name):
         final DataItem item = _operand(_resolved(name));
         if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
-          final int register = _indicatorPrologue(item);
           // The element the indicator addresses: `CAS 0,r`, the word
           // the register alone reaches (the attested 01412).
-          _op(
-            Op.cas,
-            _Sym(() => '0', () => 0, Relocation.constant),
-            tag: register,
-          );
+          _op(Op.cas, _elementWord, tag: _indicatorPrologue(item));
         } else {
           _read(Op.cas, item);
         }
@@ -4074,6 +4267,17 @@ final class _Text {
   /// with a locator, and the register leaves the cache: it holds the
   /// element address now, not a base.
   int _indicatorPrologue(DataItem array) {
+    final int indicator = _checkElement(array);
+    final int register = _assignRegister(-indicator);
+    _registerHolds.remove(register);
+    _op(Op.lac, _blockWord(StorageBlock.pi, indicator), tag: register);
+    _trap(register);
+    return register;
+  }
+
+  /// The indicator of the element [array] that `0,r` reads or stores.
+  /// A target checks it before the first word of its statement.
+  int _checkElement(DataItem array) {
     final int chars = _strideChars(array);
     if (chars % 6 != 0) {
       // `CAS 0,r` reads the word the address names and drops the byte.
@@ -4082,12 +4286,7 @@ final class _Text {
         'characters (M6-9)',
       );
     }
-    final int indicator = _indicator(array);
-    final int register = _assignRegister(-indicator);
-    _registerHolds.remove(register);
-    _op(Op.lac, _blockWord(StorageBlock.pi, indicator), tag: register);
-    _trap(register);
-    return register;
+    return _indicator(array);
   }
 
   bool _zero(Token figurative) => figurative.text.startsWith('ZERO');
