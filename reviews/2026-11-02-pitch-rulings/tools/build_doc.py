@@ -49,7 +49,14 @@ straight run only (#170).</p>
 <code>review/2026-10-25-codegen-defect-6</code>, so the pick also chooses text A. That record carries the same banner.</p>""",
     "compile": """<p><strong>Read as:</strong> &ldquo;compile&rdquo; in the rule of 2026-09-14 means the diagnostic listing. The two
 refusals stay, and take new labels. No code is invented for the sites the 1962 compiler flagged.</p>
-<p>The same ruling is a dated banner on <code>review/2026-10-25-m6s2-deck-walkthrough</code> (its option 1).</p>""",
+<p>The same ruling is a dated banner on <code>review/2026-10-25-m6s2-deck-walkthrough</code> (its option 1).</p>
+<p><strong>Correction, 2026-11-02, added after the ruling.</strong> The question as pitched (below, unchanged) says: &ldquo;The 1962
+compiler printed its listing but refused to punch an object deck for it.&rdquo; The walkthrough record it links says the
+opposite, in its 30-second version, item 3: &ldquo;So, under our severity table, J punches a deck and does not run it.&rdquo;
+Its opening says the same: the processor &ldquo;would have printed a full listing of 55 messages, and punched an object
+deck, and refused to run it.&rdquo; The walkthrough is right on its own evidence (J 02.01.01: only a code of 5 stops the deck).
+So the pitch misstated the premise of call 4. Jack had the walkthrough linked from the call. This record does not judge
+whether the misstatement changed his answer; it is flagged here so that he can.</p>""",
     "dangling": """<p><strong>Read as:</strong> a new message 949,00, class 1, issued under <code>--pedantic</code> only (#177).
 Default output and the goldens do not change.</p>""",
     "w2copy": """<p><strong>Against the recommendation.</strong> <strong>Read as:</strong> mark every genuine manual typo [sic] on the
