@@ -193,6 +193,22 @@ void main() {
       expect(ids(result), ['182,00', '182,00', '182,00']);
     });
 
+    test('literal terms that fold below one draw 182,00', () {
+      // Each term passes alone; the element 2 - 3 names does not exist.
+      // A term that draws 182,00 itself speaks for its subscript, and a
+      // quotient does not fold.
+      for (final (String subscript, List<String> drawn) in [
+        ('2 - 3', ['182,00']),
+        ('2 * 3 - 6', ['182,00']),
+        ('2 + -(3 - 1)', ['182,00']),
+        ('3 - 2', <String>[]),
+        ('0 - 1', ['182,00']),
+        ('2 / 4 - 1', <String>[]),
+      ]) {
+        expect(ids(_move('TAB CELL ($subscript)')), drawn, reason: subscript);
+      }
+    });
+
     test('a whole positive literal subscript draws nothing', () {
       final SemanticResult result = _move('TAB CELL (3)');
       expect(ids(result), isEmpty);

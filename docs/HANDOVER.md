@@ -290,11 +290,12 @@ Four review records hold the formulations one sample program cannot
 separate: `review/2026-08-16-m4-b2-underdetermined`, `-b3-`, `-b4-`,
 and `review/2026-08-28-m4-b8-underdetermined`.
 
-Chunks A7 and A8 read each page **twice**, by two readers who did not
-know of each other, and compared the two readings before either met
-the target. Ten readers ran at once, at 2.45M tokens and 43 minutes of
-wall clock: about 245k tokens a page, as chunk A5 measured. The paired
-readers never disagreed, over 261 content lines.
+Chunks A7 and A8 read each page **twice**, by two readers unaware of
+each other, and compared the two readings before either met the
+target. Ten readers ran at once, at 2.45M tokens and 43 minutes of
+wall clock: about 245k tokens a page, which matches the 250k measured
+over chunk A5. The paired readers never disagreed, over 261 content
+lines.
 
 **With every page verified, the location column was walked end to end**, a
 check no page reader could run. The three location counters hold 1021 words

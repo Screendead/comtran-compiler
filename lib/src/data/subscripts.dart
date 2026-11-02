@@ -70,6 +70,11 @@ final class SubscriptChecker {
     }
     for (final ArithExpr subscript in reference.subscripts) {
       _checkTerm(subscript, reference);
+      if (subscript is BinaryExpr && (_folded(subscript) ?? 1) < 1) {
+        // The terms pass one by one, but the element they name does not
+        // exist (J 02.04.07.01).
+        resolver.report(msgImproperDataFormat, subscript.anchor);
+      }
       _countIndexExpression(subscript);
     }
     _countIndicator(array, reference);
@@ -99,6 +104,36 @@ final class SubscriptChecker {
         );
       case TruthExpr() || FigurativeOperand():
         break;
+    }
+  }
+
+  /// The value of a subscript of literal terms alone, each of them a
+  /// whole number of at least one, or `null`: a term that `_checkLiteral`
+  /// reports has spoken for the subscript already.
+  int? _folded(ArithExpr term) {
+    switch (term) {
+      case LiteralOperand(:final literal)
+          when literal.kind != TokenKind.alphamericLiteral:
+        final int? value = int.tryParse(literal.text);
+        return value != null && value >= 1 ? value : null;
+      case UnaryExpr(:final operator, :final operand)
+          when operand is! LiteralOperand:
+        final int? value = _folded(operand);
+        return value == null || operator.text != '-' ? value : -value;
+      case BinaryExpr(:final left, :final operator, :final right):
+        final int? l = _folded(left);
+        final int? r = _folded(right);
+        if (l == null || r == null) {
+          return null;
+        }
+        return switch (operator.text) {
+          '+' => l + r,
+          '-' => l - r,
+          '*' => l * r,
+          _ => null,
+        };
+      default:
+        return null;
     }
   }
 

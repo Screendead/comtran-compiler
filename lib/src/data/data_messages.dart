@@ -392,8 +392,8 @@ final Message msgFigurativeToVariableField = messageCatalog['180,00']!;
 final Message msgFigurativeToLongField = messageCatalog['181,00']!;
 
 /// `182,00` — a literal subscript term that is zero, negative, or
-/// fractional; arrays are 1-origin (J 02.04.07.01; M3-20). The catalog
-/// text takes no operand.
+/// fractional, or literal terms that fold below one; arrays are
+/// 1-origin (J 02.04.07.01; M3-20). The catalog text takes no operand.
 final Message msgImproperDataFormat = messageCatalog['182,00']!;
 
 /// `183,00` — the 51st distinct `a * VARIABLE ± b` index expression

@@ -82,9 +82,6 @@ final class ProcedureText {
   final Map<int, ElementPointer> constantIndicators;
 }
 
-/// A `PZE NAME+w,,b` word that points at one element of an array.
-typedef ElementPointer = ({String operand, int word, int control});
-
 /// What the measuring pass diagnoses (M4-18): the sink the notes and
 /// the capacity stops enter, and the name tally continued from the
 /// semantic layer (M4-5). The placing pass carries none — it repeats
@@ -1013,8 +1010,9 @@ final class _Text {
       _unruled('two positional indicators over one array (no sample instance)');
     }
     final int indicator = numbers.single;
-    // A form outside F p. 31 refuses at its first use, ahead of the
-    // notes of later statements.
+    // A form outside F p. 31 refuses here at the latest, ahead of the
+    // notes of later statements. A store into any variable checks every
+    // one-subscript indicator sooner (`_driven`).
     semantics.positionalIndicators[indicator - 1].$3.forEach(_indexTerm);
     return indicator;
   }
@@ -1915,14 +1913,11 @@ final class _Text {
       // in its word count.
       _unruled('a located DO FOR index (no sample instance)');
     }
-    final List<(DataItem, int, int)> drives = _driven(indexItem);
+    final List<(DataItem, _IndexTerm)> drives = _driven(indexItem);
     final bounds = <PoolHandle>[];
-    final values = <int>[];
     for (final bound in <ArithExpr>[index.from, index.by, index.to]) {
       if (bound case LiteralOperand(:final literal)) {
         bounds.add(_numericLiteral(literal));
-        final (int value, int scale) = _literalValue(literal);
-        values.add(scale == 0 ? value : -1);
       } else {
         // A field-name or signed bound is legal (F pp. 50-51; D10.7)
         // but the sample's bounds are all plain literals, so neither
@@ -1930,6 +1925,15 @@ final class _Text {
         _unruled('a DO FOR bound of ${bound.runtimeType} (no sample instance)');
       }
     }
+    // FROM and BY place the indicators; TO only ends the loop. A
+    // fractional bound is -1.
+    final values = <int>[
+      for (final ArithExpr bound in <ArithExpr>[index.from, index.by])
+        switch (_literalValue((bound as LiteralOperand).literal)) {
+          (final int value, 0) => value,
+          _ => -1,
+        },
+    ];
     if (drives.isNotEmpty && (values[0] < 0 || values[1] < 0)) {
       // An indicator steps by whole elements.
       _unruled('a fractional DO FOR bound driving an indicator (M4-10)');
@@ -1941,9 +1945,9 @@ final class _Text {
     // The index takes FROM, then steps by BY, so an indicator of
     // `a * index + b` starts at element a·FROM + b and steps a·BY
     // elements (J 02.04.07.01).
-    for (final (DataItem item, int a, int b) in drives) {
+    for (final (DataItem item, _IndexTerm term) in drives) {
       driven.add(item);
-      final int chars = _strideChars(item) * a * values[1];
+      final int chars = _strideChars(item) * term.a * values[1];
       if (chars % 6 == 0) {
         strides.add(_pool.stride(chars ~/ 6));
         partial.add(false);
@@ -1957,7 +1961,7 @@ final class _Text {
         partial.add(true);
       }
       final ElementPointer base = _elementPointer(item, <int>[
-        a * values[0] + b,
+        term.a * values[0] + term.b,
       ]);
       bases.add(
         _pool.base(base.operand, word: base.word, control: base.control),
@@ -2855,7 +2859,7 @@ final class _Text {
   /// An indicator of `a * VARIABLE + b` multiplies by a strides and
   /// offsets from element b, so `K + 1` updates with K (J 02.04.07.01).
   void _subscriptRecomputation(NameReference target) {
-    final List<(DataItem, int, int)> driven = _drivenBy(
+    final List<(DataItem, _IndexTerm)> driven = _drivenBy(
       target,
     ).reversed.toList();
     if (driven.isEmpty) {
@@ -2864,10 +2868,10 @@ final class _Text {
     // Both EQU lines print ahead of the update blocks — the attested
     // 01742 and 01743, back to back before LOC 01421.
     final blocks = <(PoolHandle stride, _Sym base, DataItem table)>[];
-    for (final (DataItem table, int a, int b) in driven) {
-      final PoolHandle stride = _pool.stride(_strideWords(table) * a);
+    for (final (DataItem table, _IndexTerm term) in driven) {
+      final PoolHandle stride = _pool.stride(_strideWords(table) * term.a);
       final ElementPointer pointer = _elementPointer(table, <int>[
-        b,
+        term.b,
       ], withByte: driven.length == 1);
       final PoolHandle base = _pool.base(
         pointer.operand,
@@ -3187,35 +3191,34 @@ final class _Text {
   /// STO PI)6` ([J 90.02.05]; M4-10), the DO FOR's step at LOC 00714
   /// to 00716. The order is the recomputation's.
   void _subscriptIncrement(NameReference target, int step) {
-    for (final (DataItem table, int a, int _) in _drivenBy(target).reversed) {
+    for (final (DataItem table, _IndexTerm term) in _drivenBy(
+      target,
+    ).reversed) {
       final _Sym indicator = _blockWord(StorageBlock.pi, _indicator(table));
-      _op(Op.cla, _cp(_pool.stride(_strideWords(table) * a * step)));
+      _op(Op.cla, _cp(_pool.stride(_strideWords(table) * term.a * step)));
       _op(Op.add, indicator);
       _op(Op.sto, indicator);
     }
   }
 
   /// The tables whose one-subscript indicator `a * VARIABLE + b`
-  /// [variable] drives, with a and b, in the order of their indicators.
-  List<(DataItem, int, int)> _driven(DataItem variable) =>
-      <(DataItem, int, int)>[
+  /// [variable] drives, with the term, in the order of their indicators.
+  List<(DataItem, _IndexTerm)> _driven(DataItem variable) =>
+      <(DataItem, _IndexTerm)>[
         for (final (DataItem table, String _, List<ArithExpr> subscripts)
             in semantics.positionalIndicators)
           if (subscripts.length == 1)
-            if (_indexTerm(subscripts.single) case (
-              variable: final DataItem driver?,
-              :final int a,
-              :final int b,
-            ) when identical(driver, variable))
-              (table, a, b),
+            if (_indexTerm(subscripts.single) case final _IndexTerm term
+                when identical(term.variable, variable))
+              (table, term),
       ];
 
   /// The indicators a store into [target] drives. An element store
   /// drives none.
-  List<(DataItem, int, int)> _drivenBy(NameReference target) {
+  List<(DataItem, _IndexTerm)> _drivenBy(NameReference target) {
     final DataItem? item = _item(target);
     return item == null || target.subscripts.isNotEmpty
-        ? const <(DataItem, int, int)>[]
+        ? const <(DataItem, _IndexTerm)>[]
         : _driven(item);
   }
 

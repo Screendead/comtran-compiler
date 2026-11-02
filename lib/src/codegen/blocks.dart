@@ -12,7 +12,6 @@ import 'dart:math' as math;
 import '../emulator/word.dart';
 import '../loader/control_group.dart';
 import 'image.dart';
-import 'procedure.dart';
 import 'text_model.dart';
 
 /// The `USE N` row: a location counter discontinuity, whose control word
@@ -59,12 +58,14 @@ List<AssemblyUnit> counterHead(ProgramImage image) => <AssemblyUnit>[
 /// and every other indicator there starts empty, as a base locator
 /// does.
 ///
-/// The `USE 2` word carries the counter's origin, `PI)1` — where the
-/// counter's text ends, since counter 2 holds exactly the `BL)` block,
-/// whose end is `PI)`'s origin under the frozen block order (M4-4 as
-/// amended, chunk B7). `BL)1` points the input-output system at its
-/// label area, `IOC)29` (M3-11); every later cell starts empty for the
-/// OPEN that fills it at run time.
+/// The `USE 2` word carries `PI)1`, the attested value. M4-4 reads it
+/// two ways, `PI)`'s origin or the end of the counter's text, which
+/// agree while the counter holds only `BL)` (chunk B7). A constant run
+/// moves the end alone, and the word keeps `PI)1`: the `BGN 2,PI)1`
+/// head row names it too, and the `ORG` that follows sets the load
+/// address, so the word does not change the load (M6-10). `BL)1`
+/// points the input-output system at its label area, `IOC)29` (M3-11);
+/// every later cell starts empty for the OPEN that fills it at run time.
 List<AssemblyUnit> pointerInitialization(
   ProgramImage image,
   Map<int, ElementPointer> constants,

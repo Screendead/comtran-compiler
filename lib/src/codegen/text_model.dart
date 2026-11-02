@@ -46,6 +46,9 @@ String octalColumn(int word, WordForm form) {
   };
 }
 
+/// A `PZE NAME+w,,b` word that points at one element of an array.
+typedef ElementPointer = ({String operand, int word, int control});
+
 /// One assembly unit: an object word, or a pseudo-operation.
 ///
 /// Every nullable field is a column the printed line leaves blank.

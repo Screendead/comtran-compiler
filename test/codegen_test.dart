@@ -2780,13 +2780,13 @@ void main() {
       ]);
       // No store drives the indicator, so counter 2 sets it with the
       // base locators: element 2 is one word on from CELL.
-      expect(all.sublist(all.indexOf('\tUSE 2')), [
+      final int head = all.indexOf('\tUSE 2');
+      expect(all.sublist(head, head + 5), [
         '\tUSE 2',
         '\tORG BL)1',
         '\tPZE IOC)29',
         '\tPZE CELL+1',
         '\tUSE 1',
-        ...all.sublist(all.indexOf('\tUSE 1') + 1),
       ]);
     });
 
