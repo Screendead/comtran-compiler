@@ -372,5 +372,23 @@ void main() {
       expect(glyphsAt(subject, addressOf(job, 'ED2'), 8), '  123.45');
       expect(glyphsAt(subject, addressOf(job, 'ED4'), 8), '   37.50');
     });
+
+    test('a leading run of 8 and * renders under one fill', () {
+      // Codegen defect 5: the address counts the whole run and the
+      // asterisk bit is set, so the `8` cell takes an asterisk and the
+      // dollar does not float. The 1962 words are kept.
+      final (JobCompilation job, Machine subject) = compiled(<String>[
+        '      *DATA',
+        dataCard(name: 'G1', level: '1'),
+        dataCard(name: 'EXT', level: '2', mode: 'E', description: '999V99'),
+        dataCard(name: 'MIX', level: '1', description: r'$8*89.99'),
+        '      *PROCEDURE',
+        "      START.  MOVE '00123' TO G1,",
+        '            MOVE EXT TO MIX.',
+        '            STOP RUN.',
+        '      *FINISH',
+      ]);
+      expect(glyphsAt(subject, addressOf(job, 'MIX'), 8), r'$***1.23');
+    });
   });
 }
