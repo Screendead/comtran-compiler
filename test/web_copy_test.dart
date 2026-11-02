@@ -9,17 +9,16 @@ import 'package:test/test.dart';
 const Set<String> buildOutput = <String>{'main.support.js', 'sample.js'};
 
 /// The directory of generated pages. It holds the manual transcriptions and
-/// the language reference whole, and rule E2 keeps every quotation
-/// verbatim, so the copy rules reach only the frame around them
-/// (`test/web_sources_test.dart`).
+/// the language reference whole. Whether D5 reaches the reference is open
+/// (web-copy.md, section 6), so this test reaches neither, and
+/// `test/web_sources_test.dart` holds the frame around them to D5.
 const String generatedDir = 'web/sources/';
 
 /// Manual titles the site quotes as the conversions give them. Rule E2
 /// outranks D5 for a quotation, and web-copy.md names the F28-8043 title as
-/// the case this exception exists for.
+/// the one case this exception exists for.
 const List<String> quotedTitles = <String>[
   'General Information Manual — IBM Commercial Translator',
-  'IBM 709/7090 Commercial Translator Processor — Preliminary Reference Manual',
 ];
 
 const Set<String> textExtensions = <String>{
