@@ -84,7 +84,7 @@ section { display: flex; flex-direction: column; gap: 12px; }
   <ul class="plain">
     <li><b>Merged (your “merge all”):</b> #145, #157, #158, #166, #172, #176, #121, #161, #162, #164, #165, #173, #174 and #175. M6 is finished. #157 took one confirmation review round after a master merge; both reviewers approved.</li>
     <li><b>W2 (#178), merged and live,</b> to your “mark” reading: 944 em dashes out of the language definition, quotations and headings untouched; 11 scan-verified typos marked [sic] in a way that copying leaves out.</li>
-    <li><b>Defects 1–11 (yes): merged.</b> #167 (1–2), #168 (8, 9, 11; a subscripted ADD target, found in review, now refuses) and #169 (3–4), each approved by both reviewers. Defect 6 (#170: 948, severity 4, OPEN kept; an IF or DO FOR between the two counts as a jump, per your “no label or jump”) and the dangling-continuation note (#177, 949) are merged too.</li>
+    <li><b>Defects 1–11 (yes): merged.</b> #167 (1–2), #168 (8, 9, 11) and #169 (3–4), each approved by both reviewers. Defect 6 (#170: 948, severity 4, OPEN kept; an IF or DO FOR between the two counts as a jump, per your “no label or jump”) and the dangling-continuation note (#177, 949) are merged too.</li>
     <li><b>Subscripts:</b> the one truly silent case now draws 71 (#181, merged). The other two are call 2 above.</li>
     <li><b>M6-9:</b> the listing reading is in the record (#182, merged). Call 1 asks you to confirm it.</li>
     <li><b>M7:</b> recorded as opening after W3 and W4.</li>
@@ -99,13 +99,13 @@ section { display: flex; flex-direction: column; gap: 12px; }
 const CALLS = [
   { id: "confirm4", title: "M6-9: your “listing” answer stands, now that the premise is corrected?",
     why: "The pitch said the 1962 compiler refused to punch an object deck for the as-printed 1960 program. That was wrong. Per the walkthrough record, J punches the deck and does not run it (the job is above severity 1). Your answer, the listing, still keeps our two refusals. A correction note is in the rulings record.",
-    built: "Applied as ruled: M6-9 now records the listing reading (PR in progress). Nothing else changes.",
+    built: "Applied as ruled: M6-9 now records the listing reading (PR #182, merged). Nothing else changes.",
     opts: [
       { k: "stands", t: "Yes, it stands", d: "Our compiler keeps refusing the object deck at those two sites. The record says so.", rec: true },
       { k: "deck", t: "No: punch the object deck as 1962 did", d: "We would generate code for a GET with no input file and a FILE into a non-output file. No manual shows that code." } ],
     recwhy: "The listing is still the only reading that needs no invented code. The corrected premise changes the story, not the cost." },
   { id: "subscripts2", title: "Two of the three “silent” subscripts were not silent. Keep their current messages?",
-    why: "TAB CELL ('A') already draws 912,00, and TAB CELL (ZERO) already draws 192,00, both from the parser. The audit missed them because its test helper reads only later-stage messages. Only the function-call case was silent; it now draws 71,00 (PR #181, in review).",
+    why: "TAB CELL ('A') already draws 912,00, and TAB CELL (ZERO) already draws 192,00, both from the parser. The audit missed them because its test helper reads only later-stage messages. Only the function-call case was silent; it now draws 71,00 (PR #181, merged).",
     built: "PR #181 pins 912 and 192 with a whole-run test so the audit cannot repeat the mistake.",
     opts: [
       { k: "keep", t: "Keep 912 and 192 as they are", d: "No change. Message 79's text names a variable, which does not fit a literal.", rec: true },
