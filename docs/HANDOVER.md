@@ -190,9 +190,9 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    has one address field for the leading run, so it cannot say which
    cells take a blank and which an asterisk. The manuals do not forbid
    the mix ([F p. 80]; [J 02.05.05]). `$8*89.99` prints 1.23 as `$***1.23`.
-   No ruling. The draft pull request "Prototype: codegen defect 5" keeps
-   the 1962 words and adds message 950,00 under `--pedantic` only
-   (D11.4, amended 2026-11-02).
+   No ruling. PR #185, a draft prototype, keeps the 1962 words and
+   adds message 950,00 under `--pedantic` only (D11.4, amended
+   2026-11-02).
 6. **A reopen after CLOSE ALL FILES drew no diagnostic. Ruled:
    message 948,00, severity 4, the OPEN kept, a straight run only.
    Handled by PR #170.** An `OPEN ALL FILES` after a `CLOSE ALL FILES`
