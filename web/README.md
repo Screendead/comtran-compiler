@@ -34,10 +34,12 @@ browser refuses to fetch one from a `file://` URL. Any static server does.
 | `index.html` | The compiler page. Committed. |
 | `reading-the-scans.html` | How a page scan becomes text. Static; it loads no compiler. Committed. |
 | `roadmap.html` | What is built, and what is not. Static. Committed. |
+| `sources.html` | The documents page: both manuals, both PDFs, and the language reference. Static. Committed. |
 | `styles.css`, `app.js` | Shared style, and the compiler page's behaviour. Committed. |
 | `images/` | Scan crops used as evidence. Committed. |
 | `main.dart` | The browser entry point. Committed. |
 | `main.wasm`, `main.mjs`, `main.support.js`, `sample.js` | Build output. Not committed. |
+| `sources/` | Build output: every manual page beside its scan, the copied scans and PDFs, and the language reference. Not committed. |
 
 ### Where the crops came from
 
@@ -93,17 +95,44 @@ listing panel against `test/goldens/90.05-payroll.listing`.
 `test/web_copy_test.dart` enforces the parts of `docs/design/web-copy.md` that
 a test can check. Rule D5 bars the em dash from every committed text file
 here, in the character and in its three HTML forms, and caps the en dash,
-which stays legal and stays rare. Rule H2 requires the roadmap page to carry a
-station for every codename, so a new milestone cannot reach `docs/HANDOVER.md`
-and miss the site.
+which stays legal and stays rare. The F28-8043 title is quoted with the em
+dash its conversion gives it. The test lets that one string through and no
+other.
+
+The test skips `sources/`. Whether D5 reaches the manual pages and the
+language reference there is open, and section 6 of the record states the
+options. `test/web_sources_test.dart` holds the frame around them to D5.
+
+Rule H2 requires the roadmap page to carry a station for every codename. A new
+milestone therefore cannot reach `docs/HANDOVER.md` and miss the site.
 
 Section H of that record holds the rest, which is when a change to the project
 obliges a change to a page. Those rules bind the pull request that makes the
 change, because every push to master deploys.
+
+## The sources (W2)
+
+`tool/web_sources_source.dart` builds `sources/` from two places only: the
+manual conversions in `comtran-manuals/`, and the reading copy of the
+language definition in `docs/definition/`. The site holds no third copy of
+either, and nobody commits the output. The scans and the PDFs are copied in
+at build time, because committing them would put 75 MB of copies into git
+beside the originals.
+
+Each manual page is its own static file, so a reader loads one scan at a
+time and every page has an address of its own. A page runs from one
+`PDF n` marker comment to the next, and `test/web_sources_test.dart` holds
+the build to one page for each scan. A citation in the reference, such as
+`F p. 12`, opens the page it cites rather than the heading above it.
+
+The transcriptions appear exactly as the conversions hold them. They carry
+no `[sic]` mark and no gloss marker. Whether rule E3 asks for the mark on a
+whole-page transcription is open, and section 6 of
+`docs/design/web-copy.md` states the options.
 
 ## Not built yet
 
 W1 does not yet include the golden-diff panel. The deck download and the
 share link landed on 2026-08-10.
 
-W2 to W4 add the manual pages, the stage-by-stage walk, and the tutorial.
+W3 and W4 add the stage-by-stage walk and the tutorial.

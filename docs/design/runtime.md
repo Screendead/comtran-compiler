@@ -111,6 +111,12 @@ error stream and names itself. The error exit prints no line of the
 tool's own, because SYS)294 has already printed the monitor's message
 on the display (RT-2).
 
+**Amended 2026-10-25.** The run skips a job whose maximum severity is
+above 1. D7.6 suppresses execution for that job, and [J 02.01.02]
+states the same rule. The tool prints `job N: not run: maximum severity
+S` on the error stream. The exit status stays 0, because D11.2 lets
+only severity 5 change it.
+
 ### The stage-4 set and what waits
 
 M4-17 charters about 130 runtime entries. Stage 4 built the entries an
@@ -836,11 +842,24 @@ Three edited pictorials reach no control word, so codegen refuses them
 (`m4-codegen.md` M4-9 item (f)):
 
 - an `S` position, because it is a digit the field represents and does
-  not store ([F p. 80]) while every MOVPAK count is a digit count;
+  not store ([F p. 80]) while every target count is a digit count;
 - a suppression character behind the leading run, because the address
   field carries the leading run alone;
 - irregular comma grouping, because the prefix carries the first
   comma's offset alone.
+
+**Amended 2026-10-25 (branch `defects-3-4-handle`).** This list said
+"every MOVPAK count is a digit count". That is now true of the target
+counts only. A source count is now the count of stored digit
+positions ([F p. 80]). Before, it was the digit count, and an `S`
+source read past the field (codegen defect 3). An `S` source still
+refuses in three cases:
+
+- an `S` between two stored digits;
+- an `S` behind the stored digits under a `V` or point;
+- an edit run whose drop reaches the stored digits.
+
+The target refusal stands.
 
 ### Open items
 
@@ -874,6 +893,7 @@ Three edited pictorials reach no control word, so codegen refuses them
 [F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [F p. 80]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
 [F p. 81]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
+[J 02.01.02]: ../../comtran-manuals/J28-6169/02-compiler.md#a-cmple-card
 [J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
 [J 02.05.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.05.06]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials

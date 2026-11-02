@@ -165,7 +165,7 @@ final class TransferChecker extends ClauseWalk with OperandWalk {
     final List<DictionaryEntry> named = resolver.dictionary.named(
       reference.words.last.text,
     );
-    List<DictionaryEntry> labelsOf(Sentence? scope) => [
+    List<DictionaryEntry> labelsOf(BeginSectionClause? scope) => [
       for (final DictionaryEntry entry in named)
         if (entry.kind == NameKind.statement && identical(entry.scope, scope))
           entry,

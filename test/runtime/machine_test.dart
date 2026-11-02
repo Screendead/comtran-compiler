@@ -440,6 +440,63 @@ final List<String> _locatedStore = <String>[
   '      *FINISH',
 ];
 
+/// A program that moves and adds across unequal scales (F p. 42). EXT
+/// reads 040 and EXF 12.34 through the REDEF row, and ED3 reads 037.
+final List<String> _alignedMoves = <String>[
+  '      *DATA',
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'0401234037'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'EXT', level: '2', mode: 'E', description: '999'),
+  dataCard(name: 'EXF', level: '2', mode: 'E', description: '99V99'),
+  dataCard(name: 'ED3', level: '2', description: '899'),
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  dataCard(
+    name: 'AMT',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '99V99',
+  ),
+  dataCard(
+    name: 'FIN',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '99V9',
+  ),
+  dataCard(
+    name: 'TOT',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999V99',
+  ),
+  dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
+  dataCard(
+    name: 'BIG',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9(5)',
+  ),
+  dataCard(name: 'ED5', level: '1', description: '889.9'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 123, MOVE NUM TO EDT.',
+  '            SET BIG = 1234, MOVE BIG TO ED5.',
+  '            MOVE EXT TO AMT, MOVE EXF TO FIN.',
+  '            SET TOT = 1.25, ADD ED3 TO TOT, ADD NUM TO TOT.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program whose entry point is a labelled section (D2.1). The `GO TO`
 /// ahead of the section runs only if the entry lands on `GN)000`.
 final List<String> _section = <String>[
@@ -615,11 +672,9 @@ final List<String> _byteStride = <String>[
   '      *FINISH',
 ];
 
-/// A loop over twelve items of two whole words: A `99`, B `9999` at
-/// byte 2, and C `9(6)`. Item k holds A = k, B = k and C = 100 + k, so a
-/// reader that took B from byte 0 would read `0k00` for k below 10.
-final List<String> _wordStrideByte = <String>[
-  '      *DATA',
+/// Twelve items of two whole words: A `99`, B `9999` at byte 2, and
+/// C `9(6)`. Item k holds A = k, B = k and C = 100 + k.
+final List<String> _wordStrideTable = <String>[
   dataCard(name: 'TABLE', level: '1'),
   for (var k = 1; k <= 12; k++)
     dataCard(
@@ -633,6 +688,13 @@ final List<String> _wordStrideByte = <String>[
   dataCard(name: 'A', level: '2', description: '99'),
   dataCard(name: 'B', level: '2', description: '9999'),
   dataCard(name: 'C', level: '2', description: '9(6)'),
+];
+
+/// A loop over [_wordStrideTable]. A reader that took B from byte 0
+/// would read `0k00` for k below 10.
+final List<String> _wordStrideByte = <String>[
+  '      *DATA',
+  ..._wordStrideTable,
   dataCard(name: 'INDEX', level: '1', description: '99'),
   dataCard(name: 'SB', level: '1', description: '9(6)'),
   for (final String name in ['NB', 'NG', 'SN'])
@@ -652,6 +714,90 @@ final List<String> _wordStrideByte = <String>[
   '            MOVE B (INDEX) TO NB.',
   '            SET SN = SN + NB.',
   '            END RTN.',
+  '      *FINISH',
+];
+
+/// Four reads of a source with an `S` position, each field followed by
+/// digits a read past it would take: `VS9` holds 5 (.05) ahead of a 7,
+/// `999SSS` holds 123 (123000) ahead of 456, and `$899SSS` holds $123
+/// (123000) ahead of 45 (F p. 80).
+final List<String> _sFillers = <String>[
+  '      *DATA',
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: r"'57123456$12345'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'LEAD', level: '2', mode: 'E', description: 'VS9'),
+  dataCard(name: 'LNXT', level: '2', mode: 'E', description: '9'),
+  dataCard(name: 'TRAIL', level: '2', mode: 'E', description: '999SSS'),
+  dataCard(name: 'TNXT', level: '2', mode: 'E', description: '999'),
+  dataCard(name: 'ESRC', level: '2', description: r'$899SSS'),
+  dataCard(name: 'ENXT', level: '2', mode: 'E', description: '99'),
+  dataCard(
+    name: 'INT',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: 'V99',
+  ),
+  dataCard(
+    name: 'SUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9(4)SSS',
+  ),
+  dataCard(name: 'ELEAD', level: '1', description: '9.99'),
+  dataCard(name: 'ETRAIL', level: '1', description: '888889'),
+  dataCard(name: 'EEDIT', level: '1', description: '888889'),
+  '      *PROCEDURE',
+  '      START.  MOVE LEAD TO INT.',
+  '            MOVE LEAD TO ELEAD.',
+  '            MOVE TRAIL TO ETRAIL.',
+  '            ADD ESRC TO SUM.',
+  '            MOVE ESRC TO EEDIT.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// Moves the index through 1, 3, 1, 2 and 3 by a MOVE, a SET, a SET of
+/// a difference, an ADD and a constant increment, and reads A, an
+/// external table holding 1, 2 and 3, after each step. Then stores 7
+/// into element 2 of a three-word table through a subscripted target.
+final List<String> _subscriptStores = <String>[
+  '      *DATA',
+  internalCard('P1', '9'),
+  internalCard('P2', '9'),
+  dataCard(name: 'TAB', level: '1', quantity: '3'),
+  internalCard('CELL', '999', level: '2'),
+  dataCard(name: 'TABLE', level: '1'),
+  for (var k = 1; k <= 3; k++)
+    dataCard(level: '2', description: "'${'$k'.padLeft(6, '0')}'"),
+  dataCard(type: 'REDEF', description: 'TABLE'),
+  dataCard(name: 'ATAB', level: '1', quantity: '3'),
+  dataCard(name: 'A', level: '2', mode: 'E', description: '9(6)'),
+  for (final String name in ['I', 'ONE', 'NUM', 'WS', 'WM', 'WA', 'WI'])
+    internalCard(name, '9(6)'),
+  '      *PROCEDURE',
+  '      START.  SET ONE = 1, MOVE ONE TO I.',
+  '            SET I = 3, MOVE A (I) TO WS.',
+  '            SET I = I - 2, MOVE A (I) TO WM.',
+  '            ADD ONE TO I, MOVE A (I) TO WA.',
+  '            SET I = I + 1, MOVE A (I) TO WI.',
+  '            SET I = I - 1, SET NUM = 7, MOVE NUM TO CELL (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
+final List<String> _subChain = <String>[
+  '      *DATA',
+  internalCard('NUM', '999'),
+  internalCard('X', '9(5)'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 5.',
+  '            SET X = NUM * 2 + (NUM * 3 + 1).',
+  '            STOP RUN.',
   '      *FINISH',
 ];
 
@@ -696,6 +842,58 @@ final List<String> _guard = <String>[
   '      RTN.  STOP RUN.',
   '      *FINISH',
 ];
+
+/// [_source] with [statements] for its procedure and [data] after its
+/// two fields: the shape of each severity band's program (D7.6).
+List<String> _gated(List<String> statements, {List<String> data = const []}) =>
+    <String>[
+      ..._source.sublist(0, 3),
+      ...data,
+      '      *PROCEDURE',
+      ...statements,
+      '      *FINISH',
+    ];
+
+/// One program per severity band below 5, each with the start of the
+/// message that sets its maximum severity.
+final Map<int, (List<String>, String)> _bands = {
+  1: (
+    _gated(['      START.  SET TOT = NUM + 1.', '            STOP RUN']),
+    'PREVIOUS CARD NOT PROPERLY TERMINATED',
+  ),
+  2: (
+    _gated(
+      ['      START.  SET TOT = NUM + 1.', '            STOP RUN.'],
+      data: [
+        dataCard(name: 'GRP', level: '1', justify: 'R'),
+        dataCard(
+          name: 'SUB',
+          level: '2',
+          mode: 'I',
+          justify: 'R',
+          description: '99',
+        ),
+      ],
+    ),
+    'DATA NOT ON FORMAT DESCRIPTION LEVEL',
+  ),
+  3: (
+    _gated([
+      '      START.  SET TOT = NUM + 1.',
+      '            FROB TOT.',
+      '            STOP RUN.',
+    ]),
+    'STATEMENT WITHOUT PROPER VERB',
+  ),
+  4: (
+    _gated([
+      '      START.  SET TOT = NUM + 1.',
+      '            COPY X.',
+      '            STOP RUN.',
+    ]),
+    '-COPY- AND -LIBRARY-',
+  ),
+};
 
 /// Writes the two input tapes the sample reads: one master record and
 /// one detail record, whose employee number is the lower of the two.
@@ -1269,6 +1467,17 @@ void main() {
       expect(glyphsAt(subject, addressOf(job, 'NET'), 10), r'    $2.48 ');
     });
 
+    test('a source with an S position reads its stored digits alone', () {
+      final (JobCompilation job, Machine subject) = compiled(_sFillers);
+      // A read of the digit count takes the next field's digits: 57,
+      // 0.57, 456000, 123450 and 450000.
+      expect(subject.state.read(addressOf(job, 'INT')), 5);
+      expect(glyphsAt(subject, addressOf(job, 'ELEAD'), 4), '0.05');
+      expect(glyphsAt(subject, addressOf(job, 'ETRAIL'), 6), '123000');
+      expect(subject.state.read(addressOf(job, 'SUM')), 123);
+      expect(glyphsAt(subject, addressOf(job, 'EEDIT'), 6), '123000');
+    });
+
     test('a located external-decimal store writes into the buffer', () {
       final Directory tapes = tempDirectory('comtran-tapes');
       tapeImage(tapes, 'D1', <List<int>>[
@@ -1334,6 +1543,98 @@ void main() {
       expect(subject.state.read(addressOf(job, 'SN')), 78);
     });
 
+    test('a SET, an ADD and a subscripted MOVE target move the element', () {
+      final (JobCompilation job, Machine subject) = compiled(_subscriptStores);
+      // Each store moved the indicator to the element the index names.
+      expect(subject.state.read(addressOf(job, 'WS')), 3);
+      expect(subject.state.read(addressOf(job, 'WM')), 1);
+      expect(subject.state.read(addressOf(job, 'WA')), 2);
+      expect(subject.state.read(addressOf(job, 'WI')), 3);
+      final int tab = addressOf(job, 'TAB');
+      expect(
+        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
+        <int>[0, 7, 0],
+      );
+    });
+
+    test('a subscript store reads a field from its own byte', () {
+      // The loop above sets its indicators from the DO FOR base; here
+      // one MOVE sets the index, so the subscript store's base does.
+      final (JobCompilation job, Machine subject) = compiled(<String>[
+        '      *DATA',
+        // The base `B-2` must stay at or above address zero.
+        internalCard('P1', '9'),
+        internalCard('P2', '9'),
+        ..._wordStrideTable,
+        internalCard('THREE', '99'),
+        internalCard('IDX', '99'),
+        internalCard('NB', '9(6)'),
+        '      *PROCEDURE',
+        '      START.  SET THREE = 3, MOVE THREE TO IDX.',
+        '            MOVE B (IDX) TO NB.',
+        '            STOP RUN.',
+        '      *FINISH',
+      ]);
+      // A read from byte 0 gives 300.
+      expect(subject.state.read(addressOf(job, 'NB')), 3);
+    });
+
+    test('a sub-chain inside a chain keeps the outer park', () {
+      final (JobCompilation job, Machine subject) = compiled(_subChain);
+      // Both products in one cell would give 3·5 + 3·5 + 1 = 31.
+      expect(subject.state.read(addressOf(job, 'X')), 26);
+    });
+
+    test('a subscripted MOVE target aligns by the decimal point', () {
+      final (JobCompilation job, Machine subject) = compiled(<String>[
+        '      *DATA',
+        // The bases `UP-1` and `DN-1` must stay at or above address zero.
+        internalCard('P1', '9'),
+        dataCard(name: 'AREA', level: '1'),
+        dataCard(level: '2', description: "'0401234'"),
+        dataCard(type: 'REDEF', description: 'AREA'),
+        dataCard(name: 'VIEW', level: '1'),
+        dataCard(name: 'EXT', level: '2', mode: 'E', description: '999'),
+        dataCard(name: 'EXF', level: '2', mode: 'E', description: '99V99'),
+        dataCard(name: 'UP', level: '1', quantity: '2'),
+        internalCard('UPC', '99V99', level: '2'),
+        dataCard(name: 'DN', level: '1', quantity: '2'),
+        internalCard('DNC', '99V9', level: '2'),
+        internalCard('I', '9'),
+        '      *PROCEDURE',
+        '      START.  SET I = 2.',
+        '            MOVE EXT TO UPC (I), MOVE EXF TO DNC (I).',
+        '            STOP RUN.',
+        '      *FINISH',
+      ]);
+      // 040 into 99V99 is 40.00, and 12.34 into 99V9 drops to 12.3, the
+      // quotient stored from the MQ.
+      final int up = addressOf(job, 'UP');
+      final int dn = addressOf(job, 'DN');
+      expect(
+        <int>[for (var k = 0; k < 2; k++) subject.state.read(up + k)],
+        <int>[0, 4000],
+      );
+      expect(
+        <int>[for (var k = 0; k < 2; k++) subject.state.read(dn + k)],
+        <int>[0, 123],
+      );
+    });
+
+    test('a MOVE and an ADD align by the decimal point', () {
+      final (JobCompilation job, Machine subject) = compiled(_alignedMoves);
+      expect(subject.printed, <String>['AT 19,00 STOP RUN']);
+      // 123 renders as $123.00, not as $1.23.
+      expect(glyphsAt(subject, addressOf(job, 'EDT'), 8), r' $123.00');
+      // F p. 43 row 5: 01234 into 999V9 drops its leading digit, 2340.
+      expect(glyphsAt(subject, addressOf(job, 'ED5'), 5), '234.0');
+      // 040 into 99V99 is 40.00, and 12.34 into 99V9 drops to 12.3.
+      expect(subject.state.read(addressOf(job, 'AMT')), 4000);
+      expect(subject.state.read(addressOf(job, 'FIN')), 123);
+      // 1.25 + 37 + 123.
+      expect(subject.state.read(addressOf(job, 'TOT')), 16125);
+    });
+
     test('a labelled section runs from the entry point it takes', () {
       // `test/codegen_test.dart` pins the entry word on PROGRAM.START.
       // NUM reads 1 only if the run entered the section: the `GO TO`
@@ -1353,11 +1654,59 @@ void main() {
       );
     });
 
+    test('a maximum severity of 1 runs the program', () {
+      final (List<String> source, String message) = _bands[1]!;
+      final ProcessResult run = _compileAndRun(source);
+      expect(run.stdout, contains('    1    $message'));
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(run.stdout, contains('AT 4,00 STOP RUN'));
+    });
+
+    for (final severity in <int>[2, 3, 4]) {
+      test('a maximum severity of $severity punches but does not run', () {
+        final (List<String> source, String message) = _bands[severity]!;
+        final ProcessResult run = _compileAndRun(source);
+        expect(run.stdout, contains('    $severity    $message'));
+        // Only severity 5 fails the process (D11.2).
+        expect(run.exitCode, 0, reason: '${run.stderr}');
+        expect(run.stdout, isNot(contains(RegExp('^AT ', multiLine: true))));
+        expect(run.stderr, 'job 1: not run: maximum severity $severity\n');
+      });
+    }
+
     test('an error exit fails the job on the monitor message alone', () {
       final ProcessResult run = _compileAndRun(_guard);
       expect(run.exitCode, 1);
       expect(run.stdout, contains('BASE LOCATOR NOT LOADED'));
       expect(run.stderr, isNot(contains('error:')));
+    });
+  });
+
+  group('the applied 1960 deck', () {
+    test('its tapes print the reports of test/goldens/f-payroll-j.report', () {
+      // The three reports the run writes, byte for byte. The golden is
+      // our output; test/f_acceptance_test.dart classifies its distance
+      // from the 1962 sample's report (M6-9, the run).
+      final Directory tapes = tempDirectory('comtran-f-tapes');
+      for (final unit in <String>['D1', 'C2']) {
+        File('$fTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
+      }
+      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
+        'run',
+        'comtran:comtranc',
+        fAppliedDeckPath,
+        '--run',
+        '--tapes=${tapes.path}',
+        '--list-tapes',
+      ]);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      const display = 'AT 140,00 STOP RUN\n';
+      final stdout = '${run.stdout}';
+      expect(stdout, contains('AT 139,00 STOP 1234\n$display'));
+      expect(
+        stdout.substring(stdout.indexOf(display) + display.length),
+        File('test/goldens/f-payroll-j.report').readAsStringSync(),
+      );
     });
   });
 }

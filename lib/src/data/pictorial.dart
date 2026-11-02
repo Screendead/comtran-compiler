@@ -92,6 +92,33 @@ final class Pictorial {
   /// `S` positions — digits represented but never stored (F p. 80).
   late final int sCount = _count(_Kind.s);
 
+  /// Whether every `S` stands on the high-order side of the stored
+  /// digits, or in the trailing run of a pictorial with no `V` or point.
+  /// Either way the stored digits, read alone, are the value at
+  /// [fractionDigits]: `VS9` stores .0n as n, `999SSS` stores n000 as n
+  /// (F p. 80). An `S` between or behind stored digits otherwise stands
+  /// for a zero that no stored character carries.
+  late final bool sOutsideStoredDigits = _sOutsideStoredDigits();
+
+  bool _sOutsideStoredDigits() {
+    var stored = false;
+    var behind = false;
+    for (final (_Kind kind, int _) in _elements) {
+      if (kind == _Kind.s) {
+        behind = behind || stored;
+      } else if (kind == _Kind.nine ||
+          kind == _Kind.eight ||
+          kind == _Kind.star ||
+          kind == _Kind.overpunch) {
+        if (behind) {
+          return false;
+        }
+        stored = true;
+      }
+    }
+    return !behind || !(hasV || hasPoint);
+  }
+
   /// Digits the field represents: stored positions plus `S` fillers.
   /// More than 10 makes the field double precision (J 02.05.06).
   int get valueDigits => digitCount + sCount;

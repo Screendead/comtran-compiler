@@ -17,11 +17,11 @@ Throughout: F = F28-8043 (June 1960 General Information Manual, the language vis
 - Period-blank termination: "Each sentence must be terminated by a period, followed by a blank. Should the blank be omitted, the period will be treated as an 'imbedded period,' except where the period is found in Column 72 of the procedure description form" ([F p. 27], rule 3). A blank is assumed to follow column 72 of the procedure form ([F p. 28], rule 14).
 - **J commentary rule:** "Procedure statements are terminated by the first period (.) followed by a blank. Any information following this period blank is considered to be commentary" ([J 02.03.01]). Also: "A period (.) followed by a blank in a procedure statement terminates analysis of the statement except when they appear within an alphabetic literal; any information in the same card which follows the period is assumed to be commentary. No diagnostic comment is made" ([J 90.01.03]). Procedure.names not followed by a period and blank "are handled properly; no diagnostic message is given" ([J 90.01.03]).
 - Each clause has exactly one verb: the compiler deletes a "STATEMENT WITHOUT PROPER VERB" and a "STATEMENT WITH MORE THAN ONE VERB" from the text ([J 90.04.01], messages 125,00 and 126,00).
-- The compiler assigns statement numbers of the form `xxxxx,yy` — the digits before the comma identify the line (sentence), the two after the comma identify the *clause* within it ([J 02.02.01]). Statement number 9999,99 references errors not confined to a single statement ([J 02.02.01]).
+- The compiler assigns statement numbers of the form `xxxxx,yy`: the digits before the comma identify the line (sentence), the two after the comma identify the *clause* within it ([J 02.02.01]). Statement number 9999,99 references errors not confined to a single statement ([J 02.02.01]).
 - **Per-sentence capacity limits (J):** "NUMBER OF OPERATORS IN THIS SENTENCE EXCEEDS MAXIMUM OF 60. SENTENCE DELETED FROM TEXT." (message 171,00); "THIS SENTENCE EXCEEDS INTERNAL TABLE CAPACITY. SENTENCE DELETED FROM TEXT." (177,00); "CONDITIONAL EXPRESSION TEST CAPACITY EXCEEDED. REWRITE AS TWO OR MORE SEPARATE EXPRESSIONS..." (187,00) (all [J 90.04.01]).
 - **Continuity checks (J):** the compiler diagnoses program flow that runs off the end of a division or into non-executable material: "PROBABLE PROGRAM CONTINUITY ERROR. PROGRAM FLOWS INTO \*DATA." (87,00); "... PROGRAM FLOWS INTO GENERATED CONSTANTS." (169,00); "... PROGRAM FLOWS INTO STATEMENT OR SECTION 'NAME.1' ADDRESSED BY A -DO-." (99,00) ([J 90.04.01]). The last is the compiled form of the closed-subroutine rule (§5.5.5).
 - **Program entry point (J):** error messages reveal a reserved name -PROGRAM.START-: "MORE THAN ONE -PROGRAM.START-. FIRST USED." (141,00); "-PROGRAM.START- MUST BE A STATEMENT OR SECTION NAME." (142,00); "-PROGRAM.START- CANNOT BE A STATEMENT OR SECTION NAME ADDRESSED BY A -DO-." (143,00) ([J 90.04.01]); Appendix 90.02 refers in passing to "the first word of the object program (not necessarily PROGRAM.START)" ([J 90.02.01]). Nowhere in either manual is PROGRAM.START formally defined; the Loader "will normally use the starting point of the first program of combined segments as the starting point for the combined deck", modifiable by a \*START card ([J 03.02.08]). See the ambiguities register.
-- Physical placement of procedure text (needed because control transfers target names written in the name margin): procedure-names go in columns 7–12 ("name margin"), text in columns 13–72; a named sentence follows its name on the same line; an unnamed sentence must begin on a separate line to the right of the name margin; succeeding lines of a sentence begin right of the name margin; only BEGIN SECTION may appear on the same line as a section name; "END section.name" is written as a sentence on a separate line ([F p. 37]). Procedure-names may contain up to thirty characters and "must be followed by a period and a blank" ([F p. 37]). Serial numbers in columns 1–6 are *not* sequence checked by the J compiler ([J 02.03.01]) — F said they would be sequence-checked ([F p. 37]); **F/J divergence**.
+- Physical placement of procedure text (needed because control transfers target names written in the name margin): procedure-names go in columns 7–12 ("name margin"), text in columns 13–72; a named sentence follows its name on the same line; an unnamed sentence must begin on a separate line to the right of the name margin; succeeding lines of a sentence begin right of the name margin; only BEGIN SECTION may appear on the same line as a section name; "END section.name" is written as a sentence on a separate line ([F p. 37]). Procedure-names may contain up to thirty characters and "must be followed by a period and a blank" ([F p. 37]). Serial numbers in columns 1–6 are *not* sequence checked by the J compiler ([J 02.03.01]); F said they would be sequence-checked ([F p. 37]); **F/J divergence**.
 
 ### 5.2 The conditional statement (IF ... THEN ... OTHERWISE)
 
@@ -50,7 +50,7 @@ IF OUT.OF.ZONE THEN DO BILLING.ROUTINE.A OTHERWISE
 
 Consequences a compiler writer must observe:
 
-- **At most one conditional clause per sentence** and it must be the first clause ([F p. 25]). There is no nested IF, no ELSE-IF chain, and no multi-sentence conditional scope: both the THEN arm (all comma-separated imperative clauses up to OTHERWISE or the terminating period) and the OTHERWISE arm (all clauses from OTHERWISE to the period) end at the sentence period, and both arms rejoin at the next sentence (F pp. 7, 25).
+- **At most one conditional clause per sentence** and it must be the first clause ([F p. 25]). There is no nested IF, no ELSE-IF chain, and no multi-sentence conditional scope: both the THEN arm (all comma-separated imperative clauses up to OTHERWISE or the terminating period) and the OTHERWISE arm (all clauses from OTHERWISE to the period) end at the sentence period, and both arms rejoin at the next sentence ([F pp. 7], [25]).
 - OTHERWISE may not begin a sentence: "SENTENCE CANNOT START WITH -OTHERWISE-" ([J 90.04.01], message 208,00).
 - Sentence-structure violations are diagnosed and the statement dropped: "ILLEGAL SENTENCE STRUCTURE NOTHING DONE." (196,00); "SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD." (192,00); and the recovery message "-WHEN- SUBSTITUTED FOR -IF- BECAUSE OF IMPROPER USE." (170,00) (all [J 90.04.01]). The last implies the compiler repairs an IF written where the conditional-GO TO's WHEN belongs (see ambiguities).
 - Multi-clause arms in real code (J sample program): `IF MASTER FICA GT 144.00 THEN SET WORKING FICA = WORKING FICA - (MASTER FICA - 144.00), SET MASTER FICA = 144.00.` and `IF M.EMP.NO = HIGH.VALUE THEN GO TO END.OF.RUN OTHERWISE SET D.EMP.NO = HIGH.VALUE, GO TO HIGH.DETAIL.` ([J 90.05], listing PDF p. 196).
@@ -61,7 +61,7 @@ Consequences a compiler writer must observe:
 
 A conditional expression "may be either true or false, depending on conditions existing when the expression is examined"; it may contain data-names, condition-names, arithmetic expressions, and relational expressions, and expressions may be joined by AND and OR into compound conditional expressions ([F p. 21]). The two principal types are (1) relations and (2) condition-names ([F p. 21]).
 
-Conditional expressions appear in exactly these control contexts: the IF clause ([F p. 25]), the WHEN clauses of the conditional GO TO ([F p. 48]), and inside truth functions TR( ) in arithmetic expressions (F pp. 20, 24; see §5.3.5). SET's ON OVERFLOW and GET's AT END phrases are *not* conditional expressions but appended event clauses (F pp. 40, 44; see the SET/arithmetic and Input/Output sections).
+Conditional expressions appear in exactly these control contexts: the IF clause ([F p. 25]), the WHEN clauses of the conditional GO TO ([F p. 48]), and inside truth functions TR( ) in arithmetic expressions ([F pp. 20], [24]; see §5.3.5). SET's ON OVERFLOW and GET's AT END phrases are *not* conditional expressions but appended event clauses ([F pp. 40], [44]; see the SET/arithmetic and Input/Output sections).
 
 #### 5.3.1 Relations
 
@@ -80,8 +80,8 @@ Conditional expressions appear in exactly these control contexts: the IF clause 
 
 - Relations "may be used to connect data-names, literals, and arithmetic expressions" ([F p. 21]). Examples ([F p. 21]): `BEGINNING.ON.HAND + RECEIPTS - SHIPMENTS IS LESS THAN REORDER.POINT`, `AGE GT 21`, `A * (B + C) - (D / E) = 500`, `DEPENDENTS NOT = 0`, `A GT B OR A = C`.
 - There is no "greater than or equal" / "less than or equal" spelling; those are expressed as NOT LT / NOT GT ([F p. 21]). Note [F p. 2]'s admonition on precision: "We must not say 'less than 30' if we mean 'less than or equal to 30.'"
-- Each relational expression must be completely stated — `HOURLY.RATE IS GREATER THAN 3.50 AND LESS THAN 5.00` is not accepted; both operands must be repeated ([F p. 23], rule 3).
-- Reserved-word inventory relevant to relations: F Appendix 2 lists IS, GREATER, LESS, THAN, EQUAL, GT, LT, NOT ([F p. 110]). J's key-word list additionally reserves **EQUALS** ([J 02.03.02]) although no manual documents an "EQUALS" relational form — see open questions. The sample program uses `IS NOT EQUAL TO`, `NOT GT`, `GT`, `LT`, and `=` ([J 90.05], listing PDF pp. 195–197).
+- Each relational expression must be completely stated: `HOURLY.RATE IS GREATER THAN 3.50 AND LESS THAN 5.00` is not accepted; both operands must be repeated ([F p. 23], rule 3).
+- Reserved-word inventory relevant to relations: F Appendix 2 lists IS, GREATER, LESS, THAN, EQUAL, GT, LT, NOT ([F p. 110]). J's key-word list additionally reserves **EQUALS** ([J 02.03.02]) although no manual documents an "EQUALS" relational form; see open questions. The sample program uses `IS NOT EQUAL TO`, `NOT GT`, `GT`, `LT`, and `=` ([J 90.05], listing PDF pp. 195–197).
 
 #### 5.3.2 Comparison semantics (J 02.04.C — authoritative)
 
@@ -92,7 +92,7 @@ Conditional expressions appear in exactly these control contexts: the IF clause 
    - a) "Numeric fields are compared arithmetically without regard to length."
    - b) Alphameric fields of unequal length are treated on the basis of the operator:
      - i. "In tests for an = or NOT = condition the fields will always be found to be unequal." For unequal-length alphameric A and B, given `IF A = B THEN GO TO C OTHERWISE GO TO D.` "the only code generated will be a transfer to D"; for `IF A NOT = B THEN GO TO D OTHERWISE GO TO C.` likewise ([J 02.04.07]). I.e. the compiler folds the comparison at compile time.
-     - ii. "In tests for NOT greater or less conditions the lengths are made equal by right truncation of the longer field" ([J 02.04.07]). (On the reading of this phrase see the ambiguities register; the plausible sense is: for the relative-magnitude operators — GT, LT, NOT GT, NOT LT — as opposed to =/NOT =.)
+     - ii. "In tests for NOT greater or less conditions the lengths are made equal by right truncation of the longer field" ([J 02.04.07]). (On the reading of this phrase see the ambiguities register; the plausible sense is: for the relative-magnitude operators (GT, LT, NOT GT, NOT LT) as opposed to =/NOT =.)
 3. "For purposes of comparison edited fields (see 02.05 for definition) are converted to pure numeric fields. They may not be compared to alphameric fields" ([J 02.04.07]).
 4. "All non-format fields (see 02.05 for definition) are compared alphamerically, subject to rules stated in 2b above" ([J 02.04.07]). (A field with no pictorial is treated as alphameric with length equal to its subfields, [J 02.05.06]; group items in a MOVE/ADD CORRESPONDING are likewise assumed alphameric, [J 02.04.05].)
 5. "Variable length fields may not be compared. (A variable length field is a field which uses the QUANTITY IN option)" ([J 02.04.07]); enforced by "CANNOT USE VARIABLE LENGTH ITEMS FOR COMPARISON." ([J 90.04.01], message 123,00).
@@ -113,7 +113,7 @@ Name   Type     Description
 ```
 ([J 02.06.16])
 
-The 709/7090 sequence runs (lowest to highest) `0 through 9 = ' + A–I ⟨+0⟩ . ) − J–R ⟨−0⟩ $ * blank / S–Z ⟨rm⟩ , (` — digits lowest, `(` highest — and the Commercial (705) sequence runs from `Blank` (lowest) through the specials and letters to `0 through 9` (highest) ([J 02.06.16]; scan-resolved reading — full displays and glyph legend in §1.1). Note the operational consequence: under the native 709/7090 sequence *digits collate low and letters high*; under COM, blank collates lowest and digits highest.
+The 709/7090 sequence runs (lowest to highest) `0 through 9 = ' + A–I ⟨+0⟩ . ) − J–R ⟨−0⟩ $ * blank / S–Z ⟨rm⟩ , (` (digits lowest, `(` highest) and the Commercial (705) sequence runs from `Blank` (lowest) through the specials and letters to `0 through 9` (highest) ([J 02.06.16]; scan-resolved reading — full displays and glyph legend in §1.1). Note the operational consequence: under the native 709/7090 sequence *digits collate low and letters high*; under COM, blank collates lowest and digits highest.
 
 Consistently, the figurative-constant extremes depend on the sequence chosen: "HIGH.VALUE will be considered to be the left parenthesis, (, and LOW.VALUE the zero, 0, unless the Commercial collating sequence (COM) is specified in the Environment Description. The Commercial HIGH.VALUE is 9 and the LOW.VALUE is blank" ([J 02.04.01]). F defines LOW.VALUE/HIGH.VALUE only abstractly as "the lowest and highest characters in the collating sequence of the system for which the program is written" ([F p. 20]).
 
@@ -136,13 +136,13 @@ condition.name   COND    KEYS 'nn'
 ```
 ([J 02.06.17])
 
-'nn' is 12 octal digits giving "on" settings; "When the condition.name is tested in a procedure statement only the keys specified in 'nn' are tested for 'on' setting. The specified console keys must all be 'on' for the condition to be true. No 'off' or 'on' test is made for the non-specified keys" ([J 02.06.17]). This gives the object program an operator-controlled switch testable by IF — a facility absent from F. **F/J divergence.**
+'nn' is 12 octal digits giving "on" settings; "When the condition.name is tested in a procedure statement only the keys specified in 'nn' are tested for 'on' setting. The specified console keys must all be 'on' for the condition to be true. No 'off' or 'on' test is made for the non-specified keys" ([J 02.06.17]). This gives the object program an operator-controlled switch testable by IF, a facility absent from F. **F/J divergence.**
 
 #### 5.3.4 AND, OR, and NOT — combination rules and precedence
 
 Compound conditions are formed with AND and OR, with parentheses where needed; "The negative form of a conditional expression may also be used; this is obtained by placing the word NOT before the expression" ([F p. 23]). The four interpretation rules ([F p. 23]):
 
-1. OR is inclusive — "either or both".
+1. OR is inclusive: "either or both".
 2. AND means "both"; both conditions must be true.
 3. Each conditional expression must be completely stated (no elliptical second operand).
 4. "When a compound conditional expression contains both the word OR and the word AND, it will be interpreted as if the terms connected by AND were enclosed in parentheses. ... If a contrary sense is intended, parentheses must be used to show it."
@@ -173,7 +173,7 @@ Legal symbol pairs (1 = permissible, 0 = not) ([F p. 106], rule 4):
 | ( | 1 | 0 | 0 | 1 | 1 | 0 |
 | ) | 0 | 1 | 1 | 0 | 0 | 1 |
 
-"Thus, the pair 'OR NOT' is permissible, while 'NOT OR' is not permissible" ([F p. 106]). Note in particular: NOT NOT is not permissible; NOT may be followed by a condition or by "(" but not by another NOT. NOT before a relation is built into the relation spellings themselves (NOT GT, NOT =, NOT LT) ([F p. 21]), and NOT before a condition-name or parenthesized compound negates it (F pp. 23, 105). Parentheses "may be used wherever needed ... in compound conditional expressions for the sake of clarity; where ambiguity would result from their omission, they *must* be used" ([F p. 28], rule 11).
+"Thus, the pair 'OR NOT' is permissible, while 'NOT OR' is not permissible" ([F p. 106]). Note in particular: NOT NOT is not permissible; NOT may be followed by a condition or by "(" but not by another NOT. NOT before a relation is built into the relation spellings themselves (NOT GT, NOT =, NOT LT) ([F p. 21]), and NOT before a condition-name or parenthesized compound negates it ([F pp. 23], [105]). Parentheses "may be used wherever needed ... in compound conditional expressions for the sake of clarity; where ambiguity would result from their omission, they *must* be used" ([F p. 28], rule 11).
 
 Worked interpretations of mixed AND/OR expressions are tabulated at [F pp. 23–24] (e.g. `MARRIED OR OVER.21 AND HOURLY.RATE IS GREATER THAN 3.50` = MARRIED, or the AND-pair, or both; the parenthesized variant regroups it).
 
@@ -190,9 +190,9 @@ SET DISCOUNT = ORDER.AMOUNT * .05 * TR
 ```
 
 - "The truth operator may be used with relational expressions ... or with condition-names" ([F p. 24]). TR is a unary arithmetic operator alongside ABS and negation; a unary operator's expression operand must be parenthesized ([F p. 45]). Two successive arithmetic operators are illegal unless the second is TR or ABS ([F p. 27], rule 6).
-- Alphameric variables and constants may appear in arithmetic expressions *only* within truth functions ([F p. 45]) — i.e. TR( ) is the one bridge from alphameric comparison into arithmetic.
-- **Precedence (J):** in the absence of parentheses, operators are honored in the order `TR or ABS or - (Negation)`, then `**`, then `* or /`, then `+ or -`; equal-precedence operators associate left to right ([J 02.04.05.01]). This makes TR bind most tightly — but since its operand is always parenthesized the practical effect is on the product/power context around it.
-- Object-time example in the field-test compiler: `SET WORKING WHT = WORKING WHT * TR(WORKING WHT GT 0)` ([J 90.05], listing PDF p. 196) — a max(x, 0) idiom.
+- Alphameric variables and constants may appear in arithmetic expressions *only* within truth functions ([F p. 45]); i.e. TR( ) is the one bridge from alphameric comparison into arithmetic.
+- **Precedence (J):** in the absence of parentheses, operators are honored in the order `TR or ABS or - (Negation)`, then `**`, then `* or /`, then `+ or -`; equal-precedence operators associate left to right ([J 02.04.05.01]). This makes TR bind most tightly, but since its operand is always parenthesized the practical effect is on the product/power context around it.
+- Object-time example in the field-test compiler: `SET WORKING WHT = WORKING WHT * TR(WORKING WHT GT 0)` ([J 90.05], listing PDF p. 196), a max(x, 0) idiom.
 - F also lists TR among "arithmetic operators" with meaning "Truth Value" ([F p. 21]) and demonstrates conditional expressions used inside arithmetic expressions solely via TR ([F p. 20]).
 
 ### 5.4 The GO TO command
@@ -237,7 +237,7 @@ COMPARE.EMPLOYEE.NUMBERS.  GO TO CHECK.NEW.DEPT WHEN D.EMP.NO =
                             M.EMP.NO,  LOW.DETAIL WHEN D.EMP.NO LT M.EMP.NO.
 HIGH.DETAIL.    ...
 ```
-— when neither WHEN condition holds, control falls into the next sentence (HIGH.DETAIL).
+When neither WHEN condition holds, control falls into the next sentence (HIGH.DETAIL).
 
 #### 5.4.3 Assigned GO TO (ON index)
 
@@ -258,8 +258,8 @@ GO TO (PIECE.WORK, INCENTIVE, HOURLY.RATE, SALARY) ON
 ```
 ([F p. 49] — PAY.TYPE is a field in each employee record containing 1, 2, 3, or 4)
 
-- **How the "switch" is set:** there is no special assign-verb; the index is an ordinary integer data field set by input data, by MOVE, or by SET arithmetic ([F pp. 48–49]). (SET condition.name — §5.4.4 — changes a *conditional variable*, which is the switch mechanism for IF-type tests, not for the assigned GO TO.)
-- **J diagnostics for the index:** "FORMAT ERROR FOR TRANSFER INDEX. NOTHING DONE." (129,00) and "TRANSFER INDEX NOT AN INTEGER. INTEGRAL PART TAKEN AS VALUE." (130,00) ([J 90.04.01]). J is silent on whether an object-time range check (the F fall-through rule) is actually generated — see open questions.
+- **How the "switch" is set:** there is no special assign-verb; the index is an ordinary integer data field set by input data, by MOVE, or by SET arithmetic ([F pp. 48–49]). (SET condition.name (§5.4.4) changes a *conditional variable*, which is the switch mechanism for IF-type tests, not for the assigned GO TO.)
+- **J diagnostics for the index:** "FORMAT ERROR FOR TRANSFER INDEX. NOTHING DONE." (129,00) and "TRANSFER INDEX NOT AN INTEGER. INTEGRAL PART TAKEN AS VALUE." (130,00) ([J 90.04.01]). J is silent on whether an object-time range check (the F fall-through rule) is actually generated; see open questions.
 
 #### 5.4.4 SET condition.name (switch setting for conditional tests)
 
@@ -298,7 +298,7 @@ DO procedure.name EXACTLY n TIMES
 - "where 'procedure.name' represents the name of a sentence or section. (If a procedure consists of more than one sentence, it must be defined as a section in order to be named ...)" ([F p. 49]).
 - First form: "the 'procedure.name' subroutine is executed only once and control passes to the sentence or clause following the DO" ([F p. 50]).
 - Second form: "the 'procedure.name' procedure is executed the specified number of times. The number of repetitions, n, may be stated as a literal or as a data-name, but in either case the value of n must be a positive integer" ([F p. 50]). Example: `DO BOND.ORDER.RTN EXACTLY NO.OF.BONDS TIMES.` ([F p. 50]).
-- **J at-least-once rule:** "A DO section will always be performed at least once regardless of the values of the loop control variables" ([J 90.01.02]). This applies to all repetitive forms (presumably even EXACTLY 0 TIMES — itself an invalid value per [F p. 50], which requires n to be a positive integer — would execute once; not stated). **F/J divergence** in the sense that F never states it.
+- **J at-least-once rule:** "A DO section will always be performed at least once regardless of the values of the loop control variables" ([J 90.01.02]). This applies to all repetitive forms (presumably even EXACTLY 0 TIMES (itself an invalid value per [F p. 50], which requires n to be a positive integer) would execute once; not stated). **F/J divergence** in the sense that F never states it.
 - EXACTLY and TIMES are reserved ([J 02.03.02]; [F p. 110]).
 
 #### 5.5.2 DO with indexing (FOR index = p(q)r)
@@ -310,7 +310,7 @@ DO procedure.name FOR index.name = p(q)r
 
 - "'index.name' represents a field which has been defined in the data description as an integer" ([F p. 50]).
 - Semantics, quoted in full because they are the precise loop contract ([F p. 50]): "The effect of this DO command (in the object program) is to set the index to the initial value p and transfer control to the first sentence of the named procedure. After the last sentence of the procedure has been reached and executed, control is returned to the DO command which increments the index by the quantity q and causes control to return to the 'loop.' This process is repeated until the value of the index equals r; at this point, control is no longer returned to the loop but instead passes to the sentence or clause which follows the DO."
-- F gives the exact equivalence — the loop is test-after-body with an *equality* test:
+- F gives the exact equivalence; the loop is test-after-body with an *equality* test:
 
 ```
         SET i = p.
@@ -326,7 +326,7 @@ NEXT.   .
 
   Consequences: the body executes with i = p first and executes *for* i = r (termination is checked after the body); the index equals r on exit; the body always runs at least once (consistent with [J 90.01.02]); if the step never makes i exactly equal r the expansion never terminates (see ambiguities).
 - "Each of the loop control parameters p, q and r may be either of the following: 1. A literal having an integer value. 2. The name of a field defined as an integer" ([F p. 51]).
-- Example and subscript interaction ([F p. 51]): `DO RATE.UPDATE.CALC FOR STATE = 1(1)50.` with body `RATE.UPDATE.CALC.  SET RATE (STATE) = RATE (STATE) * ADJUST.FACTOR + FLAT.AMT.` — "the variable RATE is said to be subscripted by the index STATE". Field-test example: `DO SEARCH FOR INDEX = 1(1)12.` ([J 90.05], listing PDF p. 196).
+- Example and subscript interaction ([F p. 51]): `DO RATE.UPDATE.CALC FOR STATE = 1(1)50.` with body `RATE.UPDATE.CALC.  SET RATE (STATE) = RATE (STATE) * ADJUST.FACTOR + FLAT.AMT.`: "the variable RATE is said to be subscripted by the index STATE". Field-test example: `DO SEARCH FOR INDEX = 1(1)12.` ([J 90.05], listing PDF p. 196).
 - **Two indices** ([F p. 51]): "'index.name.1' and 'index.name.2' are initially set to p.1 and p.2 respectively. Each time the inner loop is executed, index.name.2 is incremented by q.2 until it equals r.2; thereupon, index.name.2 is reset to p.2 and index.name.1 is set to p.1 + q.1. Control is returned to the inner loop and the process is repeated. When index.name.1 is equal to r.1, control passes to the clause or sentence which follows the DO." (On the literal "set to p.1 + q.1" wording see the ambiguities register.)
 
 ```
@@ -357,12 +357,12 @@ BEGIN SECTION USING parameter.1, parameter.2, ...
 ```
 ([F p. 57])
 
-Semantics (F pp. 32–33, 52–53): at object time, data named in the DO's USING phrase is moved *positionally* into the parameter fields named in the BEGIN SECTION's USING phrase ("items of data named in a DO command will be placed in the parameter fields named in the BEGIN SECTION command in the order in which they are named", [F p. 33]); the procedure executes; then results are moved from the function fields (BEGIN SECTION GIVING) to the fields named in the DO's GIVING phrase ([F p. 33]). `DO MIN.ROUT USING R.RATE, E.RATE, M.RATE GIVING MIN.RATE.` is equivalent to three MOVEs in, `DO MIN.ROUT.`, and one MOVE out ([F pp. 52–53]). Literals may be substituted: `DO MIN.ROUT USING INSURED.AGE, BENEFIC.AGE, 70 GIVING LOW.AGE.` ([F p. 53]), as may figurative constants such as HIGH.VALUES ([F pp. 33–34]).
+Semantics ([F pp. 32–33], [52–53]): at object time, data named in the DO's USING phrase is moved *positionally* into the parameter fields named in the BEGIN SECTION's USING phrase ("items of data named in a DO command will be placed in the parameter fields named in the BEGIN SECTION command in the order in which they are named", [F p. 33]); the procedure executes; then results are moved from the function fields (BEGIN SECTION GIVING) to the fields named in the DO's GIVING phrase ([F p. 33]). `DO MIN.ROUT USING R.RATE, E.RATE, M.RATE GIVING MIN.RATE.` is equivalent to three MOVEs in, `DO MIN.ROUT.`, and one MOVE out ([F pp. 52–53]). Literals may be substituted: `DO MIN.ROUT USING INSURED.AGE, BENEFIC.AGE, 70 GIVING LOW.AGE.` ([F p. 53]), as may figurative constants such as HIGH.VALUES ([F pp. 33–34]).
 
 - USING and GIVING are each optional on the DO; omitting USING reuses whatever values are in the parameter fields, omitting GIVING leaves results in the function fields for direct reference ([F p. 33]).
-- A function-name may also be invoked directly in an expression, without a DO, by writing the function-name followed by its argument names in **double parentheses**, comma-separated — e.g. `SET APPROX = 2 * SQUARE.ROOT ((X)) TRUNCATED.` ([F p. 44]); `MOVE MINIMUM ((CALCULATED.PRICE, MARKET.PRICE. HIGH.VALUES)) TO PRICE.LIST.` ([F p. 34] — the period after MARKET.PRICE is an original printing inconsistency preserved by the conversion); rules at F pp. 33–34, 46, 58, and [F p. 28] rule 15. When this technique is used the result can be obtained only from the function field ([F p. 34]).
-- Data substitution (object time) must not be confused with name substitution (INCLUDE, processing time) ([F p. 52]) — and INCLUDE is deferred in J ([J 90.01.02]), so no library facilities exist.
-- **F/J divergence — PARAM/FUNCT:** F requires every parameter-name and function-name to be declared in the data description with type codes PARAM and FUNCT (F pp. 34, 73). J: "These two type codes described in the General Information Manual are no longer in the language" ([J 02.05.03]). The USING/GIVING mechanism itself survives in J — the compiler checks argument counts: "TOO MANY -USING- PARAMETERS IN -DO- STATEMENT." (72,00), "TOO FEW -USING- ..." (73,00), "TOO MANY -GIVING- ..." (74,00), "TOO FEW -GIVING- ..." (75,00); and functions: "FUNCTION 'NAME.1' LACKS EXPLICIT SPECIFICATION OF ALL ARGUMENTS." (30,00), "EVALUATION IGNORED FOR FUNCTION 'NAME.1'. TOO MANY ARGUMENTS SPECIFIED." (68,00) (all [J 90.04.01]). In J, parameters and functions are therefore described as ordinary data items.
+- A function-name may also be invoked directly in an expression, without a DO, by writing the function-name followed by its argument names in **double parentheses**, comma-separated, e.g. `SET APPROX = 2 * SQUARE.ROOT ((X)) TRUNCATED.` ([F p. 44]); `MOVE MINIMUM ((CALCULATED.PRICE, MARKET.PRICE. HIGH.VALUES)) TO PRICE.LIST.` ([F p. 34] — the period after MARKET.PRICE is an original printing inconsistency preserved by the conversion); rules at [F pp. 33–34], [46], [58], and [F p. 28] rule 15. When this technique is used the result can be obtained only from the function field ([F p. 34]).
+- Data substitution (object time) must not be confused with name substitution (INCLUDE, processing time) ([F p. 52]), and INCLUDE is deferred in J ([J 90.01.02]), so no library facilities exist.
+- **F/J divergence (PARAM/FUNCT):** F requires every parameter-name and function-name to be declared in the data description with type codes PARAM and FUNCT ([F pp. 34], [73]). J: "These two type codes described in the General Information Manual are no longer in the language" ([J 02.05.03]). The USING/GIVING mechanism itself survives in J; the compiler checks argument counts: "TOO MANY -USING- PARAMETERS IN -DO- STATEMENT." (72,00), "TOO FEW -USING- ..." (73,00), "TOO MANY -GIVING- ..." (74,00), "TOO FEW -GIVING- ..." (75,00); and functions: "FUNCTION 'NAME.1' LACKS EXPLICIT SPECIFICATION OF ALL ARGUMENTS." (30,00), "EVALUATION IGNORED FOR FUNCTION 'NAME.1'. TOO MANY ARGUMENTS SPECIFIED." (68,00) (all [J 90.04.01]). In J, parameters and functions are therefore described as ordinary data items.
 
 #### 5.5.4 DO with named END (early exit from an iteration)
 
@@ -389,7 +389,7 @@ I.e. GO TO the named END sentence terminates the *current iteration* while prese
 - J enforces the entry half of this rule diagnostically: flowing into a DO-addressed name is a "PROBABLE PROGRAM CONTINUITY ERROR" (99,00); a GO TO to a DO-addressed name is bypassed (128,00); PROGRAM.START may not be DO-addressed (143,00); and the DO target must exist: "'NAME.1', ADDRESSED BY A -DO-, IS NEITHER A STATEMENT NOR A SECTION NAME." (188,00) (all [J 90.04.01]).
 - **Exits out of a DO'd procedure:** neither manual states a rule against a GO TO that leaves a DO'd procedure for a target outside it, and the J sample program does exactly that: inside DO-addressed SEARCH, `... GO TO NET.` transfers permanently out of the section (and out of the active `DO SEARCH FOR INDEX = 1(1)12` loop) into the main body ([J 90.05], listing PDF pp. 196–197); the DO'd sentence END.OF.MASTERS likewise executes `GO TO END.OF.RUN` out of its DO ([J 90.05], listing PDF p. 196). The pending return linkage is simply abandoned. See the ambiguities register.
 - The normal completion of a DO'd sentence, or execution of the END sentence of a DO'd section, returns control "to the command following the DO instruction" ([F p. 33]) / "to the sentence or clause following the DO" ([F p. 50]).
-- A DO may appear as one clause among others in a sentence, including inside IF arms: `IF CURRENT.DEPT IS NOT EQUAL TO D.DEPT THEN DO DEPARTMENT.END OTHERWISE GO TO COMPUTE.PAY.` and `END.OF.RUN. DO DEPARTMENT.END, MOVE CORRESPONDING ... , CLOSE ALL FILES, STOP RUN.` ([J 90.05], listing PDF pp. 195–196). GET's AT END phrase may also invoke DO: `GET MASTER, AT END DO END.OF.MASTERS.` ([J 90.05], listing PDF p. 195) — but note the J restriction that "The AT END clause ... may consist of a single imperative statement only" ([J 02.07.05]) and message 106,00 "STATEMENT OR SECTION NAME MUST FOLLOW -AT END-." ([J 90.04.01]); see the Input/Output section.
+- A DO may appear as one clause among others in a sentence, including inside IF arms: `IF CURRENT.DEPT IS NOT EQUAL TO D.DEPT THEN DO DEPARTMENT.END OTHERWISE GO TO COMPUTE.PAY.` and `END.OF.RUN. DO DEPARTMENT.END, MOVE CORRESPONDING ... , CLOSE ALL FILES, STOP RUN.` ([J 90.05], listing PDF pp. 195–196). GET's AT END phrase may also invoke DO: `GET MASTER, AT END DO END.OF.MASTERS.` ([J 90.05], listing PDF p. 195), but note the J restriction that "The AT END clause ... may consist of a single imperative statement only" ([J 02.07.05]) and message 106,00 "STATEMENT OR SECTION NAME MUST FOLLOW -AT END-." ([J 90.04.01]); see the Input/Output section.
 - Manuals are silent on DO-from-within-a-DO'd-procedure (nested calls) and on recursion; the sample program only issues DOs from the main body. See open questions.
 
 ### 5.6 The STOP command; STOP RUN
@@ -399,7 +399,7 @@ I.e. GO TO the named END sentence terminates the *current iteration* while prese
 ```
 STOP n
 ```
-([F p. 54]) — "where n is an integer. The number n will be displayed when the command is executed, i.e., when the machine halts. Restarting the machine causes execution of the object program to be resumed beginning with the next command in sequence. For a 'dead-end' halt, an unconditional GO TO command placed immediately following the STOP can be used to effect a transfer back to the STOP command" ([F p. 54]). ([F p. 25] also shows the bare example sentence `STOP.` with no operand, and the F payroll example uses `STOP 1234.` (F pp. 92, 101, Appendix 1); see ambiguities.)
+([F p. 54]): "where n is an integer. The number n will be displayed when the command is executed, i.e., when the machine halts. Restarting the machine causes execution of the object program to be resumed beginning with the next command in sequence. For a 'dead-end' halt, an unconditional GO TO command placed immediately following the STOP can be used to effect a transfer back to the STOP command" ([F p. 54]). ([F p. 25] also shows the bare example sentence `STOP.` with no operand, and the F payroll example uses `STOP 1234.` ([F pp. 92], [101], Appendix 1); see ambiguities.)
 
 **J forms and semantics:** the STOP display subroutine SYS)178 records "the Statement Number of the Stop (in BCD), and the type of STOP (STOP NNN or STOP RUN)" ([J 90.02.14]). At execution ([J 05.06.04]):
 
@@ -409,7 +409,7 @@ STOP n
 
 **STOP RUN is mandatory in J:** "A STOP RUN instruction must be included in each program to provide for transfer of control to the CT Supervisor at conclusion of execution of the object program. All open files are closed prior to this transfer of control as if a CLOSE ALL FILES had been supplied" ([J 02.04.06], "9. STOP RUN"). Diagnostic: "NO -STOP RUN- IN PROGRAM." ([J 90.04.01], message 175,00). Files closed by CLOSE ALL FILES (hence by STOP RUN) "may not be subsequently reopened by the program" ([J 02.04.06], "8. CLOSE ALL FILES"). Sample usage: `CLOSE ALL FILES, STOP RUN.` ([J 90.05], listing PDF p. 196).
 
-**F/J divergence:** F has only `STOP n` (halt-and-resume); STOP RUN — normal program termination returning control to the supervisor — is a J addition (RUN is reserved in J: key-word list [J 02.03.02]; message 2,00 "-RUN- DELETED. ITS USE IS RESTRICTED TO PROCESSOR."). J bounds n at 6 digits ([J 05.06.04]); F gives no bound.
+**F/J divergence:** F has only `STOP n` (halt-and-resume); STOP RUN (normal program termination returning control to the supervisor) is a J addition (RUN is reserved in J: key-word list [J 02.03.02]; message 2,00 "-RUN- DELETED. ITS USE IS RESTRICTED TO PROCESSOR."). J bounds n at 6 digits ([J 05.06.04]); F gives no bound.
 
 ### 5.7 Sections, procedure-names, and structural constraints on transfer targets
 
@@ -432,9 +432,9 @@ END procedure.name.
 - **Nesting:** "Sections may be 'nested,' that is, one or more sections may be contained within a larger section, but each such section must be wholly contained—it cannot overlap another section" ([F p. 26]; nesting diagram [F p. 57]). J enforces proper nesting: "CANNOT -END- SECTION WHEN NONE ARE OPEN." (64,00); "CANNOT -END- SECTION 'NAME.1' BEFORE SECTION 'NAME.2'." (65,00); "ONE OR MORE SECTIONS NOT CLOSED." (66,00); "-END- SECTION MUST BE THE ONLY CLAUSE IN THE SENTENCE." (179,00) (all [J 90.04.01]).
 - The END sentence is normally unnamed; the single exception is the named END of a DO'd procedure ([F p. 57]; §5.5.4).
 - "Where necessary, the names of sections can be used as parts of compound names" ([F p. 26]). J qualifies name uniqueness by section: "'NAME.1' IS NOT UNIQUE IN THIS SECTION." ([J 90.04.01], message 166,00); but a record defined within a section may *not* use the section.name as qualifier ([J 90.01.03]). Sections may contain data as well as procedure: "A record is a data hierarchy which may not be part of any data organization except a file or a section" ([J 02.05.01]); see §3 (Data description and storage model).
-- The commands that "take advantage of" sections are DO, LOAD and OVERLAP ([F p. 57]). **LOAD and OVERLAP are deferred in J** — "Implementation of these verbs has been deferred" ([J 90.01.03]) and "programs may not be segmented into separate memory loads at this time" ([J 90.01.05], Loader item B.2) — so their control-flow behavior ([F pp. 54–56]: initial loading includes all non-overlapped parts plus the first procedure of each OVERLAP; loading does not execute — a GO TO or DO must transfer control; a LOAD must not appear within the procedure it obliterates; overlapped procedures should end in an unconditional GO TO) is F-only, unimplemented language.
+- The commands that "take advantage of" sections are DO, LOAD and OVERLAP ([F p. 57]). **LOAD and OVERLAP are deferred in J**: "Implementation of these verbs has been deferred" ([J 90.01.03]) and "programs may not be segmented into separate memory loads at this time" ([J 90.01.05], Loader item B.2), so their control-flow behavior ([F pp. 54–56]: initial loading includes all non-overlapped parts plus the first procedure of each OVERLAP; loading does not execute — a GO TO or DO must transfer control; a LOAD must not appear within the procedure it obliterates; overlapped procedures should end in an unconditional GO TO) is F-only, unimplemented language.
 - Sections in generated code: section numbers begin with 0 for the main body and increase by 1 for each BEGIN SECTION; result-storage cells are section-qualified ([J 90.02.03]).
-- CONTRL areas (multiple-deck combination — mechanization deferred, [J 90.01.04]): "Indices inside a CONTRL area must not be referenced or modified outside of that area in any of the programs to be merged" ([J 02.06.16]).
+- CONTRL areas (multiple-deck combination; mechanization deferred, [J 90.01.04]): "Indices inside a CONTRL area must not be referenced or modified outside of that area in any of the programs to be merged" ([J 02.06.16]).
 - Control-flow-relevant reserved words: always-key words include BEGIN, FOR, IN, ON, WHEN ([J 02.03.02], list 1); never usable as data/procedure names include DO, GO, IF, THEN, OTHERWISE, STOP, RUN, SECTION, END, EXACTLY, TIMES, USING, GIVING, NOT, AND, OR, GT, LT, IS, GREATER, LESS, THAN, EQUAL, EQUALS, TR ([J 02.03.02], list 2; [F p. 110]). F's full word list is at [F p. 110].
 
 ### 5.8 Numeric limits and restrictions bearing on control flow (J)
@@ -457,9 +457,9 @@ END procedure.name.
 | STOP operand | ≤ 6 digits | [J 05.06.04] |
 | STOP RUN | required once per program; implies CLOSE ALL FILES | [J 02.04.06]; 90.04.01 (175,00) |
 | Procedure-name length | 1–30 characters, followed by period + blank | [F p. 37] |
-| Statement numbering | xxxxx,yy — line , clause | [J 02.02.01] |
+| Statement numbering | xxxxx,yy: line , clause | [J 02.02.01] |
 | Severity codes | 1 = still runnable; >1 no compile-and-go; 5 stops compilation, no deck | [J 90.04.02]; [J 02.01.01] |
-| INCLUDE (library procedures) | deferred — no library facilities | [J 90.01.02] |
+| INCLUDE (library procedures) | deferred; no library facilities | [J 90.01.02] |
 | LOAD / OVERLAP (segmentation) | deferred | [J 90.01.03]; 90.01.05 (B.2) |
 | PARAM / FUNCT type codes | "no longer in the language" (USING/GIVING remain) | [J 02.05.03] |
 | AT END clause | single imperative statement only; must name a statement/section | [J 02.07.05]; 90.04.01 (106,00) |
@@ -472,6 +472,15 @@ The following points, developed above, are recorded in full in the ambiguities r
 
 <!-- manual links; carried from canon by the generator -->
 
+[101]: ../../comtran-manuals/F28-8043/a1-programming-example.md#sample-payroll-program---machine-listing
+[105]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#appendix-2-supplementary-information
+[24]: ../../comtran-manuals/F28-8043/02-language-structure.md#and-or-and-not
+[25]: ../../comtran-manuals/F28-8043/02-language-structure.md#clauses
+[44]: ../../comtran-manuals/F28-8043/03-procedure-description.md#editing-feature-1
+[46]: ../../comtran-manuals/F28-8043/03-procedure-description.md#truth-functions
+[52–53]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-indexing
+[58]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-begin-section-and-end-commands
+[73]: ../../comtran-manuals/F28-8043/04-data-description.md#funct
 [F p. 105]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#appendix-2-supplementary-information
 [F p. 106]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-conditional-expressions
 [F p. 108]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
@@ -506,15 +515,22 @@ The following points, developed above, are recorded in full in the ambiguities r
 [F p. 60]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-enter-command
 [F p. 7]: ../../comtran-manuals/F28-8043/01-general-description.md#example-3
 [F p. 72]: ../../comtran-manuals/F28-8043/04-data-description.md#cond
+[F pp. 20]: ../../comtran-manuals/F28-8043/02-language-structure.md#figurative-constants
 [F pp. 21–24]: ../../comtran-manuals/F28-8043/02-language-structure.md#arithmetic-expressions
+[F pp. 23]: ../../comtran-manuals/F28-8043/02-language-structure.md#condition-names-1
 [F pp. 23–24]: ../../comtran-manuals/F28-8043/02-language-structure.md#condition-names-1
+[F pp. 32–33]: ../../comtran-manuals/F28-8043/02-language-structure.md#subscripts
 [F pp. 33–34]: ../../comtran-manuals/F28-8043/02-language-structure.md#functions
+[F pp. 34]: ../../comtran-manuals/F28-8043/02-language-structure.md#functions
+[F pp. 40]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-get-command
 [F pp. 45–46]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-set-command
 [F pp. 48–49]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-add-corresponding-command
 [F pp. 52–53]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-indexing
 [F pp. 54–56]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
 [F pp. 56–57]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-overlap-command
+[F pp. 7]: ../../comtran-manuals/F28-8043/01-general-description.md#example-3
 [F pp. 71–72]: ../../comtran-manuals/F28-8043/04-data-description.md#level-col-23-24
+[F pp. 92]: ../../comtran-manuals/F28-8043/a1-programming-example.md#flow-chart--payroll-example
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
 [J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.03.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0202-compiler-output

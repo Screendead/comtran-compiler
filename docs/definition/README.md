@@ -4,7 +4,7 @@
 
 **A structured definition of IBM Commercial Translator (COMTRAN) as it existed historically, prepared for compiler construction.**
 
-This document is the working language reference for this repository's compiler project. It defines the *source language only* — it deliberately contains no compiler architecture, intermediate representations, grammars, or implementation strategy. It is a living reference: correct it against the manuals, never against modern expectations.
+This document is the working language reference for this repository's compiler project. It defines the *source language only*: it deliberately contains no compiler architecture, intermediate representations, grammars, or implementation strategy. It is a living reference: correct it against the manuals, never against modern expectations.
 
 > **This is a reading copy.** `../comtran-language-definition.md` is
 > canon. That file is larger than the 512 KB limit for Markdown
@@ -19,12 +19,12 @@ Everything here is extracted from the two surviving IBM manuals, converted to Ma
 
 | Cited as | Manual | Status |
 |---|---|---|
-| **(F p. *N*)** | F28-8043, *General Information Manual* (June 1960) — [index](../../comtran-manuals/F28-8043/F28-8043.md) | The 1960 **language vision**. Cited by printed page number. |
-| **(J *xx.xx.xx*)** | J28-6169-1, *709/7090 Commercial Translator Processor, Preliminary Reference Manual* (Jan 1962) — [index](../../comtran-manuals/J28-6169/J28-6169.md) | The **implemented language** (field-test 709/7090 processor). Cited by IBM section code. **Authoritative wherever the two disagree.** |
+| **(F p. *N*)** | F28-8043, *General Information Manual* (June 1960), [index](../../comtran-manuals/F28-8043/F28-8043.md) | The 1960 **language vision**. Cited by printed page number. |
+| **(J *xx.xx.xx*)** | J28-6169-1, *709/7090 Commercial Translator Processor, Preliminary Reference Manual* (Jan 1962), [index](../../comtran-manuals/J28-6169/J28-6169.md) | The **implemented language** (field-test 709/7090 processor). Cited by IBM section code. **Authoritative wherever the two disagree.** |
 
-Conventions inherited from the conversions: 1960s spellings ("alphameric", "imbedded") and genuine typos are preserved verbatim in quotations; the 1960s literal-delimiting quotation mark (card code 4-8) is rendered as a straight apostrophe `'`; overpunched digits are rendered by zone — minus with a combining overline (`9̅`), plus with a superscript plus (`9⁺`). Paths like `images/page-050.png` refer to the 150-dpi page scans inside each manual's directory — the ground truth for any disputed reading.
+Conventions inherited from the conversions: 1960s spellings ("alphameric", "imbedded") and genuine typos are preserved verbatim in quotations; the 1960s literal-delimiting quotation mark (card code 4-8) is rendered as a straight apostrophe `'`; overpunched digits are rendered by zone: minus with a combining overline (`9̅`), plus with a superscript plus (`9⁺`). Paths like `images/page-050.png` refer to the 150-dpi page scans inside each manual's directory, the ground truth for any disputed reading.
 
-**The F/J rule.** F28-8043 describes the full language as designed; J28-6169 describes what the January 1962 field-test processor actually accepted, and explicitly defers, restricts, or corrects many F features. Divergences are flagged **F/J divergence** where they arise and are catalogued in §8. A compiler writer must decide early which language is being implemented — the 1960 design (F) or the 1962 processor language (J); this document treats **J as definitive** and presents F material as design context and as the base text that J amends.
+**The F/J rule.** F28-8043 describes the full language as designed; J28-6169 describes what the January 1962 field-test processor actually accepted, and explicitly defers, restricts, or corrects many F features. Divergences are flagged **F/J divergence** where they arise and are catalogued in §8. A compiler writer must decide early which language is being implemented: the 1960 design (F) or the 1962 processor language (J); this document treats **J as definitive** and presents F material as design context and as the base text that J amends.
 
 ## Where to look
 
