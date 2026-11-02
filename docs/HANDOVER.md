@@ -71,8 +71,8 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1457 Dart tests pass and 154 extension tests pass, both
-measured 2026-10-25. Both suites must stay green; re-measure the
+Test baseline: 1477 Dart tests pass, measured 2026-11-02, and 154 extension
+tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
 manual's own payroll sample through every phase to the object deck. Add
