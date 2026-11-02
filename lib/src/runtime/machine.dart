@@ -509,3 +509,17 @@ List<TapeReport> tapeReports(Machine machine) {
   }
   return reports;
 }
+
+/// [reports] as `comtranc --list-tapes` prints them: each file's name and
+/// the word `REPORT`, a blank line, and the file's print lines, with one
+/// blank line between two files (M5-11).
+Iterable<String> reportLines(List<TapeReport> reports) sync* {
+  for (final (int index, TapeReport report) in reports.indexed) {
+    if (index > 0) {
+      yield '';
+    }
+    yield '${report.file} REPORT';
+    yield '';
+    yield* report.lines;
+  }
+}

@@ -61,6 +61,7 @@ export 'src/data/pictorial.dart';
 export 'src/data/resolver.dart';
 export 'src/data/semantics.dart';
 export 'src/driver/driver.dart';
+export 'src/driver/job_run.dart';
 export 'src/driver/job_splitter.dart';
 export 'src/emit/common.dart';
 export 'src/emit/emit_code.dart';
