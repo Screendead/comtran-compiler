@@ -20,7 +20,11 @@ PROTO_FULL = "6cda03b6b10e3c2132c0d3d0f03652b6a3a34fbb"
 TESTS = 1444
 BLOB = f"https://github.com/Screendead/comtran-compiler/blob/{MASTER}"
 
-CSS = open(os.path.join(HERE, "house.css")).read()
+CSS = open(os.path.join(HERE, "house.css")).read() + """
+.ruling { border:1px solid var(--settled); border-left-width:4px; padding:.7rem 1rem; margin:1rem 0; }
+.ruling .tag { font-family:var(--mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--settled); margin:0 0 .4rem; }
+.ruling blockquote { margin:.4rem 0; padding-left:.8rem; border-left:2px solid var(--rule); }
+"""
 
 
 def img(name):
@@ -87,6 +91,17 @@ blockquote {{ margin:.3rem 0 .9rem; padding:.1rem 0 .1rem 1rem; border-left:3px 
 <p class="standfirst">J forbids the reopen. D6.3 tells us to diagnose it where the text shows it. Today the compiler is silent,
 and the run quietly overwrites the tape. Three choices are yours; the id is settled.</p>
 </header>
+
+<section>
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; pitch page, call 3</p>
+<p>Jack answered on <a href="https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw">the pitch page of 2026-11-02</a>, an interactive page with no review record behind it, by clicking one option. The page saved the
+pick at 13:08:13Z. The retrofit record <code>review/2026-11-02-pitch-rulings</code> (at <code>3f938c6</code>) carries that page and the saved pick as evidence.</p>
+<blockquote><strong>Severity 4, keep the OPEN, detect the straight case only</strong> (pick <code>4i</code>)</blockquote>
+<p><strong>Read as:</strong> severity 4, with the OPEN kept (item 3), and scope (i), the straight run (item 4). The pitch option printed the message text <code>948,00 4 -OPEN ALL FILES- FOLLOWS -CLOSE ALL FILES-. FILES CLOSED BY THAT FORM MAY NOT BE REOPENED. (NON-HISTORICAL.)</code>, which is text A of item 2. <span class="inferred">our reading</span> The pick therefore chooses text A too; he did not answer item 2 separately. Merge the prototype (draft #170) after one more review round.</p>
+<p class="mono">The per-item chips below are unchanged: they show the question as put to him.</p>
+</div>
+</section>
 
 <section>
 <div class="answer">
