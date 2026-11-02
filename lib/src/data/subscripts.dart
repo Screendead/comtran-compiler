@@ -70,7 +70,7 @@ final class SubscriptChecker {
     }
     for (final ArithExpr subscript in reference.subscripts) {
       _checkTerm(subscript, reference);
-      if (subscript is BinaryExpr && (_folded(subscript) ?? 1) < 1) {
+      if (subscript is! LiteralOperand && (_folded(subscript) ?? 1) < 1) {
         // The terms pass one by one, but the element they name does not
         // exist (J 02.04.07.01).
         resolver.report(msgImproperDataFormat, subscript.anchor);
@@ -119,7 +119,10 @@ final class SubscriptChecker {
       case UnaryExpr(:final operator, :final operand)
           when operand is! LiteralOperand:
         final int? value = _folded(operand);
-        return value == null || operator.text != '-' ? value : -value;
+        if (value == null) {
+          return null;
+        }
+        return operator.text == '-' ? -value : value.abs();
       case BinaryExpr(:final left, :final operator, :final right):
         final int? l = _folded(left);
         final int? r = _folded(right);

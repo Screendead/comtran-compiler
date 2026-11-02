@@ -204,6 +204,8 @@ void main() {
         ('3 - 2', <String>[]),
         ('0 - 1', ['182,00']),
         ('2 / 4 - 1', <String>[]),
+        ('-(3 - 2)', ['182,00']),
+        ('ABS (2 - 3)', <String>[]),
       ]) {
         expect(ids(_move('TAB CELL ($subscript)')), drawn, reason: subscript);
       }
