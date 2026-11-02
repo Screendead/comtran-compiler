@@ -119,7 +119,9 @@ final class SubscriptChecker {
       case UnaryExpr(:final operator, :final operand)
           when operand is! LiteralOperand:
         final int? value = _folded(operand);
-        if (value == null) return null;
+        if (value == null) {
+          return null;
+        }
         return operator.text == '-' ? -value : value.abs();
       case BinaryExpr(:final left, :final operator, :final right):
         final int? l = _folded(left);
