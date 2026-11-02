@@ -97,6 +97,156 @@ void main() {
       expect(ids(result), isEmpty);
     });
 
+    test('two sections of one name in one scope draw 166,00 (D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), ['166,00']);
+    });
+
+    test('a section may share its name with a section it nests in '
+        '(D2.5; F p. 26)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S.          BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            END S.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), isEmpty);
+      final [DictionaryEntry outer, DictionaryEntry inner] = result.dictionary
+          .named('S');
+      expect(outer.scope, isNull);
+      expect(
+        inner.scope,
+        same(outer.sentence!.clauses.whereType<BeginSectionClause>().single),
+      );
+    });
+
+    test('labels of two same-name sections under different parents keep '
+        'apart (D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      P1.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "      X.          DISPLAY 'A'.",
+          '            END S.',
+          '            END P1.',
+          '      P2.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "      X.          DISPLAY 'B'.",
+          '            END S.',
+          '            END P2.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), isEmpty);
+    });
+
+    test('a section keeps apart from a same-path section one level down '
+        '(D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      P.          BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            END P.',
+          '      Q.          BEGIN SECTION.',
+          '      P.          BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            END P.',
+          '            END Q.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), isEmpty);
+    });
+
+    test('sections of one name under different parents are legal '
+        '(D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      P1.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            END P1.',
+          '      P2.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            END P2.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), isEmpty);
+    });
+
+    test('a label after a section of its name in one scope draws 166,00, '
+        'as the reverse order does (D2.5)', () {
+      for (final order in [
+        [
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          "      S.          DISPLAY 'B'.",
+        ],
+        [
+          "      S.          DISPLAY 'B'.",
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+        ],
+      ]) {
+        final SemanticResult result = runJob(
+          data: const [],
+          procedure: [...order, '            STOP RUN.'],
+        );
+        expect(ids(result), ['166,00'], reason: order.first);
+      }
+    });
+
+    test('a one-word reference to two same-name sections draws 166,00; '
+        'no scope wins (D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      P1.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            DO S.',
+          '            END P1.',
+          '      P2.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            END P2.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), ['166,00']);
+    });
+
     test('an END inside an IF arm closes the section scope (msg 179)', () {
       final SemanticResult result = runJob(
         data: const [],
@@ -128,6 +278,125 @@ void main() {
       );
     });
 
+    test('two ENDs in one sentence close two section scopes, as the '
+        'parser closes them (msg 179)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          "      DUP.        DISPLAY 'A'.",
+          '      S1.         BEGIN SECTION.',
+          '      S2.         BEGIN SECTION.',
+          '            END S2, END S1.',
+          "      DUP.        DISPLAY 'C'.",
+          '            STOP RUN.',
+        ],
+      );
+      expect(
+        [
+          for (final Diagnostic d in result.parse.parserDiagnostics)
+            d.message.number,
+        ],
+        ['179,00', '179,00'],
+      );
+      expect(ids(result), ['166,00']);
+      expect(
+        [
+          for (final DictionaryEntry e in result.dictionary.named('DUP'))
+            e.section,
+        ],
+        [null, null],
+      );
+    });
+
+    test('two BEGINs in one sentence nest two sections, as the parser '
+        'nests them', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          "      DUP.        DISPLAY 'A'.",
+          '      S1.         BEGIN SECTION, BEGIN SECTION.',
+          '            END S1.',
+          "      DUP.        DISPLAY 'C'.",
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), isEmpty);
+      expect(
+        [
+          for (final DictionaryEntry e in result.dictionary.named('DUP'))
+            e.section,
+        ],
+        [null, 'S1'],
+      );
+    });
+
+    test('two BEGINs in one sentence open two label scopes: the inner '
+        "section's labels keep apart from the outer remainder's", () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S1.         BEGIN SECTION, BEGIN SECTION.',
+          "      X.          DISPLAY 'A'.",
+          '            END S1.',
+          "      X.          DISPLAY 'B'.",
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), isEmpty);
+      final [DictionaryEntry inner, DictionaryEntry outer] = result.dictionary
+          .named('X');
+      expect(inner.scope, isNotNull);
+      expect(outer.scope, isNotNull);
+      expect(inner.scope, isNot(same(outer.scope)));
+    });
+
+    test('a one-word GO TO in the outer remainder does not reach a label '
+        'of the inner section that one sentence opened', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S1.         BEGIN SECTION, BEGIN SECTION.',
+          "      X.          DISPLAY 'A'.",
+          '            END S1.',
+          '            GO TO X.',
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), ['127,00']);
+    });
+
+    test('a section open across two procedure groups scopes the second '
+        "group's labels, as the parser's section stack does", () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          "      DUP.        DISPLAY 'A'.",
+          '      S1.         BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '      *DATA',
+          '      *PROCEDURE',
+          "      DUP.        DISPLAY 'C'.",
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), isEmpty);
+      expect(
+        [
+          for (final DictionaryEntry e in result.dictionary.named('DUP'))
+            e.section,
+        ],
+        [null, 'S1'],
+      );
+    });
+
     test('a label that is a key word draws 61,00', () {
       final SemanticResult result = runJob(
         data: const [],
@@ -154,6 +423,29 @@ void main() {
         ],
       );
       expect(ids(result), ['142,00']);
+    });
+
+    test('PROGRAM.START as an environment name draws 142,00 (D2.1)', () {
+      final SemanticResult result = runJob(
+        data: [
+          dataCard(name: 'R1', level: '1', type: 'RECORD'),
+          dataCard(name: 'A', level: '2', description: 'A(6)'),
+        ],
+        environment: [
+          _fileCard('PROGRAM.START', 'INPUT,BCD,TAPE,R1,BLOCKSIZE 5'),
+        ],
+      );
+      expect(ids(result), ['142,00']);
+    });
+
+    test('PROGRAM.START as a CALL synonym draws 142,00 and defines '
+        'nothing (D2.1)', () {
+      final SemanticResult result = runJob(
+        data: [dataCard(name: 'T', level: '1', description: '99')],
+        procedure: ['            CALL (T) PROGRAM.START.'],
+      );
+      expect(ids(result), ['142,00']);
+      expect(result.dictionary.synonym('PROGRAM.START'), isNull);
     });
 
     test('a name equal to a used list-3 word draws 152,00 (M2-7)', () {
@@ -452,6 +744,84 @@ void main() {
       expect(ids(result), ['191,00']);
     });
 
+    test('SET of an environment COND name draws 191,00', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        environment: [
+          environmentCard(name: 'SENSE', type: 'COND', options: "KEYS '77'"),
+        ],
+        procedure: ['            SET SENSE.'],
+      );
+      expect(ids(result), ['191,00']);
+      expect(result.keysConditions, isEmpty);
+    });
+
+    test('an undefined condition reference draws 108,00', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: ['            IF NOSUCH THEN STOP RUN.'],
+      );
+      expect(ids(result), ['108,00']);
+    });
+
+    test('a procedure name in condition position draws 25,00, and under '
+        'SET 191,00', () {
+      List<String> procedure(String use) => [
+        "      LOOP.       DISPLAY 'A'.",
+        '            $use',
+      ];
+      expect(
+        ids(
+          runJob(
+            data: const [],
+            procedure: procedure('IF LOOP THEN STOP RUN.'),
+          ),
+        ),
+        ['25,00'],
+      );
+      expect(ids(runJob(data: const [], procedure: procedure('SET LOOP.'))), [
+        '191,00',
+      ]);
+    });
+
+    group('two condition names of one spelling', () {
+      final List<String> data = [
+        dataCard(name: 'V1', level: '1', description: 'A'),
+        dataCard(name: 'HOT', level: '2', type: 'COND', description: "'Y'"),
+        dataCard(name: 'V2', level: '1', description: 'A'),
+        dataCard(name: 'HOT', level: '2', type: 'COND', description: "'Y'"),
+        dataCard(name: 'V3', level: '1', description: 'A'),
+      ];
+
+      test('a bare reference draws 166,00 in a test and under SET', () {
+        for (final use in ['IF HOT THEN STOP RUN.', 'SET HOT.']) {
+          final SemanticResult result = runJob(
+            data: data,
+            procedure: ['            $use'],
+          );
+          expect(ids(result), ['166,00'], reason: use);
+          expect(result.semanticDiagnostics.single.operands, ['HOT']);
+        }
+      });
+
+      test('a qualified reference resolves to its own variable', () {
+        final SemanticResult result = runJob(
+          data: data,
+          procedure: ['            IF V2 HOT THEN STOP RUN.'],
+        );
+        expect(ids(result), isEmpty);
+        expect(result.dataResolutions.values.single.parent!.entry.name, 'V2');
+      });
+
+      test('a qualifier that encloses neither draws 101,00', () {
+        final SemanticResult result = runJob(
+          data: data,
+          procedure: ['            IF V3 HOT THEN STOP RUN.'],
+        );
+        expect(ids(result), ['101,00']);
+      });
+    });
+
     test('a COND under a formatless variable draws 37,00 '
         '(J 02.05.02)', () {
       final SemanticResult result = runJob(
@@ -519,6 +889,34 @@ void main() {
       // form's 21 digits; 22 digits then overrun what the field holds.
       expect(ids(result), ['35,00', '37,00']);
     });
+
+    test('an alphameric COND constant longer than the pictorial draws '
+        '37,00; a shorter one is silent (J 02.05.06)', () {
+      List<String> data(String constant) => [
+        dataCard(name: 'STATUS', level: '1', description: 'A(2)'),
+        dataCard(name: 'CODE', level: '2', type: 'COND', description: constant),
+      ];
+      expect(ids(runJob(data: data("'ABC'"))), ['37,00']);
+      expect(ids(runJob(data: data("'AB'"))), isEmpty);
+      expect(ids(runJob(data: data("'A'"))), isEmpty);
+    });
+
+    test('a COND under an edited variable always draws 37,00 '
+        '(J 02.05.06 i)', () {
+      final SemanticResult result = runJob(
+        data: [
+          dataCard(name: 'AMOUNT', level: '1', description: '8889.99'),
+          dataCard(
+            name: 'EVEN',
+            level: '2',
+            type: 'COND',
+            description: "'1234.00'",
+          ),
+        ],
+      );
+      expect(ids(result), ['37,00']);
+      expect(result.semanticDiagnostics.single.operands, ['AMOUNT']);
+    });
   });
 
   group('stray description names (J 02.05.06 e)', () {
@@ -526,7 +924,7 @@ void main() {
       final SemanticResult result = runJob(
         data: [dataCard(name: 'X', level: '1', description: 'NOSUCH')],
       );
-      expect(ids(result), contains('185,00'));
+      expect(ids(result), ['42,00', '185,00']);
     });
 
     test('a stray name that resolves stays silent', () {

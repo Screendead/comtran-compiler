@@ -79,6 +79,29 @@ void main() {
       expect(ids(result), ['188,00']);
     });
 
+    test('a GO TO to an AT END bare name draws 128,00 (D6.6; Q40)', () {
+      final SemanticResult result = runJob(
+        data: [
+          dataCard(name: 'MASTER', level: '1', type: 'RECORD'),
+          dataCard(name: 'EMP', level: '2', description: 'A(6)'),
+        ],
+        environment: [
+          environmentCard(
+            name: 'FIN',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,MASTER,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          "      AWAY.       DISPLAY 'A'.",
+          '            GET MASTER, AT END AWAY.',
+          '            GO TO AWAY.',
+        ],
+      );
+      expect(ids(result), ['128,00']);
+      expect(result.semanticDiagnostics.single.operands, ['AWAY']);
+    });
+
     test('a one-word target takes its own section first (D2.5)', () {
       // The outermost X is DO-addressed; the section's own X is not, so
       // only the transfer that leaves the section is refused.
@@ -103,6 +126,59 @@ void main() {
         procedure: [...program('STOP RUN.'), '            GO TO X.'],
       );
       expect(ids(outside), ['128,00']);
+    });
+
+    test('a one-word target takes the label of its own section, not '
+        "a same-name section's (D2.5)", () {
+      // P2's X is DO-addressed, so a transfer that reached it draws
+      // 128; P1's GO TO X stays inside P1's S.
+      List<String> program(String transfer) => [
+        '      P1.         BEGIN SECTION.',
+        '      S.          BEGIN SECTION.',
+        "      X.          DISPLAY 'A'.",
+        '            GO TO X.',
+        '            END S.',
+        '            END P1.',
+        '      P2.         BEGIN SECTION.',
+        '      S.          BEGIN SECTION.',
+        "      X.          DISPLAY 'B'.",
+        '            DO X.',
+        '            $transfer',
+        '            END S.',
+        '            END P2.',
+        '            STOP RUN.',
+      ];
+      expect(
+        ids(runJob(data: const [], procedure: program("DISPLAY 'C'."))),
+        isEmpty,
+      );
+      expect(ids(runJob(data: const [], procedure: program('GO TO X.'))), [
+        '128,00',
+      ]);
+    });
+
+    test('a two-word target names a section the qualifier encloses '
+        '(D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '            DO P1 S.',
+          '            DO P3 S.',
+          '      P1.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            END P1.',
+          '      P2.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            END P2.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), ['188,00']);
+      expect(result.semanticDiagnostics.single.operands, ['P3 S']);
     });
 
     test('a two-word target is section A label B (D2.5)', () {
@@ -328,6 +404,21 @@ void main() {
         procedure: program(' GIVING IDX.', 'IDX ((ARG, FRAC))'),
       );
       expect(ids(result), ['68,00']);
+    });
+
+    test('a function is checked as a SET value and as an ADD source', () {
+      for (final clause in ['SET T = IDX ((ARG)).', 'ADD IDX ((ARG)) TO T.']) {
+        final SemanticResult result = runJob(
+          data: _fields(),
+          procedure: [
+            '      S.          BEGIN SECTION USING ARG.',
+            '            END S.',
+            '            $clause',
+          ],
+        );
+        expect(ids(result), ['191,00'], reason: clause);
+        expect(result.semanticDiagnostics.single.operands, ['IDX']);
+      }
     });
   });
 

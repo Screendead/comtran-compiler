@@ -245,7 +245,7 @@ The checks, 11 of each:
 | Column | Result | Cause |
 |---|---|---|
 | Employee number and name | differ on 11 | CORR |
-| Date | the sample only | §9.8: the 1960 CHECK record has no date, and the 1962 check takes two lines |
+| Date | the sample only, not counted | §9.8: the 1960 CHECK record has no date, and the 1962 check takes two lines |
 | Amount | differ on 11 | the net pay: C1 on 11, C2 also on 6 |
 
 The amount uses the 1960 picture `$***9.99`, so it prints `$*113.00`.
@@ -311,7 +311,7 @@ the sample's RET.PREM minus the table's RET.PREM:
 
 So on these lines the difference is the page's own defect, M6-4
 finding 1. Our run of the 1960 program
-prints the correct premium. M6-1 cause 1 expected a difference. The
+computes the correct premium; its net pay carries it. M6-1 cause 1 expected a difference. The
 run shows that the difference is the 1962 processor's, not ours.
 
 On the six lines below 40 hours, C2 adds the pay of the hours not

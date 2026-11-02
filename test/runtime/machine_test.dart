@@ -1435,7 +1435,7 @@ void main() {
 
   group('the applied 1960 deck', () {
     test('its tapes print the reports of test/goldens/f-payroll-j.report', () {
-      // The five reports the run writes, byte for byte. The golden is
+      // The three reports the run writes, byte for byte. The golden is
       // our output; test/f_acceptance_test.dart classifies its distance
       // from the 1962 sample's report (m6-f-tapes.md, the run).
       final Directory tapes = tempDirectory('comtran-f-tapes');
