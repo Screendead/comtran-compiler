@@ -3,7 +3,7 @@
 
 Reads evidence/calls.json (extracted from evidence/pitch-page.html by
 tools/extract_calls.js) and, once Jack has answered, evidence/picks.json.
-Round two reads evidence/calls-round2.json and the crops in crops/.
+Round two reads evidence/calls-round2.json and the crops in crops/; round three reads evidence/calls-round3.json.
 Writes a standalone index.html beside tools/. Run from anywhere.
 """
 import base64
@@ -88,6 +88,7 @@ CSS = open(os.path.join(HERE, "house.css")).read() + """
 .opt pre, .ruling pre { font-family:var(--mono); font-size:.74rem; white-space:pre-wrap; margin:.3rem 0 .4rem; background:var(--raised); border:1px solid var(--hair); padding:.4rem .55rem; }
 .label-k { font-family:var(--mono); font-size:.64rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); display:block; margin:.6rem 0 .15rem; }
 a { color:var(--ink); text-decoration-color:var(--rule); }
+.flag { border-left:3px solid var(--stamp); padding-left:.8rem; }
 """
 
 
@@ -289,6 +290,134 @@ is the page's own text. The evidence under each call is this record's.</p>
 </section>"""
 
 
+# Round three: the page as rewritten by commit ROUND3_SHA on archive/pitch-2026-11-02. HEADDASH_SHA added the
+# #192 build line; the CALLS literal is unchanged from there to PAGE3_SHA, the copy carried as evidence.
+ROUND3_SHA = "5f22c54580bd147a47e896003899a34ef60cb60d"
+ROUND3_AT = "16:42:52Z"
+HEADDASH_SHA = "aba5359331d84650bb0d34a1b512a87b5e5029ea"
+HEADDASH_AT = "16:45:19Z"
+PAGE3_SHA = "09ceda9459018e340af4d8ecc7753a9ed0e833a6"
+PAGE3_AT = "18:02:42Z"
+calls3 = {c["id"]: c for c in json.load(open(os.path.join(REC, "evidence", "calls-round3.json")))}
+ORDER3 = ["confirm4", "subscripts2", "typos3", "headdash", "defect5", "nameless", "d21", "w3", "w4", "other3"]
+PR181_MERGE = "7031c9cb0efa2b5f5e69a6b5228a032c8d5b3fa7"
+PR182_HEAD_FINAL = "23f3ea32551f7fdc2f2767144d476a5c2d6342e5"
+PR182_MERGE = "dba709d81a33763883b8e659cacfb6c8cde6bbd1"
+DRAFTS = {  # call id: (PR number, head at the time of this record, read with gh on 2026-11-02)
+    "headdash": (192, "886ab93ed8c0e973dd09e1e08b7477527c72654f"),
+    "defect5": (185, "e62e838671698833ae79dc41eeb4726ad3e65f11"),
+    "nameless": (183, "861348f3892e1e74a80a3a2ee5034db4579e03f3"),
+    "d21": (184, "72d922cfdefb92026274f71efa6119c644cde355"),
+    "w3": (189, "deab5343302d07269939d66ec5c67fd964e7ffe4"),
+    "w4": (188, "a31994d31b4ad41dc9234a93daab715b38ddec82"),
+}
+CARRIED = {"confirm4": 1, "subscripts2": 2, "typos3": 3, "headdash": 4, "nameless": 5, "d21": 6}
+UNCHANGED = ("<p><strong>Carried over from round two, unchanged.</strong> The page's text for this call is identical to "
+             "round two's (<code>evidence/calls-round2.json</code> and <code>evidence/calls-round3.json</code> compare "
+             "equal for this id). Round two's evidence for it, above, still applies.</p>")
+
+
+def draft(cid, page_gives_head=True):
+    n, sha = DRAFTS[cid]
+    how = ("The page gives the same head." if page_gives_head
+           else f"{INFERRED} The page gives no head for #{n}; this one was read with <code>gh</code> on 2026-11-02.")
+    return (f'<p><strong>Draft PR <a href="{REPO}/pull/{n}">#{n}</a></strong>, open, head {commit(sha)} at the time of '
+            f"this record. {how} Not merged.</p>")
+
+
+EVIDENCE3 = {
+    "confirm4": UNCHANGED + f"""<p><strong>Superseded since round two.</strong> Round two's evidence names PR #182 as open at
+head {commit(PR182_HEAD)}. PR #182 has since merged: final head {commit(PR182_HEAD_FINAL)}, merge commit
+{commit(PR182_MERGE)}. The page's &ldquo;Built&rdquo; line still says &ldquo;PR in progress&rdquo;; its status list, outside
+the calls, says &ldquo;the listing reading is in the record (#182, merged)&rdquo;.</p>""",
+    "subscripts2": UNCHANGED + f"""<p><strong>Superseded since round two.</strong> The question says PR #181 is &ldquo;in
+review&rdquo;. It has since merged, at head {commit(PR181_HEAD)}, merge commit {commit(PR181_MERGE)}. The page's status
+list, outside the calls, says so (&ldquo;#181, merged&rdquo;).</p>""",
+    "typos3": UNCHANGED,
+    "headdash": f"""<p><strong>Carried over from round two, updated with a built prototype.</strong> The question, the
+recommendation and the option titles are unchanged. Two fields changed, by commit {commit(HEADDASH_SHA)} at
+{HEADDASH_AT}, three minutes after round three went up:</p>
+<ul>
+<li><strong>Built.</strong> Round two: &ldquo;Counted on the merged W2. Not changed.&rdquo; Round three: built as draft #192.</li>
+<li><strong>The <code>change</code> option.</strong> Round two: &ldquo;Rename 21 headings, sweep the repository for each
+old anchor, and let a test catch any link left behind. About an hour.&rdquo; Round three: &ldquo;Merge #192&rdquo;, with the
+ten contents links repointed.</li>
+</ul>
+{draft("headdash", page_gives_head=False)}
+<p>Round two's dash counts (<code>evidence/dash-counts.txt</code>) still describe master: #192 is not merged.</p>""",
+    "defect5": f"""<p><strong>New in round three.</strong></p>
+{draft("defect5")}
+<p>Only option A is built. The listing line under option B is the page's illustration; option C is marked &ldquo;Not
+built; the sample is illustrative.&rdquo;</p>""",
+    "nameless": f"""<p><strong>Carried over from round two, rewritten, with a built prototype.</strong> Every field
+changed. The recommendation did not: <code>196</code> in all three rounds.</p>
+<ul>
+<li><strong>Title.</strong> Round two: &ldquo;A BEGIN SECTION with no name: diagnose it, and with which message?&rdquo;</li>
+<li><strong>Built.</strong> Round two: probed on master, not built. Round three: option <code>196</code> built as draft #183.</li>
+<li><strong>Options.</strong> Round two gave each option one sentence and no listing line. Round three gives each a
+listing line and says whether it was checked. The new-message option is now <code>950</code> (round two: <code>9xx</code>).
+Under <code>196</code>, round two said later ENDs &ldquo;may draw 65&rdquo;; the built prototype draws msg 64. The
+<code>leave</code> option now states that it means generating code no sample shows.</li>
+</ul>
+{draft("nameless")}
+<p>Only option <code>196</code> is built. The lines under <code>192</code> and <code>950</code> come, as the page says, from
+a throwaway patch and were not checked. The lines under <code>leave</code> are master today.</p>""",
+    "d21": f"""<p class="flag"><strong>The recommendation reversed.</strong> Rounds one and two recommended
+<code>refuse</code> (<a href="#call-r2-d21">round two, call 6</a>; <a href="#call-d21">round one, call 11</a>). Round three
+recommends <code>first</code>, and builds it as draft #184. The page's reason: both rulings of 2026-11-02 came after the
+2026-09-06 recommendation to refuse, and the text of msg 141 (&ldquo;FIRST USED&rdquo;) counts as the manual showing what
+the 1962 compiler did. The recommendation below says which reading of the evidence leads to <code>refuse</code> instead.</p>
+<ul>
+<li><strong>Title.</strong> Round two: &ldquo;Two PROGRAM.START labels: obey D2.1, or keep the generator's refusal?&rdquo;</li>
+<li><strong>Built.</strong> Round two pointed at <code>review/2026-09-06-m4s4-machine-assembly</code>, item 5. Round three:
+<code>first</code> built as #184, plus the verbatim D2.1 amendment text for <code>refuse</code>, on no branch yet.</li>
+<li><strong>Options.</strong> Same two keys, order swapped. Round two gave each one sentence (<code>refuse</code>:
+&ldquo;No code change. The listing still shows message 141.&rdquo;). Round three gives each its listing lines and its cost
+to undo.</li>
+</ul>
+{draft("d21")}""",
+    "w3": f"""<p><strong>New in round three.</strong></p>
+{draft("w3")}
+<p>Only option A is built. The line under it is the page's example of one mark the compiler sends.</p>""",
+    "w4": f"""<p><strong>New in round three.</strong></p>
+{draft("w4")}
+<p>{INFERRED} The draft builds the run button, which the question reports as working. None of the four tutorial forms in
+the options is built: the call is about the page the tutorial lives on.</p>""",
+    "other3": """<p>The page's free-text box for round three, as in rounds one and two. Not one of the nine calls.</p>""",
+}
+OPEN_NOTE3 = "Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet."
+
+
+def round3(i, cid):
+    c = calls3[cid]
+    label = f"Round three, call {i}" if cid != "other3" else "Round three, the free-text box"
+    head = ('<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p>'
+            f"<p>{OPEN_NOTE3}</p></div>")
+    if cid in CARRIED:
+        head += f'<p class="mono">Also round two, <a href="#call-r2-{cid}">call {CARRIED[cid]}</a>.</p>'
+    return section(label, cid, c, f"call-r3-{cid}", head, EVIDENCE3[cid])
+
+
+ROUND3 = f"""<section id="round-three">
+<h2>Third round, put 2026-11-02</h2>
+<div class="prov"><span class="label">Provenance</span>
+<p>Commit {ROUND3_SHA[:7]} on local branch <code>archive/pitch-2026-11-02</code>, timed {ROUND3_AT}, rewrote
+<a href="{PAGE_URL}">the pitch page</a> as a third round of nine calls. Six carry over from round two, which had no answer
+recorded: three unchanged (<code>confirm4</code>, <code>subscripts2</code>, <code>typos3</code>) and three changed
+(<code>headdash</code>, <code>nameless</code>, <code>d21</code>), each now backed by a built prototype. Three are new:
+<code>defect5</code>, <code>w3</code> and <code>w4</code>. Commit {HEADDASH_SHA[:7]} at {HEADDASH_AT} added the #192 build
+line to <code>headdash</code>. The page's <code>CALLS</code> literal is unchanged from there to {PAGE3_SHA[:7]} at
+{PAGE3_AT}; the later commits change only the status lists around the calls. The page at {PAGE3_SHA[:7]} is
+<code>evidence/pitch-page-round3.html</code>, and <code>tools/extract_calls.js</code> evaluates its literal into
+<code>evidence/calls-round3.json</code>. Every question, option and recommendation below is the page's own text. The
+evidence under each call is this record's.</p>
+<p><strong>Read first:</strong> round three reverses the recommendation on two PROGRAM.START labels, from
+<code>refuse</code> to <code>first</code> (<a href="#call-r3-d21">call 7</a>).</p>
+<p>The free-text box is listed last, as in rounds one and two.</p>
+</div>
+</section>"""
+
+
 OPEN_NOTE = ("No pick for this call is saved on the page. It remains a question for Jack, with the recommendation "
              "below as pitched.")
 
@@ -326,10 +455,15 @@ This record carries each call as the page put it: the question, the options, the
 (<a href="#round-two">below</a>). Four are new; two are calls 10 and 11, still unanswered. All six carry
 <code>YOUR CALL</code>, with the page's options and recommendation and this record's evidence. One corrects the premise
 of call 4; one reports that two of call 7's three subscripts already drew messages.</li>
+<li><strong>A third round of nine calls followed</strong>, on the same page, at {ROUND3_AT}
+(<a href="#round-three">below</a>). Six carry over from round two: three unchanged, and three updated with a built
+prototype. Three are new: defect 5, W3 and W4. All nine carry <code>YOUR CALL</code>. On two PROGRAM.START labels, the
+recommendation reverses from <code>refuse</code> to <code>first</code>.</li>
 </ol>"""
 
 body = "\n\n".join(round1(i + 1, cid) for i, cid in enumerate(ORDER))
 body2 = "\n\n".join(round2(i + 1, cid) for i, cid in enumerate(ORDER2))
+body3 = "\n\n".join(round3(i + 1, cid) for i, cid in enumerate(ORDER3))
 
 page = f"""<!DOCTYPE html>
 <html lang="en">
@@ -348,7 +482,7 @@ page = f"""<!DOCTYPE html>
 <h1>The eleven calls of the 2 November pitch page</h1>
 <p class="standfirst">A retrofit. The calls were put on an interactive page and answered there. This record gives them
 a permanent home, with the question as asked and, in its second commit, the answer as given. A later commit adds the
-page's second round of six calls, put the same afternoon.</p>
+page's second round of six calls, put the same afternoon, and a later one its third round of nine.</p>
 </header>
 
 <section>
@@ -360,7 +494,8 @@ page saved to its own database with a timestamp.</p>
 <code>archive/pitch-2026-11-02</code> at <code>{PITCH_SHA[:7]}</code> and carried here as
 <code>evidence/pitch-page.html</code>; and, for the answers, the page's saved picks. Do not read it as a review that happened.</p>
 <p>The second round was put the same way, on the same page, from commit <code>{ROUND2_SHA[:7]}</code> of the same branch.
-Its section was added to this record afterwards, on 2026-11-02, with the evidence for each call.</p>
+Its section was added to this record afterwards, on 2026-11-02, with the evidence for each call. The third round
+followed the same way, from commit <code>{ROUND3_SHA[:7]}</code>.</p>
 </div>
 </section>
 
@@ -385,6 +520,10 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 {body2}
 
+{ROUND3}
+
+{body3}
+
 <footer>
 <p>Retrofit record built 2026-11-02 on branch <code>review/2026-11-02-pitch-rulings</code>. Pitch page source:
 <code>archive/pitch-2026-11-02</code> at <code>{PITCH_SHA}</code> (local branch, not pushed; a copy is
@@ -393,6 +532,8 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 Round two: the same branch at <code>{ROUND2_SHA}</code>, copied as <code>evidence/pitch-page-round2.html</code> and
 extracted to <code>evidence/calls-round2.json</code>. <code>tools/make_crops.py</code> cuts the three crops from the
 J28-6169 scans; <code>tools/count_dashes.sh</code> writes <code>evidence/dash-counts.txt</code>.
+Round three: the same branch at <code>{PAGE3_SHA}</code>, copied as <code>evidence/pitch-page-round3.html</code> and
+extracted to <code>evidence/calls-round3.json</code>.
 <code>tools/build_doc.py</code> writes this page; edit it, not the HTML.</p>
 </footer>
 

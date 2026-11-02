@@ -134,6 +134,7 @@ footer { border-top:1px solid var(--rule); padding-top:1rem; font-size:.85rem; c
 .opt pre, .ruling pre { font-family:var(--mono); font-size:.74rem; white-space:pre-wrap; margin:.3rem 0 .4rem; background:var(--raised); border:1px solid var(--hair); padding:.4rem .55rem; }
 .label-k { font-family:var(--mono); font-size:.64rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); display:block; margin:.6rem 0 .15rem; }
 a { color:var(--ink); text-decoration-color:var(--rule); }
+.flag { border-left:3px solid var(--stamp); padding-left:.8rem; }
 </style>
 </head>
 <body>
@@ -145,7 +146,7 @@ a { color:var(--ink); text-decoration-color:var(--rule); }
 <h1>The eleven calls of the 2 November pitch page</h1>
 <p class="standfirst">A retrofit. The calls were put on an interactive page and answered there. This record gives them
 a permanent home, with the question as asked and, in its second commit, the answer as given. A later commit adds the
-page's second round of six calls, put the same afternoon.</p>
+page's second round of six calls, put the same afternoon, and a later one its third round of nine.</p>
 </header>
 
 <section>
@@ -157,7 +158,8 @@ page saved to its own database with a timestamp.</p>
 <code>archive/pitch-2026-11-02</code> at <code>48136be</code> and carried here as
 <code>evidence/pitch-page.html</code>; and, for the answers, the page's saved picks. Do not read it as a review that happened.</p>
 <p>The second round was put the same way, on the same page, from commit <code>33cc8a8</code> of the same branch.
-Its section was added to this record afterwards, on 2026-11-02, with the evidence for each call.</p>
+Its section was added to this record afterwards, on 2026-11-02, with the evidence for each call. The third round
+followed the same way, from commit <code>5f22c54</code>.</p>
 </div>
 </section>
 
@@ -198,6 +200,10 @@ This record carries each call as the page put it: the question, the options, the
 (<a href="#round-two">below</a>). Four are new; two are calls 10 and 11, still unanswered. All six carry
 <code>YOUR CALL</code>, with the page's options and recommendation and this record's evidence. One corrects the premise
 of call 4; one reports that two of call 7's three subscripts already drew messages.</li>
+<li><strong>A third round of nine calls followed</strong>, on the same page, at 16:42:52Z
+(<a href="#round-three">below</a>). Six carry over from round two: three unchanged, and three updated with a built
+prototype. Three are new: defect 5, W3 and W4. All nine carry <code>YOUR CALL</code>. On two PROGRAM.START labels, the
+recommendation reverses from <code>refuse</code> to <code>first</code>.</li>
 </ol>
 </div>
 </section>
@@ -780,6 +786,325 @@ it as call 11, above. The open item has waited since 6 September.</p>
 
 </section>
 
+<section id="round-three">
+<h2>Third round, put 2026-11-02</h2>
+<div class="prov"><span class="label">Provenance</span>
+<p>Commit 5f22c54 on local branch <code>archive/pitch-2026-11-02</code>, timed 16:42:52Z, rewrote
+<a href="https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw">the pitch page</a> as a third round of nine calls. Six carry over from round two, which had no answer
+recorded: three unchanged (<code>confirm4</code>, <code>subscripts2</code>, <code>typos3</code>) and three changed
+(<code>headdash</code>, <code>nameless</code>, <code>d21</code>), each now backed by a built prototype. Three are new:
+<code>defect5</code>, <code>w3</code> and <code>w4</code>. Commit aba5359 at 16:45:19Z added the #192 build
+line to <code>headdash</code>. The page's <code>CALLS</code> literal is unchanged from there to 09ceda9 at
+18:02:42Z; the later commits change only the status lists around the calls. The page at 09ceda9 is
+<code>evidence/pitch-page-round3.html</code>, and <code>tools/extract_calls.js</code> evaluates its literal into
+<code>evidence/calls-round3.json</code>. Every question, option and recommendation below is the page's own text. The
+evidence under each call is this record's.</p>
+<p><strong>Read first:</strong> round three reverses the recommendation on two PROGRAM.START labels, from
+<code>refuse</code> to <code>first</code> (<a href="#call-r3-d21">call 7</a>).</p>
+<p>The free-text box is listed last, as in rounds one and two.</p>
+</div>
+</section>
+
+<section class="item needs" id="call-r3-confirm4">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round three, call 1. M6-9: your “listing” answer stands, now that the premise is corrected?</h2></div>
+<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p><p>Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.</p></div><p class="mono">Also round two, <a href="#call-r2-confirm4">call 1</a>.</p>
+<span class="label-k">The question, as pitched</span>
+<p>The pitch said the 1962 compiler refused to punch an object deck for the as-printed 1960 program. That was wrong. Per the walkthrough record, J punches the deck and does not run it (the job is above severity 1). Your answer, the listing, still keeps our two refusals. A correction note is in the rulings record.</p>
+<span class="label-k">Built, as pitched</span><p>Applied as ruled: M6-9 now records the listing reading (PR in progress). Nothing else changes.</p>
+<span class="label-k">Evidence</span>
+<p><strong>Carried over from round two, unchanged.</strong> The page's text for this call is identical to round two's (<code>evidence/calls-round2.json</code> and <code>evidence/calls-round3.json</code> compare equal for this id). Round two's evidence for it, above, still applies.</p><p><strong>Superseded since round two.</strong> Round two's evidence names PR #182 as open at
+head <a href="https://github.com/Screendead/comtran-compiler/commit/0a87165fa4f2fc283b1ec04406c8ac97e1e88fce"><code>0a87165</code></a>. PR #182 has since merged: final head <a href="https://github.com/Screendead/comtran-compiler/commit/23f3ea32551f7fdc2f2767144d476a5c2d6342e5"><code>23f3ea3</code></a>, merge commit
+<a href="https://github.com/Screendead/comtran-compiler/commit/dba709d81a33763883b8e659cacfb6c8cde6bbd1"><code>dba709d</code></a>. The page's &ldquo;Built&rdquo; line still says &ldquo;PR in progress&rdquo;; its status list, outside
+the calls, says &ldquo;the listing reading is in the record (#182, merged)&rdquo;.</p>
+<span class="label-k">Options, as pitched</span><div class="opt pick">
+<h3>Yes, it stands<span class="rec">Recommended</span></h3>
+<p class="key">pick <code>stands</code></p>
+<p class="consequence">Our compiler keeps refusing the object deck at those two sites. The record says so.</p>
+</div>
+<div class="opt">
+<h3>No: punch the object deck as 1962 did</h3>
+<p class="key">pick <code>deck</code></p>
+<p class="consequence">We would generate code for a GET with no input file and a FILE into a non-output file. No manual shows that code.</p>
+</div>
+<span class="label-k">Recommendation, as pitched</span><p>The listing is still the only reading that needs no invented code. The corrected premise changes the story, not the cost.</p>
+</section>
+
+<section class="item needs" id="call-r3-subscripts2">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round three, call 2. Two of the three “silent” subscripts were not silent. Keep their current messages?</h2></div>
+<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p><p>Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.</p></div><p class="mono">Also round two, <a href="#call-r2-subscripts2">call 2</a>.</p>
+<span class="label-k">The question, as pitched</span>
+<p>TAB CELL ('A') already draws 912,00, and TAB CELL (ZERO) already draws 192,00, both from the parser. The audit missed them because its test helper reads only later-stage messages. Only the function-call case was silent; it now draws 71,00 (PR #181, in review).</p>
+<span class="label-k">Built, as pitched</span><p>PR #181 pins 912 and 192 with a whole-run test so the audit cannot repeat the mistake.</p>
+<span class="label-k">Evidence</span>
+<p><strong>Carried over from round two, unchanged.</strong> The page's text for this call is identical to round two's (<code>evidence/calls-round2.json</code> and <code>evidence/calls-round3.json</code> compare equal for this id). Round two's evidence for it, above, still applies.</p><p><strong>Superseded since round two.</strong> The question says PR #181 is &ldquo;in
+review&rdquo;. It has since merged, at head <a href="https://github.com/Screendead/comtran-compiler/commit/ebf4a63df3f472d5667df2ee8aa8d34e47ed3554"><code>ebf4a63</code></a>, merge commit <a href="https://github.com/Screendead/comtran-compiler/commit/7031c9cb0efa2b5f5e69a6b5228a032c8d5b3fa7"><code>7031c9c</code></a>. The page's status
+list, outside the calls, says so (&ldquo;#181, merged&rdquo;).</p>
+<span class="label-k">Options, as pitched</span><div class="opt pick">
+<h3>Keep 912 and 192 as they are<span class="rec">Recommended</span></h3>
+<p class="key">pick <code>keep</code></p>
+<p class="consequence">No change. Message 79's text names a variable, which does not fit a literal.</p>
+</div>
+<div class="opt">
+<h3>Suppress 912 and 192 inside a subscript and issue 79 and 182 instead</h3>
+<p class="key">pick <code>swap</code></p>
+<p class="consequence">Parser changes and an amendment to M2-8. Two messages would otherwise print for one fault.</p>
+</div>
+<span class="label-k">Recommendation, as pitched</span><p>Both terms are already diagnosed with messages that fit. Swapping costs code and a record amendment for no gain.</p>
+</section>
+
+<section class="item needs" id="call-r3-typos3">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round three, call 3. Three doubtful words on the J28-6169 pages: mark them [sic]?</h2></div>
+<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p><p>Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.</p></div><p class="mono">Also round two, <a href="#call-r2-typos3">call 3</a>.</p>
+<span class="label-k">The question, as pitched</span>
+<p>W2 now marks 11 scan-verified typos. Three more are doubtful: “synonomous” and “indicies” (p. 116), which the conversion notes call apparent period spellings, and “in not used” (p. 171), which may be a print defect, not a typo. Rule E4 forbids marking a period spelling.</p>
+<span class="label-k">Built, as pitched</span><p>W2 is merged and live with the 11 marks. These three are unmarked.</p>
+<span class="label-k">Evidence</span>
+<p><strong>Carried over from round two, unchanged.</strong> The page's text for this call is identical to round two's (<code>evidence/calls-round2.json</code> and <code>evidence/calls-round3.json</code> compare equal for this id). Round two's evidence for it, above, still applies.</p>
+<span class="label-k">Options, as pitched</span><div class="opt pick">
+<h3>Mark none of the three<span class="rec">Recommended</span></h3>
+<p class="key">pick <code>none</code></p>
+<p class="consequence">A wrong mark claims IBM made a mistake. A missing mark claims nothing.</p>
+</div>
+<div class="opt">
+<h3>Mark “in not used” only</h3>
+<p class="key">pick <code>two</code></p>
+<p class="consequence">Treat the print defect as a typo; leave the spellings.</p>
+</div>
+<div class="opt">
+<h3>Mark all three</h3>
+<p class="key">pick <code>all</code></p>
+<p class="consequence">Risks marking a period spelling, which E4 bars.</p>
+</div>
+<span class="label-k">Recommendation, as pitched</span><p>E4 exists because a wrong [sic] is the error a historian catches first.</p>
+</section>
+
+<section class="item needs" id="call-r3-headdash">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round three, call 4. 21 headings in the language reference still hold an em dash. Change them?</h2></div>
+<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p><p>Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.</p></div><p class="mono">Also round two, <a href="#call-r2-headdash">call 4</a>.</p>
+<span class="label-k">The question, as pitched</span>
+<p>Your “mark” ruling stripped 944 dashes from the definition. Headings kept theirs, because a heading's text sets the anchor other files link to. The site's reference pages therefore still show dashes in 21 headings and 10 contents lines.</p>
+<span class="label-k">Built, as pitched</span><p>Built as draft <a href="https://github.com/Screendead/comtran-compiler/pull/192">#192</a>: 21 headings take a colon or comma (e.g. “4.3 The SET command: arithmetic assignment”), 10 contents links repointed, a grep for every old anchor returns nothing, all tests pass.</p>
+<span class="label-k">Evidence</span>
+<p><strong>Carried over from round two, updated with a built prototype.</strong> The question, the
+recommendation and the option titles are unchanged. Two fields changed, by commit <a href="https://github.com/Screendead/comtran-compiler/commit/aba5359331d84650bb0d34a1b512a87b5e5029ea"><code>aba5359</code></a> at
+16:45:19Z, three minutes after round three went up:</p>
+<ul>
+<li><strong>Built.</strong> Round two: &ldquo;Counted on the merged W2. Not changed.&rdquo; Round three: built as draft #192.</li>
+<li><strong>The <code>change</code> option.</strong> Round two: &ldquo;Rename 21 headings, sweep the repository for each
+old anchor, and let a test catch any link left behind. About an hour.&rdquo; Round three: &ldquo;Merge #192&rdquo;, with the
+ten contents links repointed.</li>
+</ul>
+<p><strong>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/192">#192</a></strong>, open, head <a href="https://github.com/Screendead/comtran-compiler/commit/886ab93ed8c0e973dd09e1e08b7477527c72654f"><code>886ab93</code></a> at the time of this record. <span class="inferred">our reading</span> The page gives no head for #192; this one was read with <code>gh</code> on 2026-11-02. Not merged.</p>
+<p>Round two's dash counts (<code>evidence/dash-counts.txt</code>) still describe master: #192 is not merged.</p>
+<span class="label-k">Options, as pitched</span><div class="opt pick">
+<h3>Change them and repoint every link<span class="rec">Recommended</span></h3>
+<p class="key">pick <code>change</code></p>
+<p class="consequence">Merge #192. The only links to the old anchors were the 10 contents links, now repointed.</p>
+</div>
+<div class="opt">
+<h3>Keep them</h3>
+<p class="key">pick <code>keep</code></p>
+<p class="consequence">D5 then has 21 known exceptions on the site.</p>
+</div>
+<span class="label-k">Recommendation, as pitched</span><p>Your ruling was to remove the dashes. The anchor risk is mechanical and a test catches it.</p>
+</section>
+
+<section class="item needs" id="call-r3-defect5">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round three, call 5. Defect 5: a money picture like $8*89.99 mixes blank and star fill. Warn, and how?</h2></div>
+<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p><p>Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.</p></div>
+<span class="label-k">The question, as pitched</span>
+<p>The manuals do not forbid this picture (F p. 80; J 02.05.05). The 1962 machine code has one count for the whole leading run and one star switch, so the run gets one fill. Our compiler turns the star switch on, so 1.23 prints as $***1.23, and the dollar sign does not move up to the digits. Today the program compiles with the words the 1962 manual describes, and it prints no message. The question is whether to warn, and how strongly.</p>
+<span class="label-k">Built, as pitched</span><p>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/185">#185</a> (branch defect-5-proto, head e62e838) builds option A. CI is green and 1604 tests pass. Probe deck: MIX $8*89.99, MOVE EXT (1.23) TO MIX. Default listing: NO ERRORS WERE DETECTED DURING COMPILATION, then the run ends AT 5,00 STOP RUN. The run test reads MIX back as $***1.23.</p>
+<span class="label-k">Evidence</span>
+<p><strong>New in round three.</strong></p>
+<p><strong>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/185">#185</a></strong>, open, head <a href="https://github.com/Screendead/comtran-compiler/commit/e62e838671698833ae79dc41eeb4726ad3e65f11"><code>e62e838</code></a> at the time of this record. The page gives the same head. Not merged.</p>
+<p>Only option A is built. The listing line under option B is the page's illustration; option C is marked &ldquo;Not
+built; the sample is illustrative.&rdquo;</p>
+<span class="label-k">Options, as pitched</span><div class="opt pick">
+<h3>Keep the 1962 code; add our own note, shown only with --pedantic<span class="rec">Recommended</span></h3>
+<p class="key">pick <code>A</code></p>
+<p class="consequence">Default mode does not change: the program compiles and runs on the 1962 words. A user who asks for strict notes learns that the whole run fills with stars. The printed $***1.23 still differs from the manual's per-cell rules, where the 8 cell is blank and the dollar floats. To reverse it, remove one message, its check and its tests.</p><pre>   3,00    1    LEADING RUN OF 'MIX' MIXES 8 AND *. ASTERISKS FILL IT. (NON-HISTORICAL.)</pre>
+</div>
+<div class="opt">
+<h3>Print the 1962 message 33 (illegal combination) in default mode</h3>
+<p class="key">pick <code>B</code></p>
+<p class="consequence">The program still compiles and runs. But the listing calls the picture illegal, and no manual says that. Every such field in every program gets the message by default, so a later reader learns a rule that does not exist.</p><pre>   3,00    1    ILLEGAL COMBINATION OF FORMAT CHARACTERS. CHECK DATA DESCRIPTION.
+                    'MIX' FORMAT USED.</pre>
+</div>
+<div class="opt">
+<h3>Refuse to generate code</h3>
+<p class="key">pick <code>C</code></p>
+<p class="consequence">A program the 1962 compiler would have compiled stops compiling here. That breaks your rule of 14 September. It also goes against your choice of 2 November on defects 1 to 11 ('generate the correct code wherever the manuals show the code'), and the manual shows the code for this picture. The listing says NO ERRORS, but nothing runs. Not built; the sample is illustrative.</p><pre>error: job 1: unrecovered shape: an edited field whose leading run mixes 8 and * (RT-5)</pre>
+</div>
+<span class="label-k">Recommendation, as pitched</span><p>Two rules you already gave decide this. The 1962 compiler would compile this picture, so ours must. The manual shows the 1962 code for it, so we use that code and do not refuse. Option A follows both rules. It changes no default listing and does not invent an illegality. A user who wants the warning gets it.</p>
+</section>
+
+<section class="item needs" id="call-r3-nameless">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round three, call 6. A BEGIN SECTION with no name of its own: which message, if any?</h2></div>
+<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p><p>Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.</p></div><p class="mono">Also round two, <a href="#call-r2-nameless">call 5</a>.</p>
+<span class="label-k">The question, as pitched</span>
+<p>The 1960 manual (F p. 26) says a section must start with its own name, then BEGIN SECTION. Today the first shape opens two sections, both named S1. The second opens a section with no name and prints no message. Code generation then stops on both with an internal error. No 1962 message names this case. If the 1962 compiler accepted these shapes, any 'illegal' message we print would be false. If it rejected them, compiling them is wrong. Your 14 September rule sends that call to you.</p>
+<span class="label-k">Built, as pitched</span><p>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/183">#183</a> (branch nameless-begin-proto, head 861348f) builds the 196 option. The gate passes (1602 tests). The listings of all four fixture decks match master byte for byte. Parser tests cover both shapes. The code generator's 'unnamed section' stop could no longer be reached, so it was deleted. The 192 and 950 options are not built.</p>
+<span class="label-k">Evidence</span>
+<p><strong>Carried over from round two, rewritten, with a built prototype.</strong> Every field
+changed. The recommendation did not: <code>196</code> in all three rounds.</p>
+<ul>
+<li><strong>Title.</strong> Round two: &ldquo;A BEGIN SECTION with no name: diagnose it, and with which message?&rdquo;</li>
+<li><strong>Built.</strong> Round two: probed on master, not built. Round three: option <code>196</code> built as draft #183.</li>
+<li><strong>Options.</strong> Round two gave each option one sentence and no listing line. Round three gives each a
+listing line and says whether it was checked. The new-message option is now <code>950</code> (round two: <code>9xx</code>).
+Under <code>196</code>, round two said later ENDs &ldquo;may draw 65&rdquo;; the built prototype draws msg 64. The
+<code>leave</code> option now states that it means generating code no sample shows.</li>
+</ul>
+<p><strong>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/183">#183</a></strong>, open, head <a href="https://github.com/Screendead/comtran-compiler/commit/861348f3892e1e74a80a3a2ee5034db4579e03f3"><code>861348f</code></a> at the time of this record. The page gives the same head. Not merged.</p>
+<p>Only option <code>196</code> is built. The lines under <code>192</code> and <code>950</code> come, as the page says, from
+a throwaway patch and were not checked. The lines under <code>leave</code> are master today.</p>
+<span class="label-k">Options, as pitched</span><div class="opt pick">
+<h3>Delete the sentence with msg 196, as already done for sentences that mix the two kinds of verb (design note M2-12)<span class="rec">Recommended</span></h3>
+<p class="key">pick <code>196</code></p>
+<p class="consequence">Uses a real 1962 message whose text ('NOTHING DONE') matches what happens. The whole sentence is dropped, including the first BEGIN in shape 1, so the END that follows also draws msg 64. The mixed-verb rule already produces this same extra message today. The program compiles. Risk: if the 1962 compiler accepted these shapes, a real 1962 message now calls them illegal. Easy to change later.</p><pre>Both shapes (built, checked): '   3,00    3    ILLEGAL SENTENCE STRUCTURE NOTHING DONE.' then '   5,00    3    CANNOT -END- SECTION WHEN NONE ARE OPEN.'</pre>
+</div>
+<div class="opt">
+<h3>Drop only the extra BEGIN with msg 192 and keep the rest of the sentence (D1.5 also uses 192 for a misused key word)</h3>
+<p class="key">pick <code>192</code></p>
+<p class="consequence">In shape 1, S1 stays open once, so its END closes cleanly and only one message prints. But 192's text, 'POSSIBLE ILLEGAL USE OF A KEY WORD', names the wrong problem. Shape 2 still draws msg 64 at the END. The parser has no code today that drops one clause and keeps the sentence. That code would need to be written. Not built.</p><pre>Not built; from a throwaway patch, not checked. Shape 1: '   3,02    3    SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD.' Shape 2: the same text, then msg 64 at 5,00. The patch printed 3,00 for shape 2, but our clause-numbering rule (M2-6) suggests 3,01.</pre>
+</div>
+<div class="opt">
+<h3>A new message of our own (950,00), marked non-historical, that deletes the sentence (as D9.12 did for PATTERN)</h3>
+<p class="key">pick <code>950</code></p>
+<p class="consequence">Behaves like 196. Its strength is D9.12's own reason: if the 1962 compiler accepted these shapes, only a message of our own avoids a false 'illegal' verdict in a real 1962 message. The cost is a message the 1962 compiler never printed, plus a new id, text and severity to choose. Not built.</p><pre>Not built; from a throwaway patch, not checked. Both shapes: '   3,00    3    BEGIN SECTION HAS NO NAME OF ITS OWN. NOTHING DONE. (NON-HISTORICAL.)' then msg 64 at 5,00.</pre>
+</div>
+<div class="opt">
+<h3>Accept both shapes with no message, on the view that the 1962 compiler accepted them</h3>
+<p class="key">pick <code>leave</code></p>
+<p class="consequence">Under your 14 September rule, this means generating code for them. That is our own design, because the 1962 sample shows no such code. Open problems: what END S1 and DO S1 mean when two sections share one name. Not built. Until it is, the compiler stops with an internal error, as it does today.</p><pre>Today on master (checked). Shape 1: '   6,00    4    ONE OR MORE SECTIONS NOT CLOSED.' then 'error: job 1: unrecovered shape: a section beginning inside an open section (no sample instance)'. Shape 2: '  NO ERRORS WERE DETECTED DURING COMPILATION' then 'error: job 1: unrecovered shape: an unnamed section (no sample instance)'.</pre>
+</div>
+<span class="label-k">Recommendation, as pitched</span><p>F p. 26 says a section must have its own name, so the strongest evidence says 1962 rejected these shapes. 196 is a real 1962 message whose text says what happens. The parser already uses it to delete sentences that break a stated F rule (M2-12). It needs no new message id, and both shapes then compile. The risk named under 950 is real but weaker than F's 'must'.</p>
+</section>
+
+<section class="item needs" id="call-r3-d21">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round three, call 7. Two PROGRAM.START labels: compile with the first, as D2.1 says, or keep refusing?</h2></div>
+<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p><p>Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.</p></div><p class="mono">Also round two, <a href="#call-r2-d21">call 6</a>.</p>
+<span class="label-k">The question, as pitched</span>
+<p>D2.1 says the first label wins and compilation goes on. Today the compiler prints the listing with both messages but produces no object deck. Your 2026-11-02 rulings point both ways. 'Handle defects wherever the manuals show the code' favours compiling, because the manual's message says FIRST USED. 'Compile means the listing; refusals stay' says today's refusal already meets your 2026-09-14 rule.</p>
+<span class="label-k">Built, as pitched</span><p>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/184">#184</a> (branch d21-proto, head 72d922c, CI green, 1606 tests pass, golden files unchanged) builds the 'first' option. It contains the code change, a dated D2.1 amendment marked 'prototype for Jack's call', four tests and a machine run. The 'refuse' option is master as it stands, plus the amendment text below. That amendment is on no branch yet. Neither option is merged.
+
+The two texts that collide:
+- D2.1: "At most one PROGRAM.START is allowed per program (msg 141 'MORE THAN ONE -PROGRAM.START-. FIRST USED.' on a second occurrence, first one wins, compilation continues)".
+- The code generator's guard on a name defined twice: "a procedure name defined twice (no sample instance)". This guard serves section-scoped names in general (D2.5). It is not a PROGRAM.START rule. The 2026-09-06 record justified keeping it with M4-2, which refuses shapes no sample shows. But M4-2 limits that refusal to a shape that "no [J 90.04] message covers", and this shape draws two messages, 141 and 166.
+
+Refuse option, D2.1 amendment text for verbatim use:
+*Amended 2026-11-02.* The generator refuses a program with two PROGRAM.START labels. The refusal comes from the duplicate-name guard of the label binder (D2.5). It is not a PROGRAM.START rule. The parser still issues msg 141 of [J 90.04.01], and the resolver still issues msg 166, so the listing prints in full. No sample program shows object code for the path where compilation continues. The words "first one wins" above describe the 1962 processor, as the text of msg 141 ("FIRST USED") shows. They do not describe this generator.</p>
+<span class="label-k">Evidence</span>
+<p class="flag"><strong>The recommendation reversed.</strong> Rounds one and two recommended
+<code>refuse</code> (<a href="#call-r2-d21">round two, call 6</a>; <a href="#call-d21">round one, call 11</a>). Round three
+recommends <code>first</code>, and builds it as draft #184. The page's reason: both rulings of 2026-11-02 came after the
+2026-09-06 recommendation to refuse, and the text of msg 141 (&ldquo;FIRST USED&rdquo;) counts as the manual showing what
+the 1962 compiler did. The recommendation below says which reading of the evidence leads to <code>refuse</code> instead.</p>
+<ul>
+<li><strong>Title.</strong> Round two: &ldquo;Two PROGRAM.START labels: obey D2.1, or keep the generator's refusal?&rdquo;</li>
+<li><strong>Built.</strong> Round two pointed at <code>review/2026-09-06-m4s4-machine-assembly</code>, item 5. Round three:
+<code>first</code> built as #184, plus the verbatim D2.1 amendment text for <code>refuse</code>, on no branch yet.</li>
+<li><strong>Options.</strong> Same two keys, order swapped. Round two gave each one sentence (<code>refuse</code>:
+&ldquo;No code change. The listing still shows message 141.&rdquo;). Round three gives each its listing lines and its cost
+to undo.</li>
+</ul>
+<p><strong>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/184">#184</a></strong>, open, head <a href="https://github.com/Screendead/comtran-compiler/commit/72d922cfdefb92026274f71efa6119c644cde355"><code>72d922c</code></a> at the time of this record. The page gives the same head. Not merged.</p>
+<span class="label-k">Options, as pitched</span><div class="opt pick">
+<h3>Compile it using the first label, as D2.1 says (PR #184)<span class="rec">Recommended</span></h3>
+<p class="key">pick <code>first</code></p>
+<p class="consequence">The program gets an object deck whose start address and every GO TO PROGRAM.START point at the first label. A machine test confirms it: NUM reads 1, which happens only when the run starts at the first label. The change adds no new kind of machine code. It only chooses which label the name means. No sample shows the result, so only the decision record can check it. Message 166 (severity 3, our own assignment because the manual prints none) still fires, so --run does not run the job, but the deck is punched. One case still refuses: a second label that opens a section, because its END would return to the wrong place. A DO into PROGRAM.START is already an error by itself (message 143). To undo it, revert the PR: two code changes, four tests and one amendment.</p><pre>3,00   71177 PROGRAM.START.  SET NUM = NUM + 1.
+5,00   71200 PROGRAM.START.  SET NUM = 2.
+5,00    1    MORE THAN ONE -PROGRAM.START-. FIRST USED.
+5,00    3    'PROGRAM.START' IS NOT UNIQUE IN THIS SECTION.
+SEVERITY LIMIT WAS NOT REACHED
+job 1: not run: maximum severity 3</pre>
+</div>
+<div class="opt">
+<h3>Keep the refusal and add the amendment above to D2.1</h3>
+<p class="key">pick <code>refuse</code></p>
+<p class="consequence">The listing prints with both messages, but no object deck is produced. Under your 2026-11-02 ruling that 'compile' means the listing, this already meets your 2026-09-14 rule. It claims less: no code without a sample behind it enters the M7 comparison with the 1963 compiler. Once the amendment lands, D2.1 no longer misleads a reader. The cost is a refusal that leans on M4-2 although two manual messages cover this shape. To undo it, remove one paragraph later.</p><pre>5,00    1    MORE THAN ONE -PROGRAM.START-. FIRST USED.
+5,00    3    'PROGRAM.START' IS NOT UNIQUE IN THIS SECTION.
+SEVERITY LIMIT WAS NOT REACHED
+error: job 1: unrecovered shape: a procedure name defined twice (no sample instance)</pre>
+</div>
+<span class="label-k">Recommendation, as pitched</span><p>The deciding question is whether the manual's own message, "FIRST USED", counts as the manual showing what the 1962 compiler did. I think it does. It names the outcome exactly, and 'first' adds no new kind of machine code, only a choice of label. That fits your ruling to handle defects 'wherever the manuals show the code'. If only a sample listing counts as evidence, choose 'refuse': your listing ruling then covers it. The 2026-09-06 recommendation to refuse came before both 2026-11-02 rulings. If you take 'first', the 'prototype for Jack's call' tag comes off the D2.1 amendment before the merge.</p>
+</section>
+
+<section class="item needs" id="call-r3-w3">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round three, call 8. W3: take “the compiler tags each line with its statement” forward as the real W3?</h2></div>
+<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p><p>Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.</p></div>
+<span class="label-k">The question, as pitched</span>
+<p>W3 needs the compiler to say which statement each line of each panel belongs to. The roadmap already asks for this to come from the compiler, because the site must hold no compiler knowledge (HANDOVER, 'The rule that keeps it cheap'). The other two ways each fail on a fact. Numbers written into the text would change four golden files and cannot go into the Cards or Listing panels at all. A site that works the numbers out itself breaks that rule, and it could match Code rows only through statement names.</p>
+<span class="label-k">Built, as pitched</span><p>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/189">#189</a> (branch w3-design, head deab534; gate and CI green). To see it, run: dart run tool/build_web.dart; python3 -m http.server 8000 --directory web; then open localhost:8000. In the Listing tab, click the line `188,00   71466 START.  OPEN ALL FILES,`. Its three lines turn yellow, and the tabs read Cards 3, Scan 1, Parse 11, Semantics 3, Listing 3, Code 19. In Code, the 19 rows from `00165 GN)000 START TSX SYS)175,4` to `00207 TRA END.OF.MASTERS+1` are marked. Click `188,03 get-clause` in Parse, then open Code: the six GET rows (00177 to 00204) show in darker yellow. The status line reads 'Statement 188,03 · 188 of 229', and the right arrow goes to 189. Not yet tagged: 412 of 619 Semantics lines (the storage, records and items rows, and most dictionary rows) and 169 of 970 Code lines (the data words, the shared constants and a few shared blocks).</p>
+<span class="label-k">Evidence</span>
+<p><strong>New in round three.</strong></p>
+<p><strong>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/189">#189</a></strong>, open, head <a href="https://github.com/Screendead/comtran-compiler/commit/deab5343302d07269939d66ec5c67fd964e7ffe4"><code>deab534</code></a> at the time of this record. The page gives the same head. Not merged.</p>
+<p>Only option A is built. The line under it is the page's example of one mark the compiler sends.</p>
+<span class="label-k">Options, as pitched</span><div class="opt pick">
+<h3>The compiler sends the numbers beside the text (built in PR #189)<span class="rec">Recommended</span></h3>
+<p class="key">pick <code>A</code></p>
+<p class="consequence">Adds one JSON key and no golden file. Each stage writer and the listing writer collect the numbers as they print, and the code generator records one field on each word. The site change is about 190 lines of JS, CSS and HTML. Which clause a code word belongs to is our own call: no 1962 printout says. Many Semantics and Code rows have no number yet (see 'built'). Easy to reverse, because no dump changes.</p><pre>marks.code[i] = "1:188,01" for row `00165	GN)000 START	TSX	SYS)175,4	007400400257	10010`</pre>
+</div>
+<div class="opt">
+<h3>Write the numbers into the text</h3>
+<p class="key">pick <code>B</code></p>
+<p class="consequence">The Scan, Parse, Semantics and Code golden files all change. The Cards panel is the deck's own text file, and its format is frozen. The Listing must match the 1962 printout byte for byte. So neither of those two can take a number. The join would cover four panels of six, unless each dump gets a second, numbered copy.</p>
+</div>
+<div class="opt">
+<h3>The site works out the numbers from the text</h3>
+<p class="key">pick <code>C</code></p>
+<p class="consequence">The site must learn the column layout of each panel, which breaks the rule that the site holds no compiler knowledge. Any later change to a panel's text would quietly break the site. In Code, the site could match only statements that have a name, such as START. A statement with no name (189), or a single clause, has nothing to match. Cheapest to start, but every later milestone costs more.</p>
+</div>
+<span class="label-k">Recommendation, as pitched</span><p>A is the only choice that keeps every golden file unchanged, reaches all six panels at the clause level, and needs no compiler knowledge in the site. The rows without a number are work still to add, and none of it needs a redesign. Data entries carry their own statement numbers (for example 36,00), so the data words and the untagged Semantics rows can take them later.</p>
+</section>
+
+<section class="item needs" id="call-r3-w4">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round three, call 9. W4: the run button works in the browser. What form should the tutorial take?</h2></div>
+<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p><p>Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.</p></div>
+<span class="label-k">The question, as pitched</span>
+<p>Run works. The sample's two input tapes are built into the page (under 5 KB), so a run needs no download. Loading the tapes over the network gains nothing. Generating them in the browser would ship a test tool. Run uses the deck in the editor. Still open: where the tutorial lives. Jack asked for a tutorial page separate from the front page. The roadmap says that page uses the existing editor and no second one.</p>
+<span class="label-k">Built, as pitched</span><p>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/188">#188</a> (branch w4-design, head a31994d, CI green). test/web_run_test.dart checks that the sample prints 'AT 199,14 STOP RUN' plus test/goldens/90.05-payroll.report, and tests a fault, the step budget, severity, a job with no object program and an empty deck. test/runtime/tape_store_test.dart holds both tape stores to one contract. test/layering_test.dart now requires that the browser import walk reaches machine.dart. `node tool/check_web_run.mjs` printed 'The WebAssembly run prints the report golden, in 63 ms.' In headless Chrome, Run selects the 07 Run tab and shows '71 lines · reached end of job · 17 ms'.</p>
+<span class="label-k">Evidence</span>
+<p><strong>New in round three.</strong></p>
+<p><strong>Draft PR <a href="https://github.com/Screendead/comtran-compiler/pull/188">#188</a></strong>, open, head <a href="https://github.com/Screendead/comtran-compiler/commit/a31994d31b4ad41dc9234a93daab715b38ddec82"><code>a31994d</code></a> at the time of this record. The page gives the same head. Not merged.</p>
+<p><span class="inferred">our reading</span> The draft builds the run button, which the question reports as working. None of the four tutorial forms in
+the options is built: the call is about the page the tutorial lives on.</p>
+<span class="label-k">Options, as pitched</span><div class="opt pick">
+<h3>A separate tutorial.html with the same bench markup and the same app.js<span class="rec">Recommended</span></h3>
+<p class="key">pick <code>A</code></p>
+<p class="consequence">The lessons sit beside the one editor, so a lesson can load a deck and press Run in place. One app.js means one set of card-column rules, which is the reason the roadmap gives for refusing a second editor. Cost: a second copy of about 100 lines of bench markup, plus a test that keeps the two copies the same. app.js also needs changes to start on either page, because today it fails on a page with no build stamp. Easy to undo.</p>
+</div>
+<div class="opt">
+<h3>Tutorial sections around the bench on the front page</h3>
+<p class="key">pick <code>B</code></p>
+<p class="consequence">No second copy of the markup. But Jack asked for a separate tutorial page, so this goes against his own request. The front page exists to bring a reader in, and web-copy rule A4 limits its paragraphs to three sentences. Eleven lessons would bury the compiler. Moving them out later means rewriting the page.</p>
+</div>
+<div class="opt">
+<h3>A text-only tutorial page; each example is a share link that opens the front page with that deck</h3>
+<p class="key">pick <code>C</code></p>
+<p class="consequence">Cheapest: no editor code, and share links already exist. The reader goes back and forth between two pages and loses 'change a line, run, see the report change' on one screen. It goes against the roadmap's 'the tutorial page, with the W1 editor', so that entry would need an edit.</p>
+</div>
+<div class="opt">
+<h3>Scope alternative: a language course of many small programs instead of one walk through the sample</h3>
+<p class="key">pick <code>S2</code></p>
+<p class="consequence">Teaches more of COMTRAN. But any example that reads input needs its own input tapes built into the site. Each example also needs a test that keeps it compiling, or the tutorial breaks silently when the compiler changes. The writing and test cost is several times that of the walk through the sample.</p>
+</div>
+<span class="label-k">Recommendation, as pitched</span><p>A is the only form that puts the lesson and the running program on one screen with one editor. Its one cost, a second copy of the markup, is caught by a cheap test. Keep the scope to one walk through the sample. Every lesson that uses the unedited sample can then be tied to the existing 90.05 goldens. That includes the defect-10 lesson: RET.PREM is read as INS.PREM (M6-4 finding 1). Lesson 8, where the reader edits a line, needs a test of its own.</p>
+</section>
+
+<section class="item needs" id="call-r3-other3">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round three, the free-text box. Anything else</h2></div>
+<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p><p>Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.</p></div>
+<span class="label-k">The question, as pitched</span>
+<p>Free text.</p>
+
+<span class="label-k">Evidence</span>
+<p>The page's free-text box for round three, as in rounds one and two. Not one of the nine calls.</p>
+<span class="label-k">Options</span><p>A free-text box. No options and no recommendation.</p>
+
+</section>
+
 <footer>
 <p>Retrofit record built 2026-11-02 on branch <code>review/2026-11-02-pitch-rulings</code>. Pitch page source:
 <code>archive/pitch-2026-11-02</code> at <code>48136bec11e50c017bf9e8bda5b97bc55423bb6c</code> (local branch, not pushed; a copy is
@@ -788,6 +1113,8 @@ it as call 11, above. The open item has waited since 6 September.</p>
 Round two: the same branch at <code>33cc8a88669c54d193707cec57d016d45a1fd3db</code>, copied as <code>evidence/pitch-page-round2.html</code> and
 extracted to <code>evidence/calls-round2.json</code>. <code>tools/make_crops.py</code> cuts the three crops from the
 J28-6169 scans; <code>tools/count_dashes.sh</code> writes <code>evidence/dash-counts.txt</code>.
+Round three: the same branch at <code>09ceda9459018e340af4d8ecc7753a9ed0e833a6</code>, copied as <code>evidence/pitch-page-round3.html</code> and
+extracted to <code>evidence/calls-round3.json</code>.
 <code>tools/build_doc.py</code> writes this page; edit it, not the HTML.</p>
 </footer>
 

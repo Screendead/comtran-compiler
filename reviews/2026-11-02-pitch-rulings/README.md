@@ -5,7 +5,8 @@ to Jack on the interactive pitch page
 https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw on 2026-11-02, and he
 answered there. This record was built afterwards to hold the questions and
 the answers permanently. A second round of six calls was put on the same
-page later that day; the record holds it in its own section.
+page later that day; the record holds it in its own section. A third round of
+nine calls followed the same afternoon, in a third section.
 
 | Path | What it holds |
 |---|---|
@@ -17,9 +18,11 @@ page later that day; the record holds it in its own section.
 | `evidence/dns-check.txt` | The DNS and Pages check that bears on call 9 (added with the rulings). |
 | `evidence/pitch-page-round2.html` | The pitch page source for the second round, from `archive/pitch-2026-11-02` at `33cc8a8` (six calls and a free-text box; added with round two). |
 | `evidence/calls-round2.json` | The round-two `CALLS` literal, evaluated by `tools/extract_calls.js`. |
+| `evidence/pitch-page-round3.html` | The pitch page source for the third round, from `archive/pitch-2026-11-02` at `09ceda9` (nine calls and a free-text box; round three entered at `5f22c54`; added with round three). |
+| `evidence/calls-round3.json` | The round-three `CALLS` literal, evaluated by `tools/extract_calls.js`. |
 | `evidence/dash-counts.txt` | The em-dash counts behind round-two call 4, written by `tools/count_dashes.sh`. |
 | `crops/` | Three crops of J28-6169 PDF pages 116 and 171, for round-two call 3. |
-| `tools/extract_calls.js` | Extracts `calls.json` and `calls-round2.json` from the page sources. |
+| `tools/extract_calls.js` | Extracts `calls.json`, `calls-round2.json` and `calls-round3.json` from the page sources. |
 | `tools/make_crops.py` | Cuts `crops/` from the page scans; takes the repository root. |
 | `tools/count_dashes.sh` | Counts the em dashes W2 left in the language definition; takes the repository root. |
 | `tools/build_doc.py` | Writes `index.html`. |
@@ -28,4 +31,5 @@ page later that day; the record holds it in its own section.
 Round one has no crops: no manual page bears on its calls directly. The
 records each call points to hold their own evidence. Round two, put on the
 same page later the same day, has three: call 3 turns on what two scan
-pages print.
+pages print. Round three adds no crops: its evidence is the draft pull
+requests each call names.
