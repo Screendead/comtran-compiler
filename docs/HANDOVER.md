@@ -497,6 +497,35 @@ binds work outside the definition.
   beyond the verified sample, and the original build's approximately 120
   correction edits. The risk is low but not zero.
 
+## Open work, 2026-11-02
+
+This list sorts every open item by who can move it. The run of
+2026-11-02 works the first group and brings the second group to Jack.
+
+Work that needs no call from Jack:
+
+| Item | Branch |
+|---|---|
+| W2, the sources page | `w2-sources` |
+| Stale status lines in `docs/design/emulator.md` and `docs/design/m3-data.md` (M3-18) | `docs-truth-2026-11` |
+| Re-audit the coverage gaps of the PR #60 review; add the tests that are still missing | `coverage-gaps-2026-11` |
+| Check the resolver section stack after PR #171; fix it if the fault remains | `resolver-section-stack` |
+
+Calls that wait for Jack:
+
+| Item | Where the options are |
+|---|---|
+| Merge order: #145, #157, #158, #166, then the routine PRs | PR list |
+| Codegen defects 1 to 11: handle or refuse | Draft PRs #167 to #169 |
+| Codegen defect 6: severity and scope | Draft PR #170 |
+| M6-9: does "compile" mean the listing or the object deck | `review/2026-10-25-m6s2-deck-walkthrough` |
+| The dangling-continuation diagnostic: message and severity | `dangling-continuation-proto` |
+| When M7 opens the sealed archive | No prototype. D0.9 bars any read before M7. |
+
+Edits held back because an open PR touches the same file: the D11.4
+audit list in `docs/design/decisions.md`, the list 3 note in
+`docs/design/m2-parser.md`, and the `STO` line citation in this file.
+
 ## The mission: the compiler — roadmap
 
 The first concrete task is done. The 90.05 sample deck is re-keyed as
