@@ -223,7 +223,7 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    store recomputes. `SET EXI = 3` into an external-decimal index now
    refuses `an external-decimal subscript variable (M6-9)`, as the
    MOVE does. Master compiled it and moved no indicator. **Literal and
-   expression subscripts handled on 2026-11-02** (M6-10). A literal subscript sets its indicator at load time, so
+   expression subscripts handled by PR #191** (M6-10). A literal subscript sets its indicator at load time, so
    `CELL (2)` runs. A store into V moves each indicator of
    `a * V ± b`, so `CELL (I + 1)` runs and `SET K = K + 2` updates
    `CELL (K + 1)`. A DO FOR now starts its indicators at FROM and steps
