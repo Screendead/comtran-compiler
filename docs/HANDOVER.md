@@ -188,8 +188,11 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    was already right: the move restores register 1 (RT-3).
 5. **A leading run that mixes `8` and `*` compiles.** The control word
    has one address field for the leading run, so it cannot say which
-   cells take a blank and which an asterisk. `$8*89.99` compiles with no
-   diagnostic. RT-5 lists the shape among its open items. No ruling.
+   cells take a blank and which an asterisk. The manuals do not forbid
+   the mix ([F p. 80]; [J 02.05.05]). `$8*89.99` prints 1.23 as `$***1.23`.
+   No ruling. PR #185, a draft prototype, keeps the 1962 words and
+   adds message 950,00 under `--pedantic` only (D11.4, amended
+   2026-11-02).
 6. **A reopen after CLOSE ALL FILES drew no diagnostic. Ruled:
    message 948,00, severity 4, the OPEN kept, a straight run only.
    Handled by PR #170.** An `OPEN ALL FILES` after a `CLOSE ALL FILES`
@@ -993,6 +996,7 @@ this project's own decision (Open Question 65).
 [F p. 12]: ../comtran-manuals/F28-8043/02-language-structure.md#underlying-principles
 [F p. 26]: ../comtran-manuals/F28-8043/02-language-structure.md#sentences
 [F p. 42]: ../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
+[F p. 80]: ../comtran-manuals/F28-8043/04-data-description.md#format-characters
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.04.04]: ../comtran-manuals/J28-6169/02-compiler.md#3-move
 [J 02.04.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing

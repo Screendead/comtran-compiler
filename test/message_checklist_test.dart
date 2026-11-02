@@ -75,6 +75,7 @@ final Map<String, Message> _ours = {
     msgDoReentersActiveProcedure,
     msgReopenAfterCloseAll,
     msgDanglingContinuation,
+    msgLeadingRunMixesFills,
   ])
     m.number: m,
 };
