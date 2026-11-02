@@ -171,10 +171,56 @@ void main() {
       );
     });
 
-    test('an ADD pair of unequal scales', () {
+    test('an ADD into a target of lesser scale', () {
       expect(
         _refuses(['            ADD FRAC TO NUM.']),
-        'an ADD pair of unequal scales (notes section 7)',
+        'an ADD into a target of lesser scale (no sample instance)',
+      );
+    });
+
+    test('an edited ADD source into a target of lesser scale', () {
+      expect(
+        _refuses(
+          ['            ADD EDF TO NUM.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'EDF', level: '1', description: '89.9'),
+          ],
+        ),
+        'an ADD into a target of lesser scale (no sample instance)',
+      );
+    });
+
+    test('an edited store that drops source fraction digits', () {
+      expect(
+        _refuses(
+          ['            MOVE FRAC TO EDZ.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'EDZ', level: '1', description: '889'),
+          ],
+        ),
+        'an edited store that drops source fraction digits '
+        '(no sample instance)',
+      );
+    });
+
+    test('an aligned move of more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            MOVE BIG TO EDT.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'BIG',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '9(9)',
+            ),
+          ],
+        ),
+        'an aligned move of more than 10 digits (no sample instance)',
       );
     });
 

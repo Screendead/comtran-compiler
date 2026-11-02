@@ -2285,8 +2285,22 @@ final class _Text {
         }
         _setup(source, subscripted: sourceSubscripted, target: false);
         _externalConvert(source);
+        final int deficit = _moveDeficit(source, target);
+        if (deficit > 0) {
+          // The convert leaves the value in the accumulator, so the
+          // multiply takes the attested `XCA / MPY / XCA` (00627–00631).
+          _scaledLoad(_xca, deficit);
+        } else if (deficit < 0) {
+          // This arm drops low-order digits only. It drops no leading
+          // digit a shorter target cannot hold.
+          // A MOVE drops low-order digits (F p. 42), so the divide takes
+          // no half-adjust: the split's `LRS 35 / DVP` (00424–00425),
+          // and the quotient stores from the MQ (00634–00635).
+          _shift(Op.lrs, _storeShift);
+          _op(Op.dvp, _cp(_pool.machineWord(_pow10(-deficit))));
+        }
         _loadBaseOf(target);
-        _opItem(Op.sto, target);
+        _opItem(deficit < 0 ? Op.stq : Op.sto, target);
         _movpakClears();
       case (FieldClass.externalDecimal, FieldClass.externalDecimal):
         _externalRun(
@@ -2469,9 +2483,25 @@ final class _Text {
       // (`docs/design/runtime.md` RT-4).
       _unruled('an edited store of more than 10 digits (RT-4)');
     }
+    final int deficit = _moveDeficit(source, target);
+    if (deficit < 0) {
+      // The quotient of a downscaling divide is in the MQ, and SYS)180
+      // renders the accumulator. No site moves a quotient across, and
+      // the edit run refuses the same drop.
+      _unruled(
+        'an edited store that drops source fraction digits '
+        '(no sample instance)',
+      );
+    }
     _loadBaseOf(source);
-    _opItem(Op.cla, source);
-    if (s.digits > t.digits) {
+    if (deficit == 0) {
+      _opItem(Op.cla, source);
+    } else {
+      // The aligned build of the comparison: `LDQ / MPY / XCA`
+      // (00656–00660).
+      _scaledLoad(() => _opItem(Op.ldq, source), deficit);
+    }
+    if (s.digits + deficit > t.digits) {
       // The split divisor is 10 to the target's digit count — the one
       // value all three attested sites share, `CP)+24`.
       final PoolHandle divisor = _pool.machineWord(_pow10(t.digits));
@@ -2507,6 +2537,18 @@ final class _Text {
     _oct(_controlWord(target));
     _axt(_sem(target).digits, 1);
     _movpakClears();
+  }
+
+  /// The fraction digits a MOVE from [source] to [target] adds, negative
+  /// when it drops them. F p. 42 aligns by the decimal point.
+  int _moveDeficit(DataItem source, DataItem target) {
+    final int deficit =
+        _sem(target).fractionDigits - _sem(source).fractionDigits;
+    if (deficit > 0 && _sem(source).digits + deficit > 10) {
+      // The `XCA` keeps the low word of the product (RT-4).
+      _unruled('an aligned move of more than 10 digits (no sample instance)');
+    }
+    return deficit;
   }
 
   /// The internal-to-internal move: two words at its one site, equal
@@ -2871,7 +2913,10 @@ final class _Text {
         _movpakClears();
         for (final NameReference target in clause.targets) {
           final DataItem item = _resolved(target);
-          _withFetches([item], () => _addBody(item, () => _op(Op.add, park)));
+          final int deficit = _addDeficit(source, item);
+          _withFetches([
+            item,
+          ], () => _alignedAdd(item, deficit, (Op op) => _op(op, park)));
         }
         return;
       }
@@ -2952,14 +2997,41 @@ final class _Text {
   /// guards the operands force. Every attested pair has equal scale;
   /// the store tail on an ADD has no site (notes section 7).
   void _addPair(DataItem source, DataItem target) {
-    if (_sem(source).fractionDigits != _sem(target).fractionDigits) {
-      _unruled('an ADD pair of unequal scales (notes section 7)');
-    }
+    final int deficit = _addDeficit(source, target);
     final DataItem addend = _operand(source);
     _withFetches([
       addend,
       target,
-    ], () => _addBody(target, () => _read(Op.add, addend)));
+    ], () => _alignedAdd(target, deficit, (Op op) => _read(op, addend)));
+  }
+
+  /// The fraction digits an ADD source lacks against [target]. A source
+  /// of greater scale needs the store tail, which has no site on an ADD
+  /// (notes section 7).
+  int _addDeficit(DataItem source, DataItem target) {
+    final int deficit =
+        _sem(target).fractionDigits - _sem(source).fractionDigits;
+    if (deficit < 0) {
+      _unruled('an ADD into a target of lesser scale (no sample instance)');
+    }
+    return deficit;
+  }
+
+  /// The ADD body of [target] with the addend that [read] fetches. An
+  /// addend [deficit] digits short loads into the MQ, upscales, and parks
+  /// as the chain parks a term of `SET target = target + source`: `MPY`
+  /// the power of ten, then `STQ RS)0` (the attested 00622–00624).
+  void _alignedAdd(DataItem target, int deficit, void Function(Op) read) {
+    if (deficit == 0) {
+      _addBody(target, () => read(Op.add));
+      return;
+    }
+    read(Op.ldq);
+    _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
+    final int live = _liveResultCells;
+    final void Function(Op) parked = _park(0, _Register.mq);
+    _addBody(target, () => parked(Op.add));
+    _liveResultCells = live; // The body has read the park.
   }
 
   void _addBody(DataItem target, void Function() addend) {
