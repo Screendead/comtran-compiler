@@ -368,7 +368,9 @@ function drawStage(keep = false) {
       span.dataset.mark = mark;
       span.classList.add('mk');
       if (statementOf(mark) === statement) {
-        span.classList.add(mark === clause ? 'on-clause' : 'on');
+        // A whole statement takes one colour; a picked clause stands out.
+        const picked = mark === clause && !clause.endsWith(',00');
+        span.classList.add(picked ? 'on-clause' : 'on');
         first ??= span;
       }
     }
