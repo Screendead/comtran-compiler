@@ -82,7 +82,7 @@ section { display: flex; flex-direction: column; gap: 12px; }
   <h2 id="done-h">Finished today</h2>
   <ul class="plain">
     <li><a href="https://github.com/Screendead/comtran-compiler/pull/175">#175</a>: the resolver now tracks sections clause by clause, as the parser does. A missed message 166 and two false ones are fixed. This was the only compiler change today. Both reviewers approved it and it is <b>merged</b>.</li>
-    <li><a href="https://github.com/Screendead/comtran-compiler/pull/174">#174</a>: tests only. Rechecked the 18 coverage gaps from the August review: 6 were already covered and 11 now have tests. The 3 that remain are call 7.</li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/pull/174">#174</a>: tests only. Rechecked the coverage gaps from the August review: 6 were already covered and 11 now have tests. The check also found three subscripts that no record covers; they are call 7.</li>
     <li><a href="https://github.com/Screendead/comtran-compiler/pull/173">#173</a>: three stale lines in the design records, corrected against the code.</li>
     <li><a href="https://github.com/Screendead/comtran-compiler/pull/178">#178</a>: W2, the sources page: all 345 page scans, each beside its transcription, plus the language reference and both PDFs, generated when the site builds. Its two open copy questions are call 6.</li>
     <li><a href="https://github.com/Screendead/comtran-compiler/pull/176">#176</a>: this list of open work, recorded in HANDOVER.</li>
@@ -112,7 +112,7 @@ const CALLS = [
     why: "J forbids it, and D6.3 says to diagnose it. Today the compiler says nothing, and the run silently overwrites the tape.",
     built: "Prototype: draft <a href=\"https://github.com/Screendead/comtran-compiler/pull/170\">#170</a>, approved by both reviewers. The <a href=\"https://claude.ai/artifact/3oq4dhqcKCnBZebkbHwWa2\">record</a> shows the listing line and the run for each severity.",
     opts: [
-      { k: "4i", t: "Severity 4, keep the OPEN, detect the straight case only", d: "Catches a CLOSE ALL FILES followed later by an OPEN ALL FILES, with no label or jump between them. Under the run gate the job compiles but does not run.", rec: true, pre: "948,00  4  OPEN FOLLOWS CLOSE ALL FILES. FILES MAY NOT BE REOPENED." },
+      { k: "4i", t: "Severity 4, keep the OPEN, detect the straight case only", d: "Catches a CLOSE ALL FILES followed later by an OPEN ALL FILES, with no label or jump between them. Under the run gate the job compiles but does not run.", rec: true, pre: "948,00  4  -OPEN ALL FILES- FOLLOWS -CLOSE ALL FILES-. FILES CLOSED BY THAT FORM MAY NOT BE REOPENED. (NON-HISTORICAL.)" },
       { k: "3i", t: "Severity 3, delete the OPEN, straight case only", d: "The job does not run, and the deleted OPEN changes the object deck." },
       { k: "1i", t: "Severity 1, a note only", d: "The job runs and loses the second tape's data in silence." },
       { k: "4ii", t: "Severity 4, flag any OPEN later in the text", d: "Wider, but it also flags some correct programs." } ],
@@ -156,7 +156,7 @@ const CALLS = [
       { k: "now", t: "Now", d: "Calls 2 to 4 would then be made with the archive in view, and the comparison could no longer measure them." },
       { k: "later", t: "Later, after the web track (W3, W4)", d: "This delays the headline result to build site features first." } ],
     recwhy: "The seal is worth what is decided before it breaks. Three open calls are reconstruction decisions, so settle them first." },
-  { id: "other", title: "Anything else", why: "Free text. Overrule anything above, or add a call.", opts: [], free: true }
+  { id: "other", title: "Anything else", why: "Free text. Overrule anything above, or add a call. Two smaller findings from today are not built yet. First, a condition entry named ON draws no message on IF ON or SET ON. Second, the parser accepts BEGIN SECTION, BEGIN SECTION. in silence, although an END that does not stand alone draws message 179. Nobody has yet checked whether the manuals require BEGIN to stand alone. Both are recorded in HANDOVER (PR #176), and I will look into them next unless you say otherwise.", opts: [], free: true }
 ];
 
 const state = { picks: {}, db: null };
