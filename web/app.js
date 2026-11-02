@@ -7,6 +7,7 @@
 
 import { compile, instantiate, invoke } from './main.mjs';
 import { SAMPLE } from './sample.js';
+import { TAPES } from './tapes.js';
 
 const CARD_COLUMNS = 80;
 
@@ -86,6 +87,21 @@ const STAGES = {
       'against, and the distance between this panel and it is the work in ' +
       'progress.',
   },
+  run: {
+    caption:
+      'The program run on an emulated IBM 7090, over the two input tapes ' +
+      'of the 1962 sample. First what it printed on the on-line printer, ' +
+      'then each report it wrote to tape, line by line.',
+    kind: 'derived',
+    label: 'We worked this out from',
+    evidence:
+      'The manual prints the report this program wrote (J 90.05, PDF p. 217) ' +
+      'but not the tapes it read, so the tapes are rebuilt from that report. ' +
+      'Every line the page shows, this run prints too, with two differences: ' +
+      'the grand total of net pay, which the page prints as 2180.63 although ' +
+      'its own department totals add up to 2183.83, and the name WOO, which ' +
+      'the page prints once as WCO.',
+  },
 };
 
 // Styling keyed to this class keeps every no-JavaScript reader on the plain
@@ -111,6 +127,7 @@ const where = el('where');
 const card = el('card');
 const cardNo = el('card-no');
 const compileButton = el('compile');
+const runButton = el('run');
 const linkNote = el('link-note');
 const whinges = el('whinges');
 const whingeCount = el('whinge-count');
@@ -119,6 +136,11 @@ const tabs = [...document.querySelectorAll('[role="tab"]')];
 let stage = 'listing';
 let latest = null;
 let ready = false;
+
+// The last run and the deck text it ran. A run answers to that text
+// only, so an edit since then leaves the run panel saying so.
+let ran = null;
+let ranText = null;
 
 // The card-column ruler, in the form a card-oriented editor has always
 // printed it: a mark every five columns, the tens digit every ten.
@@ -317,12 +339,43 @@ function drawStage() {
     tab.setAttribute('aria-selected', String(tab.dataset.stage === stage));
   }
   if (!latest) return;
+  if (stage === 'run') {
+    drawRun();
+    return;
+  }
+  refusal.hidden = !latest.error;
+  refusal.textContent = latest.error ?? '';
   const text = latest.error ? '' : latest[stage];
   out.textContent = text;
   panel.scrollTop = 0;
   panelFoot.textContent = text
     ? `${lineCount(text) - 1} lines · ${text.length.toLocaleString('en-GB')} characters`
     : '';
+}
+
+// The run panel prints what the program printed and nothing else. What the
+// site has to say about the run goes in the line above the panel.
+function drawRun() {
+  panel.scrollTop = 0;
+  if (!ran || ranText !== source.value) {
+    refusal.hidden = true;
+    out.textContent = ran
+      ? 'The deck has changed since the last run. Run the program again to ' +
+        'see what it prints now.'
+      : 'Run the program to run this deck over the two input tapes of the ' +
+        '1962 sample.';
+    panelFoot.textContent = '';
+    return;
+  }
+  const said = ran.result.error ? [ran.result.error] : ran.result.notes;
+  refusal.hidden = said.length === 0;
+  refusal.textContent = said.join(' ');
+  out.textContent = ran.result.output;
+  const took = `${ran.milliseconds.toFixed(ran.milliseconds < 10 ? 1 : 0)} ms`;
+  panelFoot.textContent = ran.result.error
+    ? ''
+    : `${lineCount(ran.result.output) - 1} lines · ` +
+      `${ran.result.ended ? 'reached end of job' : 'did not reach end of job'} · ${took}`;
 }
 
 // The compiler's own messages, in its own words and its own order. The
@@ -432,6 +485,18 @@ source.addEventListener('scroll', () => {
 });
 
 compileButton.addEventListener('click', run);
+
+runButton.addEventListener('click', () => {
+  if (!ready) return;
+  const started = performance.now();
+  const result = JSON.parse(
+    globalThis.comtranRun(source.value, JSON.stringify(TAPES)),
+  );
+  ran = { result, milliseconds: performance.now() - started };
+  ranText = source.value;
+  stage = 'run';
+  drawStage();
+});
 
 el('load').addEventListener('click', () => {
   source.value = SAMPLE;
