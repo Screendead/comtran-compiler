@@ -251,11 +251,13 @@ moves it has changed the sample's path. The three divides at LOC 00424,
     now loads the next word into the MQ and masks the shifted field
     (M6-9).
 13. **An internal-decimal MOVE target kept leading digits it cannot
-    hold. Ruled: handle it. Handled by PR #190.** `MOVE EXA (999V99 =
-    123.45) TO T1 (9V9)` stored 123.4, not 3.4 ([F p. 42]). The store
-    now takes the digit split of LOC 00424–00425 first (D4.1 (c)). SET
-    and ADD keep the bare store, as the sample's own words do at LOC
-    00760–00762, 01177–01201 and 01166–01174 (D4.2).
+    hold. Handled by PR #190.** `MOVE EXA (999V99 = 123.45) TO T1
+    (9V9)` stored 123.4, not 3.4 ([F p. 42]). The 2026-11-02 ruling
+    did not name it. Its wording, "generate the correct code wherever
+    the manuals show the code", reaches it. The store now splits first,
+    as at LOC 00424–00425 (D4.1 (c)). SET and ADD keep the bare store,
+    as the sample does at LOC 00760–00762, 01177–01201 and 01166–01174
+    (D4.2).
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the

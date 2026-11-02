@@ -218,14 +218,12 @@ final List<String> _externalStore = <String>[
   '      *FINISH',
 ];
 
-/// A program that stores chains of scale 3 into fields of scale 2
-/// (M6-9). UP, DOWN, NEG and CUT are internal; EUP, EDOWN and ENEG are
-/// external, ENEG with a minus overpunch.
 /// A program that moves values into internal-decimal targets with
 /// fewer integer digits (defect 13): EXA `999V99` and EX2 `99` convert,
 /// N2 and NEG move word to word, and CELL is a subscripted `9V9`.
 final List<String> _leadingDigits = <String>[
   '      *DATA',
+  // P1 and P2 keep the base TAB-1 at or above address zero.
   internalCard('P1', '9'),
   internalCard('P2', '9'),
   dataCard(name: 'TAB', level: '1', quantity: '3'),
@@ -249,6 +247,9 @@ final List<String> _leadingDigits = <String>[
   '      *FINISH',
 ];
 
+/// A program that stores chains of scale 3 into fields of scale 2
+/// (M6-9). UP, DOWN, NEG and CUT are internal; EUP, EDOWN and ENEG are
+/// external, ENEG with a minus overpunch.
 final List<String> _chainStore = <String>[
   '      *DATA',
   for (final (String name, String picture) in <(String, String)>[
