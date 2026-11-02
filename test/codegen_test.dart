@@ -860,14 +860,18 @@ void main() {
     });
 
     test('an external source of lesser scale upscales its convert', () {
+      // EXT's third integer digit does not fit AMT, so the upscaled
+      // value splits on 10^4 before the store (defect 13).
       expect(aligned('            MOVE EXT TO AMT.'), [
-        'LDI CP)+7',
+        'LDI CP)+8',
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
         'XCA ',
         'MPY CP)+2',
         'XCA ',
+        'LRS 35',
+        'DVP CP)+3',
         'STO AMT',
       ]);
     });
@@ -924,6 +928,87 @@ void main() {
         'CLA AMT',
         'ADD RS)0',
         'STO AMT',
+      ]);
+    });
+  });
+
+  group('the leading digits a shorter target cannot hold (defect 13)', () {
+    /// The words of [statement] up to its STOP RUN, with EXA an external
+    /// `999V99`, EX2 an external `99`, T1 at `9V9`, X at `9`, N2 at `99`,
+    /// and TAB a table of three `9V9` cells under the index I.
+    List<String> split(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'EXA', level: '1', mode: 'E', description: '999V99'),
+          dataCard(name: 'EX2', level: '1', mode: 'E', description: '99'),
+          internalCard('T1', '9V9'),
+          internalCard('X', '9'),
+          internalCard('N2', '99'),
+          dataCard(name: 'TAB', level: '1', quantity: '3'),
+          internalCard('CELL', '9V9', level: '2'),
+          internalCard('I', '9'),
+        ],
+        procedure: [statement, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('BSS 0') + 8;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    test('a convert that drops digits at both ends splits, then scales', () {
+      // 123.45 keeps 3.45 as the remainder of 10^3, and the quotient of
+      // 10 stores 3.4.
+      expect(split('            MOVE EXA TO T1.'), [
+        'LDI CP)+8',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,5',
+        'LRS 35',
+        'DVP CP)+2',
+        'LRS 35',
+        'DVP CP)+3',
+        'STQ T1',
+      ]);
+    });
+
+    test('a convert at equal scale stores the remainder', () {
+      expect(split('            MOVE EX2 TO X.'), [
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,2',
+        'LRS 35',
+        'DVP CP)+2',
+        'STO X',
+      ]);
+    });
+
+    test('an internal move splits between its two words', () {
+      expect(split('            MOVE N2 TO X.'), [
+        'CLA N2',
+        'LRS 35',
+        'DVP CP)+2',
+        'STO X',
+      ]);
+    });
+
+    test('a target that holds every digit takes no split', () {
+      expect(split('            MOVE X TO N2.'), ['CLA X', 'STO N2']);
+    });
+
+    test('a subscripted target stores the split value the same way', () {
+      expect(split('            MOVE EXA TO TAB CELL (I).').sublist(4), [
+        'LRS 35',
+        'DVP CP)+2',
+        'LRS 35',
+        'DVP CP)+3',
+        'LAC PI)1,1',
+        'TXL SYS)294,1,0',
+        'STQ 0,1',
       ]);
     });
   });
