@@ -57,11 +57,11 @@ final class NameResolver extends ClauseWalk with OperandWalk {
   /// the console-key test (J 02.06.17).
   final Set<NameReference> keysConditions = Set.identity();
 
-  /// The opening sentence of the innermost section enclosing each
+  /// The BEGIN SECTION clause of the innermost section enclosing each
   /// sentence; a sentence of the outermost scope is absent. A statement
   /// label scopes to this section, and so does a one-word transfer
   /// target (D2.5).
-  final Map<Sentence, Sentence> sectionScopes = Map.identity();
+  final Map<Sentence, BeginSectionClause> sectionScopes = Map.identity();
 
   @override
   final Set<Sentence> deletedSentences = Set.identity();
@@ -123,7 +123,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
     }
     // The parser carries its section stack across groups, so this
     // one does too.
-    final sectionStack = <Sentence>[];
+    final sectionStack = <_OpenSection>[];
     for (final sentences in procedureGroups) {
       _enterProcedureNames(sentences, sectionStack);
     }
@@ -182,13 +182,13 @@ final class NameResolver extends ClauseWalk with OperandWalk {
 
   void _enterProcedureNames(
     List<Sentence> sentences,
-    List<Sentence> sectionStack,
+    List<_OpenSection> sectionStack,
   ) {
     // Statement labels scope to their section (D2.5); a BEGIN SECTION
     // sentence's label is the section's name.
     for (final sentence in sentences) {
       if (sectionStack.isNotEmpty) {
-        sectionScopes[sentence] = sectionStack.last;
+        sectionScopes[sentence] = sectionStack.last.begin;
       }
       final bool opensSection = clauseTree(
         sentence.clauses,
@@ -211,7 +211,8 @@ final class NameResolver extends ClauseWalk with OperandWalk {
         final NameKind kind = opensSection
             ? NameKind.section
             : NameKind.statement;
-        final Sentence? scope = sectionStack.isEmpty ? null : sectionStack.last;
+        final _OpenSection? enclosing = sectionStack.lastOrNull;
+        final BeginSectionClause? scope = enclosing?.begin;
         // A section's name is a procedure-name of its enclosing scope
         // (F p. 26), so labels and section names share that scope.
         final bool collides = dictionary
@@ -230,15 +231,21 @@ final class NameResolver extends ClauseWalk with OperandWalk {
             operands: [label],
           );
         }
-        _enter(label, kind, anchor, sentence: sentence, scope: scope);
+        _enter(
+          label,
+          kind,
+          anchor,
+          sentence: sentence,
+          scope: scope,
+          section: enclosing?.name,
+        );
       }
       // The stack moves clause by clause in the parser's walk order,
       // so it matches the parser's section stack (msgs 64, 65, 179 are
-      // the parser's). Two BEGINs in one sentence push the sentence
-      // twice: the right depth, but one shared label scope.
+      // the parser's).
       for (final Clause clause in clauseTree(sentence.clauses)) {
         if (clause is BeginSectionClause) {
-          sectionStack.add(sentence);
+          sectionStack.add((begin: clause, name: label));
         } else if (clause is EndClause && sectionStack.isNotEmpty) {
           sectionStack.removeLast();
         }
@@ -252,9 +259,17 @@ final class NameResolver extends ClauseWalk with OperandWalk {
     SourceCard anchor, {
     DataItem? item,
     Sentence? sentence,
-    Sentence? scope,
+    BeginSectionClause? scope,
+    String? section,
   }) {
-    dictionary.add(name, kind, item: item, sentence: sentence, scope: scope);
+    dictionary.add(
+      name,
+      kind,
+      item: item,
+      sentence: sentence,
+      scope: scope,
+      section: section,
+    );
     names.enter(anchor);
   }
 
@@ -788,3 +803,6 @@ int _internalDigits(List<int> bcd) {
   }
   return digits;
 }
+
+/// A section the procedure walk has opened and not yet closed.
+typedef _OpenSection = ({BeginSectionClause begin, String? name});
