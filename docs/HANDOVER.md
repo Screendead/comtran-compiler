@@ -918,7 +918,7 @@ and the two source PDFs. The build generates all of it. The repository never
 commits it.
 
 Jack closed both copy calls on 2026-11-02 (`docs/design/web-copy.md`,
-section 6). The pages mark the five J28-6169 typos `[sic]`. The language
+section 6). The pages mark eleven J28-6169 typos `[sic]` (rule E3). The language
 definition keeps an em dash only in quotations, code, headings, citations
 and four empty table cells; the headings are an open call.
 

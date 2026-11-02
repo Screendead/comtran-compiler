@@ -170,13 +170,37 @@ C1.
 
   E3 reaches the manual transcriptions that W2 builds under `web/sources/`.
   *Jack's ruling, 2026-11-02, call 6 of `review/2026-11-02-pitch-rulings`.*
-  The list `typos` in `tool/web_sources_source.dart` names the five typos,
-  and the build marks each one on the page that prints it. Each was checked
-  on its scan: PDF pages 38, 46, 66 and 137. In "Appox-Max Size" the mark
-  follows "Appox-Max", the word that holds the error. The mark is generated
-  content on an empty element, so a copy of the text leaves it out (G3).
-  `test/web_sources_test.dart` checks that each typo carries the mark and
-  that no other text does.
+  The list `typos` in `tool/web_sources_source.dart` names the typos, and
+  the build marks each occurrence on the page that prints it. A word goes on
+  the list when all three of these hold:
+  - the page scan prints it that way;
+  - a conversion note, `comtran-manuals/README.md` or the language
+    definition calls it a typo or a printing error;
+  - it is not a period spelling (E4).
+
+  The list holds eleven entries, all in J28-6169: "throught", "at lease",
+  "lables", "dinsity", "Parentheis", "alwyas", "Mimimum", "standart",
+  "Appox-Max", "depending of" and "bu" (for "but"). Each was checked on its
+  scan. In "Appox-Max Size" the mark follows "Appox-Max", the word that holds
+  the error. F28-8043 has no entry, because no conversion note records a
+  typo in it.
+
+  The list is not a proofreading pass of the manuals. A typo that no note
+  records stays unmarked until a record adds it. These words wait for
+  Jack's call, and stay unmarked until he decides:
+  - "synonomous" and "indicies" (PDF page 116). The conversion note calls
+    them "apparent period typos/spelling variants", so E4 can apply.
+  - "in not used" (PDF page 171). It can be a print defect, and "not" is
+    underlined.
+  - "MIMIMUM" (PDF page 72). It is an option word on the `$LOAD` card. The
+    spelling that the 1962 loader accepted is a fact about the processor.
+  - "a fixed number or words" (PDF page 54). The note says "appears to be" a
+    typo.
+  - "if of the following form" (PDF page 124). No note records it.
+
+  The mark is generated content on an empty element, so a copy of the text
+  leaves it out (G3). `test/web_sources_test.dart` checks that each
+  occurrence of a listed word carries the mark and that no other text does.
 - **E4. Never mark an authentic period spelling `[sic]`.** "Alphameric" and
   "imbedded" are IBM's own words of the period, not errors. The mark would tell
   the reader that IBM made a mistake, which is a false claim and the one a
