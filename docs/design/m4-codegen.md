@@ -802,7 +802,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   - A paragraph with no written END closes at the next label
     (attested: GN)067) or at a bare END, both through the cell.
   Seven refusals:
-  - an unnamed section;
+  - an unnamed section — withdrawn 2026-11-02 (M2-18);
   - a section beginning inside an open section;
   - an END inside an open paragraph and an open section;
   - a procedure open at the end of the text;
