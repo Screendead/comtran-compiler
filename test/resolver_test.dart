@@ -97,6 +97,156 @@ void main() {
       expect(ids(result), isEmpty);
     });
 
+    test('two sections of one name in one scope draw 166,00 (D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), ['166,00']);
+    });
+
+    test('a section may share its name with a section it nests in '
+        '(D2.5; F p. 26)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S.          BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            END S.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), isEmpty);
+      final [DictionaryEntry outer, DictionaryEntry inner] = result.dictionary
+          .named('S');
+      expect(outer.scope, isNull);
+      expect(
+        inner.scope,
+        same(outer.sentence!.clauses.whereType<BeginSectionClause>().single),
+      );
+    });
+
+    test('labels of two same-name sections under different parents keep '
+        'apart (D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      P1.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "      X.          DISPLAY 'A'.",
+          '            END S.',
+          '            END P1.',
+          '      P2.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "      X.          DISPLAY 'B'.",
+          '            END S.',
+          '            END P2.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), isEmpty);
+    });
+
+    test('a section keeps apart from a same-path section one level down '
+        '(D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      P.          BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            END P.',
+          '      Q.          BEGIN SECTION.',
+          '      P.          BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            END P.',
+          '            END Q.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), isEmpty);
+    });
+
+    test('sections of one name under different parents are legal '
+        '(D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      P1.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            END P1.',
+          '      P2.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            END P2.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), isEmpty);
+    });
+
+    test('a label after a section of its name in one scope draws 166,00, '
+        'as the reverse order does (D2.5)', () {
+      for (final order in [
+        [
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          "      S.          DISPLAY 'B'.",
+        ],
+        [
+          "      S.          DISPLAY 'B'.",
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+        ],
+      ]) {
+        final SemanticResult result = runJob(
+          data: const [],
+          procedure: [...order, '            STOP RUN.'],
+        );
+        expect(ids(result), ['166,00'], reason: order.first);
+      }
+    });
+
+    test('a one-word reference to two same-name sections draws 166,00; '
+        'no scope wins (D2.5)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      P1.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'A'.",
+          '            END S.',
+          '            DO S.',
+          '            END P1.',
+          '      P2.         BEGIN SECTION.',
+          '      S.          BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '            END S.',
+          '            END P2.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(result), ['166,00']);
+    });
+
     test('an END inside an IF arm closes the section scope (msg 179)', () {
       final SemanticResult result = runJob(
         data: const [],
@@ -125,6 +275,125 @@ void main() {
             e.section,
         ],
         ['S1', null],
+      );
+    });
+
+    test('two ENDs in one sentence close two section scopes, as the '
+        'parser closes them (msg 179)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          "      DUP.        DISPLAY 'A'.",
+          '      S1.         BEGIN SECTION.',
+          '      S2.         BEGIN SECTION.',
+          '            END S2, END S1.',
+          "      DUP.        DISPLAY 'C'.",
+          '            STOP RUN.',
+        ],
+      );
+      expect(
+        [
+          for (final Diagnostic d in result.parse.parserDiagnostics)
+            d.message.number,
+        ],
+        ['179,00', '179,00'],
+      );
+      expect(ids(result), ['166,00']);
+      expect(
+        [
+          for (final DictionaryEntry e in result.dictionary.named('DUP'))
+            e.section,
+        ],
+        [null, null],
+      );
+    });
+
+    test('two BEGINs in one sentence nest two sections, as the parser '
+        'nests them', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          "      DUP.        DISPLAY 'A'.",
+          '      S1.         BEGIN SECTION, BEGIN SECTION.',
+          '            END S1.',
+          "      DUP.        DISPLAY 'C'.",
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), isEmpty);
+      expect(
+        [
+          for (final DictionaryEntry e in result.dictionary.named('DUP'))
+            e.section,
+        ],
+        [null, 'S1'],
+      );
+    });
+
+    test('two BEGINs in one sentence open two label scopes: the inner '
+        "section's labels keep apart from the outer remainder's", () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S1.         BEGIN SECTION, BEGIN SECTION.',
+          "      X.          DISPLAY 'A'.",
+          '            END S1.',
+          "      X.          DISPLAY 'B'.",
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), isEmpty);
+      final [DictionaryEntry inner, DictionaryEntry outer] = result.dictionary
+          .named('X');
+      expect(inner.scope, isNotNull);
+      expect(outer.scope, isNotNull);
+      expect(inner.scope, isNot(same(outer.scope)));
+    });
+
+    test('a one-word GO TO in the outer remainder does not reach a label '
+        'of the inner section that one sentence opened', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S1.         BEGIN SECTION, BEGIN SECTION.',
+          "      X.          DISPLAY 'A'.",
+          '            END S1.',
+          '            GO TO X.',
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), ['127,00']);
+    });
+
+    test('a section open across two procedure groups scopes the second '
+        "group's labels, as the parser's section stack does", () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          "      DUP.        DISPLAY 'A'.",
+          '      S1.         BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '      *DATA',
+          '      *PROCEDURE',
+          "      DUP.        DISPLAY 'C'.",
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), isEmpty);
+      expect(
+        [
+          for (final DictionaryEntry e in result.dictionary.named('DUP'))
+            e.section,
+        ],
+        [null, 'S1'],
       );
     });
 
