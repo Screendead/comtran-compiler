@@ -71,12 +71,6 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
   --version          print the version and exit
 ''';
 
-/// The `--run` step budget: instructions and runtime entries together.
-/// A program still running here is looping, which is a reproduced
-/// result and not a diagnostic (D5.1 as amended;
-/// `docs/design/runtime.md` RT-1).
-const int _stepBudget = 1000000;
-
 /// The stage names `--emit-<stage>[=<path>]` accepts
 /// (`docs/design/emit-stages.md`).
 const List<String> _emitStages = [
@@ -370,76 +364,40 @@ bool _runObjectProgram(
   Directory? tapes, {
   required bool listTapes,
 }) {
-  final JobDeck? punched = jobDeck(job, options);
-  if (punched == null) {
+  final JobRun? run = runObjectProgram(
+    job,
+    options,
+    tapes: tapes == null ? null : DirectoryTapes(tapes),
+  );
+  if (run == null) {
     return true;
   }
-  final int severity = job.sink.maxSeverity;
-  if (severity > 1) {
+  if (run.barredBy case final int severity) {
     stderr.writeln('job $number: not run: maximum severity $severity');
     return true;
   }
-  // The load allocates every file's buffer, so it faults on a program
-  // with no room for them and leaves no machine to print from (M5-10).
-  Machine? machine;
-  try {
-    machine = Machine.load(punched.cards, tapes: tapes);
-    final RunResult result = machine.run(maxSteps: _stepBudget);
-    result.display.forEach(stdout.writeln);
-    if (result.outcome == RunOutcome.stepLimit) {
-      stderr.writeln(
-        'error: job $number: still running after $_stepBudget steps',
-      );
-    }
-    // An error exit has already printed the monitor's own message on
-    // the display (RT-2), so the tool adds none of its own.
-    var ended = result.outcome == RunOutcome.endOfJob;
-    if (listTapes) {
-      ended &= _listTapes(machine, number);
-    }
-    return ended;
-  } on RunFault catch (e) {
-    machine?.printed.forEach(stdout.writeln);
-    stderr.writeln('error: job $number: $e');
-    if (listTapes && machine != null) {
-      _listTapes(machine, number);
-    }
-    return false;
+  run.display.forEach(stdout.writeln);
+  if (run.fault case final RunFault fault) {
+    stderr.writeln('error: job $number: $fault');
   }
-}
-
-/// Prints one report per output file of [machine], in `*FILE` card
-/// order: the file's name and the word `REPORT`, a blank line, and the
-/// file's print lines, with one blank line between two files (M5-11).
-/// A binary file, and a file this run never opened, are not listed.
-/// Returns false when an image faults.
-bool _listTapes(Machine machine, int number) {
-  var read = true;
-  var first = true;
-  for (final (int index, LoaderFile file) in machine.program.files.indexed) {
-    final RuntimeFile runtime = machine.files[index];
-    final File? host = runtime.host;
-    if (!runtime.opened ||
-        host == null ||
-        file.type == 'I' ||
-        file.mode == 'B') {
-      continue;
-    }
-    if (!first) {
-      stdout.writeln();
-    }
-    first = false;
-    stdout
-      ..writeln('${file.name} REPORT')
-      ..writeln();
-    try {
-      listTape(host.readAsBytesSync()).forEach(stdout.writeln);
-    } on UnreadableRecord catch (e) {
-      stderr.writeln('error: job $number: ${file.name}: $e');
-      read = false;
+  if (run.outcome == RunOutcome.stepLimit) {
+    stderr.writeln(
+      'error: job $number: still running after $runStepBudget steps',
+    );
+  }
+  // An error exit has already printed the monitor's own message on the
+  // display (RT-2), so the tool adds none of its own.
+  var ended = run.outcome == RunOutcome.endOfJob;
+  if (listTapes) {
+    reportLines(run.reports).forEach(stdout.writeln);
+    for (final TapeReport report in run.reports) {
+      if (report.fault case final UnreadableRecord fault) {
+        stderr.writeln('error: job $number: ${report.file}: $fault');
+        ended = false;
+      }
     }
   }
-  return read;
+  return ended;
 }
 
 /// Writes one `--emit` dump. [render] runs only for a requested dump, so

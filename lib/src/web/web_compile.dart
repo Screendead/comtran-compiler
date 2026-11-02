@@ -10,6 +10,8 @@
 /// refusal in the site's own words rather than an exception. [punchCard]
 /// and [togglePunch] serve the card view, which reads and cuts one card's
 /// holes. [canonDeck] hands the reader the deck itself, to take away.
+/// [runText] runs the typed program over tape images the site holds,
+/// through the same runner `comtranc --run` uses.
 library;
 
 import 'dart:typed_data';
@@ -19,12 +21,16 @@ import '../cards/card_image.dart';
 import '../cards/text_codec.dart';
 import '../chars/char_code.dart';
 import '../driver/driver.dart';
+import '../driver/job_run.dart';
 import '../emit/emit_code.dart';
 import '../emit/emit_parse.dart';
 import '../emit/emit_scan.dart';
 import '../emit/emit_semantics.dart';
 import '../lexer/diagnostic.dart';
 import '../listing/listing.dart';
+import '../runtime/machine.dart';
+import '../runtime/tape.dart';
+import '../runtime/tape_store.dart';
 
 /// The page head every browser run prints.
 ///
@@ -285,42 +291,57 @@ Uint8List? canonDeck(String typed) {
   }
 }
 
-/// Compiles [typed] and renders every stage the compiler reached.
-WebCompilation compileText(String typed) {
+/// The deck [typed] punches, or the refusal that says why it punches
+/// none. [verb] names what the reader asked the site to do.
+({List<CardImage>? deck, String? refusal}) _punch(String typed, String verb) {
   final String mirror = punchText(typed);
   if (mirror.isEmpty) {
-    return const WebCompilation.refused(
-      'There is no program to compile. Type a program, or load the sample.',
+    return (
+      deck: null,
+      refusal:
+          'There is no program to $verb. Type a program, or load the sample.',
     );
   }
   final List<String> lines = mirror.split('\n');
   for (var i = 0; i < lines.length; i++) {
     if (lines[i].contains('\t')) {
-      return WebCompilation.refused(
-        'Card ${i + 1} contains a tab. A card has eighty columns and the '
-        'punch has no tab key, so type spaces to reach a column.',
+      return (
+        deck: null,
+        refusal:
+            'Card ${i + 1} contains a tab. A card has eighty columns and the '
+            'punch has no tab key, so type spaces to reach a column.',
       );
     }
   }
-  final List<CardImage> deck;
   try {
-    deck = mirrorToDeck(mirror);
+    return (deck: mirrorToDeck(mirror), refusal: null);
   } on FormatException catch (e) {
-    return WebCompilation.refused(
-      '${_sentence(e.message)} Fix that card and compile again.',
+    return (
+      deck: null,
+      refusal: '${_sentence(e.message)} Fix that card and $verb again.',
     );
+  }
+}
+
+/// The refusal for a stop that reached the driver. Every phase catches
+/// its own stop and returns a partial result, so this net keeps a stop
+/// from any future phase off the reader's screen (D9.1's job rule: stop,
+/// go to the next job).
+const String _stopped =
+    'The compiler stopped and printed nothing. This is a fault in the '
+    'reconstruction, not in the program.';
+
+/// Compiles [typed] and renders every stage the compiler reached.
+WebCompilation compileText(String typed) {
+  final (:List<CardImage>? deck, :String? refusal) = _punch(typed, 'compile');
+  if (deck == null) {
+    return WebCompilation.refused(refusal!);
   }
   final DeckCompilation compilation;
   try {
     compilation = compileDeck(deck);
   } on StopCompilation {
-    // Every phase catches its own stop and returns a partial result. This
-    // net keeps a stop from any future phase off the reader's screen
-    // (D9.1's job rule: stop, go to the next job).
-    return const WebCompilation.refused(
-      'The compiler stopped and printed nothing. This is a fault in the '
-      'reconstruction, not in the program.',
-    );
+    return const WebCompilation.refused(_stopped);
   }
   final listing = StringBuffer();
   final diagnostics = <WebDiagnostic>[];
@@ -354,6 +375,107 @@ WebCompilation compileText(String typed) {
     diagnostics: diagnostics,
     maxSeverity: compilation.maxSeverity,
   );
+}
+
+/// One browser run: what the program printed, or a refusal.
+///
+/// [error] is non-null exactly when the deck never reached the driver,
+/// as for [WebCompilation].
+final class WebRun {
+  const WebRun({required this.output, required this.notes, required this.ended})
+    : error = null;
+
+  /// A deck the site could not punch, described for the reader.
+  const WebRun.refused(String this.error)
+    : output = '',
+      notes = const [],
+      ended = false;
+
+  final String? error;
+
+  /// What `comtranc --run --list-tapes` prints on its standard output:
+  /// each job's on-line printer lines, then the report of each output
+  /// tape (M5-11).
+  final String output;
+
+  /// What the site says about the run, one sentence each: a job that
+  /// did not run, a fault, a run that never ended.
+  final List<String> notes;
+
+  /// Whether at least one job ran, and every job that ran reached its
+  /// end of job with every report readable.
+  final bool ended;
+
+  Map<String, Object?> toJson() => {
+    'error': error,
+    'output': output,
+    'notes': notes,
+    'ended': ended,
+  };
+}
+
+/// Compiles [typed] and runs each job over the images in [tapes], keyed
+/// by unit. Every job writes into one store, as every job of
+/// `comtranc --run` writes into one directory.
+WebRun runText(String typed, Map<String, List<int>> tapes) {
+  final (:List<CardImage>? deck, :String? refusal) = _punch(typed, 'run');
+  if (deck == null) {
+    return WebRun.refused(refusal!);
+  }
+  final DeckCompilation compilation;
+  try {
+    compilation = compileDeck(deck);
+  } on StopCompilation {
+    return const WebRun.refused(_stopped);
+  }
+  final store = MemoryTapes(tapes);
+  final output = StringBuffer();
+  final notes = <String>[];
+  var ran = false;
+  var ended = true;
+  for (final (int index, JobCompilation job) in compilation.jobs.indexed) {
+    final int number = index + 1;
+    final JobRun? run = runObjectProgram(job, webListingOptions, tapes: store);
+    if (run == null) {
+      notes.add(
+        'Job $number made no object program, so there is nothing to run. '
+        'The listing says why.',
+      );
+      continue;
+    }
+    if (run.barredBy case final int severity) {
+      notes.add(
+        'Job $number did not run. Its worst diagnostic has severity '
+        '$severity, and only a job whose worst is 1 or less runs.',
+      );
+      continue;
+    }
+    ran = true;
+    run.display.forEach(output.writeln);
+    reportLines(run.reports).forEach(output.writeln);
+    if (run.fault case final RunFault fault) {
+      notes.add('Job $number stopped: ${_sentence('$fault')}');
+    }
+    if (run.outcome == RunOutcome.stepLimit) {
+      notes.add(
+        'Job $number was still running after $runStepBudget steps, so the '
+        'site stopped it. A program that never ends is a result the '
+        'machine reproduces, not a fault in it.',
+      );
+    }
+    for (final TapeReport report in run.reports) {
+      if (report.fault case final UnreadableRecord fault) {
+        notes.add(
+          'Job $number wrote a tape for ${report.file} that cannot be '
+          'read back: ${_sentence('$fault')}',
+        );
+      }
+    }
+    ended &=
+        run.outcome == RunOutcome.endOfJob &&
+        run.reports.every((TapeReport report) => report.fault == null);
+  }
+  return WebRun(output: output.toString(), notes: notes, ended: ran && ended);
 }
 
 /// Capitalizes a codec message and closes it with a full stop, so it reads

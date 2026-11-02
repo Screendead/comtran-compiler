@@ -38,7 +38,7 @@ browser refuses to fetch one from a `file://` URL. Any static server does.
 | `styles.css`, `app.js` | Shared style, and the compiler page's behaviour. Committed. |
 | `images/` | Scan crops used as evidence. Committed. |
 | `main.dart` | The browser entry point. Committed. |
-| `main.wasm`, `main.mjs`, `main.support.js`, `sample.js` | Build output. Not committed. |
+| `main.wasm`, `main.mjs`, `main.support.js`, `sample.js`, `tapes.js` | Build output. Not committed. |
 | `sources/` | Build output: every manual page beside its scan, the copied scans and PDFs, and the language reference. Not committed. |
 
 ### Where the crops came from
@@ -130,9 +130,32 @@ no `[sic]` mark and no gloss marker. Whether rule E3 asks for the mark on a
 whole-page transcription is open, and section 6 of
 `docs/design/web-copy.md` states the options.
 
+## The run (W4)
+
+The Run button compiles the typed deck and runs it on the emulated
+machine over the sample's two reconstructed input tapes,
+`test/fixtures/90.05-tapes/`. The build embeds both tapes in `tapes.js`,
+as it embeds the sample deck in `sample.js`, so a run makes no request.
+The run panel prints the on-line printer's lines and then each output
+report, which is what `comtranc --run --list-tapes` prints.
+
+The run keeps every tape in memory: `lib/src/runtime/tape_store.dart` is
+the interface, and the command line keeps its directory of `.tap` files
+behind the same interface. `comtranc` and the site call one runner,
+`lib/src/driver/job_run.dart`, so they agree on which jobs run.
+
+`test/web_run_test.dart` holds the run to
+`test/goldens/90.05-payroll.report` on the Dart VM.
+`tool/check_web_run.mjs` holds the WebAssembly build to the same golden.
+Run it with Node 22 or later after the build:
+
+```sh
+node tool/check_web_run.mjs
+```
+
 ## Not built yet
 
 W1 does not yet include the golden-diff panel. The deck download and the
 share link landed on 2026-08-10.
 
-W3 and W4 add the stage-by-stage walk and the tutorial.
+W3 adds the stage-by-stage walk, and W4 the tutorial.
