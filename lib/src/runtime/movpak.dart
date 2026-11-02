@@ -107,7 +107,7 @@ final class _Movpak {
   };
 
   /// SYS)180 and SYS)182, the two dispatch entries the generator emits
-  /// ([J 90.02.15]). SYS)180 carries one in-line `PZE LOC,,BYTE` for the
+  /// ([J 90.02.15]). SYS)180 carries one in-line address reference for the
   /// target and resumes at `2,4`; SYS)182 carries none and resumes at
   /// `1,4`. Both leave the instruction counter on the family head, which
   /// the CPU then executes.
@@ -134,22 +134,25 @@ final class _Movpak {
   }
 
   /// The pointer an in-line address reference names ([J 90.02.14]):
-  /// `PZE LOC,,BYTE` is the pointer itself, and `MZE BL)NN,,CP)+NN` the
+  /// `PZE LOC,,BYTE` is the pointer itself, `MZE BL)NN,,CP)+NN` the
   /// base locator plus the displacement constant, the sum the in-line
-  /// `CAL / ACL / SLW` builds ([J 90.02.11] Case 2).
+  /// `CAL / ACL / SLW` builds ([J 90.02.11] Case 2), and `MON PI)NN,,0`
+  /// the pointer the positional indicator holds, the word `LDI PI)2 /
+  /// STI SYS)132` copies at LOC 01445–01446 ([J 90.02.15] Case 3).
   int _addressReference(int word) {
     final int prefix = Word36.prefix(word);
-    if (prefix == 0) {
-      return word;
-    }
-    if (prefix != 4) {
-      // `MON PI)NN,,0` ([J 90.02.15]) has no emitter (RT-4).
-      throw StateError('an address word of prefix $prefix');
-    }
     final MachineState state = _machine.state;
-    return (state.read(Word36.address(word)) +
-            state.read(Word36.decrement(word))) &
-        Word36.wordMask;
+    switch (prefix) {
+      case 0:
+        return word;
+      case 4:
+        return (state.read(Word36.address(word)) +
+                state.read(Word36.decrement(word))) &
+            Word36.wordMask;
+      case 5:
+        return state.read(Word36.address(word));
+    }
+    throw StateError('an address word of prefix $prefix');
   }
 
   /// The step discipline of RT-3. The cursor sits on the handler's own
