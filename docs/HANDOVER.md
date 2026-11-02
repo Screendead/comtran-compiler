@@ -216,16 +216,20 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    01410 to 01412. After a convert drops fraction digits (defect 1),
    the quotient stores from the MQ through `STQ 0,r`. An edited target
    refuses `a subscripted edited-store target (no sample instance)`.
+   An ADD target dropped its subscript too. PR #168 refuses it, and
+   does not handle it: `a subscripted ADD target (no sample instance)`.
 9. **A SET or ADD into a subscript variable updated no indicator.
    Ruled: handle it. Handled by PR #168.** Each SET and each plain ADD
    target now updates the indicators it drives (M4-10;
    [J 02.04.07.01]). `SET K = K + c` steps them in place; any other
-   store recomputes. A new refusal: `SET EXI = 3` into an
-   external-decimal index refuses `an external-decimal subscript
-   variable (M6-9)`, as the MOVE did. Master compiled it and moved no
-   indicator. Open: MOVE and ADD CORRESPONDING still update no
-   indicator, and the in-place step cannot correct an indicator that
-   no store has set.
+   store recomputes. `SET EXI = 3` into an external-decimal index now
+   refuses `an external-decimal subscript variable (M6-9)`, as the
+   MOVE does. Master compiled it and moved no indicator. Open: MOVE
+   and ADD CORRESPONDING update no indicator, and
+   no store sets the indicator of a literal or expression subscript.
+   `CELL (2)` and `CELL (I + 1)` exit with `BASE LOCATOR NOT LOADED`,
+   and `SET K = K + 2` leaves `A(J, K+1)` stale. The in-place step
+   cannot correct an indicator that no store has set.
 10. **The subscript store dropped the byte of a field inside a word.
     Ruled: a store that drives several indicators keeps the 1962
     behaviour (boundary A). PR #168 handles a store that drives one.**

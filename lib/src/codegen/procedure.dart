@@ -1720,10 +1720,7 @@ final class _Text {
       // in its word count.
       _unruled('a located DO FOR index (no sample instance)');
     }
-    final driven = <(DataItem, String)>[
-      for (final (DataItem, String) each in semantics.positionalIndicators)
-        if (each.$2 == index.index.text) each,
-    ];
+    final List<DataItem> driven = _driven(index.index.text);
     final bounds = <PoolHandle>[];
     for (final bound in <ArithExpr>[index.from, index.by, index.to]) {
       if (bound case LiteralOperand(:final literal)) {
@@ -1738,7 +1735,7 @@ final class _Text {
     final strides = <PoolHandle>[];
     final bases = <PoolHandle>[];
     final partial = <bool>[];
-    for (final (DataItem item, _) in driven) {
+    for (final item in driven) {
       final int chars = _strideChars(item);
       if (chars % 6 == 0) {
         strides.add(_pool.stride(chars ~/ 6));
@@ -1781,7 +1778,7 @@ final class _Text {
     }
     for (var i = 0; i < driven.length; i++) {
       _op(Op.cla, tableBases[i]);
-      _op(Op.sto, _blockWord(StorageBlock.pi, _indicator(driven[i].$1)));
+      _op(Op.sto, _blockWord(StorageBlock.pi, _indicator(driven[i])));
     }
     final _Sym entry = _entrySym(clause.procedure);
     equ(bodyEntry, entry.value, operand: entry.text);
@@ -1807,7 +1804,7 @@ final class _Text {
       for (var i = 0; i < driven.length; i++) {
         final _Sym indicator = _blockWord(
           StorageBlock.pi,
-          _indicator(driven[i].$1),
+          _indicator(driven[i]),
         );
         _op(Op.cla, _cp(strides[i]));
         _op(Op.add, indicator);
@@ -2616,11 +2613,7 @@ final class _Text {
   /// decrement drops RETPREM's byte 3 (M6-4 finding 1): the golden
   /// needs that word.
   void _subscriptRecomputation(NameReference target) {
-    final driven = <DataItem>[
-      for (final (DataItem item, String notation)
-          in semantics.positionalIndicators.reversed)
-        if (notation == target.text) item,
-    ];
+    final List<DataItem> driven = _driven(target.text).reversed.toList();
     if (driven.isEmpty) {
       return; // Most moves drive no indicator at all.
     }
@@ -2952,17 +2945,20 @@ final class _Text {
   /// STO PI)6` ([J 90.02.05]; M4-10), the DO FOR's step at LOC 00714
   /// to 00716. The order is the recomputation's.
   void _subscriptIncrement(NameReference target, int step) {
-    for (final (DataItem table, String notation)
-        in semantics.positionalIndicators.reversed) {
-      if (notation != target.text) {
-        continue;
-      }
+    for (final DataItem table in _driven(target.text).reversed) {
       final _Sym indicator = _blockWord(StorageBlock.pi, _indicator(table));
       _op(Op.cla, _cp(_pool.stride(_strideWords(table) * step)));
       _op(Op.add, indicator);
       _op(Op.sto, indicator);
     }
   }
+
+  /// The tables whose positional indicator [notation] drives, in the
+  /// order of their indicators.
+  List<DataItem> _driven(String notation) => <DataItem>[
+    for (final (DataItem item, String each) in semantics.positionalIndicators)
+      if (each == notation) item,
+  ];
 
   void _add(AddClause clause) {
     if (clause.truncated || clause.onOverflow != null) {
@@ -2983,6 +2979,10 @@ final class _Text {
       final external = _sem(source).fieldClass == FieldClass.externalDecimal;
       if (name.subscripts.isNotEmpty && !external) {
         _unruled('a subscripted ADD source (no sample instance)');
+      }
+      // Both arms resolve the target alone, so its subscript would drop.
+      if (clause.targets.any((NameReference t) => t.subscripts.isNotEmpty)) {
+        _unruled('a subscripted ADD target (no sample instance)');
       }
       if (_sem(source).fieldClass == FieldClass.edited) {
         // The non-binary operand fetch (catalogue 4.7): the register
@@ -3113,13 +3113,11 @@ final class _Text {
     }
     read(Op.ldq);
     _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
-    final Set<int> outer = {..._parkedCells};
     final void Function(Op) parked = _park(0, _Register.mq);
     _addBody(target, () => parked(Op.add));
-    // The body has read the park.
-    _parkedCells
-      ..clear()
-      ..addAll(outer);
+    // The body has read the park. An ADD opens no chain, so cell 0 was
+    // free, and a later chain or comparison must find it free again.
+    _parkedCells.remove(0);
   }
 
   void _addBody(DataItem target, void Function() addend) {
@@ -3266,8 +3264,8 @@ final class _Text {
   }
 
   /// The `RS)` cells parked by the open chains that the assembly has yet
-  /// to read. A nested chain skips them. The chain of a comparison
-  /// inside a truth function does not, so it refuses after a park (M6-9).
+  /// to read. A nested chain skips them, the chain of a comparison
+  /// inside a truth function included.
   final Set<int> _parkedCells = <int>{};
 
   bool _additive(BinaryExpr expr) =>
@@ -3635,8 +3633,8 @@ final class _Text {
     required _Cont falseTo,
   }) {
     if (_parkedCells.isNotEmpty) {
-      // The chain of this comparison would number its RS) cells from 0
-      // over the outer chain's parks.
+      // The chain would skip the outer parks, but no sample site
+      // compares inside a truth function after a park (M6-9).
       _unruled(
         'an expression comparison inside a truth function after a parked '
         'term (no sample instance)',

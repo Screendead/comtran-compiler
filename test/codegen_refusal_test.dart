@@ -171,6 +171,27 @@ void main() {
       );
     });
 
+    test('a subscripted ADD target', () {
+      // Master added into the first element on every pass.
+      expect(
+        _refuses(['            ADD NUM TO TAB CELL (IDX).']),
+        'a subscripted ADD target (no sample instance)',
+      );
+    });
+
+    test('a subscripted ADD target of an edited source', () {
+      expect(
+        _refuses(
+          ['            ADD EDN TO TAB CELL (IDX).'],
+          data: [
+            ..._data(),
+            dataCard(name: 'EDN', level: '1', description: '899'),
+          ],
+        ),
+        'a subscripted ADD target (no sample instance)',
+      );
+    });
+
     test('an ADD into a target of lesser scale', () {
       expect(
         _refuses(['            ADD FRAC TO NUM.']),
@@ -792,8 +813,8 @@ void main() {
     });
 
     test('an expression comparison inside a later term of a chain', () {
-      // NUM * 2 parks in RS)1 ahead of the truth function, whose chain
-      // would number its own cells from RS)0 over it.
+      // NUM * 2 parks in RS)1 ahead of the truth function. Its chain
+      // would skip RS)1, but no sample site has the shape.
       expect(
         _refuses([
           '            IF NUM * 2 + TR (NUM + 1 GT FRAC) * 1 GT 15 THEN',
