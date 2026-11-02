@@ -179,6 +179,22 @@ void main() {
       );
     });
 
+    test('a resolved elementary operand on either side draws 97,00 and '
+        'pairs nothing', () {
+      for (final clause in [
+        'MOVE CORRESPONDING DATA.1 GROUP.1 ITEM FIELD.1 TO DATA.2.',
+        'MOVE CORRESPONDING DATA.1 TO DATA.2 GROUP.1 ITEM FIELD.1.',
+        'ADD CORRESPONDING DATA.1 GROUP.1 ITEM FIELD.1 TO DATA.2.',
+      ]) {
+        final SemanticResult result = runJob(
+          data: _exampleA(),
+          procedure: ['            $clause'],
+        );
+        expect(ids(result), ['97,00'], reason: clause);
+        expect(_pairs(result), isEmpty, reason: clause);
+      }
+    });
+
     test('a missing qualifier breaks correspondence; --pedantic notes '
         'it with 944,00 (example b)', () {
       final List<String> data = [
@@ -353,6 +369,15 @@ void main() {
         ),
         isEmpty,
       );
+    });
+
+    test('SET takes the chart as MOVE does (J 02.04.02)', () {
+      List<String> setting(String clause) =>
+          ids(runJob(data: _fields(), procedure: ['            $clause']));
+      expect(setting('SET INTNUM = HIGH.VALUE.'), ['82,00']);
+      expect(setting('SET INTNUM = LOW.VALUE.'), ['82,00']);
+      expect(setting('SET ALPHA = HIGH.VALUE.'), isEmpty);
+      expect(setting('SET INTNUM = ZERO.'), isEmpty);
     });
 
     test('ZERO moves and compares everywhere silently', () {
