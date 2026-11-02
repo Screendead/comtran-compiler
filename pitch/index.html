@@ -61,7 +61,7 @@ section { display: flex; flex-direction: column; gap: 12px; }
 <header>
   <div class="eyebrow">COMTRAN compiler · 2 November 2026</div>
   <h1>COMTRAN Calls, November</h1>
-  <p>Nine calls wait for you. Everything else that could move without you has moved. Click one option per call. Each click is saved, and I act on it when you tell me in the chat to read your picks. The recommended option is marked.</p>
+  <p>Eleven calls wait for you. Everything else that could move without you has moved. Click one option per call. Each click is saved, and I act on it when you tell me in the chat to read your picks. The recommended option is marked.</p>
   <p id="status">Connecting to the saved picks…</p>
 </header>
 
@@ -156,7 +156,23 @@ const CALLS = [
       { k: "now", t: "Now", d: "Calls 2 to 4 would then be made with the archive in view, and the comparison could no longer measure them." },
       { k: "later", t: "Later, after the web track (W3, W4)", d: "This delays the headline result to build site features first." } ],
     recwhy: "The seal is worth what is decided before it breaks. Three open calls are reconstruction decisions, so settle them first." },
-  { id: "other", title: "Anything else", why: "Free text. Overrule anything above, or add a call. Two smaller findings from today are not built yet. First, a condition entry named ON draws no message on IF ON or SET ON. Second, the parser accepts BEGIN SECTION, BEGIN SECTION. in silence, although an END that does not stand alone draws message 179. Nobody has yet checked whether the manuals require BEGIN to stand alone. Both are recorded in HANDOVER (PR #176), and I will look into them next unless you say otherwise.", opts: [], free: true }
+  { id: "nameless", title: "A BEGIN SECTION with no name: diagnose it, and with which message?",
+    why: "F p. 26 says a section starts with its name and a period, then BEGIN SECTION. Today <code>S1. BEGIN SECTION, BEGIN SECTION.</code> opens two sections, both named S1, and one END S1 leaves the second one open (only message 66 fires, at the end of the program). An unnamed <code>BEGIN SECTION.</code> followed by a bare <code>END.</code> draws nothing. No 1962 message covers this.",
+    built: "Probed on master today; the cause is <code>procedure_parser.dart:1200</code>, which gives every BEGIN clause the sentence's one label. Not built: the message is your call.",
+    opts: [
+      { k: "196", t: "Delete the sentence with message 196, as M2-12 does for other illegal clause mixes", d: "Attested message, same precedent as M2-12. The section never opens, so later ENDs may draw 65.", rec: true },
+      { k: "192", t: "Message 192, as D1.5 uses for a misplaced key word", d: "Attested message; the clause is dropped and the sentence kept." },
+      { k: "9xx", t: "A new non-historical message (D9.12)", d: "Exact wording, but no 1962 source." },
+      { k: "leave", t: "Leave it: the 1962 compiler may have accepted it", d: "Under your 14 September rule, a shape it compiled must compile. No evidence either way." } ],
+    recwhy: "196 is a real 1962 message, and M2-12 already uses it for clauses that may not share a sentence. That keeps us inside attested behaviour." },
+  { id: "d21", title: "Two PROGRAM.START labels: obey D2.1, or keep the generator's refusal?",
+    why: "Locked decision D2.1 says the first label wins, with message 141, and compilation goes on. The code generator refuses the program instead. This is a clash between two of our own authorities, so it is yours to settle. It has waited since 6 September.",
+    built: "<code>review/2026-09-06-m4s4-machine-assembly</code>, item 5, holds the evidence.",
+    opts: [
+      { k: "refuse", t: "Keep the refusal and add a note to D2.1 that code generation refuses", d: "No code change. The listing still shows message 141.", rec: true },
+      { k: "first", t: "Generate code with the first label as D2.1 says", d: "A small generator change; the second label becomes an ordinary label." } ],
+    recwhy: "The record's recommendation. No program in either corpus has two start labels, and the refusal hides nothing, because message 141 already reports the problem." },
+  { id: "other", title: "Anything else", why: "Free text. Overrule anything above, or add a call. Also checked today and found correct: a condition entry named ON draws message 178 on its card, and every use of it draws a parser message (J 02.03.02 reserves ON).", opts: [], free: true }
 ];
 
 const state = { picks: {}, db: null };
