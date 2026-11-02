@@ -12,6 +12,7 @@ node_modules/
 /web/main.wasm
 /web/main.wasm.map
 /web/sample.js
+/web/sources/
 
 # macOS
 .DS_Store

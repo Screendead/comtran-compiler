@@ -65,7 +65,9 @@ typedef ManualFile = ({
   List<ManualEntry> entries,
 });
 
-final RegExp _fence = RegExp('^ {0,3}```');
+/// The opening or closing line of a fenced code block. Every tool that
+/// assigns heading anchors shares it, so their anchors agree.
+final RegExp fence = RegExp('^ {0,3}```');
 final RegExp _heading = RegExp(r'^(#{1,6}) +(.*)$');
 final RegExp _pageComment = RegExp(
   r'^<!--\s*(?:.*?\s*\|\s*)?PDF\s*(\d+)\s*-->$',
@@ -161,7 +163,7 @@ ManualFile parseManualFile({
   for (var i = 0; i < lines.length; i++) {
     final String line = lines[i].trimRight();
     final int number = i + 1;
-    if (_fence.hasMatch(line)) {
+    if (fence.hasMatch(line)) {
       inFence = !inFence;
       continue;
     }

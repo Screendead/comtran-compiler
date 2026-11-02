@@ -5,6 +5,9 @@
 ///
 /// - `web/sample.js`, the 90.05 job deck's mirror text as one JavaScript
 ///   string, so the page carries its sample program with no request.
+/// - `web/sources/`, the language reference and both manuals page by page
+///   beside their scans, with copies of the scans and the PDFs
+///   (`tool/web_sources_source.dart`).
 /// - `web/main.wasm` and `web/main.mjs`, the compiler itself.
 ///
 /// **The target is WebAssembly, not JavaScript, and the choice is
@@ -24,6 +27,8 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import 'web_sources_source.dart';
+
 const String _sampleDeck = 'test/fixtures/90.05-payroll-job.ct';
 
 void main() {
@@ -33,6 +38,25 @@ void main() {
     'export const SAMPLE = ${jsonEncode(sample)};\n',
   );
   stdout.writeln('web/sample.js — ${'\n'.allMatches(sample).length} cards');
+
+  final sources = Directory('web/$sourcesDir');
+  if (sources.existsSync()) {
+    sources.deleteSync(recursive: true);
+  }
+  final SourcesSite site = buildSourcesSite();
+  site.pages.forEach((String path, String html) {
+    File('web/$path')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(html);
+  });
+  site.copies.forEach((String from, String to) {
+    File('web/$to').parent.createSync(recursive: true);
+    File(from).copySync('web/$to');
+  });
+  stdout.writeln(
+    'web/$sourcesDir — ${site.pages.length} pages, '
+    '${site.copies.length} copied files',
+  );
 
   final ProcessResult compile = Process.runSync(Platform.resolvedExecutable, [
     'compile',

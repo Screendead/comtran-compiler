@@ -30,7 +30,7 @@ The basic character set of the source language consists of the 26 letters of the
 Rules about the blank:
 
 - The blank **is a character**. A series of blanks is regarded as a single blank, *except* in alphameric literals or other constants, where each blank is a separate character ([F p. 12]; [F p. 27], rule 2). Numeric literals cannot contain any blanks ([F p. 27], rule 2).
-- In numeric external (BCD) data fields, leading blanks are treated as leading zeros ([J 02.05.05], note 3) — a data-representation fact, see §3 (Data description and storage model).
+- In numeric external (BCD) data fields, leading blanks are treated as leading zeros ([J 02.05.05], note 3), a data-representation fact, see §3 (Data description and storage model).
 
 **Machine character set vs. source character set.** Constants defined in the data description "may include any of the characters in the machine's character set" ([F p. 19]), which is larger than the twelve source special characters. The J manual exhibits the full machine set via the two collating sequences ([J 02.06.16]). The 709/7090 native sequence, lowest to highest, is:
 
@@ -44,7 +44,7 @@ and the Commercial (705) sequence, selected by `COLLATE COM` on an Environment O
 Blank   .   ⟨loz⟩   ⟨gm⟩   &   $   *   −   /   ,   %   #   @   ⟨+0⟩   A through I   ⟨−0⟩   J through R   ⟨rm⟩   S through Z   0 through 9
 ```
 
-(both [J 02.06.16] — **scan-resolved reading**, 2026-08-01: both displays re-read from the source scan at 600 dpi and independently verified; each prints as one logical line — the second physical line in each is a plain wrap. Glyph legend, shapes certain, BCDIC names inferred: `⟨+0⟩` = full-size zero with a plus above it, the 12-0 "plus zero" zone punch; `⟨−0⟩` = zero with a plain bar above it, the 11-0 "minus zero"; `⟨rm⟩` = two-bar double-dagger form, the IBM record mark (0-8-2); `⟨gm⟩` = three-bar form, the IBM group mark; `⟨loz⟩` = the IBM lozenge, a hollow squarish ring with corner spurs. Each letter zone group is followed by its own zone special — A–I by ⟨+0⟩, J–R by ⟨−0⟩, S–Z by ⟨rm⟩ — and the `=` after the digits is a listed collating character, not prose. The conversion's earlier best-effort rendering (`0̅` for both zero forms, `×` and `‡` for the others) under-differentiated these glyphs; see §8.5.8.) Note that `&`, `%`, `#`, `@` and the record/group-mark-type characters exist in the machine set (and hence can occur in data) but are not part of the source-language special-character list. The figurative constants HIGH.VALUE/LOW.VALUE take their values from whichever collating sequence is in effect — see §1.7.4.
+(both [J 02.06.16]; **scan-resolved reading**, 2026-08-01: both displays re-read from the source scan at 600 dpi and independently verified; each prints as one logical line: the second physical line in each is a plain wrap. Glyph legend, shapes certain, BCDIC names inferred: `⟨+0⟩` = full-size zero with a plus above it, the 12-0 "plus zero" zone punch; `⟨−0⟩` = zero with a plain bar above it, the 11-0 "minus zero"; `⟨rm⟩` = two-bar double-dagger form, the IBM record mark (0-8-2); `⟨gm⟩` = three-bar form, the IBM group mark; `⟨loz⟩` = the IBM lozenge, a hollow squarish ring with corner spurs. Each letter zone group is followed by its own zone special (A–I by ⟨+0⟩, J–R by ⟨−0⟩, S–Z by ⟨rm⟩) and the `=` after the digits is a listed collating character, not prose. The conversion's earlier best-effort rendering (`0̅` for both zero forms, `×` and `‡` for the others) under-differentiated these glyphs; see §8.5.8.) Note that `&`, `%`, `#`, `@` and the record/group-mark-type characters exist in the machine set (and hence can occur in data) but are not part of the source-language special-character list. The figurative constants HIGH.VALUE/LOW.VALUE take their values from whichever collating sequence is in effect; see §1.7.4.
 
 **Overpunched digits.** The sign of an external-decimal field is carried as an overpunch (a 12- or 11-zone punch combined with a digit punch in one column). In the manual conversions a minus-zone overpunch is rendered with a combining overline (`9̅`, `8̅`) and a plus-zone overpunch with a superscript plus (`9⁺`, `123⁺`); see the conversion notes to [J 02.05.05]–02.05.07 (convention amended 2026-08-04). **F/J divergence:** F allows the `+`/`-` sign to be "entered as an 'overpunch' with either of the format characters 8 or 9, in either the units or high-order position of a field" ([F p. 80]); J restricts it: "The only sign specification which may be used for an external decimal field is an overpunched + or - in the rightmost position of the field. A + and - may not appear in the character by itself." ([J 02.05.05], note 1). Details of pictorials belong to §3.
 
@@ -54,10 +54,10 @@ There is no lower case anywhere in the language: card codes define a single (upp
 
 ### 1.2 The literal-delimiting quotation mark
 
-The Set H "quotation mark" (card code 4-8) is the single delimiter for non-numeric literals and for all named constants ([F p. 12]; [F p. 19]). It is a single character — there is no distinct open/close quote. In the Markdown conversions of both manuals it is rendered throughout as a straight apostrophe `'` (conversion note, F ch. 2; repo conventions). Every quoted item in this reference, e.g. `'M'`, `'05'`, `'LOS ANGELES        15342 28516 21287'`, uses that rendering of the 4-8 punch.
+The Set H "quotation mark" (card code 4-8) is the single delimiter for non-numeric literals and for all named constants ([F p. 12]; [F p. 19]). It is a single character: there is no distinct open/close quote. In the Markdown conversions of both manuals it is rendered throughout as a straight apostrophe `'` (conversion note, F ch. 2; repo conventions). Every quoted item in this reference, e.g. `'M'`, `'05'`, `'LOS ANGELES        15342 28516 21287'`, uses that rendering of the 4-8 punch.
 
 - An alphabetic or alphameric literal may contain **any character of the basic set except the quotation mark itself** ([F p. 19], rule 1).
-- Named constants "may include any of the characters in the machine's character set, including the quotation mark and the blank" ([F p. 19], rule 3) — but no representation (escape) for an embedded quotation mark is ever defined; see Ambiguity A1.
+- Named constants "may include any of the characters in the machine's character set, including the quotation mark and the blank" ([F p. 19], rule 3), but no representation (escape) for an embedded quotation mark is ever defined; see Ambiguity A1.
 - A missing closing delimiter is diagnosed: "SECOND QUOTE MARK MISSING." ([J 90.04], message 167,00).
 
 ### 1.3 Words and name formation
@@ -90,18 +90,18 @@ Most names fall into three categories ([F p. 13]):
 
 Other name-like entities a compiler must recognize:
 
-- **Division headers** `*PROCEDURE`, `*DATA`, `*ENVIRONMENT` — the division name preceded by an asterisk, written with the asterisk in the left-most name column (column 7); every entry following a header belongs to that division until the next header ([F p. 27]; [F p. 37], rule 1; [F p. 65]). Division headers must begin with single asterisks ([F p. 28], rule 12). Omission of a division header is a catastrophic compile error ([J 05.06.01]).
+- **Division headers** `*PROCEDURE`, `*DATA`, `*ENVIRONMENT`: the division name preceded by an asterisk, written with the asterisk in the left-most name column (column 7); every entry following a header belongs to that division until the next header ([F p. 27]; [F p. 37], rule 1; [F p. 65]). Division headers must begin with single asterisks ([F p. 28], rule 12). Omission of a division header is a catastrophic compile error ([J 05.06.01]).
 - **`deck.name`** on the $CMPLE compiler control card: "six or less characters chosen from the set appropriate for use in CT names", no imbedded blanks, leading blanks ignored ([J 02.01.01]). The compiler accepts an imbedded-blank deck.name without comment but the Loader then rejects it ([J 90.01.05], B.5).
-- **PROGRAM.START** — a distinguished statement/section name recognized by the 7090 compiler as the execution starting point: "MORE THAN ONE -PROGRAM.START-. FIRST USED."; it "MUST BE A STATEMENT OR SECTION NAME" and "CANNOT BE A STATEMENT OR SECTION NAME ADDRESSED BY A -DO-" ([J 90.04], messages 141,00–143,00; also [J 90.02]). It appears nowhere in F.
-- **Compiler-generated names** contain a right parenthesis, which no programmer name can contain — e.g. `GN)nnn` for unnamed statements/entries in the listing ([J 02.02.01]), `SYS)294` ([J 02.08.03]), constant-pool names `CP)+NN` (the "SYM)NNN" generated-name form, [J 90.02.03]; the leading hyphen printed at [J 90.01.05] item k is a dash introducing the notation, not part of the name — see §8.5.8), `SRAIJ`-style symbolic registers ([J 02.08.02]). Also duplicate source names are printed as `1)C`, `2)C` in listings ([J 90.02]).
+- **PROGRAM.START**: a distinguished statement/section name recognized by the 7090 compiler as the execution starting point: "MORE THAN ONE -PROGRAM.START-. FIRST USED."; it "MUST BE A STATEMENT OR SECTION NAME" and "CANNOT BE A STATEMENT OR SECTION NAME ADDRESSED BY A -DO-" ([J 90.04], messages 141,00–143,00; also [J 90.02]). It appears nowhere in F.
+- **Compiler-generated names** contain a right parenthesis, which no programmer name can contain: e.g. `GN)nnn` for unnamed statements/entries in the listing ([J 02.02.01]), `SYS)294` ([J 02.08.03]), constant-pool names `CP)+NN` (the "SYM)NNN" generated-name form, [J 90.02.03]; the leading hyphen printed at [J 90.01.05] item k is a dash introducing the notation, not part of the name; see §8.5.8), `SRAIJ`-style symbolic registers ([J 02.08.02]). Also duplicate source names are printed as `1)C`, `2)C` in listings ([J 90.02]).
 - **Synonyms** created by the CALL verb are names in the ordinary sense; a synonym must always be a single name rather than a compound name, though it may be applied to a compound name ([F p. 59]). The (old.name) in CALL must be unique (or made unique by qualifiers) and may not be subscripted ([J 02.04.05] §5; [J 90.01.01]).
 - **F/J divergence:** function-names and parameter-names (with type codes FUNCT and PARAM) are part of the 1960 language ([F p. 32–34], p. 72–73); "These two type codes described in the General Information Manual are no longer in the language" ([J 02.05.03], §6). See §3.
 
-**Uniqueness.** Names need not be globally unique if qualification can make references unique (§1.5), but: a name associated with the RECORD type code must be unique, and a record defined within a section may not use the section.name as qualifier ([J 90.01.03]); a name must be unique within its section — "'NAME.1' IS NOT UNIQUE IN THIS SECTION." ([J 90.04], message 166,00), which by inference covers statement/section names, though the manual never says which name class the message addresses; a CONTRL name "MUST BE UNIQUE AND 6 CHARACTERS OR LESS" ([J 90.04], message 207,00).
+**Uniqueness.** Names need not be globally unique if qualification can make references unique (§1.5), but: a name associated with the RECORD type code must be unique, and a record defined within a section may not use the section.name as qualifier ([J 90.01.03]); a name must be unique within its section: "'NAME.1' IS NOT UNIQUE IN THIS SECTION." ([J 90.04], message 166,00), which by inference covers statement/section names, though the manual never says which name class the message addresses; a CONTRL name "MUST BE UNIQUE AND 6 CHARACTERS OR LESS" ([J 90.04], message 207,00).
 
 ### 1.5 Compound names (qualification)
 
-A non-unique name is "qualified," or "compounded," by prefixing the name of a larger data item of which it is a part, e.g. `INPUT.MASTER ORDER.DATE` ([F p. 15]). There is no OF/IN connective — qualification is by juxtaposition. Rules ([F p. 15–16]):
+A non-unique name is "qualified," or "compounded," by prefixing the name of a larger data item of which it is a part, e.g. `INPUT.MASTER ORDER.DATE` ([F p. 15]). There is no OF/IN connective: qualification is by juxtaposition. Rules ([F p. 15–16]):
 
 1. Each name must be separated from the next by at least one blank (this is what distinguishes compound from simple names, since simple names may not contain blanks).
 2. The names must be written in increasing order from the general to the specific, i.e. from the lowest to the highest level number.
@@ -115,9 +115,9 @@ J refinements and restrictions:
 - For the CORRESPONDING option, "All qualifiers must be present and identical through the level of the name itself to meet the criteria of correspondence" ([J 02.04.04]).
 - Qualified names may not be used in the Environment Description or in CRYPT instructions; names there must be one word only; CALL reduces a qualified name to a one-word name ([J 02.03.03], §C; [J 90.01.01]; [J 90.01.04]).
 - Improper qualification is diagnosed: "'NAME.1' IS AN IMPROPERLY QUALIFIED NAME." ([J 90.04], message 101,00).
-- Parsing hazard: in a DISPLAY statement, "Data names not intended to be used as qualifiers must be separated by commas; otherwise all but the last will be disregarded" ([J 90.01.01]) — i.e. juxtaposed names are always read as one qualified reference.
+- Parsing hazard: in a DISPLAY statement, "Data names not intended to be used as qualifiers must be separated by commas; otherwise all but the last will be disregarded" ([J 90.01.01]), i.e. juxtaposed names are always read as one qualified reference.
 
-**Subscripts and compound names.** Subscripts are written in parentheses; either each level is subscripted individually — `PAGE (150) LINE (10) WORD (4)` — or all subscripts are collected after the (possibly compounded) final name — `PAGE LINE WORD (150, 10, 4)`; the two are equivalent ([F p. 30]). Multiple subscripts within one pair of parentheses are separated by single commas; as many as three subscripts may appear ([F p. 30]; [F p. 28], rule 10). Subscripts are written in descending order of level ([F p. 78]). A subscript is a name, a literal, or an arithmetic expression of the restricted form `a * VARIABLE ± b` (a, b literals; VARIABLE simple or compound but itself unsubscripted); it must represent a positive integral value ([F p. 31]). Arrays begin at element 1: "The initial value of an array is A(1) and not A(0)" ([J 02.04.07.01]). See §2 for expression semantics and §3 for storage layout.
+**Subscripts and compound names.** Subscripts are written in parentheses; either each level is subscripted individually (`PAGE (150) LINE (10) WORD (4)`) or all subscripts are collected after the (possibly compounded) final name (`PAGE LINE WORD (150, 10, 4)`); the two are equivalent ([F p. 30]). Multiple subscripts within one pair of parentheses are separated by single commas; as many as three subscripts may appear ([F p. 30]; [F p. 28], rule 10). Subscripts are written in descending order of level ([F p. 78]). A subscript is a name, a literal, or an arithmetic expression of the restricted form `a * VARIABLE ± b` (a, b literals; VARIABLE simple or compound but itself unsubscripted); it must represent a positive integral value ([F p. 31]). Arrays begin at element 1: "The initial value of an array is A(1) and not A(0)" ([J 02.04.07.01]). See §2 for expression semantics and §3 for storage layout.
 
 ### 1.6 Reserved words: the fixed vocabulary
 
@@ -149,13 +149,13 @@ J refinements and restrictions:
 | EQUAL | †LIBRARY | | |
 | EXACTLY | LOAD | | |
 
-([F p. 110]; the source prints one alphabetical list flowing down three columns — the blank grid cells are the source's own vertical spacing between letter groups. Scan-checked against images/page-115.png, 2026-08-03.)
+([F p. 110]; the source prints one alphabetical list flowing down three columns: the blank grid cells are the source's own vertical spacing between letter groups. Scan-checked against images/page-115.png, 2026-08-03.)
 
 #### 1.6.2 J28-6169 key-word classification (1962, authoritative)
 
 "Many of the reserved Commercial Translator words are usable as Procedure, Data and Environment names in certain situations as shown in the following key word lists. However, it is strongly recommended that the entire group be avoided altogether." ([J 02.03.02]).
 
-**Group 1 — always Key words, never usable as programmer names in any division** ([J 02.03.02]):
+**Group 1: always Key words, never usable as programmer names in any division** ([J 02.03.02]):
 
 | | | |
 |---|---|---|
@@ -165,7 +165,7 @@ J refinements and restrictions:
 | HIGH.VALUE | ON | |
 | HIGH.VALUES | RECORD | |
 
-**Group 2 — may not be used as Data or Procedure names** ([J 02.03.02]):
+**Group 2: may not be used as Data or Procedure names** ([J 02.03.02]):
 
 | | | | |
 |---|---|---|---|
@@ -184,7 +184,7 @@ J refinements and restrictions:
 | DISPLAY | HERE | OVERFLOW | USING |
 | DO | IF | OVERLAP | WITH |
 
-**Group 3 — usable as Procedure and Data names providing the procedure or data item need not be referenced in the Environment Division** ([J 02.03.03]):
+**Group 3: usable as Procedure and Data names providing the procedure or data item need not be referenced in the Environment Division** ([J 02.03.03]):
 
 | | | | |
 |---|---|---|---|
@@ -206,8 +206,8 @@ J refinements and restrictions:
 **F/J divergences in the word lists:**
 
 - New in J: **CRYPT**, **RUN** (STOP RUN is mandatory in every J program, [J 02.04.06] §9), **EQUALS** (all group 2), and the entire group-3 Environment vocabulary.
-- In F but absent from all J lists: **AS** (INCLUDE, which uses AS, is deferred in J — [J 90.01.02], A.1.a.v), and the type codes **COND, COPY, FUNCT, PARAM, REDEF** (in J these are recognized positionally in the Type columns of the Data/Environment forms rather than listed as key words; FUNCT/PARAM are gone from the language entirely, [J 02.05.03] §6).
-- Reclassified between F and J: **LABEL** (daggered in F — restricted usage in data description — becomes a J group-3 word, usable as a Data or Procedure name unless the item must be referenced in the Environment Division); **LIBRARY** and **QUANTITY** (daggered in F, i.e. free in procedure description, become J group-2 words, barred as Data or Procedure names) ([F p. 110]; [J 02.03.02]–02.03.03; scan-checked 2026-08-03).
+- In F but absent from all J lists: **AS** (INCLUDE, which uses AS, is deferred in J; [J 90.01.02], A.1.a.v), and the type codes **COND, COPY, FUNCT, PARAM, REDEF** (in J these are recognized positionally in the Type columns of the Data/Environment forms rather than listed as key words; FUNCT/PARAM are gone from the language entirely, [J 02.05.03] §6).
+- Reclassified between F and J: **LABEL** (daggered in F, restricted usage in data description, becomes a J group-3 word, usable as a Data or Procedure name unless the item must be referenced in the Environment Division); **LIBRARY** and **QUANTITY** (daggered in F, i.e. free in procedure description, become J group-2 words, barred as Data or Procedure names) ([F p. 110]; [J 02.03.02]–02.03.03; scan-checked 2026-08-03).
 - Misuse diagnostics: "'NAME.1' SHOULD NOT BE USED AS DATA NAME." (152,00); "PROCEDURE KEY WORD USED IN DATA OR ENVIRONMENT, INTERPRETED AS A DATA NAME." (178,00); "SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD." (192,00); "OPERATION DEFINED AS NAME OR FOUND IN NAME FIELD." (61,00) (all [J 90.04]).
 
 #### 1.6.3 Notation of general forms (how the manuals mark fixed vs. programmer words)
@@ -228,14 +228,14 @@ Rules ([F p. 18]):
 4. Floating point form: the fraction, the symbol F, then the exponent; fraction and exponent may each carry a plus or minus sign; F occupies no storage and is not counted in the length; base 10 only. F's examples: `1.5F3`, `15F2`, `.15F4`, `2F-3` ([F p. 18]).
 5. Numeric literals must **not** be enclosed in quotation marks.
 
-**F/J divergence — floating point literals.** J tightens the form to "the standard scientific decimal form" `fraction F±exponent` with these rules ([J 02.04.02]):
+**F/J divergence: floating point literals.** J tightens the form to "the standard scientific decimal form" `fraction F±exponent` with these rules ([J 02.04.02]):
 
 - a) Both fraction and exponent may be signed or unsigned (positive assumed).
 - b) **A decimal point must be present in the fraction** (`20.F+01` is a floating point literal, but `20F+01` is interpreted as an arithmetic expression). This invalidates F's point-free examples `15F2`, `2F-3`.
 - c) The F must be followed by at least one digit, signed or unsigned (`20.F0`).
 - d) `F` converts to single precision floating point; `FF` signals **double precision** floating point (new in J).
 
-Related J diagnostics: "INCORRECT USAGE OF PERIOD, SIGN, OR F FOR CONSTANT OR LITERAL." (53,00); "MAXIMUM NUMERIC LENGTH EXCEEDED FOR CONSTANT OR LITERAL." (52,00 — the limit value is not stated; see Ambiguity A2); floating overflow/underflow in conversion (55,00; 56,00) (all [J 90.04]).
+Related J diagnostics: "INCORRECT USAGE OF PERIOD, SIGN, OR F FOR CONSTANT OR LITERAL." (53,00); "MAXIMUM NUMERIC LENGTH EXCEEDED FOR CONSTANT OR LITERAL." (52,00: the limit value is not stated; see Ambiguity A2); floating overflow/underflow in conversion (55,00; 56,00) (all [J 90.04]).
 
 #### 1.7.2 Alphabetic and alphameric literals
 
@@ -243,7 +243,7 @@ Rules ([F p. 19]):
 
 1. May contain any character of the basic character set **except the quotation mark**; the blank counts as a character.
 2. Limited to **50 characters**; may not be carried from one line to another on the procedure form. J: an alphameric literal "may not exceed fifty characters in length and must be complete upon a single line" ([J 02.04.02.01] §B.2, in the DISPLAY discussion); "ALPHABETIC LITERAL EXCEEDS 50 CHARACTERS." (150,00) and "ALPHABETIC LITERAL EXTENDS ACROSS CARDS." (168,00) ([J 90.04]).
-3. All non-numeric literals must be enclosed in quotation marks to distinguish them from names — even when they contain characters (arithmetic symbols, blank) that could not occur in names.
+3. All non-numeric literals must be enclosed in quotation marks to distinguish them from names, even when they contain characters (arithmetic symbols, blank) that could not occur in names.
 
 The rules of punctuation and spacing do not apply within literals ([F p. 28], rule 7). In the Environment description an "ALPHABETIC LITERAL FOLLOWING KEY WORD CANNOT EXCEED 6 CHARACTERS." ([J 90.04], message 160,00); the COND Environment card takes a 12-octal-digit alphameric literal `'nn'` ([J 02.06.17]).
 
@@ -255,7 +255,7 @@ Defined in the data description (see §3 for the entry format); referred to in p
 2. All named constants, **including wholly numeric ones, must be enclosed in quotation marks** ([F p. 19]; [F p. 81]: "Constants, unlike literals, must always be enclosed in quotation marks, even though they may be wholly numeric").
 3. May include any character of the machine's character set, including the quotation mark and the blank; a blank in an otherwise numeric constant makes it alphameric ([F p. 19]). (On the embedded quotation mark, see Ambiguity A1.)
 
-In the data description entry the constant's value is written in the Description columns after the field pictorial, separated by at least one blank ([F p. 81], example `V99 '05'`). **J note:** literals in the Data Description continued on multiple lines *in violation of* the [F p. 83] rules "are handled correctly" by the 7090 processor, but "use of this characteristic ... should not be made if compatibility with other processors is desired" ([J 02.03.01], §2.c). An over-long alphabetic constant draws "LENGTH OF ALPHABETIC CONSTANT EXCEEDS INTERNAL TABLE CAPACITY AND SHOULD BE SUBDIVIDED." ([J 90.04], message 148,00). Constant/pictorial length-matching and sign conventions for external/internal decimal constants (e.g. pictorial `999⁺` requires constant `123⁺`; internal decimal constants take leading +/-, trailing +/-, or no sign) are given at [J 02.05.06]–02.05.07 — see §3.
+In the data description entry the constant's value is written in the Description columns after the field pictorial, separated by at least one blank ([F p. 81], example `V99 '05'`). **J note:** literals in the Data Description continued on multiple lines *in violation of* the [F p. 83] rules "are handled correctly" by the 7090 processor, but "use of this characteristic ... should not be made if compatibility with other processors is desired" ([J 02.03.01], §2.c). An over-long alphabetic constant draws "LENGTH OF ALPHABETIC CONSTANT EXCEEDS INTERNAL TABLE CAPACITY AND SHOULD BE SUBDIVIDED." ([J 90.04], message 148,00). Constant/pictorial length-matching and sign conventions for external/internal decimal constants (e.g. pictorial `999⁺` requires constant `123⁺`; internal decimal constants take leading +/-, trailing +/-, or no sign) are given at [J 02.05.06]–02.05.07; see §3.
 
 #### 1.7.4 Figurative constants
 
@@ -275,7 +275,7 @@ A figurative constant fills the entire target area with the named character ([F 
 J restrictions ([J 02.04.01]):
 
 - In comparisons: ZERO may be compared to either numeric or alphameric fields; HIGH.VALUE, LOW.VALUE and BLANK may be compared to alphameric fields only.
-- With MOVE and SET: figurative constants may be used as source fields, but (i) may not be moved to variable length arrays (fields carrying QUANTITY IN) — though they may be moved to a particular element of one — and (ii) may not be moved to fields longer than 2¹⁵ − 1 characters ([J 02.04.01]; message 181,00 says "FIELD LONGER THAN 32766 CHARACTERS", [J 90.04] — see Ambiguity A6).
+- With MOVE and SET: figurative constants may be used as source fields, but (i) may not be moved to variable length arrays (fields carrying QUANTITY IN), though they may be moved to a particular element of one, and (ii) may not be moved to fields longer than 2¹⁵ − 1 characters ([J 02.04.01]; message 181,00 says "FIELD LONGER THAN 32766 CHARACTERS", [J 90.04]; see Ambiguity A6).
 - Result-by-target-type chart ([J 02.04.02]; \* = an error message is given for each doubtful or illegal usage; # = value dependent on the collating sequence specified, Commercial or 709):
 
 | Figurative Constant | Alphameric | External Decimal | Internal Decimal | Edited Field | Floating Point | Scientific Decimal |
@@ -308,7 +308,7 @@ The complete F rule set ([F p. 27–28]), all of which a scanner must honor:
 
 1. All words are separated by blanks or by any character which cannot legally be used in a word (rule 1).
 2. Multiple blanks = one blank, except within alphameric literals; numeric literals cannot contain blanks (rule 2).
-3. Each sentence is terminated by a period **followed by a blank**. If the blank is omitted the period is treated as an imbedded period — "except where the period is found in Column 72 of the procedure description form" (rule 3; a blank is assumed to follow column 72, rule 14).
+3. Each sentence is terminated by a period **followed by a blank**. If the blank is omitted the period is treated as an imbedded period, "except where the period is found in Column 72 of the procedure description form" (rule 3; a blank is assumed to follow column 72, rule 14).
 4. The imbedded period is a decimal point in all-numeral words and floating point numbers; elsewhere (outside literals) it connects parts of a simple name (rule 4).
 5. Successive imperative clauses in a sentence must be separated by **single commas**; extra blanks are permitted and ignored (rule 5; also [F p. 25]).
 6. Arithmetic operators may be written with or without surrounding blanks (`A + B * C` ≡ `A+B*C`). Two successive arithmetic operators are illegal **unless the second is TR or ABS**; `A * -B` is illegal, write `A * (-B)` (rule 6).
@@ -318,9 +318,9 @@ The complete F rule set ([F p. 27–28]), all of which a scanner must honor:
 10. Subscripts must be enclosed in parentheses; multiple subscripts within one pair are separated by single commas (rule 10).
 11. Parentheses may be used freely for clarity in arithmetic and compound conditional expressions; where ambiguity would result from omission they **must** be used (rule 11).
 12. Division headers must begin with single asterisks (rule 12).
-13. Punctuation and spacing peculiar to a verb is given in the verb's general format (rule 13; e.g. the parentheses in the assigned GO TO and in CALL are fixed parts of those commands — [F p. 49], [F p. 59]).
+13. Punctuation and spacing peculiar to a verb is given in the verb's general format (rule 13; e.g. the parentheses in the assigned GO TO and in CALL are fixed parts of those commands, [F p. 49], [F p. 59]).
 14. Line carry-over must follow the break-point rules of the respective form; a blank is assumed to follow Column 72 of the procedure form and Column 71 of the data description form (rule 14).
-15. When a function is named as an operand in a procedure statement, the substituted data-names are placed in **double parentheses** immediately after the function-name, separated by single commas, e.g. `MINIMUM ((RAIL.EXPRESS, AIR.FREIGHT, PARCEL.POST))` (rule 15; [F p. 34]). (Function references are absent from J — see §1.4 and §3.)
+15. When a function is named as an operand in a procedure statement, the substituted data-names are placed in **double parentheses** immediately after the function-name, separated by single commas, e.g. `MINIMUM ((RAIL.EXPRESS, AIR.FREIGHT, PARCEL.POST))` (rule 15; [F p. 34]). (Function references are absent from J; see §1.4 and §3.)
 
 Additional J parser facts: redundant right parentheses are eliminated with a message (113,00), a redundant left parenthesis is diagnosed (114,00), and "-WHEN- SUBSTITUTED FOR -IF- BECAUSE OF IMPROPER USE." (170,00) (all [J 90.04]).
 
@@ -328,7 +328,7 @@ The DO indexing notation `FOR index.name = p(q)r` (initial value, increment in p
 
 ### 1.9 Coding forms, card columns, and continuation
 
-Source programs are read as a deck of punched cards (or card images on tape); each line of a form is one card ([F p. 37]). The compiler listing reproduces "body of source program cards (columns 7-72)" ([J 02.02.01]) — columns 1–6 and 73–80 are never part of the language text.
+Source programs are read as a deck of punched cards (or card images on tape); each line of a form is one card ([F p. 37]). The compiler listing reproduces "body of source program cards (columns 7-72)" ([J 02.02.01]); columns 1–6 and 73–80 are never part of the language text.
 
 #### 1.9.1 Procedure Description form (free-form text)
 
@@ -358,7 +358,7 @@ Text layout rules ([F p. 37]):
 
 Continuation is implicit: "Continuation of Procedure text on successive lines is determined by the nature of the text; no continuation character is used" ([J 02.03.01], §2.a). Each word or literal must be complete upon a line, "since the processor assumes a blank following column 72 of Procedure lines" ([J 02.03.01], §2.c; [F p. 28], rule 14). Literals in particular may never be carried over ([F p. 18–19]; [J 90.04], message 168,00).
 
-**F/J divergence — procedure-name period:** F requires the period-and-blank after a procedure-name ([F p. 37]); the 7090 compiler is lenient: "Procedure.names not followed by a period (.) and blank are handled properly; no diagnostic message is given" ([J 90.01.03], A.1.a.ix). See Ambiguity A3.
+**F/J divergence (procedure-name period):** F requires the period-and-blank after a procedure-name ([F p. 37]); the 7090 compiler is lenient: "Procedure.names not followed by a period (.) and blank are handled properly; no diagnostic message is given" ([J 90.01.03], A.1.a.ix). See Ambiguity A3.
 
 #### 1.9.2 Data Description form (fixed columnar format)
 
@@ -387,7 +387,7 @@ Lexical facts per field (semantics in §3):
 - **Mode (36):** `I` internal (binary), `E` external (BCD) ([F p. 78]; [J 02.05.04]). Illegal mode character ⇒ external substituted ([J 90.04], message 189,00).
 - **Justify (37):** `L`, `R`, or blank (= packed) ([F p. 78–79]). Illegal justification character ⇒ not justified ([J 90.04], message 190,00).
 - **Description (38–71):** may contain, in order when combined on one line and separated by one or more blanks: format characters (field pictorial), constants, data-names for REDEF/COPY, the word LIBRARY plus a library data description name, or QUANTITY IN plus a field name ([F p. 79]). A pictorial is limited to 30 characters ("DATA DESCRIPTION CONTAINS PICTORIAL WHICH EXCEEDS LEGAL LIMIT OF 30 CHARACTERS.", [J 90.04], message 100,00). Any non-format character in a pictorial makes the whole pictorial be interpreted as a name ([J 02.05.06], §1.e). Format-character inventory (`A X 9 8 * V . S $ , + - F (n)`) and semantics are §3 material ([F p. 80]; [J 02.05.05]).
-- **Cont. (72):** any non-blank character marks the next card as a consecutive part of this entry; applies to overflow from the Name or the Description columns only ([F p. 84]). J: "The name and description fields only of Data Description entries may be continued. All other specifications ... must be made on the first card of that entry since these fields are not scanned on continuation cards" ([J 02.03.01], §2.d; also "DATA OR ENVIRONMENT FIXED FIELD INFORMATION SHOULD BE PUNCHED IN ONLY THE FIRST CARD OF A MULTIPLE CARD GROUP. POSSIBLE CONTINUATION CHARACTER ERROR.", [J 90.04], message 186,00). Break points must fall between words: a blank is assumed at the end of each line (the processor "replaces the contents of column 72 with a blank in Data and Environment lines", [J 02.03.01], §2.c; [F p. 83], General Note). Constants are the exception — continued as complete quote-enclosed constants per line without the continuation column, and with no assumed blanks between lines ([F p. 83]).
+- **Cont. (72):** any non-blank character marks the next card as a consecutive part of this entry; applies to overflow from the Name or the Description columns only ([F p. 84]). J: "The name and description fields only of Data Description entries may be continued. All other specifications ... must be made on the first card of that entry since these fields are not scanned on continuation cards" ([J 02.03.01], §2.d; also "DATA OR ENVIRONMENT FIXED FIELD INFORMATION SHOULD BE PUNCHED IN ONLY THE FIRST CARD OF A MULTIPLE CARD GROUP. POSSIBLE CONTINUATION CHARACTER ERROR.", [J 90.04], message 186,00). Break points must fall between words: a blank is assumed at the end of each line (the processor "replaces the contents of column 72 with a blank in Data and Environment lines", [J 02.03.01], §2.c; [F p. 83], General Note). Constants are the exception: continued as complete quote-enclosed constants per line without the continuation column, and with no assumed blanks between lines ([F p. 83]).
 - **Identification (73–80):** optional program-identifying code, any characters of the basic set, no effect on processor or object program ([F p. 84]).
 
 **Entry termination.** "Data and Environment entries are considered complete when column 72 is blank. The period (.) must not be used to signal completion. In these sections, a period is considered part of the previous word, thus creating an undefined name." ([J 02.03.02], §3.b; likewise for Environment specifications, [J 02.06.02].) F does not state a data-entry terminator; J is authoritative.
@@ -396,19 +396,19 @@ Lexical facts per field (semantics in §3):
 
 The Environment form (see §5/§6 for semantics) has: Serial 4–6 (Ctl. 1–3), Name 7–22, Type 25–30, Description (options) 31–71, Cont. 72, Identification 73–80 (J 02.06.01, form facsimile). The first card of each specification group may carry a name in columns 7–22 and must carry one of the type codes FILE, SPECIF, POOL, GROUP, CONTRL, OPTION, COND in columns 25–30; continuation is by non-blank column 72; a card that should begin a new specification (i.e. one following a card whose column 72 is blank) but lacks a type code is deleted with an error message; a type code appearing on a continuation card is ignored ([J 02.06.01.01]). "A period (.) must not be used to signal the end of a specification" ([J 02.06.02]).
 
-Compiler control cards (J only): a `$CMPLE` card must precede each source program — `$CMPLE` in columns 1–6, `deck.name` in columns 8–13 (any position, no imbedded blanks, leading blanks ignored), options from column 16 separated only by commas (the first blank terminates the option list), and an optional `secondary.identifier` in columns 55–72 (any characters) ([J 02.01.01]–02.01.02). The `*FINISH` card, punched from column 7, delimits the extent of the source statements and must be followed by an end of file ([J 02.01.02]).
+Compiler control cards (J only): a `$CMPLE` card must precede each source program: `$CMPLE` in columns 1–6, `deck.name` in columns 8–13 (any position, no imbedded blanks, leading blanks ignored), options from column 16 separated only by commas (the first blank terminates the option list), and an optional `secondary.identifier` in columns 55–72 (any characters) ([J 02.01.01]–02.01.02). The `*FINISH` card, punched from column 7, delimits the extent of the source statements and must be followed by an end of file ([J 02.01.02]).
 
 #### 1.9.4 Statement termination and commentary
 
 - "Procedure statements are terminated by the first period (.) followed by a blank. Any information following this period blank is considered to be commentary." ([J 02.03.01], §3.a). Likewise: "A period (.) followed by a blank in a procedure statement terminates analysis of the statement except when they appear within an alphabetic literal; any information in the same card which follows the period is assumed to be commentary. No diagnostic comment is made." ([J 90.01.03], A.1.a.ix). A card not properly terminated draws "PREVIOUS CARD NOT PROPERLY TERMINATED. PERIOD ASSUMED." ([J 90.04], message 62,00).
-- The NOTE command is the deliberate commentary mechanism — "terminated by the first period that is followed by a blank" and permitted to contain "any combination of characters from the allowable character set" ([F p. 59]); it affects only the listing. See §7 (the NOTE command).
+- The NOTE command is the deliberate commentary mechanism, "terminated by the first period that is followed by a blank" and permitted to contain "any combination of characters from the allowable character set" ([F p. 59]); it affects only the listing. See §7 (the NOTE command).
 - The DISPLAY command's operand scan runs "up to, but not including, a comma or period not enclosed in quotation marks" ([F p. 54]).
 - Neither manual defines the treatment of entirely blank cards (see Open questions).
 
 #### 1.9.5 Serialization, sequence checking, identification
 
-- **F/J divergence — sequence checking.** F: the serial field "will be sequence-checked by the processor" on the procedure form ([F p. 37]), and data description serial numbers "will be checked for correctness of sequence"; blank collates before 0, so a blank column 6 permits later insertions (numeric collating sequence: blank, then 0–9) ([F p. 67]). J: "Card serial numbers in columns 1-6 of source decks are not sequence checked by the compiler." ([J 02.03.01], §A.1).
-- Serial numbers do appear as the first column of the J source listing; the second column is a compiler-assigned statement number of the form `xxxxx,00` — three to six digits, the two digits after the comma identifying the clause, the digits before it the line; `9999,99` references errors not confined to a single statement ([J 02.02.01]). These statement numbers cross-reference the error-message list ([J 02.02.01]; Appendix 90.04).
+- **F/J divergence: sequence checking.** F: the serial field "will be sequence-checked by the processor" on the procedure form ([F p. 37]), and data description serial numbers "will be checked for correctness of sequence"; blank collates before 0, so a blank column 6 permits later insertions (numeric collating sequence: blank, then 0–9) ([F p. 67]). J: "Card serial numbers in columns 1-6 of source decks are not sequence checked by the compiler." ([J 02.03.01], §A.1).
+- Serial numbers do appear as the first column of the J source listing; the second column is a compiler-assigned statement number of the form `xxxxx,00`: three to six digits, the two digits after the comma identifying the clause, the digits before it the line; `9999,99` references errors not confined to a single statement ([J 02.02.01]). These statement numbers cross-reference the error-message list ([J 02.02.01]; Appendix 90.04).
 - Identification columns 73–80 are optional and inert on both forms ([F p. 37]; [F p. 84]).
 
 ### 1.10 Summary table of lexical limits
@@ -444,9 +444,9 @@ Compiler control cards (J only): a `$CMPLE` card must precede each source progra
 
 - The Set H quotation mark (4-8 punch) is rendered `'` throughout both conversions (F ch. 2 conversion note).
 - Overpunched digits are rendered by zone: minus-zone with a combining overline (`9̅`, `8̅`), plus-zone with a superscript plus (`9⁺`, `123⁺`). In the J source a minus overpunch prints as an overbar and a plus overpunch as a small raised plus above the digit; the 02.05.07 example prints plus forms (J ch. 02.05 conversion note; convention amended 2026-08-04).
-- The two collating-sequence displays at [J 02.06.16] contain print-train glyphs the conversion transcribed only approximately (`0̅`, `×`, `‡`); the identities are now scan-resolved — see the legend in §1.1 and §8.5.8.
+- The two collating-sequence displays at [J 02.06.16] contain print-train glyphs the conversion transcribed only approximately (`0̅`, `×`, `‡`); the identities are now scan-resolved; see the legend in §1.1 and §8.5.8.
 - F's subtraction/negation dash is rendered `−` (minus sign) in some F chunks and `-` in others; the `±` in the subscript form `a * VARIABLE ± b` is a distinct glyph in the source (F ch. 2/3 conversion notes).
-- The J example mode indicator "IR999" ([J 02.03.03]) was flagged best-effort by the conversion note; scan-resolved as the letter I — the face distinguishes 1 (flagged) from I (bare stem). See §8.5.8.
+- The J example mode indicator "IR999" ([J 02.03.03]) was flagged best-effort by the conversion note; scan-resolved as the letter I: the face distinguishes 1 (flagged) from I (bare stem). See §8.5.8.
 
 ---
 

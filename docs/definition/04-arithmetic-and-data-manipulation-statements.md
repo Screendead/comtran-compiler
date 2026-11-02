@@ -4,7 +4,7 @@ Part 4 of 10 of the [COMTRAN Language Definition](README.md).
 
 ## 4. Arithmetic and data-manipulation statements
 
-COMTRAN's data-manipulation vocabulary is deliberately small. Two verbs — SET and ADD — "are used for arithmetic" and "form the basis for the three types of arithmetic commands" (SET, ADD, ADD CORRESPONDING) ([F p. 44]). One verb — MOVE, with its alternate form MOVE CORRESPONDING — "has as its primary function the transmission, or movement, of data from one area of storage to one or more other areas"; data transmission is also implicit in other verbs, e.g. "the SET verb requires the transmission of result data after the computation has been performed" ([F p. 41]). All other arithmetic (subtraction, multiplication, division, exponentiation) is expressed through the arithmetic expression on the right side of a SET; the SET command "can be used for all arithmetic" ([F p. 44]).
+COMTRAN's data-manipulation vocabulary is deliberately small. Two verbs (SET and ADD) "are used for arithmetic" and "form the basis for the three types of arithmetic commands" (SET, ADD, ADD CORRESPONDING) ([F p. 44]). One verb (MOVE, with its alternate form MOVE CORRESPONDING) "has as its primary function the transmission, or movement, of data from one area of storage to one or more other areas"; data transmission is also implicit in other verbs, e.g. "the SET verb requires the transmission of result data after the computation has been performed" ([F p. 41]). All other arithmetic (subtraction, multiplication, division, exponentiation) is expressed through the arithmetic expression on the right side of a SET; the SET command "can be used for all arithmetic" ([F p. 44]).
 
 Statement-level syntax (imperative clauses, sentences, period-blank termination, the Col. 13–72 text area) is covered in the sections on language structure and procedure format; data-description matters (pictorials, modes, levels) in §3 (Data description and storage model). This section covers the arithmetic/transmission verbs themselves, the expression language they share, the mixed-mode conversion rules, and the editing feature.
 
@@ -64,12 +64,12 @@ The F statement agrees for the binary operators: "the order of operations (worki
 
 Additional rules a compiler writer must observe:
 
-1. **Repeated exponentiation must be parenthesized.** "The expression Aᴮᶜ, which is sometimes considered meaningful, cannot be written as A**B**C; it should be written as (A**B)**C or A**(B**C), whichever is intended" ([F p. 107]). J does not restate this rule; the J left-to-right rule for equal hierarchy would read `A**B**C` as `(A**B)**C`, but F flatly forbids the form — treat it as illegal (see the §8.5 catalog).
+1. **Repeated exponentiation must be parenthesized.** "The expression Aᴮᶜ, which is sometimes considered meaningful, cannot be written as A**B**C; it should be written as (A**B)**C or A**(B**C), whichever is intended" ([F p. 107]). J does not restate this rule; the J left-to-right rule for equal hierarchy would read `A**B**C` as `(A**B)**C`, but F flatly forbids the form. Treat it as illegal (see the §8.5 catalog).
 2. **No two successive binary operators.** "The programmer must not write two successive arithmetic operators unless the second of them is either the operator TR or the operator ABS. Where the effect of two successive operators is required, one term may be enclosed in parentheses; thus, while the expression A * -B is illegal, the same value may be written A * (-B)" ([F p. 27], rule 6).
 3. **Operators bind to the next item.** "All operators act on the next named item, or the next parenthetical expression, following the operator" ([F p. 28], rule 9). Parentheses "may be used wherever needed ... for the sake of clarity; where ambiguity would result from their omission, they *must* be used" ([F p. 28], rule 11).
 4. **Blanks around operators are optional** and ignored: `A + B * C` may be written `A+B*C` ([F p. 27], rule 6).
 
-The legal symbol-pair table from F Appendix 2 ("1" = permissible pair, "0" = not permissible) — note that it admits a leading unary minus only after `(`, and ABS/TR after a binary operator or `(` ([F p. 106]):
+The legal symbol-pair table from F Appendix 2 ("1" = permissible pair, "0" = not permissible); note that it admits a leading unary minus only after `(`, and ABS/TR after a binary operator or `(` ([F p. 106]):
 
 | First Symbol ↓ / Second Symbol → | Variable | + − * / ** | ABS, TR | Negation − | ( | ) |
 |---|---|---|---|---|---|---|
@@ -87,10 +87,10 @@ The legal symbol-pair table from F Appendix 2 ("1" = permissible pair, "0" = not
 #### 4.1.3 Operands: variables, constants, literals
 
 - "Data-names which represent numeric variables or constants may appear anywhere in arithmetic expressions. Those which represent alphameric variables and constants, however, may appear only within truth functions" ([F p. 45]).
-- J restates and sharpens this for SET: "The operands of a SET instruction which are used in an arithmetic expression may be fields of any format except alphameric" ([J 02.04.05]); any of the field formats of §3 — external decimal, internal decimal, edited, floating point, scientific decimal — is acceptable, with automatic conversion (see §4.2).
+- J restates and sharpens this for SET: "The operands of a SET instruction which are used in an arithmetic expression may be fields of any format except alphameric" ([J 02.04.05]); any of the field formats of §3 (external decimal, internal decimal, edited, floating point, scientific decimal) is acceptable, with automatic conversion (see §4.2).
 - Literals may be used as needed in arithmetic expressions ([F p. 45]). Numeric-literal rules (see also the constants/literals section): maximum 50 characters, no continuation across lines; only numerals, at most one decimal point, and a sign; the decimal point "is required except where it would be the last character of the literal; in that case it must *not* be used"; numeric literals must not be enclosed in quotation marks ([F p. 18]). **"If the literal is to be operated on arithmetically, it must contain not more than 20 digits"** ([F p. 18]).
 - Floating point literals take "the standard scientific decimal form" `fraction F±exponent` ([J 02.04.02]): fraction and exponent may each be signed or unsigned (positive assumed); **a decimal point must be present in the fraction** ("20.F+01 is interpreted as a floating point literal, but 20F+01 is interpreted as an arithmetic expression"); the F must be followed by at least one digit, which may be signed (`20.F0`); `F` yields a single precision floating point number, `FF` double precision ([J 02.04.02]). F's earlier statement of the same form: the fraction, the symbol F, then the exponent, base 10 only, e.g. `1.5F3`, `15F2`, `.15F4`, `2F-3`; F and the decimal point occupy no storage and are not counted in the literal's length ([F p. 18]). **F/J divergence:** F's examples include point-less fractions (`15F2`, `2F-3`); J requires the decimal point in the fraction and reads the point-less form as an arithmetic expression. J governs.
-- Figurative constants (ZERO/ZEROS, BLANK/BLANKS, HIGH.VALUE(S), LOW.VALUE(S)) may be used as source fields by SET as well as MOVE — see the chart in §4.7.4 ([J 02.04.01]–02).
+- Figurative constants (ZERO/ZEROS, BLANK/BLANKS, HIGH.VALUE(S), LOW.VALUE(S)) may be used as source fields by SET as well as MOVE; see the chart in §4.7.4 ([J 02.04.01]–02).
 - Subscripted operands are permitted; a subscript is a name, a literal, or an expression of the form `a * VARIABLE ± b` with a and b literals, and must represent "a positive integral value" ([F p. 31]). Arrays index from 1: "The initial value of an array is A(1) and not A(0)" ([J 02.04.07.01]). See §3 and the indexing discussion for positional-indicator behavior and limits.
 - Function-names may appear as operands (see §4.9).
 - A compile-time diagnostic exists for a missing operand: "MISSING OPERAND ASSUMED TO BE ZERO." ([J 90.04.01], message 116,00).
@@ -113,7 +113,7 @@ SET REORDER = ORDER.AMT * TR (STOCK.LEVEL LT
 
 ([F p. 44]; explained [F p. 46]: REORDER receives the order amount if stock level is below order point, otherwise zero.)
 
-"The truth operator may be used with relational expressions, as in the example given, or with condition-names" ([F p. 24]). This is the sole channel by which alphameric data participates in arithmetic ([F p. 45]). The conditional expression inside TR is subject to the J comparison restrictions (numeric may not be compared with alphameric; unequal-length alphameric `=`/`NOT =` comparisons always compare unequal; edited fields are converted to pure numeric for comparison; variable length fields may not be compared; zero is considered unsigned) — see the conditional-statements section ([J 02.04.06], 02.04.07).
+"The truth operator may be used with relational expressions, as in the example given, or with condition-names" ([F p. 24]). This is the sole channel by which alphameric data participates in arithmetic ([F p. 45]). The conditional expression inside TR is subject to the J comparison restrictions (numeric may not be compared with alphameric; unequal-length alphameric `=`/`NOT =` comparisons always compare unequal; edited fields are converted to pure numeric for comparison; variable length fields may not be compared; zero is considered unsigned); see the conditional-statements section ([J 02.04.06], 02.04.07).
 
 ### 4.2 Modes, precision, and mixed-mode evaluation (709/7090)
 
@@ -241,7 +241,7 @@ at the end of the SET command. In the event of an overflow, the object program w
 
 Executing a SET that changes a subscript variable updates the positional indicators of subscripted names using that variable: "In general, positional indicators are evaluated when their subscripts change value. Execution of the code generated for SET K=K+2 would cause the positional indicators for 3 of the subscripted names shown above to be updated: A(J, K), A(2, K), and A(J, K+1)" ([J 02.04.07.01]). Two consequences for correctness (from the deferred-features appendix):
 
-- "The dimensions of an array must be set before calculation of subscript values associated with the array is performed. Presently, failure to observe this restriction causes invalid object code." The erroneous ordering example given is `SET I = 3, SET J = 5.` / `SET Q = 10.` (where Q is the QUANTITY IN variable) / `MOVE A (I,J) TO R.` — the positional indicator for A(I,J) is computed when I and J are set and is *not* updated when Q is set ([J 90.01.02]).
+- "The dimensions of an array must be set before calculation of subscript values associated with the array is performed. Presently, failure to observe this restriction causes invalid object code." The erroneous ordering example given is `SET I = 3, SET J = 5.` / `SET Q = 10.` (where Q is the QUANTITY IN variable) / `MOVE A (I,J) TO R.`: the positional indicator for A(I,J) is computed when I and J are set and is *not* updated when Q is set ([J 90.01.02]).
 - Reuse of one subscript name for many purposes causes unnecessary re-evaluation of all positional indicators containing it (correct, but wasteful); "No object time check is made to insure that subscript references conform to the limits specified by the array dimensions" ([J 90.01.02]).
 
 ### 4.4 SET used with condition-names
@@ -256,7 +256,7 @@ As a result of this command, the variable with which 'condition.name' is associa
 
 "It is important to recognize the distinction between testing and setting the value of a conditional variable. Testing the value provides a basis for a decision but does not change the value; the testing is accomplished by using a conditional clause, IF . . . THEN. Setting a value ... causes the current value to be replaced by another of the possible values and is effected by means of the SET command" ([F p. 46]).
 
-Condition-names and their values are declared with the COND type code in the data description (see §3; [J 02.05.02]). J restriction: "Neither a data item (literal) nor a condition.name may be subscripted. However, a conditional variable may be subscripted" ([J 90.01.03]) — so `SET condition.name` cannot designate one element of a subscripted conditional variable (open question below). The compiler has a generic diagnostic "INCORRECT USAGE OF FIGURATIVE CONSTANT." ([J 90.04.01], message 82,00), whose triggering contexts are not documented; a badly formatted conditional variable draws "FORMAT ERROR FOR CONDITIONAL VARIABLE. 'NAME.1' FORMAT USED." ([J 90.04.01], message 37,00).
+Condition-names and their values are declared with the COND type code in the data description (see §3; [J 02.05.02]). J restriction: "Neither a data item (literal) nor a condition.name may be subscripted. However, a conditional variable may be subscripted" ([J 90.01.03]); so `SET condition.name` cannot designate one element of a subscripted conditional variable (open question below). The compiler has a generic diagnostic "INCORRECT USAGE OF FIGURATIVE CONSTANT." ([J 90.04.01], message 82,00), whose triggering contexts are not documented; a badly formatted conditional variable draws "FORMAT ERROR FOR CONDITIONAL VARIABLE. 'NAME.1' FORMAT USED." ([J 90.04.01], message 37,00).
 
 ### 4.5 The ADD command
 
@@ -326,20 +326,20 @@ F's 1960 statement:
 1. "Information from numeric fields may be moved to other numeric fields, to alphameric fields, and to report fields."
 2. "Information from alphabetic or alphameric fields may be moved only to other alphabetic or alphameric fields." ([F p. 42])
 
-("Report fields" is F's term for fields carrying editing symbols; J's term is "edited field" — see the §8.5 catalog.)
+("Report fields" is F's term for fields carrying editing symbols; J's term is "edited field"; see the §8.5 catalog.)
 
-J's 1962 statement, in terms of the six 7090 field types (alphameric, external decimal, internal decimal, edited, floating point, scientific decimal — see §3 and [J 02.05.05]): "all types of data may be moved into an alphameric field but the contents of an alphameric field may only be moved to another alphameric field" ([J 02.04.03]). Combined with the F rules, every numeric-to-numeric combination is legal, with automatic conversion; alphameric is a universal sink and an alphameric-only source.
+J's 1962 statement, in terms of the six 7090 field types (alphameric, external decimal, internal decimal, edited, floating point, scientific decimal; see §3 and [J 02.05.05]): "all types of data may be moved into an alphameric field but the contents of an alphameric field may only be moved to another alphameric field" ([J 02.04.03]). Combined with the F rules, every numeric-to-numeric combination is legal, with automatic conversion; alphameric is a universal sink and an alphameric-only source.
 
 Group items behave as alphameric: "A field for which no pictorial is given is treated as alphameric with length equal to the length of its subfields" ([J 02.05.06]); this drives the CORRESPONDING error case in §4.8. An illegal move is diagnosed at compile time: "ILLEGAL MOVE - FROM 'NAME.1' ( E  A(2) ) TO 'NAME.2' ( IR  999 ). NOTHING DONE ." ([J 90.04.01], message 84,00 — i.e. alphameric to internal-decimal is rejected). Also "INCOMPLETE -MOVE- EXPRESSION." (119,00) ([J 90.04.01]).
 
 #### 4.7.2 Conversion routing between field types (J)
 
-The J chart (a boxes-and-arrows schematic, [J 02.04.03]; page image `J28-6169/images/page-020.png` is ground truth) shows *internal decimal (right justified)* as the hub, with a two-way arrow to *internal decimal (not right justified)* and two-way spokes to *edited field*, *external decimal*, *scientific decimal*, and *floating point*; there are also direct two-way arrows *edited field* ↔ *external decimal* and *scientific decimal* ↔ *floating point*; *alphameric field* is reached by three arrows — from edited field, external decimal, and scientific decimal. Every box except *internal decimal (not right justified)* has a self-directed arrow (an IDnj→IDnj move goes via internal decimal right justified, matching prose exception a below). The governing prose:
+The J chart (a boxes-and-arrows schematic, [J 02.04.03]; page image `J28-6169/images/page-020.png` is ground truth) shows *internal decimal (right justified)* as the hub, with a two-way arrow to *internal decimal (not right justified)* and two-way spokes to *edited field*, *external decimal*, *scientific decimal*, and *floating point*; there are also direct two-way arrows *edited field* ↔ *external decimal* and *scientific decimal* ↔ *floating point*; *alphameric field* is reached by three arrows: from edited field, external decimal, and scientific decimal. Every box except *internal decimal (not right justified)* has a self-directed arrow (an IDnj→IDnj move goes via internal decimal right justified, matching prose exception a below). The governing prose:
 
 - a) "When source and target fields have the same format no intermediate form is necessary (except for edited fields and internal decimal fields not right justified) and transmission is direct as indicated by the self-directed arrows" ([J 02.04.03]).
 - b) "When source and target fields of unlike format are involved the conversion steps are defined by the diagram arrows where the route requiring least intermediate steps is used", e.g.: floating point → external decimal requires an intermediate conversion to internal decimal; floating point → alphameric requires conversion to scientific decimal form first; internal decimal → alphameric requires a conversion to external decimal form ([J 02.04.03]).
 - c) The alphameric sink/source rule quoted in §4.7.1 ([J 02.04.03]).
-- d) "Subroutines are normally used to perform the requisite conversion and transmission except where arrows have associated an \*. These moves are normally performed by in-line instructions" ([J 02.04.04]). (Starred in the chart: the internal-decimal (rt. justified) self-move, the floating-point self-move, the alphameric self-move, and the three arrows into alphameric — edited-field→alphameric, external-decimal→alphameric, scientific-decimal→alphameric. The external-decimal, edited-field, and scientific-decimal self-loops are unstarred, i.e. subroutine moves — consistent with MOVPAK's XD→XD subroutine SYS)183, [J 90.02.15].)
+- d) "Subroutines are normally used to perform the requisite conversion and transmission except where arrows have associated an \*. These moves are normally performed by in-line instructions" ([J 02.04.04]). (Starred in the chart: the internal-decimal (rt. justified) self-move, the floating-point self-move, the alphameric self-move, and the three arrows into alphameric (edited-field→alphameric, external-decimal→alphameric, scientific-decimal→alphameric). The external-decimal, edited-field, and scientific-decimal self-loops are unstarred, i.e. subroutine moves, consistent with MOVPAK's XD→XD subroutine SYS)183, [J 90.02.15].)
 - e) **Scientific decimal sources are free-form:** "For the source fields of the scientific decimal type, a free form of data is allowed within the limits of the field. For example, a field with the pictorial -99V-99 may contain the value 1 in any of the following ways, (b represents a space):
 
 ```
@@ -353,7 +353,7 @@ etc.
 
 " (J 02.04.04).
 
-The runtime move/convert machinery is a packaged subroutine set, MOVPAK, whose entries cover XD→XD, XD→ID, ID→XD (unsigned, overpunch-minus, overpunch-plus variants), XD→EF, EF→XD, and EF→EF moves, with per-call instruction words for characters-to-move, characters-to-test-for-overflow, characters-to-bypass, leading/trailing zeros to insert, "Round current character", and target numeric length ([J 90.02.10], 90.02.15–90.02.19) — observed semantics: numeric moves are character-serial with in-flight rounding, overflow testing, and zero insertion.
+The runtime move/convert machinery is a packaged subroutine set, MOVPAK, whose entries cover XD→XD, XD→ID, ID→XD (unsigned, overpunch-minus, overpunch-plus variants), XD→EF, EF→XD, and EF→EF moves, with per-call instruction words for characters-to-move, characters-to-test-for-overflow, characters-to-bypass, leading/trailing zeros to insert, "Round current character", and target numeric length ([J 90.02.10], 90.02.15–90.02.19); observed semantics: numeric moves are character-serial with in-flight rounding, overflow testing, and zero insertion.
 
 #### 4.7.3 The editing feature
 
@@ -388,7 +388,7 @@ The manual's worked examples ([F p. 43]; verified against the page scan). In the
 | `*` | Numeric character, "to be replaced automatically by an asterisk whenever it is a non-significant zero" (check protection). |
 | `V` | Assumed decimal point; used for calculation/alignment; reserves no storage space; not required for integers. |
 | `.` | True decimal point; reserves an actual space in storage. |
-| `S` | Scale factor — a "filler"/"spacer" when input data does not show the decimal position. `VS9` makes values 1–9 read as .01–.09; `999SSS` provides for 000,000–999,000 with the three low-order zeros absent from input. |
+| `S` | Scale factor: a "filler"/"spacer" when input data does not show the decimal position. `VS9` makes values 1–9 read as .01–.09; `999SSS` provides for 000,000–999,000 with the three low-order zeros absent from input. |
 | `$` | Dollar sign, placed in the indicated position, "provided it is not followed by the symbol 8. In the latter case, the dollar sign will 'float'—i.e., it will be placed immediately to the left of the first significant digit remaining." |
 | `,` | True comma; reserves a space; "may be replaced by a blank, asterisk, or dollar sign, if the operation of a preceding 8 or * has resulted in the elimination of non-significant zeros to the left." |
 | `+` | Plus **or** minus sign, one of which is always placed in the reserved space according to the value's sign. May occupy a column by itself (reserving a space), or be an "overpunch" with a format character 8 or 9 "in either the units or high-order position of a field", in which case no space is reserved. |
@@ -396,9 +396,9 @@ The manual's worked examples ([F p. 43]; verified against the page scan). In the
 | `F` | Floating point indicator; reserves no space; placed between the fraction's and the exponent's format characters, e.g. `+99V9F+99`. |
 | `(n)` | Repetition: a parenthesized number after a format character multiplies it; `9(4)A(12)` ≡ `9999AAAAAAAAAAAA`. |
 
-Range examples ([F p. 81]): `AAA` — all non-numeric; `88999` — 000 to 99999; `****.99` — \*\*\*\*.00 to 9999.99; `$888,888.99` — $.00 to $999,999.99.
+Range examples ([F p. 81]): `AAA` (all non-numeric); `88999` (000 to 99999); `****.99` (\*\*\*\*.00 to 9999.99); `$888,888.99` ($.00 to $999,999.99).
 
-The J field-type chart classifies a field as an **Edited Field** when its pictorial contains any of `8 * . , $ + -` or when the BLANK WHEN ZERO clause is used; legitimate format characters for an edited field are `9 8 * . , $ + - S V (n)`, with `8̅ or 9̅ or 8⁺ or 9⁺ in rightmost character` (overpunched sign; all four glyphs marked in the scan — see §8.5.8); the field content is "digits and leading blanks; an overpunch with the rightmost digit" ([J 02.05.05]). "An edited field may have a character position reserved for the sign or may have the sign over the rightmost digit" ([J 02.05.05], note 2). "Numeric external fields may contain leading blanks which are treated as leading zeros" ([J 02.05.05], note 3).
+The J field-type chart classifies a field as an **Edited Field** when its pictorial contains any of `8 * . , $ + -` or when the BLANK WHEN ZERO clause is used; legitimate format characters for an edited field are `9 8 * . , $ + - S V (n)`, with `8̅ or 9̅ or 8⁺ or 9⁺ in rightmost character` (overpunched sign; all four glyphs marked in the scan; see §8.5.8); the field content is "digits and leading blanks; an overpunch with the rightmost digit" ([J 02.05.05]). "An edited field may have a character position reserved for the sign or may have the sign over the rightmost digit" ([J 02.05.05], note 2). "Numeric external fields may contain leading blanks which are treated as leading zeros" ([J 02.05.05], note 3).
 
 **BLANK WHEN ZERO:** "When associated with an output field this clause indicates that the field is to be replaced with blanks when it becomes zero. Since leading blanks in numeric input fields are automatically treated as zeros, the use of this clause is redundant [for input]. In some cases it may even result in decreased efficiency in the object program as these fields are treated as edited types" ([J 02.05.07]).
 
@@ -411,11 +411,11 @@ The J field-type chart classifies a field as an **Edited Field** when its pictor
 - Internal-table limit: at most approximately **35 "different edited field formats"** per program ([J 90.01.05]; overrun draws "NUMBER OF DIFFERENT EDIT FIELDS EXCEEDS INTERNAL TABLE CAPACITY.", [J 90.04.01] message 204,00).
 - For comparisons, "edited fields ... are converted to pure numeric fields. They may not be compared to alphameric fields" ([J 02.04.07]).
 
-Observed processor semantics for edited targets ([J 90.02.17]): each edited-target move is parameterized by which editing characters the pictorial contains (asterisks, commas, decimal point, dollar sign, Blank When Zero), by the counts of leading `*`/`8` positions and of positions left of the real or implied decimal point, and by a target sign convention distinguishing no sign, overpunch minus/plus, right minus/plus, and left minus/plus — confirming the full sign-placement matrix implied by the F `+`/`-` format-character rules (sign by itself at either end, or overpunched).
+Observed processor semantics for edited targets ([J 90.02.17]): each edited-target move is parameterized by which editing characters the pictorial contains (asterisks, commas, decimal point, dollar sign, Blank When Zero), by the counts of leading `*`/`8` positions and of positions left of the real or implied decimal point, and by a target sign convention distinguishing no sign, overpunch minus/plus, right minus/plus, and left minus/plus, confirming the full sign-placement matrix implied by the F `+`/`-` format-character rules (sign by itself at either end, or overpunched).
 
 #### 4.7.4 Figurative constants as MOVE/SET sources
 
-"Figurative constants may be used as source fields by both MOVE and SET" ([J 02.04.01]). E.g. `MOVE ZEROS TO COUNTER`, `MOVE BLANKS TO AMOUNT` — "the specified area will be completely filled with characters of the value named" ([F p. 20]); `MOVE ZEROS TO MONTH.TOTAL, YEAR.TOTAL, CUMUL.TOTAL.` ([F p. 42]).
+"Figurative constants may be used as source fields by both MOVE and SET" ([J 02.04.01]). E.g. `MOVE ZEROS TO COUNTER`, `MOVE BLANKS TO AMOUNT`: "the specified area will be completely filled with characters of the value named" ([F p. 20]); `MOVE ZEROS TO MONTH.TOTAL, YEAR.TOTAL, CUMUL.TOTAL.` ([F p. 42]).
 
 Values on the 7090: "HIGH.VALUE will be considered to be the left parenthesis, (, and LOW.VALUE the zero, 0, unless the Commercial collating sequence (COM) is specified in the Environment Description. The Commercial HIGH.VALUE is 9 and the LOW.VALUE is blank" ([J 02.04.01]).
 
@@ -431,7 +431,7 @@ Result of MOVEing/SETting figurative constants into each target type ([J 02.04.0
 Restrictions:
 
 - "Figurative constants may not be moved to variable length arrays, i.e., to fields with which QUANTITY IN is associated ... However, figurative constants may be moved to a particular element of a variable length array" ([J 02.04.01]); with the illustrated data description, "the sentence MOVE BLANKS TO ARRAY is illegal, whereas MOVE BLANKS TO FIELD(3) is proper" ([J 02.04.01]). Restated in the deferred-features appendix: "Figurative constants may not be moved to variable length arrays; they may, however, be moved to fixed length arrays or to array elements" ([J 90.01.02]). Diagnostic: "MOVE OF FIGURATIVE CONSTANT TO VARIABLE LENGTH FIELD NOT YET HANDLED BY SYSTEM." ([J 90.04.01], message 180,00).
-- "Figurative constants may not be moved to fields which are longer than 2^15 - 1 characters" ([J 02.04.01]). The corresponding diagnostic reads "MOVE OF FIGURATIVE CONSTANT TO FIELD LONGER THAN 32766 CHARACTERS NOT YET HANDLED BY SYSTEM." ([J 90.04.01], message 181,00) — an off-by-one against 2^15−1 = 32767; see the §8.5 catalog.
+- "Figurative constants may not be moved to fields which are longer than 2^15 - 1 characters" ([J 02.04.01]). The corresponding diagnostic reads "MOVE OF FIGURATIVE CONSTANT TO FIELD LONGER THAN 32766 CHARACTERS NOT YET HANDLED BY SYSTEM." ([J 90.04.01], message 181,00): an off-by-one against 2^15−1 = 32767; see the §8.5 catalog.
 - In comparisons (relevant inside TR): "ZERO may be compared to either numeric or alphameric fields. HIGH.VALUE, LOW.VALUE and BLANK may be compared to alphameric fields only" ([J 02.04.01]).
 
 #### 4.7.5 Other MOVE facts and limits
@@ -458,7 +458,7 @@ MOVE CORRESPONDING data.name.1 TO data.name.2, data.name.3,
 
 "Correspondence is determined at the lowest possible level on the basis of name only. All qualifiers must be present and identical through the level of the name itself to meet the criteria of correspondence. Note, however, that the resultant MOVE or ADD may be affected since the rules governing these commands are the same whether or not the CORRESPONDING option is exercised" ([J 02.04.04]). The three worked cases, for `MOVE CORRESPONDING DATA.1 to DATA.2.`:
 
-a) Absolute level numbers are irrelevant — only the name hierarchy matters:
+a) Absolute level numbers are irrelevant; only the name hierarchy matters:
 
 ```
 DATA.1          01      DATA.2          04
@@ -537,7 +537,7 @@ Declaration side (1960): "All function-names and all parameter-names used in the
 
 #### 4.9.2 F/J divergence: PARAM and FUNCT type codes withdrawn
 
-**F/J divergence:** "These two type codes [PARAM and FUNCT] described in the General Information Manual are no longer in the language" ([J 02.05.03]). The function *machinery* itself nevertheless survives in the 1962 processor: the compiler's error-message file includes "FUNCTION 'NAME.1' LACKS EXPLICIT SPECIFICATION OF ALL ARGUMENTS." (30,00), "EVALUATION IGNORED FOR FUNCTION 'NAME.1'. TOO MANY ARGUMENTS SPECIFIED." (68,00), and TOO MANY/TOO FEW -USING-/-GIVING- PARAMETERS IN -DO- STATEMENT (72,00–75,00) ([J 90.04.01]); USING and GIVING remain reserved words ([J 02.03.02]). The most plausible reading is that in J, parameters and functions are declared as ordinary data description entries (no special type code), while the reference forms — function-name with double-parenthesized arguments, DO/BEGIN SECTION with USING/GIVING — are unchanged; see the §8.5 catalog. Message 30,00 additionally implies that a J function reference must specify **all** arguments explicitly.
+**F/J divergence:** "These two type codes [PARAM and FUNCT] described in the General Information Manual are no longer in the language" ([J 02.05.03]). The function *machinery* itself nevertheless survives in the 1962 processor: the compiler's error-message file includes "FUNCTION 'NAME.1' LACKS EXPLICIT SPECIFICATION OF ALL ARGUMENTS." (30,00), "EVALUATION IGNORED FOR FUNCTION 'NAME.1'. TOO MANY ARGUMENTS SPECIFIED." (68,00), and TOO MANY/TOO FEW -USING-/-GIVING- PARAMETERS IN -DO- STATEMENT (72,00–75,00) ([J 90.04.01]); USING and GIVING remain reserved words ([J 02.03.02]). The most plausible reading is that in J, parameters and functions are declared as ordinary data description entries (no special type code), while the reference forms (function-name with double-parenthesized arguments, DO/BEGIN SECTION with USING/GIVING) are unchanged; see the §8.5 catalog. Message 30,00 additionally implies that a J function reference must specify **all** arguments explicitly.
 
 ### 4.10 Restrictions and limits affecting this section (consolidated)
 
