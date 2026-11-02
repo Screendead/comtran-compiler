@@ -977,7 +977,15 @@ record built on it.*
 
 **Oracle.** decision-conformance only for the reopen behavior; the close path itself is unit-tested against [F p. 41]'s four output steps and three input steps and against the \*SPEC close-code table ([J 03.02.05]; [J 90.08.02]).
 
-*Amended 2026-11-02 (codegen defect 6; Jack's ruling, call 3 of the record `review/2026-11-02-pitch-rulings`).* The statically determinable reopen after `CLOSE ALL FILES` now has a message, a severity and a scope. Message 948,00 reads "-OPEN ALL FILES- FOLLOWS -CLOSE ALL FILES-. FILES CLOSED BY THAT FORM MAY NOT BE REOPENED. (NON-HISTORICAL.)". The message is ours. It fires in default mode, at severity 4. The compiler keeps the OPEN: the object code still calls SYS)175, and the deck is punched. Severity 4 suppresses the run under D7.6. The scope is the straight run only. A `CLOSE ALL FILES` followed later by `OPEN ALL FILES` draws the message when no label, GO TO, STOP RUN or END stands between them. The compiler does no flow analysis, so a reopen that only a transfer reaches draws nothing. The --pedantic object-time reopen message stays as stated above. `docs/design/message-checklist.tsv` holds the message row.
+*Amended 2026-11-02 (codegen defect 6; Jack's ruling, call 3 of the record `review/2026-11-02-pitch-rulings`).* The statically determinable reopen after `CLOSE ALL FILES` now has a message, a severity and a scope. Message 948,00 reads "-OPEN ALL FILES- FOLLOWS -CLOSE ALL FILES-. FILES CLOSED BY THAT FORM MAY NOT BE REOPENED. (NON-HISTORICAL.)". The message is ours. It fires in default mode, at severity 4. The compiler keeps the OPEN: the object code still calls SYS)175, and the deck is punched. Severity 4 suppresses the run under D7.6. The scope is the straight run only. The ruled option reads "with no label or jump between them". A `CLOSE ALL FILES` followed later by `OPEN ALL FILES` draws the message when none of these stands between them:
+
+- a source label;
+- a generated label: the OTHERWISE arm and the join of an IF, the increment step of a DO FOR, the AT END arm and the join of a GET, and the descriptor word that a FILE of a located record patches;
+- a GO TO, the conditional `GO TO ... WHEN` included;
+- STOP RUN;
+- END.
+
+An IF or a DO FOR between the two therefore ends the straight run, also when it holds no transfer. A plain DO does not end it, because control returns. The compiler does no flow analysis, so a reopen that only a transfer reaches draws nothing. The --pedantic object-time reopen message stays as stated above. `docs/design/message-checklist.tsv` holds the message row.
 
 *Citations:* ([J 02.04.06]; [F p. 41]; [J 02.07.08], 02.07.01; [J 02.06.10]; [J 03.02.05]; [J 90.08.02])
 

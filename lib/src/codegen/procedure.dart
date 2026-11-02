@@ -378,7 +378,8 @@ final class _Text {
   final Map<int, int> _registerHolds = <int, int>{};
 
   /// Whether a CLOSE ALL FILES precedes in the straight run: no label
-  /// since, and no GO TO, STOP RUN or END (D6.3; msg 948). An END
+  /// since, source or generated (an IF's join, a DO FOR's increment),
+  /// and no GO TO, STOP RUN or END (D6.3; msg 948). An END
   /// needs its own clear: msg 179 is severity 3, so an END that shares
   /// a labelled sentence still compiles, and only an unlabelled END
   /// sentence gets a generated name.
