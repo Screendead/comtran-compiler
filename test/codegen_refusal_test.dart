@@ -195,7 +195,7 @@ void main() {
     test('an ADD into a target of lesser scale', () {
       expect(
         _refuses(['            ADD FRAC TO NUM.']),
-        'an ADD into a target of lesser scale (no sample instance)',
+        'an ADD into a target of lesser scale (notes section 7)',
       );
     });
 
@@ -208,7 +208,7 @@ void main() {
             dataCard(name: 'EDF', level: '1', description: '89.9'),
           ],
         ),
-        'an ADD into a target of lesser scale (no sample instance)',
+        'an ADD into a target of lesser scale (notes section 7)',
       );
     });
 

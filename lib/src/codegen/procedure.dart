@@ -2351,11 +2351,10 @@ final class _Text {
           // multiply takes the attested `XCA / MPY / XCA` (00627–00631).
           _scaledLoad(_xca, deficit);
         } else if (deficit < 0) {
-          // This arm drops low-order digits only. It drops no leading
-          // digit a shorter target cannot hold.
           // A MOVE drops low-order digits (F p. 42), so the divide takes
           // no half-adjust: the split's `LRS 35 / DVP` (00424–00425),
-          // and the quotient stores from the MQ (00634–00635).
+          // and the quotient stores from the MQ (00634–00635). This arm
+          // drops no leading digit a shorter target cannot hold.
           _shift(Op.lrs, _storeShift);
           _op(Op.dvp, _cp(_pool.machineWord(_pow10(-deficit))));
         }
@@ -3136,8 +3135,8 @@ final class _Text {
   ];
 
   /// One ADD unit: `CLA target / ADD source / STO target` with the
-  /// guards the operands force. Every attested pair has equal scale;
-  /// the store tail on an ADD has no site (notes section 7).
+  /// guards the operands force, the source aligned to the target's
+  /// scale first ([_alignedAdd]).
   void _addPair(DataItem source, DataItem target) {
     final int deficit = _addDeficit(source, target);
     final DataItem addend = _operand(source);
@@ -3149,12 +3148,15 @@ final class _Text {
 
   /// The fraction digits an ADD source lacks against [target]. A source
   /// of greater scale needs the store tail, which has no site on an ADD
-  /// (notes section 7).
+  /// (notes section 7). No digit limit refuses the upscale, as
+  /// [_moveDeficit] refuses a MOVE's: the ADD emits the words of
+  /// `SET target = target + source`, which compiles the same product,
+  /// and the excess is D4.2's overflow.
   int _addDeficit(DataItem source, DataItem target) {
     final int deficit =
         _sem(target).fractionDigits - _sem(source).fractionDigits;
     if (deficit < 0) {
-      _unruled('an ADD into a target of lesser scale (no sample instance)');
+      _unruled('an ADD into a target of lesser scale (notes section 7)');
     }
     return deficit;
   }
