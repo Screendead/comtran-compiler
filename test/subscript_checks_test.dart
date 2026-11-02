@@ -128,6 +128,51 @@ void main() {
       expect(ids(result), ['206,00']);
       expect(messageSeverities['206,00'], 1);
     });
+
+    group('the other format rows', () {
+      SemanticResult moveWith(String variable, List<String> declaration) =>
+          runJob(
+            data: [..._fields(), ...declaration],
+            procedure: ['            MOVE TAB CELL ($variable) TO NUM.'],
+          );
+
+      test('an edited subscript variable draws 79,00', () {
+        final SemanticResult result = moveWith('EDIT', [
+          dataCard(name: 'EDIT', level: '1', description: '8889.99'),
+        ]);
+        expect(ids(result), ['79,00']);
+        expect(result.semanticDiagnostics.single.operands, ['EDIT']);
+      });
+
+      test('a group subscript variable draws 79,00', () {
+        final SemanticResult result = moveWith('GRP', [
+          dataCard(name: 'GRP', level: '1'),
+          dataCard(name: 'GF', level: '2', description: '99'),
+        ]);
+        expect(ids(result), ['79,00']);
+        expect(result.semanticDiagnostics.single.operands, ['GRP']);
+      });
+
+      test('a left-justified internal decimal subscript variable draws '
+          '206,00 (D9.11)', () {
+        final SemanticResult result = moveWith('LEFT', [
+          dataCard(
+            name: 'LEFT',
+            level: '1',
+            mode: 'I',
+            justify: 'L',
+            description: '99',
+          ),
+        ]);
+        expect(ids(result), ['206,00']);
+      });
+    });
+
+    test('an undefined subscript variable draws the triage 108,00 '
+        'alone', () {
+      final SemanticResult result = _move('TAB CELL (NOSUCH)');
+      expect(ids(result), ['108,00']);
+    });
   });
 
   group('the subscript counters (D9.7)', () {

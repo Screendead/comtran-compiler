@@ -21,12 +21,16 @@ String resolveTarget(String directory, String target) {
   return segments.join('/');
 }
 
-/// A two-entry map, enough to exercise the skip rules.
+/// A three-entry map, enough to exercise the skip rules.
 final ManualMap sampleMap = (
   targets: <String, ManualTarget>{
     'J:02.03.02': (
       file: 'comtran-manuals/J28-6169/02-compiler.md',
       slug: 'a-use-of-coding-forms',
+    ),
+    'F:115': (
+      file: 'comtran-manuals/F28-8043/a2-supplementary-information.md',
+      slug: 'appendix-2-supplementary-information',
     ),
     'F:42': (
       file: 'comtran-manuals/F28-8043/03-procedure-description.md',
@@ -144,12 +148,37 @@ J 02.03.02 and F p. 42 are punched here.
     expect(sweep(unresolved), unresolved);
   });
 
-  test('a page list stays plain; a page range links whole', () {
-    expect(sweep('F pp. 42, 115 lists two pages.\n'), startsWith('F pp. 42,'));
+  test('a page range links whole', () {
     expect(
       sweep('F pp. 42-44 names a range.\n'),
       startsWith('[F pp. 42-44] names a range.\n'),
     );
+  });
+
+  test('a page list links item by item', () {
+    final String once = sweep('F pp. 42, 115–116, 42 lists pages.\n');
+    expect(once, startsWith('[F pp. 42], [115–116], [42] lists pages.\n'));
+    expect(
+      linkBlockDefinitions(once).keys,
+      unorderedEquals(<String>['F pp. 42', '115–116', '42']),
+    );
+    expect(sweep(once), once);
+  });
+
+  test('a linked page item the map lacks gets no definition', () {
+    final String swept = sweep('[F pp. 42], [116] was linked by hand.\n');
+    expect(linkBlockDefinitions(swept).keys, <String>['F pp. 42']);
+  });
+
+  test('a page list the tool cannot link item by item stays plain', () {
+    for (final plain in <String>[
+      'F pp. 42, 116 names an unmapped page.\n',
+      'F p. 42, 115 opens with one page.\n',
+      'F pp. 42, 115(a) runs into a subsection.\n',
+      'F pp. 42, 115, 1960s runs into other text.\n',
+    ]) {
+      expect(sweep(plain), plain, reason: plain);
+    }
   });
 
   test('a bracket that would build a link definition is not added', () {
@@ -192,10 +221,12 @@ A repeat of J 02.03.02 shares one definition.
       'J 02.05',
       'F p. 2',
       'F pp. 2-3',
+      '5',
     ]..sort(compareCitationLabels);
     expect(labels, <String>[
       'F p. 2',
       'F pp. 2-3',
+      '5',
       'F p. 10',
       'J 02.05',
       'J 02.05.05',

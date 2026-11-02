@@ -570,7 +570,7 @@ where BASE.LOCATOR.OF.DATE holds the current origin of the record, SYS)294 is an
 | Feature | F28-8043 (June 1960) | J28-6169 (Jan 1962) — authoritative |
 |---|---|---|
 | Environment Description content | Division reserved (`*ENVIRONMENT`, [F p. 27]) but undefined; deferred to processor manuals ([F p. 71]) | Fully defined: FILE, SPECIF, POOL, GROUP, CONTRL, OPTION, COND cards ([J 02.06]) |
-| Library facilities | INCLUDE, COPY, LIBRARY defined (F pp. 58, 76, 81) | All deferred; "no library facilities are currently available" ([J 90.01.02]–03; error 110,00, [J 90.04]) |
+| Library facilities | INCLUDE, COPY, LIBRARY defined ([F pp. 58], [76], [81]) | All deferred; "no library facilities are currently available" ([J 90.01.02]–03; error 110,00, [J 90.04]) |
 | LOAD / OVERLAP segmentation | Defined ([F pp. 54–56]) | Deferred; no segmented memory loads ([J 90.01.03], 90.01.05) |
 | Multi-program combination (CONTRL) | Not in F | Defined ([J 02.06.15]) but mechanization deferred; no control break table punched or processed ([J 90.01.04]–05) |
 | ENTER | `ENTER coding.language`, open-ended ([F p. 59]) | Exactly two forms: ENTER CRYPT, ENTER COMMERCIAL TRANSLATOR ([J 02.04.02.01]) |
@@ -586,6 +586,8 @@ where BASE.LOCATOR.OF.DATE holds the current origin of the record, SYS)294 is an
 
 <!-- manual links; carried from canon by the generator -->
 
+[76]: ../../comtran-manuals/F28-8043/04-data-description.md#tables
+[81]: ../../comtran-manuals/F28-8043/04-data-description.md#format-characters
 [F p. 109]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#list-of-commercial-translator-commands
 [F p. 110]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#list-of-commercial-translator-commands
 [F p. 12]: ../../comtran-manuals/F28-8043/02-language-structure.md#underlying-principles
@@ -609,6 +611,7 @@ where BASE.LOCATOR.OF.DATE holds the current origin of the record, SYS)294 is an
 [F pp. 54–56]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
 [F pp. 55–56]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-display-command
 [F pp. 57–58]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-begin-section-and-end-commands
+[F pp. 58]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-begin-section-and-end-commands
 [F pp. 73]: ../../comtran-manuals/F28-8043/04-data-description.md#funct
 [F pp. 76–77]: ../../comtran-manuals/F28-8043/04-data-description.md#tables
 [J 02.00.00]: ../../comtran-manuals/J28-6169/02-compiler.md#section-02-compiler
