@@ -47,9 +47,9 @@
 <section class="track">
   <h2>The compiler</h2>
   <p class="track-intro">
-    Seven steps from a box of cards to a program that runs. The first four are
+    Seven steps from a box of cards to a program that runs. All seven are
     finished, and each one is held to the 1962 manual by a test that compares
-    output byte for byte.
+    its output with what the manual prints.
   </p>
   <ol class="stations">
 
@@ -119,54 +119,65 @@
       </p>
     </li>
 
-    <li class="station now">
+    <li class="station done">
       <p class="station-head">
         <span class="code">M4</span>
-        <span class="state">Being built now</span>
+        <span class="state">Finished 6 September 2026</span>
       </p>
       <h3>Machine code</h3>
       <p>
-        The verbs become 7090 instructions. The assembly model and the storage
-        map are built and print correctly; the verb generators are the work in
-        hand. There is a right answer to check against, because the manual
-        prints this program's assembled object code in full.
+        The verbs become 7090 instructions. The whole object listing the
+        manual prints, pages 8 to 25 of the sample, now matches the generated
+        code byte for byte. The compiler also punches the object deck, our
+        loader reads it back, and a machine assembly runs the loaded program.
       </p>
       <p>
-        Eighteen of those printed pages have to be read off the scans first,
-        one page at a time, before a single instruction is generated. That
-        reading is most of the work, and
-        <a href="reading-the-scans.html">what it takes to do it honestly</a> is
-        its own page.
+        Eighteen of those printed pages had to be read off the scans first,
+        one page at a time, before a single instruction was generated.
+        <a href="reading-the-scans.html">What it takes to do that honestly</a>
+        is its own page.
       </p>
       <p class="station-link">
         <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/m4-codegen.md">The code generation design, with every open question</a>
       </p>
     </li>
 
-    <li class="station todo">
+    <li class="station done">
       <p class="station-head">
         <span class="code">M5</span>
-        <span class="state">Not started</span>
+        <span class="state">Finished 13 September 2026</span>
       </p>
       <h3>Reading and writing</h3>
       <p>
         Files, tapes and printed reports. A payroll program that cannot read a
-        tape or write a report does nothing at all, and this is the runtime
-        that lets it.
+        tape or write a report does nothing at all. The sample now reads its
+        input tapes, runs to the end of the job and prints its reports.
+      </p>
+      <p class="station-link">
+        <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/m5-io.md">How files and tapes were built</a>
       </p>
     </li>
 
-    <li class="station todo">
+    <li class="station done">
       <p class="station-head">
         <span class="code">M6</span>
-        <span class="state">Not started</span>
+        <span class="state">Finished 2 November 2026</span>
       </p>
       <h3>The acceptance test</h3>
       <p>
         Compile the payroll sample, run it on an emulated 7090, and reproduce
-        the report the 1962 manual prints beside it. Byte for byte, the way the
-        listing already matches. That is the finish line as the project is
-        scoped today.
+        the report the 1962 manual prints beside it. The input tapes did not
+        survive, so they were rebuilt from the printed report. The sample runs
+        over them and matches the page up to four recorded differences.
+      </p>
+      <p>
+        A second program, the payroll example from the 1960 manual, with the
+        five changes the 1962 compiler demands, compiles and runs to the end of
+        its job too. Every difference between its report
+        and the sample's has a named cause.
+      </p>
+      <p class="station-link">
+        <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/m6-acceptance.md">The acceptance record, with every finding</a>
       </p>
     </li>
 

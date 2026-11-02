@@ -80,16 +80,21 @@ divisions, the job-stream driver, and the Data Description semantic layer all
 work. Code generation fills every word of the object program and prints the
 whole object listing of the 1962 sample byte for byte; the deck writer punches the
 object deck and the loader cards, our loader reads them back, and the machine
-assembly executes what comes out. A program that touches no file now compiles
-and runs to its `STOP RUN`. [`docs/HANDOVER.md`](docs/HANDOVER.md) holds the live
-state and the next task.
+assembly executes what comes out. The I/O runtime reads and writes tape, so
+the sample runs to end of job and prints its report. The acceptance milestone
+is done: that report matches the manual's printed page up to four recorded
+findings, and the 1960 manual's payroll example, with the five changes the
+1962 compiler demands, runs end to end too.
+[`docs/HANDOVER.md`](docs/HANDOVER.md) holds the live state and the next task.
 
 To see it run, with the Dart SDK installed:
 
 ```sh
 dart pub get
 dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd
-dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd --run
+tapes=$(mktemp -d) && cp test/fixtures/90.05-tapes/*.tap "$tapes"
+dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd --run \
+    --tapes="$tapes" --list-tapes
 ```
 
 The input is the manual's own payroll program, re-keyed as a punch-level card
@@ -97,11 +102,14 @@ deck — 293 cards, every column measured from the page scans, plus one
 reconstructed `*FINISH` card. The output is the listing above, numbered 1,00 to
 229,00 exactly as the 1962 compile numbered it, with zero diagnostics.
 
-`--run` loads the punched deck into the emulator and starts it. The payroll
-program gets as far as reading its first record and stops there, because the
-tape I/O runtime is the next milestone. The goal is to carry it past that
-point: run the sample to the end and reproduce the printed report it produced
-in 1961.
+`--run` loads the punched deck into the emulator and starts it. The manual
+prints the sample's report but not the master and detail tapes behind it, so
+those were rebuilt from the report itself (`test/fixtures/90.05-tapes/`).
+Point `--tapes` at a copy of them (the run writes its output tapes into the
+same directory) and add `--list-tapes`, and the program runs to end of job and
+prints its report — the one on PDF p. 217, up to four recorded
+findings. One of the four is the 1962 compiler's own bug, and ours reproduces
+it.
 
 ## How we know, and what we don't
 
