@@ -121,7 +121,12 @@ final class NameResolver extends ClauseWalk with OperandWalk {
         _enter(name, NameKind.environment, anchor);
       }
     }
-    procedureGroups.forEach(_enterProcedureNames);
+    // The parser carries its section stack across groups, so this
+    // one does too.
+    final sectionStack = <Sentence>[];
+    for (final sentences in procedureGroups) {
+      _enterProcedureNames(sentences, sectionStack);
+    }
     _checkListThreeShadows();
   }
 
@@ -175,18 +180,16 @@ final class NameResolver extends ClauseWalk with OperandWalk {
     }
   }
 
-  void _enterProcedureNames(List<Sentence> sentences) {
+  void _enterProcedureNames(
+    List<Sentence> sentences,
+    List<Sentence> sectionStack,
+  ) {
     // Statement labels scope to their section (D2.5); a BEGIN SECTION
     // sentence's label is the section's name.
-    final sectionStack = <Sentence>[];
     for (final sentence in sentences) {
       if (sectionStack.isNotEmpty) {
         sectionScopes[sentence] = sectionStack.last;
       }
-      // The parser walks the same clause tree, so an END in an IF arm
-      // closes the section here too (msg 179 is the parser's). This
-      // stack moves at most once per sentence; a sentence with two
-      // BEGINs or two ENDs is parser-diagnosed and scopes best-effort.
       final bool opensSection = clauseTree(
         sentence.clauses,
       ).any((Clause c) => c is BeginSectionClause);
@@ -229,13 +232,16 @@ final class NameResolver extends ClauseWalk with OperandWalk {
         }
         _enter(label, kind, anchor, sentence: sentence, scope: scope);
       }
-      if (opensSection) {
-        // The 18-level nesting limit is the parser's msg 915 (D9.7).
-        sectionStack.add(sentence);
-      }
-      if (clauseTree(sentence.clauses).any((Clause c) => c is EndClause) &&
-          sectionStack.isNotEmpty) {
-        sectionStack.removeLast();
+      // The stack moves clause by clause in the parser's walk order,
+      // so it matches the parser's section stack (msgs 64, 65, 179 are
+      // the parser's). Two BEGINs in one sentence push the sentence
+      // twice: the right depth, but one shared label scope.
+      for (final Clause clause in clauseTree(sentence.clauses)) {
+        if (clause is BeginSectionClause) {
+          sectionStack.add(sentence);
+        } else if (clause is EndClause && sectionStack.isNotEmpty) {
+          sectionStack.removeLast();
+        }
       }
     }
   }
