@@ -2261,6 +2261,120 @@ void main() {
       ]);
     });
 
+    final List<String> scaled = [
+      ...cells,
+      dataCard(name: 'FT', level: '1', quantity: '3'),
+      internalCard('FC', '9V9', level: '2'),
+      internalCard('J', '9'),
+      internalCard('FR', '9V9'),
+    ];
+
+    test('an ADD target reads and stores through one prologue', () {
+      // The plain body `CLA / ADD / STO`, the element read and store
+      // both `0,r`.
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  ADD NUM TO TAB CELL (I).',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD NUM',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    test('an ADD aligns its source ahead of the element prologue', () {
+      final List<String> all = lines(scaled, [
+        '      START.  ADD NUM TO TAB CELL (I), FT FC (J).',
+        '            STOP RUN.',
+      ]);
+      // The second target takes the other register; its source parks
+      // as a plain target's does.
+      expect(upTo(all, '\tSTO 0,2'), [
+        'GN)000 START\tLAC PI)1,1',
+        '\tTXL SYS)294,1,0',
+        '\tCLA 0,1',
+        '\tADD NUM',
+        '\tSTO 0,1',
+        '\tLDQ NUM',
+        '\tMPY CP)+2',
+        '\tSTQ RS)0',
+        '\tLAC PI)2,2',
+        '\tTXL SYS)294,2,0',
+        '\tCLA 0,2',
+        '\tADD RS)0',
+        '\tSTO 0,2',
+      ]);
+    });
+
+    test('an ADD of an edited source parks before the element prologue', () {
+      final List<String> all = lines(
+        [...cells, dataCard(name: 'ED', level: '1', description: '89')],
+        ['      START.  ADD ED TO TAB CELL (I).', '            STOP RUN.'],
+      );
+      // The MOVPAK convert sets XR1, so the prologue follows its park.
+      expect(upTo(all, '\tSTO 0,1').sublist(3), [
+        '\tTXI SYS)268,1,1',
+        '\tTXI SYS)269,1,2',
+        '\tTXI SYS)275,1,2',
+        '\tSTO RS)1',
+        '\tLAC PI)1,1',
+        '\tTXL SYS)294,1,0',
+        '\tCLA 0,1',
+        '\tADD RS)1',
+        '\tSTO 0,1',
+      ]);
+    });
+
+    test('a SET target stores the chain through its indicator', () {
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  SET TAB CELL (I) = NUM + 1.',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tCLA NUM',
+          '\tADD CP)+1',
+          '\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    test('a SET target takes the scaling tail, then STQ', () {
+      expect(
+        upTo(
+          lines(scaled, [
+            '      START.  SET FT FC (I) = FR * FR.',
+            '            STOP RUN.',
+          ]),
+          '\tSTQ 0,1',
+        ),
+        [
+          'GN)000 START\tLDQ FR',
+          '\tMPY FR',
+          '\tXCA ',
+          '\tACL CP)+2',
+          '\tLRS 35',
+          '\tDVP CP)+3',
+          '\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tSTQ 0,1',
+        ],
+      );
+    });
+
     test('a SET into a subscript variable recomputes its indicator', () {
       final List<String> all = lines(cells, [
         '      START.  SET I = 2.',

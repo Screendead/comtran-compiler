@@ -171,25 +171,29 @@ void main() {
       );
     });
 
-    test('a subscripted ADD target', () {
-      // Master added into the first element on every pass.
-      expect(
-        _refuses(['            ADD NUM TO TAB CELL (IDX).']),
-        'a subscripted ADD target (no sample instance)',
-      );
-    });
+    group('a subscripted external-decimal store target', () {
+      // SYS)180 takes its target from the in-line `PZE` word.
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'XT', level: '1', quantity: '12'),
+        dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+      ];
+      const shape =
+          'a subscripted external-decimal store target (no sample instance)';
 
-    test('a subscripted ADD target of an edited source', () {
-      expect(
-        _refuses(
-          ['            ADD EDN TO TAB CELL (IDX).'],
-          data: [
-            ..._data(),
-            dataCard(name: 'EDN', level: '1', description: '899'),
-          ],
-        ),
-        'a subscripted ADD target (no sample instance)',
-      );
+      test('of an ADD', () {
+        expect(
+          _refuses(['            ADD NUM TO XT XF (IDX).'], data: data),
+          shape,
+        );
+      });
+
+      test('of a SET', () {
+        expect(
+          _refuses(['            SET XT XF (IDX) = NUM.'], data: data),
+          shape,
+        );
+      });
     });
 
     test('an ADD into a target of lesser scale', () {
@@ -493,10 +497,17 @@ void main() {
       );
     });
 
-    test('a subscripted SET target', () {
+    test('a subscripted edited SET target', () {
       expect(
-        _refuses(['            SET TAB CELL (IDX) = NUM.']),
-        'a subscripted SET target (no sample instance)',
+        _refuses(
+          ['            SET DT DC (IDX) = NUM.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'DT', level: '1', quantity: '12'),
+            dataCard(name: 'DC', level: '2', description: '899'),
+          ],
+        ),
+        'a subscripted edited-store target (no sample instance)',
       );
     });
 
@@ -1347,6 +1358,21 @@ void main() {
           '(M6-9)',
         );
       });
+
+      for (final statement in [
+        'ADD NUM TO T11 F11 (IDX).',
+        'SET T11 F11 (IDX) = NUM.',
+      ]) {
+        test('in the element store of $statement', () {
+          // `STO 0,r` writes the word the address names, as `CAS 0,r`
+          // reads it.
+          expect(
+            _refuses(['            $statement'], data: data),
+            'a whole-word read of an element whose stride is 11 '
+            'characters (M6-9)',
+          );
+        });
+      }
 
       group('an external field read with and without its subscript', () {
         // One cell serves an item in a fetch scope.

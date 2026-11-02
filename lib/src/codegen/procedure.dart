@@ -2654,9 +2654,16 @@ final class _Text {
   /// 01412 with the store in place of `CAS`. The prologue changes
   /// neither register.
   void _elementStore(DataItem target, {Op store = Op.sto}) {
-    final int register = _indicatorPrologue(target);
-    _op(store, _Sym(() => '0', () => 0, Relocation.constant), tag: register);
+    _op(store, _elementWord, tag: _indicatorPrologue(target));
   }
+
+  /// The address part of every element read and store: the register
+  /// alone reaches the element.
+  static final _Sym _elementWord = _Sym(
+    () => '0',
+    () => 0,
+    Relocation.constant,
+  );
 
   /// A store into a subscript variable recomputes every positional
   /// indicator it drives, five words and a two-name later-pass run
@@ -2950,10 +2957,11 @@ final class _Text {
       return;
     }
     // The target refuses before the first word of the chain.
-    if (target.subscripts.isNotEmpty) {
-      _unruled('a subscripted SET target (no sample instance)');
-    }
     final DataItem item = _resolved(target);
+    final bool element = target.subscripts.isNotEmpty;
+    if (element) {
+      _checkElementTarget(item);
+    }
     final FieldClass to = _sem(item).fieldClass;
     if (to == FieldClass.edited) {
       _checkEditedTarget(item);
@@ -2965,7 +2973,12 @@ final class _Text {
     }
     _withFetches(
       _operandsOf([clause.value]),
-      () => _store(item, _chain(clause.value), truncated: clause.truncated),
+      () => _store(
+        item,
+        _chain(clause.value),
+        truncated: clause.truncated,
+        element: element,
+      ),
     );
     // A SET moves the indicators its target drives, as a MOVE does
     // (J 02.04.07.01; M4-10). The CORRESPONDING forms return before
@@ -3037,9 +3050,11 @@ final class _Text {
       if (name.subscripts.isNotEmpty && !external) {
         _unruled('a subscripted ADD source (no sample instance)');
       }
-      // Both arms resolve the target alone, so its subscript would drop.
-      if (clause.targets.any((NameReference t) => t.subscripts.isNotEmpty)) {
-        _unruled('a subscripted ADD target (no sample instance)');
+      // The targets refuse before the first word of the clause.
+      for (final NameReference target in clause.targets) {
+        if (target.subscripts.isNotEmpty) {
+          _checkElementTarget(_resolved(target));
+        }
       }
       if (_sem(source).fieldClass == FieldClass.edited) {
         // The non-binary operand fetch (catalogue 4.7): the register
@@ -3054,9 +3069,15 @@ final class _Text {
         for (final NameReference target in clause.targets) {
           final DataItem item = _resolved(target);
           final int deficit = _addDeficit(source, item);
-          _withFetches([
-            item,
-          ], () => _alignedAdd(item, deficit, (Op op) => _op(op, park)));
+          _withFetches(
+            [item],
+            () => _alignedAdd(
+              item,
+              deficit,
+              (Op op) => _op(op, park),
+              element: target.subscripts.isNotEmpty,
+            ),
+          );
           _subscriptRecomputation(target);
         }
         return;
@@ -3089,8 +3110,12 @@ final class _Text {
       // One scope for the clause: the source converts once, and every
       // pair reads its cell, as statement 221's edited source parks once.
       _withFetches(read, () {
-        for (final target in targets) {
-          _addPair(source, target);
+        for (var i = 0; i < targets.length; i++) {
+          _addPair(
+            source,
+            targets[i],
+            element: clause.targets[i].subscripts.isNotEmpty,
+          );
         }
       }, subscripted: <DataItem>{if (name.subscripts.isNotEmpty) source});
       clause.targets.forEach(_subscriptRecomputation);
@@ -3138,13 +3163,18 @@ final class _Text {
   /// One ADD unit: `CLA target / ADD source / STO target` with the
   /// guards the operands force. Every attested pair has equal scale;
   /// the store tail on an ADD has no site (notes section 7).
-  void _addPair(DataItem source, DataItem target) {
+  void _addPair(DataItem source, DataItem target, {bool element = false}) {
     final int deficit = _addDeficit(source, target);
     final DataItem addend = _operand(source);
-    _withFetches([
-      addend,
-      target,
-    ], () => _alignedAdd(target, deficit, (Op op) => _read(op, addend)));
+    _withFetches(
+      [addend, target],
+      () => _alignedAdd(
+        target,
+        deficit,
+        (Op op) => _read(op, addend),
+        element: element,
+      ),
+    );
   }
 
   /// The fraction digits an ADD source lacks against [target]. A source
@@ -3163,22 +3193,41 @@ final class _Text {
   /// addend [deficit] digits short loads into the MQ, upscales, and parks
   /// as the chain parks a term of `SET target = target + source`: `MPY`
   /// the power of ten, then `STQ RS)0` (the attested 00622–00624).
-  void _alignedAdd(DataItem target, int deficit, void Function(Op) read) {
+  void _alignedAdd(
+    DataItem target,
+    int deficit,
+    void Function(Op) read, {
+    required bool element,
+  }) {
     if (deficit == 0) {
-      _addBody(target, () => read(Op.add));
+      _addBody(target, () => read(Op.add), element: element);
       return;
     }
     read(Op.ldq);
     _op(Op.mpy, _cp(_pool.machineWord(_pow10(deficit))));
     final void Function(Op) parked = _park(0, _Register.mq);
-    _addBody(target, () => parked(Op.add));
+    _addBody(target, () => parked(Op.add), element: element);
     // The body has read the park. An ADD opens no chain, so cell 0 was
     // free, and a later chain or comparison must find it free again.
     _parkedCells.remove(0);
   }
 
-  void _addBody(DataItem target, void Function() addend) {
+  /// An [element] target reads and stores through one prologue, `CLA
+  /// 0,r` and `STO 0,r`, with the addend between them as at a plain
+  /// target.
+  void _addBody(
+    DataItem target,
+    void Function() addend, {
+    required bool element,
+  }) {
     final DataItem item = _operand(target);
+    if (element) {
+      final int register = _indicatorPrologue(item);
+      _op(Op.cla, _elementWord, tag: register);
+      addend();
+      _op(Op.sto, _elementWord, tag: register);
+      return;
+    }
     final external = _sem(item).fieldClass == FieldClass.externalDecimal;
     if (external) {
       _checkExternalTarget(item);
@@ -3476,7 +3525,15 @@ final class _Text {
   /// four after the `XCA` (M6-9). An external or edited target ends the
   /// tail in `XCA` and the SYS)180 call in place of the `STQ` (M6-9).
   /// TRUNCATED drops the `ACL` (D4.1).
-  void _store(DataItem item, _Value value, {required bool truncated}) {
+  ///
+  /// An [element] target, checked by [_checkElementTarget], stores
+  /// through its indicator in place of the plain store word.
+  void _store(
+    DataItem item,
+    _Value value, {
+    required bool truncated,
+    bool element = false,
+  }) {
     final FieldClass to = _sem(item).fieldClass;
     final bool sys180 =
         to == FieldClass.externalDecimal || to == FieldClass.edited;
@@ -3486,8 +3543,13 @@ final class _Text {
         _sys180Store(item, value.register);
         return;
       }
+      final Op store = value.register == _Register.mq ? Op.stq : Op.sto;
+      if (element) {
+        _elementStore(item, store: store);
+        return;
+      }
       _loadBaseOf(item);
-      _opItem(value.register == _Register.mq ? Op.stq : Op.sto, item);
+      _opItem(store, item);
       return;
     }
     if (value.scale < targetScale) {
@@ -3497,7 +3559,7 @@ final class _Text {
     // The half-adjust is referenced first, so it pools first.
     final _Sym? half = truncated ? null : _cp(_pool.machineWord(divisor ~/ 2));
     final _Sym scale = _cp(_pool.machineWord(divisor));
-    if (!sys180) {
+    if (!sys180 && !element) {
       _loadBaseOf(item);
     }
     // A product moves its low half into the accumulator; a chain is
@@ -3512,6 +3574,8 @@ final class _Text {
     _op(Op.dvp, scale);
     if (sys180) {
       _sys180Store(item, _Register.mq);
+    } else if (element) {
+      _elementStore(item, store: Op.stq);
     } else {
       _opItem(Op.stq, item);
     }
@@ -3557,6 +3621,25 @@ final class _Text {
       _ => 186,
     }, s.digits);
     _movpakClears();
+  }
+
+  /// The subscripted SET and ADD targets the element store cannot
+  /// write, refused before the first word of the statement. The store
+  /// is `STO 0,r` behind the comparand's prologue, so it writes a whole
+  /// word of internal decimal.
+  void _checkElementTarget(DataItem item) {
+    final FieldClass fieldClass = _sem(item).fieldClass;
+    if (fieldClass == FieldClass.externalDecimal) {
+      // SYS)180 takes its target from the in-line `PZE` word, and no
+      // site shows that word built from an indicator.
+      _unruled(
+        'a subscripted external-decimal store target (no sample instance)',
+      );
+    }
+    if (fieldClass == FieldClass.edited) {
+      _unruled('a subscripted edited-store target (no sample instance)');
+    }
+    _checkElement(_operand(item));
   }
 
   /// The two external-decimal targets the store cannot write. Both
@@ -3914,14 +3997,9 @@ final class _Text {
       case NameOperand(:final name):
         final DataItem item = _operand(_resolved(name));
         if (name.subscripts.isNotEmpty && !_fetched.containsKey(item)) {
-          final int register = _indicatorPrologue(item);
           // The element the indicator addresses: `CAS 0,r`, the word
           // the register alone reaches (the attested 01412).
-          _op(
-            Op.cas,
-            _Sym(() => '0', () => 0, Relocation.constant),
-            tag: register,
-          );
+          _op(Op.cas, _elementWord, tag: _indicatorPrologue(item));
         } else {
           _read(Op.cas, item);
         }
@@ -3936,6 +4014,17 @@ final class _Text {
   /// with a locator, and the register leaves the cache: it holds the
   /// element address now, not a base.
   int _indicatorPrologue(DataItem array) {
+    final int indicator = _checkElement(array);
+    final int register = _assignRegister(-indicator);
+    _registerHolds.remove(register);
+    _op(Op.lac, _blockWord(StorageBlock.pi, indicator), tag: register);
+    _trap(register);
+    return register;
+  }
+
+  /// The indicator of the element [array] that `0,r` reads or stores.
+  /// A target checks it before the first word of its statement.
+  int _checkElement(DataItem array) {
     final int chars = _strideChars(array);
     if (chars % 6 != 0) {
       // `CAS 0,r` reads the word the address names and drops the byte.
@@ -3944,12 +4033,7 @@ final class _Text {
         'characters (M6-9)',
       );
     }
-    final int indicator = _indicator(array);
-    final int register = _assignRegister(-indicator);
-    _registerHolds.remove(register);
-    _op(Op.lac, _blockWord(StorageBlock.pi, indicator), tag: register);
-    _trap(register);
-    return register;
+    return _indicator(array);
   }
 
   bool _zero(Token figurative) => figurative.text.startsWith('ZERO');

@@ -789,6 +789,36 @@ final List<String> _subscriptStores = <String>[
   '      *FINISH',
 ];
 
+/// SET and ADD into elements: I names each element before its store,
+/// and the other elements must stay zero. EXT reads 12 through the
+/// literal row under REDEF.
+final List<String> _elementTargets = <String>[
+  '      *DATA',
+  // The bases `TAB-1` and `FT-1` must stay at or above address zero.
+  internalCard('P1', '9'),
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'012'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'EXT', level: '2', mode: 'E', description: '999'),
+  dataCard(name: 'TAB', level: '1', quantity: '3'),
+  internalCard('CELL', '999', level: '2'),
+  dataCard(name: 'FT', level: '1', quantity: '3'),
+  internalCard('FC', '99V9', level: '2'),
+  internalCard('I', '9'),
+  internalCard('NUM', '999'),
+  internalCard('FR', '9V9'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 4, SET I = 3.',
+  '            ADD NUM TO TAB CELL (I).',
+  '            SET I = 1, SET TAB CELL (I) = NUM + 1.',
+  '            SET I = 2, ADD EXT TO TAB CELL (I).',
+  '            SET FR = 1.5, SET FT FC (I) = FR * FR.',
+  '            ADD NUM TO FT FC (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
 final List<String> _subChain = <String>[
   '      *DATA',
@@ -1577,6 +1607,24 @@ void main() {
       ]);
       // A read from byte 0 gives 300.
       expect(subject.state.read(addressOf(job, 'NB')), 3);
+    });
+
+    test('a SET and an ADD store into the element the index names', () {
+      final (JobCompilation job, Machine subject) = compiled(_elementTargets);
+      expect(subject.printed, <String>['AT 20,00 STOP RUN']);
+      final int tab = addressOf(job, 'TAB');
+      final int ft = addressOf(job, 'FT');
+      // 4 into element 3, then 4 + 1 into element 1, then 12 into
+      // element 2.
+      expect(
+        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
+        <int>[5, 12, 4],
+      );
+      // 1.5 * 1.5 rounds to 2.3 at the store, and 4 aligns to 4.0: 6.3.
+      expect(
+        <int>[for (var k = 0; k < 3; k++) subject.state.read(ft + k)],
+        <int>[0, 63, 0],
+      );
     });
 
     test('a sub-chain inside a chain keeps the outer park', () {
