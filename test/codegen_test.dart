@@ -2396,6 +2396,281 @@ void main() {
       ]);
     });
 
+    final List<String> scaled = [
+      ...cells,
+      dataCard(name: 'FT', level: '1', quantity: '3'),
+      internalCard('FC', '9V9', level: '2'),
+      internalCard('J', '9'),
+      internalCard('FR', '9V9'),
+    ];
+
+    test('an ADD target reads and stores through one prologue', () {
+      // The plain body `CLA / ADD / STO`, the element read and store
+      // both `0,r`.
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  ADD NUM TO TAB CELL (I).',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD NUM',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    test('an ADD aligns its source ahead of the element prologue', () {
+      final List<String> all = lines(scaled, [
+        '      START.  ADD NUM TO TAB CELL (I), FT FC (J).',
+        '            STOP RUN.',
+      ]);
+      // The first store frees its register for the second target, whose
+      // source parks as a plain target's does.
+      expect(all.sublist(0, 13), [
+        'GN)000 START\tLAC PI)1,1',
+        '\tTXL SYS)294,1,0',
+        '\tCLA 0,1',
+        '\tADD NUM',
+        '\tSTO 0,1',
+        '\tLDQ NUM',
+        '\tMPY CP)+2',
+        '\tSTQ RS)0',
+        '\tLAC PI)2,1',
+        '\tTXL SYS)294,1,0',
+        '\tCLA 0,1',
+        '\tADD RS)0',
+        '\tSTO 0,1',
+      ]);
+    });
+
+    test('an ADD of three targets on three indicators reuses XR1', () {
+      final List<String> all = lines(
+        [
+          ...pad,
+          for (final int k in [1, 2, 3]) ...[
+            dataCard(name: 'T$k', level: '1', quantity: '3'),
+            internalCard('C$k', '999', level: '2'),
+          ],
+          internalCard('I', '9'),
+          internalCard('NUM', '999'),
+        ],
+        [
+          '      START.  ADD NUM TO T1 C1 (I), T2 C2 (I), T3 C3 (I).',
+          '            STOP RUN.',
+        ],
+      );
+      // Each store leaves its element address dead, so no target needs
+      // a third register.
+      expect(all.sublist(0, 15), [
+        for (final int k in [1, 2, 3]) ...[
+          '${k == 1 ? 'GN)000 START' : ''}\tLAC PI)$k,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD NUM',
+          '\tSTO 0,1',
+        ],
+      ]);
+    });
+
+    test('an ADD of an edited source parks before the element prologue', () {
+      final List<String> all = lines(
+        [...cells, dataCard(name: 'ED', level: '1', description: '89')],
+        ['      START.  ADD ED TO TAB CELL (I).', '            STOP RUN.'],
+      );
+      // The MOVPAK convert sets XR1, so the prologue follows its park.
+      expect(upTo(all, '\tSTO 0,1').sublist(3), [
+        '\tTXI SYS)268,1,1',
+        '\tTXI SYS)269,1,2',
+        '\tTXI SYS)275,1,2',
+        '\tSTO RS)1',
+        '\tLAC PI)1,1',
+        '\tTXL SYS)294,1,0',
+        '\tCLA 0,1',
+        '\tADD RS)1',
+        '\tSTO 0,1',
+      ]);
+    });
+
+    test('a SET target stores the chain through its indicator', () {
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  SET TAB CELL (I) = NUM + 1.',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tCLA NUM',
+          '\tADD CP)+1',
+          '\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    test('a SET target takes the scaling tail, then STQ', () {
+      expect(
+        upTo(
+          lines(scaled, [
+            '      START.  SET FT FC (I) = FR * FR.',
+            '            STOP RUN.',
+          ]),
+          '\tSTQ 0,1',
+        ),
+        [
+          'GN)000 START\tLDQ FR',
+          '\tMPY FR',
+          '\tXCA ',
+          '\tACL CP)+2',
+          '\tLRS 35',
+          '\tDVP CP)+3',
+          '\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tSTQ 0,1',
+        ],
+      );
+    });
+
+    test('an ADD target recomputes before the next prologue reads it', () {
+      // The element is the one I names after the first store.
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  ADD NUM TO I, TAB CELL (I).',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tCLA I',
+          '\tADD NUM',
+          '\tSTO I',
+          'GN)001\tEQU CP)+6',
+          '\tLDQ I',
+          '\tMPY CP)+1',
+          '\tXCA ',
+          '\tADD GN)001',
+          '\tSTO PI)1',
+          '\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD NUM',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    group('a subscripted CORRESPONDING target (J 02.04.05)', () {
+      /// G and the element of TAB both hold CELL, OTH and THR. Each
+      /// field of `TAB (I)` takes the subscript, so it takes an
+      /// indicator of its own after TAB's: `PI)2`, `PI)3` and `PI)4`.
+      /// Each store frees XR1 for the next field.
+      final List<String> groups = [
+        ...pad,
+        dataCard(name: 'G', level: '1'),
+        internalCard('CELL', '999', level: '2'),
+        internalCard('OTH', '99', level: '2'),
+        internalCard('THR', '9', level: '2'),
+        dataCard(name: 'TAB', level: '1', quantity: '3'),
+        internalCard('CELL', '999', level: '2'),
+        internalCard('OTH', '99', level: '2'),
+        internalCard('THR', '9', level: '2'),
+        internalCard('I', '9'),
+      ];
+      const fields = <(int, String)>[(2, 'CELL'), (3, 'OTH'), (4, 'THR')];
+
+      test('of an ADD reads and stores each field through its prologue', () {
+        expect(
+          lines(groups, [
+            '      START.  ADD CORRESPONDING G TO TAB (I).',
+            '            STOP RUN.',
+          ]).sublist(0, 15),
+          [
+            for (final (int pi, String name) in fields) ...[
+              '${pi == 2 ? 'GN)000 START' : ''}\tLAC PI)$pi,1',
+              '\tTXL SYS)294,1,0',
+              '\tCLA 0,1',
+              '\tADD 1)$name',
+              '\tSTO 0,1',
+            ],
+          ],
+        );
+      });
+
+      test('of a MOVE stores each field through its prologue', () {
+        expect(
+          lines(groups, [
+            '      START.  MOVE CORRESPONDING G TO TAB (I).',
+            '            STOP RUN.',
+          ]).sublist(0, 12),
+          [
+            for (final (int pi, String name) in fields) ...[
+              '${pi == 2 ? 'GN)000 START' : ''}\tCLA 1)$name',
+              '\tLAC PI)$pi,1',
+              '\tTXL SYS)294,1,0',
+              '\tSTO 0,1',
+            ],
+          ],
+        );
+      });
+
+      test('a SET of the subscript recomputes every field indicator', () {
+        final List<String> all = lines(groups, [
+          '      START.  SET I = 2.',
+          '            MOVE CORRESPONDING G TO TAB (I).',
+          '            STOP RUN.',
+        ]);
+        expect(all.where((String line) => line.startsWith('\tSTO PI)')), [
+          '\tSTO PI)4',
+          '\tSTO PI)3',
+          '\tSTO PI)2',
+          '\tSTO PI)1',
+        ]);
+      });
+
+      test('an external source field fetches through its indicator', () {
+        // The words of `ADD XT XF (I) TO G XF`: `SYS)132` takes the
+        // indicator of XF, not of XT.
+        expect(
+          upTo(
+            lines(
+              [
+                ...pad,
+                dataCard(name: 'G', level: '1'),
+                internalCard('XF', '999', level: '2'),
+                dataCard(name: 'XT', level: '1', quantity: '3'),
+                dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+                internalCard('I', '9'),
+              ],
+              [
+                '      START.  ADD CORRESPONDING XT (I) TO G.',
+                '            STOP RUN.',
+              ],
+            ),
+            '\tSTO 1)XF',
+          ),
+          [
+            'GN)000 START\tLDI PI)2',
+            '\tSTI SYS)132',
+            '\tTSX SYS)182,4',
+            '\tTXI SYS)184,1,3',
+            '\tSTO TS)1',
+            '\tCLA 1)XF',
+            '\tADD TS)1',
+            '\tSTO 1)XF',
+          ],
+        );
+      });
+    });
+
     test('a SET into a subscript variable recomputes its indicator', () {
       final List<String> all = lines(cells, [
         '      START.  SET I = 2.',

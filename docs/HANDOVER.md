@@ -71,7 +71,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1605 Dart tests pass, measured 2026-11-02, and 154 extension
+Test baseline: 1634 Dart tests pass, measured 2026-11-02, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -209,15 +209,15 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    FOR now steps the indicator's byte, carries it into the word, and
    sets every base with its byte (M6-9). The subscript store and a
    whole-word read through `LAC PI)n,r` still refuse such a stride.
-8. **A subscripted MOVE target dropped its subscript. Ruled: handle
-   it. Handled by PR #168.** `MOVE NUM TO CELL (I)` wrote the first
-   cell on every pass. An internal-decimal target now stores through
+8. **A subscripted MOVE, ADD or SET target dropped its subscript or
+   refused. Ruled: handle it. Handled by PR #168 (MOVE) and PR #186
+   (ADD, SET, CORRESPONDING; M6-9).** Each target now stores through
    `LAC PI)n,r / TXL SYS)294,r,0 / STO 0,r`, the comparand form of LOC
-   01410 to 01412. After a convert drops fraction digits (defect 1),
-   the quotient stores from the MQ through `STQ 0,r`. An edited target
-   refuses `a subscripted edited-store target (no sample instance)`.
-   An ADD target dropped its subscript too. PR #168 refuses it, and
-   does not handle it: `a subscripted ADD target (no sample instance)`.
+   01410 to 01412, or through `STQ 0,r` after a scaling tail. An ADD
+   reads the element with `CLA 0,r` under the same prologue. A
+   CORRESPONDING pair takes the operand's subscript on each field
+   ([J 02.04.05]) and refuses as its plain clause does. An edited or
+   external-decimal target refuses `(no sample instance)`.
 9. **A SET or ADD into a subscript variable updated no indicator.
    Ruled: handle it. Handled by PR #168.** Each SET and each plain ADD
    target now updates the indicators it drives (M4-10;
@@ -520,7 +520,7 @@ binds work outside the definition.
 
 | Item | State |
 |---|---|
-| Subscripted ADD and SET targets compile (the 1962 rule) | Branch `subscripted-targets` |
+| Subscripted ADD and SET targets compile (the 1962 rule) | PR #186 |
 | Literal and expression subscripts set their indicator | In progress |
 | Defect 13 | PR #190 |
 | Defect 5, the nameless BEGIN SECTION, D2.1, the definition headings, W3, W4 | Calls for Jack; prototypes in progress |
@@ -1002,6 +1002,7 @@ this project's own decision (Open Question 65).
 [F p. 42]: ../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.04.04]: ../comtran-manuals/J28-6169/02-compiler.md#3-move
+[J 02.04.05]: ../comtran-manuals/J28-6169/02-compiler.md#4-corresponding-option-with-move-and-add
 [J 02.04.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.05]: ../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card

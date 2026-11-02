@@ -25,6 +25,14 @@ Iterable<DataItem> ancestorsOf(DataItem item) sync* {
   }
 }
 
+/// The subscripts a reference to [item] takes: its quantity-bearing
+/// ancestors-or-self (M3-20).
+int dimensionsOf(DataItem item, Map<DataItem, ItemSemantics> semantics) =>
+    ancestorsOf(item).where((DataItem each) {
+      final ItemSemantics? sem = semantics[each];
+      return sem != null && (sem.quantity > 1 || sem.variableLength);
+    }).length;
+
 /// The six field types of the J 02.05.05 chart, plus the structural
 /// kinds a data entry can be instead of a field.
 enum FieldClass {
