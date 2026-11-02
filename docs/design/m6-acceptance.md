@@ -606,9 +606,8 @@ the report our run prints against the page.
      SYS)180 skeleton at GROSS's edited store. The refusals are the
      arithmetic arms. No 90.01 restriction covers the shape, and
      message 25,00 rejects
-     alphameric operands only. Two things stay open: the overflow
-     behaviour of SYS)186 to 188, which carry no test step, and
-     rounding (§8.5.4-a).
+     alphameric operands only. The external store decision below
+     holds the open items.
   2. **`FILE record IN file`.** [J 02.07.08] b: "FILE record.name IN
      file.name — This form of the verb provides a means of filing a
      record in a specific file when the record.name is associated with
@@ -813,7 +812,6 @@ the report our run prints against the page.
 
   - `test/codegen_test.dart` asserts the call on one file and on two.
   - `test/codegen_refusal_test.dart` pins the new refusal.
-  - `test/f_corpus_test.dart` moved the pin to statement 139,00.
 
   **Decided 2026-10-24: `STOP n`. A design decision under D0.4; Jack
   can overturn it.** This is the last item of the list above, and the
@@ -868,8 +866,6 @@ the report our run prints against the page.
     decimal n.
   - `test/runtime/machine_test.dart` runs a program through a halt.
     The line prints, and the statement after the halt runs.
-  - `test/f_corpus_test.dart` moved the pin to the fetch of HOURS at
-    statement 141,00.
 
   **Decided 2026-10-25: the external-decimal fetch. A design decision
   under D0.4; Jack can overturn it.** This is the first item of the
@@ -972,8 +968,6 @@ the report our run prints against the page.
   - `test/runtime/machine_test.dart` runs a program over an
     external-decimal field that holds 4.25. `SET TOT = EXT + 1.50`
     stores 5.75. `EXT GT 4.00` is true, and `EXT GT 4.25` is false.
-  - `test/f_corpus_test.dart` moved the pin to the comparison of
-    statement 141,00.
 
   **Decided 2026-10-25: the comparison of unequal scales. A design
   decision under D0.4; Jack can overturn it.** This is the ninth item
@@ -1041,8 +1035,6 @@ the report our run prints against the page.
   - `test/runtime/machine_test.dart` runs `4.5 GT 4`, `4.5 GT 5`,
     `40.0 = 40`, `40.0 GT 40` and `4.5 LT 5`. Without the alignment,
     four of the five give the wrong value.
-  - `test/f_corpus_test.dart` moved the pin to the product of
-    statement 141,00.
 
   **Amended 2026-10-25, after the PR 143 review.** The alignment
   admitted a nonzero literal in the accumulator when the scales differ,
@@ -1125,8 +1117,6 @@ the report our run prints against the page.
     HRS an external field that holds 45.0. A RATE of 2.505 stores
     18.79, and a RATE of 2.500 stores 18.75. A product that dropped the
     scale of 1.5 would store 187.88.
-  - `test/f_corpus_test.dart` moved the pin to the store of statement
-    141,00.
 
   **Decided 2026-10-25: the external-decimal store. A design decision
   under D0.4; Jack can overturn it.** This is the second item of the
@@ -1188,8 +1178,6 @@ the report our run prints against the page.
   reads `27N`, a plus field `52E`, and a fetch reads -2.75 back. A
   located field, read from a tape, takes the `MZE` store and reads
   `07P` in the buffer.
-  `test/f_corpus_test.dart` moved the pin to the store of statement
-  142,00, which the next decision takes.
 
   **Decided 2026-10-25: the scaling store of a chain value. A design
   decision under D0.4; Jack can overturn it.** This is the tenth item
@@ -1649,10 +1637,6 @@ the report our run prints against the page.
   `test/codegen_refusal_test.dart` pins the refusals.
   `test/runtime/machine_test.dart` runs the shape over the deck's six
   pictorials: 307.39 prints `  $307.39 ` and -65.11 `   $65.11-`.
-  `test/f_corpus_test.dart` pins the next stop. Statement 146,00, `MOVE
-  PAYRECORD NETPAY TO CHECK AMOUNT`, moves `$88889.99-` into
-  `$***9.99` and refuses `an edit run that bypasses source digits (no
-  sample instance)`. That is the SYS)190 bypass item of the list.
 
   **Decided 2026-10-25: the SYS)190 test step. A design decision
   under D0.4; Jack can overturn it.** This is the sixth item of the
@@ -1713,9 +1697,6 @@ the report our run prints against the page.
   `$8889.99` and SYS)130 stays 0. 12345.67 prints `$2345.67` and sets
   SYS)130. In a separate run, the `01234` row prints `234.0`, as F's
   `2340`, and sets it.
-  `test/f_corpus_test.dart` pins the next stop. Statement 152,00, `IF
-  MASTER FICA + 0.03 * DETAIL GROSS IS LESS THAN 144.00`, refuses `a
-  comparison of BinaryExpr`. That is the fourth verdict above.
 
   **Decided 2026-10-25: the comparison whose sides are expressions. A
   design decision under D0.4; Jack can overturn it.** This is the fourth
@@ -1797,9 +1778,6 @@ the report our run prints against the page.
   over external fields: 130.00, 144.00, 150.00 and 143.9999 against
   144.00, and 13 * 2 against 25.99, 26.00 and 26.01. It also runs a
   truth function in the first term, true and false.
-  `test/f_corpus_test.dart` pins the next stop. Statement 162,00, `MOVE
-  CORRESPONDING MASTER TO BONDORDER`, refuses `a move of
-  externalDecimal to externalDecimal (notes section 7)`.
 
   **Decided 2026-10-25: the external-to-external move. A design
   decision under D0.4; Jack can overturn it.** This is the fourteenth
@@ -1949,9 +1927,6 @@ the report our run prints against the page.
 
   These refusals stay; no site gives their words:
 
-  - `a subscripted external-decimal store target` and `a subscripted
-    edited-store target`, each `(no sample instance)`: SYS)180 takes an
-    in-line `PZE` word.
   - `a whole-word read of an element whose stride is 11 characters
     (M6-9)`: `STO 0,r` writes a whole word.
   - `a CORRESPONDING field its operand's subscript does not index (no
@@ -1961,6 +1936,36 @@ the report our run prints against the page.
   A CORRESPONDING store into a subscript variable still updates no
   indicator (`docs/HANDOVER.md` item 9). The rejected option is to
   keep the refusals; the 1962 processor compiled these shapes.
+
+  **Prototype 2026-11-02, for Jack's call: the external and edited
+  elements.** This amendment is a draft pull request, not a decision.
+  A subscripted SET, ADD or MOVE target of external or edited class
+  stores through SYS)180. The Case 3 address word of [J 90.02.15]
+  replaces the `PZE` word:
+
+  ```
+  TSX    SYS)180,4
+  MON    PI)n,,0       the pointer is in the indicator
+  TXI    SYS)186,1,3   or the edited SYS)267 words, as before
+  ```
+
+  - J prints `MON PI)NN,,0` for "Data items located by a Positional
+    Indicator". SYS)180 sets its target "in the same manner as
+    SYS)179".
+  - The indicator holds the pointer, byte included: `LDI PI)2 / STI
+    SYS)132` copies it at LOC 01445. MOVPAK reads the pointer there
+    (RT-4), so an element inside a word stores correctly.
+  - An ADD fetches the element through its indicator first.
+
+  The pairing is our design. Evidence exists and is sealed until M7.
+  The rejected options:
+
+  - *`LDI PI)n / STI SYS)133 / TSX SYS)182,4`.* Two words more, and
+    SYS)180 has a form of its own, as the external store found.
+  - *A patch of the `PZE` word's address.* No site shows it.
+  - *The refusals.* Jack's rule of 2026-09-14 bars them.
+
+  An ADD into an edited element refuses as the plain ADD does.
 
   **Decided 2026-10-25: the input tapes of the applied deck. Decided
   under the section 12 standing rule; Jack can overturn it.** Chunk 2b

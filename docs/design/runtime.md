@@ -414,7 +414,6 @@ assert the broken-program throws.
 | The terminator's count is the target's character length | `TXI SYS)226,1,7` stands against the 8-character target `88889.99` ([J 90.05] listing) |
 | SYS)241 writes its blanks ahead of the moved characters | [F p. 42] left-justifies the data and blanks the excess low-order positions |
 | SYS)244 writes zero words | Its entry moves zeros "to an alphabetic field" ([J 90.02.26]), and the count 54 is a character count |
-| The SYS)180 address word may be `MZE` or `MON` | `_pze` refuses a located item, and no emitter builds a positional-indicator form |
 | SYS)184's result carries the pictorial's scale | The calling sequence carries one count and no scale ([J 90.02.16]) |
 | An improper data condition throws | D4.3 forbids a Dart exception and a stop |
 
@@ -433,22 +432,25 @@ handler reads them through memory at the addresses the resolver gives
 them.
 
 - `SYS)182` takes no parameter word, because both cells are already set.
-- `SYS)180` takes one `PZE LOC,,BYTE` and stores it into `SYS)133`
-  ([J 90.02.15]). Its source is a machine register, so `SYS)132` is
+- `SYS)180` takes one address word and stores its pointer into
+  `SYS)133` ([J 90.02.15]). Its source is a machine register, so `SYS)132` is
   stale.
 
 The entry copies both cells into the session and reads neither as a
 source or a target. The family head decides which side is a register.
 
-**The handler decodes `PZE` and `MZE`. Design decision.** A word with
-the sign bit clear is the pointer itself. `MZE BL)NN,,CP)+NN`
+**The handler decodes `PZE`, `MZE` and `MON`. Design decision.** A word
+with the sign bit clear is the pointer itself. `MZE BL)NN,,CP)+NN`
 ([J 90.02.14] Case 2) gives the pointer as the sum of the base locator
 and the displacement constant. That is the sum the in-line `CAL BL)NN /
 ACL CP)+NN / SLW` builds ([J 90.02.11] Case 2). The external-decimal
 store emits the `MZE` form for a target in a located record (M6-9,
-amended 2026-10-25). The handler throws a `StateError` on any other
-prefix, `MON PI)NN,,0` ([J 90.02.15]) among them, because no emitted
-word holds one.
+amended 2026-10-25). `MON PI)NN,,0` ([J 90.02.15] Case 3) gives the
+pointer as the word in the positional indicator. The sample copies
+that word into SYS)132 with `LDI PI)2 / STI SYS)132` at LOC 01445 to
+01446. A subscripted external or edited store target emits it (M6-9,
+the prototype of 2026-11-02). The handler throws a `StateError` on any
+other prefix.
 
 **The advanced pointers are not written back. Design decision.** No
 source says whether MOVPAK returns them. Every site that reads a pointer
