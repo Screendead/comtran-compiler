@@ -308,67 +308,29 @@ void main() {
       );
     });
 
-    test('two BEGINs in one sentence nest two sections, as the parser '
-        'nests them', () {
+    test('a sentence deleted for a second BEGIN opens no section in the '
+        'resolver, as in the parser (M2-18)', () {
       final SemanticResult result = runJob(
         data: const [],
         procedure: [
           "      DUP.        DISPLAY 'A'.",
           '      S1.         BEGIN SECTION, BEGIN SECTION.',
-          '            END S1.',
           "      DUP.        DISPLAY 'C'.",
-          '            END S1.',
           '            STOP RUN.',
         ],
       );
-      expect(result.parse.parserDiagnostics, isEmpty);
-      expect(ids(result), isEmpty);
+      expect(
+        result.parse.parserDiagnostics.map((Diagnostic d) => d.message.number),
+        ['196,00'],
+      );
+      expect(ids(result), ['166,00']);
       expect(
         [
           for (final DictionaryEntry e in result.dictionary.named('DUP'))
             e.section,
         ],
-        [null, 'S1'],
+        [null, null],
       );
-    });
-
-    test('two BEGINs in one sentence open two label scopes: the inner '
-        "section's labels keep apart from the outer remainder's", () {
-      final SemanticResult result = runJob(
-        data: const [],
-        procedure: [
-          '      S1.         BEGIN SECTION, BEGIN SECTION.',
-          "      X.          DISPLAY 'A'.",
-          '            END S1.',
-          "      X.          DISPLAY 'B'.",
-          '            END S1.',
-          '            STOP RUN.',
-        ],
-      );
-      expect(result.parse.parserDiagnostics, isEmpty);
-      expect(ids(result), isEmpty);
-      final [DictionaryEntry inner, DictionaryEntry outer] = result.dictionary
-          .named('X');
-      expect(inner.scope, isNotNull);
-      expect(outer.scope, isNotNull);
-      expect(inner.scope, isNot(same(outer.scope)));
-    });
-
-    test('a one-word GO TO in the outer remainder does not reach a label '
-        'of the inner section that one sentence opened', () {
-      final SemanticResult result = runJob(
-        data: const [],
-        procedure: [
-          '      S1.         BEGIN SECTION, BEGIN SECTION.',
-          "      X.          DISPLAY 'A'.",
-          '            END S1.',
-          '            GO TO X.',
-          '            END S1.',
-          '            STOP RUN.',
-        ],
-      );
-      expect(result.parse.parserDiagnostics, isEmpty);
-      expect(ids(result), ['127,00']);
     });
 
     test('a section open across two procedure groups scopes the second '

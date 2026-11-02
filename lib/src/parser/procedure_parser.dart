@@ -180,6 +180,7 @@ final class ProcedureParser {
         return Sentence(scan, const [], deleted: true);
       }
       _checkVerbMixing(clauses);
+      _checkSectionNames(clauses, scan);
       _numberClauses(clauses, diagnosticsFrom);
       _sectionWalk(clauses, scan);
       _commitSentenceFacts(clauses);
@@ -224,6 +225,26 @@ final class ProcedureParser {
           msgIllegalSentenceStructure,
         );
       }
+    }
+  }
+
+  /// F p. 26: a section begins with its own procedure-name and a
+  /// period, then BEGIN SECTION. A BEGIN SECTION in an unnamed sentence,
+  /// or a second one after the sentence's name is taken, has no name of
+  /// its own; the sentence is deleted with msg 196 (design note M2-18).
+  void _checkSectionNames(List<Clause> clauses, ProcedureSentence scan) {
+    var nameFree = scan.label != null;
+    for (final Clause clause in clauseTree(clauses)) {
+      if (clause is! BeginSectionClause) {
+        continue;
+      }
+      if (!nameFree) {
+        throw _DeleteSentence.atToken(
+          clause.anchor,
+          msgIllegalSentenceStructure,
+        );
+      }
+      nameFree = false;
     }
   }
 
