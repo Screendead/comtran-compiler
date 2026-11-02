@@ -79,17 +79,27 @@ const List<Manual> manuals = <Manual>[
 /// Each genuine typo a manual prints, by the form number of the manual, as
 /// rule E3 of `docs/design/web-copy.md` names them. The page views put a
 /// `[sic]` mark immediately after each occurrence in the transcribed text;
-/// the conversions themselves never carry it. Each was checked on its scan:
-/// PDF 38 (`at lease`), PDF 46 (`lables`, `dinsity`), PDF 66 (`Parentheis`)
-/// and PDF 137 (`Appox-Max`, the misspelt half of the heading "Appox-Max
-/// Size"). An authentic period spelling never goes here (rule E4).
+/// the conversions themselves never carry it. An entry needs a scan that
+/// prints it and a conversion note or repository record that calls it a
+/// typo. Each was checked on its scan, by PDF page: 12 (`throught`), 38
+/// (`at lease`), 46 (`lables`, `dinsity`), 66 (`Parentheis`), 87, 124 and
+/// 130 (`alwyas`), 110 (`Mimimum`), 121 (`standart`), 137 (`Appox-Max`, the
+/// misspelt half of the heading "Appox-Max Size"), 151 (`depending of`) and
+/// 219 (`bu`, for "but"). An authentic period spelling never goes here
+/// (rule E4). F28-8043 has no entry: no conversion note records a typo in it.
 const Map<String, List<String>> typos = <String, List<String>>{
   'J28-6169': <String>[
+    'throught',
     'at lease',
     'lables',
     'dinsity',
     'Parentheis',
+    'alwyas',
+    'Mimimum',
+    'standart',
     'Appox-Max',
+    'depending of',
+    'bu',
   ],
 };
 

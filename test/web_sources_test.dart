@@ -151,32 +151,49 @@ text
     }
   });
 
-  test('each genuine typo is marked [sic] on its page, and nothing else is '
-      '(web-copy.md, rule E3)', () {
-    // Each page and its typos, checked against the scans of J28-6169.
-    const expected = <String, List<String>>{
-      'J28-6169/page-038.html': <String>['at lease'],
-      'J28-6169/page-046.html': <String>['lables', 'dinsity'],
-      'J28-6169/page-066.html': <String>['Parentheis'],
-      'J28-6169/page-137.html': <String>['Appox-Max'],
-    };
-    expect(
-      expected.values.expand((List<String> words) => words).toSet(),
-      typos['J28-6169']!.toSet(),
+  test('every occurrence of a listed typo carries [sic], and nothing else '
+      'does (web-copy.md, rule E3)', () {
+    // A typo the list leaves out cannot fail here: the list in
+    // tool/web_sources_source.dart is the one record of which words are
+    // typos. A mark goes on transcribed prose only, so notes, code and tags
+    // come out before the count.
+    final skip = RegExp(
+      r'<!--.*?-->|<pre\b.*?</pre>|<code\b.*?</code>|<[^>]*>',
+      dotAll: true,
     );
+    final unmarked = <String>[];
+    final seen = <String>{};
     for (final MapEntry<String, String> page in site.pages.entries) {
-      final List<String> words =
-          expected[page.key.substring(sourcesDir.length + 1)] ??
-          const <String>[];
+      final String id = page.key.substring(sourcesDir.length + 1).split('/')[0];
+      final List<String> words = typos[id] ?? const <String>[];
+      var marked = 0;
+      for (final word in words) {
+        final pattern = RegExp(
+          '(?<![A-Za-z])${RegExp.escape(word)}(?![A-Za-z])',
+        );
+        final int printed = pattern
+            .allMatches(page.value.replaceAll(sicMark, '').replaceAll(skip, ''))
+            .length;
+        final int hits = '$word$sicMark'.allMatches(page.value).length;
+        if (hits != printed) {
+          unmarked.add('${page.key}: $word printed $printed, marked $hits');
+        }
+        if (hits > 0) {
+          seen.add('$id $word');
+        }
+        marked += hits;
+      }
       expect(
         sicMark.allMatches(page.value),
-        hasLength(words.length),
+        hasLength(marked),
         reason: page.key,
       );
-      for (final word in words) {
-        expect(page.value, contains('$word$sicMark'), reason: page.key);
-      }
     }
+    expect(unmarked, isEmpty, reason: unmarked.join('\n'));
+    expect(seen, <String>{
+      for (final MapEntry<String, List<String>> entry in typos.entries)
+        for (final word in entry.value) '${entry.key} $word',
+    });
   });
 
   test('a conversion note keeps a typo it names unmarked', () {
