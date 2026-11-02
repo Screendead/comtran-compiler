@@ -71,7 +71,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1441 Dart tests pass, measured 2026-10-25, and 154 extension
+Test baseline: 1461 Dart tests pass, measured 2026-11-02, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -506,10 +506,10 @@ Work that needs no call from Jack:
 
 | Item | Branch |
 |---|---|
-| W2, the sources page | `w2-sources` |
-| Stale status lines in `docs/design/emulator.md` and `docs/design/m3-data.md` (M3-18) | `docs-truth-2026-11` |
-| Re-audit the coverage gaps of the PR #60 review; add the tests that are still missing | `coverage-gaps-2026-11` |
-| Check the resolver section stack after PR #171; fix it if the fault remains | `resolver-section-stack` |
+| W2, the sources page | PR #178 |
+| Stale status lines in `docs/design/emulator.md` and `docs/design/m3-data.md` (M3-18) | PR #173 |
+| Re-audit the coverage gaps of the PR #60 review; add the tests that are still missing | PR #174 |
+| Move the resolver section stack clause by clause | Merged, PR #175 |
 
 Calls that wait for Jack:
 
@@ -519,7 +519,11 @@ Calls that wait for Jack:
 | Codegen defects 1 to 11: handle or refuse | Draft PRs #167 to #169 |
 | Codegen defect 6: severity and scope | Draft PR #170 |
 | M6-9: does "compile" mean the listing or the object deck | `review/2026-10-25-m6s2-deck-walkthrough` |
-| The dangling-continuation diagnostic: message and severity | `dangling-continuation-proto` |
+| The dangling-continuation diagnostic: message and severity | Draft PR #177 |
+| W2 copy rules E3 and D5 on generated pages | `docs/design/web-copy.md` section 6, PR #178 |
+| Three subscripts that draw no message: an alphameric literal, ZERO, a function term | PR #174 |
+| A condition entry named ON draws no message on `IF ON` or `SET ON` | Not yet examined |
+| Must BEGIN SECTION stand alone in its sentence, as END must (message 179)? | Not yet checked against the manuals |
 | When M7 opens the sealed archive | No prototype. D0.9 bars any read before M7. |
 
 Edits held back because an open PR touches the same file: the D11.4
