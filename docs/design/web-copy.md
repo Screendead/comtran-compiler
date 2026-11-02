@@ -258,3 +258,29 @@ above, not in small print.
   to rule. *Jack's call, 2026-08-10.* The two are different, and the first
   states a scope decision as an evidentiary blank, which is the C1 failure
   running the other way.
+- **The manual pages and rule E3.** *Open, raised 2026-11-02 by W2. Jack
+  decides.* The W2 pages under `web/sources/` show each manual page whole, as
+  the conversion holds it. They carry no `[sic]` mark. E3 puts the mark on
+  each genuine typo in a quotation. The two options:
+  1. Scope E3 to the quotations in the site copy. A whole-page transcription
+     then carries no mark, as the conversions carry none (section E).
+  2. Mark each genuine typo on the pages. The build then needs a list of the
+     typos, and G3 requires that a copy of the text leaves the mark out.
+
+  Until Jack decides, the pages carry no mark.
+- **The generated pages and rule D5.** *Open, raised 2026-11-02 by W2. Jack
+  decides.* `test/web_copy_test.dart` skips `web/sources/`. The manual pages
+  there are quotations, and E2 outranks D5 for a quotation. The language
+  reference is not a quotation. It is this project's own text, and
+  `docs/definition/` holds about 630 em dashes. Some reach a page title. The
+  conversion file titles hold the mark too, and the contents pages print
+  them. The three options:
+  1. Scope D5 to the text written for the site. The reference then appears as
+     the repository holds it.
+  2. Remove the em dash from the language definition, and regenerate
+     `docs/definition/`.
+  3. Keep the reference off the site, and link the repository copy, until the
+     dashes go.
+
+  Until Jack decides, the site carries the reference, as the W2 scope in
+  `docs/HANDOVER.md` asks.

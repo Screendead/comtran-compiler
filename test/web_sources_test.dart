@@ -151,9 +151,10 @@ text
   });
 
   test('the generated frames hold no dash (web-copy.md, rule D5)', () {
-    // The transcriptions and the reference are quoted whole (rule E2), so
-    // only the frame around them is held to D5. The frames add no en dash
-    // either, so the cap in test/web_copy_test.dart stays whole.
+    // Whether D5 reaches the transcriptions and the reference is open
+    // (web-copy.md, section 6), so only the frame around them is held to
+    // it. The frames add no en dash either, so the cap in
+    // test/web_copy_test.dart stays whole.
     final Manual manual = manuals.first;
     final List<ManualPage> pages = manualPages(manual);
     final frames = <String>[

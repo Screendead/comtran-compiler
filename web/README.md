@@ -95,12 +95,16 @@ listing panel against `test/goldens/90.05-payroll.listing`.
 `test/web_copy_test.dart` enforces the parts of `docs/design/web-copy.md` that
 a test can check. Rule D5 bars the em dash from every committed text file
 here, in the character and in its three HTML forms, and caps the en dash,
-which stays legal and stays rare. Two manual titles are quoted with the em
-dash the conversions give them, and the test lets those two strings through
-and no other. It skips `sources/`, whose pages quote the manuals whole;
-`test/web_sources_test.dart` holds the frame around them to D5. Rule H2 requires the roadmap page to carry a
-station for every codename, so a new milestone cannot reach `docs/HANDOVER.md`
-and miss the site.
+which stays legal and stays rare. The F28-8043 title is quoted with the em
+dash its conversion gives it. The test lets that one string through and no
+other.
+
+The test skips `sources/`. Whether D5 reaches the manual pages and the
+language reference there is open, and section 6 of the record states the
+options. `test/web_sources_test.dart` holds the frame around them to D5.
+
+Rule H2 requires the roadmap page to carry a station for every codename. A new
+milestone therefore cannot reach `docs/HANDOVER.md` and miss the site.
 
 Section H of that record holds the rest, which is when a change to the project
 obliges a change to a page. Those rules bind the pull request that makes the
@@ -122,8 +126,9 @@ the build to one page for each scan. A citation in the reference, such as
 `F p. 12`, opens the page it cites rather than the heading above it.
 
 The transcriptions appear exactly as the conversions hold them. They carry
-no `[sic]` mark and no gloss marker, because each page shows the
-transcription whole rather than quoting from it.
+no `[sic]` mark and no gloss marker. Whether rule E3 asks for the mark on a
+whole-page transcription is open, and section 6 of
+`docs/design/web-copy.md` states the options.
 
 ## Not built yet
 
