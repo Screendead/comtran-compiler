@@ -724,8 +724,10 @@ the report our run prints against the page.
   changes. Each refusal is the listing reading's: the listing is the
   deliverable of that deck, and the generator stops where no evidence
   describes the code. A refusal does not say that the 1962 processor
-  refused the deck. J punches a deck at severity 3 and does not run it
-  ([J 90.04.02]). The pitch page of 2026-11-02 said the 1962 compiler
+  refused the deck. J withholds the deck only at code 5
+  ([J 02.01.01]), and any code above 1 stops the run ([J 90.04.02]).
+  The verbatim deck's highest code is 4 under our table, so J punched
+  it and did not run it. The pitch page of 2026-11-02 said the 1962 compiler
   refused to punch a deck. That statement is wrong, and the walkthrough
   record shows it. The applied deck is where chunk 2b works, so nothing
   in the repository waited on the answer.
@@ -801,7 +803,8 @@ the report our run prints against the page.
   This refusal falls under the ruling of 2026-11-02 above. The message
   says "CANNOT FILE RECORD 'NAME.2' IN THIS FILE". Our severity for it
   is 3 (D7.5), and [J 90.04.01] prints no value. At severity 3 the 1962
-  processor punched a deck and did not run it ([J 90.04.02]). The case
+  processor punched a deck ([J 02.01.01]) and did not run it
+  ([J 90.04.02]). The case
   is the verbatim deck's case: a listing exists, and no evidence
   describes the deck. Jack's ruling covers both refusals: each is the
   listing reading's, and each stays.
