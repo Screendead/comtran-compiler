@@ -222,12 +222,16 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    [J 02.04.07.01]). `SET K = K + c` steps them in place; any other
    store recomputes. `SET EXI = 3` into an external-decimal index now
    refuses `an external-decimal subscript variable (M6-9)`, as the
-   MOVE does. Master compiled it and moved no indicator. Open: MOVE
-   and ADD CORRESPONDING update no indicator, and
-   no store sets the indicator of a literal or expression subscript.
-   `CELL (2)` and `CELL (I + 1)` exit with `BASE LOCATOR NOT LOADED`,
-   and `SET K = K + 2` leaves `A(J, K+1)` stale. The in-place step
-   cannot correct an indicator that no store has set.
+   MOVE does. Master compiled it and moved no indicator. **Literal and
+   expression subscripts handled on 2026-11-02** (M6-10). A literal subscript sets its indicator at load time, so
+   `CELL (2)` runs. A store into V moves each indicator of
+   `a * V ± b`, so `CELL (I + 1)` runs and `SET K = K + 2` updates
+   `CELL (K + 1)`. A DO FOR now starts its indicators at FROM and steps
+   them by BY. Open: MOVE and ADD CORRESPONDING update no indicator.
+   Two indicators over one array refuse. An indicator of two or three
+   subscripts with a variable among them is never set, so `A(J, K)`
+   exits with `BASE LOCATOR NOT LOADED`. A name subscript that no store
+   sets, such as the `MIAMI` constant of [F p. 30], exits the same way.
 10. **The subscript store dropped the byte of a field inside a word.
     Ruled: a store that drives several indicators keeps the 1962
     behaviour (boundary A). PR #168 handles a store that drives one.**
@@ -992,6 +996,7 @@ this project's own decision (Open Question 65).
 
 [F p. 12]: ../comtran-manuals/F28-8043/02-language-structure.md#underlying-principles
 [F p. 26]: ../comtran-manuals/F28-8043/02-language-structure.md#sentences
+[F p. 30]: ../comtran-manuals/F28-8043/02-language-structure.md#lists-tables-and-subscripts
 [F p. 42]: ../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.04.04]: ../comtran-manuals/J28-6169/02-compiler.md#3-move

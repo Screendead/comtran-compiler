@@ -135,7 +135,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
     pointer block and the pre-determined constants (the sample: `ORG BL)1`,
     then `PZE IOC)29 / PZE 0 / PZE 0`). Its `USE 2` word prints `MON PI)1`:
     counter 2 holds only the `BL)` block, so its end is `PI)`'s origin —
-    two readings, one value (B7).
+    two readings, one value (B7). Amended by M6-10.
   Block sizing rules: `RS)` is the sum over sections of the maximum result
   storage each section uses ([J 90.02.03]) — cells two words each, D4.8's
   inference from the listing's LOC values, not stated by J;
@@ -557,7 +557,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
     (statement 225, LOC 01421–01432) — indexing by the raw stored
     digits, no scaling step (M3-20). The base reaches the `ADD` through a
     generated-name equate, `GN)091 EQU CP)+38`; a store that drives no
-    indicator emits nothing.
+    indicator emits nothing. Amended by M6-10.
   - `SET condition.name` stores the COND entry's constant into the
     conditional variable under the variable's own format (D5.6) — an
     ordinary constant store, no special machinery.
