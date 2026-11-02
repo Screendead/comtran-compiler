@@ -1257,13 +1257,6 @@ void main() {
       );
     });
 
-    test('an unnamed section', () {
-      expect(
-        _refuses(['            BEGIN SECTION.']),
-        'an unnamed section (no sample instance)',
-      );
-    });
-
     test('a DO FOR index with no data definition', () {
       expect(
         _refuses(['            DO RTN FOR ZZZ = 1(1)12.'], flagged: ['108,00']),

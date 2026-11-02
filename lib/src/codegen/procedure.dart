@@ -1545,9 +1545,6 @@ final class _Text {
       case CallClause() || NoteClause() || EnterClause():
         break; // No object word (F p. 59; J 02.04.02.01).
       case BeginSectionClause():
-        if (_sentenceLabel == null) {
-          _unruled('an unnamed section (no sample instance)');
-        }
         if (_openSection != null) {
           // Overwriting the open name would drop its return; every
           // sample section ends before the next begins.

@@ -634,6 +634,48 @@ void main() {
       expect(sentences.single.deleted, isTrue);
     });
 
+    test('an unnamed BEGIN SECTION is deleted with 196 (M2-18, F p. 26)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            BEGIN SECTION.',
+        '            MOVE A TO B.',
+        '            END.',
+      ]);
+      expect(diagnostics.map((Diagnostic d) => d.message.number), [
+        '196,00',
+        '64,00',
+      ]);
+      expect(diagnostics.first.card, sentences.first.scan.cards.first);
+      expect(diagnostics.first.column, 13);
+      expect(sentences.first.deleted, isTrue);
+      expect(sentences[1].deleted, isFalse);
+    });
+
+    test('a second BEGIN SECTION in a named sentence is deleted with 196 '
+        '(M2-18)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '      S1.         BEGIN SECTION, BEGIN SECTION.',
+        '            MOVE A TO B.',
+        '            END S1.',
+      ]);
+      expect(diagnostics.map((Diagnostic d) => d.message.number), [
+        '196,00',
+        '64,00',
+      ]);
+      expect(diagnostics.first.column, 34);
+      expect(sentences.first.deleted, isTrue);
+    });
+
+    test('a named BEGIN SECTION after another processor clause opens the '
+        'section (M2-18)', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '      S1.         CALL (X) Y, BEGIN SECTION.',
+        '            MOVE A TO B.',
+        '            END S1.',
+      ]);
+      expect(diagnostics, isEmpty);
+      expect(sentences.first.deleted, isFalse);
+    });
+
     test('the 36th section stops compilation with one 149 (D9.1)', () {
       final lines = <String>['      *PROCEDURE'];
       for (var i = 1; i <= 36; i++) {
