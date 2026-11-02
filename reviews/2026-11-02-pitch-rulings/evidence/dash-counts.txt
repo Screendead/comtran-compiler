@@ -1,0 +1,27 @@
+W2 merge: 2cf337fdb0f884f33acf7e190f7454792730ebc6
+headings holding an em dash: 21
+contents lines holding an em dash: 10
+em dashes before W2 (2cf337f^1): 1051
+em dashes after W2 (2cf337f): 107
+headings:
+958:### 3.1 Files, records, and fields — the data hierarchy
+1152:#### PARAM and FUNCT (F only — removed)
+1357:### 3.10 Numeric limits and defaults — summary
+1388:### 3.11 F/J divergences in data description — summary
+1570:#### 4.2.3 Legal operand/target formats — summary
+1581:### 4.3 The SET command — arithmetic assignment
+2065:#### 5.3.2 Comparison semantics (J 02.04.C — authoritative)
+2120:#### 5.3.4 AND, OR, and NOT — combination rules and precedence
+2742:### 6.10 The LOAD command (and OVERLAP) — deferred
+3129:#### 7.1.8 CONTRL card — inter-program areas (deferred)
+3154:#### 7.1.9 OPTION card — collating sequence and space/time conservation
+3186:#### 7.1.10 COND card — console entry keys
+3258:### 7.3 The library system — COPY, LIBRARY, INCLUDE (F design; deferred in J)
+3306:### 7.4 Program segmentation — OVERLAP and LOAD (F design; deferred in J)
+3339:### 7.5 Renaming and linkage — CALL, ENTER, CONTRL
+3359:#### 7.5.2 ENTER — entering another language
+3377:### 7.6 Commentary conventions — NOTE and the period-blank rule
+3391:### 7.7 The CRYPT facility — 709/7090 machine symbolic language ([J 02.08])
+4137:#### 9.5.1 CALL — and a real F/J semantic divergence
+4167:#### 9.5.3 The HIGH.VALUE sentinel idiom — and the typing change it forced
+4224:#### 9.5.8 MOVE/ADD CORRESPONDING in practice — including the sharpest F/J rule divergence

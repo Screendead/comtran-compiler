@@ -3,8 +3,10 @@
 
 Reads evidence/calls.json (extracted from evidence/pitch-page.html by
 tools/extract_calls.js) and, once Jack has answered, evidence/picks.json.
+Round two reads evidence/calls-round2.json and the crops in crops/.
 Writes a standalone index.html beside tools/. Run from anywhere.
 """
+import base64
 import html
 import json
 import os
@@ -93,13 +95,13 @@ def e(s):
     return html.escape(s, quote=False)
 
 
-def ruling_block(cid):
+def ruling_block(cid, open_note=None):
     r = RULINGS.get(cid)
     if r is None:
         if not RULINGS:
             return ""
         return ('<div class="ruling open"><p class="tag">No ruling &middot; still open</p>'
-                f"<p>{OPEN_NOTE}</p></div>")
+                f"<p>{open_note or OPEN_NOTE}</p></div>")
     p = PICKS[cid]
     c = calls[cid]
     if c.get("free"):
@@ -114,10 +116,7 @@ def ruling_block(cid):
 </div>"""
 
 
-def section(n, cid):
-    c = calls[cid]
-    late = (f'<p class="mono">Added to the page by commit <code>{PITCH_SHA[:7]}</code>, after the first nine calls. '
-            f"The final page source shows it as CALL {ORDER.index(cid)}.</p>") if cid in ADDED_LATE else ""
+def section(label, cid, c, anchor, head, evidence=""):
     built = f'<span class="label-k">Built, as pitched</span><p>{c["built"]}</p>' if c.get("built") else ""
     if c.get("free"):
         opts = ('<span class="label-k">Options</span><p>A free-text box. No options and no recommendation.</p>')
@@ -134,14 +133,159 @@ def section(n, cid):
 </div>""")
         opts = '<span class="label-k">Options, as pitched</span>' + "\n".join(items)
         rec = f'<span class="label-k">Recommendation, as pitched</span><p>{c["recwhy"]}</p>'
-    return f"""<section class="item needs" id="call-{cid}">
-<div class="itemhead"><span class="chip call">Your call</span><h2>Call {n}. {c['title']}</h2></div>
-{ruling_block(cid)}
-{late}
+    ev = f'<span class="label-k">Evidence</span>\n{evidence}' if evidence else ""
+    return f"""<section class="item needs" id="{anchor}">
+<div class="itemhead"><span class="chip call">Your call</span><h2>{label}. {c['title']}</h2></div>
+{head}
+{'<span class="label-k">The question, as pitched</span>' if evidence else ''}
 <p>{c['why']}</p>
 {built}
+{ev}
 {opts}
 {rec}
+</section>"""
+
+
+def round1(n, cid):
+    late = (f'<p class="mono">Added to the page by commit <code>{PITCH_SHA[:7]}</code>, after the first nine calls. '
+            f"The final page source shows it as CALL {ORDER.index(cid)}.</p>") if cid in ADDED_LATE else ""
+    return section(f"Call {n}", cid, calls[cid], f"call-{cid}", ruling_block(cid) + "\n" + late)
+
+
+# Round two: the page as rewritten by commit ROUND2_SHA on archive/pitch-2026-11-02.
+ROUND2_SHA = "33cc8a88669c54d193707cec57d016d45a1fd3db"
+ROUND2_AT = "14:28:30Z"
+calls2 = {c["id"]: c for c in json.load(open(os.path.join(REC, "evidence", "calls-round2.json")))}
+ORDER2 = ["confirm4", "subscripts2", "typos3", "headdash", "nameless", "d21", "other2"]
+W2_MERGE = "2cf337fdb0f884f33acf7e190f7454792730ebc6"
+PR181_HEAD = "ebf4a63df3f472d5667df2ee8aa8d34e47ed3554"
+PR182_HEAD = "0a87165fa4f2fc283b1ec04406c8ac97e1e88fce"
+WALK_BANNER = "01f6f93"
+
+
+def crop(name, caption):
+    data = base64.b64encode(open(os.path.join(REC, "crops", name), "rb").read()).decode()
+    return (f'<figure><div class="scan"><img src="data:image/png;base64,{data}" alt="{e(caption)}"></div>'
+            f"<figcaption>{caption} <code>crops/{name}</code>, cut by <code>tools/make_crops.py</code>.</figcaption></figure>")
+
+
+def commit(sha, text=None):
+    return f'<a href="{REPO}/commit/{sha}"><code>{text or sha[:7]}</code></a>'
+
+
+def tree(sha, path, text=None):
+    return f'<a href="{REPO}/blob/{sha}/{path}"><code>{text or path}</code></a>'
+
+
+EVIDENCE2 = {
+    "confirm4": f"""<p>Two rules in J28-6169 bear on the premise. They are separate rules.</p>
+<ul>
+<li><strong>The deck.</strong> J 02.01.01, on the NODECK option: &ldquo;If the severity code is 5, a deck will not be
+produced.&rdquo; Any lower code punches a deck.</li>
+<li><strong>The run.</strong> J 90.04.02: &ldquo;Any code above 1 does prevent running of the object program immediately
+after compilation.&rdquo;</li>
+</ul>
+<p>Under our severity table, the verbatim 1960 deck draws a highest code of 4, and the FILE&nbsp;IN refusal draws 3.
+Both are our choice (D7.5); no 1962 severity value survives (J 90.04.01). With either code, J punches a deck and does
+not run it. The walkthrough record says so, and its ruling banner is commit {WALK_BANNER} on
+<code>review/2026-10-25-m6s2-deck-walkthrough</code>.</p>
+<p>The round-one pitch of call 4 said the opposite: &ldquo;The 1962 compiler printed its listing but refused to punch an
+object deck for it.&rdquo; Call 4 above carries the correction note.</p>
+<p><strong>PR #182</strong> (open, head {commit(PR182_HEAD)}) applies the listing reading to M6-9 in
+{tree(PR182_HEAD, "docs/design/m6-acceptance.md")}. Its text: &ldquo;A refusal does not say that the 1962 processor refused
+the deck. J punches a deck at severity 3 and does not run it ([J 90.04.02]). The pitch page of 2026-11-02 said the 1962
+compiler refused to punch a deck. That statement is wrong, and the walkthrough record shows it.&rdquo; The page's
+&ldquo;Built&rdquo; line calls this &ldquo;PR in progress&rdquo;; PR #182 is that pull request.</p>
+<p>{INFERRED} The PR #182 sentence cites J 90.04.02 for the deck as well as the run. The deck rule is J 02.01.01.
+It also names severity 3 only; the verbatim deck's code is 4. Neither changes the reading.</p>""",
+    "subscripts2": f"""<p><strong>PR #181</strong> (&ldquo;Diagnose a function call in a subscript&rdquo;, open, head
+{commit(PR181_HEAD)}). Its description, verbatim:</p>
+<blockquote><p>Jack's ruling of 2026-11-02 (call 7, review/2026-11-02-pitch-rulings) asked for messages on three subscript
+terms. Only one was silent:</p>
+<ul><li>A function call in a subscript, alone or inside an index expression, drew nothing; it now draws 71,00 (F p. 31
+allows a name, a literal or an index expression). The SET and ADD target walk is now pinned by a test.</li>
+<li><code>TAB CELL ('A')</code> already draws 912,00 and <code>TAB CELL (ZERO)</code> already draws 192,00, both from the
+parser. The audit that called them silent read only semantic diagnostics. A new test pins both for whole runs. 79 and 182
+are not added; that part goes back to Jack, and M3-20's amendment says so.</li></ul></blockquote>
+<p>So the round-one ruling on call 7 (&ldquo;79, 182, 71&rdquo;) rested on an audit that missed two messages the
+parser already issues. This call asks whether those two messages stand.</p>""",
+    "typos3": f"""<p>The three words, as the 150-dpi scans print them:</p>
+{crop("j-p116-indicies.png", "J 06.02.05, PDF p. 116: &ldquo;the programmers' indicies or relative unit assignment&rdquo;.")}
+{crop("j-p116-synonomous.png", "J 06.02.05, PDF p. 116: &ldquo;OU, OU1, OU2, are synonomous&rdquo;.")}
+{crop("j-p171-in-not-used.png", "J 90.02.32, PDF p. 171, SYS)283: &ldquo;the 'ON ERROR' option in not used&rdquo;, with &ldquo;not&rdquo; underlined.")}
+<p>What the conversions say:</p>
+<ul>
+<li><code>comtran-manuals/J28-6169/06-systems-maintenance.md</code>, conversion note: &ldquo;The word &lsquo;standart&rsquo;
+(PDF p.121, step 2) and &lsquo;synonomous&rsquo; (PDF p.116) and &lsquo;indicies&rsquo; (PDF p.116) and &lsquo;Mimimum&rsquo;
+(PDF p.110, item 1) are reproduced exactly as printed in the source (apparent period typos/spelling variants), per the
+fidelity rule.&rdquo;</li>
+<li><code>comtran-manuals/J28-6169/90.02-generated-code.md</code>, conversion note: &ldquo;PDF 171 (SYS)283):
+&lsquo;...whenever the &#x27;ON ERROR&#x27; option in not used...&rsquo; &mdash; printed as &lsquo;in not used&rsquo; (with
+&lsquo;not&rsquo; underlined in the original) rather than &lsquo;is not used.&rsquo;&rdquo;</li>
+</ul>
+<p>The rules, in {tree(W2_MERGE, "docs/design/web-copy.md")} at the W2 merge: E3 marks a genuine typo <code>[sic]</code>
+when the scan prints it, a note or the definition calls it a typo, and it is not a period spelling. E4: &ldquo;Never mark an
+authentic period spelling <code>[sic]</code>.&rdquo; The list <code>typos</code> in
+{tree(W2_MERGE, "tool/web_sources_source.dart")} holds eleven words: &ldquo;throught&rdquo;, &ldquo;at lease&rdquo;,
+&ldquo;lables&rdquo;, &ldquo;dinsity&rdquo;, &ldquo;Parentheis&rdquo;, &ldquo;alwyas&rdquo;, &ldquo;Mimimum&rdquo;,
+&ldquo;standart&rdquo;, &ldquo;Appox-Max&rdquo;, &ldquo;depending of&rdquo; and &ldquo;bu&rdquo;. W2 is PR #178, merged
+2026-11-02 at 14:27:15Z as {commit(W2_MERGE)}.</p>
+<p><strong>Not the whole open set.</strong> E3 lists six words that wait for Jack. The page pitches three of them. The other
+three are not on the page: &ldquo;MIMIMUM&rdquo; (PDF p. 72, an option word of the <code>$LOAD</code> card), &ldquo;a fixed
+number or words&rdquo; (PDF p. 54) and &ldquo;if of the following form&rdquo; (PDF p. 124). They stay unmarked whatever
+this call decides.</p>
+<p>{INFERRED} &ldquo;Standart&rdquo; and &ldquo;Mimimum&rdquo; carry the same note wording as &ldquo;synonomous&rdquo; and
+&ldquo;indicies&rdquo;, and W2 marks them. The note alone therefore does not separate the marked words from these two.</p>""",
+    "headdash": f"""<p>Counted on the W2 merge {commit(W2_MERGE)} by <code>tools/count_dashes.sh</code>; the output, with the 21
+headings listed, is <code>evidence/dash-counts.txt</code>:</p>
+<div class="scroll"><table>
+<tr><th>Measure</th><th>Count</th></tr>
+<tr><td>Em dashes in the language definition before W2</td><td>1051</td></tr>
+<tr><td>Em dashes after W2</td><td>107</td></tr>
+<tr><td>Removed by W2 (the page's &ldquo;944&rdquo;)</td><td>944</td></tr>
+<tr><td>Headings that keep one</td><td>21</td></tr>
+<tr><td>Contents lines that keep one</td><td>10</td></tr>
+</table></div>
+<p>Rule D5 in {tree(W2_MERGE, "docs/design/web-copy.md")} lists the five places the reference keeps the mark, among them
+&ldquo;a heading and the contents entry that repeats it, because the heading text sets an anchor that other files link
+to&rdquo;. The same file holds the open item: &ldquo;Twenty-one headings of the language definition keep an em dash, and
+ten contents entries repeat them. A heading sets the anchor that other files link to, so a change to one needs a change to
+each link in the same pull request. Until Jack rules, the headings keep the mark.&rdquo;</p>
+<p><code>test/web_copy_test.dart</code> enforces the list, and caps the dashes in citation parentheses at 42
+(<code>citationDashCap</code>).</p>""",
+    "nameless": """<p>Carried over from round one, unanswered. The page's text for this call is identical to round one's
+(<code>evidence/calls.json</code> and <code>evidence/calls-round2.json</code> compare equal for this id). Round one holds
+it as call 10, above.</p>""",
+    "d21": """<p>Carried over from round one, unanswered. The page's text for this call is identical to round one's
+(<code>evidence/calls.json</code> and <code>evidence/calls-round2.json</code> compare equal for this id). Round one holds
+it as call 11, above. The open item has waited since 6 September.</p>""",
+    "other2": """<p>The page's free-text box for round two, as round one's call 9 was. Not one of the six calls.</p>""",
+}
+ROUND1_NO = {"nameless": 10, "d21": 11}
+OPEN_NOTE2 = ("Put to Jack on the pitch page on 2026-11-02. No answer is recorded here yet.")
+
+
+def round2(i, cid):
+    c = calls2[cid]
+    label = f"Round two, call {i}" if cid != "other2" else "Round two, the free-text box"
+    head = ('<div class="ruling open"><p class="tag">Open &middot; put 2026-11-02</p>'
+            f"<p>{OPEN_NOTE2}</p></div>")
+    if cid in ROUND1_NO:
+        head += (f'<p class="mono">Also round one, <a href="#call-{cid}">call {ROUND1_NO[cid]}</a>.</p>')
+    return section(label, cid, c, f"call-r2-{cid}", head, EVIDENCE2[cid])
+
+
+ROUND2 = f"""<section id="round-two">
+<h2>Second round, put 2026-11-02</h2>
+<div class="prov"><span class="label">Provenance</span>
+<p>Jack's first-round answers led to new work, and the work raised new questions. Commit {ROUND2_SHA[:7]} on local branch
+<code>archive/pitch-2026-11-02</code>, timed {ROUND2_AT}, rewrote <a href="{PAGE_URL}">the pitch page</a> as a second
+round: four new calls, plus calls 10 and 11 of round one, which had no answer. The page was the channel again; this record
+was not. Its source is <code>evidence/pitch-page-round2.html</code>, and <code>tools/extract_calls.js</code> evaluates its
+<code>CALLS</code> literal into <code>evidence/calls-round2.json</code>. Every question, option and recommendation below
+is the page's own text. The evidence under each call is this record's.</p>
+<p>The page also carries a free-text box. It is listed last, for parity with round one's call 9.</p>
+</div>
 </section>"""
 
 
@@ -178,9 +322,14 @@ SUMMARY = f"""<ol>
 This record carries each call as the page put it: the question, the options, the recommendation.</li>
 <li><strong>All eleven carry <code>YOUR CALL</code>.</strong> Each one waits for Jack.</li>
 <li><strong>Nine calls were on the page from the start.</strong> Calls 10 and 11 were added by commit <code>{PITCH_SHA[:7]}</code> at 13:16:32Z.</li>
+<li><strong>A second round of six calls followed the same day</strong>, on the same page, at {ROUND2_AT}
+(<a href="#round-two">below</a>). Four are new; two are calls 10 and 11, still unanswered. All six carry
+<code>YOUR CALL</code>, with the page's options and recommendation and this record's evidence. One corrects the premise
+of call 4; one reports that two of call 7's three subscripts already drew messages.</li>
 </ol>"""
 
-body = "\n\n".join(section(i + 1, cid) for i, cid in enumerate(ORDER))
+body = "\n\n".join(round1(i + 1, cid) for i, cid in enumerate(ORDER))
+body2 = "\n\n".join(round2(i + 1, cid) for i, cid in enumerate(ORDER2))
 
 page = f"""<!DOCTYPE html>
 <html lang="en">
@@ -198,7 +347,8 @@ page = f"""<!DOCTYPE html>
 <p class="eyebrow">Review record &middot; retrofit &middot; evidence 2026-11-02 &middot; pitch source at {PITCH_SHA[:7]}</p>
 <h1>The eleven calls of the 2 November pitch page</h1>
 <p class="standfirst">A retrofit. The calls were put on an interactive page and answered there. This record gives them
-a permanent home, with the question as asked and, in its second commit, the answer as given.</p>
+a permanent home, with the question as asked and, in its second commit, the answer as given. A later commit adds the
+page's second round of six calls, put the same afternoon.</p>
 </header>
 
 <section>
@@ -209,6 +359,8 @@ page saved to its own database with a timestamp.</p>
 <p>This record was built after the fact, on 2026-11-02, from two sources: the page source, committed on local branch
 <code>archive/pitch-2026-11-02</code> at <code>{PITCH_SHA[:7]}</code> and carried here as
 <code>evidence/pitch-page.html</code>; and, for the answers, the page's saved picks. Do not read it as a review that happened.</p>
+<p>The second round was put the same way, on the same page, from commit <code>{ROUND2_SHA[:7]}</code> of the same branch.
+Its section was added to this record afterwards, on 2026-11-02, with the evidence for each call.</p>
 </div>
 </section>
 
@@ -229,11 +381,18 @@ source renders those two as CALL 9 and CALL 10, and &ldquo;Anything else&rdquo; 
 
 {body}
 
+{ROUND2}
+
+{body2}
+
 <footer>
 <p>Retrofit record built 2026-11-02 on branch <code>review/2026-11-02-pitch-rulings</code>. Pitch page source:
 <code>archive/pitch-2026-11-02</code> at <code>{PITCH_SHA}</code> (local branch, not pushed; a copy is
 <code>evidence/pitch-page.html</code>). <code>tools/extract_calls.js</code> evaluates the page's <code>CALLS</code> literal into
 <code>evidence/calls.json</code>, so every question, option and recommendation above is the page's own text.
+Round two: the same branch at <code>{ROUND2_SHA}</code>, copied as <code>evidence/pitch-page-round2.html</code> and
+extracted to <code>evidence/calls-round2.json</code>. <code>tools/make_crops.py</code> cuts the three crops from the
+J28-6169 scans; <code>tools/count_dashes.sh</code> writes <code>evidence/dash-counts.txt</code>.
 <code>tools/build_doc.py</code> writes this page; edit it, not the HTML.</p>
 </footer>
 

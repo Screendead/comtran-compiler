@@ -1,0 +1,144 @@
+[
+  {
+    "id": "confirm4",
+    "title": "M6-9: your “listing” answer stands, now that the premise is corrected?",
+    "why": "The pitch said the 1962 compiler refused to punch an object deck for the as-printed 1960 program. That was wrong. Per the walkthrough record, J punches the deck and does not run it (the job is above severity 1). Your answer, the listing, still keeps our two refusals. A correction note is in the rulings record.",
+    "built": "Applied as ruled: M6-9 now records the listing reading (PR in progress). Nothing else changes.",
+    "opts": [
+      {
+        "k": "stands",
+        "t": "Yes, it stands",
+        "d": "Our compiler keeps refusing the object deck at those two sites. The record says so.",
+        "rec": true
+      },
+      {
+        "k": "deck",
+        "t": "No: punch the object deck as 1962 did",
+        "d": "We would generate code for a GET with no input file and a FILE into a non-output file. No manual shows that code."
+      }
+    ],
+    "recwhy": "The listing is still the only reading that needs no invented code. The corrected premise changes the story, not the cost."
+  },
+  {
+    "id": "subscripts2",
+    "title": "Two of the three “silent” subscripts were not silent. Keep their current messages?",
+    "why": "TAB CELL ('A') already draws 912,00, and TAB CELL (ZERO) already draws 192,00, both from the parser. The audit missed them because its test helper reads only later-stage messages. Only the function-call case was silent; it now draws 71,00 (PR #181, in review).",
+    "built": "PR #181 pins 912 and 192 with a whole-run test so the audit cannot repeat the mistake.",
+    "opts": [
+      {
+        "k": "keep",
+        "t": "Keep 912 and 192 as they are",
+        "d": "No change. Message 79's text names a variable, which does not fit a literal.",
+        "rec": true
+      },
+      {
+        "k": "swap",
+        "t": "Suppress 912 and 192 inside a subscript and issue 79 and 182 instead",
+        "d": "Parser changes and an amendment to M2-8. Two messages would otherwise print for one fault."
+      }
+    ],
+    "recwhy": "Both terms are already diagnosed with messages that fit. Swapping costs code and a record amendment for no gain."
+  },
+  {
+    "id": "typos3",
+    "title": "Three doubtful words on the J28-6169 pages: mark them [sic]?",
+    "why": "W2 now marks 11 scan-verified typos. Three more are doubtful: “synonomous” and “indicies” (p. 116), which the conversion notes call apparent period spellings, and “in not used” (p. 171), which may be a print defect, not a typo. Rule E4 forbids marking a period spelling.",
+    "built": "W2 is merged and live with the 11 marks. These three are unmarked.",
+    "opts": [
+      {
+        "k": "none",
+        "t": "Mark none of the three",
+        "d": "A wrong mark claims IBM made a mistake. A missing mark claims nothing.",
+        "rec": true
+      },
+      {
+        "k": "two",
+        "t": "Mark “in not used” only",
+        "d": "Treat the print defect as a typo; leave the spellings."
+      },
+      {
+        "k": "all",
+        "t": "Mark all three",
+        "d": "Risks marking a period spelling, which E4 bars."
+      }
+    ],
+    "recwhy": "E4 exists because a wrong [sic] is the error a historian catches first."
+  },
+  {
+    "id": "headdash",
+    "title": "21 headings in the language reference still hold an em dash. Change them?",
+    "why": "Your “mark” ruling stripped 944 dashes from the definition. Headings kept theirs, because a heading's text sets the anchor other files link to. The site's reference pages therefore still show dashes in 21 headings and 10 contents lines.",
+    "built": "Counted on the merged W2. Not changed.",
+    "opts": [
+      {
+        "k": "change",
+        "t": "Change them and repoint every link",
+        "d": "Rename 21 headings, sweep the repository for each old anchor, and let a test catch any link left behind. About an hour.",
+        "rec": true
+      },
+      {
+        "k": "keep",
+        "t": "Keep them",
+        "d": "D5 then has 21 known exceptions on the site."
+      }
+    ],
+    "recwhy": "Your ruling was to remove the dashes. The anchor risk is mechanical and a test catches it."
+  },
+  {
+    "id": "nameless",
+    "title": "A BEGIN SECTION with no name: diagnose it, and with which message?",
+    "why": "F p. 26 says a section starts with its name and a period, then BEGIN SECTION. Today <code>S1. BEGIN SECTION, BEGIN SECTION.</code> opens two sections, both named S1, and one END S1 leaves the second one open (only message 66 fires, at the end of the program). An unnamed <code>BEGIN SECTION.</code> followed by a bare <code>END.</code> draws nothing. No 1962 message covers this.",
+    "built": "Probed on master today; the cause is <code>procedure_parser.dart:1200</code>, which gives every BEGIN clause the sentence's one label. Not built: the message is your call.",
+    "opts": [
+      {
+        "k": "196",
+        "t": "Delete the sentence with message 196, as M2-12 does for other illegal clause mixes",
+        "d": "Attested message, same precedent as M2-12. The section never opens, so later ENDs may draw 65.",
+        "rec": true
+      },
+      {
+        "k": "192",
+        "t": "Message 192, as D1.5 uses for a misplaced key word",
+        "d": "Attested message; the clause is dropped and the sentence kept."
+      },
+      {
+        "k": "9xx",
+        "t": "A new non-historical message (D9.12)",
+        "d": "Exact wording, but no 1962 source."
+      },
+      {
+        "k": "leave",
+        "t": "Leave it: the 1962 compiler may have accepted it",
+        "d": "Under your 14 September rule, a shape it compiled must compile. No evidence either way."
+      }
+    ],
+    "recwhy": "196 is a real 1962 message, and M2-12 already uses it for clauses that may not share a sentence. That keeps us inside attested behaviour."
+  },
+  {
+    "id": "d21",
+    "title": "Two PROGRAM.START labels: obey D2.1, or keep the generator's refusal?",
+    "why": "Locked decision D2.1 says the first label wins, with message 141, and compilation goes on. The code generator refuses the program instead. This is a clash between two of our own authorities, so it is yours to settle. It has waited since 6 September.",
+    "built": "<code>review/2026-09-06-m4s4-machine-assembly</code>, item 5, holds the evidence.",
+    "opts": [
+      {
+        "k": "refuse",
+        "t": "Keep the refusal and add a note to D2.1 that code generation refuses",
+        "d": "No code change. The listing still shows message 141.",
+        "rec": true
+      },
+      {
+        "k": "first",
+        "t": "Generate code with the first label as D2.1 says",
+        "d": "A small generator change; the second label becomes an ordinary label."
+      }
+    ],
+    "recwhy": "The record's recommendation. No program in either corpus has two start labels, and the refusal hides nothing, because message 141 already reports the problem."
+  },
+  {
+    "id": "other2",
+    "title": "Anything else",
+    "why": "Free text.",
+    "opts": [],
+    "free": true
+  }
+]

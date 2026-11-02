@@ -1,0 +1,202 @@
+<title>COMTRAN Calls, November</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Serif:wght@600&display=swap">
+<style>
+/* Layout: one reading column of decision cards; each card is a punched-card stock with its options as selectable rows. */
+:root {
+  --bg: #f4f5f2; --surface: #ffffff; --ink: #1c221f; --muted: #5b6560;
+  --line: #d4d9d4; --card: #efe7cf; --card-ink: #6b5a2c;
+  --pick: #1f5a8a; --pick-soft: #e2edf6; --rec: #2f6b4a; --rec-soft: #e1efe6; --you: #8b2d3a;
+  --display: "IBM Plex Serif", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141816; --surface: #1c211e; --ink: #e4e9e5; --muted: #9aa49e; --line: #2f3632;
+  --card: #3a3424; --card-ink: #e3d3a4; --pick: #8cc0ea; --pick-soft: #1b2c3a;
+  --rec: #7cc59b; --rec-soft: #1f3328; --you: #f0909c; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #141816; --surface: #1c211e; --ink: #e4e9e5; --muted: #9aa49e; --line: #2f3632;
+  --card: #3a3424; --card-ink: #e3d3a4; --pick: #8cc0ea; --pick-soft: #1b2c3a;
+  --rec: #7cc59b; --rec-soft: #1f3328; --you: #f0909c; color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); }
+main { max-width: 780px; margin: 0 auto; padding-block: 36px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 32px; }
+h1 { font: 600 2rem/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 1.2rem/1.3 var(--display); margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+a { color: inherit; }
+code { font: .85em var(--mono); }
+.eyebrow { font: 600 .72rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+header { display: flex; flex-direction: column; gap: 10px; }
+#status { font: .82rem var(--mono); color: var(--muted); }
+.calls { display: flex; flex-direction: column; gap: 18px; }
+.call { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.call .num { font: 600 .72rem var(--mono); color: var(--card-ink); background: var(--card); padding: 2px 8px; border-radius: 2px; align-self: flex-start; letter-spacing: .08em; }
+.call .why { font-size: .92rem; color: var(--muted); }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; text-align: left; font: inherit; color: inherit;
+  background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; cursor: pointer; }
+.opt:hover { border-color: var(--pick); }
+.opt:focus-visible { outline: 2px solid var(--pick); outline-offset: 2px; }
+.opt[aria-pressed="true"] { border-color: var(--pick); background: var(--pick-soft); }
+.opt .dot { width: 14px; height: 14px; border: 2px solid var(--muted); border-radius: 50%; margin-top: 3px; }
+.opt[aria-pressed="true"] .dot { border-color: var(--pick); background: var(--pick); }
+.opt .t { font-weight: 600; }
+.opt .t .rec { font: 600 .66rem var(--mono); color: var(--rec); background: var(--rec-soft); padding: 1px 6px; border-radius: 2px; margin-left: 6px; letter-spacing: .06em; text-transform: uppercase; vertical-align: 2px; }
+.opt .d { grid-column: 2; font-size: .9rem; color: var(--muted); min-width: 0; }
+.opt pre { grid-column: 2; font: .76rem/1.45 var(--mono); background: var(--bg); border: 1px solid var(--line); padding: 6px 8px; margin: 2px 0 0; overflow-x: auto; color: var(--ink); }
+.recwhy { font-size: .9rem; border-left: 3px solid var(--rec); padding-left: 10px; }
+.built { font-size: .85rem; color: var(--muted); }
+.saved { font: .78rem var(--mono); color: var(--pick); min-height: 1em; }
+textarea { font: .9rem var(--body); width: 100%; box-sizing: border-box; min-height: 2.6em; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; }
+ul.plain { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; max-width: 68ch; }
+section { display: flex; flex-direction: column; gap: 12px; }
+@media (prefers-reduced-motion: no-preference) { .opt { transition: background .12s, border-color .12s; } }
+</style>
+
+<main>
+<header>
+  <div class="eyebrow">COMTRAN compiler · 2 November 2026</div>
+  <h1>COMTRAN Calls, November</h1>
+  <p>Round two: six calls. Your nine answers from this afternoon are being carried out (see below). These came out of that work, plus the two calls added after you first loaded the page. Click one option per call. Each click is saved, and I act on it when you tell me in the chat to read your picks. The recommended option is marked.</p>
+  <p id="status">Connecting to the saved picks…</p>
+</header>
+
+<section aria-labelledby="calls-h">
+  <h2 id="calls-h">The calls</h2>
+  <div class="calls" id="calls"></div>
+</section>
+
+<section aria-labelledby="todo-h">
+  <h2 id="todo-h">Things only you can do</h2>
+  <ul class="plain">
+    <li><b>Send the museum follow-up.</b> The Computer History Museum never answered your 6 August request for the four COMTRAN reproductions. A short follow-up is waiting in your Gmail drafts, in the same thread. Opportunity O12 (a second scan of each manual) stays blocked until they reply.</li>
+    <li><b>Finish the custom domain.</b> You said <code>comtran.screendead.com</code> is live. From here at 13:35 today it had no DNS record (your domain's DNS is at Hover), and the repository's Pages custom-domain setting is empty. Two steps: a CNAME record <code>comtran</code> → <code>screendead.github.io</code> at Hover, then Settings → Pages → Custom domain on the repository. Tell me when both are done and I will verify the deploy and repoint every link.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="done-h">
+  <h2 id="done-h">What your nine answers set moving</h2>
+  <ul class="plain">
+    <li><b>Merged (your “merge all”):</b> #145, #157, #158, #166, #172, #176, #121, #161, #162, #164, #165, #173, #174 and #175. M6 is finished. #157 took one confirmation review round after a master merge; both reviewers approved.</li>
+    <li><b>W2 (#178), merged and live,</b> to your “mark” reading: 944 em dashes out of the language definition, quotations and headings untouched; 11 scan-verified typos marked [sic] in a way that copying leaves out.</li>
+    <li><b>Defects 1–11 (yes):</b> #167 is in its review loop now; #168 and #169 follow, one at a time. Defect 6 (#170, severity 4) and the dangling-continuation note (#177, 949) come after them, because all five touch the same code.</li>
+    <li><b>Subscripts:</b> the one truly silent case now draws 71 (#181, in review). The other two are call 2 above.</li>
+    <li><b>M6-9:</b> the listing reading is being written into the record. Call 1 asks you to confirm it.</li>
+    <li><b>M7:</b> recorded as opening after W3 and W4.</li>
+    <li><b>Records:</b> your answers are in the signed record <code>review/2026-11-02-pitch-rulings</code>, and as banners on the four October records.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+const CALLS = [
+  { id: "confirm4", title: "M6-9: your “listing” answer stands, now that the premise is corrected?",
+    why: "The pitch said the 1962 compiler refused to punch an object deck for the as-printed 1960 program. That was wrong. Per the walkthrough record, J punches the deck and does not run it (the job is above severity 1). Your answer, the listing, still keeps our two refusals. A correction note is in the rulings record.",
+    built: "Applied as ruled: M6-9 now records the listing reading (PR in progress). Nothing else changes.",
+    opts: [
+      { k: "stands", t: "Yes, it stands", d: "Our compiler keeps refusing the object deck at those two sites. The record says so.", rec: true },
+      { k: "deck", t: "No: punch the object deck as 1962 did", d: "We would generate code for a GET with no input file and a FILE into a non-output file. No manual shows that code." } ],
+    recwhy: "The listing is still the only reading that needs no invented code. The corrected premise changes the story, not the cost." },
+  { id: "subscripts2", title: "Two of the three “silent” subscripts were not silent. Keep their current messages?",
+    why: "TAB CELL ('A') already draws 912,00, and TAB CELL (ZERO) already draws 192,00, both from the parser. The audit missed them because its test helper reads only later-stage messages. Only the function-call case was silent; it now draws 71,00 (PR #181, in review).",
+    built: "PR #181 pins 912 and 192 with a whole-run test so the audit cannot repeat the mistake.",
+    opts: [
+      { k: "keep", t: "Keep 912 and 192 as they are", d: "No change. Message 79's text names a variable, which does not fit a literal.", rec: true },
+      { k: "swap", t: "Suppress 912 and 192 inside a subscript and issue 79 and 182 instead", d: "Parser changes and an amendment to M2-8. Two messages would otherwise print for one fault." } ],
+    recwhy: "Both terms are already diagnosed with messages that fit. Swapping costs code and a record amendment for no gain." },
+  { id: "typos3", title: "Three doubtful words on the J28-6169 pages: mark them [sic]?",
+    why: "W2 now marks 11 scan-verified typos. Three more are doubtful: “synonomous” and “indicies” (p. 116), which the conversion notes call apparent period spellings, and “in not used” (p. 171), which may be a print defect, not a typo. Rule E4 forbids marking a period spelling.",
+    built: "W2 is merged and live with the 11 marks. These three are unmarked.",
+    opts: [
+      { k: "none", t: "Mark none of the three", d: "A wrong mark claims IBM made a mistake. A missing mark claims nothing.", rec: true },
+      { k: "two", t: "Mark “in not used” only", d: "Treat the print defect as a typo; leave the spellings." },
+      { k: "all", t: "Mark all three", d: "Risks marking a period spelling, which E4 bars." } ],
+    recwhy: "E4 exists because a wrong [sic] is the error a historian catches first." },
+  { id: "headdash", title: "21 headings in the language reference still hold an em dash. Change them?",
+    why: "Your “mark” ruling stripped 944 dashes from the definition. Headings kept theirs, because a heading's text sets the anchor other files link to. The site's reference pages therefore still show dashes in 21 headings and 10 contents lines.",
+    built: "Counted on the merged W2. Not changed.",
+    opts: [
+      { k: "change", t: "Change them and repoint every link", d: "Rename 21 headings, sweep the repository for each old anchor, and let a test catch any link left behind. About an hour.", rec: true },
+      { k: "keep", t: "Keep them", d: "D5 then has 21 known exceptions on the site." } ],
+    recwhy: "Your ruling was to remove the dashes. The anchor risk is mechanical and a test catches it." },
+  { id: "nameless", title: "A BEGIN SECTION with no name: diagnose it, and with which message?",
+    why: "F p. 26 says a section starts with its name and a period, then BEGIN SECTION. Today <code>S1. BEGIN SECTION, BEGIN SECTION.</code> opens two sections, both named S1, and one END S1 leaves the second one open (only message 66 fires, at the end of the program). An unnamed <code>BEGIN SECTION.</code> followed by a bare <code>END.</code> draws nothing. No 1962 message covers this.",
+    built: "Probed on master today; the cause is <code>procedure_parser.dart:1200</code>, which gives every BEGIN clause the sentence's one label. Not built: the message is your call.",
+    opts: [
+      { k: "196", t: "Delete the sentence with message 196, as M2-12 does for other illegal clause mixes", d: "Attested message, same precedent as M2-12. The section never opens, so later ENDs may draw 65.", rec: true },
+      { k: "192", t: "Message 192, as D1.5 uses for a misplaced key word", d: "Attested message; the clause is dropped and the sentence kept." },
+      { k: "9xx", t: "A new non-historical message (D9.12)", d: "Exact wording, but no 1962 source." },
+      { k: "leave", t: "Leave it: the 1962 compiler may have accepted it", d: "Under your 14 September rule, a shape it compiled must compile. No evidence either way." } ],
+    recwhy: "196 is a real 1962 message, and M2-12 already uses it for clauses that may not share a sentence. That keeps us inside attested behaviour." },
+  { id: "d21", title: "Two PROGRAM.START labels: obey D2.1, or keep the generator's refusal?",
+    why: "Locked decision D2.1 says the first label wins, with message 141, and compilation goes on. The code generator refuses the program instead. This is a clash between two of our own authorities, so it is yours to settle. It has waited since 6 September.",
+    built: "<code>review/2026-09-06-m4s4-machine-assembly</code>, item 5, holds the evidence.",
+    opts: [
+      { k: "refuse", t: "Keep the refusal and add a note to D2.1 that code generation refuses", d: "No code change. The listing still shows message 141.", rec: true },
+      { k: "first", t: "Generate code with the first label as D2.1 says", d: "A small generator change; the second label becomes an ordinary label." } ],
+    recwhy: "The record's recommendation. No program in either corpus has two start labels, and the refusal hides nothing, because message 141 already reports the problem." },
+  { id: "other2", title: "Anything else", why: "Free text.", opts: [], free: true }
+];
+
+const state = { picks: {}, db: null };
+const status = document.getElementById("status");
+
+function render() {
+  document.getElementById("calls").innerHTML = CALLS.map((c, i) => `
+    <article class="call" id="call-${c.id}">
+      <span class="num">CALL ${i + 1}</span>
+      <h3 style="margin:0;font:600 1.05rem var(--body)">${c.title}</h3>
+      <p class="why">${c.why}</p>
+      ${c.built ? `<p class="built"><b>Built:</b> ${c.built}</p>` : ""}
+      ${c.free ? `<label for="free-${c.id}" class="built">Your note</label><textarea id="free-${c.id}" data-call="${c.id}">${(state.picks[c.id] && state.picks[c.id].note) || ""}</textarea>` : `
+      <div class="opts" role="group" aria-label="Options for call ${i + 1}">
+        ${c.opts.map(o => `<button type="button" class="opt" id="opt-${c.id}-${o.k}" data-call="${c.id}" data-k="${o.k}" aria-pressed="${state.picks[c.id] && state.picks[c.id].choice === o.k}">
+          <span class="dot"></span><span class="t">${o.t}${o.rec ? '<span class="rec">Recommended</span>' : ""}</span>
+          <span class="d">${o.d}</span>${o.pre ? `<pre>${o.pre}</pre>` : ""}</button>`).join("")}
+      </div>
+      <p class="recwhy">${c.recwhy}</p>`}
+      <p class="saved" id="saved-${c.id}">${state.picks[c.id] ? "Saved." : ""}</p>
+    </article>`).join("");
+}
+
+async function save(id, data) {
+  const el = document.getElementById("saved-" + id);
+  if (!state.db) { el.textContent = "Not saved: this view cannot store picks. Type it in the chat."; return; }
+  el.textContent = "Saving…";
+  try { await state.db.doc("picks/" + id).set({ ...data, at: new Date().toISOString() }); el.textContent = "Saved."; }
+  catch (e) { el.textContent = "Not saved (" + (e && e.code || "error") + "). Type it in the chat."; }
+}
+
+document.addEventListener("click", e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  const id = b.dataset.call;
+  state.picks[id] = { ...(state.picks[id] || {}), choice: b.dataset.k };
+  document.querySelectorAll(`.opt[data-call="${id}"]`).forEach(x => x.setAttribute("aria-pressed", x === b));
+  save(id, state.picks[id]);
+});
+let t;
+document.addEventListener("input", e => {
+  const a = e.target.closest("textarea[data-call]"); if (!a) return;
+  clearTimeout(t); const id = a.dataset.call;
+  t = setTimeout(() => { state.picks[id] = { note: a.value }; save(id, state.picks[id]); }, 800);
+});
+
+render();
+(async () => {
+  const timer = setTimeout(() => { status.textContent = "Saved picks unavailable here; type your answers in the chat."; }, 10000);
+  const db = window.claude ? await window.claude.use("db") : null;
+  if (!db) { clearTimeout(timer); status.textContent = "Saved picks unavailable here; type your answers in the chat."; return; }
+  state.db = db;
+  try {
+    const snap = await db.collection("picks").get();
+    clearTimeout(timer);
+    (snap.docs || snap).forEach(d => { const v = d.data ? d.data() : d; state.picks[d.id] = v; });
+    render();
+    status.textContent = "Your picks save as you click.";
+  } catch (e) { clearTimeout(timer); status.textContent = "Could not load saved picks; clicks will still try to save."; }
+})();
+</script>
