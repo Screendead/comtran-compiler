@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The sources &middot; COMTRAN</title>
+<meta name="description" content="The two IBM manuals this reconstruction rests on, every page beside its scan, both scanned PDFs, and the language reference built from them.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="runner">
+  <a href="index.html" class="wordmark">COMTRAN Reconstruction</a>
+  <nav>
+    <a href="index.html">The compiler</a>
+    <a href="sources.html" aria-current="page">The sources</a>
+    <a href="reading-the-scans.html">How we read the scans</a>
+    <a href="roadmap.html">What is built</a>
+  </nav>
+</header>
+
+<main>
+
+<section class="hero">
+  <p class="mark" aria-hidden="true"></p>
+  <h1>The sources</h1>
+  <p class="lede">
+    Everything this project knows about COMTRAN comes from two IBM manuals.
+    Here they are in full: every page as it was scanned, with the text we read
+    off it set beside it.
+  </p>
+  <p class="lede">
+    If a claim anywhere on this site makes you doubt it, check it here. Open
+    the page it cites and look at the scan.
+  </p>
+</section>
+
+<section class="rests">
+  <h2 class="strip-label">What these pages rest on</h2>
+  <div class="boxes">
+    <div class="box">
+      <p class="box-label">One copy, one reader</p>
+      <p>Each manual survives here as one scanned copy, and one reader has
+      checked the text against it. Where a word on a scan is hard to make out,
+      there is no second copy to settle it.</p>
+    </div>
+  </div>
+</section>
+
+<section class="manuals">
+  <h2>The two manuals</h2>
+  <div class="manual-cards">
+    <article class="manual-card">
+      <p class="strip-label">F28-8043 &middot; June 1960</p>
+      <h3><cite>General Information Manual — IBM Commercial Translator</cite></h3>
+      <p>
+        The language as IBM designed it: what a program looks like, what each
+        verb does, and a complete payroll program worked through. Typeset, and
+        written to introduce the language.
+      </p>
+      <ul class="links">
+        <li><a href="sources/F28-8043/index.html">Read all 124 pages beside their scans</a></li>
+        <li><a href="sources/F28-8043/F28-8043_CommercialTranslatorGenInfMan_Ju60.pdf" download>Download the scanned PDF (8.5 MB)</a></li>
+      </ul>
+    </article>
+    <article class="manual-card">
+      <p class="strip-label">J28-6169 &middot; January 1962</p>
+      <h3><cite>IBM 709/7090 Commercial Translator Processor — Preliminary Reference Manual</cite></h3>
+      <p>
+        The language as the 1962 compiler accepted it, with every message the
+        compiler could print and a complete compiled program. Where the two
+        manuals disagree, this project follows this one.
+      </p>
+      <ul class="links">
+        <li><a href="sources/J28-6169/index.html">Read all 221 pages beside their scans</a></li>
+        <li><a href="sources/J28-6169/J28-6169-1_CommercialTranslator_Jan62.pdf" download>Download the scanned PDF (9.5 MB)</a></li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section class="prose">
+  <h2>How to read a page</h2>
+  <p>
+    Each page shows the scan on one side and the text read off it on the
+    other. Select the scan to open it at full size.
+  </p>
+  <p>
+    The two manuals number their pages differently. F28-8043 prints a page
+    number, so it is cited as <code>F p. 42</code>. J28-6169 prints a section
+    code in the top corner of each page instead, so it is cited as
+    <code>J 02.05.05</code>. Every page also carries its place in the PDF,
+    which is the number in the scan&rsquo;s file name.
+  </p>
+  <p>
+    A text-recognition program read each scan, and the text was then
+    corrected against the scan, page by page. It keeps IBM&rsquo;s spelling,
+    mistakes included: a misspelling that matches the scan is IBM&rsquo;s, and
+    it stays. These pages show the transcription whole, so they mark no
+    mistake. Where the text and the scan disagree, the scan is right.
+  </p>
+</section>
+
+<section class="prose">
+  <h2>The language reference</h2>
+  <p>
+    The manuals are IBM&rsquo;s. The language reference is ours: one account
+    of the whole language, built from both manuals, with every statement
+    cited to the page it comes from. Select a citation and that page opens
+    beside its scan.
+  </p>
+  <p>
+    Where the manuals leave a question open, the reference says so. Every
+    answer in its catalogue of ambiguities (section 8.5) is a judgement
+    call, labelled as one, and not a fact.
+  </p>
+  <ul class="links">
+    <li><a href="sources/reference/index.html">Read the language reference</a></li>
+  </ul>
+</section>
+
+<section class="deeper">
+  <h2>Going deeper</h2>
+  <ul class="links">
+    <li><a href="reading-the-scans.html">What it takes to read the hardest pages honestly</a></li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/blob/master/comtran-manuals/README.md">How the transcriptions were made, and what they leave out</a></li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/opportunities.md">The search for a second copy of either manual (entry O12)</a></li>
+    <li><a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/comtran-language-definition.md">The language reference as the repository holds it</a></li>
+  </ul>
+  <p class="note">
+    The pages behind these links are built from the repository each time the
+    site is published, so they cannot drift from it.
+  </p>
+</section>
+
+</main>
+
+<footer class="runner">
+  <span>Static pages. No server, no tracking, no outbound request.</span>
+  <span>State as of the last deploy</span>
+</footer>
+
+</body>
+</html>

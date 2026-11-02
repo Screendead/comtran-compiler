@@ -8,6 +8,20 @@ import 'package:test/test.dart';
 /// any of them, so the copy rules do not reach them.
 const Set<String> buildOutput = <String>{'main.support.js', 'sample.js'};
 
+/// The directory of generated pages. It holds the manual transcriptions and
+/// the language reference whole, and rule E2 keeps every quotation
+/// verbatim, so the copy rules reach only the frame around them
+/// (`test/web_sources_test.dart`).
+const String generatedDir = 'web/sources/';
+
+/// Manual titles the site quotes as the conversions give them. Rule E2
+/// outranks D5 for a quotation, and web-copy.md names the F28-8043 title as
+/// the case this exception exists for.
+const List<String> quotedTitles = <String>[
+  'General Information Manual — IBM Commercial Translator',
+  'IBM 709/7090 Commercial Translator Processor — Preliminary Reference Manual',
+];
+
 const Set<String> textExtensions = <String>{
   '.css',
   '.dart',
@@ -53,7 +67,14 @@ List<File> siteFiles() => Directory('web')
     .whereType<File>()
     .where((File f) => textExtensions.any(f.path.endsWith))
     .where((File f) => !buildOutput.contains(f.uri.pathSegments.last))
+    .where((File f) => !f.path.replaceAll(r'\', '/').startsWith(generatedDir))
     .toList();
+
+/// [line] with each quoted title removed.
+String unquoted(String line) => quotedTitles.fold(
+  line,
+  (String text, String title) => text.replaceAll(title, ''),
+);
 
 void main() {
   test('no file under web/ holds an em dash (web-copy.md, rule D5)', () {
@@ -68,11 +89,20 @@ void main() {
       final List<String> lines = file.readAsLinesSync();
       for (var i = 0; i < lines.length; i++) {
         expect(
-          emDash.hasMatch(lines[i]),
+          emDash.hasMatch(unquoted(lines[i])),
           isFalse,
           reason: '${file.path}:${i + 1} holds one: ${lines[i].trim()}',
         );
       }
+    }
+  });
+
+  test('each quoted title is printed exactly as quoted', () {
+    final String site = siteFiles()
+        .map((File f) => f.readAsStringSync())
+        .join('\n');
+    for (final String title in quotedTitles) {
+      expect(site, contains(title), reason: 'no page quotes "$title"');
     }
   });
 

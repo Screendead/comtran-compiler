@@ -846,3 +846,160 @@ figcaption {
   .runner { font-size: 10px; letter-spacing: 0.1em; }
   .editor, .panel { height: 340px; }
 }
+
+/* ---- The sources ---- */
+
+.manual-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.manual-card {
+  border: 1px solid var(--panel-rule);
+  border-top: 3px solid var(--manual-edge);
+  background: var(--panel);
+  padding: 18px 20px 6px;
+}
+
+.manual-card h3 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 20px;
+  line-height: 1.2;
+  margin: 0 0 12px;
+}
+
+.manual-card cite { font-style: normal; }
+
+.manual-card p:not(.strip-label) { font-size: 15.5px; line-height: 1.5; }
+
+.manual-card .links { padding-left: 18px; font-size: 15.5px; }
+
+/* The generated pages: one manual page beside its scan, a contents list,
+   and the language reference. */
+main.sources { max-width: 1400px; }
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 24px 0;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.pager-end { color: var(--ink-faint); }
+
+.folio-head h1 { margin: 6px 0 10px; }
+
+.folio-sub { color: var(--ink-soft); font-size: 15px; }
+
+.pane-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 10px;
+}
+
+.folio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+.folio .scan {
+  width: auto;
+  margin: 0;
+  position: sticky;
+  top: 16px;
+}
+
+.folio .scan img { width: 100%; }
+
+.doc { min-width: 0; }
+
+.doc h1 { font-size: 30px; margin: 8px 0 18px; }
+
+.doc h2 { font-size: 24px; margin: 32px 0 12px; }
+
+.doc h3, .doc h4, .doc h5, .doc h6 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 18px;
+  margin: 26px 0 8px;
+}
+
+.doc pre {
+  overflow-x: auto;
+  background: var(--panel);
+  border: 1px solid var(--panel-rule);
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.doc pre code { font-size: inherit; }
+
+.doc table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 14.5px;
+  margin: 0 0 18px;
+}
+
+.doc th, .doc td {
+  border: 1px solid var(--panel-rule);
+  padding: 5px 9px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc th { background: var(--derived); }
+
+.doc blockquote {
+  margin: 0 0 16px;
+  padding: 2px 0 2px 18px;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+}
+
+.doc img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--panel-rule);
+}
+
+.page-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  list-style: none;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.pages h3 { font-size: 17px; margin: 24px 0 8px; }
+
+.reference-note {
+  max-width: 660px;
+  margin-top: 28px;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.sources .doc:not(.transcription) { max-width: 860px; }
+
+@media (max-width: 900px) {
+  .folio { grid-template-columns: minmax(0, 1fr); }
+  .folio .scan { position: static; }
+}
