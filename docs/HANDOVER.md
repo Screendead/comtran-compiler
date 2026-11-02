@@ -215,7 +215,7 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    the quotient stores from the MQ through `STQ 0,r`. An edited target
    refuses `a subscripted edited-store target (no sample instance)`.
    An ADD target dropped its subscript too, and a SET target refused.
-   Branch `subscripted-targets` handles both (M6-9, decided
+   PR #186 handles both (M6-9, decided
    2026-11-02). An ADD reads and stores the element through one
    prologue, `CLA 0,r / ADD source / STO 0,r`. A SET stores its chain
    with `STO 0,r`, or with `STQ 0,r` after the scaling tail. An
