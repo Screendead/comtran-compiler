@@ -1105,6 +1105,18 @@ the options is built: the call is about the page the tutorial lives on.</p>
 
 </section>
 
+<section class="item" id="call-r4-cellstore">
+<div class="itemhead"><span class="chip call">Your call</span><h2>Round four, call 10. A SET into an external-decimal or edited table cell: compile it or refuse it?</h2></div>
+<div class="ruling"><p class="tag">Ruled &middot; 2026-11-02</p><p>Jack, in chat, 2026-11-02: &ldquo;on #196 - sure, compile.&rdquo; Pick <code>compile</code>. Recorded in the page's <code>picks</code> collection as document <code>cellstore</code>.</p></div>
+<span class="label-k">The question, as pitched</span>
+<p>Since #186, ADD and SET into a numeric table cell compile. Two SET forms still refused: into an external-decimal cell, and into an edited cell. No printed program stores into a subscripted cell of these kinds. The 2026-09-14 rule says the 1962 compiler compiled them, so ours must.</p>
+<span class="label-k">Built, as pitched</span><p>PR <a href="https://github.com/Screendead/comtran-compiler/pull/196">#196</a> (head <code>19bea56</code> when pitched). The store calls SYS)180 as an unsubscripted store does. Its address word is <code>MON PI)n,,0</code>, the word that J 90.02.15 Case 3 prints for data items located by a Positional Indicator. Our part is the use of that word for a subscripted store target. Evidence exists and is sealed until M7.</p>
+<span class="label-k">Options, as pitched</span>
+<div class="opt pick"><h3>Compile them (merge #196 after the review loop)<span class="rec">Recommended</span></h3><p class="key">pick <code>compile</code></p><p class="consequence">Uses a printed calling word. Adds one refusal: an external field added into its own cell.</p></div>
+<div class="opt"><h3>Keep refusing them</h3><p class="key">pick <code>refuse</code></p><p class="consequence">No invented code, but a program the 1962 compiler accepted fails here.</p></div>
+<span class="label-k">What follows</span><p>#196 leaves draft and enters the two-reviewer loop. It merges on convergence.</p>
+</section>
+
 <footer>
 <p>Retrofit record built 2026-11-02 on branch <code>review/2026-11-02-pitch-rulings</code>. Pitch page source:
 <code>archive/pitch-2026-11-02</code> at <code>48136bec11e50c017bf9e8bda5b97bc55423bb6c</code> (local branch, not pushed; a copy is
