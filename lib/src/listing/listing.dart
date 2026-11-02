@@ -98,8 +98,10 @@ String diagnosticStatementNumber(FrontEndResult result, Diagnostic diagnostic) {
 /// The `pages` field counts the pages written: the 1962 printout
 /// numbers its later sections — the loader page and the object
 /// listing — after the last source page, so the count is part of the
-/// result.
-({String text, int pages}) writeListing(
+/// result. `statements` holds one entry per line of `text`: the
+/// statement number a source card or a diagnostic row belongs to, or
+/// `null` for a line that belongs to none (roadmap W3).
+({String text, int pages, List<String?> statements}) writeListing(
   FrontEndResult result,
   ListingOptions options, {
   List<Diagnostic>? diagnostics,
@@ -161,10 +163,11 @@ final class _ListingWriter {
   final Map<int, Set<int>> _repaired = {};
 
   final StringBuffer _out = StringBuffer();
+  final List<String?> _statements = <String?>[];
   int _page = 0;
   int _linesOnPage = 0;
 
-  ({String text, int pages}) write() {
+  ({String text, int pages, List<String?> statements}) write() {
     _newPage();
     final SourceCard? compileCard = result.program.compileCard;
     if (compileCard != null) {
@@ -197,14 +200,21 @@ final class _ListingWriter {
       if (headerCards.contains(card.cardNumber)) {
         _line('');
       }
-      _line(_sourceLine(card, divisionOf[card.cardNumber]));
+      _line(
+        _sourceLine(card, divisionOf[card.cardNumber]),
+        result.statementNumberByCard[card.cardNumber],
+      );
     }
     _line('');
     _line('  CTD');
     _line('  CTE');
     _line('');
     _diagnosticBlock();
-    return (text: _out.toString(), pages: _page);
+    return (
+      text: _out.toString(),
+      pages: _page,
+      statements: List.unmodifiable(_statements),
+    );
   }
 
   String _sourceLine(SourceCard card, Division? division) {
@@ -288,8 +298,10 @@ final class _ListingWriter {
     for (final Diagnostic d in diagnostics) {
       final String number = diagnosticStatementNumber(result, d);
       final List<String> lines = d.text.split('\n');
-      _line('${number.padLeft(7)}    ${d.severity}    ${lines.first}');
-      lines.skip(1).forEach(_line);
+      _line('${number.padLeft(7)}    ${d.severity}    ${lines.first}', number);
+      for (final String line in lines.skip(1)) {
+        _line(line, number);
+      }
     }
     if (_maxSeverity < 5) {
       _line('');
@@ -297,11 +309,12 @@ final class _ListingWriter {
     }
   }
 
-  void _line(String text) {
+  void _line(String text, [String? statement]) {
     if (_linesOnPage >= options.linesPerPage) {
       _newPage();
     }
     _out.writeln(text.trimRight());
+    _statements.add(statement);
     _linesOnPage++;
   }
 
@@ -311,10 +324,12 @@ final class _ListingWriter {
       _out
         ..writeln('${' ' * 36}${options.title}')
         ..writeln();
+      _statements.addAll(const <String?>[null, null]);
     }
     _out
       ..writeln(_pageHead())
       ..writeln();
+    _statements.addAll(const <String?>[null, null]);
     _linesOnPage = 0;
   }
 

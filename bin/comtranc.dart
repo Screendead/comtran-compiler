@@ -269,12 +269,13 @@ int _run(List<String> arguments) {
         : null;
     var failed = false;
     for (final (int index, JobCompilation job) in deck.jobs.indexed) {
-      final ({String text, int pages}) page = writeListing(
-        job.frontEnd,
-        options,
-        diagnostics: job.diagnostics,
-        annotations: job.semantics?.allocation?.annotations,
-      );
+      final ({String text, int pages, List<String?> statements}) page =
+          writeListing(
+            job.frontEnd,
+            options,
+            diagnostics: job.diagnostics,
+            annotations: job.semantics?.allocation?.annotations,
+          );
       listing?.write(page.text);
       stdout.write(page.text);
       if (object != null) {

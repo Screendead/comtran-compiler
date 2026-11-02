@@ -55,7 +55,89 @@ void main() {
         'cardCount',
         'diagnostics',
         'maxSeverity',
+        'marks',
       ]);
+    });
+  });
+
+  group('the statement marks that join the stages (W3)', () {
+    late WebCompilation result;
+    const stages = ['cards', 'scan', 'parse', 'semantics', 'listing', 'code'];
+
+    setUpAll(() => result = compileText(_sample()));
+
+    String text(String stage) => result.toJson()[stage]! as String;
+
+    /// The marked lines of [stage] whose mark falls under statement
+    /// [statement], as `mark|line`.
+    List<String> under(String stage, String statement) {
+      final List<String> lines = text(stage).split('\n');
+      return [
+        for (final (int i, String? mark) in result.marks[stage]!.indexed)
+          if (mark != null && mark.startsWith('$statement,'))
+            '$mark|${lines[i]}',
+      ];
+    }
+
+    test('every stage carries one mark per line', () {
+      for (final stage in stages) {
+        expect(
+          result.marks[stage],
+          hasLength(text(stage).split('\n').length - 1),
+          reason: stage,
+        );
+      }
+    });
+
+    test('every mark names a statement the scan numbered', () {
+      final Set<String> scanned = {
+        for (final String? mark in result.marks['scan']!)
+          if (mark != null) mark.split(',').first,
+      };
+      expect(scanned, hasLength(229));
+      for (final stage in stages) {
+        for (final String? mark in result.marks[stage]!) {
+          if (mark == null) {
+            continue;
+          }
+          expect(mark, matches(RegExp(r'^\d+:\d+,\d\d$')), reason: stage);
+          expect(scanned, contains(mark.split(',').first), reason: stage);
+        }
+      }
+    });
+
+    test('statement 188 marks its own lines in every stage', () {
+      expect(under('cards', '1:188'), [
+        '1:188,00|      START.          OPEN ALL FILES,',
+        '1:188,00|            MOVE ZEROS TO INTERNAL.TOTALS, GRAND.TOTALS,',
+        '1:188,00|            GET MASTER, AT END DO END.OF.MASTERS.',
+      ]);
+      expect(under('scan', '1:188'), hasLength(1));
+      final String indent = ' ' * 38;
+      expect(under('listing', '1:188'), [
+        '1:188,00|${' ' * 17}188,00   71466 START.          OPEN ALL FILES,',
+        '1:188,00|${indent}MOVE ZEROS TO INTERNAL.TOTALS, GRAND.TOTALS,',
+        '1:188,00|${indent}GET MASTER, AT END DO END.OF.MASTERS.',
+      ]);
+      expect(
+        under('parse', '1:188').map((String s) => s.split('|').first).toSet(),
+        {'1:188,00', '1:188,01', '1:188,02', '1:188,03', '1:188,04'},
+      );
+      final List<String> code = under('code', '1:188');
+      expect(code, hasLength(19));
+      // The OPEN ALL FILES call is the program's first word, at the
+      // entry point GN)000 the listing prints for statement 188.
+      expect(
+        code.first,
+        '1:188,01|00165\tGN)000 START\tTSX\tSYS)175,4\t'
+        '007400400257\t10010',
+      );
+      // The AT END DO, clause 188,04, writes the out-of-line call.
+      expect(code.last, startsWith('1:188,04|00207\t\tTRA\tEND.OF.MASTERS+1'));
+    });
+
+    test('a refusal carries no marks', () {
+      expect(compileText('').marks, isEmpty);
     });
   });
 
@@ -248,5 +330,30 @@ void main() {
     expect(result.error, isNull);
     expect(result.diagnostics, isNotEmpty);
     expect(result.listing, contains('ERRORS WERE DETECTED'));
+  });
+
+  test("a diagnostic row carries its statement's mark", () {
+    final WebCompilation result = compileText(
+      ['      *DATA', dataCard(name: 'A', level: '99'), ''].join('\n'),
+    );
+    final List<String> lines = result.listing.split('\n');
+    final String number = result.diagnostics.first.number;
+    final int row = lines.indexWhere(
+      (String line) => line.startsWith(number.padLeft(7)),
+    );
+    expect(row, isNonNegative);
+    expect(result.marks['listing']![row], '1:$number');
+  });
+
+  test('a second job marks its statements with its own job number', () {
+    final String job = [
+      '      *DATA',
+      dataCard(name: 'A', level: '1'),
+    ].join('\n');
+    final WebCompilation result = compileText(
+      [job, '      *FINISH', job, ''].join('\n'),
+    );
+    // The division headers and the *FINISH card belong to no statement.
+    expect(result.marks['cards'], [null, '1:1,00', null, null, '2:1,00']);
   });
 }

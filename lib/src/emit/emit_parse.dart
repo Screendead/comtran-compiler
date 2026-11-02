@@ -26,8 +26,12 @@ import '../parser/parser.dart';
 import 'common.dart';
 
 /// Renders the parse of every job of [deck], deck order.
-String emitParse(DeckCompilation deck) {
-  final out = StringBuffer()..writeln(reconstructionLabel);
+String emitParse(DeckCompilation deck) => markParse(deck).text;
+
+/// The parse dump of [deck], each line marked with the statement or
+/// clause it falls under (W3).
+MarkedText markParse(DeckCompilation deck) {
+  final out = MarkedText()..writeln(reconstructionLabel);
   for (var i = 0; i < deck.jobs.length; i++) {
     if (i > 0) {
       out.writeln();
@@ -38,15 +42,21 @@ String emitParse(DeckCompilation deck) {
       out.writeln(stageNotReached);
       continue;
     }
-    _ParseDump(out, parse.frontEnd.statementNumberByCard).result(parse);
+    _ParseDump(out, parse.frontEnd.statementNumberByCard, i + 1).result(parse);
   }
-  return out.toString();
+  return out;
 }
 
 final class _ParseDump {
-  _ParseDump(this._out, this._numbers);
+  _ParseDump(this._out, this._numbers, this._job);
 
-  final StringBuffer _out;
+  final MarkedText _out;
+
+  final int _job;
+
+  /// The mark of each depth above the line being written: a line with no
+  /// number of its own falls under the nearest numbered line above it.
+  final List<String?> _marks = <String?>[];
 
   /// The front end's `n,00` number of every card inside a statement
   /// unit, keyed by card number.
@@ -561,9 +571,23 @@ final class _ParseDump {
   String _number(SourceCard card) => _numbers[card.cardNumber] ?? '9999,99';
 
   void _line(int depth, List<String> atoms) {
-    final String text = atoms.where((String a) => a.isNotEmpty).join(' ');
-    _out.writeln('${'  ' * depth}$text');
+    final List<String> printed = atoms
+        .where((String a) => a.isNotEmpty)
+        .toList();
+    _marks.length = depth;
+    final String? own = printed.isNotEmpty && _numbered.hasMatch(printed.first)
+        ? statementMark(_job, printed.first)
+        : null;
+    final String? mark =
+        own ?? _marks.lastWhere((String? m) => m != null, orElse: () => null);
+    _marks.add(mark);
+    _out
+      ..mark = mark
+      ..writeln('${'  ' * depth}${printed.join(' ')}')
+      ..mark = null;
   }
+
+  static final RegExp _numbered = RegExp(r'^\d+,\d\d$');
 }
 
 String _relation(RelationOp op) => switch (op) {

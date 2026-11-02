@@ -59,6 +59,7 @@ final class AssemblyUnit {
     this.word,
     this.control,
     this.form = WordForm.solid,
+    this.source,
   });
 
   /// Words from the first word of the object program.
@@ -78,6 +79,11 @@ final class AssemblyUnit {
   final int? control;
 
   final WordForm form;
+
+  /// The statement and clause the procedure walk was in when it wrote
+  /// this unit: the `n,cc` number of [J 02.02.01], or `null` for a unit
+  /// no sentence wrote (roadmap W3).
+  final ({int statement, int clause})? source;
 }
 
 /// Operations whose line prints no `+n` offset, and so resets the
