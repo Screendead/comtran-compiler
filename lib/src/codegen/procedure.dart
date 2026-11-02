@@ -2606,8 +2606,8 @@ final class _Text {
 
   /// The fraction digits a MOVE from [source] to [target] adds, negative
   /// when it drops them. F p. 42 aligns by the decimal point. [held] is
-  /// the digit count the accumulator holds before the upscale: a
-  /// convert holds the stored digits alone.
+  /// the digit count of the value before the upscale: a convert yields
+  /// the stored digits alone.
   int _moveDeficit(DataItem source, DataItem target, {required int held}) {
     final int deficit =
         _sem(target).fractionDigits - _sem(source).fractionDigits;
@@ -3147,7 +3147,7 @@ final class _Text {
 
   /// The fraction digits an ADD source lacks against [target]. A source
   /// of greater scale needs the store tail, which has no site on an ADD
-  /// (notes section 7). No digit limit refuses the upscale, as
+  /// (notes section 7). No digit limit refuses the upscale, where
   /// [_moveDeficit] refuses a MOVE's: the ADD emits the words of
   /// `SET target = target + source`, which compiles the same product,
   /// and the excess is D4.2's overflow.

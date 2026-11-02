@@ -781,7 +781,7 @@ notes on the shape:
 - No path filter guards the workflow. The site prints what the compiler
   prints, so every push to master must redeploy.
 - Jekyll never runs on a workflow artifact, which is served as uploaded. The
-  build writes `.nojekyll` anyway, as a guard if the source ever moves back to
+  workflow writes `.nojekyll` anyway, as a guard if the source ever moves back to
   a branch.
 - CI now also runs `dart run tool/build_web.dart`. The site is built and never
   committed, so before this nothing proved that it compiles.
