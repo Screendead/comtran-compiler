@@ -76,15 +76,13 @@ const STAGES = {
   code: {
     caption:
       'The assembled text: address, symbol, operation, octal word and ' +
-      'control field. Today the compiler lays down the data: the constants ' +
-      'and the space each record needs. It generates no procedure code yet.',
+      'control field, for the data and the procedure alike.',
     kind: 'derived',
     label: 'We worked this out from',
     evidence:
       'The manual prints this program’s assembled text in full (J 90.05). ' +
-      'That printed text is the target the code generator is measured ' +
-      'against, and the distance between this panel and it is the work in ' +
-      'progress.',
+      'The layout of this panel is ours. The words in it are checked ' +
+      'against that printed text, and for the sample every one matches.',
   },
 };
 
@@ -115,9 +113,27 @@ const linkNote = el('link-note');
 const whinges = el('whinges');
 const whingeCount = el('whinge-count');
 const tabs = [...document.querySelectorAll('[role="tab"]')];
+const stepAt = el('step-at');
+const stepPrev = el('step-prev');
+const stepNext = el('step-next');
+const stepClear = el('step-clear');
+
+// Each tab carries a count of the lines the selected statement marks in it.
+for (const tab of tabs) {
+  const hits = document.createElement('span');
+  hits.className = 'tab-hits';
+  tab.append(hits);
+}
 
 let stage = 'listing';
 let latest = null;
+
+// The statement the reader follows through the stages (roadmap W3). The
+// compiler marks every line it can with `job:n,cc`, the statement number
+// the 1962 listing printed (J 02.02.01). Lines join on the part before the
+// comma; `clause` is the whole mark, when the reader picked a clause line.
+let statement = null;
+let clause = null;
 let ready = false;
 
 // The card-column ruler, in the form a card-oriented editor has always
@@ -307,7 +323,27 @@ card.addEventListener('keydown', (event) => {
   card.querySelector('.p.at')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 });
 
-function drawStage() {
+function statementOf(mark) {
+  return mark ? mark.slice(0, mark.indexOf(',')) : null;
+}
+
+function marksOf(name) {
+  return latest && !latest.error ? (latest.marks[name] ?? []) : [];
+}
+
+// The statements in the order the compiler numbered them, for stepping.
+function statementOrder() {
+  const seen = [];
+  for (const mark of marksOf('scan')) {
+    const key = statementOf(mark);
+    if (key && seen[seen.length - 1] !== key) seen.push(key);
+  }
+  return seen;
+}
+
+// `keep` holds the panel where it is: a click inside the panel must not
+// move the line the reader just clicked.
+function drawStage(keep = false) {
   const meta = STAGES[stage];
   caption.textContent = meta.caption;
   evidence.dataset.kind = meta.kind;
@@ -318,12 +354,99 @@ function drawStage() {
   }
   if (!latest) return;
   const text = latest.error ? '' : latest[stage];
-  out.textContent = text;
-  panel.scrollTop = 0;
+  const marks = marksOf(stage);
+  const lines = text.split('\n');
+  if (lines[lines.length - 1] === '') lines.pop();
+  const fragment = document.createDocumentFragment();
+  let first = null;
+  lines.forEach((line, index) => {
+    const span = document.createElement('span');
+    span.className = 'ln';
+    span.textContent = line;
+    const mark = marks[index];
+    if (mark) {
+      span.dataset.mark = mark;
+      span.classList.add('mk');
+      if (statementOf(mark) === statement) {
+        span.classList.add(mark === clause ? 'on-clause' : 'on');
+        first ??= span;
+      }
+    }
+    fragment.append(span);
+  });
+  const scrolled = panel.scrollTop;
+  out.replaceChildren(fragment);
+  if (keep) {
+    panel.scrollTop = scrolled;
+  } else if (first) {
+    const top = first.offsetTop - panel.clientHeight / 3;
+    panel.scrollTop = Math.max(top, 0);
+  } else {
+    panel.scrollTop = 0;
+  }
   panelFoot.textContent = text
     ? `${lineCount(text) - 1} lines · ${text.length.toLocaleString('en-GB')} characters`
     : '';
+  drawStepper();
 }
+
+// The stepper names the statement and counts its lines in every stage, so
+// the reader sees at once which stages it reached.
+function drawStepper() {
+  const order = statementOrder();
+  const at = order.indexOf(statement);
+  stepPrev.disabled = order.length === 0 || at === 0;
+  stepNext.disabled = order.length === 0 || at === order.length - 1;
+  stepClear.disabled = statement === null;
+  for (const tab of tabs) {
+    const hits = tab.querySelector('.tab-hits');
+    const count = statement
+      ? marksOf(tab.dataset.stage).filter((m) => statementOf(m) === statement)
+          .length
+      : 0;
+    hits.textContent = statement ? String(count) : '';
+    hits.dataset.none = String(statement !== null && count === 0);
+  }
+  if (statement === null) {
+    stepAt.textContent =
+      'Click a line in any stage to follow its statement through all six.';
+    return;
+  }
+  const job = statement.slice(0, statement.indexOf(':'));
+  const number = clause.slice(clause.indexOf(':') + 1);
+  stepAt.textContent =
+    `Statement ${number}` +
+    (job === '1' ? '' : ` of job ${job}`) +
+    (at === -1 ? '' : ` · ${at + 1} of ${order.length}`);
+}
+
+function select(mark, keep = false) {
+  statement = statementOf(mark);
+  clause = mark;
+  drawStage(keep);
+}
+
+function step(by) {
+  const order = statementOrder();
+  if (order.length === 0) return;
+  const at = order.indexOf(statement);
+  const next = at === -1 ? (by > 0 ? 0 : order.length - 1) : at + by;
+  if (next < 0 || next >= order.length) return;
+  select(`${order[next]},00`);
+}
+
+out.addEventListener('click', (event) => {
+  const line = event.target.closest('.mk');
+  if (!line) return;
+  select(line.dataset.mark, true);
+});
+stepPrev.addEventListener('click', () => step(-1));
+stepNext.addEventListener('click', () => step(1));
+stepClear.addEventListener('click', () => {
+  statement = null;
+  clause = null;
+  drawStage();
+});
 
 // The compiler's own messages, in its own words and its own order. The
 // site adds a statement number and a severity to each and nothing else.
