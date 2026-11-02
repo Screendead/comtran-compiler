@@ -76,6 +76,28 @@ const List<Manual> manuals = <Manual>[
   ),
 ];
 
+/// Each genuine typo a manual prints, by the form number of the manual, as
+/// rule E3 of `docs/design/web-copy.md` names them. The page views put a
+/// `[sic]` mark immediately after each occurrence in the transcribed text;
+/// the conversions themselves never carry it. Each was checked on its scan:
+/// PDF 38 (`at lease`), PDF 46 (`lables`, `dinsity`), PDF 66 (`Parentheis`)
+/// and PDF 137 (`Appox-Max`, the misspelt half of the heading "Appox-Max
+/// Size"). An authentic period spelling never goes here (rule E4).
+const Map<String, List<String>> typos = <String, List<String>>{
+  'J28-6169': <String>[
+    'at lease',
+    'lables',
+    'dinsity',
+    'Parentheis',
+    'Appox-Max',
+  ],
+};
+
+/// The mark that follows a typo. It is empty: the stylesheet draws `[sic]`
+/// as generated content, so a reader who copies the quotation gets IBM's
+/// words and nothing else (rule G3).
+const String sicMark = '<span class="sic"></span>';
+
 /// One page of a manual: its PDF page number, the label its marker comment
 /// gives it (`page 42`, `02.05.05`, `Publications`, or none), the
 /// repository path of the file that holds it, and its lines of markdown.
@@ -185,6 +207,50 @@ List<md.Node> _parse(List<String> lines, Slugger slugger) {
   });
   assert(next == slugs.length, 'the parser lost a heading the scan found');
   return nodes;
+}
+
+/// Puts a [sicMark] after each of [words] in the text of [nodes]. A raw
+/// HTML block, such as a conversion note, and a code span keep their text:
+/// neither is transcribed prose.
+void markTypos(List<md.Node> nodes, List<String> words) {
+  if (words.isEmpty) {
+    return;
+  }
+  final pattern = RegExp(
+    '(?<![A-Za-z])(?:${words.map(RegExp.escape).join('|')})(?![A-Za-z])',
+  );
+  void mark(List<md.Node> children) {
+    for (var i = 0; i < children.length; i++) {
+      final md.Node node = children[i];
+      if (node is md.Element) {
+        if (node.tag != 'code' && node.tag != 'pre') {
+          mark(node.children ?? <md.Node>[]);
+        }
+        continue;
+      }
+      if (node is! md.Text || node.text.trimLeft().startsWith('<')) {
+        continue;
+      }
+      final String text = node.text;
+      final List<RegExpMatch> hits = pattern.allMatches(text).toList();
+      if (hits.isEmpty) {
+        continue;
+      }
+      final parts = <md.Node>[];
+      var at = 0;
+      for (final hit in hits) {
+        parts
+          ..add(md.Text(text.substring(at, hit.end)))
+          ..add(md.Text(sicMark));
+        at = hit.end;
+      }
+      parts.add(md.Text(text.substring(at)));
+      children.replaceRange(i, i + 1, parts);
+      i += parts.length - 1;
+    }
+  }
+
+  mark(nodes);
 }
 
 /// Escapes [text] for an HTML text node or attribute.
@@ -401,6 +467,7 @@ class _SiteBuilder {
     for (var i = 0; i < pages.length; i++) {
       final (ManualPage page, List<md.Node> nodes) = pages[i];
       _rewrite(nodes, manual.dir, manual.id);
+      markTypos(nodes, typos[manual.id] ?? const <String>[]);
       _pages['$sourcesDir/${manual.id}/${pageName(page.pdf)}'] = pageView(
         manual: manual,
         page: page,

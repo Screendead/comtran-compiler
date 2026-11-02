@@ -633,6 +633,17 @@ button:focus-visible {
 .js .gloss-host:hover .gloss-note,
 .js .gloss[aria-expanded="true"] + .gloss-note { display: block; }
 
+/* ---- The [sic] mark (web-copy.md, rule E3) ---- */
+
+/* The mark is generated content on an empty span, so a reader who copies a
+   transcribed passage gets the manual's words and nothing else (rule G3). */
+.sic::after {
+  content: "\00a0[sic]";
+  font-style: italic;
+  color: var(--manual-edge);
+  user-select: none;
+}
+
 /* ---- Scan evidence ---- */
 
 /* Evidence is the point of the page, so a crop is allowed wider than the

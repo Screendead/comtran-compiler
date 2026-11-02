@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:markdown/markdown.dart' as md;
 import 'package:test/test.dart';
 
 import '../tool/web_sources_source.dart';
@@ -150,11 +151,55 @@ text
     }
   });
 
+  test('each genuine typo is marked [sic] on its page, and nothing else is '
+      '(web-copy.md, rule E3)', () {
+    // Each page and its typos, checked against the scans of J28-6169.
+    const expected = <String, List<String>>{
+      'J28-6169/page-038.html': <String>['at lease'],
+      'J28-6169/page-046.html': <String>['lables', 'dinsity'],
+      'J28-6169/page-066.html': <String>['Parentheis'],
+      'J28-6169/page-137.html': <String>['Appox-Max'],
+    };
+    expect(
+      expected.values.expand((List<String> words) => words).toSet(),
+      typos['J28-6169']!.toSet(),
+    );
+    for (final MapEntry<String, String> page in site.pages.entries) {
+      final List<String> words =
+          expected[page.key.substring(sourcesDir.length + 1)] ??
+          const <String>[];
+      expect(
+        sicMark.allMatches(page.value),
+        hasLength(words.length),
+        reason: page.key,
+      );
+      for (final word in words) {
+        expect(page.value, contains('$word$sicMark'), reason: page.key);
+      }
+    }
+  });
+
+  test('a conversion note keeps a typo it names unmarked', () {
+    final nodes = <md.Node>[
+      md.Text('<!-- conversion notes: "Appox-Max" as printed -->'),
+      md.Element('p', <md.Node>[md.Text('Appox-Max Size')]),
+      md.Element('p', <md.Node>[
+        md.Element('code', <md.Node>[md.Text('Appox-Max')]),
+      ]),
+    ];
+    markTypos(nodes, typos['J28-6169']!);
+    final String html = md.renderToHtml(nodes);
+    expect(sicMark.allMatches(html), hasLength(1));
+    expect(html, contains('<p>Appox-Max$sicMark Size</p>'));
+    expect(html, contains('"Appox-Max" as printed'));
+    expect(html, contains('<code>Appox-Max</code>'));
+  });
+
   test('the generated frames hold no dash (web-copy.md, rule D5)', () {
-    // Whether D5 reaches the transcriptions and the reference is open
-    // (web-copy.md, section 6), so only the frame around them is held to
-    // it. The frames add no en dash either, so the cap in
-    // test/web_copy_test.dart stays whole.
+    // The transcriptions are quotations, which E2 keeps verbatim, and
+    // test/web_copy_test.dart holds the reference text to D5. This test
+    // holds the frame around both. The frames add no en dash either, so the
+    // cap in test/web_copy_test.dart stays whole.
     final Manual manual = manuals.first;
     final List<ManualPage> pages = manualPages(manual);
     final frames = <String>[
