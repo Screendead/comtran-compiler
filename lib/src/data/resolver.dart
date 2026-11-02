@@ -242,7 +242,9 @@ final class NameResolver extends ClauseWalk with OperandWalk {
       }
       // The stack moves clause by clause in the parser's walk order,
       // so it matches the parser's section stack (msgs 64, 65, 179 are
-      // the parser's).
+      // the parser's). A label's scope is the stack before its
+      // sentence, so an END-then-BEGIN sentence (msg 179's) scopes
+      // best-effort.
       for (final Clause clause in clauseTree(sentence.clauses)) {
         if (clause is BeginSectionClause) {
           sectionStack.add((begin: clause, name: label));

@@ -69,7 +69,8 @@ final class DictionaryEntry {
   /// the name or the sentence.
   final BeginSectionClause? scope;
 
-  /// The enclosing section's name.
+  /// The enclosing section's name: the label of the sentence that
+  /// holds [scope], set with it.
   final String? section;
 
   /// The 1-based sequence number among identical names, in encounter
