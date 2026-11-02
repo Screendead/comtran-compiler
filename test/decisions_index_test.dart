@@ -14,15 +14,17 @@ final RegExp _section = RegExp(r'^## (D\d+) — ');
 final RegExp _d0Item = RegExp(r'^\*\*(D0\.\d+) ');
 final RegExp _status = RegExp(r'^\*\*Status\.\*\* (.+)$');
 final RegExp _row = RegExp(r'^\| (\*\*)?\[(D[\d.]+)[^\]]*\]\(#([^)]+)\)');
+final RegExp _amendment = RegExp(r'^(?:> )?\*{1,2}Amended');
 
 /// The four statuses of the Contents table.
 const List<String> statuses = ['Locked', "Jack's call", 'Amended', 'Deferred'];
 
-/// The status a record's **Status.** line states. A line that opens
-/// `Locked; amended` names a record a later amendment changed, which the
-/// Contents table calls Amended.
+/// The status a record's **Status.** line states. A line that names its
+/// amendment after the first status (`Locked; amended`, `Jack's call,
+/// 2026-08-02; amended`) names a record a later amendment changed, which
+/// the Contents table calls Amended.
 String statusOf(String line) {
-  if (line.startsWith('Locked; amended')) {
+  if (line.contains('; amended')) {
     return 'Amended';
   }
   return statuses.firstWhere(
@@ -50,6 +52,7 @@ void main() {
   final sectionAnchor = <String, String>{};
   final recordAnchor = <String, String>{};
   final recordStatus = <String, String>{};
+  final amendedRecords = <String>{};
   final d0Items = <String>[];
   String? d0Status;
   final slugger = Slugger();
@@ -84,6 +87,9 @@ void main() {
     final Match? item = _d0Item.firstMatch(line);
     if (current == 'D0' && item != null) {
       d0Items.add(item[1]!);
+    }
+    if (current != null && current != 'D0' && _amendment.hasMatch(line)) {
+      amendedRecords.add(current);
     }
     final Match? status = _status.firstMatch(line);
     if (current != null && status != null) {
@@ -138,6 +144,13 @@ void main() {
       final String? line = recordStatus[r.id];
       expect(line, isNotNull, reason: '${r.id} has no Status line');
       expect(rowStatusOf(r.status), statusOf(line!), reason: r.id);
+    }
+  });
+
+  test('a record with an amendment note says so on its Status line', () {
+    expect(amendedRecords, isNotEmpty);
+    for (final id in amendedRecords) {
+      expect(statusOf(recordStatus[id]!), 'Amended', reason: id);
     }
   });
 
