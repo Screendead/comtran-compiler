@@ -2338,20 +2338,18 @@ final class _Text {
         _externalConvert(source);
         // A locator register 1 held reloads for the store (`_movpakClears`).
         _movpakClears();
-        final int deficit = _moveDeficit(
-          source,
-          target,
-          held: _storedDigits(source),
-        );
+        final int held = _storedDigits(source);
+        final int deficit = _moveDeficit(source, target, held: held);
         if (deficit > 0) {
           // The convert leaves the value in the accumulator, so the
           // multiply takes the attested `XCA / MPY / XCA` (00627–00631).
           _scaledLoad(_xca, deficit);
-        } else if (deficit < 0) {
+        }
+        _leadingSplit(target, deficit, held: held);
+        if (deficit < 0) {
           // A MOVE drops low-order digits (F p. 42), so the divide takes
           // no half-adjust: the split's `LRS 35 / DVP` (00424–00425),
-          // and the quotient stores from the MQ (00634–00635). This arm
-          // drops no leading digit a shorter target cannot hold.
+          // and the quotient stores from the MQ (00634–00635).
           _shift(Op.lrs, _storeShift);
           _op(Op.dvp, _cp(_pool.machineWord(_pow10(-deficit))));
         }
@@ -2619,7 +2617,8 @@ final class _Text {
   }
 
   /// The internal-to-internal move: two words at its one site, equal
-  /// scale and single precision (catalogue 4.6).
+  /// scale and single precision (catalogue 4.6), and the digit split
+  /// ahead of the store when the target holds fewer digits.
   void _internalMove(
     DataItem source,
     DataItem target, {
@@ -2638,12 +2637,29 @@ final class _Text {
     }
     _loadBaseOf(source);
     _opItem(Op.cla, source);
+    _leadingSplit(target, 0, held: s.digits);
     if (targetSubscripted) {
       _elementStore(target);
       return;
     }
     _loadBaseOf(target);
     _opItem(Op.sto, target);
+  }
+
+  /// Drops from the value in the accumulator the leading digits [target]
+  /// cannot hold (F p. 42; defect 13). The digit-split `LRS 35 / DVP` of
+  /// 00424–00425 leaves the digits that fit as the remainder in the
+  /// accumulator and the excess in the MQ (D4.1 (c)). The value is at the
+  /// finer of the two scales, so a move that drops fraction digits splits
+  /// before its downscaling divide. [held] counts the digits the source
+  /// value carries, which for a convert leaves out the `S` fillers.
+  void _leadingSplit(DataItem target, int deficit, {required int held}) {
+    final int fits = _sem(target).digits;
+    if (held + deficit <= fits) {
+      return;
+    }
+    _shift(Op.lrs, _storeShift);
+    _op(Op.dvp, _cp(_pool.machineWord(_pow10(fits + math.max(0, -deficit)))));
   }
 
   /// The store of the accumulator, or of the MQ when [store] is `STQ`,
