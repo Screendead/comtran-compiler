@@ -210,6 +210,8 @@ final class LegalityChecker extends ClauseWalk with OperandWalk {
       final List<(DataItem, DataItem)> matched = _pairBelow(root!, item!);
       pairs.addAll(matched);
       for (final (DataItem from, DataItem to) in matched) {
+        _countAppended(from, (source as NameOperand).name);
+        _countAppended(to, target);
         final OperandClass fromClass = _classOfItem(from);
         final OperandClass toClass = _classOfItem(to);
         if (add) {
@@ -231,6 +233,17 @@ final class LegalityChecker extends ClauseWalk with OperandWalk {
     correspondingPairs[clause] = pairs;
     if (pedantic && searched && pairs.isEmpty) {
       report(msgCorrespondingMatchesNothing, source.anchor);
+    }
+  }
+
+  /// Each field of a subscripted CORRESPONDING operand takes the
+  /// operand's subscript (J 02.04.05). A field whose own dimensions the
+  /// subscript does not match gets no indicator, and its pair refuses
+  /// in the generator.
+  void _countAppended(DataItem field, NameReference operand) {
+    if (operand.subscripts.isNotEmpty &&
+        dimensionsOf(field, mapper.semantics) == operand.subscripts.length) {
+      resolver.countAppendedIndicator(field, operand, this);
     }
   }
 

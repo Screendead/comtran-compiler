@@ -82,6 +82,15 @@ final class NameResolver extends ClauseWalk with OperandWalk {
   Iterable<(DataItem, String)> get positionalIndicators =>
       _subscripts.indicators;
 
+  /// Counts the indicator of a CORRESPONDING pair's [field] under its
+  /// [group]'s subscripts, after resolution, so the appended indicators
+  /// number after every written one (M6-9).
+  void countAppendedIndicator(
+    DataItem field,
+    NameReference group,
+    ClauseWalk walk,
+  ) => _subscripts.countIndicator(field, group, walk);
+
   /// Set while the triage runs over a subscript expression. A condition
   /// name resolves there, so that M3-20's msg 71 speaks for it in place
   /// of the triage's msg 25 (M3-17: a site-specific row overrides).

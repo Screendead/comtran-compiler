@@ -848,6 +848,30 @@ final List<String> _elementTargets = <String>[
   '      *FINISH',
 ];
 
+/// An ADD into the subscript variable and an element of one clause,
+/// then both CORRESPONDING verbs into an element (J 02.04.05).
+final List<String> _correspondingElements = <String>[
+  '      *DATA',
+  internalCard('P1', '9'),
+  dataCard(name: 'G', level: '1'),
+  internalCard('CELL', '999', level: '2'),
+  internalCard('OTH', '99', level: '2'),
+  dataCard(name: 'TAB', level: '1', quantity: '3'),
+  internalCard('CELL', '999', level: '2'),
+  internalCard('OTH', '99', level: '2'),
+  internalCard('I', '9'),
+  internalCard('NUM', '999'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 1, SET I = 1.',
+  '            ADD NUM TO I, TAB CELL (I).',
+  '            SET G CELL = 7, SET G OTH = 8.',
+  '            SET I = 1, MOVE CORRESPONDING G TO TAB (I).',
+  '            SET I = 3, ADD CORRESPONDING G TO TAB (I).',
+  '            ADD CORRESPONDING G TO TAB (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
 final List<String> _subChain = <String>[
   '      *DATA',
@@ -1674,6 +1698,21 @@ void main() {
         <int>[for (var k = 0; k < 3; k++) subject.state.read(ft + k)],
         <int>[0, 63, 0],
       );
+    });
+
+    test('a CORRESPONDING clause stores into the element the index names', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _correspondingElements,
+      );
+      expect(subject.printed, <String>['AT 16,00 STOP RUN']);
+      final int tab = addressOf(job, 'TAB');
+      // The ADD of 1 lands in element 2, the I it set; the MOVE fills
+      // element 1, and the two ADDs double element 3.
+      expect(
+        <int>[for (var k = 0; k < 6; k++) subject.state.read(tab + k)],
+        <int>[7, 8, 1, 0, 14, 16],
+      );
+      expect(subject.state.read(addressOf(job, 'I')), 3);
     });
 
     test('a sub-chain inside a chain keeps the outer park', () {

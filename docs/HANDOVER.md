@@ -211,13 +211,13 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    whole-word read through `LAC PI)n,r` still refuse such a stride.
 8. **A subscripted MOVE, ADD or SET target dropped its subscript or
    refused. Ruled: handle it. Handled by PR #168 (MOVE) and PR #186
-   (ADD, SET; M6-9).** Each target now stores through `LAC PI)n,r /
-   TXL SYS)294,r,0 / STO 0,r`, the comparand form of LOC 01410 to
-   01412, or through `STQ 0,r` after a scaling tail. An ADD reads the
-   element with `CLA 0,r` under the same prologue. An edited target
-   refuses `a subscripted edited-store target (no sample instance)`.
-   An external-decimal ADD or SET target refuses `a subscripted
-   external-decimal store target (no sample instance)`.
+   (ADD, SET, CORRESPONDING; M6-9).** Each target now stores through
+   `LAC PI)n,r / TXL SYS)294,r,0 / STO 0,r`, the comparand form of LOC
+   01410 to 01412, or through `STQ 0,r` after a scaling tail. An ADD
+   reads the element with `CLA 0,r` under the same prologue. A
+   CORRESPONDING pair takes the operand's subscript on each field
+   ([J 02.04.05]) and refuses as its plain clause does. An edited or
+   external-decimal target refuses `(no sample instance)`.
 9. **A SET or ADD into a subscript variable updated no indicator.
    Ruled: handle it. Handled by PR #168.** Each SET and each plain ADD
    target now updates the indicators it drives (M4-10;
@@ -1002,6 +1002,7 @@ this project's own decision (Open Question 65).
 [F p. 42]: ../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.04.04]: ../comtran-manuals/J28-6169/02-compiler.md#3-move
+[J 02.04.05]: ../comtran-manuals/J28-6169/02-compiler.md#4-corresponding-option-with-move-and-add
 [J 02.04.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.05]: ../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card

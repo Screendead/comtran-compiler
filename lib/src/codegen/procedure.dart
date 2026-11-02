@@ -1270,16 +1270,33 @@ final class _Text {
   bool _killPending = false;
 
   void _correspondingUnits(
+    ArithExpr operand,
     List<NameReference> targets,
     List<(DataItem, DataItem)> pairs,
   ) {
+    // A pair exists only below a source name (legality, 97,00).
+    late final NameReference from = (operand as NameOperand).name;
     _inCorresponding = true;
     _killPending = false;
     for (final (DataItem source, DataItem target) in _emissionOrder(
       targets,
       pairs,
     )) {
-      _moveUnit(source, target);
+      // Each pair is the plain MOVE with its operands' subscripts
+      // appended (J 02.04.05).
+      final NameReference to = targets[_receiverIndex(targets, target)];
+      if (from.subscripts.isNotEmpty) {
+        _checkAppended(source, from);
+      }
+      if (to.subscripts.isNotEmpty) {
+        _checkAppended(target, to);
+      }
+      _moveUnit(
+        source,
+        target,
+        sourceSubscripted: from.subscripts.isNotEmpty,
+        targetSubscripted: to.subscripts.isNotEmpty,
+      );
     }
     _inCorresponding = false;
     if (_killPending) {
@@ -2193,6 +2210,7 @@ final class _Text {
   void _move(MoveClause clause) {
     if (clause.corresponding) {
       _correspondingUnits(
+        clause.source,
         clause.targets,
         semantics.correspondingPairs[clause] ?? const [],
       );
@@ -3053,8 +3071,47 @@ final class _Text {
         clause.targets,
         semantics.correspondingPairs[clause] ?? const [],
       );
-      for (final (DataItem source, DataItem target) in pairs) {
-        _addPair(source, target);
+      // Each pair is the plain ADD with its operands' subscripts
+      // appended (J 02.04.05), and refuses as that ADD does, before the
+      // first word of the clause. A pair exists only below a source
+      // name (legality, 97,00).
+      late final NameReference from = (clause.source as NameOperand).name;
+      late final bool sourceSubscripted = from.subscripts.isNotEmpty;
+      final List<(DataItem, DataItem, NameReference)> units = [
+        for (final (DataItem source, DataItem target) in pairs)
+          (
+            source,
+            target,
+            clause.targets[_receiverIndex(clause.targets, target)],
+          ),
+      ];
+      for (final (DataItem source, DataItem target, NameReference to)
+          in units) {
+        if (sourceSubscripted) {
+          _checkAppended(source, from);
+          if (_sem(source).fieldClass != FieldClass.externalDecimal) {
+            _unruled('a subscripted ADD source (no sample instance)');
+          }
+          if (identical(source, target) && to.subscripts.isEmpty) {
+            _unruled(
+              'an external-decimal field read with and without its '
+              'subscript (no sample instance)',
+            );
+          }
+        }
+        if (to.subscripts.isNotEmpty) {
+          _checkAppended(target, to);
+          _checkElementTarget(target);
+        }
+      }
+      for (final (DataItem source, DataItem target, NameReference to)
+          in units) {
+        _addPair(
+          source,
+          target,
+          element: to.subscripts.isNotEmpty,
+          sourceSubscripted: sourceSubscripted,
+        );
       }
       return;
     }
@@ -3130,9 +3187,11 @@ final class _Text {
             targets[i],
             element: clause.targets[i].subscripts.isNotEmpty,
           );
+          // A later target's prologue reads the indicator this store
+          // drives.
+          _subscriptRecomputation(clause.targets[i]);
         }
       }, subscripted: <DataItem>{if (name.subscripts.isNotEmpty) source});
-      clause.targets.forEach(_subscriptRecomputation);
       return;
     }
     _unruled('an ADD of a literal (no sample instance)');
@@ -3177,7 +3236,12 @@ final class _Text {
   /// One ADD unit: `CLA target / ADD source / STO target` with the
   /// guards the operands force, the source aligned to the target's
   /// scale first ([_alignedAdd]).
-  void _addPair(DataItem source, DataItem target, {bool element = false}) {
+  void _addPair(
+    DataItem source,
+    DataItem target, {
+    bool element = false,
+    bool sourceSubscripted = false,
+  }) {
     final int deficit = _addDeficit(source, target);
     final DataItem addend = _operand(source);
     _withFetches(
@@ -3188,7 +3252,20 @@ final class _Text {
         (Op op) => _read(op, addend),
         element: element,
       ),
+      subscripted: <DataItem>{if (sourceSubscripted) addend},
     );
+  }
+
+  /// A CORRESPONDING field takes its [operand]'s subscript
+  /// ([J 02.04.05]), which must index every dimension of the field.
+  /// The semantic pass counts no indicator for a field it does not.
+  void _checkAppended(DataItem field, NameReference operand) {
+    if (dimensionsOf(field, semantics.semantics) != operand.subscripts.length) {
+      _unruled(
+        "a CORRESPONDING field its operand's subscript does not index "
+        '(no sample instance)',
+      );
+    }
   }
 
   /// The fraction digits an ADD source lacks against [target]. A source

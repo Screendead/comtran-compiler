@@ -2510,6 +2510,144 @@ void main() {
       );
     });
 
+    test('an ADD target recomputes before the next prologue reads it', () {
+      // The element is the one I names after the first store.
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  ADD NUM TO I, TAB CELL (I).',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tCLA I',
+          '\tADD NUM',
+          '\tSTO I',
+          'GN)001\tEQU CP)+6',
+          '\tLDQ I',
+          '\tMPY CP)+1',
+          '\tXCA ',
+          '\tADD GN)001',
+          '\tSTO PI)1',
+          '\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tCLA 0,1',
+          '\tADD NUM',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    group('a subscripted CORRESPONDING target (J 02.04.05)', () {
+      /// G and the element of TAB both hold CELL and OTH. Each field of
+      /// `TAB (I)` takes the subscript, so it takes an indicator of its
+      /// own after TAB's: CELL is `PI)2` and OTH is `PI)3`.
+      final List<String> groups = [
+        ...pad,
+        dataCard(name: 'G', level: '1'),
+        internalCard('CELL', '999', level: '2'),
+        internalCard('OTH', '99', level: '2'),
+        dataCard(name: 'TAB', level: '1', quantity: '3'),
+        internalCard('CELL', '999', level: '2'),
+        internalCard('OTH', '99', level: '2'),
+        internalCard('I', '9'),
+      ];
+
+      test('of an ADD reads and stores each field through its prologue', () {
+        expect(
+          upTo(
+            lines(groups, [
+              '      START.  ADD CORRESPONDING G TO TAB (I).',
+              '            STOP RUN.',
+            ]),
+            '\tSTO 0,2',
+          ),
+          [
+            'GN)000 START\tLAC PI)2,1',
+            '\tTXL SYS)294,1,0',
+            '\tCLA 0,1',
+            '\tADD 1)CELL',
+            '\tSTO 0,1',
+            '\tLAC PI)3,2',
+            '\tTXL SYS)294,2,0',
+            '\tCLA 0,2',
+            '\tADD 1)OTH',
+            '\tSTO 0,2',
+          ],
+        );
+      });
+
+      test('of a MOVE stores each field through its prologue', () {
+        expect(
+          upTo(
+            lines(groups, [
+              '      START.  MOVE CORRESPONDING G TO TAB (I).',
+              '            STOP RUN.',
+            ]),
+            '\tSTO 0,2',
+          ),
+          [
+            'GN)000 START\tCLA 1)CELL',
+            '\tLAC PI)2,1',
+            '\tTXL SYS)294,1,0',
+            '\tSTO 0,1',
+            '\tCLA 1)OTH',
+            '\tLAC PI)3,2',
+            '\tTXL SYS)294,2,0',
+            '\tSTO 0,2',
+          ],
+        );
+      });
+
+      test('a SET of the subscript recomputes every field indicator', () {
+        final List<String> all = lines(groups, [
+          '      START.  SET I = 2.',
+          '            MOVE CORRESPONDING G TO TAB (I).',
+          '            STOP RUN.',
+        ]);
+        expect(all.where((String line) => line.startsWith('\tSTO PI)')), [
+          '\tSTO PI)3',
+          '\tSTO PI)2',
+          '\tSTO PI)1',
+        ]);
+      });
+
+      test('an external source field fetches through its indicator', () {
+        // The words of `ADD XT XF (I) TO G XF`: `SYS)132` takes the
+        // indicator of XF, not of XT.
+        expect(
+          upTo(
+            lines(
+              [
+                ...pad,
+                dataCard(name: 'G', level: '1'),
+                internalCard('XF', '999', level: '2'),
+                dataCard(name: 'XT', level: '1', quantity: '3'),
+                dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+                internalCard('I', '9'),
+              ],
+              [
+                '      START.  ADD CORRESPONDING XT (I) TO G.',
+                '            STOP RUN.',
+              ],
+            ),
+            '\tSTO 1)XF',
+          ),
+          [
+            'GN)000 START\tLDI PI)2',
+            '\tSTI SYS)132',
+            '\tTSX SYS)182,4',
+            '\tTXI SYS)184,1,3',
+            '\tSTO TS)1',
+            '\tCLA 1)XF',
+            '\tADD TS)1',
+            '\tSTO 1)XF',
+          ],
+        );
+      });
+    });
+
     test('a SET into a subscript variable recomputes its indicator', () {
       final List<String> all = lines(cells, [
         '      START.  SET I = 2.',

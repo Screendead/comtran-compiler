@@ -1921,35 +1921,39 @@ the report our run prints against the page.
   `test/goldens/90.05-payroll.code` changes: no sample comparand
   crosses a word.
 
-  **Decided 2026-11-02: the subscripted SET and ADD targets.** Two
-  rulings bind it. The first is Jack's rule of 2026-09-14. The second
-  is his ruling of 2026-11-02 on the codegen defects
-  (`review/2026-11-02-pitch-rulings`): generate the right words where
-  attested words exist, and refuse only where none do. A SET target refused, and PR #168 made an ADD
-  target refuse (codegen defect 8, `docs/HANDOVER.md`). Both now store
-  through the indicator:
+  **Decided 2026-11-02: the subscripted SET and ADD targets.** Jack's
+  rule of 2026-09-14 and his ruling of 2026-11-02
+  (`review/2026-11-02-pitch-rulings`) bind it: generate the right
+  words where attested words exist, and refuse only where none do. A
+  SET or ADD target refused (codegen defect 8); a CORRESPONDING operand
+  dropped its subscript. All now store through the indicator:
 
-  - The prologue is `LAC PI)n,r / TXL SYS)294,r,0` (LOC 01410 to 01411).
-  - An ADD is `CLA 0,r / ADD source / STO 0,r`: the body of LOC 00733
-    to 00735, addressed as the `CAS 0,2` at LOC 01412.
-  - A SET stores with `STO 0,r`, or `STQ 0,r` after the scaling tail,
-    as the subscripted MOVE target does.
-  - The prologue follows each MOVPAK sequence, whose `AXT n,1` would
-    overwrite XR1, and each park.
+  - The prologue is `LAC PI)n,r / TXL SYS)294,r,0` (LOC 01410 to
+    01411). It follows each MOVPAK sequence and park.
+  - An ADD is `CLA 0,r / ADD source / STO 0,r`: LOC 00733 to 00735,
+    addressed as the `CAS 0,2` at LOC 01412. Each target updates its
+    indicators before the next target reads them.
+  - A SET stores with `STO 0,r`, or `STQ 0,r` after the scaling tail.
+  - A CORRESPONDING pair is the plain clause with the operand's
+    subscript on each field: "The compiler simply appends the
+    designated subscript to the generated instructions" ([J 02.04.05]).
+    Each field takes its own indicator. A pair refuses where its plain
+    clause refuses.
 
-  Three refusals stay, because no site gives their words:
+  Three refusals stay; no site gives their words:
 
-  - `a subscripted external-decimal store target (no sample
-    instance)`: SYS)180 takes an in-line `PZE` word.
-  - `a subscripted edited-store target (no sample instance)`, for the
-    same reason.
+  - `a subscripted external-decimal store target` and `a subscripted
+    edited-store target`, each `(no sample instance)`: SYS)180 takes an
+    in-line `PZE` word.
   - `a whole-word read of an element whose stride is 11 characters
     (M6-9)`: `STO 0,r` writes a whole word.
+  - `a CORRESPONDING field its operand's subscript does not index (no
+    sample instance)`: a table inside the element needs two
+    subscripts.
 
-  The rejected option is to keep both refusals; the 1962 processor
-  compiled both shapes. `test/codegen_test.dart` asserts the words,
-  `test/codegen_refusal_test.dart` pins the refusals, and
-  `test/runtime/machine_test.dart` stores 5, 12 and 4 into TAB.
+  A CORRESPONDING store into a subscript variable still updates no
+  indicator (`docs/HANDOVER.md` item 9). The rejected option is to
+  keep the refusals; the 1962 processor compiled these shapes.
 
   **Decided 2026-10-25: the input tapes of the applied deck. Decided
   under the section 12 standing rule; Jack can overturn it.** Chunk 2b
