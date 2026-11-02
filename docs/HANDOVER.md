@@ -250,6 +250,11 @@ moves it has changed the sample's path. The three divides at LOC 00424,
     and the run read DETAIL.FILE past its file mark. The extraction
     now loads the next word into the MQ and masks the shifted field
     (M6-9).
+13. **An internal-decimal target keeps leading digits it cannot
+    hold. Open.** [F p. 42] lets a MOVE drop leading digits. The
+    internal-decimal store is a bare `STO`, so `MOVE EXA (999V99 =
+    123.45) TO T1 (9V9)` stores 123.4, not 3.4. The PR #167 review
+    found it on 2026-11-02. The 2026-11-02 ruling covers it: handle it.
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
@@ -507,6 +512,15 @@ binds work outside the definition.
 - Two things never got a further independent pass: the prose-claim citations
   beyond the verified sample, and the original build's approximately 120
   correction edits. The risk is low but not zero.
+
+## Open work, second pass of 2026-11-02
+
+| Item | State |
+|---|---|
+| Subscripted ADD and SET targets compile (the 1962 rule) | Branch `subscripted-targets` |
+| Literal and expression subscripts set their indicator | Branch `literal-subscripts` |
+| Defect 13 | Not started |
+| Defect 5, the nameless BEGIN SECTION, D2.1, the definition headings, W3, W4 | Calls for Jack, prototypes on draft PRs |
 
 ## Rulings of 2026-11-02
 
