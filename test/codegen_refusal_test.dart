@@ -1453,6 +1453,21 @@ void main() {
       );
     });
 
+    test('a second PROGRAM.START that a DO addresses', () {
+      // Its paragraph cell would return through the first label's cell.
+      expect(
+        _refuses(
+          [
+            '            DO PROGRAM.START.',
+            '      PROGRAM.START.  SET NUM = NUM + NUM.',
+            '      PROGRAM.START.  SET NUM = NUM + TOT.',
+          ],
+          flagged: ['166,00', '166,00'],
+        ),
+        'a second PROGRAM.START that owns a return cell',
+      );
+    });
+
     test('a label spelled like a section of another scope', () {
       // Legal under D2.5's per-section scope; the flat binder would
       // keep only the later address.
