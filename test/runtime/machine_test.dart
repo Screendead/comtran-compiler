@@ -218,6 +218,35 @@ final List<String> _externalStore = <String>[
   '      *FINISH',
 ];
 
+/// A program that moves values into internal-decimal targets with
+/// fewer integer digits (defect 13): EXA `999V99` and EX2 `99` convert,
+/// N2 and NEG move word to word, and CELL is a subscripted `9V9`.
+final List<String> _leadingDigits = <String>[
+  '      *DATA',
+  // P1 and P2 keep the base TAB-1 at or above address zero.
+  internalCard('P1', '9'),
+  internalCard('P2', '9'),
+  dataCard(name: 'TAB', level: '1', quantity: '3'),
+  internalCard('CELL', '9V9', level: '2'),
+  internalCard('I', '9'),
+  dataCard(name: 'EXA', level: '1', mode: 'E', description: '999V99'),
+  dataCard(name: 'EX2', level: '1', mode: 'E', description: '99'),
+  internalCard('T1', '9V9'),
+  internalCard('X', '9'),
+  internalCard('N2', '99'),
+  internalCard('Y', '9'),
+  internalCard('NEG', '99'),
+  internalCard('XN', '9'),
+  '      *PROCEDURE',
+  '      START.  SET EXA = 123.45, MOVE EXA TO T1.',
+  '            SET EX2 = 67, MOVE EX2 TO X.',
+  '            SET N2 = 67, MOVE N2 TO Y.',
+  '            SET NEG = 0 - 67, MOVE NEG TO XN.',
+  '            SET I = 2, MOVE EXA TO TAB CELL (I).',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program that stores chains of scale 3 into fields of scale 2
 /// (M6-9). UP, DOWN, NEG and CUT are internal; EUP, EDOWN and ENEG are
 /// external, ENEG with a minus overpunch.
@@ -1330,6 +1359,26 @@ void main() {
       expect(
         subject.state.read(addressOf(job, 'BACK')),
         Word36.fromSignMagnitude(1, 275),
+      );
+    });
+
+    test('a MOVE drops the leading digits its target cannot hold', () {
+      final (JobCompilation job, Machine subject) = compiled(_leadingDigits);
+      expect(subject.printed, <String>['AT 19,00 STOP RUN']);
+      // 123.45 into 9V9 keeps 3.4: the 1 and the 2 drop at the front,
+      // the 5 at the back (F p. 42).
+      expect(subject.state.read(addressOf(job, 'T1')), 34);
+      expect(subject.state.read(addressOf(job, 'X')), 7);
+      expect(subject.state.read(addressOf(job, 'Y')), 7);
+      // The remainder keeps the sign of the dividend.
+      expect(
+        subject.state.read(addressOf(job, 'XN')),
+        Word36.fromSignMagnitude(1, 7),
+      );
+      final int tab = addressOf(job, 'TAB');
+      expect(
+        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
+        <int>[0, 34, 0],
       );
     });
 

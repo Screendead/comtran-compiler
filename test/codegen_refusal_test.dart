@@ -199,7 +199,7 @@ void main() {
     test('an ADD into a target of lesser scale', () {
       expect(
         _refuses(['            ADD FRAC TO NUM.']),
-        'an ADD into a target of lesser scale (no sample instance)',
+        'an ADD into a target of lesser scale (notes section 7)',
       );
     });
 
@@ -212,7 +212,7 @@ void main() {
             dataCard(name: 'EDF', level: '1', description: '89.9'),
           ],
         ),
-        'an ADD into a target of lesser scale (no sample instance)',
+        'an ADD into a target of lesser scale (notes section 7)',
       );
     });
 
@@ -348,12 +348,14 @@ void main() {
         dataCard(name: 'INNER', level: '1', mode: 'E', description: '9S9'),
         dataCard(name: 'BEHIND', level: '1', mode: 'E', description: '9V9S'),
         dataCard(name: 'EINNER', level: '1', description: r'$8S9'),
+        dataCard(name: 'EPOINT', level: '1', description: r'$9.9S'),
       ];
       for (final statement in [
         'MOVE INNER TO NUM.',
         'MOVE BEHIND TO NUM.',
         'MOVE INNER TO EDT.',
         'MOVE EINNER TO EDT.',
+        'MOVE EPOINT TO EDT.',
         'ADD EINNER TO NUM.',
         'SET NUM = INNER + 1.',
       ]) {

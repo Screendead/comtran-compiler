@@ -811,7 +811,8 @@ void main() {
   group('the alignment of a MOVE and an ADD (F p. 42)', () {
     /// The words of [statement] up to its STOP RUN, with NUM at `999`,
     /// AMT at `99V99`, EXT an external `999`, EXF an external `99V99`,
-    /// EDT at `$8889.99`, and ED3 an edited `899`.
+    /// EDT at `$8889.99`, ED3 an edited `899`, N4 at `9(4)`, and E89 an
+    /// edited `889.9`.
     List<String> aligned(String statement, {List<String> then = const []}) {
       final SemanticResult semantics = runJob(
         data: [
@@ -833,6 +834,14 @@ void main() {
           dataCard(name: 'EXF', level: '1', mode: 'E', description: '99V99'),
           dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
           dataCard(name: 'ED3', level: '1', description: '899'),
+          dataCard(
+            name: 'N4',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '9(4)',
+          ),
+          dataCard(name: 'E89', level: '1', description: '889.9'),
         ],
         procedure: [statement, ...then, '            STOP RUN.'],
       );
@@ -841,8 +850,8 @@ void main() {
         for (final AssemblyUnit u in runCodegen(semantics).units)
           '${u.operation} ${u.operand}',
       ];
-      // The procedure begins past the six data reservations.
-      final int start = words.indexOf('BSS 0') + 7;
+      // The procedure begins past the eight data reservations.
+      final int start = words.indexOf('BSS 0') + 9;
       return words.sublist(start, words.indexOf('TSX SYS)178,4'));
     }
 
@@ -859,15 +868,35 @@ void main() {
       ]);
     });
 
+    test('an upscale past the target digits splits for the edit', () {
+      // 1234 at scale 1 is five digits, one more than `889.9` holds.
+      expect(aligned('            MOVE N4 TO E89.'), [
+        'LDQ N4',
+        'MPY CP)+2',
+        'XCA ',
+        'LRS 35',
+        'DVP CP)+3',
+        'TSX SYS)180,4',
+        'PZE E89,,0',
+        'TXI SYS)267,1,4',
+        'OCT 000003000002',
+        'AXT 4,1',
+      ]);
+    });
+
     test('an external source of lesser scale upscales its convert', () {
+      // EXT's third integer digit does not fit AMT, so the upscaled
+      // value splits on 10^4 before the store (defect 13).
       expect(aligned('            MOVE EXT TO AMT.'), [
-        'LDI CP)+7',
+        'LDI CP)+8',
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
         'XCA ',
         'MPY CP)+2',
         'XCA ',
+        'LRS 35',
+        'DVP CP)+3',
         'STO AMT',
       ]);
     });
@@ -900,12 +929,13 @@ void main() {
     });
 
     test('an aligned ADD leaves no park open for a later comparison', () {
+      // A leaked park makes the comparison refuse; reaching CAS shows none.
       expect(
         aligned(
           '            ADD NUM TO AMT.',
           then: ['            IF NUM + 1 GT AMT THEN STOP RUN.'],
-        ).take(6),
-        ['LDQ NUM', 'MPY CP)+2', 'STQ RS)0', 'CLA AMT', 'ADD RS)0', 'STO AMT'],
+        ),
+        contains('CAS AMT'),
       );
     });
 
@@ -924,6 +954,111 @@ void main() {
         'CLA AMT',
         'ADD RS)0',
         'STO AMT',
+      ]);
+    });
+  });
+
+  group('the leading digits a shorter target cannot hold (defect 13)', () {
+    /// The words of [statement] up to its STOP RUN, with EXA an external
+    /// `999V99`, EX2 an external `99`, T1 at `9V9`, X at `9`, N2 at `99`,
+    /// and TAB a table of three `9V9` cells under the index I.
+    List<String> split(String statement) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'EXA', level: '1', mode: 'E', description: '999V99'),
+          dataCard(name: 'EX2', level: '1', mode: 'E', description: '99'),
+          internalCard('T1', '9V9'),
+          internalCard('X', '9'),
+          internalCard('N2', '99'),
+          dataCard(name: 'TAB', level: '1', quantity: '3'),
+          internalCard('CELL', '9V9', level: '2'),
+          internalCard('I', '9'),
+        ],
+        procedure: [statement, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('BSS 0') + 8;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    test('a convert that drops digits at both ends splits, then scales', () {
+      // 123.45 keeps 3.45 as the remainder of 10^3, and the quotient of
+      // 10 stores 3.4.
+      expect(split('            MOVE EXA TO T1.'), [
+        'LDI CP)+8',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,5',
+        'LRS 35',
+        'DVP CP)+2',
+        'LRS 35',
+        'DVP CP)+3',
+        'STQ T1',
+      ]);
+    });
+
+    test('a convert at equal scale stores the remainder', () {
+      expect(split('            MOVE EX2 TO X.'), [
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,2',
+        'LRS 35',
+        'DVP CP)+2',
+        'STO X',
+      ]);
+    });
+
+    test('an internal move splits between its two words', () {
+      expect(split('            MOVE N2 TO X.'), [
+        'CLA N2',
+        'LRS 35',
+        'DVP CP)+2',
+        'STO X',
+      ]);
+    });
+
+    test('a target that holds every digit takes no split', () {
+      expect(split('            MOVE X TO N2.'), ['CLA X', 'STO N2']);
+    });
+
+    test('a convert counts its stored digits, not its S fillers', () {
+      // `999SSS` converts three digits at 10 to the 3, which the upscale
+      // makes six: all fit `9(6)`.
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(name: 'EXS', level: '1', mode: 'E', description: '999SSS'),
+          internalCard('N6', '9(6)'),
+        ],
+        procedure: ['            MOVE EXS TO N6.', '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int start = words.indexOf('TXI SYS)184,1,3');
+      expect(words.sublist(start + 1, words.indexOf('TSX SYS)178,4')), [
+        'XCA ',
+        'MPY CP)+2',
+        'XCA ',
+        'STO N6',
+      ]);
+    });
+
+    test('a subscripted target stores the split value the same way', () {
+      expect(split('            MOVE EXA TO TAB CELL (I).').sublist(4), [
+        'LRS 35',
+        'DVP CP)+2',
+        'LRS 35',
+        'DVP CP)+3',
+        'LAC PI)1,1',
+        'TXL SYS)294,1,0',
+        'STQ 0,1',
       ]);
     });
   });
@@ -2609,13 +2744,25 @@ void main() {
       description: pic,
     );
 
-    test('the convert counts the stored characters', () {
+    test('the convert counts the stored digits', () {
       expect(
         steps([
           field('EXT', 'VS9'),
           field('INT', 'V99', mode: 'I'),
         ], 'MOVE EXT TO INT.'),
         ['\tTXI SYS)184,1,1'],
+      );
+    });
+
+    test('the aligned-move limit counts the stored digits', () {
+      // Five stored digits upscale by three to eight; the eight digits
+      // the pictorial represents would pass the limit of ten.
+      expect(
+        lines(
+          [field('EXT', '9(5)SSS'), field('INT', '9(8)', mode: 'I')],
+          ['      START.  MOVE EXT TO INT.', '            STOP RUN.'],
+        ).sublist(3, 8),
+        ['\tTXI SYS)184,1,5', '\tXCA ', '\tMPY CP)+2', '\tXCA ', '\tSTO INT'],
       );
     });
 

@@ -133,7 +133,7 @@ FrontEndResult runFrontEnd(
   // A punched column 72 on a group's last card claims a card the group
   // does not hold (J 02.03.02, §3.b); the entry already ends there in
   // both modes (D0.8, D11.4). A card deleted with 144,00 is not
-  // reported a second time.
+  // reported a second time; only the Environment scan deletes a card.
   void reportDangling(List<SourceCard> lastEntry, List<SourceCard> cards) {
     final SourceCard last = cards.last;
     if (identical(lastEntry.last, last) && last.isPunched(72)) {
