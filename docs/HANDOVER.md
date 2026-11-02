@@ -618,8 +618,8 @@ PDF p. 217. It makes every milestone below testable at once.
   evidence, and M6-8 as amended holds the course the rule overturns.
 - **Done 2026-11-02 — the dangling-continuation diagnostic** (PR #177).
   A punched column 72 on the last card of a Data or Environment group
-  draws 949,00, class 1, under `--pedantic` only (D11.4, amended
-  2026-11-02, Jack's ruling).
+  draws 949,00, class 1, under `--pedantic` only. Jack ruled it on
+  2026-11-02 (D11.4, amended).
 
 ## Parallel tooling track
 
