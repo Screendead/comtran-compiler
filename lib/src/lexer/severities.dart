@@ -742,7 +742,7 @@ const Map<String, int> messageSeverities = {
   // correctly.
   '948,00': 4,
   // C1 (ours, --pedantic only, D0.8 and D11.4; the D9.4 analogue for
-  // Data and Environment): nothing is dropped - auto-repair. The id and
-  // class are proposals that await Jack's call.
+  // Data and Environment): nothing is dropped - auto-repair. Jack's
+  // ruling of 2026-11-02 (D11.4, amended).
   '949,00': 1,
 };
