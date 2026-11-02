@@ -27,7 +27,13 @@ import 'package:markdown/markdown.dart' as md;
 
 import 'linkify_manual_refs.dart' show citationKey, citationPattern;
 import 'manual_map_source.dart'
-    show ManualEntry, Slugger, manualFiles, parseManualFile, plainHeading;
+    show
+        ManualEntry,
+        Slugger,
+        fence,
+        manualFiles,
+        parseManualFile,
+        plainHeading;
 
 /// The repository URL that a link to a file the site does not carry goes
 /// to.
@@ -80,7 +86,6 @@ typedef ManualPage = ({
   List<String> lines,
 });
 
-final RegExp _fence = RegExp('^ {0,3}(?:```|~~~)');
 final RegExp _pageComment = RegExp(
   r'^<!--\s*(?:(.*?)\s*\|\s*)?PDF\s*(\d+)\s*-->$',
 );
@@ -102,7 +107,7 @@ List<ManualPage> splitManualFile(String file, String markdown) {
   var inFence = false;
   for (final String line in markdown.split('\n')) {
     final String trimmed = line.trimRight();
-    if (_fence.hasMatch(trimmed)) {
+    if (fence.hasMatch(trimmed)) {
       inFence = !inFence;
     } else if (!inFence) {
       final RegExpMatch? comment = _pageComment.firstMatch(trimmed);
@@ -141,7 +146,7 @@ List<String> _rawSlugs(List<String> lines, Slugger slugger) {
   var inFence = false;
   for (final line in lines) {
     final String trimmed = line.trimRight();
-    if (_fence.hasMatch(trimmed)) {
+    if (fence.hasMatch(trimmed)) {
       inFence = !inFence;
       continue;
     }
@@ -163,9 +168,10 @@ void _walk(List<md.Node>? nodes, void Function(md.Element) visit) {
   }
 }
 
-/// Parses [lines] and gives each heading its next anchor from [slugger].
-/// Where the parser finds a heading the raw scan did not (one inside a
-/// list or a quotation), the heading takes an anchor from its own text.
+/// Parses [lines] and gives each heading, in order, the next anchor from
+/// [slugger]. Headings match by position, so the parser and the raw scan
+/// must find the same headings; no source file holds one inside a list or
+/// a quotation.
 List<md.Node> _parse(List<String> lines, Slugger slugger) {
   final List<md.Node> nodes = md.Document(
     extensionSet: md.ExtensionSet.gitHubFlavored,
@@ -174,11 +180,10 @@ List<md.Node> _parse(List<String> lines, Slugger slugger) {
   var next = 0;
   _walk(nodes, (md.Element element) {
     if (_headingTag.hasMatch(element.tag)) {
-      element.attributes['id'] = next < slugs.length
-          ? slugs[next++]
-          : slugger.slug(element.textContent);
+      element.attributes['id'] = slugs[next++];
     }
   });
+  assert(next == slugs.length, 'the parser lost a heading the scan found');
   return nodes;
 }
 
@@ -441,21 +446,22 @@ class _SiteBuilder {
 }
 
 /// The text of the first heading of the markdown file at [path].
-String _fileTitle(String path) {
-  for (final String line in File(path).readAsLinesSync()) {
-    final RegExpMatch? head = _atxHeading.firstMatch(line.trimRight());
-    if (head != null) {
-      return plainHeading(head[2]!);
-    }
-  }
-  return path.split('/').last;
-}
+String _fileTitle(String path) => plainHeading(
+  File(path)
+      .readAsLinesSync()
+      .map((String line) => _atxHeading.firstMatch(line.trimRight()))
+      .nonNulls
+      .first[2]!,
+);
 
 /// The width and height of the PNG at [path], from its header.
-(int, int)? pngSize(String path) {
-  final List<int> bytes = File(path).openSync().readSync(24);
-  if (bytes.length < 24) {
-    return null;
+(int, int) pngSize(String path) {
+  final RandomAccessFile file = File(path).openSync();
+  final List<int> bytes;
+  try {
+    bytes = file.readSync(24);
+  } finally {
+    file.closeSync();
   }
   int word(int at) =>
       (bytes[at] << 24) |
@@ -523,10 +529,8 @@ String pageView({
 }) {
   final String label = pageLabel(page);
   final String scan = scanName(page.pdf);
-  final (int, int)? size = pngSize('${manual.dir}/images/$scan');
-  final dimensions = size == null
-      ? ''
-      : ' width="${size.$1}" height="${size.$2}"';
+  final (int, int) size = pngSize('${manual.dir}/images/$scan');
+  final dimensions = ' width="${size.$1}" height="${size.$2}"';
   final back = previous == null
       ? '<span class="pager-end">First page</span>'
       : '<a rel="prev" href="${pageName(previous.pdf)}">&larr; '
