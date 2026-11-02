@@ -225,6 +225,26 @@ final class Pictorial {
     return protected;
   }
 
+  /// Whether the leading run holds both `8` and `*`. The control word
+  /// counts the run and the edit control holds one asterisk bit
+  /// (J 90.02.17 Notes 1 and 2), so the run takes one fill.
+  late final bool leadingRunMixesFills = _leadingRunMixesFills();
+
+  bool _leadingRunMixesFills() {
+    var eight = false;
+    var star = false;
+    for (final (_Kind kind, int _) in _elements) {
+      if (kind == _Kind.eight) {
+        eight = true;
+      } else if (kind == _Kind.star) {
+        star = true;
+      } else if (_isDigit(kind) || kind == _Kind.v || kind == _Kind.period) {
+        break;
+      }
+    }
+    return eight && star;
+  }
+
   /// Whether every `8` and `*` position lies in the run
   /// [leadingProtected] measures. The control word's address field
   /// carries that run alone (J 90.02.17 Note 2), so a suppression

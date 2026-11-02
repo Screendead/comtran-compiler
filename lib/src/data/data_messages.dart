@@ -599,3 +599,14 @@ const Message msgCallOldNameIsRecord = Message.ours(
   'A RECORD NAME IS USED AS THE OLD NAME OF A -CALL-. ACCEPTED. '
       '(NON-HISTORICAL.)',
 );
+
+/// Ours — `--pedantic` only: a leading run that mixes `8` and `*`. The
+/// control word counts the run and the edit control holds one asterisk
+/// bit (J 90.02.17 Notes 1 and 2), so every suppressed cell of the run
+/// prints an asterisk and a `$` stays fixed (RT-5). The manuals do not
+/// forbid the mix (F p. 80; J 02.05.05).
+const Message msgLeadingRunMixesFills = Message.ours(
+  '950,00',
+  "LEADING RUN OF 'NAME.1' MIXES 8 AND *. ASTERISKS FILL IT. "
+      '(NON-HISTORICAL.)',
+);
