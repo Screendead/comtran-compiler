@@ -130,7 +130,10 @@ void main() {
       final [DictionaryEntry outer, DictionaryEntry inner] = result.dictionary
           .named('S');
       expect(outer.scope, isNull);
-      expect(inner.scope, same(outer.sentence));
+      expect(
+        inner.scope,
+        same(outer.sentence!.clauses.whereType<BeginSectionClause>().single),
+      );
     });
 
     test('labels of two same-name sections under different parents keep '
@@ -272,6 +275,125 @@ void main() {
             e.section,
         ],
         ['S1', null],
+      );
+    });
+
+    test('two ENDs in one sentence close two section scopes, as the '
+        'parser closes them (msg 179)', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          "      DUP.        DISPLAY 'A'.",
+          '      S1.         BEGIN SECTION.',
+          '      S2.         BEGIN SECTION.',
+          '            END S2, END S1.',
+          "      DUP.        DISPLAY 'C'.",
+          '            STOP RUN.',
+        ],
+      );
+      expect(
+        [
+          for (final Diagnostic d in result.parse.parserDiagnostics)
+            d.message.number,
+        ],
+        ['179,00', '179,00'],
+      );
+      expect(ids(result), ['166,00']);
+      expect(
+        [
+          for (final DictionaryEntry e in result.dictionary.named('DUP'))
+            e.section,
+        ],
+        [null, null],
+      );
+    });
+
+    test('two BEGINs in one sentence nest two sections, as the parser '
+        'nests them', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          "      DUP.        DISPLAY 'A'.",
+          '      S1.         BEGIN SECTION, BEGIN SECTION.',
+          '            END S1.',
+          "      DUP.        DISPLAY 'C'.",
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), isEmpty);
+      expect(
+        [
+          for (final DictionaryEntry e in result.dictionary.named('DUP'))
+            e.section,
+        ],
+        [null, 'S1'],
+      );
+    });
+
+    test('two BEGINs in one sentence open two label scopes: the inner '
+        "section's labels keep apart from the outer remainder's", () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S1.         BEGIN SECTION, BEGIN SECTION.',
+          "      X.          DISPLAY 'A'.",
+          '            END S1.',
+          "      X.          DISPLAY 'B'.",
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), isEmpty);
+      final [DictionaryEntry inner, DictionaryEntry outer] = result.dictionary
+          .named('X');
+      expect(inner.scope, isNotNull);
+      expect(outer.scope, isNotNull);
+      expect(inner.scope, isNot(same(outer.scope)));
+    });
+
+    test('a one-word GO TO in the outer remainder does not reach a label '
+        'of the inner section that one sentence opened', () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          '      S1.         BEGIN SECTION, BEGIN SECTION.',
+          "      X.          DISPLAY 'A'.",
+          '            END S1.',
+          '            GO TO X.',
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), ['127,00']);
+    });
+
+    test('a section open across two procedure groups scopes the second '
+        "group's labels, as the parser's section stack does", () {
+      final SemanticResult result = runJob(
+        data: const [],
+        procedure: [
+          "      DUP.        DISPLAY 'A'.",
+          '      S1.         BEGIN SECTION.',
+          "            DISPLAY 'B'.",
+          '      *DATA',
+          '      *PROCEDURE',
+          "      DUP.        DISPLAY 'C'.",
+          '            END S1.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(result.parse.parserDiagnostics, isEmpty);
+      expect(ids(result), isEmpty);
+      expect(
+        [
+          for (final DictionaryEntry e in result.dictionary.named('DUP'))
+            e.section,
+        ],
+        [null, 'S1'],
       );
     });
 
