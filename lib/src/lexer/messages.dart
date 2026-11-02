@@ -232,3 +232,13 @@ const Message msgJobClosedByCompileCard = Message.ours(
   'JOB CLOSED BY A COMPILE CARD WITHOUT *FINISH. ACCEPTED. '
       '(NON-HISTORICAL.)',
 );
+
+/// Ours — the last card of a Data or Environment division has column 72
+/// punched, so its entry claims a continuation card the division does
+/// not hold (J 02.03.02, §3.b). The manuals give no message for the
+/// case; the Procedure analogue is 62,00 (D9.4).
+const Message msgDanglingContinuation = Message.ours(
+  '949,00',
+  'COLUMN 72 PUNCHED ON LAST CARD OF DIVISION. ENTRY ASSUMED COMPLETE. '
+      '(NON-HISTORICAL.)',
+);

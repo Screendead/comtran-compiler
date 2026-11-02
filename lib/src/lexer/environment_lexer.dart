@@ -60,7 +60,9 @@ final class EnvironmentScan {
 
 /// Scans environment [cards] into specifications. Grouping follows the
 /// continuation column exactly as in the data division: a specification
-/// is complete when column 72 is blank (J 02.03.02, §3.b).
+/// is complete when column 72 is blank (J 02.03.02, §3.b). A punched
+/// column 72 on the last card ends the specification with the division
+/// and draws 949,00.
 ///
 /// Diagnostics go to [sink] when one is given — the compilation's
 /// [DiagnosticSink], whose severity-5 throw stops the scan at the point
@@ -79,6 +81,9 @@ EnvironmentScan scanEnvironment(
     if (spec != null) {
       specs.add(spec);
     }
+  }
+  if (cards.isNotEmpty && cards.last.isPunched(72)) {
+    diagnostics.reportAt(msgDanglingContinuation, cards.last, column: 72);
   }
   return EnvironmentScan._(specs, diagnostics.sublist(first));
 }
