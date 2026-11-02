@@ -71,7 +71,7 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1527 Dart tests pass, measured 2026-11-02, and 154 extension
+Test baseline: 1543 Dart tests pass, measured 2026-11-02, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
@@ -917,9 +917,10 @@ pages of both manuals, the 11 language-reference pages from `docs/definition/`,
 and the two source PDFs. The build generates all of it. The repository never
 commits it.
 
-Two copy calls are open in section 6 of `docs/design/web-copy.md`. The first is
-rule E3 (`[sic]`) on whole-page transcriptions. The second is rule D5 on the
-language reference.
+Jack closed both copy calls on 2026-11-02 (`docs/design/web-copy.md`,
+section 6). The pages mark the five J28-6169 typos `[sic]`. The language
+definition keeps an em dash only in quotations, code, headings and citations;
+the headings are an open call.
 
 **W3 — the stages.** The step-through. The six `--emit-*` dumps become panels,
 and the reader selects a statement to mark its part in each one. The join key

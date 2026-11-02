@@ -135,9 +135,28 @@ C1.
   message.
 
   **A quotation is always verbatim.** *Jack's call, 2026-08-10.* E2 outranks
-  this rule wherever the two meet. No quotation on the site holds an em dash
-  today. The transcribed title of F28-8043 holds one, so W2 adds an exception
-  to the test in the same pull request that first prints that title.
+  this rule wherever the two meet. The transcribed title of F28-8043 holds an
+  em dash, and the test names that title as an exception.
+
+  **The generated pages.** *Jack's ruling, 2026-11-02, call 6 of
+  `review/2026-11-02-pitch-rulings`.* D5 reaches the language reference that
+  W2 builds under `web/sources/reference/`. The em dashes came out of
+  `docs/comtran-language-definition.md`, and its reading copy in
+  `docs/definition/` follows it. The reference keeps the mark in five places
+  only:
+
+  - a quotation, because E2 keeps it verbatim;
+  - code;
+  - a heading and the contents entry that repeats it, because the heading
+    text sets an anchor that other files link to;
+  - a parenthesis that holds a citation, because a change of punctuation
+    there can move what the citation attaches to;
+  - a table cell that holds the mark alone, as "none".
+
+  `test/web_copy_test.dart` builds the reference pages in memory and enforces
+  this list. It caps the dashes in citation parentheses at their count, 42.
+  Lower the cap when one goes. D5 does not reach the manual transcriptions
+  under `web/sources/`, because each of them is a quotation.
 
 ### E — What the site never rewrites
 
@@ -148,6 +167,16 @@ C1.
   immediately after the word, inside the quotation. The word itself never
   changes. J28-6169 prints "at lease", "lables", "dinsity", "Parentheis" and
   "Appox-Max Size"; each keeps its spelling and takes the mark.
+
+  E3 reaches the manual transcriptions that W2 builds under `web/sources/`.
+  *Jack's ruling, 2026-11-02, call 6 of `review/2026-11-02-pitch-rulings`.*
+  The list `typos` in `tool/web_sources_source.dart` names the five typos,
+  and the build marks each one on the page that prints it. Each was checked
+  on its scan: PDF pages 38, 46, 66 and 137. In "Appox-Max Size" the mark
+  follows "Appox-Max", the word that holds the error. The mark is generated
+  content on an empty element, so a copy of the text leaves it out (G3).
+  `test/web_sources_test.dart` checks that each typo carries the mark and
+  that no other text does.
 - **E4. Never mark an authentic period spelling `[sic]`.** "Alphameric" and
   "imbedded" are IBM's own words of the period, not errors. The mark would tell
   the reader that IBM made a mistake, which is a false claim and the one a
@@ -161,8 +190,9 @@ E3 has two limits, and both hold outside this record. The manual conversions in
 page, and an editorial mark inside them breaks ground truth. The documents
 under `docs/` keep the form they already use, which puts `sic` in the citation
 parenthesis after the quoted word. `docs/comtran-language-definition.md` holds
-five of these. The site uses the inline form instead, because its reader has no
-citation parenthesis to look in.
+five of these. The site copy uses the inline form instead, because its reader
+has no citation parenthesis to look in. The language reference pages print the
+`docs/` form, because they are the reading copy of a `docs/` file.
 
 ### F — Interface text
 
@@ -258,23 +288,21 @@ above, not in small print.
   to rule. *Jack's call, 2026-08-10.* The two are different, and the first
   states a scope decision as an evidentiary blank, which is the C1 failure
   running the other way.
-- **The manual pages and rule E3.** *Open, raised 2026-11-02 by W2. Jack
-  decides.* The W2 pages under `web/sources/` show each manual page whole, as
-  the conversion holds it. They carry no `[sic]` mark. E3 puts the mark on
-  each genuine typo in a quotation. The two options:
+- **The manual pages and rule E3.** *Closed 2026-11-02. Jack chose option 2
+  (`review/2026-11-02-pitch-rulings`, call 6).* The W2 pages under
+  `web/sources/` show each manual page whole, as the conversion holds it. The
+  two options were:
   1. Scope E3 to the quotations in the site copy. A whole-page transcription
      then carries no mark, as the conversions carry none (section E).
   2. Mark each genuine typo on the pages. The build then needs a list of the
      typos, and G3 requires that a copy of the text leaves the mark out.
 
-  Until Jack decides, the pages carry no mark.
-- **The generated pages and rule D5.** *Open, raised 2026-11-02 by W2. Jack
-  decides.* `test/web_copy_test.dart` skips `web/sources/`. The manual pages
-  there are quotations, and E2 outranks D5 for a quotation. The language
-  reference is not a quotation. It is this project's own text, and
-  `docs/definition/` holds about 630 em dashes. Some reach a page title. The
-  conversion file titles hold the mark too, and the contents pages print
-  them. The three options:
+  Rule E3 now states the scope and the mechanism.
+- **The generated pages and rule D5.** *Closed 2026-11-02. Jack chose option
+  2 (`review/2026-11-02-pitch-rulings`, call 6).* The manual pages under
+  `web/sources/` are quotations, and E2 outranks D5 for a quotation. The
+  language reference is this project's own text, and `docs/definition/` held
+  about 630 em dashes. The three options were:
   1. Scope D5 to the text written for the site. The reference then appears as
      the repository holds it.
   2. Remove the em dash from the language definition, and regenerate
@@ -282,5 +310,9 @@ above, not in small print.
   3. Keep the reference off the site, and link the repository copy, until the
      dashes go.
 
-  Until Jack decides, the site carries the reference, as the W2 scope in
-  `docs/HANDOVER.md` asks.
+  Rule D5 now states the scope and the dashes the reference keeps.
+- **Headings that hold an em dash.** *Open, raised 2026-11-02. Jack
+  decides.* Twenty-one headings of the language definition keep an em dash,
+  and ten contents entries repeat them. A heading sets the anchor that other
+  files link to, so a change to one needs a change to each link in the same
+  pull request. Until Jack rules, the headings keep the mark.
