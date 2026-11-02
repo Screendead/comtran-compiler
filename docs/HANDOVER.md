@@ -250,13 +250,12 @@ moves it has changed the sample's path. The three divides at LOC 00424,
     and the run read DETAIL.FILE past its file mark. The extraction
     now loads the next word into the MQ and masks the shifted field
     (M6-9).
-13. **An internal-decimal target keeps leading digits it cannot
-    hold. Open.** [F p. 42] lets a MOVE drop leading digits. The
-    internal-decimal store is a bare `STO`, so `MOVE EXA (999V99 =
-    123.45) TO T1 (9V9)` stores 123.4, not 3.4. The PR #167 review
-    found it on 2026-11-02. The 2026-11-02 ruling did not name it. Its wording,
-    "generate the correct code wherever the manuals show the code",
-    reaches it.
+13. **An internal-decimal MOVE target kept leading digits it cannot
+    hold. Ruled: handle it. Handled by PR #190.** `MOVE EXA (999V99 =
+    123.45) TO T1 (9V9)` stored 123.4, not 3.4 ([F p. 42]). The store
+    now takes the digit split of LOC 00424–00425 first (D4.1 (c)). SET
+    and ADD keep the bare store, as the sample's own words do at LOC
+    00760–00762, 01177–01201 and 01166–01174 (D4.2).
 
 `lib/src/codegen/` holds the text model (M4-3), the
 program image (M4-4), the object-listing writer (M4-7; M4-8), the
@@ -521,7 +520,7 @@ binds work outside the definition.
 |---|---|
 | Subscripted ADD and SET targets compile (the 1962 rule) | Branch `subscripted-targets` |
 | Literal and expression subscripts set their indicator | In progress |
-| Defect 13 | Not started |
+| Defect 13 | PR #190 |
 | Defect 5, the nameless BEGIN SECTION, D2.1, the definition headings, W3, W4 | Calls for Jack; prototypes in progress |
 
 ## Rulings of 2026-11-02
