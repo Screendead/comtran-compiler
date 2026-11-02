@@ -75,11 +75,12 @@ Test baseline: 1477 Dart tests pass, measured 2026-11-02, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
-manual's own payroll sample through every phase to the object deck. Add
-`--run` and `--tapes=DIR`, with a master image and a detail image in DIR.
-The object program then runs to end of job. Add `--list-tapes` and it
-prints the report of every BCD output file it wrote. Without `--tapes` the
-run is refused: an input file has no image.
+manual's payroll sample through every phase to the object deck. Add
+`--run` and `--tapes=DIR`, with master and detail images in DIR.
+The program then runs to end of job. Add `--list-tapes` and it
+prints each BCD output file's report. Without `--tapes` the
+run is refused: an input file has no image. A job above severity 1 does
+not run (D7.6).
 The job deck is the 293-card artifact plus one reconstructed
 *FINISH card (D11.3); the raw artifact alone is an incomplete job and draws
 message 132. The compile prints the listing, numbered 1,00 to 229,00 exactly
