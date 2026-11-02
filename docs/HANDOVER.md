@@ -518,7 +518,7 @@ https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw. The record
 | Handle codegen defects 1 to 4 and 8 to 11 | PRs #167, #168, #169, reviewed in that order |
 | Defect 10 keeps the 1962 behaviour | This file; PR #172 holds the ruling of 2026-10-25 and the tutorial warning |
 | Defect 6: message 948,00, severity 4, the OPEN kept, a straight run only | PR #170 |
-| M6-9: "compile" means the diagnostic listing; the refusals stay and get a new label | No pull request carries it |
+| M6-9: "compile" means the diagnostic listing; the refusals stay and get a new label | The record M6-9 in `docs/design/m6-acceptance.md` and the comments of `lib/src/codegen/procedure.dart` |
 | Dangling continuation: message 949,00, class 1, `--pedantic` only | PR #177 |
 | W2: mark the genuine manual typos [sic] on the generated transcription pages; remove the em dashes from the language reference | PR #178 |
 | The three silent subscripts draw messages 79, 182 and 71 | Branch `subscript-diagnostics` |

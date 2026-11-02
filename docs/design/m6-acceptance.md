@@ -704,26 +704,31 @@ the report our run prints against the page.
   was deferred. The severities that could change this are unattested
   (Open Question 65).
 
-  **The one question for Jack.** Does "compile" in his rule mean the
-  diagnostic listing, or the object deck?
+  **Decided 2026-11-02: "compile" in Jack's rule means the diagnostic
+  listing.** This entry put the question whether "compile" means the
+  listing or the object deck. Jack answered on the pitch page of
+  2026-11-02, call 4. `review/2026-11-02-pitch-rulings` records the call
+  and the answer. A banner on `review/2026-10-25-m6s2-deck-walkthrough`
+  repeats the answer. The two readings stay in `review/2026-09-14-m6s2-rule`.
 
-  - *For the listing.* The listing is the artifact our corpus
-    reproduces and a golden pins, and chunk 2a already delivered it
-    whole. The object deck is unreachable: no evidence describes the
-    code for a GET bound to no file, and inventing it breaks D0.4.
-  - *For the object deck.* To compile in 1962 was to punch a deck.
-    [J 02.01.01] ties deck production to the severity code alone, and
-    our severities allow it. A compiler that stops short of the deck
-    has not compiled. On this reading the refusal marks a gap in our
-    recovery and not a property of the program.
+  - *The listing, chosen.* The listing is the artifact our corpus
+    reproduces and a golden pins, and chunk 2a delivered it whole. No
+    evidence describes the code for a GET bound to no file, and
+    inventing it breaks D0.4.
+  - *The object deck, rejected.* [J 02.01.01] ties deck production to
+    the severity code alone, and our severities allow it. This reading
+    makes the refusal a gap in our recovery. It needs invented code
+    for the shapes that the 1962 processor made code for.
 
-  **Recommendation.** Keep the refusal for the verbatim deck, and
-  relabel it. The honest label is "1962 punched a deck whose content no
-  evidence describes", not "1962 refused". Take the listing as the
-  deliverable of that deck. The applied deck is where chunk 2b works,
-  so nothing in the repository waits on the answer. The question is
-  Jack's call under his rule, and the review record on branch
-  `review/2026-09-14-m6s2-rule` carries it to him.
+  The two refusals for the verbatim deck stay, and their label
+  changes. Each refusal is the listing reading's: the listing is the
+  deliverable of that deck, and the generator stops where no evidence
+  describes the code. A refusal does not say that the 1962 processor
+  refused the deck. J punches a deck at severity 3 and does not run it
+  ([J 90.04.02]). The pitch page of 2026-11-02 said the 1962 compiler
+  refused to punch a deck. That statement is wrong, and the walkthrough
+  record shows it. The applied deck is where chunk 2b works, so nothing
+  in the repository waited on the answer.
 
   **Chunk 2b's design list.** Each item is a recorded decision under
   D0.4, with no listing oracle behind it:
@@ -793,12 +798,13 @@ the report our run prints against the page.
   The same refusal covers an IN form that names an input file. The
   front end then prints message 22,00, also at severity 3.
 
-  This refusal falls under the question for Jack above. The message
+  This refusal falls under the ruling of 2026-11-02 above. The message
   says "CANNOT FILE RECORD 'NAME.2' IN THIS FILE". Our severity for it
   is 3 (D7.5), and [J 90.04.01] prints no value. At severity 3 the 1962
   processor punched a deck and did not run it ([J 90.04.02]). The case
   is the verbatim deck's case: a listing exists, and no evidence
-  describes the deck. His answer decides both refusals.
+  describes the deck. Jack's ruling covers both refusals: each is the
+  listing reading's, and each stays.
 
   The tests:
 
