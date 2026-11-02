@@ -1,7 +1,8 @@
 /// The whole package, including the three exported libraries that need
 /// `dart:io`: `src/cards/deck_files.dart` reads and writes deck files,
 /// `src/mcp/deck_server.dart` speaks MCP over stdio, and
-/// `src/runtime/machine.dart` opens a tape file per unit.
+/// `src/runtime/directory_tapes.dart` keeps a run's tape images as one
+/// file per unit.
 ///
 /// The barrel splits because `web/main.dart` compiles to WebAssembly
 /// (roadmap W1, `docs/HANDOVER.md`). A browser build of `dart:io`
@@ -15,4 +16,4 @@ library;
 export 'comtran.dart';
 export 'src/cards/deck_files.dart';
 export 'src/mcp/deck_server.dart';
-export 'src/runtime/machine.dart';
+export 'src/runtime/directory_tapes.dart';

@@ -26,11 +26,11 @@
 ///
 /// This barrel is the browser's half of the package. It omits the three
 /// exported libraries that need `dart:io` — `cards/deck_files.dart`,
-/// `mcp/deck_server.dart` and `runtime/machine.dart` — whose file-system
-/// operations throw in a browser. A browser build compiles the `dart:io`
-/// import and catches none of the three. `comtran_io.dart` exports this
-/// file and those three, and `test/layering_test.dart` guards the
-/// omission.
+/// `mcp/deck_server.dart` and `runtime/directory_tapes.dart` — whose
+/// file-system operations throw in a browser. A browser build compiles
+/// the `dart:io` import and catches none of the three. `comtran_io.dart`
+/// exports this file and those three, and `test/layering_test.dart`
+/// guards the omission.
 library;
 
 export 'src/ast/control_ast.dart';
@@ -95,6 +95,8 @@ export 'src/parser/expression_parser.dart';
 export 'src/parser/parser.dart';
 export 'src/parser/parser_messages.dart';
 export 'src/parser/procedure_parser.dart';
+export 'src/runtime/machine.dart';
 export 'src/runtime/tape.dart';
+export 'src/runtime/tape_store.dart';
 export 'src/version.dart';
 export 'src/web/web_compile.dart';

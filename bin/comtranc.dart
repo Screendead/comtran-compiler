@@ -71,12 +71,6 @@ Usage: dart run comtran:comtranc <deck.ctd> [options]
   --version          print the version and exit
 ''';
 
-/// The `--run` step budget: instructions and runtime entries together.
-/// A program still running here is looping, which is a reproduced
-/// result and not a diagnostic (D5.1 as amended;
-/// `docs/design/runtime.md` RT-1).
-const int _stepBudget = 1000000;
-
 /// The stage names `--emit-<stage>[=<path>]` accepts
 /// (`docs/design/emit-stages.md`).
 const List<String> _emitStages = [
@@ -383,12 +377,15 @@ bool _runObjectProgram(
   // with no room for them and leaves no machine to print from (M5-10).
   Machine? machine;
   try {
-    machine = Machine.load(punched.cards, tapes: tapes);
-    final RunResult result = machine.run(maxSteps: _stepBudget);
+    machine = Machine.load(
+      punched.cards,
+      tapes: tapes == null ? null : DirectoryTapes(tapes),
+    );
+    final RunResult result = machine.run(maxSteps: runStepBudget);
     result.display.forEach(stdout.writeln);
     if (result.outcome == RunOutcome.stepLimit) {
       stderr.writeln(
-        'error: job $number: still running after $_stepBudget steps',
+        'error: job $number: still running after $runStepBudget steps',
       );
     }
     // An error exit has already printed the monitor's own message on
@@ -415,27 +412,16 @@ bool _runObjectProgram(
 /// Returns false when an image faults.
 bool _listTapes(Machine machine, int number) {
   var read = true;
-  var first = true;
-  for (final (int index, LoaderFile file) in machine.program.files.indexed) {
-    final RuntimeFile runtime = machine.files[index];
-    final File? host = runtime.host;
-    if (!runtime.opened ||
-        host == null ||
-        file.type == 'I' ||
-        file.mode == 'B') {
-      continue;
-    }
-    if (!first) {
+  for (final (int index, TapeReport report) in tapeReports(machine).indexed) {
+    if (index > 0) {
       stdout.writeln();
     }
-    first = false;
     stdout
-      ..writeln('${file.name} REPORT')
+      ..writeln('${report.file} REPORT')
       ..writeln();
-    try {
-      listTape(host.readAsBytesSync()).forEach(stdout.writeln);
-    } on UnreadableRecord catch (e) {
-      stderr.writeln('error: job $number: ${file.name}: $e');
+    report.lines.forEach(stdout.writeln);
+    if (report.fault case final UnreadableRecord fault) {
+      stderr.writeln('error: job $number: ${report.file}: $fault');
       read = false;
     }
   }
