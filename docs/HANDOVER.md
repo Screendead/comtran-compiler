@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-09-06. Audience: the next agent, or Jack. This file is the
+*Updated 2026-11-02. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -58,8 +58,8 @@ Terms that appear without expansion:
 | M5 stage 2 — GET | Done 2026-09-12: the tape reader, one buffer per input file above the program, IOC)8, and the terminators SYS)260 and SYS)283. The sample reads a master record and a detail record and stops at IOC)9 | `docs/design/m5-io.md` M5-7 and M5-8, `lib/src/runtime/iocs.dart` |
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
-| M6 stage 2 — the second corpus | Chunk 2a done 2026-09-14: the 1960 program keyed as printed and compiled as a diagnostic corpus, and the applied deck with its five divergences, refused at `FILE ... IN`. Chunk 2b recovers the six shapes the generator refuses, because each one compiled in 1962 (Jack's rule of 2026-09-14; M6-9). All fourteen of its items compile since 2026-10-24 and 2026-10-25. The applied deck now compiles to the end and punches a 68-card object deck | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/goldens/f-payroll.listing` |
-| M7 | Not started | — |
+| M6 stage 2 — the second corpus | Done 2026-11-02. Chunk 2a (2026-09-14) keyed the 1960 program as printed, as a diagnostic corpus, and the applied deck with its five divergences. Chunk 2b recovered the six shapes the generator refused, because each one compiled in 1962 (Jack's rule of 2026-09-14). The applied deck runs over its tapes to end of job: 233 values compare, 77 match, and every difference has a named cause. `--run` obeys the D7.6 severity gate | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/f_acceptance_test.dart` |
+| M7 | Not started. It opens after W3 and W4 (Jack's ruling of 2026-11-02) | — |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -71,15 +71,16 @@ The last M0 deferral closed 2026-08-04. **D4.1** part (d), the MOVPAK
 round-step emission rule, is locked by Jack's call: a SET store through a
 step-list package rounds, a MOVE store truncates.
 
-Test baseline: 1441 Dart tests pass, measured 2026-10-25, and 154 extension
+Test baseline: 1527 Dart tests pass, measured 2026-11-02, and 154 extension
 tests pass, measured 2026-08-06. Both suites must stay green; re-measure the
 counts, do not trust them.
 `dart run comtran:comtranc test/fixtures/90.05-payroll-job.ctd` compiles the
-manual's own payroll sample through every phase to the object deck. Add
-`--run` and `--tapes=DIR`, with a master image and a detail image in DIR.
-The object program then runs to end of job. Add `--list-tapes` and it
-prints the report of every BCD output file it wrote. Without `--tapes` the
-run is refused: an input file has no image.
+manual's payroll sample through every phase to the object deck. Add
+`--run` and `--tapes=DIR`, with master and detail images in DIR.
+The program then runs to end of job. Add `--list-tapes` and it
+prints each BCD output file's report. Without `--tapes` the
+run is refused: an input file has no image. A job above severity 1 does
+not run (D7.6).
 The job deck is the 293-card artifact plus one reconstructed
 *FINISH card (D11.3); the raw artifact alone is an incomplete job and draws
 message 132. The compile prints the listing, numbered 1,00 to 229,00 exactly
@@ -88,7 +89,7 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — M6 stage 2
+## The next task — the web track, then M7
 
 **M4 is complete (2026-09-06). M5 is complete (2026-09-13).**
 `docs/design/runtime.md` RT-1 to RT-5 hold the machine assembly and the
@@ -116,44 +117,47 @@ The acceptance test diffs that report against our reading of the page,
 `INSPREM (POS)`, the page shows it on every line, and our object
 program reproduces it.
 
-**M6 stage 2 is in progress; chunk 2a landed 2026-09-14.**
+**M6 stage 2 is complete (2026-11-02).**
 `docs/design/m6-acceptance.md` M6-6 to M6-9 hold it. The 1960 program
 is keyed as printed (`test/fixtures/f-payroll.ctd`), and its listing,
 55 messages of 12 kinds, is the first diagnostic corpus. The applied
-deck (`test/fixtures/f-payroll-j.ctd`) takes five divergences,
+deck (`test/fixtures/f-payroll-j.ctd`) takes five divergences and
 compiles with three 206,00 and no other message.
 
 **Jack ruled on 2026-09-14: a program that would compile in 1962
 should compile.** M6-9 answers the rule for the six shapes the
-generator refuses. All six compiled in 1962, so chunk 2b recovers
+generator refused. All six compiled in 1962, so chunk 2b recovered
 them instead of rewriting the deck around them. M6-8 as amended holds
 the course that ruling overturns, and M6-7 as amended corrects the
 `STOP` row: `STOP n` is legal, so the applied deck keeps `STOP 1234`
 and adds `STOP RUN` after it.
 
-**The next task is chunk 2b's run.** All fourteen items of M6-9's
-design list are done (2026-10-24 and 2026-10-25). The applied deck
-compiles to the end with no refusal, and punches 68 cards. Write the
-two tapes from the sample's source table, in the corpus's layouts. Run
-the applied deck over them, and diff the values against the sample's report. M6-1
-as amended names the columns that can be compared and the three
-causes that separate the rest. Expect BONDORDER's EMPLOYEE.NUMBER,
-NAME and DATE to stay unmoved: MASTER holds them under DATA, so they do
-not correspond ([J 02.04.04]; M6-9). With codegen defect 12 fixed, the
-run over pending PR 145's tapes reaches end of job. Defect 7 is fixed for the
-DO FOR. The other ten defects stay open, and each fix must leave
-`test/goldens/90.05-payroll.code` as it stands.
+**The applied deck runs to end of job** over
+`test/fixtures/f-payroll-tapes/`. M6-9, "the run", classifies its
+report against the sample's: 233 values compare and 77 match. Every
+difference has a named cause, and the run finds no new compiler
+defect. Most differences are the CORRESPONDING finding
+([J 02.04.04]): fields under DATA pair with nothing.
+`test/f_acceptance_test.dart` holds the classification.
 
-**One question waits for Jack, and no work waits on his answer.**
-M6-9 asks whether "compile" in his rule means the diagnostic listing
-or the object deck. It argues the question both ways and recommends
-the listing. Chunk 2b works on the applied deck either way.
+**Jack ruled on M6-9 on 2026-11-02.** "Compile" in his rule means the
+diagnostic listing, not the object deck. The generator's refusals stay
+and get a new label. No pull request carries it.
+
+**The next work is the web track.** W2 waits on PR #178; W3 and W4
+follow. The codegen prototypes run the review loop in this order:
+PRs #167, #168 and #169.
+
+**Then M7.** Jack ruled on 2026-11-02 that M7 opens after W3 and W4.
+M7 opens the sealed archive (D0.9) and measures our reconstruction
+against the surviving processor.
 
 ### Codegen defects the runtime exposed
 
 The stage-4 runtime exposed defects 1 to 5, the M5 stage 2 review
-defect 6, and chunk 2b the rest. Whether a site refuses the shape or
-handles it is Jack's call.
+defect 6, and chunk 2b the rest. Jack ruled on 2026-11-02 (record
+`review/2026-11-02-pitch-rulings`). Each entry names its ruling and
+the pull request that carries it. No such pull request is merged.
 
 **None of the first six fires on the sample's own path (measured
 2026-09-07).** The sample declares no picture that holds an `S` or an
@@ -170,31 +174,34 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    `NUM` in mode I: `MOVE NUM (999) TO EDT ($8889.99)` then renders 123
    as `$1.23`. A plain 999 is external decimal and takes the aligning
    edit run instead. [F p. 42] says a MOVE aligns by the decimal point,
-   and `_internalMove` refuses the same mismatch (:2209).
+   and `_internalMove` refuses the same mismatch (:2209). Ruled: handle
+   it. PR #167.
 2. **An edited ADD source is not scale-aligned.** `_addPair` refuses a
    pair of unequal scales (:2590). The edited-source branch of `_add`
-   (:2526) skips that check.
+   (:2526) skips that check. Ruled: handle it. PR #167.
 3. **An `S` position in a numeric source is counted as a stored
    character.** `ItemSemantics.digits` counts the `S` fillers and
    `storageChars` does not. Three sites punch the digit count where the
    handler reads characters: :2028, :2079 and :2565. The handler then
-   reads past the field.
+   reads past the field. Ruled: handle it. PR #169.
 4. **A `STO` through the register the convert has just overwritten.**
    The external-to-internal path emits `_loadBaseOf(target)` and the
    `STO` (:2029) before `_movpakClears()`. `_loadBase` (:1036) reuses a
    register that already holds the target's locator. A target behind the
    locator in register 1 then stores through the count `TXI SYS)184,1,n`
-   left there. No sample site is on that path.
+   left there. No sample site is on that path. Ruled: handle it.
+   PR #169.
 5. **A leading run that mixes `8` and `*` compiles.** The control word
    has one address field for the leading run, so it cannot say which
    cells take a blank and which an asterisk. `$8*89.99` compiles with no
-   diagnostic. RT-5 lists the shape among its open items.
+   diagnostic. RT-5 lists the shape among its open items. No ruling.
 6. **A reopen after CLOSE ALL FILES draws no diagnostic.** D6.3 asks
    the compiler to diagnose the statically determinable case. The OPEN
    emitter (`lib/src/codegen/procedure.dart`:1352) emits `TSX SYS)175,4`
    for every OPEN ALL FILES and checks nothing. The M5 stage 2 review
    found it on 2026-09-12. The sample opens once, so it has no site.
-   M5-4 records what the runtime does on the reopen.
+   M5-4 records what the runtime does on the reopen. Ruled: message
+   948,00, severity 4, the OPEN kept, a straight run only. PR #170.
 7. **A table item that is not a whole number of words strides too
    short. Fixed for the DO FOR on 2026-10-25.** `_strideWords`
    (`lib/src/codegen/procedure.dart`) returned `strideChars ~/ 6`, so
@@ -208,7 +215,7 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    compiles to `CLA NUM / STO CELL` and writes the first cell on every
    pass. The DO FOR decision of M6-9 found it on 2026-10-25. The
    sample's subscripted moves are sources only, and the applied deck
-   has no subscripted MOVE target.
+   has no subscripted MOVE target. Ruled: handle it. PR #168.
 9. **A SET or ADD into a subscript variable updates no indicator.**
    `_subscriptRecomputation` (`lib/src/codegen/procedure.dart`) has
    one caller, the MOVE. So `SET IDX = 3` stores the index and leaves
@@ -216,23 +223,25 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    for the update at every store into a subscript variable
    ([J 02.04.07.01]). The DO FOR decision of M6-9 found it on
    2026-10-25. The sample's one subscript store is a MOVE, and the
-   applied deck stores into INDEX only through its DO FOR.
+   applied deck stores into INDEX only through its DO FOR. Ruled:
+   handle it. PR #168.
 
 10. **The subscript store drops the byte of a field inside a word.**
     `_subscriptRecomputation` builds the base `NAME-n` with a zero
-    decrement, the 1962 defect at `RETPREM-2` (M6-4 finding 1). The
-    golden needs that word at the sample's site. Elsewhere a reader
-    through SYS)132 then reads from byte 0: over items of `99`, `9999`
+    decrement, the 1962 defect at `RETPREM-2` (M6-4 finding 1), which the
+    golden needs at the sample's site. Elsewhere SYS)132 reads from byte 0:
+    over items of `99`, `9999`
     and `9(6)`, `MOVE THREE TO IDX` then `MOVE B (IDX) TO NB` gives 300
-    for 3. Whether to refuse the shape or handle it is Jack's call. The
-    PR 150 review found it on 2026-10-25. The applied deck has no
-    subscript store.
+    for 3. Jack ruled on 2026-10-25: the several-indicator drop is the
+    1962 compiler's own defect. It stays, documented. On 2026-11-02 he
+    ruled that defect 10 keeps the 1962 behaviour. The W4 tutorial
+    must warn of it. The applied deck has no subscript store.
 11. **A sub-chain in a chain overwrites the outer park.** The arm
     `BinaryExpr() when _additive(term)` (`procedure.dart`:3031) calls
     `_chain`, whose cells start at 0. `SET X = NUM * 2 + (NUM * 3 + 1)`
     parks both products in `RS)1` and stores 3N + 3N + 1, not
     2N + 3N + 1. The PR 153 review found it on 2026-10-25. The applied
-    deck does not reach the arm.
+    deck does not reach the arm. Ruled: handle it. PR #168.
 12. **An alphameric comparison read one word of a field across a word
     boundary. Fixed on 2026-10-25.** Statement 130,00 compares two
     `A(6)` fields at bytes 4 and 1, so no detail matched its master,
@@ -497,6 +506,31 @@ binds work outside the definition.
   beyond the verified sample, and the original build's approximately 120
   correction edits. The risk is low but not zero.
 
+## Rulings of 2026-11-02
+
+Jack gave these rulings on the pitch page
+https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw. The record
+`review/2026-11-02-pitch-rulings` holds them.
+
+| Ruling | Carried by |
+|---|---|
+| Merge the routine pull requests | Merged: #121, #161, #162, #164, #165, #173, #174 |
+| Handle codegen defects 1 to 4 and 8 to 11 | PRs #167, #168, #169, reviewed in that order |
+| Defect 10 keeps the 1962 behaviour | This file; PR #172 holds the ruling of 2026-10-25 and the tutorial warning |
+| Defect 6: message 948,00, severity 4, the OPEN kept, a straight run only | PR #170 |
+| M6-9: "compile" means the diagnostic listing; the refusals stay and get a new label | No pull request carries it |
+| Dangling continuation: message 949,00, class 1, `--pedantic` only | PR #177 |
+| W2: mark the genuine manual typos [sic] on the generated transcription pages; remove the em dashes from the language reference | PR #178 |
+| The three silent subscripts draw messages 79, 182 and 71 | Branch `subscript-diagnostics` |
+| M7 opens after W3 and W4 | This file |
+
+Two calls stay open:
+
+- A second or unnamed BEGIN SECTION opens a section with no name of
+  its own ([F p. 26]). Which message, if any, it draws.
+- Two PROGRAM.START labels: D2.1 says the first wins, and the
+  generator refuses (`review/2026-09-06-m4s4-machine-assembly` item 5).
+
 ## The mission: the compiler — roadmap
 
 The first concrete task is done. The 90.05 sample deck is re-keyed as
@@ -568,8 +602,11 @@ PDF p. 217. It makes every milestone below testable at once.
   the record descriptions, and the run reproduces the page up to four
   recorded findings — **DONE 2026-09-13** (`docs/design/m6-acceptance.md`).
   Stage 2 takes a second corpus — F's payroll example, with the §9.8 rows
-  the 1962 front end forces applied and the rest recorded (M6-9).
-- **M7 — The diff pass**: the seal ends when this milestone opens. Assemble the
+  the 1962 front end forces applied and the rest recorded (M6-9). The
+  applied deck runs to end of job over its own tapes — **DONE
+  2026-11-02**.
+- **M7 — The diff pass**: it opens after the web track's W3 and W4
+  (Jack's ruling of 2026-11-02). The seal ends when it opens. Assemble the
   1963 processor, and diff our reconstruction against it. Each difference is one
   of two findings: a real change between January 1962 and July 1963, or an error
   in our recovery. Treat MOVPAK and Open Question 31 as contaminated; D0.9 says
@@ -585,7 +622,9 @@ PDF p. 217. It makes every milestone below testable at once.
   (`continuationGroups`, `lib/src/lexer/source_card.dart`). The Procedure
   scanner reports its analogue under D9.4. Give the other two scanners the
   same treatment. The manuals are silent on the error case, so the message
-  id and severity are Jack's call at pickup.
+  id and severity are Jack's call at pickup. He ruled on 2026-11-02:
+  message 949,00, class 1, `--pedantic` only. PR #177 carries it, and
+  this bullet closes when it merges.
 
 ## Parallel tooling track
 
@@ -781,6 +820,15 @@ Two things wait on that work, and this project has done neither:
   here has tested a custom domain against a workflow deploy, so treat the
   answer as unverified until the deploy proves it.
 
+**Measured 2026-11-02.** Jack says `comtran.screendead.com` is live. No
+DNS record resolves for that name, and the custom-domain setting of the
+repository's Pages is empty. Two steps remain, and both are Jack's:
+
+- Add the DNS record at the registrar.
+- Set the custom domain in the repository's Pages settings.
+
+The `CNAME` question above stays open until a deploy proves it.
+
 One consequence binds this repository, and only after the move. Every link
 that names the old address becomes a redirect. Search the repository for
 `screendead.github.io` at that point, and change what it finds.
@@ -837,8 +885,8 @@ The golden-diff panel is the one item left.
 **Amended 2026-08-10 at Jack's request.** The punch grid moved above the deck
 and became editable: a click cuts or fills one hole, and the deck text becomes
 the card that results. The compiler decides what that text is, so a hole
-combination no character matches puts the card into the `!` punch form (D0.5)
-rather than into an error. The deck also prints the compiler's own diagnostics
+combination no character matches puts the card into the `!` punch form (D0.5),
+not into an error. The deck also prints the compiler's own diagnostics
 under it, the Compile button greys out while the panels already answer to the
 typed text, and each run prints how long it took.
 
@@ -856,8 +904,7 @@ obliges a change to a page.
 Every push to master deploys, so each H rule binds the same pull request that
 makes the change. `test/web_copy_test.dart` enforces D5 across the text files in `web/`, and
 checks that the roadmap page carries a station for every codename in the
-glossary above. Nothing compares the two states; H2 is the rule that keeps
-them in step.
+glossary above. H2 keeps the two states in step; nothing compares them.
 
 **W2 — the sources.** The documents page. It holds the language reference, both
 manual conversions, both source PDFs (17 MB), and each of the 345 page scans
@@ -883,14 +930,15 @@ surface, under the rule above.
 
 **W4 — teach and run.** The tutorial page, with the W1 editor and no second
 editor. The run button runs the sample over its reconstructed input
-tapes, `test/fixtures/90.05-tapes/` (M6 stage 1, 2026-09-13).
+tapes, `test/fixtures/90.05-tapes/` (M6 stage 1, 2026-09-13). The tutorial
+warns of defect 10, a routine shape: the 1962 premium table hits it.
 
 ### Later, and not scheduled
 
-Three entries in `docs/opportunities.md` have the site as their natural home.
-Each stays in that file, and none is promised here: the evidence chain from a
+Three entries in `docs/opportunities.md` suit the site.
+Each stays there, and none is promised here: the evidence chain from a
 generated instruction to its page scan (O8), the archive of decided questions,
-built from the review records that already exist as HTML (O11), and the
+built from the existing HTML review records (O11), and the
 evidence tier of a rule, shown where the compiler acts on it (O3).
 
 ### What the track cuts, and why
@@ -947,6 +995,7 @@ this project's own decision (Open Question 65).
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
 [F p. 12]: ../comtran-manuals/F28-8043/02-language-structure.md#underlying-principles
+[F p. 26]: ../comtran-manuals/F28-8043/02-language-structure.md#sentences
 [F p. 42]: ../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.04.04]: ../comtran-manuals/J28-6169/02-compiler.md#3-move

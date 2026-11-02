@@ -13,7 +13,6 @@
   <a href="index.html" class="wordmark">COMTRAN Reconstruction</a>
   <nav>
     <a href="index.html">The compiler</a>
-    <a href="sources.html">The sources</a>
     <a href="reading-the-scans.html">How we read the scans</a>
     <a href="roadmap.html" aria-current="page">What is built</a>
   </nav>
@@ -48,9 +47,9 @@
 <section class="track">
   <h2>The compiler</h2>
   <p class="track-intro">
-    Seven steps from a box of cards to a program that runs. Six are finished and
-    the last is under way, and each one is held to the 1962 manual by a test that compares
-    output byte for byte.
+    Seven steps from a box of cards to a program that runs. All seven are
+    finished, and each one is held to the 1962 manual by a test that compares
+    its output with what the manual prints.
   </p>
   <ol class="stations">
 
@@ -159,18 +158,23 @@
       </p>
     </li>
 
-    <li class="station now">
+    <li class="station done">
       <p class="station-head">
         <span class="code">M6</span>
-        <span class="state">Being built now</span>
+        <span class="state">Finished 2 November 2026</span>
       </p>
       <h3>The acceptance test</h3>
       <p>
         Compile the payroll sample, run it on an emulated 7090, and reproduce
-        the report the 1962 manual prints beside it. The first stage is done
-        (13 September 2026): the sample runs over input tapes rebuilt from the
-        printed report, and four differences from the print are recorded. The
-        second stage, a second program from the 1960 manual, is in progress.
+        the report the 1962 manual prints beside it. The input tapes did not
+        survive, so they were rebuilt from the printed report. The sample runs
+        over them and matches the page up to four recorded differences.
+      </p>
+      <p>
+        A second program, the payroll example from the 1960 manual, with the
+        five changes the 1962 compiler demands, compiles and runs to the end of
+        its job too. Every difference between its report
+        and the sample's has a named cause.
       </p>
       <p class="station-link">
         <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/m6-acceptance.md">The acceptance record, with every finding</a>
@@ -276,20 +280,16 @@
       </p>
     </li>
 
-    <li class="station done">
+    <li class="station todo">
       <p class="station-head">
         <span class="code">W2</span>
-        <span class="state">Finished 2 November 2026</span>
+        <span class="state">Not started</span>
       </p>
       <h3>The sources</h3>
       <p>
         Both manuals in full, and each of the 345 page scans beside the text
-        that was read off it, with both scanned PDFs and the language
-        reference. Every claim on this site starts on one of those pages, and
-        this is where you go to check one.
-      </p>
-      <p class="station-link">
-        <a href="sources.html">The two manuals, every page beside its scan</a>
+        that was read off it. Every claim on this site starts on one of those
+        pages, and this is where you go to check one.
       </p>
     </li>
 

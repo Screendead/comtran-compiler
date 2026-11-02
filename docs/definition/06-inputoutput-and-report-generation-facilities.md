@@ -4,7 +4,7 @@ Part 6 of 10 of the [COMTRAN Language Definition](README.md).
 
 ## 6. Input/output and report-generation facilities
 
-Input/output in COMTRAN is a record-processing system built on four program verbs — OPEN, GET, FILE, CLOSE — plus the low-volume DISPLAY verb and the (deferred) LOAD/OVERLAP segmentation pair. F chapter 3 gives the 1960 language vision (F pp. 38–41, 54–56); J section 02.07 ("Input/Output Facilities of the 709/7090 Commercial Translator") is the definitive implemented behavior, and J *explicitly corrects* F's description of GET ([J 02.07.04]). All I/O operations "are handled within the Commercial Translator system by the 709/7090 Input/Output Control System" (IOCS) ([J 02.07.01]). File characteristics are declared on Environment Description FILE and SPECIF cards ([J 02.06.02]); the full card-by-card field detail belongs to §7 (Environment description) — this section covers only what is needed to understand I/O semantics.
+Input/output in COMTRAN is a record-processing system built on four program verbs — OPEN, GET, FILE, CLOSE — plus the low-volume DISPLAY verb and the (deferred) LOAD/OVERLAP segmentation pair. F chapter 3 gives the 1960 language vision ([F pp. 38–41], [54–56]); J section 02.07 ("Input/Output Facilities of the 709/7090 Commercial Translator") is the definitive implemented behavior, and J *explicitly corrects* F's description of GET ([J 02.07.04]). All I/O operations "are handled within the Commercial Translator system by the 709/7090 Input/Output Control System" (IOCS) ([J 02.07.01]). File characteristics are declared on Environment Description FILE and SPECIF cards ([J 02.06.02]); the full card-by-card field detail belongs to §7 (Environment description) — this section covers only what is needed to understand I/O semantics.
 
 The programmer initiates "the movement of data into buffers or internal storage, the checking of the validity of the file itself, the checking of the validity of the input or output operation … and finally, the making available or filing away of data"; the I/O control system provides data-flow control and, where feasible, a "look ahead" ([F p. 38]). The system is "a record processing system": the unit made available each cycle is the record; if more than one record of a file must be available at once, the programmer must provide working storage and MOVE additional records there ([F p. 38]) — but see the HOLD option (§6.3) for the implemented alternative. The initial version handles tape and card files; error detection is implicit, and correction "where feasible, is handled automatically" ([F p. 38]).
 
@@ -416,6 +416,7 @@ Rules and defaults with direct I/O consequences:
 
 <!-- manual links; carried from canon by the generator -->
 
+[54–56]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
 [F p. 108]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
 [F p. 35]: ../../comtran-manuals/F28-8043/03-procedure-description.md#chapter-3-procedure-description
 [F p. 38]: ../../comtran-manuals/F28-8043/03-procedure-description.md#identification-col-73-80
@@ -432,6 +433,7 @@ Rules and defaults with direct I/O consequences:
 [F p. 77]: ../../comtran-manuals/F28-8043/04-data-description.md#copy
 [F p. 87]: ../../comtran-manuals/F28-8043/a1-programming-example.md#appendix-1-programming-example
 [F pp. 108–109]: ../../comtran-manuals/F28-8043/a2-supplementary-information.md#rules-for-forming-arithmetic-expressions
+[F pp. 38–41]: ../../comtran-manuals/F28-8043/03-procedure-description.md#identification-col-73-80
 [F pp. 40–41]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-get-command
 [F pp. 54–55]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
 [F pp. 55–56]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-display-command

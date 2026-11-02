@@ -668,6 +668,72 @@ void main() {
     });
   });
 
+  group('diagnostic anchors', () {
+    test('every clause anchors at its verb', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            SET HOT.',
+        '            GO TO AWAY.',
+        '            DO AWAY.',
+        '            OPEN ALL FILES.',
+        '            CLOSE ALL FILES.',
+        '            FILE R1.',
+        "            DISPLAY 'A'.",
+        '            NOTE ANY TEXT.',
+        '            ENTER CRYPT.',
+        '            ENTER COMMERCIAL TRANSLATOR.',
+        '            STOP RUN.',
+      ]);
+      expect(diagnostics, isEmpty);
+      expect(
+        [
+          for (final Sentence sentence in sentences)
+            for (final Clause clause in sentence.clauses)
+              '${clause.runtimeType} ${clause.anchor}',
+        ],
+        [
+          'SetConditionClause word(SET)@1:13',
+          'GoToClause word(GO)@2:13',
+          'DoClause word(DO)@3:13',
+          'OpenClause word(OPEN)@4:13',
+          'CloseClause word(CLOSE)@5:13',
+          'FileClause word(FILE)@6:13',
+          'DisplayClause word(DISPLAY)@7:13',
+          'NoteClause word(NOTE)@8:13',
+          'EnterClause word(ENTER)@9:13',
+          'EnterClause word(ENTER)@10:13',
+          'StopClause word(STOP)@11:13',
+        ],
+      );
+    });
+
+    test('a compound expression anchors at its leftmost operand, a '
+        'prefix form at its prefix word', () {
+      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
+        '            IF NOT HOT AND A = B OR C THEN SET X = -Y + TR (HOT).',
+        '            MOVE HIGH.VALUE TO Z.',
+      ]);
+      expect(diagnostics, isEmpty);
+      final ifClause = sentences.first.clauses.single as IfClause;
+      final or = ifClause.condition as OrExpr;
+      final and = or.left as AndExpr;
+      final not = and.left as NotExpr;
+      final relation = and.right as Relation;
+      final reference = or.right as ConditionReference;
+      expect(or.anchor, same(not.word));
+      expect(and.anchor, same(not.word));
+      expect(not.anchor.text, 'NOT');
+      expect(relation.anchor.text, 'A');
+      expect(reference.anchor.text, 'C');
+      final sum = (ifClause.thenArm.single as SetClause).value as BinaryExpr;
+      final negation = sum.left as UnaryExpr;
+      final truth = sum.right as TruthExpr;
+      expect(negation.anchor.text, '-');
+      expect(truth.anchor.text, 'TR');
+      final move = sentences.last.clauses.single as MoveClause;
+      expect(move.source.anchor.text, 'HIGH.VALUE');
+    });
+  });
+
   group('clause numbering (design note M2-6)', () {
     test('a deleted sentence keeps n,00 and loses its STOP RUN', () {
       final FrontEndResult result = runFrontEnd(

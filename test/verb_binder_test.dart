@@ -71,6 +71,33 @@ void main() {
       expect(ids(result), ['16,00']);
     });
 
+    test('a GET or FILE operand that names a file draws 16,00, and the '
+        'file stays unprocessed', () {
+      final SemanticResult get = runJob(
+        data: _record('R1'),
+        environment: _inputFile('FIN', ['R1']),
+        procedure: ['            GET FIN.'],
+      );
+      expect(ids(get), ['16,00', '198,00']);
+      expect(get.semanticDiagnostics.first.operands, ['', 'FIN']);
+      final SemanticResult file = runJob(
+        data: _record('R1'),
+        environment: _outputFile('FOUT', ['R1']),
+        procedure: ['            FILE FOUT.'],
+      );
+      expect(ids(file), ['16,00', '198,00']);
+    });
+
+    test('a GET through a synonym of a field draws 16,00', () {
+      final SemanticResult result = runJob(
+        data: _record('R1'),
+        environment: _inputFile('FIN', ['R1']),
+        procedure: ['            CALL (R1 R1F) SYN.', '            GET SYN.'],
+      );
+      expect(ids(result), ['16,00', '198,00']);
+      expect(result.semanticDiagnostics.first.operands, ['', 'SYN']);
+    });
+
     test('a GET through a record synonym binds like the record '
         '(J 02.03.03)', () {
       final SemanticResult result = runJob(
@@ -278,6 +305,104 @@ void main() {
       expect(ids(result), isEmpty);
     });
 
+    group('standard variable records (J 02.07.04 c)', () {
+      /// A record whose one array takes its count from a field of the
+      /// record.
+      List<String> variable(String name, String element) => [
+        dataCard(name: name, level: '1', type: 'RECORD'),
+        dataCard(name: '${name}C', level: '2', description: '99'),
+        dataCard(
+          name: '${name}V',
+          level: '2',
+          quantity: '9',
+          description: '$element QUANTITY IN ${name}C',
+        ),
+      ];
+
+      test('every record variable rescues the GET', () {
+        final SemanticResult result = runJob(
+          data: [...variable('R1', 'A'), ...variable('R2', 'A(3)')],
+          environment: _inputFile('FIN', ['R1', 'R2']),
+          procedure: ['            GET RECORD FROM FIN.'],
+        );
+        expect(ids(result), isEmpty);
+      });
+
+      test('one fixed record among variable ones draws 12,00', () {
+        final SemanticResult result = runJob(
+          data: [...variable('R1', 'A'), ..._record('R2')],
+          environment: _inputFile('FIN', ['R1', 'R2']),
+          procedure: ['            GET RECORD FROM FIN.'],
+        );
+        expect(ids(result), ['12,00']);
+      });
+
+      test('a FIND LENGTH IN field on every record is not the standard '
+          'form and draws 12,00', () {
+        final SemanticResult result = runJob(
+          data: [
+            ...variable('R1', 'A'),
+            ...variable('R2', 'A(3)'),
+            dataCard(name: 'LEN', level: '1', description: '9(4)'),
+          ],
+          environment: _inputFile('FIN', [
+            'R1',
+            'FIND LENGTH IN LEN',
+            'R2',
+            'FIND LENGTH IN LEN',
+          ]),
+          procedure: ['            GET RECORD FROM FIN.'],
+        );
+        expect(ids(result), ['12,00']);
+      });
+    });
+
+    test('BLOCK CONTROL on every record rescues unequal lengths '
+        '(J 02.07.04 d)', () {
+      final SemanticResult result = runJob(
+        data: [
+          ..._record('R1'),
+          ..._record('R2', description: 'A(12)'),
+        ],
+        environment: _inputFile('FIN', [
+          'R1',
+          'BLOCK CONTROL',
+          'R2',
+          'BLOCK CONTROL',
+        ]),
+        procedure: ['            GET RECORD FROM FIN.'],
+      );
+      expect(ids(result), isEmpty);
+    });
+
+    test('a FILE card that binds no record speaks once, at the card', () {
+      final SemanticResult result = runJob(
+        data: _record('R1'),
+        environment: _inputFile('FIN', const []),
+        procedure: ['            GET RECORD FROM FIN.'],
+      );
+      expect(ids(result), ['13,00']);
+    });
+
+    test('a FILE card msg 931 rejected draws no 12,00', () {
+      final SemanticResult result = runJob(
+        data: [
+          ..._record('R1'),
+          ..._record('R2', description: 'A(12)'),
+        ],
+        environment: _fileCards('FIN', [
+          'INPUT',
+          'BCD',
+          'TAPE',
+          'R1',
+          'R2',
+          'BLOCKSIZE 10000',
+        ]),
+        procedure: ['            GET RECORD FROM FIN.'],
+      );
+      expect(ids(result), ['931,00']);
+    });
+
     test('FIND LENGTH IN on one record of two draws 117,00', () {
       final SemanticResult result = runJob(
         data: data(),
@@ -378,6 +503,32 @@ void main() {
         procedure: ['            GET R1.', '      FIXUP.      STOP RUN.'],
       );
       expect(ids(result), isEmpty);
+    });
+
+    test('a LENGTH IN name that names nothing draws 108,00', () {
+      final SemanticResult result = runJob(
+        data: _record('R1'),
+        environment: _inputFile('FIN', ['R1', 'FIND LENGTH IN NOSUCH']),
+        procedure: ['            GET R1.'],
+      );
+      expect(ids(result), ['108,00']);
+      expect(result.semanticDiagnostics.single.operands, ['NOSUCH']);
+    });
+
+    test('a LENGTH IN name of two fields draws 166,00', () {
+      final SemanticResult result = runJob(
+        data: [
+          ..._record('R1'),
+          dataCard(name: 'G1', level: '1'),
+          dataCard(name: 'LEN', level: '2', description: '99'),
+          dataCard(name: 'G2', level: '1'),
+          dataCard(name: 'LEN', level: '2', description: '99'),
+        ],
+        environment: _inputFile('FIN', ['R1', 'PLACE LENGTH IN LEN']),
+        procedure: ['            GET R1.'],
+      );
+      expect(ids(result), ['166,00']);
+      expect(result.semanticDiagnostics.single.operands, ['LEN']);
     });
   });
 

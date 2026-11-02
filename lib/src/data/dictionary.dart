@@ -46,6 +46,7 @@ final class DictionaryEntry {
     this.item,
     this.sentence,
     this.scope,
+    this.section,
   });
 
   final String name;
@@ -61,14 +62,15 @@ final class DictionaryEntry {
   /// [NameKind.section].
   final Sentence? sentence;
 
-  /// The opening sentence of the section that encloses a statement
-  /// label or a section name; `null` for the outermost scope and for
-  /// every other kind. Two sections may share a name (D2.5), so the
-  /// scope is the sentence, never the name.
-  final Sentence? scope;
+  /// The BEGIN SECTION clause that opens the section enclosing a
+  /// statement label or a section name; `null` for the outermost scope
+  /// and for every other kind. Two sections may share a name (D2.5),
+  /// and one sentence may open two, so the scope is the clause, never
+  /// the name or the sentence.
+  final BeginSectionClause? scope;
 
-  /// The enclosing section's name, for display.
-  String? get section => scope?.scan.label;
+  /// The enclosing section's name.
+  final String? section;
 
   /// The 1-based sequence number among identical names, in encounter
   /// order (J 90.02.02).
@@ -101,7 +103,8 @@ final class Dictionary {
     NameKind kind, {
     DataItem? item,
     Sentence? sentence,
-    Sentence? scope,
+    BeginSectionClause? scope,
+    String? section,
   }) {
     final List<DictionaryEntry> siblings = _byName.putIfAbsent(name, () => []);
     final entry = DictionaryEntry(
@@ -110,6 +113,7 @@ final class Dictionary {
       item: item,
       sentence: sentence,
       scope: scope,
+      section: section,
       encounter: siblings.length + 1,
     );
     siblings.add(entry);
