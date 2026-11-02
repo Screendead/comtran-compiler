@@ -276,10 +276,10 @@ void main() {
     // number, the date and the name stay zero.
     final bondOrder = '${'0' * 12}03750${'0' * 15}';
     expect(errors.indexOf(bondOrder), 15);
-    errors.remove(bondOrder);
+    final rest = [...errors]..remove(bondOrder);
     expect(sample['BONDORDERFILE REPORT']!.single, contains(' 3750 '));
     for (var i = 0; i < page.length; i++) {
-      final String line = errors[i];
+      final String line = rest[i];
       // The whole 1960 record prints. A detail holds its hours before
       // its number.
       final String values = line.startsWith('M')

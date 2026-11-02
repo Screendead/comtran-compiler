@@ -360,7 +360,9 @@ int _run(List<String> arguments) {
 /// then, under [listTapes], the report of every BCD output file
 /// (M5-11).
 /// Returns false unless the run reached the end of the job. A job with
-/// no punched deck runs nothing and fails nothing.
+/// no punched deck runs nothing and fails nothing. Nor does a job whose
+/// maximum severity is above 1: it says so on the error stream and
+/// keeps the exit status, which only severity 5 changes (D7.6; D11.2).
 bool _runObjectProgram(
   JobCompilation job,
   ListingOptions options,
@@ -370,6 +372,11 @@ bool _runObjectProgram(
 }) {
   final JobDeck? punched = jobDeck(job, options);
   if (punched == null) {
+    return true;
+  }
+  final int severity = job.sink.maxSeverity;
+  if (severity > 1) {
+    stderr.writeln('job $number: not run: maximum severity $severity');
     return true;
   }
   // The load allocates every file's buffer, so it faults on a program
