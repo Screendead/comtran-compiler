@@ -95,6 +95,81 @@ void main() {
       expect(ids(result), ['71,00']);
     });
 
+    group('a function call as a subscript term (F p. 31)', () {
+      List<String> declared(String declaration, String clause) => [
+        '      S.          BEGIN SECTION USING IDX$declaration',
+        '            END S.',
+        '            $clause',
+      ];
+      List<String> fields() => [
+        ..._fields(),
+        dataCard(
+          name: 'FN',
+          level: '1',
+          mode: 'I',
+          justify: 'R',
+          description: '99',
+        ),
+      ];
+
+      test('a declared function draws 71,00 alone', () {
+        final SemanticResult result = runJob(
+          data: fields(),
+          procedure: declared(
+            ' GIVING FN.',
+            'MOVE TAB CELL (FN ((IDX))) TO NUM.',
+          ),
+        );
+        expect(ids(result), ['71,00']);
+        // NAME.1 is the array, not the function (J 90.04).
+        expect(result.semanticDiagnostics.single.operands, ['TAB CELL']);
+      });
+
+      test('a function inside an index expression draws 71,00', () {
+        final SemanticResult result = runJob(
+          data: fields(),
+          procedure: declared(
+            ' GIVING FN.',
+            'MOVE TAB CELL (FN ((IDX)) + 1) TO NUM.',
+          ),
+        );
+        expect(ids(result), ['71,00']);
+      });
+
+      test('a SET or ADD target keeps the function check beside '
+          '71,00', () {
+        for (final clause in [
+          'SET TAB CELL (FN ((IDX))) = 1.',
+          'ADD 1 TO TAB CELL (FN ((IDX))).',
+        ]) {
+          // FN is listed by no GIVING clause, so the function check on
+          // the target's subscript draws 191 (M3-19).
+          final SemanticResult result = runJob(
+            data: fields(),
+            procedure: declared('.', clause),
+          );
+          expect(ids(result), ['71,00', '191,00'], reason: clause);
+          expect(result.semanticDiagnostics.last.operands, ['FN']);
+        }
+      });
+    });
+
+    test('the parser, not M3-20, diagnoses an alphameric literal or a '
+        'figurative subscript term', () {
+      for (final (String subscript, String parserId) in [
+        ("TAB CELL ('A')", '912,00'),
+        ('TAB CELL (ZERO)', '192,00'),
+      ]) {
+        final SemanticResult result = _move(subscript);
+        expect(ids(result), isEmpty, reason: subscript);
+        expect(
+          result.parse.diagnostics.map((Diagnostic d) => d.message.number),
+          contains(parserId),
+          reason: subscript,
+        );
+      }
+    });
+
     test('an alphameric subscript variable draws 79,00', () {
       final SemanticResult result = _move('TAB CELL (ALPHA)');
       expect(ids(result), ['79,00']);
@@ -127,6 +202,51 @@ void main() {
       final SemanticResult result = _move('TAB CELL (EXT)');
       expect(ids(result), ['206,00']);
       expect(messageSeverities['206,00'], 1);
+    });
+
+    group('the other format rows', () {
+      SemanticResult moveWith(String variable, List<String> declaration) =>
+          runJob(
+            data: [..._fields(), ...declaration],
+            procedure: ['            MOVE TAB CELL ($variable) TO NUM.'],
+          );
+
+      test('an edited subscript variable draws 79,00', () {
+        final SemanticResult result = moveWith('EDIT', [
+          dataCard(name: 'EDIT', level: '1', description: '8889.99'),
+        ]);
+        expect(ids(result), ['79,00']);
+        expect(result.semanticDiagnostics.single.operands, ['EDIT']);
+      });
+
+      test('a group subscript variable draws 79,00', () {
+        final SemanticResult result = moveWith('GRP', [
+          dataCard(name: 'GRP', level: '1'),
+          dataCard(name: 'GF', level: '2', description: '99'),
+        ]);
+        expect(ids(result), ['79,00']);
+        expect(result.semanticDiagnostics.single.operands, ['GRP']);
+      });
+
+      test('a left-justified internal decimal subscript variable draws '
+          '206,00 (D9.11)', () {
+        final SemanticResult result = moveWith('LEFT', [
+          dataCard(
+            name: 'LEFT',
+            level: '1',
+            mode: 'I',
+            justify: 'L',
+            description: '99',
+          ),
+        ]);
+        expect(ids(result), ['206,00']);
+      });
+    });
+
+    test('an undefined subscript variable draws the triage 108,00 '
+        'alone', () {
+      final SemanticResult result = _move('TAB CELL (NOSUCH)');
+      expect(ids(result), ['108,00']);
     });
   });
 

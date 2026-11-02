@@ -1,8 +1,8 @@
 # The 7090 CPU emulator core
 
-*Status: **draft at M1**; hardens at M4 when codegen, the loader, and the
-runtime connect to it. Records the design of `lib/src/emulator/` under
-decision D0.3 (real 7090 object code on our own emulator). Instruction
+*Status: **in service since M4 stage 4**. The machine runs compiled programs
+on this core (`runtime.md` RT-1). Records the design of `lib/src/emulator/`
+under decision D0.3 (real 7090 object code on our own emulator). Instruction
 semantics come from the period reference manual, IBM 7090 Data Processing
 System Reference Manual, form A22-6528-4, March 1962 (external; cited below as
 "M p. N"). The instruction subset comes from the code that the COMTRAN

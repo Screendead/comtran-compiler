@@ -113,10 +113,10 @@ List<int> masterImage() => <int>[
 List<int> detailImage() => <int>[
   for (final Detail detail in details)
     ...tapeRecord(<int>[
-      _characters(detail.number),
-      _characters(detailDate),
-      _characters(detail.hours),
-      ...List<int>.filled(11, _characters('')),
+      characterWord(detail.number),
+      characterWord(detailDate),
+      characterWord(detail.hours),
+      ...List<int>.filled(11, characterWord('')),
     ]),
   ...tapeField(0),
 ];
@@ -130,10 +130,10 @@ List<int> detailImage() => <int>[
 List<int> _masterWords(Master master) {
   final String name = master.name.padRight(18);
   return <int>[
-    _characters(master.number),
-    for (var i = 0; i < 18; i += 6) _characters(name.substring(i, i + 6)),
+    characterWord(master.number),
+    for (var i = 0; i < 18; i += 6) characterWord(name.substring(i, i + 6)),
     master.rate,
-    _characters(''),
+    characterWord(''),
     master.exemptions,
     0,
     0,
@@ -147,7 +147,7 @@ List<int> _masterWords(Master master) {
 }
 
 /// The word of the six Set H glyphs [text], blank-padded (D0.6).
-int _characters(String text) {
+int characterWord(String text) {
   var word = 0;
   for (final String glyph in text.padRight(6).split('')) {
     word = (word << 6) | bcdFromGlyph(glyph)!;

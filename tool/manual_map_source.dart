@@ -65,7 +65,9 @@ typedef ManualFile = ({
   List<ManualEntry> entries,
 });
 
-final RegExp _fence = RegExp('^ {0,3}```');
+/// The opening or closing line of a fenced code block. Every tool that
+/// assigns heading anchors shares it, so their anchors agree.
+final RegExp fence = RegExp('^ {0,3}```');
 final RegExp _heading = RegExp(r'^(#{1,6}) +(.*)$');
 final RegExp _pageComment = RegExp(
   r'^<!--\s*(?:.*?\s*\|\s*)?PDF\s*(\d+)\s*-->$',
@@ -77,12 +79,17 @@ final RegExp _headingCode = RegExp(
   r'^(?:appendix |section )?(\d\d\.\d\d)(?:[ :]|$)',
   caseSensitive: false,
 );
-final RegExp _slugStrip = RegExp(r'[^\p{L}\p{N}_ -]', unicode: true);
+final RegExp _slugStrip = RegExp(
+  r'[^\p{L}\p{M}\p{Nd}\p{Nl}\p{Pc} -]',
+  unicode: true,
+);
 final RegExp _escape = RegExp(r'\\([!-/:-@\[-`{-~])');
 
 /// The GitHub anchor of one heading [text], before deduplication:
-/// lowercase, everything except a letter, a digit, an underscore, a
-/// space or a hyphen removed, then every space turned into a hyphen.
+/// lowercase, everything except a letter, a mark, a decimal or letter
+/// number, a connector such as the underscore, a space or a hyphen
+/// removed, then every space turned into a hyphen. github-slugger strips
+/// a superscript digit, so `2¹⁵−1` gives `21`.
 String slugify(String text) =>
     text.toLowerCase().replaceAll(_slugStrip, '').replaceAll(' ', '-');
 
@@ -156,7 +163,7 @@ ManualFile parseManualFile({
   for (var i = 0; i < lines.length; i++) {
     final String line = lines[i].trimRight();
     final int number = i + 1;
-    if (_fence.hasMatch(line)) {
+    if (fence.hasMatch(line)) {
       inFence = !inFence;
       continue;
     }

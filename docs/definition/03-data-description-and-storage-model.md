@@ -20,13 +20,13 @@ The manuals define the three units of data by the verbs that may operate on them
 - Files may contain **label** records at beginning and end; most labeling is handled by the input-output package and the environment description, but the programmer may prescribe label details with the LABEL type code ([F p. 63–64]; see §3.3 LABEL).
 - J tightens the record definition: "A record is a data hierarchy which may not be part of any data organization except a file or a section." ([J 02.05.01])
 - **Declaration is mandatory:** "The name of each data field referenced in Procedure statements or Environment Descriptions must appear in the name field of a Data Description entry. Neither storage allocation nor assignment of data characteristics is made for data fields not so named." ([J 02.05.01])
-- Files and groups of files are **not** entered as such in a data description — the hierarchy of data description entries begins at the record level ([F p. 69], Figure 2 footnote). Records are tied to files in the Environment Description (see the Environment description section; also [F p. 71]: "Each record named in the data description must also be named in the environment description").
+- Files and groups of files are **not** entered as such in a data description: the hierarchy of data description entries begins at the record level ([F p. 69], Figure 2 footnote). Records are tied to files in the Environment Description (see the Environment description section; also [F p. 71]: "Each record named in the data description must also be named in the environment description").
 
 ### 3.2 The *DATA division and the data description card
 
 A "division header" must be placed immediately before the first entry of each consecutive group of data description cards: "The name `*DATA`, placed so that the asterisk is in Column 7, should be the only entry on the line (i.e., card), except for the serial number and identification entries in Columns 1-6 and 73-80." ([F p. 65]) The `*DATA` header appears as such in the 7090 compiler's symbolic listings ([J 90.02.02], 90.05).
 
-One card is used per kind of data item. The card format is fixed-column — unlike the procedure description, it "does not allow 'free form' description" ([F p. 65]). Column layout ([F p. 65]):
+One card is used per kind of data item. The card format is fixed-column: unlike the procedure description, it "does not allow 'free form' description" ([F p. 65]). Column layout ([F p. 65]):
 
 | Columns | Width | Use |
 |---|---|---|
@@ -43,7 +43,7 @@ One card is used per kind of data item. The card format is fixed-column — unli
 
 #### Ctl. and Serial (Col. 1–6)
 
-- Sequence matters: "the sequence controls the internal position of the data" ([F p. 65]). The serial number is normally numeric; the first three digits ("CTL") are common to a page, Columns 4–6 carry the rest. Normally only Columns 4–5 are used initially, leaving Column 6 blank so that correction cards can be collated in later — the blank is first in the collating sequence, so `23_` < `235` < `24_` ([F p. 65–67]).
+- Sequence matters: "the sequence controls the internal position of the data" ([F p. 65]). The serial number is normally numeric; the first three digits ("CTL") are common to a page, Columns 4–6 carry the rest. Normally only Columns 4–5 are used initially, leaving Column 6 blank so that correction cards can be collated in later; the blank is first in the collating sequence, so `23_` < `235` < `24_` ([F p. 65–67]).
 - F states serial numbers "will be checked for correctness of sequence" when read in; the numeric collating sequence in all IBM machines is blank first, then 0–9 ([F p. 67]).
 - **F/J divergence:** the 7090 compiler does *not* check: "Card serial numbers in columns 1-6 of source decks are not sequence checked by the compiler." ([J 02.03.01])
 
@@ -58,11 +58,11 @@ One card is used per kind of data item. The card format is fixed-column — unli
 #### Level (Col. 23–24)
 
 - "Any number from 1 to 99 can be used. All data description entries must be assigned level numbers." ([F p. 68]) J: "Any numbers 01-99 may be used to specify the level of fields. Leading zeros are optional and all level numbers less than 10 are right justified by the compiler." ([J 02.05.01])
-- Hierarchy rule: "each item is considered to be a subdivision of the last item preceding it which has a lower number" ([F p. 68]). Data is organized "vertically" — no item is related directly to another at the same level except through a higher-level item ([F p. 68]).
+- Hierarchy rule: "each item is considered to be a subdivision of the last item preceding it which has a lower number" ([F p. 68]). Data is organized "vertically": no item is related directly to another at the same level except through a higher-level item ([F p. 68]).
 - Level numbers need not be consecutive; any number greater than that of the next higher classification serves, and skipping numbers is recommended to allow later insertions ([F p. 68]).
-- The highest level (i.e., the numerically smallest level number) in a program need not be 01 ([J 02.05.01]). All data fields at the level equal to the highest level in a source program are **left justified** unless explicitly specified as right justified — even if no justification is specified and previous fields do not complete full words ([J 02.05.01], with worked example at level 05).
+- The highest level (i.e., the numerically smallest level number) in a program need not be 01 ([J 02.05.01]). All data fields at the level equal to the highest level in a source program are **left justified** unless explicitly specified as right justified, even if no justification is specified and previous fields do not complete full words ([J 02.05.01], with worked example at level 05).
 - Level numbers describe structure only; "Level numbers are not actually attached to the data" ([F p. 71]).
-- Limit: number of levels in a data hierarchy — approximately **23** maximum ([J 90.01.05]).
+- Limit: number of levels in a data hierarchy, approximately **23** maximum ([J 90.01.05]).
 
 #### Type (Col. 25–30)
 
@@ -77,7 +77,7 @@ If blank, the entry describes an ordinary data field or group of fields ([F p. 7
 | REDEF | yes ([F p. 73–76]) | yes, with restrictions ([J 02.05.02], 90.01.03) |
 | COPY | yes ([F p. 76–77]) | **"Implementation of COPY has been deferred."** ([J 90.01.03]) |
 | LABEL | yes ([F p. 77]) | yes, 14-word IOCS label area ([J 02.05.03]) |
-| RCDMRK | — (not in F) | **new in J** ([J 02.05.03]) |
+| RCDMRK | (not in F) | **new in J** ([J 02.05.03]) |
 
 Full semantics of each code: §3.3.
 
@@ -88,7 +88,7 @@ Full semantics of each code: §3.3.
 - Maximum: "The maximum Quantity which may be specified is 2¹⁵ - 1." ([J 02.05.04]) [= 32767]
 - "No check against this value is made at execute time." ([J 02.05.04])
 - "quantity numbers should not be assigned to data items not having names, unless these items include named items at a lower level" ([F p. 77]; repeated verbatim [J 02.05.04]).
-- Nesting (F): "Quantity numbers may be specified for as many as three levels in a single 'nested' group" — e.g. STATE quantity 5, DISTRICT 4, CITY 7 reserves 5 STATE, 20 DISTRICT, 140 CITY items ([F p. 77]). **J is silent on a three-level cap** (see ambiguity note, §3.11); its program-wide limit is ~85 array dimensions ([J 90.01.05]).
+- Nesting (F): "Quantity numbers may be specified for as many as three levels in a single 'nested' group": e.g. STATE quantity 5, DISTRICT 4, CITY 7 reserves 5 STATE, 20 DISTRICT, 140 CITY items ([F p. 77]). **J is silent on a three-level cap** (see ambiguity note, §3.11); its program-wide limit is ~85 array dimensions ([J 90.01.05]).
 - A quantity entry applies its multiplication to the entry *and its subordinate fields* (the RATE example, [F p. 75]: 30 in Quantity opposite RATE lays out RATE with its four subfields 30 times).
 - Quantity may **not** be used at the record level: "The 'Quantity columns' ... use of these columns with a data hierarchy, such as RECORD, is unacceptable." ([J 02.05.01]) Hence "record.names may not be subscripted" ([J 90.01.03]).
 - Storage effect: "An entry in this field is used by the compiler to reserve storage for sequential data of the same format." ([J 02.05.04])
@@ -96,7 +96,7 @@ Full semantics of each code: §3.3.
 #### Mode (Col. 36)
 
 - `I` = internal mode, `E` = external mode ([F p. 78]). J gives the 7090 meanings: "Internal mode (I) designates that the associated numeric field is to contain data in binary form. External mode (E) designates that the stored form is BCD." ([J 02.05.04])
-- Mode is specified at the *lowest* level of data organization — the level where the field pictorial is shown; the mode of a larger unit is a consequence of the modes of its components ([F p. 78]).
+- Mode is specified at the *lowest* level of data organization, the level where the field pictorial is shown; the mode of a larger unit is a consequence of the modes of its components ([F p. 78]).
 - Storage-model consequence: "Arithmetic operations are performed only in the internal (binary) mode." ([J 02.03.03]) External-mode fields are unpacked and converted every time they enter arithmetic ([J 02.03.03]; see §3.6).
 
 #### Justify (Col. 37)
@@ -105,7 +105,7 @@ Full semantics of each code: §3.3.
 - Justification for an *input* item describes the item as it already exists (tells the system where to look); for other items it controls placement ([F p. 78]).
 - Left justification: left-hand character goes in the left-hand position of the next available machine word, possibly leaving the right portion of the preceding word unoccupied. Right justification: item stored to the right in the next available machine word. No justification: data is packed, "there will be no blank spaces between successive items" ([F p. 78–79]).
 - Alignment of alphameric information cannot be specified in the field pictorial; it is done with the Justify column ([F p. 79]).
-- J word-boundary rules and the restriction "Specification of right justification is effective only for data items with explicitly described formats. Left justification is always effective." ([J 02.05.04]) — full detail in §3.6.
+- J word-boundary rules and the restriction "Specification of right justification is effective only for data items with explicitly described formats. Left justification is always effective." ([J 02.05.04]); full detail in §3.6.
 
 #### Description (Col. 38–71)
 
@@ -166,14 +166,14 @@ Optional program-identification code; any characters from the basic character se
           DIVORCED                     0  7  COND                           'D'
   ```
 - Semantics: MARRIED ≡ MARITAL.STATUS = 'M'; SET MARRIED and IF MARRIED are interpreted as SET MARITAL.STATUS='M' and IF MARITAL.STATUS='M' ([F p. 72]). See §2 (condition-names) and the procedure section (SET, IF).
-- COND entries are optional — a programmer who writes only full-form conditional expressions (IF MARITAL.STATUS = 'M' ...) need not declare condition-names ([F p. 72]).
+- COND entries are optional: a programmer who writes only full-form conditional expressions (IF MARITAL.STATUS = 'M' ...) need not declare condition-names ([F p. 72]).
 - J rules: "Normally this type code is associated with several entries naming and describing the values a particular field may have. These entries must be preceded by a higher level entry defining the format of the fields and must all have the same level number and include the COND type code." ([J 02.05.02])
 - Restrictions: "Neither a data item (literal) nor a condition.name may be subscripted. However, a conditional variable may be subscripted." ([J 90.01.03])
-- There is also a COND *Environment* card ([J 02.06.17]) — separate mechanism; see the Environment description section.
+- There is also a COND *Environment* card ([J 02.06.17]): separate mechanism; see the Environment description section.
 
 #### REDEF
 
-- Purpose: redefine an area or item previously defined — for time-shared use of storage, renaming, regrouping with new level structures, and setting up tables ([F p. 73]). "Use of the REDEF code does not erase data in storage, unless an attempt is made to place two or more different constants in the same area; however, it does superimpose a new format upon the data already present." ([F p. 73]) "Redefinition does not cancel the previous definition. ... Once an area has been defined, all names associated with the definition may be used at any time, regardless of subsequent redefinitions." ([F p. 73])
+- Purpose: redefine an area or item previously defined, for time-shared use of storage, renaming, regrouping with new level structures, and setting up tables ([F p. 73]). "Use of the REDEF code does not erase data in storage, unless an attempt is made to place two or more different constants in the same area; however, it does superimpose a new format upon the data already present." ([F p. 73]) "Redefinition does not cancel the previous definition. ... Once an area has been defined, all names associated with the definition may be used at any time, regardless of subsequent redefinitions." ([F p. 73])
 - F card usage: the REDEF entry carries the type code REDEF, has "the same level number as the entry being redefined," and the name of the area being redefined is written in the Description columns (F p. 73, 81). In F's example the REDEF line itself is unnamed "but the programmer could assign one if he wished" ([F p. 75]).
 - **F/J divergence on the REDEF card:** J requires the REDEF line to be bare: "When the REDEF type code is used, it should appear on a line with no additional coding except a serial number and the name of the item being redefined. The first item appearing thereafter must have the same level number as the item referenced by the REDEF." ([J 02.05.02]) Under J the redefinition's structure begins with the *following* entries; F's optional name-on-the-REDEF-line does not fit J's rule (see ambiguities).
 - J storage-assignment semantics: "When a REDEF is first encountered, the contents of the storage assignment counter are saved by the compiler, and assignment proceeds according the REDEF. The effect of a REDEF is terminated upon encountering an item of a level above or equal to the level of the item referenced by the REDEF or upon encountering another REDEF. Termination of the former type causes the storage assignment counter to be restored and assignment proceeds in the normal manner." ([J 02.05.02])
@@ -181,15 +181,15 @@ Optional program-identification code; any characters from the basic character se
 - Restrictions:
   - "An area involved in a REDEF must not contain subscript variables or a QUANTITY.IN value." ([J 90.01.03])
   - "Whenever an input record containing an array is involved in a REDEF, the record containing the array should precede the REDEF in order to get optimum results." ([J 90.01.03])
-  - Constants "cannot be defined ... as part or all of the redefinition of an area." ([J 02.05.06]) (Plausible resolution, not stated by J: the F table technique — constants first, REDEF second — appears unaffected, since the constants belong to the original definition rather than the redefinition. See §3.7 and §8.5.)
+  - Constants "cannot be defined ... as part or all of the redefinition of an area." ([J 02.05.06]) (Plausible resolution, not stated by J: the F table technique (constants first, REDEF second) appears unaffected, since the constants belong to the original definition rather than the redefinition. See §3.7 and §8.5.)
   - Redefinition of a record area does not give the record length ([J 02.05.01]).
-  - I/O interaction: if a record is REDEF'd to share an area with data other than records of the same file, all records of the file are automatically 'transmitted' (with a message if they were to be located); all records related through REDEF are made available when any one is requested by GET ([J 02.07.05]). Records from different files REDEF'd together are not automatically transmitted by the field test processor — SPANS or HOLD must be used ([J 90.01.01]). See the Input/Output section.
+  - I/O interaction: if a record is REDEF'd to share an area with data other than records of the same file, all records of the file are automatically 'transmitted' (with a message if they were to be located); all records related through REDEF are made available when any one is requested by GET ([J 02.07.05]). Records from different files REDEF'd together are not automatically transmitted by the field test processor; SPANS or HOLD must be used ([J 90.01.01]). See the Input/Output section.
 
 #### COPY and library data descriptions
 
-- F semantics: COPY copies a data description previously defined in the program under a new name and, optionally, a new level. New name in Data Name columns, COPY in Type, original name in Description; "This description must already have been read into the system for the COPY code to be able to operate on it." ([F p. 76]) The copy replaces the original name with the new name, and if a new level number is given, all subordinate level numbers are adjusted to retain their original relationship — original 01, 03, 04 copied at level 05 becomes 05, 07, 08 ([F p. 76], with the PAY.RCD.MASTER → PAY.RCD.DETAIL worked example on [F p. 76–77]).
+- F semantics: COPY copies a data description previously defined in the program under a new name and, optionally, a new level. New name in Data Name columns, COPY in Type, original name in Description; "This description must already have been read into the system for the COPY code to be able to operate on it." ([F p. 76]) The copy replaces the original name with the new name, and if a new level number is given, all subordinate level numbers are adjusted to retain their original relationship: original 01, 03, 04 copied at level 05 becomes 05, 07, 08 ([F p. 76], with the PAY.RCD.MASTER → PAY.RCD.DETAIL worked example on [F p. 76–77]).
 - Library form: "The word LIBRARY, followed by the name of a data description stored in the library, designates a data description which is to be copied. ... When a library data description is prescribed, the type code COPY must be used." ([F p. 81]) Library conventions: see §7.
-- **F/J divergence — both deferred in J:** "Implementation of COPY has been deferred." ([J 90.01.03]) "Mechanization of the INCLUDE verb has been deferred, and consequently no library facilities are currently available." ([J 90.01.02])
+- **F/J divergence (both deferred in J):** "Implementation of COPY has been deferred." ([J 90.01.03]) "Mechanization of the INCLUDE verb has been deferred, and consequently no library facilities are currently available." ([J 90.01.02])
 
 #### LABEL
 
@@ -202,14 +202,14 @@ Optional program-identification code; any characters from the basic character se
 
 #### PARAM and FUNCT (F only — removed)
 
-- F: FUNCT identifies a function-name — a data-name specified in the GIVING clause of a BEGIN SECTION command — which "must be fully described in accordance with the provisions of this chapter" ([F p. 73]). PARAM identifies a parameter — each data-name listed in the USING clause of a BEGIN SECTION command ([F p. 73]). See F's functions discussion ([F p. 32]) and the procedure section.
+- F: FUNCT identifies a function-name (a data-name specified in the GIVING clause of a BEGIN SECTION command) which "must be fully described in accordance with the provisions of this chapter" ([F p. 73]). PARAM identifies a parameter: each data-name listed in the USING clause of a BEGIN SECTION command ([F p. 73]). See F's functions discussion ([F p. 32]) and the procedure section.
 - **F/J divergence:** "These two type codes described in the General Information Manual are no longer in the language." ([J 02.05.03])
 
 ### 3.4 The Description field in detail
 
 #### Format characters (the field pictorial)
 
-Format characters serve two functions: they show the number of character spaces a field occupies, and the kind of character occupying each space; the result is a "field pictorial" ([F p. 79]). For data brought in at object time, the pictorial must reflect the data as it already exists — "changes in input data cannot be effected by the field pictorial"; for data produced by the program, the pictorial directly controls how the data is handled ([F p. 79]). With the stated exceptions (V, S, F, overpunched signs, (n)), one format character is required per data character of reserved storage ([F p. 79]).
+Format characters serve two functions: they show the number of character spaces a field occupies, and the kind of character occupying each space; the result is a "field pictorial" ([F p. 79]). For data brought in at object time, the pictorial must reflect the data as it already exists: "changes in input data cannot be effected by the field pictorial"; for data produced by the program, the pictorial directly controls how the data is handled ([F p. 79]). With the stated exceptions (V, S, F, overpunched signs, (n)), one format character is required per data character of reserved storage ([F p. 79]).
 
 The complete repertoire ([F p. 80]):
 
@@ -276,10 +276,10 @@ Chart notes ([J 02.05.05]):
            PERCENT.CONST                                                            V99 '05'
   ```
 - Constants vs. literals ([F p. 81]): literals are written in procedure statements, constants in data description entries; "Constants, unlike literals, must always be enclosed in quotation marks, even though they may be wholly numeric."
-- Constants "may contain any character" — the punctuation/spacing rules do not apply inside them ([F p. 28]). (The 1960s literal-delimiting quote is rendered as `'` in the conversions.)
+- Constants "may contain any character"; the punctuation/spacing rules do not apply inside them ([F p. 28]). (The 1960s literal-delimiting quote is rendered as `'` in the conversions.)
 - Decimal points are not normally required in table constants; the decimal location is specified by the later pictorial ([F p. 74]).
 - Continuation: each line's portion must be a complete quoted constant; no continuation punch; no blanks assumed between successive lines ([F p. 83]; see §3.2 Cont.).
-- J restrictions — "Constants cannot be defined.
+- J restrictions: "Constants cannot be defined.
   i in a field whose pictorial characterizes it as an edited field.
   ii as a part of a located input area. (see section 02.07).
   iii following a variable length field.
@@ -329,12 +329,12 @@ The 709/7090 storage model, as stated by J:
 - **Arithmetic is binary only:** "Arithmetic operations are performed only in the internal (binary) mode." ([J 02.03.03]) External (BCD) fields entering arithmetic are unpacked and converted each time; the manual's remedy is MOVE-ing them once to an internal-mode area ([J 02.03.03] — e.g., the `IR999` field X in the worked example, [J 02.03.03]/02.03.03.01; the `I` is scan-confirmed as the letter I, see §8.5.8).
 - **Internal mode, right justified (R):** the numeric field "appears by itself in the low order positions of a full word (two if double precision) with the sign value in the sign bit of the word." ([J 02.05.04])
 - **Internal mode, left justified (L) or unjustified (blank):** "The length of a numeric internal mode fixed point field designated as left justified or without justification specification is the least multiple of 6 bits sufficient to contain the number and its sign (leftmost bit of the field so designated)." ([J 02.05.04])
-- **Left justification (any mode):** "reserves storage beginning with the leftmost bit of a new word and extending through as many words and bits as necessary." **No justification** "differs only in that storage reservation begins immediately to the right (within the same word if possible) of the preceding storage reservation" — i.e., packing ([J 02.05.04]; [F p. 79]).
+- **Left justification (any mode):** "reserves storage beginning with the leftmost bit of a new word and extending through as many words and bits as necessary." **No justification** "differs only in that storage reservation begins immediately to the right (within the same word if possible) of the preceding storage reservation", i.e., packing ([J 02.05.04]; [F p. 79]).
 - **External mode, right justified:** "storage is reserved beginning in a new word so that the field's last character is also the rightmost character of its final word." ([J 02.05.04])
 - **Effectivity rule:** "Specification of right justification is effective only for data items with explicitly described formats. Left justification is always effective." ([J 02.05.04])
 - **Default at top level:** all fields at the highest (numerically smallest) level used in the program are left justified unless explicitly right justified ([J 02.05.01]).
 - **Precision:** fixed point double precision = pictorials of more than 10 digits; floating point double precision = `FF`; a double-precision right-justified internal field occupies two words ([J 02.05.06], 02.05.04). Mixed-mode expression evaluation rules (floating/double forcing) are procedure-side: [J 02.04.05.01]; see the procedure section.
-- **Addressing granularity:** a positional indicator for an array element "contains the location (word and byte) of the particular element" ([J 02.04.07]) — storage is word-organized with character (6-bit) resolution within words. (Neither manual states the 36-bit word size explicitly in these sections; the 6-bit-multiple rule and "six (6) BCD characters" control word ([J 02.07.03]) imply six characters per word.)
+- **Addressing granularity:** a positional indicator for an array element "contains the location (word and byte) of the particular element" ([J 02.04.07]); storage is word-organized with character (6-bit) resolution within words. (Neither manual states the 36-bit word size explicitly in these sections; the 6-bit-multiple rule and "six (6) BCD characters" control word ([J 02.07.03]) imply six characters per word.)
 - F's machine-independent framing: data is always identified by its position; the processor assigns each named item an initial location from the length and relative position given in the data description, and tracks all changes of position ([F p. 62]). Packing trade-offs (space vs. unpacking cost) are discussed at [F p. 78–79].
 
 ### 3.7 Lists, tables, and subscripts (declaration side)
@@ -346,7 +346,7 @@ The 709/7090 storage model, as stated by J:
 
 #### The canonical F technique: constants + REDEF
 
-Step 1 — enter the data as constants ([F p. 74]):
+Step 1. Enter the data as constants ([F p. 74]):
 
 ```
 SERIAL   DATA NAME                      LEVEL   DESCRIPTION
@@ -355,7 +355,7 @@ SERIAL   DATA NAME                      LEVEL   DESCRIPTION
                                           02     'MIAMI              07860 14163 11892'
 ```
 
-Step 2 — superimpose structure by redefinition ([F p. 75]):
+Step 2. Superimpose structure by redefinition ([F p. 75]):
 
 ```
 SERIAL   DATA NAME              LEVEL   TYPE    QUANTITY   MODE  JUSTIFY  DESCRIPTION
@@ -393,7 +393,7 @@ Primary treatment in the Input/Output section; the data-description-relevant fac
 
 - "There are two record types, fixed length and variable length." A fixed length record "cannot vary from the length specified by the data description." ([J 02.07.03])
 - "The QUANTITY IN clause, by designating that the length of a field within a record is variable in length, identifies the record as being a variable length record." The number of words processed on read/write is defined at object time by the current QUANTITY IN data.name value(s); "Storage, if the record is transmitted, is always allocated on the basis of the maximum size of the record." ([J 02.07.03])
-- The standard variable length record is preceded by a control word containing the record length — "Although this control word is not described as part of the record in the Data Description and may not be addressed by the programmer, it must be considered in specifying block size" ([J 02.07.03]). BCD form: six BCD characters giving the length in words ([J 02.07.03]).
+- The standard variable length record is preceded by a control word containing the record length: "Although this control word is not described as part of the record in the Data Description and may not be addressed by the programmer, it must be considered in specifying block size" ([J 02.07.03]). BCD form: six BCD characters giving the length in words ([J 02.07.03]).
 - Located records: all references to fields of a located record initially specify location zero and are adjusted upon GET; referencing before the first GET destroys low memory ([J 02.07.05]). Constants cannot be part of a located input area ([J 02.05.06]).
 
 ### 3.9 Storage areas
@@ -403,7 +403,7 @@ F chapter 4 closes with the storage-areas doctrine ([F p. 84–85]):
 - Programmers conventionally distinguish an **input area** (space reserved for the original record before processing), **working storage** (e.g., intermediate results needed later but never output), an **output area** (where the output record is assembled), and areas for **reference data** "such as constants, literals, and tables" ([F p. 84]).
 - COMTRAN erases the distinction: "Storage areas are automatically reserved when the data description is written, regardless of how the area is to be used." ([F p. 84–85]) All areas are addressed by location and governed by the same instructions ([F p. 84]).
 - Obligations on the programmer: all data-names required for input and output, as specified in the processor manual, must be properly described; "every item of data used in the program, whether as input, output, or for intermediate operations" must be described ([F p. 85]). J's converse: no storage is allocated for fields not named in a Data Description entry ([J 02.05.01]).
-- On the 7090, buffer storage for I/O is reserved by the Loader and assigned dynamically ([J 02.07.02]); located records live in buffers, transmitted records get their own storage — see the Input/Output section.
+- On the 7090, buffer storage for I/O is reserved by the Loader and assigned dynamically ([J 02.07.02]); located records live in buffers, transmitted records get their own storage; see the Input/Output section.
 
 ### 3.10 Numeric limits and defaults — summary
 
@@ -434,7 +434,7 @@ F chapter 4 closes with the storage-areas doctrine ([F p. 84–85]):
 | Internal fixed-point field length (L or blank justify) | least multiple of 6 bits holding number + sign | [J 02.05.04] |
 | Internal right-justified field | one full word (two if double precision), sign in sign bit | [J 02.05.04] |
 
-(Values from [J 90.01.05] are headed "Appox-Max Size" — approximate maxima of compiler internal tables.)
+(Values from [J 90.01.05] are headed "Appox-Max Size": approximate maxima of compiler internal tables.)
 
 ### 3.11 F/J divergences in data description — summary
 
@@ -449,12 +449,12 @@ F chapter 4 closes with the storage-areas doctrine ([F p. 84–85]):
 | Sign overpunch position | units **or** high-order position ([F p. 80]) | external decimal: rightmost position only; free-standing + or − illegal in such fields ([J 02.05.05] note 1) |
 | REDEF card contents | may carry a new name for the redefined area ([F p. 75]) | no coding on the REDEF line except serial number and target name ([J 02.05.02]) |
 | Quantity at record level | not addressed | unacceptable; record.names not subscriptable ([J 02.05.01], 90.01.03) |
-| Constant continuation across cards | each line a complete quoted constant ([F p. 83]) | 7090 also accepts single literal split across cards — nonportable ([J 02.03.01]) |
+| Constant continuation across cards | each line a complete quoted constant ([F p. 83]) | 7090 also accepts single literal split across cards; nonportable ([J 02.03.01]) |
 | A vs X pictorial characters | distinct (non-numeric vs any character) ([F p. 80]) | synonymous on 7090 ([J 02.05.04]) |
 | Mixed A/9 pictorials | not addressed | illegal; treated as alphameric ([J 90.01.03]) |
 | Mode meanings | machine-dependent, deferred to processor manuals ([F p. 78]) | I = binary, E = BCD ([J 02.05.04]) |
 
-Open flags for the compiler writer (detailed in the §8.5 catalog): the maximum subscript/quantity-nesting depth under J; the exact written form and card position of BLANK WHEN ZERO; the meaning of "non-format field"; and whether a named REDEF line is accepted. (The exact reading of the External Decimal row of the [J 02.05.05] chart, formerly flagged here, has been scan-resolved — see §8.5.8.)
+Open flags for the compiler writer (detailed in the §8.5 catalog): the maximum subscript/quantity-nesting depth under J; the exact written form and card position of BLANK WHEN ZERO; the meaning of "non-format field"; and whether a named REDEF line is accepted. (The exact reading of the External Decimal row of the [J 02.05.05] chart, formerly flagged here, has been scan-resolved; see §8.5.8.)
 
 ---
 

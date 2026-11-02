@@ -808,6 +808,126 @@ void main() {
     });
   });
 
+  group('the alignment of a MOVE and an ADD (F p. 42)', () {
+    /// The words of [statement] up to its STOP RUN, with NUM at `999`,
+    /// AMT at `99V99`, EXT an external `999`, EXF an external `99V99`,
+    /// EDT at `$8889.99`, and ED3 an edited `899`.
+    List<String> aligned(String statement, {List<String> then = const []}) {
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+          dataCard(
+            name: 'AMT',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '99V99',
+          ),
+          dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
+          dataCard(name: 'EXF', level: '1', mode: 'E', description: '99V99'),
+          dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
+          dataCard(name: 'ED3', level: '1', description: '899'),
+        ],
+        procedure: [statement, ...then, '            STOP RUN.'],
+      );
+      expect(ids(semantics), isEmpty);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      // The procedure begins past the six data reservations.
+      final int start = words.indexOf('BSS 0') + 7;
+      return words.sublist(start, words.indexOf('TSX SYS)178,4'));
+    }
+
+    test('an internal source of lesser scale upscales into the edit', () {
+      expect(aligned('            MOVE NUM TO EDT.'), [
+        'LDQ NUM',
+        'MPY CP)+2',
+        'XCA ',
+        'TSX SYS)180,4',
+        'PZE EDT,,0',
+        'TXI SYS)267,1,12',
+        'OCT 000004000003',
+        'AXT 6,1',
+      ]);
+    });
+
+    test('an external source of lesser scale upscales its convert', () {
+      expect(aligned('            MOVE EXT TO AMT.'), [
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,3',
+        'XCA ',
+        'MPY CP)+2',
+        'XCA ',
+        'STO AMT',
+      ]);
+    });
+
+    test('an external source of greater scale drops its low digits', () {
+      expect(aligned('            MOVE EXF TO NUM.'), [
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)184,1,4',
+        'LRS 35',
+        'DVP CP)+2',
+        'STQ NUM',
+      ]);
+    });
+
+    test('an ADD source of lesser scale parks as the chain parks', () {
+      expect(
+        aligned('            ADD NUM TO AMT.'),
+        aligned('            SET AMT = AMT + NUM.'),
+      );
+      expect(aligned('            ADD NUM TO AMT.'), [
+        'LDQ NUM',
+        'MPY CP)+2',
+        'STQ RS)0',
+        'CLA AMT',
+        'ADD RS)0',
+        'STO AMT',
+      ]);
+    });
+
+    test('an aligned ADD leaves no park open for a later comparison', () {
+      expect(
+        aligned(
+          '            ADD NUM TO AMT.',
+          then: ['            IF NUM + 1 GT AMT THEN STOP RUN.'],
+        ).take(6),
+        ['LDQ NUM', 'MPY CP)+2', 'STQ RS)0', 'CLA AMT', 'ADD RS)0', 'STO AMT'],
+      );
+    });
+
+    test('an edited ADD source aligns after its park', () {
+      expect(aligned('            ADD ED3 TO AMT.'), [
+        'LDI CP)+7',
+        'STI SYS)132',
+        'TSX SYS)182,4',
+        'TXI SYS)268,1,1',
+        'TXI SYS)269,1,3',
+        'TXI SYS)275,1,3',
+        'STO RS)1',
+        'LDQ RS)1',
+        'MPY CP)+2',
+        'STQ RS)0',
+        'CLA AMT',
+        'ADD RS)0',
+        'STO AMT',
+      ]);
+    });
+  });
+
   group('the external-decimal fetch (M6-9)', () {
     /// The words from the first fetch to the end of [statement], with
     /// EXT and EXU external decimal, NUM internal, and IFLD a field of
@@ -2073,6 +2193,272 @@ void main() {
         '            STOP RUN.',
         '            END PROGRAM.START.',
         '      WRAP.UP.  STOP RUN.',
+      ]);
+    });
+  });
+
+  group('the subscript store and the subscripted target (M6-9)', () {
+    /// Two words ahead of every table keep each base `NAME-n` at or above
+    /// address zero.
+    final List<String> pad = [internalCard('P1', '9'), internalCard('P2', '9')];
+
+    /// The units of [procedure] over [data], from START on, each a label,
+    /// a tab, and the word.
+    List<String> lines(List<String> data, List<String> procedure) {
+      final SemanticResult semantics = runJob(data: data, procedure: procedure);
+      expect(ids(semantics), isEmpty);
+      final List<AssemblyUnit> units = runCodegen(semantics).units;
+      final int start = units.indexWhere(
+        (AssemblyUnit u) => u.labels.contains('START'),
+      );
+      return [
+        for (final AssemblyUnit u in units.skip(start))
+          '${u.labels.join(' ')}\t${u.operation} ${u.operand}',
+      ];
+    }
+
+    List<String> upTo(List<String> all, String last) =>
+        all.sublist(0, all.indexOf(last) + 1);
+
+    final List<String> cells = [
+      ...pad,
+      dataCard(name: 'TAB', level: '1', quantity: '3'),
+      internalCard('CELL', '999', level: '2'),
+      internalCard('I', '9'),
+      internalCard('NUM', '999'),
+    ];
+
+    test('an internal-decimal target stores through its indicator', () {
+      // The comparand's prologue of 01410-01411, then STO where 01412
+      // has CAS.
+      expect(
+        upTo(
+          lines(cells, [
+            '      START.  MOVE NUM TO TAB CELL (I).',
+            '            STOP RUN.',
+          ]),
+          '\tSTO 0,1',
+        ),
+        [
+          'GN)000 START\tCLA NUM',
+          '\tLAC PI)1,1',
+          '\tTXL SYS)294,1,0',
+          '\tSTO 0,1',
+        ],
+      );
+    });
+
+    test('an external-decimal source converts, then stores the same way', () {
+      final List<String> all = lines(
+        [...cells, dataCard(name: 'EXT', level: '1', description: '999')],
+        ['      START.  MOVE EXT TO TAB CELL (I).', '            STOP RUN.'],
+      );
+      expect(upTo(all, '\tSTO 0,1').sublist(3), [
+        '\tTXI SYS)184,1,3',
+        '\tLAC PI)1,1',
+        '\tTXL SYS)294,1,0',
+        '\tSTO 0,1',
+      ]);
+    });
+
+    test('a SET into a subscript variable recomputes its indicator', () {
+      final List<String> all = lines(cells, [
+        '      START.  SET I = 2.',
+        '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
+        '            STOP RUN.',
+      ]);
+      // The five words of 01421-01425 behind the store.
+      expect(upTo(all, '\tSTO PI)1'), [
+        'GN)000 START\tCLA CP)+2',
+        '\tSTO I',
+        'GN)002\tEQU CP)+9',
+        '\tLDQ I',
+        '\tMPY CP)+1',
+        '\tXCA ',
+        '\tADD GN)002',
+        '\tSTO PI)1',
+      ]);
+    });
+
+    test('a constant increment adds the stride to the indicator', () {
+      final List<String> all = lines(cells, [
+        '      START.  SET I = I + 2.',
+        '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
+        '            STOP RUN.',
+      ]);
+      // The shape of J 90.02.05, `CLA CP)+1 / ADD PI)6 / STO PI)6`. Two
+      // elements of one word each are 2 words, the pool word of the 2.
+      expect(upTo(all, '\tSTO PI)1'), [
+        'GN)000 START\tCLA I',
+        '\tADD CP)+2',
+        '\tSTO I',
+        '\tCLA CP)+2',
+        '\tADD PI)1',
+        '\tSTO PI)1',
+      ]);
+    });
+
+    test('an external index takes the constant increment too', () {
+      // The step reads no binary index, so the external-decimal refusal
+      // of the recomputation does not apply.
+      final SemanticResult semantics = runJob(
+        data: [
+          ...pad,
+          dataCard(name: 'TAB', level: '1', quantity: '3'),
+          internalCard('CELL', '999', level: '2'),
+          dataCard(name: 'I', level: '1', mode: 'E', description: '9'),
+          internalCard('NUM', '999'),
+        ],
+        procedure: [
+          '      START.  SET I = I + 1.',
+          '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(ids(semantics), ['206,00']);
+      final List<String> words = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          '${u.operation} ${u.operand}',
+      ];
+      final int step = words.indexOf('ADD PI)1');
+      expect(words.sublist(step - 1, step + 2), [
+        'CLA CP)+1',
+        'ADD PI)1',
+        'STO PI)1',
+      ]);
+    });
+
+    test('an ADD into a subscript variable recomputes its indicator', () {
+      final List<String> all = lines(cells, [
+        '      START.  ADD NUM TO I.',
+        '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
+        '            STOP RUN.',
+      ]);
+      expect(upTo(all, '\tSTO PI)1'), [
+        'GN)000 START\tCLA I',
+        '\tADD NUM',
+        '\tSTO I',
+        'GN)002\tEQU CP)+8',
+        '\tLDQ I',
+        '\tMPY CP)+1',
+        '\tXCA ',
+        '\tADD GN)002',
+        '\tSTO PI)1',
+      ]);
+    });
+
+    test('a figurative SET into a subscript variable recomputes', () {
+      final List<String> all = lines(cells, [
+        '      START.  SET I = ZERO.',
+        '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
+        '            STOP RUN.',
+      ]);
+      final int fill = all.indexWhere((String w) => w.contains('SYS)244'));
+      expect(all.sublist(fill + 1, all.indexOf('\tSTO PI)1') + 1), [
+        'GN)002\tEQU CP)+8',
+        '\tLDQ I',
+        '\tMPY CP)+1',
+        '\tXCA ',
+        '\tADD GN)002',
+        '\tSTO PI)1',
+      ]);
+    });
+
+    test('an ADD of an edited source recomputes after its store', () {
+      final List<String> all = lines(
+        [...cells, dataCard(name: 'ED', level: '1', description: '89')],
+        [
+          '      START.  ADD ED TO I.',
+          '            IF NUM GT TAB CELL (I) THEN STOP RUN.',
+          '            STOP RUN.',
+        ],
+      );
+      final int store = all.indexOf('\tSTO I');
+      expect(all.sublist(store, all.indexOf('\tSTO PI)1') + 1), [
+        '\tSTO I',
+        'GN)002\tEQU CP)+8',
+        '\tLDQ I',
+        '\tMPY CP)+1',
+        '\tXCA ',
+        '\tADD GN)002',
+        '\tSTO PI)1',
+      ]);
+    });
+
+    test('the base of one driven indicator carries its byte', () {
+      final List<String> all = lines(
+        [
+          ...pad,
+          dataCard(name: 'TAB', level: '1', quantity: '12'),
+          dataCard(name: 'A', level: '2', description: '99'),
+          dataCard(name: 'B', level: '2', description: '9999'),
+          dataCard(name: 'C', level: '2', description: '9(6)'),
+          internalCard('IDX', '99'),
+          internalCard('NUM', '99'),
+          internalCard('NB', '9(6)'),
+        ],
+        [
+          '      START.  MOVE NUM TO IDX.',
+          '            MOVE TAB B (IDX) TO NB.',
+          '            STOP RUN.',
+        ],
+      );
+      expect(all, contains('\tPZE B-2,,2'));
+    });
+
+    test('the bases of several driven indicators keep the sample words', () {
+      // RETPREM sits at byte 3 of the element's second word. The one
+      // site with two indicators drops it (M6-4 finding 1), and this
+      // shape keeps that site's words.
+      final SemanticResult semantics = runJob(
+        data: [
+          ...pad,
+          dataCard(name: 'TABLE.ITEM', level: '1', quantity: '3'),
+          dataCard(name: 'RATE', level: '2', description: '9(6)'),
+          dataCard(name: 'INSPREM', level: '2', description: '9V99'),
+          dataCard(name: 'RETPREM', level: '2', description: '9V99'),
+          internalCard('POS', '9'),
+          internalCard('WI', '9V99'),
+          internalCard('WR', '9V99'),
+        ],
+        procedure: [
+          '      START.  MOVE POS TO POS.',
+          '            MOVE INSPREM (POS) TO WI.',
+          '            MOVE RETPREM (POS) TO WR.',
+          '            STOP RUN.',
+        ],
+      );
+      final List<AssemblyUnit> pool = [
+        for (final AssemblyUnit u in runCodegen(semantics).units)
+          if (u.operand.endsWith('PREM-2')) u,
+      ];
+      expect([for (final u in pool) u.operand], ['RETPREM-2', 'INSPREM-2']);
+      expect(pool.first.word, pool.last.word);
+    });
+
+    test('a sub-chain parks clear of the outer chain', () {
+      final List<String> all = lines(
+        [internalCard('NUM', '999'), internalCard('X', '9(5)')],
+        [
+          '      START.  SET X = NUM * 2 + (NUM * 3 + 1).',
+          '            STOP RUN.',
+        ],
+      );
+      // NUM * 2 parks in RS)1, so the inner chain's first park takes the
+      // next free cell, RS)2, not RS)1.
+      expect(upTo(all, '\tSTO X'), [
+        'GN)000 START\tLDQ CP)+2',
+        '\tMPY NUM',
+        '\tSTQ RS)1+0',
+        '\tLDQ CP)+3',
+        '\tMPY NUM',
+        '\tSTQ RS)2+0',
+        '\tCLA RS)2',
+        '\tADD CP)+1',
+        '\tSTO RS)0',
+        '\tCLA RS)1',
+        '\tADD RS)0',
+        '\tSTO X',
       ]);
     });
   });

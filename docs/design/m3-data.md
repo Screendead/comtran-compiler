@@ -640,18 +640,18 @@ starts from a fully resolved program and generates code only.
   | GET RECORD FROM f | BLOCK CONTROL on some, not all, of f's records | 121 |
   | FILE card | FIND LENGTH IN names a field of improper format | 111 |
   | FILE card | PLACE LENGTH IN names a field of improper format | 112 |
-  | job end | no GET or FILE processes any record of file f | 198 |
+  | job end | no GET or FILE binds f; FILE x: PRIMARY files, else all [J 02.06.07] | 198 |
 
   Notes. Msg 12's preconditions: all records fixed and equal length; the
   BEGIN option; all records standard variable; BLOCK CONTROL. PATTERN
   cannot rescue it until its M5 syntax lands (D9.12). The proper format
   for 111/112 (ours): external or internal decimal with no fraction
   and no scale positions — the message text says format, and a scaled
-  field cannot hold an arbitrary length (a length of 84 into 999SSS
+  field cannot hold an arbitrary length (84 into 999SSS
   stores zero). An ON ERROR, FOR LABEL, FIND LENGTH IN, or PLACE LENGTH IN
   name that resolves to nothing draws msg 108 at the card. OPTION's
   section names stay unresolved in stage 2: no M3-tagged row covers
-  them, and the leniency default holds where nothing is attested.
+  them, and leniency holds where nothing is attested.
   Msg 198 runs only in a job with at least one GET or FILE verb (ours,
   scope). A checkpoint file is exempt: its FILE card form names no
   records ([J 02.06.04]). A GET or FILE operand that is a CALL synonym
@@ -708,10 +708,20 @@ starts from a fully resolved program and generates code only.
   | a subscripted reference to an item with no dimensions | 98 |
   | a subscript count above zero that differs from the dimension count | 70 |
   | a subscript's variable is itself subscripted, or is a condition name | 71 |
+  | a subscript term that calls a function | 71 |
   | a subscript variable of alphameric, edited, or group class | 79 |
   | a subscript variable with fraction or scale positions | 31 |
   | a literal subscript term that is zero, negative, or fractional | 182 |
   | a legal subscript variable format that is not the direct-index form | 206 |
+
+  *Amended 2026-11-02 (Jack's ruling, review/2026-11-02-pitch-rulings):
+  the function row is new. A function call is not a name, a literal,
+  or an index expression ([F p. 31]). The term draws msg 71. The
+  function check (M3-19) still runs. The ruling also asks for msg 79
+  on an alphameric literal term and msg 182 on ZERO. It assumed that
+  both terms drew nothing. The parser already gives msg 912 to
+  the literal (D9.7) and msg 192 to ZERO (M2-8). This record adds
+  neither; the question is back with Jack.*
 
   A reference with zero subscripts is the whole-array reference and is
   legal. Msg 206's predicate concretizes D9.11: any format other than
@@ -909,6 +919,7 @@ the golden rewrite.
 
 [F p. 15]: ../../comtran-manuals/F28-8043/02-language-structure.md#condition-names
 [F p. 26]: ../../comtran-manuals/F28-8043/02-language-structure.md#sentences
+[F p. 31]: ../../comtran-manuals/F28-8043/02-language-structure.md#subscripts
 [F p. 33]: ../../comtran-manuals/F28-8043/02-language-structure.md#functions
 [F p. 49]: ../../comtran-manuals/F28-8043/03-procedure-description.md#assigned
 [F p. 53]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-data-substitution
@@ -929,6 +940,7 @@ the golden rewrite.
 [J 02.05.07]: ../../comtran-manuals/J28-6169/02-compiler.md#2-constants
 [J 02.06]: ../../comtran-manuals/J28-6169/02-compiler.md#0206-environment-description
 [J 02.06.04]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
+[J 02.06.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
 [J 02.06.08]: ../../comtran-manuals/J28-6169/02-compiler.md#d-specif-environment-card
 [J 02.06.13]: ../../comtran-manuals/J28-6169/02-compiler.md#d-specif-environment-card
 [J 02.06.14]: ../../comtran-manuals/J28-6169/02-compiler.md#f-group-environment-card

@@ -79,6 +79,29 @@ void main() {
       expect(ids(result), ['188,00']);
     });
 
+    test('a GO TO to an AT END bare name draws 128,00 (D6.6; Q40)', () {
+      final SemanticResult result = runJob(
+        data: [
+          dataCard(name: 'MASTER', level: '1', type: 'RECORD'),
+          dataCard(name: 'EMP', level: '2', description: 'A(6)'),
+        ],
+        environment: [
+          environmentCard(
+            name: 'FIN',
+            type: 'FILE',
+            options: 'INPUT,BCD,TAPE,MASTER,BLOCKSIZE 5',
+          ),
+        ],
+        procedure: [
+          "      AWAY.       DISPLAY 'A'.",
+          '            GET MASTER, AT END AWAY.',
+          '            GO TO AWAY.',
+        ],
+      );
+      expect(ids(result), ['128,00']);
+      expect(result.semanticDiagnostics.single.operands, ['AWAY']);
+    });
+
     test('a one-word target takes its own section first (D2.5)', () {
       // The outermost X is DO-addressed; the section's own X is not, so
       // only the transfer that leaves the section is refused.
@@ -381,6 +404,21 @@ void main() {
         procedure: program(' GIVING IDX.', 'IDX ((ARG, FRAC))'),
       );
       expect(ids(result), ['68,00']);
+    });
+
+    test('a function is checked as a SET value and as an ADD source', () {
+      for (final clause in ['SET T = IDX ((ARG)).', 'ADD IDX ((ARG)) TO T.']) {
+        final SemanticResult result = runJob(
+          data: _fields(),
+          procedure: [
+            '      S.          BEGIN SECTION USING ARG.',
+            '            END S.',
+            '            $clause',
+          ],
+        );
+        expect(ids(result), ['191,00'], reason: clause);
+        expect(result.semanticDiagnostics.single.operands, ['IDX']);
+      }
     });
   });
 
