@@ -2195,6 +2195,46 @@ void main() {
         '      WRAP.UP.  STOP RUN.',
       ]);
     });
+
+    test('a second label prints on its word and the first is used', () {
+      // Msg 141: "MORE THAN ONE -PROGRAM.START-. FIRST USED."
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+        ],
+        procedure: <String>[
+          '      PROGRAM.START.  SET NUM = NUM + 1.',
+          '            GO TO PROGRAM.START.',
+          '      PROGRAM.START.  SET NUM = NUM + NUM.',
+          '            STOP RUN.',
+        ],
+      );
+      // The second label and the GO TO each draw D2.5's 166.
+      expect(ids(semantics), <String>['166,00', '166,00']);
+      final List<AssemblyUnit> units = runCodegen(semantics).units;
+      final List<AssemblyUnit> labelled = units
+          .where((AssemblyUnit u) => u.labels.contains('PROGRAM.START'))
+          .toList();
+      expect(labelled, hasLength(2));
+      final int first = labelled.first.location!;
+      expect(labelled.last.location, greaterThan(first));
+      final AssemblyUnit end = units.singleWhere(
+        (AssemblyUnit u) => u.control == ControlGroup.endOfText,
+      );
+      expect(end.operand, 'PROGRAM.START');
+      expect(Word36.address(end.word!), first);
+      final AssemblyUnit transfer = units.singleWhere(
+        (AssemblyUnit u) =>
+            u.operation == 'TRA' && u.operand == 'PROGRAM.START',
+      );
+      expect(Word36.address(transfer.word!), first);
+    });
   });
 
   group('the subscript store and the subscripted target (M6-9)', () {

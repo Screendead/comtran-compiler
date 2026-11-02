@@ -422,6 +422,11 @@ final class _Text {
     final List<String> names = _pending;
     _pending = <String>[];
     for (final name in names) {
+      if (name == programStartName && _labelled.containsKey(name)) {
+        // Msg 141: the first PROGRAM.START is used (D2.1). The later
+        // one prints on its word and binds nothing.
+        continue;
+      }
       if (_labelled.containsKey(name)) {
         // Rebinding keeps only the later address, against D2.5's
         // section scoping, and no sample label repeats.
@@ -1481,6 +1486,12 @@ final class _Text {
       _card = scan.cards.first;
       final String? name = scan.label;
       _sentenceLabel = name;
+      if (name == programStartName &&
+          _labelled.containsKey(name) &&
+          (_beginsSection(sentence) || _doTargets.contains(name))) {
+        // Its END would return through the first label's cell (D2.1).
+        _unruled('a second PROGRAM.START that owns a return cell');
+      }
       if (name != null) {
         final String? open = _openParagraph;
         if (open != null) {

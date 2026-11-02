@@ -1437,6 +1437,22 @@ void main() {
       );
     });
 
+    test('a second PROGRAM.START that opens a section', () {
+      // Its END would return through the first label's cell.
+      expect(
+        _refuses(
+          [
+            '      PROGRAM.START.  SET NUM = NUM + NUM.',
+            '      PROGRAM.START.  BEGIN SECTION.',
+            '            SET NUM = NUM + TOT.',
+            '            END PROGRAM.START.',
+          ],
+          flagged: ['166,00'],
+        ),
+        'a second PROGRAM.START that owns a return cell',
+      );
+    });
+
     test('a label spelled like a section of another scope', () {
       // Legal under D2.5's per-section scope; the flat binder would
       // keep only the later address.
