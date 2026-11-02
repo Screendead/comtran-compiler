@@ -35,7 +35,8 @@ JobCompilation _job(String deck) =>
 
 void main() {
   test('the verbatim deck prints its golden', () {
-    // The generator refuses the deck, so the run ends in a refusal.
+    // The generator refuses the deck, so the run ends in a refusal. It
+    // is the listing reading's, per Jack's ruling of 2026-11-02 (M6-9).
     _printsGolden(
       fVerbatimDeckPath,
       'test/goldens/f-payroll.listing',

@@ -138,6 +138,11 @@ ProcedureText generateProcedure(
 
 /// A refusal of this recovery, not a diagnostic of the program.
 ///
+/// The refusals for the as-keyed 1960 deck are the diagnostic-listing
+/// reading's, per Jack's ruling of 2026-11-02 (m6-acceptance.md M6-9):
+/// J punches a deck for that program, so the label is "no evidence
+/// describes the code", never "the 1962 compiler refused".
+///
 /// The sample never reaches the refusing site, so no generated shape
 /// is attested and none is invented (the notes, section 7). The 1962
 /// compiler had code for the shape, so no [J 90.04] message and no
@@ -2087,7 +2092,8 @@ final class _Text {
       _unruled('a GET where two FILE cards share a name (no sample instance)');
     }
     if (info.inputFiles.length != 1) {
-      // Zero files, or the two-input-file program behind msg 11.
+      // Zero files, or the two-input-file program behind msg 11. The
+      // listing reading's refusal (M6-9, ruling of 2026-11-02).
       _unruled(
         'a GET record on ${info.inputFiles.length} input files '
         '(no sample instance)',
@@ -2150,6 +2156,7 @@ final class _Text {
       // The IN form names the file, so the record may sit on several
       // (J 02.07.08 b; M6-9).
       if (!info.outputFiles.contains(named)) {
+        // The listing reading's refusal (M6-9, ruling of 2026-11-02).
         _unruled(
           'FILE record IN a file that is not an output file of the record '
           '(no sample instance)',
