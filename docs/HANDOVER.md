@@ -519,7 +519,7 @@ https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw. The record
 | Defect 10 keeps the 1962 behaviour | This file; PR #172 holds the ruling of 2026-10-25 and the tutorial warning |
 | Defect 6: message 948,00, severity 4, the OPEN kept, a straight run only | PR #170 |
 | M6-9: "compile" means the diagnostic listing; the refusals stay and get a new label | No pull request carries it |
-| Dangling continuation: message 949,00, class 1, `--pedantic` only | PR #177 |
+| Dangling continuation: message 949,00, class 1, `--pedantic` only | PR #177; D11.4 amended 2026-11-02 |
 | W2: mark the genuine manual typos [sic] on the generated transcription pages; remove the em dashes from the language reference | PR #178 |
 | The three silent subscripts draw messages 79, 182 and 71 | Branch `subscript-diagnostics` |
 | M7 opens after W3 and W4 | This file |
@@ -616,15 +616,10 @@ PDF p. 217. It makes every milestone below testable at once.
   of that date makes them chunk 2b's work, because each one compiled in
   1962. `docs/design/m6-acceptance.md` M6-9 holds the list and the
   evidence, and M6-8 as amended holds the course the rule overturns.
-- **Parked, unscheduled — the dangling-continuation diagnostic.** The Data
-  and Environment scanners accept a dangling continuation in silence: a
-  punched column 72 on a division's last card draws no diagnostic
-  (`continuationGroups`, `lib/src/lexer/source_card.dart`). The Procedure
-  scanner reports its analogue under D9.4. Give the other two scanners the
-  same treatment. The manuals are silent on the error case, so the message
-  id and severity are Jack's call at pickup. He ruled on 2026-11-02:
-  message 949,00, class 1, `--pedantic` only. PR #177 carries it, and
-  this bullet closes when it merges.
+- **Done 2026-11-02 — the dangling-continuation diagnostic** (PR #177).
+  A punched column 72 on the last card of a Data or Environment group
+  draws 949,00, class 1, under `--pedantic` only. Jack ruled it on
+  2026-11-02 (D11.4, amended).
 
 ## Parallel tooling track
 

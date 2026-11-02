@@ -232,3 +232,15 @@ const Message msgJobClosedByCompileCard = Message.ours(
   'JOB CLOSED BY A COMPILE CARD WITHOUT *FINISH. ACCEPTED. '
       '(NON-HISTORICAL.)',
 );
+
+/// Ours, --pedantic only (D0.8, D11.4) — the last card before a header
+/// card or the end of the deck has column 72 punched, so its Data or
+/// Environment entry claims a continuation card that does not follow
+/// (J 02.03.02, §3.b). The manuals give no message for the case; the
+/// Procedure analogue is 62,00 (D9.4). Jack ruled the id and class on
+/// 2026-11-02 (D11.4, amended).
+const Message msgDanglingContinuation = Message.ours(
+  '949,00',
+  'COLUMN 72 PUNCHED, BUT NO CONTINUATION CARD FOLLOWS. ENTRY ASSUMED '
+      'COMPLETE. (NON-HISTORICAL.)',
+);

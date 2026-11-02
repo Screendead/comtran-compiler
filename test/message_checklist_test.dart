@@ -74,6 +74,7 @@ final Map<String, Message> _ours = {
     msgLoopParametersDoNotStep,
     msgDoReentersActiveProcedure,
     msgReopenAfterCloseAll,
+    msgDanglingContinuation,
   ])
     m.number: m,
 };
