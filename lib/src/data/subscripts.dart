@@ -119,8 +119,8 @@ final class SubscriptChecker {
   void _checkVariable(NameReference variable, NameReference array) {
     final DataItem? item = resolver.dataResolutions[variable];
     if (variable.subscripts.isNotEmpty || item?.typeCode == DataTypeCode.cond) {
-      // A subscript is a name or an index expression (F p. 31);
-      // neither form admits a subscripted name or a condition.
+      // A subscript is a name, a literal, or an index expression
+      // (F p. 31); none admits a subscripted name or a condition.
       resolver.report(
         msgInvalidSubscriptVariable,
         variable.anchor,

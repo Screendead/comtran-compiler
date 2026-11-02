@@ -720,8 +720,8 @@ starts from a fully resolved program and generates code only.
   function check (M3-19) still runs. The ruling also asks for msg 79
   on an alphameric literal term and msg 182 on ZERO. It assumed that
   both terms drew nothing. The parser already gives msg 912 to
-  the literal and msg 192 to ZERO (M2-8). This record adds
-  neither. Jack decides that part again.*
+  the literal (D9.7) and msg 192 to ZERO (M2-8). This record adds
+  neither; the question is back with Jack.*
 
   A reference with zero subscripts is the whole-array reference and is
   legal. Msg 206's predicate concretizes D9.11: any format other than
