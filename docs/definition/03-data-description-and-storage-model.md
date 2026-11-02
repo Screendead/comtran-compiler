@@ -6,7 +6,7 @@ Part 3 of 10 of the [COMTRAN Language Definition](README.md).
 
 This section defines the Data Description division of a COMTRAN source program: the file/record/field hierarchy, the fixed-column data description card, every type code, the pictorial (format-character) repertoire, constants, modes, justification and word-boundary rules, tables and subscript declaration, and every stated numeric limit. F28-8043 chapter 4 is the 1960 language description; J28-6169 section 02.05 (with 02.03 and 90.01) is authoritative for the implemented 709/7090 language. Divergences are flagged throughout and summarized in §3.11.
 
-### 3.1 Files, records, and fields — the data hierarchy
+### 3.1 Files, records, and fields: the data hierarchy
 
 The manuals define the three units of data by the verbs that may operate on them ([F p. 63]):
 
@@ -200,7 +200,7 @@ Optional program-identification code; any characters from the basic character se
 
 "The RCDMRK type code causes insertion of a single character record mark constant in the indicated position. No description field specification is required since the compiler automatically provides a pictorial with a single A. Information may be freely moved into or out of this position subject only to the restriction imposed by its single character alphameric format." ([J 02.05.03]) Not present in F.
 
-#### PARAM and FUNCT (F only — removed)
+#### PARAM and FUNCT (F only, removed)
 
 - F: FUNCT identifies a function-name (a data-name specified in the GIVING clause of a BEGIN SECTION command) which "must be fully described in accordance with the provisions of this chapter" ([F p. 73]). PARAM identifies a parameter: each data-name listed in the USING clause of a BEGIN SECTION command ([F p. 73]). See F's functions discussion ([F p. 32]) and the procedure section.
 - **F/J divergence:** "These two type codes described in the General Information Manual are no longer in the language." ([J 02.05.03])
@@ -405,7 +405,7 @@ F chapter 4 closes with the storage-areas doctrine ([F p. 84–85]):
 - Obligations on the programmer: all data-names required for input and output, as specified in the processor manual, must be properly described; "every item of data used in the program, whether as input, output, or for intermediate operations" must be described ([F p. 85]). J's converse: no storage is allocated for fields not named in a Data Description entry ([J 02.05.01]).
 - On the 7090, buffer storage for I/O is reserved by the Loader and assigned dynamically ([J 02.07.02]); located records live in buffers, transmitted records get their own storage; see the Input/Output section.
 
-### 3.10 Numeric limits and defaults — summary
+### 3.10 Numeric limits and defaults: summary
 
 | Item | Limit / default | Citation |
 |---|---|---|
@@ -436,7 +436,7 @@ F chapter 4 closes with the storage-areas doctrine ([F p. 84–85]):
 
 (Values from [J 90.01.05] are headed "Appox-Max Size": approximate maxima of compiler internal tables.)
 
-### 3.11 F/J divergences in data description — summary
+### 3.11 F/J divergences in data description: summary
 
 | Topic | F28-8043 (1960) | J28-6169 (1962, authoritative) |
 |---|---|---|

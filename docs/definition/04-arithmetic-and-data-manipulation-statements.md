@@ -162,7 +162,7 @@ Observed processor semantics consistent with this (phrased from the generated-co
 
 Compile-time scale diagnostics: "DOWNSCALE GENERATED WHICH LOSES ALL SIGNIFICANT FIGURES." (27,00), "ATTEMPTED DIVISION BY ZERO BYPASSED. RESULT TAKEN TO BE ZERO." (28,00), "UPSCALE MAY CAUSE HIGH ORDER TRUNCATION FOR STORE INTO 'NAME.1'" (199,00) ([J 90.04.01]).
 
-#### 4.2.3 Legal operand/target formats — summary
+#### 4.2.3 Legal operand/target formats: summary
 
 | Context | Rule | Citation |
 |---|---|---|
@@ -173,7 +173,7 @@ Compile-time scale diagnostics: "DOWNSCALE GENERATED WHICH LOSES ALL SIGNIFICANT
 
 A statement operating on a field whose format is improper draws "OPERATION IGNORED BECAUSE 'NAME.1' HAS IMPROPER DATA FORMAT ( E  A(2) ) FOR THIS USE." ([J 90.04.01], message 25,00).
 
-### 4.3 The SET command — arithmetic assignment
+### 4.3 The SET command: arithmetic assignment
 
 General form:
 

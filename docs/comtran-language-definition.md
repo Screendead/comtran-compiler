@@ -51,7 +51,7 @@ Conventions inherited from the conversions: 1960s spellings ("alphameric", "imbe
     - [2.9 Program size and structural limits (7090 implementation)](#29-program-size-and-structural-limits-7090-implementation)
     - [2.10 Ambiguities affecting this section (summary)](#210-ambiguities-affecting-this-section-summary)
 3. [Data description and storage model](#3-data-description-and-storage-model)
-    - [3.1 Files, records, and fields — the data hierarchy](#31-files-records-and-fields--the-data-hierarchy)
+    - [3.1 Files, records, and fields: the data hierarchy](#31-files-records-and-fields-the-data-hierarchy)
     - [3.2 The *DATA division and the data description card](#32-the-data-division-and-the-data-description-card)
     - [3.3 Type codes in detail](#33-type-codes-in-detail)
     - [3.4 The Description field in detail](#34-the-description-field-in-detail)
@@ -60,12 +60,12 @@ Conventions inherited from the conversions: 1960s spellings ("alphameric", "imbe
     - [3.7 Lists, tables, and subscripts (declaration side)](#37-lists-tables-and-subscripts-declaration-side)
     - [3.8 Record length: fixed vs. variable (storage view)](#38-record-length-fixed-vs-variable-storage-view)
     - [3.9 Storage areas](#39-storage-areas)
-    - [3.10 Numeric limits and defaults — summary](#310-numeric-limits-and-defaults--summary)
-    - [3.11 F/J divergences in data description — summary](#311-fj-divergences-in-data-description--summary)
+    - [3.10 Numeric limits and defaults: summary](#310-numeric-limits-and-defaults-summary)
+    - [3.11 F/J divergences in data description: summary](#311-fj-divergences-in-data-description-summary)
 4. [Arithmetic and data-manipulation statements](#4-arithmetic-and-data-manipulation-statements)
     - [4.1 Arithmetic expressions](#41-arithmetic-expressions)
     - [4.2 Modes, precision, and mixed-mode evaluation (709/7090)](#42-modes-precision-and-mixed-mode-evaluation-7097090)
-    - [4.3 The SET command — arithmetic assignment](#43-the-set-command--arithmetic-assignment)
+    - [4.3 The SET command: arithmetic assignment](#43-the-set-command-arithmetic-assignment)
     - [4.4 SET used with condition-names](#44-set-used-with-condition-names)
     - [4.5 The ADD command](#45-the-add-command)
     - [4.6 The ADD CORRESPONDING command](#46-the-add-corresponding-command)
@@ -94,7 +94,7 @@ Conventions inherited from the conversions: 1960s spellings ("alphameric", "imbe
     - [6.7 The CLOSE command and CLOSE ALL FILES](#67-the-close-command-and-close-all-files)
     - [6.8 Labels and non-standard label processing](#68-labels-and-non-standard-label-processing)
     - [6.9 The DISPLAY command](#69-the-display-command)
-    - [6.10 The LOAD command (and OVERLAP) — deferred](#610-the-load-command-and-overlap--deferred)
+    - [6.10 The LOAD command (and OVERLAP): deferred](#610-the-load-command-and-overlap-deferred)
     - [6.11 The worked examples of J 02.07.F](#611-the-worked-examples-of-j-0207f)
     - [6.12 Report generation: what exists and what does not](#612-report-generation-what-exists-and-what-does-not)
     - [6.13 Environment-card summary for I/O (cross-reference to §7)](#613-environment-card-summary-for-io-cross-reference-to-7)
@@ -102,11 +102,11 @@ Conventions inherited from the conversions: 1960s spellings ("alphameric", "imbe
 7. [Special facilities and library conventions](#7-special-facilities-and-library-conventions)
     - [7.1 The Environment Description (J 02.06)](#71-the-environment-description-j-0206)
     - [7.2 Compiler control cards ($CMPLE, *FINISH) (J 02.01)](#72-compiler-control-cards-cmple-finish-j-0201)
-    - [7.3 The library system — COPY, LIBRARY, INCLUDE (F design; deferred in J)](#73-the-library-system--copy-library-include-f-design-deferred-in-j)
-    - [7.4 Program segmentation — OVERLAP and LOAD (F design; deferred in J)](#74-program-segmentation--overlap-and-load-f-design-deferred-in-j)
-    - [7.5 Renaming and linkage — CALL, ENTER, CONTRL](#75-renaming-and-linkage--call-enter-contrl)
-    - [7.6 Commentary conventions — NOTE and the period-blank rule](#76-commentary-conventions--note-and-the-period-blank-rule)
-    - [7.7 The CRYPT facility — 709/7090 machine symbolic language (J 02.08)](#77-the-crypt-facility--7097090-machine-symbolic-language-j-0208)
+    - [7.3 The library system: COPY, LIBRARY, INCLUDE (F design; deferred in J)](#73-the-library-system-copy-library-include-f-design-deferred-in-j)
+    - [7.4 Program segmentation: OVERLAP and LOAD (F design; deferred in J)](#74-program-segmentation-overlap-and-load-f-design-deferred-in-j)
+    - [7.5 Renaming and linkage: CALL, ENTER, CONTRL](#75-renaming-and-linkage-call-enter-contrl)
+    - [7.6 Commentary conventions: NOTE and the period-blank rule](#76-commentary-conventions-note-and-the-period-blank-rule)
+    - [7.7 The CRYPT facility: 709/7090 machine symbolic language (J 02.08)](#77-the-crypt-facility-7097090-machine-symbolic-language-j-0208)
     - [7.8 F/J divergence summary for this section](#78-fj-divergence-summary-for-this-section)
 8. [Known ambiguities, underspecified behaviour, and plausible resolutions](#8-known-ambiguities-underspecified-behaviour-and-plausible-resolutions)
     - [8.1 Status of the sources](#81-status-of-the-sources)
@@ -955,7 +955,7 @@ Recorded in detail in the ambiguity register accompanying this reference: (1) th
 
 This section defines the Data Description division of a COMTRAN source program: the file/record/field hierarchy, the fixed-column data description card, every type code, the pictorial (format-character) repertoire, constants, modes, justification and word-boundary rules, tables and subscript declaration, and every stated numeric limit. F28-8043 chapter 4 is the 1960 language description; J28-6169 section 02.05 (with 02.03 and 90.01) is authoritative for the implemented 709/7090 language. Divergences are flagged throughout and summarized in §3.11.
 
-### 3.1 Files, records, and fields — the data hierarchy
+### 3.1 Files, records, and fields: the data hierarchy
 
 The manuals define the three units of data by the verbs that may operate on them ([F p. 63]):
 
@@ -1149,7 +1149,7 @@ Optional program-identification code; any characters from the basic character se
 
 "The RCDMRK type code causes insertion of a single character record mark constant in the indicated position. No description field specification is required since the compiler automatically provides a pictorial with a single A. Information may be freely moved into or out of this position subject only to the restriction imposed by its single character alphameric format." ([J 02.05.03]) Not present in F.
 
-#### PARAM and FUNCT (F only — removed)
+#### PARAM and FUNCT (F only, removed)
 
 - F: FUNCT identifies a function-name (a data-name specified in the GIVING clause of a BEGIN SECTION command) which "must be fully described in accordance with the provisions of this chapter" ([F p. 73]). PARAM identifies a parameter: each data-name listed in the USING clause of a BEGIN SECTION command ([F p. 73]). See F's functions discussion ([F p. 32]) and the procedure section.
 - **F/J divergence:** "These two type codes described in the General Information Manual are no longer in the language." ([J 02.05.03])
@@ -1354,7 +1354,7 @@ F chapter 4 closes with the storage-areas doctrine ([F p. 84–85]):
 - Obligations on the programmer: all data-names required for input and output, as specified in the processor manual, must be properly described; "every item of data used in the program, whether as input, output, or for intermediate operations" must be described ([F p. 85]). J's converse: no storage is allocated for fields not named in a Data Description entry ([J 02.05.01]).
 - On the 7090, buffer storage for I/O is reserved by the Loader and assigned dynamically ([J 02.07.02]); located records live in buffers, transmitted records get their own storage; see the Input/Output section.
 
-### 3.10 Numeric limits and defaults — summary
+### 3.10 Numeric limits and defaults: summary
 
 | Item | Limit / default | Citation |
 |---|---|---|
@@ -1385,7 +1385,7 @@ F chapter 4 closes with the storage-areas doctrine ([F p. 84–85]):
 
 (Values from [J 90.01.05] are headed "Appox-Max Size": approximate maxima of compiler internal tables.)
 
-### 3.11 F/J divergences in data description — summary
+### 3.11 F/J divergences in data description: summary
 
 | Topic | F28-8043 (1960) | J28-6169 (1962, authoritative) |
 |---|---|---|
@@ -1567,7 +1567,7 @@ Observed processor semantics consistent with this (phrased from the generated-co
 
 Compile-time scale diagnostics: "DOWNSCALE GENERATED WHICH LOSES ALL SIGNIFICANT FIGURES." (27,00), "ATTEMPTED DIVISION BY ZERO BYPASSED. RESULT TAKEN TO BE ZERO." (28,00), "UPSCALE MAY CAUSE HIGH ORDER TRUNCATION FOR STORE INTO 'NAME.1'" (199,00) ([J 90.04.01]).
 
-#### 4.2.3 Legal operand/target formats — summary
+#### 4.2.3 Legal operand/target formats: summary
 
 | Context | Rule | Citation |
 |---|---|---|
@@ -1578,7 +1578,7 @@ Compile-time scale diagnostics: "DOWNSCALE GENERATED WHICH LOSES ALL SIGNIFICANT
 
 A statement operating on a field whose format is improper draws "OPERATION IGNORED BECAUSE 'NAME.1' HAS IMPROPER DATA FORMAT ( E  A(2) ) FOR THIS USE." ([J 90.04.01], message 25,00).
 
-### 4.3 The SET command — arithmetic assignment
+### 4.3 The SET command: arithmetic assignment
 
 General form:
 
@@ -2062,7 +2062,7 @@ Conditional expressions appear in exactly these control contexts: the IF clause 
 - Each relational expression must be completely stated: `HOURLY.RATE IS GREATER THAN 3.50 AND LESS THAN 5.00` is not accepted; both operands must be repeated ([F p. 23], rule 3).
 - Reserved-word inventory relevant to relations: F Appendix 2 lists IS, GREATER, LESS, THAN, EQUAL, GT, LT, NOT ([F p. 110]). J's key-word list additionally reserves **EQUALS** ([J 02.03.02]) although no manual documents an "EQUALS" relational form; see open questions. The sample program uses `IS NOT EQUAL TO`, `NOT GT`, `GT`, `LT`, and `=` ([J 90.05], listing PDF pp. 195–197).
 
-#### 5.3.2 Comparison semantics (J 02.04.C — authoritative)
+#### 5.3.2 Comparison semantics (J 02.04.C, authoritative)
 
 [J 02.04.06]–02.04.07, "C. Conditional Statements", gives the implemented comparison rules:
 
@@ -2117,7 +2117,7 @@ condition.name   COND    KEYS 'nn'
 
 'nn' is 12 octal digits giving "on" settings; "When the condition.name is tested in a procedure statement only the keys specified in 'nn' are tested for 'on' setting. The specified console keys must all be 'on' for the condition to be true. No 'off' or 'on' test is made for the non-specified keys" ([J 02.06.17]). This gives the object program an operator-controlled switch testable by IF, a facility absent from F. **F/J divergence.**
 
-#### 5.3.4 AND, OR, and NOT — combination rules and precedence
+#### 5.3.4 AND, OR, and NOT: combination rules and precedence
 
 Compound conditions are formed with AND and OR, with parentheses where needed; "The negative form of a conditional expression may also be used; this is obtained by placing the word NOT before the expression" ([F p. 23]). The four interpretation rules ([F p. 23]):
 
@@ -2739,7 +2739,7 @@ DISPLAY  { 'any message'
          { any combination of the above
 ```
 
-### 6.10 The LOAD command (and OVERLAP) — deferred
+### 6.10 The LOAD command (and OVERLAP): deferred
 
 General form ([F p. 54]):
 
@@ -3126,7 +3126,7 @@ Name    Type     Description
 - **OPENCOUNT nn**: maximum number of files within the group that may be open concurrently during execution; determines the minimum buffer count for the GROUP. Default: "assumed equal to the number of files in the GROUP" ([J 02.06.14]).
 - **BUFFERCOUNT nn**: buffers assigned by the loader to this GROUP; must be ≥ the GROUP's OPENCOUNT. Default: "the loader will attempt to assign at least twice the OPENCOUNT number of buffers to the GROUP." If POOL BUFFERCOUNT or storage limitations prevent this, buffers beyond the minimum are allocated "on the basis of the activity of the files in the GROUP" ([J 02.06.14]); cf. SPECIF ACTIVITY (§7.1.5).
 
-#### 7.1.8 CONTRL card — inter-program areas (deferred)
+#### 7.1.8 CONTRL card: inter-program areas (deferred)
 
 "The CONTRL cards define procedure and/or data areas common to two or more Commercial Translator programs. These programs may be compiled and checked out independently and then merged at object loading time into one running program" ([J 02.06.15]).
 
@@ -3151,7 +3151,7 @@ Restrictions ([J 02.06.15]–02.06.16):
 
 **Deferral ([J 90.01.04]):** "Mechanization of multiple deck combination has been deferred. CONTRL specifications will have no effect on the object deck produced by the Compiler, i.e., no control break table is punched." Correspondingly, "The control break table is not processed by the loader. This implies that multiple program loading with cross references by means of control breaks is not available" ([J 90.01.05]). (The object-deck layout still reserves a Control Break Table position, [J 02.02]; see the object-deck section.) The compiler nonetheless diagnoses CONTRL card format errors (176,00, [J 90.04]).
 
-#### 7.1.9 OPTION card — collating sequence and space/time conservation
+#### 7.1.9 OPTION card: collating sequence and space/time conservation
 
 "OPTION cards may be used to set compilation mode switches within the compiler" ([J 02.06.16]). The compiler normally generates comparison instructions based on the 709/7090 collating sequence and an object program "conservative of time rather than space"; the OPTION card selects the Commercial (705) collating sequence and/or a time- or space-conservative object program ([J 02.06.16]).
 
@@ -3183,7 +3183,7 @@ Commercial (705):  Blank   .   ⟨loz⟩   ⟨gm⟩   &   $   *   −   /   ,   
 
 COLLATE COM also changes the figurative constants: HIGH.VALUE is `(` and LOW.VALUE is `0` under the 709/7090 sequence; under COM, HIGH.VALUE is `9` and LOW.VALUE is blank ([J 02.04.01]; see §2/§4 on figurative constants).
 
-#### 7.1.10 COND card — console entry keys
+#### 7.1.10 COND card: console entry keys
 
 "The COND card defines a computer console entry keys setting which may be interrogated by procedure statements" ([J 02.06.17]).
 
@@ -3255,7 +3255,7 @@ $CMPLE       deck.name      [NODECK]        [,LIST]         [,DICT]
 
 Related deck-level facts a compiler writer should know ([J 02.02], [J 02.03.01]): normal output is a relocatable column-binary deck (symbolic control cards, \*CTEXT, relative binary program deck with Control Break Table / File Check Table / Text, \*CTEND; see the object-deck section, [J 90.03]); the listing assigns statement numbers of the form xxxxx,00 (clause number after the comma; 9999,99 references errors not confined to a single statement); and "Card serial numbers in columns 1-6 of source decks are not sequence checked by the compiler" ([J 02.03.01]). **F/J divergence:** F states serial numbers "will be sequence-checked by the processor" ([F p. 37]).
 
-### 7.3 The library system — COPY, LIBRARY, INCLUDE (F design; deferred in J)
+### 7.3 The library system: COPY, LIBRARY, INCLUDE (F design; deferred in J)
 
 #### 7.3.1 The library concept (F)
 
@@ -3303,7 +3303,7 @@ The Description columns (38–71) of a data description entry may contain, among
 
 In F's reserved-word list, COND, COPY, FUNCT, LABEL, LIBRARY, PARAM, QUANTITY and REDEF are daggered: "These words have a restricted usage only in data description; they may be used freely in procedure description" ([F p. 110]). In J, LIBRARY (but not COPY) appears in the key-word list of words that "may not be used as Data or Procedure names" ([J 02.03.02]); type codes are recognized positionally in the Type columns.
 
-### 7.4 Program segmentation — OVERLAP and LOAD (F design; deferred in J)
+### 7.4 Program segmentation: OVERLAP and LOAD (F design; deferred in J)
 
 **J status:** "Implementation of these verbs [LOAD and OVERLAP] has been deferred" ([J 90.01.03]); "Deferred implementation of the LOAD-OVERLAP verbs implies that programs may not be segmented into separate memory loads at this time" ([J 90.01.05]). Both remain reserved words in J ([J 02.03.02]). The following is the F design.
 
@@ -3336,7 +3336,7 @@ LOAD procedure.name
 
 Note the F/J structural distinction: LOAD is a *program* verb (miscellaneous category, with DISPLAY), OVERLAP a *processor* verb ([F p. 35]).
 
-### 7.5 Renaming and linkage — CALL, ENTER, CONTRL
+### 7.5 Renaming and linkage: CALL, ENTER, CONTRL
 
 #### 7.5.1 CALL (processor command)
 
@@ -3356,7 +3356,7 @@ J amplifications and restrictions:
 - Subscripts in the (old.name) are erroneous: both `CALL (A(J))B.` and `CALL (A(3))B.` are given as incorrect ([J 90.01.01]).
 - CALL's principal implemented role: reducing a qualified (compound) name to a one-word name so it can be referenced in the Environment Description or in CRYPT instructions, where qualified names are forbidden ([J 02.03.03]; [J 90.01.01]; [J 02.08.02]).
 
-#### 7.5.2 ENTER — entering another language
+#### 7.5.2 ENTER: entering another language
 
 F design: "The ENTER command instructs the processor to accept statements in another language" ([F p. 59]):
 
@@ -3374,7 +3374,7 @@ The returning form is punched with ENTER as an operation code and COMMERCIAL TRA
 
 Language-level linkage between separately compiled COMTRAN programs is the CONTRL card mechanism (§7.1.8) (common procedure/data areas equated at load time via a 6-character loadnm) and it is deferred in J ([J 90.01.04]). Parameter passing at the language level exists only *within* a program, via DO … USING/GIVING and BEGIN SECTION USING … GIVING ([F pp. 57–58]; see §4, Procedure description). The associated Data Description type codes PARAM and FUNCT "are no longer in the language" in J ([J 02.05.03]), a further F/J divergence.
 
-### 7.6 Commentary conventions — NOTE and the period-blank rule
+### 7.6 Commentary conventions: NOTE and the period-blank rule
 
 "The NOTE command enables the programmer to place explanatory information in the listing of the program" ([F p. 59]). General form ([F p. 59]):
 
@@ -3388,7 +3388,7 @@ NOTE any sentence.
 
 Additional commentary channel in J: "Procedure statements are terminated by the first period (.) followed by a blank. Any information following this period blank is considered to be commentary" ([J 02.03.01]); a period-blank "terminates analysis of the statement except when they appear within an alphabetic literal; any information in the same card which follows the period is assumed to be commentary. No diagnostic comment is made" ([J 90.01.03]). The period-blank terminator is *not* used in the Data and Environment divisions ([J 02.03.02]; [J 02.06.02]).
 
-### 7.7 The CRYPT facility — 709/7090 machine symbolic language ([J 02.08])
+### 7.7 The CRYPT facility: 709/7090 machine symbolic language ([J 02.08])
 
 CRYPT exists only in J; F merely promises access to "the symbolic 'one-for-one' language of the particular machine system" via ENTER ([F p. 59]).
 
@@ -4134,7 +4134,7 @@ The complete environment division is fourteen entries ([J 90.05] listing, PDF p.
 
 ### 9.5 Procedure idioms, verb by verb
 
-#### 9.5.1 CALL — and a real F/J semantic divergence
+#### 9.5.1 CALL, and a real F/J semantic divergence
 
 Both programs open with CALL as their first statement, defining abbreviations before any executable flow ([F p. 91]; J listing st. 187):
 
@@ -4164,7 +4164,7 @@ HIGH.DETAIL. ...
 - Unmatched-record handling shows both FILE forms: F files the same record into alternate files (`FILE MASTER IN ERROR.FILE`, `FILE BONDORDER IN ERROR.FILE`, [F pp. 91], [94] — the `IN` form for a record "associated with several output files", J 02.07.08.D.1.b); J instead builds a dedicated ERROROUT record (`MOVE 'M' TO ERRORTYPE, MOVE MASTER DAT TO ERROROUT INFO, FILE ERROROUT`, st. 193) so every FILE is the plain form.
 - End-of-run: `MOVE CORRESPONDING …, FILE PAYRECORD, CLOSE ALL FILES` then **F: `STOP 1234.`** (the `STOP n` general form, [F pp. 92], [109]) versus **J: `STOP RUN.`** (st. 199): "A STOP RUN instruction must be included in each program"; it closes all open files itself ([J 02.04.06] #9). **F/J divergence:** F's Appendix 2 knows no STOP RUN; a 7090 compiler must accept STOP RUN and treat it as mandatory.
 
-#### 9.5.3 The HIGH.VALUE sentinel idiom — and the typing change it forced
+#### 9.5.3 The HIGH.VALUE sentinel idiom, and the typing change it forced
 
 Both versions equalize the merge with figurative sentinels ([F p. 92]; J listing st. 197–198):
 
@@ -4221,7 +4221,7 @@ An OTHERWISE branch may itself end in `GO TO`, and a THEN branch may carry sever
 - **Figurative sources:** `MOVE ZEROS TO INTERNAL.TOTALS, GRAND.TOTALS` bulk-clears entire level-1 hierarchies at start of run (J st. 188); `MOVE BLANKS TO PAYRECORD EMPLOYNO, PAYRECORD NAME` ([F p. 93]); `MOVE BLANKS TO PAYRECORD BONDEDUCTION,PAYRECORD BONDENOMINATION` blanks *edited* fields (J st. 205); see Ambiguities on the chart's starred "blanks*" entry ([J 02.04.02]).
 - **Alphameric literals as data:** `MOVE 'M' TO MASTER ERRORCODE` ([F p. 91]), `MOVE 'D' TO ERRORTYPE` (J st. 196), and `MOVE 'GT' TO PAYRECORD DEPARTMENT` (J st. 199): the reserved abbreviation GT is harmless inside quotes.
 
-#### 9.5.8 MOVE/ADD CORRESPONDING in practice — including the sharpest F/J rule divergence
+#### 9.5.8 MOVE/ADD CORRESPONDING in practice, including the sharpest F/J rule divergence
 
 - Multi-target CORRESPONDING is routine: `MOVE CORRESPONDING DETAIL TO PAYRECORD, CHECK` ([F p. 93]; J st. 208), `ADD CORRESPONDING DETAIL TO DEPARTMENT.TOTAL, GRAND.TOTAL` ([F p. 93]), `ADD CORRESPONDING WORKING TO MASTER TOTALS, INTERNAL.TOTALS` (J st. 208 — note the *qualified group* `MASTER TOTALS` as a target; similarly `ADD CORRESPONDING DETAIL TOTALS TO MASTER TOTALS`, [F p. 93]).
 - The J sample is engineered around the implemented matching rule, "correspondence is determined at the lowest possible level on the basis of name only. All qualifiers must be present and identical through the level of the name itself" ([J 02.04.04]): WORKING's FICA/WHT deliberately do *not* land in MASTER TOTALS (they are handled inside the FICA/withholding sections), because TOTALS has no children by those names; PAYRECORD's HRS/INS.PREM/RET.PREM names keep those fields out of CORRESPONDING traffic and are loaded explicitly (st. 199, 202, 225). `MOVE CORRESPONDING MASTER TO BONDORDER` (st. 220–221) exercises the group-to-elementary case of J 02.04.04.c: MASTER's EMPLOYEE.NUMBER group corresponds to BONDORDER's elementary `A(6)` EMPLOYEE.NUMBER and moves as alphameric.

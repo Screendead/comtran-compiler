@@ -78,7 +78,7 @@ The complete environment division is fourteen entries ([J 90.05] listing, PDF p.
 
 ### 9.5 Procedure idioms, verb by verb
 
-#### 9.5.1 CALL — and a real F/J semantic divergence
+#### 9.5.1 CALL, and a real F/J semantic divergence
 
 Both programs open with CALL as their first statement, defining abbreviations before any executable flow ([F p. 91]; J listing st. 187):
 
@@ -108,7 +108,7 @@ HIGH.DETAIL. ...
 - Unmatched-record handling shows both FILE forms: F files the same record into alternate files (`FILE MASTER IN ERROR.FILE`, `FILE BONDORDER IN ERROR.FILE`, [F pp. 91], [94] — the `IN` form for a record "associated with several output files", J 02.07.08.D.1.b); J instead builds a dedicated ERROROUT record (`MOVE 'M' TO ERRORTYPE, MOVE MASTER DAT TO ERROROUT INFO, FILE ERROROUT`, st. 193) so every FILE is the plain form.
 - End-of-run: `MOVE CORRESPONDING …, FILE PAYRECORD, CLOSE ALL FILES` then **F: `STOP 1234.`** (the `STOP n` general form, [F pp. 92], [109]) versus **J: `STOP RUN.`** (st. 199): "A STOP RUN instruction must be included in each program"; it closes all open files itself ([J 02.04.06] #9). **F/J divergence:** F's Appendix 2 knows no STOP RUN; a 7090 compiler must accept STOP RUN and treat it as mandatory.
 
-#### 9.5.3 The HIGH.VALUE sentinel idiom — and the typing change it forced
+#### 9.5.3 The HIGH.VALUE sentinel idiom, and the typing change it forced
 
 Both versions equalize the merge with figurative sentinels ([F p. 92]; J listing st. 197–198):
 
@@ -165,7 +165,7 @@ An OTHERWISE branch may itself end in `GO TO`, and a THEN branch may carry sever
 - **Figurative sources:** `MOVE ZEROS TO INTERNAL.TOTALS, GRAND.TOTALS` bulk-clears entire level-1 hierarchies at start of run (J st. 188); `MOVE BLANKS TO PAYRECORD EMPLOYNO, PAYRECORD NAME` ([F p. 93]); `MOVE BLANKS TO PAYRECORD BONDEDUCTION,PAYRECORD BONDENOMINATION` blanks *edited* fields (J st. 205); see Ambiguities on the chart's starred "blanks*" entry ([J 02.04.02]).
 - **Alphameric literals as data:** `MOVE 'M' TO MASTER ERRORCODE` ([F p. 91]), `MOVE 'D' TO ERRORTYPE` (J st. 196), and `MOVE 'GT' TO PAYRECORD DEPARTMENT` (J st. 199): the reserved abbreviation GT is harmless inside quotes.
 
-#### 9.5.8 MOVE/ADD CORRESPONDING in practice — including the sharpest F/J rule divergence
+#### 9.5.8 MOVE/ADD CORRESPONDING in practice, including the sharpest F/J rule divergence
 
 - Multi-target CORRESPONDING is routine: `MOVE CORRESPONDING DETAIL TO PAYRECORD, CHECK` ([F p. 93]; J st. 208), `ADD CORRESPONDING DETAIL TO DEPARTMENT.TOTAL, GRAND.TOTAL` ([F p. 93]), `ADD CORRESPONDING WORKING TO MASTER TOTALS, INTERNAL.TOTALS` (J st. 208 — note the *qualified group* `MASTER TOTALS` as a target; similarly `ADD CORRESPONDING DETAIL TOTALS TO MASTER TOTALS`, [F p. 93]).
 - The J sample is engineered around the implemented matching rule, "correspondence is determined at the lowest possible level on the basis of name only. All qualifiers must be present and identical through the level of the name itself" ([J 02.04.04]): WORKING's FICA/WHT deliberately do *not* land in MASTER TOTALS (they are handled inside the FICA/withholding sections), because TOTALS has no children by those names; PAYRECORD's HRS/INS.PREM/RET.PREM names keep those fields out of CORRESPONDING traffic and are loaded explicitly (st. 199, 202, 225). `MOVE CORRESPONDING MASTER TO BONDORDER` (st. 220–221) exercises the group-to-elementary case of J 02.04.04.c: MASTER's EMPLOYEE.NUMBER group corresponds to BONDORDER's elementary `A(6)` EMPLOYEE.NUMBER and moves as alphameric.

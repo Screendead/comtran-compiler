@@ -292,7 +292,7 @@ DISPLAY  { 'any message'
          { any combination of the above
 ```
 
-### 6.10 The LOAD command (and OVERLAP) — deferred
+### 6.10 The LOAD command (and OVERLAP): deferred
 
 General form ([F p. 54]):
 
