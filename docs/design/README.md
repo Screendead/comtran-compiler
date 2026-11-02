@@ -23,7 +23,7 @@ and the roadmap live in `docs/HANDOVER.md`.*
 | `deck-format.md` | The card-deck file formats: the binary canon file, its text mirror, the `deckconv` workflow, and the one-time git settings a fresh clone needs. Frozen at M1 under D0.5 and D0.6. |
 | `m1-front-end.md` | The M1 front end: `lib/src/lexer/` and `lib/src/listing/`. Holds the `M1-n` entries, the choices M1 had to make where a source is silent. |
 | `m2-parser.md` | The M2 parser: `lib/src/parser/` and `lib/src/ast/`. Holds the `M2-n` entries, in the same shape as the M1 note. |
-| `emulator.md` | The 7090 CPU core in `lib/src/emulator/`. Holds the `ED-n` entries. Draft until M4 connects codegen, the loader, and the runtime to it. |
+| `emulator.md` | The 7090 CPU core in `lib/src/emulator/`. Holds the `ED-n` entries. In service since M4 stage 4. |
 | `runtime.md` | The machine assembly and the SYS)/IOC) handlers in `lib/src/runtime/`. Holds the `RT-n` entries: the addresses, the dispatch rule, the run loop, and each handler's contract. |
 | `emit-stages.md` | The requirement that every compilation stage is dumpable behind a flag, with attested stages oracled against their evidence. Recorded 2026-08-04; M4 adopts or amends it. |
 | `severity-notes.md` | The severity assigned to every 90.04 message, under D9.2. Every value is our design decision, not recovered history. |

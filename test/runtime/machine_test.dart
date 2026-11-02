@@ -440,6 +440,63 @@ final List<String> _locatedStore = <String>[
   '      *FINISH',
 ];
 
+/// A program that moves and adds across unequal scales (F p. 42). EXT
+/// reads 040 and EXF 12.34 through the REDEF row, and ED3 reads 037.
+final List<String> _alignedMoves = <String>[
+  '      *DATA',
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'0401234037'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'VIEW', level: '1'),
+  dataCard(name: 'EXT', level: '2', mode: 'E', description: '999'),
+  dataCard(name: 'EXF', level: '2', mode: 'E', description: '99V99'),
+  dataCard(name: 'ED3', level: '2', description: '899'),
+  dataCard(
+    name: 'NUM',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999',
+  ),
+  dataCard(
+    name: 'AMT',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '99V99',
+  ),
+  dataCard(
+    name: 'FIN',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '99V9',
+  ),
+  dataCard(
+    name: 'TOT',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '999V99',
+  ),
+  dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
+  dataCard(
+    name: 'BIG',
+    level: '1',
+    mode: 'I',
+    justify: 'R',
+    description: '9(5)',
+  ),
+  dataCard(name: 'ED5', level: '1', description: '889.9'),
+  '      *PROCEDURE',
+  '      START.  SET NUM = 123, MOVE NUM TO EDT.',
+  '            SET BIG = 1234, MOVE BIG TO ED5.',
+  '            MOVE EXT TO AMT, MOVE EXF TO FIN.',
+  '            SET TOT = 1.25, ADD ED3 TO TOT, ADD NUM TO TOT.',
+  '            STOP RUN.',
+  '      *FINISH',
+];
+
 /// A program whose entry point is a labelled section (D2.1). The `GO TO`
 /// ahead of the section runs only if the entry lands on `GN)000`.
 final List<String> _section = <String>[
@@ -742,6 +799,58 @@ final List<String> _guard = <String>[
   '      RTN.  STOP RUN.',
   '      *FINISH',
 ];
+
+/// [_source] with [statements] for its procedure and [data] after its
+/// two fields: the shape of each severity band's program (D7.6).
+List<String> _gated(List<String> statements, {List<String> data = const []}) =>
+    <String>[
+      ..._source.sublist(0, 3),
+      ...data,
+      '      *PROCEDURE',
+      ...statements,
+      '      *FINISH',
+    ];
+
+/// One program per severity band below 5, each with the start of the
+/// message that sets its maximum severity.
+final Map<int, (List<String>, String)> _bands = {
+  1: (
+    _gated(['      START.  SET TOT = NUM + 1.', '            STOP RUN']),
+    'PREVIOUS CARD NOT PROPERLY TERMINATED',
+  ),
+  2: (
+    _gated(
+      ['      START.  SET TOT = NUM + 1.', '            STOP RUN.'],
+      data: [
+        dataCard(name: 'GRP', level: '1', justify: 'R'),
+        dataCard(
+          name: 'SUB',
+          level: '2',
+          mode: 'I',
+          justify: 'R',
+          description: '99',
+        ),
+      ],
+    ),
+    'DATA NOT ON FORMAT DESCRIPTION LEVEL',
+  ),
+  3: (
+    _gated([
+      '      START.  SET TOT = NUM + 1.',
+      '            FROB TOT.',
+      '            STOP RUN.',
+    ]),
+    'STATEMENT WITHOUT PROPER VERB',
+  ),
+  4: (
+    _gated([
+      '      START.  SET TOT = NUM + 1.',
+      '            COPY X.',
+      '            STOP RUN.',
+    ]),
+    '-COPY- AND -LIBRARY-',
+  ),
+};
 
 /// Writes the two input tapes the sample reads: one master record and
 /// one detail record, whose employee number is the lower of the two.
@@ -1422,6 +1531,56 @@ void main() {
       expect(subject.state.read(addressOf(job, 'X')), 26);
     });
 
+    test('a subscripted MOVE target aligns by the decimal point', () {
+      final (JobCompilation job, Machine subject) = compiled(<String>[
+        '      *DATA',
+        // The bases `UP-1` and `DN-1` must stay at or above address zero.
+        internalCard('P1', '9'),
+        dataCard(name: 'AREA', level: '1'),
+        dataCard(level: '2', description: "'0401234'"),
+        dataCard(type: 'REDEF', description: 'AREA'),
+        dataCard(name: 'VIEW', level: '1'),
+        dataCard(name: 'EXT', level: '2', mode: 'E', description: '999'),
+        dataCard(name: 'EXF', level: '2', mode: 'E', description: '99V99'),
+        dataCard(name: 'UP', level: '1', quantity: '2'),
+        internalCard('UPC', '99V99', level: '2'),
+        dataCard(name: 'DN', level: '1', quantity: '2'),
+        internalCard('DNC', '99V9', level: '2'),
+        internalCard('I', '9'),
+        '      *PROCEDURE',
+        '      START.  SET I = 2.',
+        '            MOVE EXT TO UPC (I), MOVE EXF TO DNC (I).',
+        '            STOP RUN.',
+        '      *FINISH',
+      ]);
+      // 040 into 99V99 is 40.00, and 12.34 into 99V9 drops to 12.3, the
+      // quotient stored from the MQ.
+      final int up = addressOf(job, 'UP');
+      final int dn = addressOf(job, 'DN');
+      expect(
+        <int>[for (var k = 0; k < 2; k++) subject.state.read(up + k)],
+        <int>[0, 4000],
+      );
+      expect(
+        <int>[for (var k = 0; k < 2; k++) subject.state.read(dn + k)],
+        <int>[0, 123],
+      );
+    });
+
+    test('a MOVE and an ADD align by the decimal point', () {
+      final (JobCompilation job, Machine subject) = compiled(_alignedMoves);
+      expect(subject.printed, <String>['AT 19,00 STOP RUN']);
+      // 123 renders as $123.00, not as $1.23.
+      expect(glyphsAt(subject, addressOf(job, 'EDT'), 8), r' $123.00');
+      // F p. 43 row 5: 01234 into 999V9 drops its leading digit, 2340.
+      expect(glyphsAt(subject, addressOf(job, 'ED5'), 5), '234.0');
+      // 040 into 99V99 is 40.00, and 12.34 into 99V9 drops to 12.3.
+      expect(subject.state.read(addressOf(job, 'AMT')), 4000);
+      expect(subject.state.read(addressOf(job, 'FIN')), 123);
+      // 1.25 + 37 + 123.
+      expect(subject.state.read(addressOf(job, 'TOT')), 16125);
+    });
+
     test('a labelled section runs from the entry point it takes', () {
       // `test/codegen_test.dart` pins the entry word on PROGRAM.START.
       // NUM reads 1 only if the run entered the section: the `GO TO`
@@ -1441,11 +1600,59 @@ void main() {
       );
     });
 
+    test('a maximum severity of 1 runs the program', () {
+      final (List<String> source, String message) = _bands[1]!;
+      final ProcessResult run = _compileAndRun(source);
+      expect(run.stdout, contains('    1    $message'));
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(run.stdout, contains('AT 4,00 STOP RUN'));
+    });
+
+    for (final severity in <int>[2, 3, 4]) {
+      test('a maximum severity of $severity punches but does not run', () {
+        final (List<String> source, String message) = _bands[severity]!;
+        final ProcessResult run = _compileAndRun(source);
+        expect(run.stdout, contains('    $severity    $message'));
+        // Only severity 5 fails the process (D11.2).
+        expect(run.exitCode, 0, reason: '${run.stderr}');
+        expect(run.stdout, isNot(contains(RegExp('^AT ', multiLine: true))));
+        expect(run.stderr, 'job 1: not run: maximum severity $severity\n');
+      });
+    }
+
     test('an error exit fails the job on the monitor message alone', () {
       final ProcessResult run = _compileAndRun(_guard);
       expect(run.exitCode, 1);
       expect(run.stdout, contains('BASE LOCATOR NOT LOADED'));
       expect(run.stderr, isNot(contains('error:')));
+    });
+  });
+
+  group('the applied 1960 deck', () {
+    test('its tapes print the reports of test/goldens/f-payroll-j.report', () {
+      // The three reports the run writes, byte for byte. The golden is
+      // our output; test/f_acceptance_test.dart classifies its distance
+      // from the 1962 sample's report (M6-9, the run).
+      final Directory tapes = tempDirectory('comtran-f-tapes');
+      for (final unit in <String>['D1', 'C2']) {
+        File('$fTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
+      }
+      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
+        'run',
+        'comtran:comtranc',
+        fAppliedDeckPath,
+        '--run',
+        '--tapes=${tapes.path}',
+        '--list-tapes',
+      ]);
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      const display = 'AT 140,00 STOP RUN\n';
+      final stdout = '${run.stdout}';
+      expect(stdout, contains('AT 139,00 STOP 1234\n$display'));
+      expect(
+        stdout.substring(stdout.indexOf(display) + display.length),
+        File('test/goldens/f-payroll-j.report').readAsStringSync(),
+      );
     });
   });
 }
