@@ -925,6 +925,7 @@ void main() {
     });
 
     test('an aligned ADD leaves no park open for a later comparison', () {
+      // A leaked park makes the comparison refuse; reaching CAS shows none.
       expect(
         aligned(
           '            ADD NUM TO AMT.',
