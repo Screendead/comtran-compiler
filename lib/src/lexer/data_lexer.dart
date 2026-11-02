@@ -78,9 +78,7 @@ final class DataScan {
 /// Scans data description [cards] into entries. An entry is one card
 /// plus every following card claimed by a punched continuation column
 /// (F p. 84; J 02.03.02, §3.b: "Data and Environment entries are
-/// considered complete when column 72 is blank"). A punched column 72
-/// on the last card claims a card the division does not hold: the entry
-/// ends with the division and draws 949,00.
+/// considered complete when column 72 is blank").
 ///
 /// Diagnostics go to [sink] when one is given — the compilation's
 /// [DiagnosticSink], whose severity-5 throw stops the scan at the point
@@ -98,9 +96,6 @@ DataScan scanDataDescription(
   final int first = diagnostics.length;
   for (final List<SourceCard> group in continuationGroups(cards)) {
     entries.add(_scanEntry(group, diagnostics, pedantic: pedantic));
-  }
-  if (cards.isNotEmpty && cards.last.isPunched(72)) {
-    diagnostics.reportAt(msgDanglingContinuation, cards.last, column: 72);
   }
   return DataScan._(entries, diagnostics.sublist(first));
 }

@@ -70,9 +70,12 @@ void main() {
       expect(scan.entries.single.name.length, 32);
     });
 
-    test('a punched column 72 on the last card draws 949,00', () {
-      final DataScan scan = scanDataDescription(
-        sourceCards([
+    group('a punched column 72 on the last card (949,00)', () {
+      // The site is a post-pass in runFrontEnd (D11.4), so these tests
+      // run the whole front end.
+      final List<CardImage> deck = mirrorToDeck(
+        [
+          '      *DATA',
           dataCard(name: 'REC', level: '1', type: 'RECORD'),
           dataCard(
             name: 'AMOUNT',
@@ -80,55 +83,70 @@ void main() {
             description: '999',
             continued: true,
           ),
-        ]),
+          '      *ENVIRONMENT',
+          environmentCard(
+            name: 'OUTFILE',
+            type: 'FILE',
+            options: 'OUTPUT,BCD,TAPE,REC,BLOCKSIZE 1',
+            continued: true,
+          ),
+          '      *PROCEDURE',
+          '      START.  STOP RUN.',
+          '',
+        ].join('\n'),
       );
-      expect(scan.entries, hasLength(2));
-      expect(scan.entries.last.cards.single.cardNumber, 2);
-      expect(scan.entries.last.descriptionTokens.single.text, '999');
-      final Diagnostic d = scan.diagnostics.single;
-      expect(d.message, msgDanglingContinuation);
-      expect(d.card!.cardNumber, 2);
-      expect(d.column, 72);
-      expect(d.severity, 1);
-    });
 
-    test('a dangling continuation takes its entry statement number and '
-        'leaves the next division whole', () {
-      final FrontEndResult result = runFrontEnd(
-        mirrorToDeck(
+      test('is silent in default mode', () {
+        expect(runFrontEnd(deck).diagnostics, isEmpty);
+      });
+
+      test('draws 949,00 under --pedantic with each entry unchanged', () {
+        final FrontEndResult plain = runFrontEnd(deck);
+        final FrontEndResult pedantic = runFrontEnd(deck, pedantic: true);
+        expect(
           [
-            '      *DATA',
-            dataCard(name: 'REC', level: '1', type: 'RECORD'),
-            dataCard(
-              name: 'AMOUNT',
-              level: '2',
-              description: '999',
-              continued: true,
-            ),
-            '      *ENVIRONMENT',
-            environmentCard(
-              name: 'OUTFILE',
-              type: 'FILE',
-              options: 'OUTPUT,BCD,TAPE,REC,BLOCKSIZE 1',
-              continued: true,
-            ),
-            '      *PROCEDURE',
-            '      START.  STOP RUN.',
-            '',
-          ].join('\n'),
-        ),
-      );
-      expect(
-        [
-          for (final Diagnostic d in result.diagnostics)
-            (
-              d.message.number,
-              result.statementNumberByCard[d.card!.cardNumber],
-            ),
-        ],
-        [('949,00', '2,00'), ('949,00', '3,00')],
-      );
-      expect(result.statementCount, 4);
+            for (final Diagnostic d in pedantic.diagnostics)
+              (
+                d.message,
+                d.card!.cardNumber,
+                d.column,
+                d.severity,
+                pedantic.statementNumberByCard[d.card!.cardNumber],
+              ),
+          ],
+          [
+            (msgDanglingContinuation, 3, 72, 1, '2,00'),
+            (msgDanglingContinuation, 5, 72, 1, '3,00'),
+          ],
+        );
+        expect(pedantic.statementCount, plain.statementCount);
+        final data = pedantic.groupScans.first as DataGroupScan;
+        expect(data.scan.entries, hasLength(2));
+        expect(data.scan.entries.last.cards.single.cardNumber, 3);
+        expect(data.scan.entries.last.descriptionTokens.single.text, '999');
+      });
+
+      test('fires before a repeated header, not only at the deck end', () {
+        final FrontEndResult result = runFrontEnd(
+          mirrorToDeck(
+            [
+              '      *DATA',
+              dataCard(
+                name: 'REC',
+                level: '1',
+                type: 'RECORD',
+                continued: true,
+              ),
+              '      *DATA',
+              dataCard(name: 'OTHER', level: '1', type: 'RECORD'),
+              '',
+            ].join('\n'),
+          ),
+          pedantic: true,
+        );
+        expect(result.diagnostics.single.message, msgDanglingContinuation);
+        expect(result.diagnostics.single.card!.cardNumber, 2);
+      });
     });
   });
 

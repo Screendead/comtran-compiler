@@ -183,23 +183,23 @@ void main() {
       expect(scan.diagnostics.single.message, msgSecondQuoteMissing);
     });
 
-    test('a punched column 72 on the last card draws 949,00', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'PAYFILE',
-            type: 'FILE',
-            options: 'OUTPUT,PAYRECORD,BLOCKSIZE 20',
-            continued: true,
-          ),
-        ]),
+    test('a card deleted with 144,00 draws no 949,00 under --pedantic', () {
+      final FrontEndResult result = runFrontEnd(
+        mirrorToDeck(
+          [
+            '      *ENVIRONMENT',
+            environmentCard(
+              name: 'PAYFILE',
+              type: 'BOGUS',
+              options: 'OUTPUT',
+              continued: true,
+            ),
+            '',
+          ].join('\n'),
+        ),
+        pedantic: true,
       );
-      expect(scan.specs.single.cards, hasLength(1));
-      final Diagnostic d = scan.diagnostics.single;
-      expect(d.message, msgDanglingContinuation);
-      expect(d.card!.cardNumber, 1);
-      expect(d.column, 72);
-      expect(d.severity, 1);
+      expect(result.diagnostics.single.message, msgIllegalEnvironmentType);
     });
   });
 

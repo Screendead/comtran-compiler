@@ -233,12 +233,13 @@ const Message msgJobClosedByCompileCard = Message.ours(
       '(NON-HISTORICAL.)',
 );
 
-/// Ours — the last card of a Data or Environment division has column 72
-/// punched, so its entry claims a continuation card the division does
-/// not hold (J 02.03.02, §3.b). The manuals give no message for the
-/// case; the Procedure analogue is 62,00 (D9.4).
+/// Ours, --pedantic only (D0.8, D11.4) — the last card before a header
+/// card or the end of the deck has column 72 punched, so its Data or
+/// Environment entry claims a continuation card that does not follow
+/// (J 02.03.02, §3.b). The manuals give no message for the case; the
+/// Procedure analogue is 62,00 (D9.4). Id and class await Jack's call.
 const Message msgDanglingContinuation = Message.ours(
   '949,00',
-  'COLUMN 72 PUNCHED ON LAST CARD OF DIVISION. ENTRY ASSUMED COMPLETE. '
-      '(NON-HISTORICAL.)',
+  'COLUMN 72 PUNCHED, BUT NO CONTINUATION CARD FOLLOWS. ENTRY ASSUMED '
+      'COMPLETE. (NON-HISTORICAL.)',
 );
