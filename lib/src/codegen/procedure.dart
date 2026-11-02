@@ -136,12 +136,10 @@ ProcedureText generateProcedure(
   }
 }
 
-/// A refusal of this recovery, not a diagnostic of the program.
-///
-/// The refusals for the as-keyed 1960 deck are the diagnostic-listing
-/// reading's, per Jack's ruling of 2026-11-02 (m6-acceptance.md M6-9):
-/// J punches a deck for that program, so the label is "no evidence
-/// describes the code", never "the 1962 compiler refused".
+/// A refusal of this recovery, not a diagnostic of the program. Its
+/// label is "no evidence describes the code", never "the 1962 compiler
+/// refused": under our severities J punches a deck for the as-keyed
+/// 1960 program, which the generator refuses (m6-acceptance.md M6-9).
 ///
 /// The sample never reaches the refusing site, so no generated shape
 /// is attested and none is invented (the notes, section 7). The 1962
@@ -2092,8 +2090,7 @@ final class _Text {
       _unruled('a GET where two FILE cards share a name (no sample instance)');
     }
     if (info.inputFiles.length != 1) {
-      // Zero files, or the two-input-file program behind msg 11. The
-      // listing reading's refusal (M6-9, ruling of 2026-11-02).
+      // Zero files, or the two-input-file program behind msg 11.
       _unruled(
         'a GET record on ${info.inputFiles.length} input files '
         '(no sample instance)',
@@ -2156,7 +2153,6 @@ final class _Text {
       // The IN form names the file, so the record may sit on several
       // (J 02.07.08 b; M6-9).
       if (!info.outputFiles.contains(named)) {
-        // The listing reading's refusal (M6-9, ruling of 2026-11-02).
         _unruled(
           'FILE record IN a file that is not an output file of the record '
           '(no sample instance)',
@@ -2340,22 +2336,22 @@ final class _Text {
         }
         _setup(source, subscripted: sourceSubscripted, target: false);
         _externalConvert(source);
-        // Register 1 counts as lost after every MOVPAK sequence (notes
-        // question 2), though the call preserves it (RT-3), so outside
-        // a CORRESPONDING expansion a locator it held reloads for the
-        // store.
+        // A locator register 1 held reloads for the store (`_movpakClears`).
         _movpakClears();
-        final int deficit = _moveDeficit(source, target);
+        final int deficit = _moveDeficit(
+          source,
+          target,
+          held: _storedDigits(source),
+        );
         if (deficit > 0) {
           // The convert leaves the value in the accumulator, so the
           // multiply takes the attested `XCA / MPY / XCA` (00627–00631).
           _scaledLoad(_xca, deficit);
         } else if (deficit < 0) {
-          // This arm drops low-order digits only. It drops no leading
-          // digit a shorter target cannot hold.
           // A MOVE drops low-order digits (F p. 42), so the divide takes
           // no half-adjust: the split's `LRS 35 / DVP` (00424–00425),
-          // and the quotient stores from the MQ (00634–00635).
+          // and the quotient stores from the MQ (00634–00635). This arm
+          // drops no leading digit a shorter target cannot hold.
           _shift(Op.lrs, _storeShift);
           _op(Op.dvp, _cp(_pool.machineWord(_pow10(-deficit))));
         }
@@ -2552,7 +2548,7 @@ final class _Text {
       // (`docs/design/runtime.md` RT-4).
       _unruled('an edited store of more than 10 digits (RT-4)');
     }
-    final int deficit = _moveDeficit(source, target);
+    final int deficit = _moveDeficit(source, target, held: s.digits);
     if (deficit < 0) {
       // The quotient of a downscaling divide is in the MQ, and SYS)180
       // renders the accumulator. No site moves a quotient across, and
@@ -2609,11 +2605,13 @@ final class _Text {
   }
 
   /// The fraction digits a MOVE from [source] to [target] adds, negative
-  /// when it drops them. F p. 42 aligns by the decimal point.
-  int _moveDeficit(DataItem source, DataItem target) {
+  /// when it drops them. F p. 42 aligns by the decimal point. [held] is
+  /// the digit count of the value before the upscale: a convert yields
+  /// the stored digits alone.
+  int _moveDeficit(DataItem source, DataItem target, {required int held}) {
     final int deficit =
         _sem(target).fractionDigits - _sem(source).fractionDigits;
-    if (deficit > 0 && _sem(source).digits + deficit > 10) {
+    if (deficit > 0 && held + deficit > 10) {
       // The `XCA` keeps the low word of the product (RT-4).
       _unruled('an aligned move of more than 10 digits (no sample instance)');
     }
@@ -3136,8 +3134,8 @@ final class _Text {
   ];
 
   /// One ADD unit: `CLA target / ADD source / STO target` with the
-  /// guards the operands force. Every attested pair has equal scale;
-  /// the store tail on an ADD has no site (notes section 7).
+  /// guards the operands force, the source aligned to the target's
+  /// scale first ([_alignedAdd]).
   void _addPair(DataItem source, DataItem target) {
     final int deficit = _addDeficit(source, target);
     final DataItem addend = _operand(source);
@@ -3149,12 +3147,15 @@ final class _Text {
 
   /// The fraction digits an ADD source lacks against [target]. A source
   /// of greater scale needs the store tail, which has no site on an ADD
-  /// (notes section 7).
+  /// (notes section 7). No digit limit refuses the upscale, where
+  /// [_moveDeficit] refuses a MOVE's: the ADD emits the words of
+  /// `SET target = target + source`, which compiles the same product,
+  /// and the excess is D4.2's overflow.
   int _addDeficit(DataItem source, DataItem target) {
     final int deficit =
         _sem(target).fractionDigits - _sem(source).fractionDigits;
     if (deficit < 0) {
-      _unruled('an ADD into a target of lesser scale (no sample instance)');
+      _unruled('an ADD into a target of lesser scale (notes section 7)');
     }
     return deficit;
   }

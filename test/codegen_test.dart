@@ -811,7 +811,8 @@ void main() {
   group('the alignment of a MOVE and an ADD (F p. 42)', () {
     /// The words of [statement] up to its STOP RUN, with NUM at `999`,
     /// AMT at `99V99`, EXT an external `999`, EXF an external `99V99`,
-    /// EDT at `$8889.99`, and ED3 an edited `899`.
+    /// EDT at `$8889.99`, ED3 an edited `899`, N4 at `9(4)`, and E89 an
+    /// edited `889.9`.
     List<String> aligned(String statement, {List<String> then = const []}) {
       final SemanticResult semantics = runJob(
         data: [
@@ -833,6 +834,14 @@ void main() {
           dataCard(name: 'EXF', level: '1', mode: 'E', description: '99V99'),
           dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
           dataCard(name: 'ED3', level: '1', description: '899'),
+          dataCard(
+            name: 'N4',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '9(4)',
+          ),
+          dataCard(name: 'E89', level: '1', description: '889.9'),
         ],
         procedure: [statement, ...then, '            STOP RUN.'],
       );
@@ -841,8 +850,8 @@ void main() {
         for (final AssemblyUnit u in runCodegen(semantics).units)
           '${u.operation} ${u.operand}',
       ];
-      // The procedure begins past the six data reservations.
-      final int start = words.indexOf('BSS 0') + 7;
+      // The procedure begins past the eight data reservations.
+      final int start = words.indexOf('BSS 0') + 9;
       return words.sublist(start, words.indexOf('TSX SYS)178,4'));
     }
 
@@ -856,6 +865,22 @@ void main() {
         'TXI SYS)267,1,12',
         'OCT 000004000003',
         'AXT 6,1',
+      ]);
+    });
+
+    test('an upscale past the target digits splits for the edit', () {
+      // 1234 at scale 1 is five digits, one more than `889.9` holds.
+      expect(aligned('            MOVE N4 TO E89.'), [
+        'LDQ N4',
+        'MPY CP)+2',
+        'XCA ',
+        'LRS 35',
+        'DVP CP)+3',
+        'TSX SYS)180,4',
+        'PZE E89,,0',
+        'TXI SYS)267,1,4',
+        'OCT 000003000002',
+        'AXT 4,1',
       ]);
     });
 
@@ -900,12 +925,13 @@ void main() {
     });
 
     test('an aligned ADD leaves no park open for a later comparison', () {
+      // A leaked park makes the comparison refuse; reaching CAS shows none.
       expect(
         aligned(
           '            ADD NUM TO AMT.',
           then: ['            IF NUM + 1 GT AMT THEN STOP RUN.'],
-        ).take(6),
-        ['LDQ NUM', 'MPY CP)+2', 'STQ RS)0', 'CLA AMT', 'ADD RS)0', 'STO AMT'],
+        ),
+        contains('CAS AMT'),
       );
     });
 
@@ -2495,13 +2521,25 @@ void main() {
       description: pic,
     );
 
-    test('the convert counts the stored characters', () {
+    test('the convert counts the stored digits', () {
       expect(
         steps([
           field('EXT', 'VS9'),
           field('INT', 'V99', mode: 'I'),
         ], 'MOVE EXT TO INT.'),
         ['\tTXI SYS)184,1,1'],
+      );
+    });
+
+    test('the aligned-move limit counts the stored digits', () {
+      // Five stored digits upscale by three to eight; the eight digits
+      // the pictorial represents would pass the limit of ten.
+      expect(
+        lines(
+          [field('EXT', '9(5)SSS'), field('INT', '9(8)', mode: 'I')],
+          ['      START.  MOVE EXT TO INT.', '            STOP RUN.'],
+        ).sublist(3, 8),
+        ['\tTXI SYS)184,1,5', '\tXCA ', '\tMPY CP)+2', '\tXCA ', '\tSTO INT'],
       );
     });
 
