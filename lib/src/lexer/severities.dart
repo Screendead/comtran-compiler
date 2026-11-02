@@ -738,6 +738,9 @@ const Map<String, int> messageSeverities = {
   // C2 (ours, --pedantic only, D5.7; M4-18): an error by that record's
   // own word - the pending return is lost at run time.
   '947,00': 2,
+  // C4 (ours, D6.3): J forbids the reopen - a program that cannot run
+  // correctly.
+  '948,00': 4,
   // C1 (ours, --pedantic only, D0.8 and D11.4; the D9.4 analogue for
   // Data and Environment): nothing is dropped - auto-repair. The id and
   // class are proposals that await Jack's call.

@@ -18,6 +18,9 @@
 /// - `F p. 42` and `F pp. 50–51` — a printed page of F28-8043, alone or
 ///   as one contiguous range. The whole citation becomes the link text;
 ///   the link goes to the first page of the range.
+/// - `F pp. 44, 115–116` — a list of pages and ranges. Each item becomes
+///   its own link: `[F pp. 44], [115–116]`. A bare item's label is its
+///   page text, which the definition block resolves to that F page.
 ///
 /// The tool leaves a citation as plain text in six cases. A plain
 /// citation is correct; a mangled quotation is not.
@@ -31,10 +34,11 @@
 ///    bracketed. A quotation that opened on an earlier line ends at its
 ///    closing mark; a citation after that mark is plain prose and is
 ///    linked.
-/// 3. It lists pages instead of naming one range (`F pp. 44, 115`). Such
-///    a list has no single target. A list of section codes is different:
-///    only the first code carries the `J`, so only the first code is a
-///    citation, and it is linked.
+/// 3. It opens a page list that the tool cannot link item by item: the
+///    map lacks one of its pages, or it opens `F p.` and not `F pp.`, so
+///    the comma may start other prose (`F p. 42, 3 cases`). A list of
+///    section codes is different: only the first code carries the `J`, so
+///    only the first code is a citation, and it is linked.
 /// 4. It is not canonical. `J28-6169 02.01`, `Appendix 90.04` and
 ///    `F28-8043 chapters 2 to 4` all stay as they are.
 /// 5. A bracket would turn the line into a link definition — the
@@ -83,6 +87,13 @@ final RegExp _fence = RegExp('^ {0,3}(?:```|~~~)');
 final RegExp _skippedLine = RegExp(r'^\s*(?:>|<!--)');
 final RegExp _definition = RegExp(r'^\[[^\]]+\]: +(\S+)$');
 final RegExp _pageList = RegExp(r'^,\s*\d');
+
+/// The items of a page list after its first citation. Group 1 holds the
+/// separator, group 2 the item, group 3 its first page.
+final RegExp _pageItem = RegExp(r'^(,\s*)((\d+)(?:[-–—]\d+)?)(?![\w(\[])');
+
+/// One linked item of a page list, as an earlier run left it.
+final RegExp _linkedItem = RegExp(r'^,\s*\[((\d+)(?:[-–—]\d+)?)\]');
 final RegExp _digits = RegExp(r'\d+');
 
 /// A citation in its canonical form. Group 1 holds a J section code;
@@ -314,13 +325,28 @@ String _linkifyLine(String line, ManualMap map) {
     if (rest.startsWith('(') || rest.startsWith('[')) {
       continue;
     }
-    if (match[1] == null && _pageList.hasMatch(rest)) {
-      continue;
-    }
     if (rest.startsWith(':') && line.substring(0, match.start).trim().isEmpty) {
       continue;
     }
     if (!map.targets.containsKey(citationKey(match))) {
+      continue;
+    }
+    if (match[1] == null && _pageList.hasMatch(rest)) {
+      final List<RegExpMatch>? list = match[2] == 'pp'
+          ? _pageItems(rest)
+          : null;
+      if (list == null ||
+          list.any((RegExpMatch m) => !map.targets.containsKey('F:${m[3]}'))) {
+        continue;
+      }
+      final int end = match.end + list.fold(0, (n, m) => n + m[0]!.length);
+      final String items = list
+          .map((RegExpMatch m) => '${m[1]}[${m[2]}]')
+          .join();
+      buffer
+        ..write(line.substring(cursor, match.start))
+        ..write('[${match[0]}]$items');
+      cursor = end;
       continue;
     }
     buffer
@@ -330,6 +356,23 @@ String _linkifyLine(String line, ManualMap map) {
   }
   buffer.write(line.substring(cursor));
   return buffer.toString();
+}
+
+/// The items of the page list that opens [rest], or null when the list
+/// ends on a page that runs into other text.
+List<RegExpMatch>? _pageItems(String rest) {
+  final items = <RegExpMatch>[];
+  var offset = 0;
+  while (true) {
+    final RegExpMatch? item = _pageItem.firstMatch(rest.substring(offset));
+    if (item == null) {
+      break;
+    }
+    items.add(item);
+    offset += item[0]!.length;
+  }
+  final String after = rest.substring(offset);
+  return items.isEmpty || _pageList.hasMatch(after) ? null : items;
 }
 
 /// Records one definition for every bracketed citation of [line]. The
@@ -359,6 +402,22 @@ void _collectDefinitions(
     }
     definitions[match[0]!] =
         '${relativePath(directory, target.file)}#${target.slug}';
+    if (match[2] != 'pp') {
+      continue;
+    }
+    var offset = after;
+    while (true) {
+      final RegExpMatch? item = _linkedItem.firstMatch(line.substring(offset));
+      if (item == null) {
+        break;
+      }
+      offset += item[0]!.length;
+      final ManualTarget? page = map.targets['F:${item[2]}'];
+      if (page != null) {
+        definitions[item[1]!] =
+            '${relativePath(directory, page.file)}#${page.slug}';
+      }
+    }
   }
 }
 
@@ -415,8 +474,8 @@ int _markerLine(List<String> lines) {
 /// Orders two citation labels: F before J, then number by number, so
 /// that `F p. 2` precedes `F p. 10` and `J 02.05` precedes `J 02.05.05`.
 int compareCitationLabels(String a, String b) {
-  if (a[0] != b[0]) {
-    return a[0].compareTo(b[0]);
+  if (_manualOf(a) != _manualOf(b)) {
+    return _manualOf(a).compareTo(_manualOf(b));
   }
   final List<int> left = _numbers(a);
   final List<int> right = _numbers(b);
@@ -429,6 +488,10 @@ int compareCitationLabels(String a, String b) {
       ? left.length.compareTo(right.length)
       : a.compareTo(b);
 }
+
+/// The manual a label cites. A bare page item of a list cites F.
+String _manualOf(String label) =>
+    label.startsWith(RegExp(r'\d')) ? 'F' : label[0];
 
 List<int> _numbers(String label) =>
     _digits.allMatches(label).map((RegExpMatch m) => int.parse(m[0]!)).toList();

@@ -73,6 +73,7 @@ final Map<String, Message> _ours = {
     msgCallOldNameIsRecord,
     msgLoopParametersDoNotStep,
     msgDoReentersActiveProcedure,
+    msgReopenAfterCloseAll,
     msgDanglingContinuation,
   ])
     m.number: m,

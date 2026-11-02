@@ -217,8 +217,9 @@ final Message msgFunctionTooManyArguments = messageCatalog['68,00']!;
 final Message msgArrayDimensionCheck = messageCatalog['70,00']!;
 
 /// `71,00` — a subscript whose variable carries subscripts of its own
-/// or names a condition; F p. 31 admits a name or an index expression
-/// only. NAME.1 is the array (M3-20).
+/// or names a condition, or a subscript term that calls a function;
+/// F p. 31 admits a name, a literal, or an index expression only.
+/// NAME.1 is the array (M3-20).
 final Message msgInvalidSubscriptVariable = messageCatalog['71,00']!;
 
 /// `72,00` — a DO carrying more USING arguments than its target

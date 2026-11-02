@@ -171,10 +171,77 @@ void main() {
       );
     });
 
-    test('an ADD pair of unequal scales', () {
+    test('a subscripted ADD target', () {
+      // Master added into the first element on every pass.
+      expect(
+        _refuses(['            ADD NUM TO TAB CELL (IDX).']),
+        'a subscripted ADD target (no sample instance)',
+      );
+    });
+
+    test('a subscripted ADD target of an edited source', () {
+      expect(
+        _refuses(
+          ['            ADD EDN TO TAB CELL (IDX).'],
+          data: [
+            ..._data(),
+            dataCard(name: 'EDN', level: '1', description: '899'),
+          ],
+        ),
+        'a subscripted ADD target (no sample instance)',
+      );
+    });
+
+    test('an ADD into a target of lesser scale', () {
       expect(
         _refuses(['            ADD FRAC TO NUM.']),
-        'an ADD pair of unequal scales (notes section 7)',
+        'an ADD into a target of lesser scale (no sample instance)',
+      );
+    });
+
+    test('an edited ADD source into a target of lesser scale', () {
+      expect(
+        _refuses(
+          ['            ADD EDF TO NUM.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'EDF', level: '1', description: '89.9'),
+          ],
+        ),
+        'an ADD into a target of lesser scale (no sample instance)',
+      );
+    });
+
+    test('an edited store that drops source fraction digits', () {
+      expect(
+        _refuses(
+          ['            MOVE FRAC TO EDZ.'],
+          data: [
+            ..._data(),
+            dataCard(name: 'EDZ', level: '1', description: '889'),
+          ],
+        ),
+        'an edited store that drops source fraction digits '
+        '(no sample instance)',
+      );
+    });
+
+    test('an aligned move of more than 10 digits', () {
+      expect(
+        _refuses(
+          ['            MOVE BIG TO EDT.'],
+          data: [
+            ..._data(),
+            dataCard(
+              name: 'BIG',
+              level: '1',
+              mode: 'I',
+              justify: 'R',
+              description: '9(9)',
+            ),
+          ],
+        ),
+        'an aligned move of more than 10 digits (no sample instance)',
       );
     });
 
@@ -203,6 +270,20 @@ void main() {
       expect(
         _refuses(['            MOVE TAB CELL (IDX) TO EDT.']),
         'a subscripted edited-store source (no sample instance)',
+      );
+    });
+
+    test('a subscripted edited-store target', () {
+      expect(
+        _refuses(
+          ['            MOVE NUM TO ETAB ECEL (IDX).'],
+          data: [
+            ..._data(),
+            dataCard(name: 'ETAB', level: '1', quantity: '12'),
+            dataCard(name: 'ECEL', level: '2', description: '888889'),
+          ],
+        ),
+        'a subscripted edited-store target (no sample instance)',
       );
     });
 
@@ -250,6 +331,57 @@ void main() {
         _refuses(['            MOVE EXT TO SEXT.'], data: data),
         'an external-decimal move with an S position (RT-4)',
       );
+    });
+
+    test('an S position between or behind the stored digits', () {
+      // F p. 80 shows an S run after the V and a trailing run with no V;
+      // any other S stands for a zero no stored character carries.
+      const reason =
+          'an S position between the stored digits, or behind them under a '
+          'V or point (F p. 80)';
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'INNER', level: '1', mode: 'E', description: '9S9'),
+        dataCard(name: 'BEHIND', level: '1', mode: 'E', description: '9V9S'),
+        dataCard(name: 'EINNER', level: '1', description: r'$8S9'),
+      ];
+      for (final statement in [
+        'MOVE INNER TO NUM.',
+        'MOVE BEHIND TO NUM.',
+        'MOVE INNER TO EDT.',
+        'MOVE EINNER TO EDT.',
+        'ADD EINNER TO NUM.',
+        'SET NUM = INNER + 1.',
+      ]) {
+        expect(
+          _refuses(['            $statement'], data: data),
+          reason,
+          reason: statement,
+        );
+      }
+    });
+
+    test('an edit run whose drop passes a trailing S run', () {
+      // `999SSS` against a target of one or two integer digits drops
+      // more digits than the field stores.
+      final List<String> data = [
+        ..._data(),
+        dataCard(name: 'TRAIL', level: '1', mode: 'E', description: '999SSS'),
+        dataCard(name: 'ETRAIL', level: '1', description: r'$899SSS'),
+        dataCard(name: 'NARROW', level: '1', description: '88'),
+        dataCard(name: 'POINT', level: '1', description: '9.99'),
+      ];
+      for (final statement in [
+        'MOVE TRAIL TO NARROW.',
+        'MOVE TRAIL TO POINT.',
+        'MOVE ETRAIL TO POINT.',
+      ]) {
+        expect(
+          _refuses(['            $statement'], data: data),
+          'an edit run that moves no source digit (no sample instance)',
+          reason: statement,
+        );
+      }
     });
 
     test('a subscripted figurative target', () {
@@ -514,6 +646,33 @@ void main() {
       );
     });
 
+    test('a SET into an external-decimal subscript variable', () {
+      // The SET now recomputes the indicators its target drives, as the
+      // MOVE does, and the recomputation reads the variable as binary.
+      expect(
+        _refuses(
+          [
+            '            SET EXI = 3.',
+            '            IF XCEL (EXI) GT NUM THEN STOP RUN.',
+          ],
+          data: [
+            ..._data(),
+            dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
+            dataCard(name: 'XTAB', level: '1', quantity: '12'),
+            dataCard(
+              name: 'XCEL',
+              level: '2',
+              mode: 'I',
+              justify: 'R',
+              description: '999',
+            ),
+          ],
+          flagged: ['206,00'],
+        ),
+        'an external-decimal subscript variable (M6-9)',
+      );
+    });
+
     test('an external-decimal field named twice in one ADD clause', () {
       expect(
         _refuses(['            ADD EXT TO EXT, NUM.']),
@@ -705,8 +864,8 @@ void main() {
     });
 
     test('an expression comparison inside a later term of a chain', () {
-      // NUM * 2 parks in RS)1 ahead of the truth function, whose chain
-      // would number its own cells from RS)0 over it.
+      // NUM * 2 parks in RS)1 ahead of the truth function. Its chain
+      // would skip RS)1, but no sample site has the shape.
       expect(
         _refuses([
           '            IF NUM * 2 + TR (NUM + 1 GT FRAC) * 1 GT 15 THEN',

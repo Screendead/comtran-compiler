@@ -213,6 +213,15 @@ void main() {
       expect(jobs.single.terminated, isFalse);
       expect(jobs.single.cards, hasLength(293));
     });
+
+    test('the 90.05 job deck is the artifact card for card, then one '
+        '*FINISH (D11.3)', () {
+      final List<CardImage> artifact = loadPayrollDeck();
+      final List<CardImage> job = loadJobDeck();
+      expect(job, hasLength(artifact.length + 1));
+      expect(job.sublist(0, artifact.length), artifact);
+      expect(isFinishCard(SourceCard(job.last, job.length)), isTrue);
+    });
   });
 
   group('the monitor-card predicates (D11.1 rule c)', () {
