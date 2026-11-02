@@ -59,6 +59,9 @@ section { display:flex; flex-direction:column; gap:.2rem; }
         border:1px solid currentColor; white-space:nowrap; }
 .chip.call { color:var(--stamp); background:var(--stamp-soft); }
 .chip.done { color:var(--settled); }
+.ruling { border:1px solid var(--settled); border-left-width:4px; padding:.7rem 1rem; margin:1rem 0; }
+.ruling .tag { font-family:var(--mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--settled); margin:0 0 .4rem; }
+.ruling blockquote { margin:.4rem 0; padding-left:.8rem; border-left:2px solid var(--rule); }
 .itemhead { display:flex; gap:.75rem; align-items:baseline; flex-wrap:wrap; margin-bottom:.35rem; }
 .item { border-top:1px solid var(--rule); padding-top:1.3rem; }
 .item.needs { border-top:2px solid var(--stamp); }
@@ -133,6 +136,17 @@ footer { border-top:1px solid var(--rule); padding-top:1rem; font-size:.85rem; c
 <p class="standfirst">Two shapes compile today and store the wrong number without a word. You choose,
 for each, between a refusal and an alignment. The alignment is built, tested and pushed.</p>
 </header>
+
+<section>
+<div class="ruling">
+<p class="tag">Jack's ruling &middot; 2026-11-02 &middot; pitch page, call 2</p>
+<p>Jack answered on <a href="https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw">the pitch page of 2026-11-02</a>, an interactive page with no review record behind it, by clicking one option. The page saved the
+pick at 13:05:56Z. The retrofit record <code>review/2026-11-02-pitch-rulings</code> (at <code>3f938c6</code>) carries that page and the saved pick as evidence.</p>
+<blockquote><strong>Handle them: generate the correct code wherever the manuals show the code</strong> (pick <code>yes</code>)</blockquote>
+<p><strong>Read as:</strong> align both. The pitch put one combined question for defects 1 to 11, so the one answer covers defect 1 (MOVE) and defect 2 (ADD) alike. Merge the prototype (draft #167) after one more review round.</p>
+<p class="mono">The per-item chips below are unchanged: they show the question as put to him.</p>
+</div>
+</section>
 
 <section>
 <div class="answer">
