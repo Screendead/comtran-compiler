@@ -1176,6 +1176,43 @@ void main() {
       );
     });
 
+    test('an index expression in two variables', () {
+      // F p. 31 admits a * VARIABLE ± b alone, so no store sets it.
+      expect(
+        _refuses(['            MOVE NUM TO TAB CELL (IDX + IDY).']),
+        'an index expression outside a * VARIABLE ± b (F p. 31)',
+      );
+    });
+
+    test('a fractional DO FOR bound driving an indicator', () {
+      // 78,00 flags the literal and does not stop the job. An indicator
+      // steps by whole elements, so neither bound names an element.
+      for (final loop in ['1.5(1)3', '1(0.5)3']) {
+        expect(
+          _refuses(
+            [
+              '            DO RTN2 FOR IDX = $loop.',
+              '      RTN2.  MOVE NUM TO TAB CELL (IDX).',
+            ],
+            flagged: ['78,00'],
+          ),
+          'a fractional DO FOR bound driving an indicator (M4-10)',
+          reason: loop,
+        );
+      }
+    });
+
+    test('a literal subscript count unlike the array dimensions', () {
+      // 70,00 flags the count, and the pointer has no element to name.
+      expect(
+        _refuses(
+          ['            MOVE NUM TO TAB CELL (1, 2).'],
+          flagged: ['70,00'],
+        ),
+        'a subscript count unlike the array dimensions (M3-20)',
+      );
+    });
+
     test('an edit run that bypasses source digits', () {
       // Three fraction digits into EDT's two: the low-order drop.
       expect(

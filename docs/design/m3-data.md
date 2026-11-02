@@ -712,6 +712,7 @@ starts from a fully resolved program and generates code only.
   | a subscript variable of alphameric, edited, or group class | 79 |
   | a subscript variable with fraction or scale positions | 31 |
   | a literal subscript term that is zero, negative, or fractional | 182 |
+  | literal terms, each legal, whose folded value is below one | 182 |
   | a legal subscript variable format that is not the direct-index form | 206 |
 
   *Amended 2026-11-02 (Jack's ruling, review/2026-11-02-pitch-rulings):
@@ -722,6 +723,12 @@ starts from a fully resolved program and generates code only.
   both terms drew nothing. The parser already gives msg 912 to
   the literal (D9.7) and msg 192 to ZERO (M2-8). This record adds
   neither; the question is back with Jack.*
+
+  *Amended 2026-11-02 (PR #191, round 1 review): the folded row is new.
+  Each term of `2 - 3` is legal, but element -1 does not exist
+  ([J 02.04.07.01]). Sums, differences and products fold; a quotient
+  does not. A term that draws 182 speaks for its subscript alone. The
+  job still compiles, as for `A(0)`.*
 
   A reference with zero subscripts is the whole-array reference and is
   legal. Msg 206's predicate concretizes D9.11: any format other than
@@ -931,6 +938,7 @@ the golden rewrite.
 [J 02.04.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-figurative-constants
 [J 02.04.06]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
 [J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
+[J 02.04.07.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
 [J 02.05.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-record
 [J 02.05.03]: ../../comtran-manuals/J28-6169/02-compiler.md#3-redef-see-iii-under-data-description-on-page-900103-for-limitation

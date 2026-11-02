@@ -818,6 +818,42 @@ final List<String> _subscriptStores = <String>[
   '      *FINISH',
 ];
 
+/// Three three-word internal tables, and DEEP, an external view of the
+/// constants 1 to 5: two by two, or with [flat] a list of five.
+List<String> _cells(List<String> procedure, {bool flat = false}) => <String>[
+  '      *DATA',
+  // The base `CELL2-2` must stay at or above address zero.
+  internalCard('P1', '9'),
+  internalCard('P2', '9'),
+  for (final String suffix in ['', '2', '3']) ...[
+    dataCard(name: 'TAB$suffix', level: '1', quantity: '3'),
+    internalCard('CELL$suffix', '999', level: '2'),
+  ],
+  dataCard(name: 'TABLE', level: '1'),
+  for (var k = 1; k <= 5; k++)
+    dataCard(level: '2', description: "'${'$k'.padLeft(6, '0')}'"),
+  dataCard(type: 'REDEF', description: 'TABLE'),
+  if (flat) ...[
+    dataCard(name: 'ROWS', level: '1', quantity: '5'),
+    dataCard(name: 'DEEP', level: '2', mode: 'E', description: '9(6)'),
+  ] else ...[
+    dataCard(name: 'SQUARE', level: '1', quantity: '2'),
+    dataCard(name: 'ROW', level: '2', quantity: '2'),
+    dataCard(name: 'DEEP', level: '3', mode: 'E', description: '9(6)'),
+  ],
+  for (final String name in ['I', 'K', 'NUM', 'W', 'S'])
+    internalCard(name, '9(6)'),
+  '      *PROCEDURE',
+  ...procedure,
+  '      *FINISH',
+];
+
+/// [count] words from the first word of [label].
+List<int> _words(Machine subject, JobCompilation job, String label, int count) {
+  final int first = addressOf(job, label);
+  return <int>[for (var k = 0; k < count; k++) subject.state.read(first + k)];
+}
+
 /// SET and ADD into elements: I names each element before its store,
 /// and the other elements must stay zero. EXT reads 12 through the
 /// literal row under REDEF.
@@ -877,6 +913,54 @@ final List<String> _correspondingElements = <String>[
   '            ADD CORRESPONDING G TO TAB (I).',
   '            SET I = 2, ADD NUM TO TAB OTH (I), T2 C2 (I), T3 C3 (I).',
   '            STOP RUN.',
+  '      *FINISH',
+];
+
+/// A literal subscript on a CORRESPONDING operand and on an ADD and a
+/// SET target, an index expression on a CORRESPONDING target, and a
+/// DO FOR over one. Each table takes one notation: two indicators over
+/// one array refuse.
+final List<String> _literalElements = <String>[
+  '      *DATA',
+  internalCard('P1', '9'),
+  for (final String group in ['G', 'TAB', 'TB2', 'TB3']) ...[
+    dataCard(
+      name: group,
+      level: '1',
+      quantity: group.startsWith('T') ? '3' : '',
+    ),
+    internalCard('CELL', '999', level: '2'),
+    internalCard('OTH', '99', level: '2'),
+    internalCard('THR', '9', level: '2'),
+  ],
+  dataCard(name: 'T2', level: '1', quantity: '3'),
+  internalCard('C2', '999', level: '2'),
+  dataCard(name: 'T3', level: '1', quantity: '3'),
+  internalCard('C3', '999', level: '2'),
+  internalCard('I', '9'),
+  internalCard('K', '9'),
+  internalCard('NUM', '999'),
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'001002003'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'XT', level: '1', quantity: '3'),
+  dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+  dataCard(name: 'XG', level: '1'),
+  internalCard('XF', '999', level: '2'),
+  '      *PROCEDURE',
+  '      START.  SET G CELL = 7, SET G OTH = 8, SET G THR = 3.',
+  '            SET NUM = 1, MOVE CORRESPONDING G TO TAB (2).',
+  '            ADD CORRESPONDING G TO TAB (2).',
+  '            ADD NUM TO TAB CELL (2), T2 C2 (3).',
+  '            SET T3 C3 (1) = NUM + 4.',
+  '            ADD CORRESPONDING XT (2) TO XG.',
+  '            SET K = 0, MOVE CORRESPONDING G TO TB2 (K + 1).',
+  '            SET K = K + 2, ADD CORRESPONDING G TO TB2 (K + 1).',
+  '            DO RTN FOR I = 2(1)3.',
+  '            STOP RUN.',
+  '      RTN.  BEGIN SECTION.',
+  '            MOVE CORRESPONDING G TO TB3 (I).',
+  '            END RTN.',
   '      *FINISH',
 ];
 
@@ -1690,6 +1774,56 @@ void main() {
       expect(subject.state.read(addressOf(job, 'NB')), 3);
     });
 
+    test('a literal subscript addresses its element from load time', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _cells(<String>[
+          '      START.  SET NUM = 7, MOVE NUM TO CELL (2).',
+          '            MOVE DEEP (2, 1) TO W.',
+          '            STOP RUN.',
+        ]),
+      );
+      // Master exited BASE LOCATOR NOT LOADED: no store set either one.
+      expect(_words(subject, job, 'TAB', 3), <int>[0, 7, 0]);
+      // DEEP (2, 1) is the third word of the two by two table.
+      expect(subject.state.read(addressOf(job, 'W')), 3);
+    });
+
+    test('an index expression follows its variable', () {
+      final (JobCompilation job, Machine subject) = compiled(
+        _cells(<String>[
+          '      START.  SET NUM = 7, SET I = 1.',
+          '            MOVE NUM TO CELL (I + 1).',
+          '            MOVE NUM TO CELL2 (2 * I - 1).',
+          // J 02.04.07.01: SET K = K + 2 updates A (J, K + 1).
+          '            SET K = 0, SET K = K + 2.',
+          '            MOVE NUM TO CELL3 (K + 1).',
+          '            STOP RUN.',
+        ]),
+      );
+      expect(_words(subject, job, 'TAB', 3), <int>[0, 7, 0]);
+      expect(_words(subject, job, 'TAB2', 3), <int>[7, 0, 0]);
+      expect(_words(subject, job, 'TAB3', 3), <int>[0, 0, 7]);
+    });
+
+    test('a DO FOR sets the indicator from FROM and steps it by BY', () {
+      // Master set it to element 1 and stepped one element: 6 and 6.
+      for (final (String loop, int sum) in <(String, int)>[
+        ('3(1)5', 3 + 4 + 5),
+        ('1(2)5', 1 + 3 + 5),
+      ]) {
+        final (JobCompilation job, Machine subject) = compiled(
+          _cells(<String>[
+            '      START.  DO RTN FOR I = $loop.',
+            '            STOP RUN.',
+            '      RTN.  BEGIN SECTION.',
+            '            MOVE DEEP (I) TO W, SET S = S + W.',
+            '            END RTN.',
+          ], flat: true),
+        );
+        expect(subject.state.read(addressOf(job, 'S')), sum, reason: loop);
+      }
+    });
+
     test('a SET and an ADD store into the element the index names', () {
       final (JobCompilation job, Machine subject) = compiled(_elementTargets);
       expect(subject.printed, <String>['AT 20,00 STOP RUN']);
@@ -1727,6 +1861,30 @@ void main() {
       expect(words('T2', 3), <int>[0, 1, 0]);
       expect(words('T3', 3), <int>[0, 1, 0]);
       expect(subject.state.read(addressOf(job, 'I')), 2);
+    });
+
+    test('a literal or expression subscript reaches a CORRESPONDING field', () {
+      final (JobCompilation job, Machine subject) = compiled(_literalElements);
+      // Element 2 of TAB takes G, twice G, then 1 more in CELL.
+      expect(_words(subject, job, 'TAB', 9), <int>[
+        0,
+        0,
+        0,
+        15,
+        16,
+        6,
+        0,
+        0,
+        0,
+      ]);
+      expect(_words(subject, job, 'T2', 3), <int>[0, 0, 1]);
+      expect(_words(subject, job, 'T3', 3), <int>[5, 0, 0]);
+      // Element 2 of XT is 002, at byte 3 of its first word.
+      expect(_words(subject, job, 'XG', 1), <int>[2]);
+      // K + 1 names element 1, then element 3 after the step of 2.
+      expect(_words(subject, job, 'TB2', 9), <int>[7, 8, 3, 0, 0, 0, 7, 8, 3]);
+      // The DO FOR starts the field indicators at FROM, element 2.
+      expect(_words(subject, job, 'TB3', 9), <int>[0, 0, 0, 7, 8, 3, 7, 8, 3]);
     });
 
     test('a sub-chain inside a chain keeps the outer park', () {

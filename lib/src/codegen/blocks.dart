@@ -7,6 +7,8 @@
 /// five reservations of Location Counter 1.
 library;
 
+import 'dart:math' as math;
+
 import '../emulator/word.dart';
 import '../loader/control_group.dart';
 import 'image.dart';
@@ -50,15 +52,26 @@ List<AssemblyUnit> counterHead(ProgramImage image) => <AssemblyUnit>[
 
 /// Location Counter 2: an `ORG` to the pointer block, then one
 /// pre-determined constant per base locator (M4-4; [J 90.02.01]).
+/// [constants] are the positional indicators whose subscripts are all
+/// literals, load-time constants ([J 02.04.07]). The run continues
+/// into the `PI)` block that follows `BL)` through the last of them,
+/// and every other indicator there starts empty, as a base locator
+/// does.
 ///
-/// The `USE 2` word carries the counter's origin, `PI)1` — where the
-/// counter's text ends, since counter 2 holds exactly the `BL)` block,
-/// whose end is `PI)`'s origin under the frozen block order (M4-4 as
-/// amended, chunk B7). `BL)1` points the input-output system at its
-/// label area, `IOC)29` (M3-11); every later cell starts empty for the
-/// OPEN that fills it at run time.
-List<AssemblyUnit> pointerInitialization(ProgramImage image) {
+/// The `USE 2` word carries `PI)1`, the attested value. M4-4 reads it
+/// two ways, `PI)`'s origin or the end of the counter's text, which
+/// agree while the counter holds only `BL)` (chunk B7). A constant run
+/// moves the end alone, and the word keeps `PI)1`: the `BGN 2,PI)1`
+/// head row names it too, and the `ORG` that follows sets the load
+/// address, so the word does not change the load (M6-10). `BL)1`
+/// points the input-output system at its label area, `IOC)29` (M3-11);
+/// every later cell starts empty for the OPEN that fills it at run time.
+List<AssemblyUnit> pointerInitialization(
+  ProgramImage image,
+  Map<int, ElementPointer> constants,
+) {
   final int origin = image.symbolAddress(StorageBlock.bl, 1);
+  final int last = constants.keys.fold(0, math.max);
   return <AssemblyUnit>[
     _use(2, origin: image.symbolAddress(StorageBlock.pi, 1)),
     AssemblyUnit(
@@ -78,6 +91,15 @@ List<AssemblyUnit> pointerInitialization(ProgramImage image) {
         control: i == 0
             ? standardControl(Relocation.constant, Relocation.system)
             : ControlGroup.constantWord,
+        form: WordForm.prefix,
+      ),
+    for (var n = 1; n <= last; n++)
+      AssemblyUnit(
+        operation: 'PZE',
+        operand: constants[n]?.operand ?? '0',
+        location: image.symbolAddress(StorageBlock.pi, n),
+        word: constants[n]?.word ?? 0,
+        control: constants[n]?.control ?? ControlGroup.constantWord,
         form: WordForm.prefix,
       ),
   ];

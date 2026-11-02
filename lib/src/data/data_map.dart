@@ -299,8 +299,9 @@ final class SemanticResult {
 
   /// The program's positional indicators, one per unique
   /// array-and-notation pair, in the order of first reference: the
-  /// object program's `PI)` block, `PI)1` first (M3-20; M4-4).
-  final List<(DataItem, String)> positionalIndicators;
+  /// object program's `PI)` block, `PI)1` first (M3-20; M4-4). Each
+  /// carries the subscripts of its first reference.
+  final List<(DataItem, String, List<ArithExpr>)> positionalIndicators;
 
   /// Sentences msg 177 deleted from the text: their references
   /// overflowed the per-sentence table, so M4 generates nothing for

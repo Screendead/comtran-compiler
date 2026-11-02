@@ -219,17 +219,19 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    ([J 02.04.05]) and refuses as its plain clause does. An edited or
    external-decimal target refuses `(no sample instance)`.
 9. **A SET or ADD into a subscript variable updated no indicator.
-   Ruled: handle it. Handled by PR #168.** Each SET and each plain ADD
-   target now updates the indicators it drives (M4-10;
-   [J 02.04.07.01]). `SET K = K + c` steps them in place; any other
-   store recomputes. `SET EXI = 3` into an external-decimal index now
-   refuses `an external-decimal subscript variable (M6-9)`, as the
-   MOVE does. Master compiled it and moved no indicator. Open: MOVE
-   and ADD CORRESPONDING update no indicator, and
-   no store sets the indicator of a literal or expression subscript.
-   `CELL (2)` and `CELL (I + 1)` exit with `BASE LOCATOR NOT LOADED`,
-   and `SET K = K + 2` leaves `A(J, K+1)` stale. The in-place step
-   cannot correct an indicator that no store has set.
+   Ruled: handle it. Handled by PR #168 and PR #191 (M6-10).** Each
+   SET and each plain ADD target updates the indicators it drives
+   (M4-10; [J 02.04.07.01]). `SET K = K + c` steps them in place, and
+   any other store recomputes. `SET EXI = 3` into an external-decimal
+   index refuses, as the MOVE does. PR #191 sets the indicator of a
+   literal subscript at load time: `CELL (2)` runs. It moves each
+   `a * V ± b` indicator with V: `CELL (I + 1)` runs. A DO FOR
+   starts its indicators at FROM and steps them by BY. Open: a
+   CORRESPONDING pair into a subscript variable updates no indicator,
+   and two indicators over one array refuse. No store sets an indicator
+   of several subscripts with a variable, as `A(J, K)`, or of a name
+   subscript, as the `MIAMI` of [F p. 30]. Both exit with
+   `BASE LOCATOR NOT LOADED`.
 10. **The subscript store dropped the byte of a field inside a word.
     Ruled: a store that drives several indicators keeps the 1962
     behaviour (boundary A). PR #168 handles a store that drives one.**
@@ -288,13 +290,11 @@ Four review records hold the formulations one sample program cannot
 separate: `review/2026-08-16-m4-b2-underdetermined`, `-b3-`, `-b4-`,
 and `review/2026-08-28-m4-b8-underdetermined`.
 
-Chunks A7 and A8 read each page **twice**, by two readers who did not know of each
-other, and compared the two readings before either met the target. Ten
-readers ran at once, over the five pages of chunks A7 and A8 together, at
-2.45M tokens and 43 minutes of wall clock for the ten. One page therefore
-costs about 245k tokens, which matches the 250k measured over chunk A5,
-and reading it twice costs twice that and no more wall clock. The five
-pages returned zero disagreements between paired readers, over 261 content
+Chunks A7 and A8 read each page **twice**, by two readers unaware of
+each other, and compared the two readings before either met the
+target. Ten readers ran at once, at 2.45M tokens and 43 minutes of
+wall clock: about 245k tokens a page, which matches the 250k measured
+over chunk A5. The paired readers never disagreed, over 261 content
 lines.
 
 **With every page verified, the location column was walked end to end**, a
@@ -521,7 +521,7 @@ binds work outside the definition.
 | Item | State |
 |---|---|
 | Subscripted ADD and SET targets compile (the 1962 rule) | PR #186 |
-| Literal and expression subscripts set their indicator | In progress |
+| Literal and expression subscripts set their indicator | PR #191 |
 | Defect 13 | PR #190 |
 | Defect 5, the nameless BEGIN SECTION, D2.1, the definition headings, W3, W4 | Calls for Jack; prototypes in progress |
 
@@ -999,6 +999,7 @@ this project's own decision (Open Question 65).
 
 [F p. 12]: ../comtran-manuals/F28-8043/02-language-structure.md#underlying-principles
 [F p. 26]: ../comtran-manuals/F28-8043/02-language-structure.md#sentences
+[F p. 30]: ../comtran-manuals/F28-8043/02-language-structure.md#lists-tables-and-subscripts
 [F p. 42]: ../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [J 02.02.01]: ../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
 [J 02.04.04]: ../comtran-manuals/J28-6169/02-compiler.md#3-move

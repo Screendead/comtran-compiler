@@ -13,10 +13,12 @@ const Map<String, int> budgets = <String, int>{
   'docs/comtran-language-definition.md': 115000,
   'docs/design/decisions.md': 50000,
   'docs/HANDOVER.md': 9600,
-  'docs/design/m3-data.md': 9100,
+  // M3-20 gained the folded-subscript row of 182,00 (PR #191).
+  'docs/design/m3-data.md': 9200,
   // M6-9 records one decision per chunk 2b item, and the tapes and the
-  // run of chunk 2b.
-  'docs/design/m6-acceptance.md': 18600,
+  // run of chunk 2b. M6-10 carries the amendments the locked M4 record
+  // has no room for.
+  'docs/design/m6-acceptance.md': 19400,
   // Locked by Jack, 2026-08-09. This number never rises again. A stage 2
   // amendment that needs room pays for it by deleting prose from the same
   // record.

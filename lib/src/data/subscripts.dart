@@ -34,11 +34,17 @@ final class SubscriptChecker {
   /// (J 02.04.07; the CRYPT Symbolic Register, J 02.08).
   ///
   /// Insertion order is the order of first reference, which is the
-  /// order the object program numbers `PI)1` on (M4-4).
-  final Set<(DataItem, String)> _indicators = {};
+  /// order the object program numbers `PI)1` on (M4-4). The value is
+  /// the first reference's subscripts, from which the generator sets
+  /// the indicator (M4-10).
+  final Map<(DataItem, String), List<ArithExpr>> _indicators = {};
 
   /// The positional indicators the program needs, in `PI)` order.
-  Iterable<(DataItem, String)> get indicators => _indicators;
+  Iterable<(DataItem, String, List<ArithExpr>)> get indicators =>
+      _indicators.entries.map(
+        (MapEntry<(DataItem, String), List<ArithExpr>> each) =>
+            (each.key.$1, each.key.$2, each.value),
+      );
 
   /// One entry per distinct `a * VARIABLE ± b` subscript.
   final Set<String> _indexExpressions = {};
@@ -64,6 +70,11 @@ final class SubscriptChecker {
     }
     for (final ArithExpr subscript in reference.subscripts) {
       _checkTerm(subscript, reference);
+      if (subscript is BinaryExpr && (_folded(subscript) ?? 1) < 1) {
+        // The terms pass one by one, but the element they name does not
+        // exist (J 02.04.07.01).
+        resolver.report(msgImproperDataFormat, subscript.anchor);
+      }
       _countIndexExpression(subscript);
     }
     _countIndicator(array, reference);
@@ -93,6 +104,36 @@ final class SubscriptChecker {
         );
       case TruthExpr() || FigurativeOperand():
         break;
+    }
+  }
+
+  /// The value of a subscript of literal terms alone, each of them a
+  /// whole number of at least one, or `null`: a term that `_checkLiteral`
+  /// reports has spoken for the subscript already.
+  int? _folded(ArithExpr term) {
+    switch (term) {
+      case LiteralOperand(:final literal)
+          when literal.kind != TokenKind.alphamericLiteral:
+        final int? value = int.tryParse(literal.text);
+        return value != null && value >= 1 ? value : null;
+      case UnaryExpr(:final operator, :final operand)
+          when operand is! LiteralOperand:
+        final int? value = _folded(operand);
+        return value == null || operator.text != '-' ? value : -value;
+      case BinaryExpr(:final left, :final operator, :final right):
+        final int? l = _folded(left);
+        final int? r = _folded(right);
+        if (l == null || r == null) {
+          return null;
+        }
+        return switch (operator.text) {
+          '+' => l + r,
+          '-' => l - r,
+          '*' => l * r,
+          _ => null,
+        };
+      default:
+        return null;
     }
   }
 
@@ -176,7 +217,10 @@ final class SubscriptChecker {
     // The set is the object program's `PI)` block, so it is collected
     // whatever `--no-table-limits` says (M4-4); the flag lifts the
     // diagnostic alone (D9.7).
-    _indicators.add((array, reference.subscripts.map(_notation).join(',')));
+    _indicators.putIfAbsent((
+      array,
+      reference.subscripts.map(_notation).join(','),
+    ), () => reference.subscripts);
     if (tableLimits && _indicators.length == 91) {
       // The "Appox-Max" 90 positional indicators (J 90.01.05; D9.7
       // rejects the unknown band above the printed number).

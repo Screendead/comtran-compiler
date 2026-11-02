@@ -1557,6 +1557,7 @@ the report our run prints against the page.
   The open items: the prologue sets each indicator to element 1 for any
   p, and the step adds one stride for any q. The deck is `1(1)12`, so
   neither changes its code. Both are older than this decision.
+  **Closed 2026-11-02 by M6-10.**
 
   The refusals:
 
@@ -2263,9 +2264,96 @@ the report our run prints against the page.
   (§8.5.4-l). M6-1 as amended 2026-10-25 states what the run changes
   in its expectations.
 
+- **M6-10. A literal or expression subscript sets its indicator.
+  Decided under the section 12 standing rule; Jack can overturn it.**
+  Codegen defect 9 (`docs/HANDOVER.md`) left two kinds of indicator
+  that no store set. `MOVE NUM TO CELL (2)` and `CELL (I + 1)` compiled
+  with no message, and the run stopped with `BASE LOCATOR NOT LOADED`.
+  Each shape compiled in 1962 (M6-9), and the manuals settle both. This
+  entry amends M4-4 and M4-10. The M4 record is locked at its word
+  budget, so the amendment lives here.
+
+  **A literal subscript is a load-time constant.** [J 02.04.07] says
+  that an indicator "with constant subscripts such as A(2,3) may be a
+  load-time constant or may change in value if the dimensions or base
+  location of the array vary". [J 90.02.01] gives Location Counter 2
+  the job of "initializing 'pointer words' with pre-determined
+  constants", and [J 90.02.05] calls an indicator a pointer word. No
+  array moves in this compiler. An input record that holds an array
+  transmits ([J 90.01.01]), and the binder bars a variable-length
+  array. So the constant case always applies. The words:
+  - The counter-2 run continues past the `BL)` words into the `PI)`
+    block, which follows `BL)` directly ([J 90.02.05]).
+  - The run stops at the last constant indicator. A constant indicator
+    takes `PZE NAME+w,,b`, the word and byte of its element. Each other
+    indicator before it takes `PZE 0`, as an empty base locator does.
+  - A program with no constant indicator keeps the attested words. The
+    sample has none.
+  - Every literal indicator takes its word, read or not. The group of
+    a CORRESPONDING operand such as `TAB (2)` keeps one, as M6-9 says.
+    Its fields take their own, appended after every written one.
+
+  The `USE 2` word keeps `PI)1`. Of M4-4's two readings, only "the end
+  of the counter" moves it. The `BGN 2,PI)1` head row names `PI)1` too.
+  The `ORG` that follows sets the load address again, so the word has
+  no effect on the load. No listing attests either reading here.
+
+  **An index expression moves with its variable.** [J 02.04.07.01] says
+  that `SET K=K+2` updates `A(J, K+1)` as well as `A(J, K)`, and
+  [J 90.01.02] says that "all positional indicators containing that
+  subscript will be re-evaluated". Element `a·V + b` of the form
+  `a * VARIABLE ± b` ([F p. 31]) is element b plus `a·V` strides. So:
+  - The recomputation keeps its five words. The `MPY` takes a strides,
+    and the base is element b, printed `NAME-n` or `NAME+n`. For V
+    alone, b is 0, and the base stays the attested `NAME-n`.
+  - The constant increment `SET V = V + c` adds `a·c` strides.
+  - A DO FOR sets each indicator it drives to element `a·FROM + b` and
+    steps it by `a·BY` strides. This also closes M6-9's open item: the
+    prologue set element 1 and the step added one stride for every
+    FROM and BY. The deck's `1(1)12` gives the same words both ways.
+  - Literal terms fold, so `CELL (1 + 1)` is `CELL (2)`.
+  - A subscript in two variables, or any other form outside
+    [F p. 31], refuses `an index expression outside a * VARIABLE ± b
+    ([F p. 31])`. Before, it compiled and stopped at the guard.
+  - Two more refusals guard the pointer. A fractional FROM or BY
+    refuses `a fractional DO FOR bound driving an indicator (M4-10)`
+    after 78,00. A literal subscript count unlike the dimensions
+    refuses `a subscript count unlike the array dimensions (M3-20)`
+    after 70,00.
+
+  The rejected options:
+  - *Set a literal indicator at program start.* It works, but it is an
+    object-time cost that the manual does not describe, against its
+    "load-time constant".
+  - *An `ORG PI)n` for each constant indicator.* A second `ORG` in
+    counter 2 has no attested instance. The run through `PI)` needs
+    none.
+  - *Recompute an indicator before each use.* [J 02.04.07.01] says that
+    indicators "are evaluated when their subscripts change value", not
+    at each reference.
+  - *Refuse with a named message.* The 1962 processor compiled both
+    shapes (Jack's rule of 2026-09-14).
+
+  Three limits stay open, in `docs/HANDOVER.md` defect 9. Two
+  indicators over one array refuse. An indicator of two or three
+  subscripts with a variable among them is never set. A name subscript
+  that no store sets, such as the `MIAMI` constant of [F p. 30], is
+  never set either.
+
+  The tests:
+  - `test/runtime/machine_test.dart` runs `CELL (2)`, a two by two
+    literal read, `CELL (I + 1)`, `CELL2 (2 * I - 1)`, the
+    `SET K = K + 2` case, and two DO FOR loops.
+  - It also runs literal and `K + 1` CORRESPONDING operands, an ADD
+    into `TAB CELL (2)`, and a DO FOR over appended indicators.
+  - `test/codegen_test.dart` asserts the words.
+    `test/codegen_refusal_test.dart` pins the three refusals.
+
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
 [F p. 21]: ../../comtran-manuals/F28-8043/02-language-structure.md#arithmetic-expressions
+[F p. 30]: ../../comtran-manuals/F28-8043/02-language-structure.md#lists-tables-and-subscripts
+[F p. 31]: ../../comtran-manuals/F28-8043/02-language-structure.md#subscripts
 [F p. 42]: ../../comtran-manuals/F28-8043/03-procedure-description.md#data-transmission-commands
 [F p. 43]: ../../comtran-manuals/F28-8043/03-procedure-description.md#editing-feature
 [F p. 54]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
@@ -2296,12 +2384,15 @@ the report our run prints against the page.
 [J 02.07.08]: ../../comtran-manuals/J28-6169/02-compiler.md#1-forms-of-the-command
 [J 05.06.01]: ../../comtran-manuals/J28-6169/05-systems-operation.md#d-file-maintenance
 [J 05.06.04]: ../../comtran-manuals/J28-6169/05-systems-operation.md#b-loader-1
+[J 90.01.01]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#appendix-9001-deferred-features-restrictions-and-limitations
 [J 90.01.02]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.01.03]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.01.05]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
+[J 90.02.01]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#introduction
 [J 90.02.03]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.04]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.05]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.10]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
 [J 90.02.11]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.02.12]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
