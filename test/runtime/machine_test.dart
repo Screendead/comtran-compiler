@@ -916,6 +916,54 @@ final List<String> _correspondingElements = <String>[
   '      *FINISH',
 ];
 
+/// A literal subscript on a CORRESPONDING operand and on an ADD and a
+/// SET target, an index expression on a CORRESPONDING target, and a
+/// DO FOR over one. Each table takes one notation: two indicators over
+/// one array refuse.
+final List<String> _literalElements = <String>[
+  '      *DATA',
+  internalCard('P1', '9'),
+  for (final String group in ['G', 'TAB', 'TB2', 'TB3']) ...[
+    dataCard(
+      name: group,
+      level: '1',
+      quantity: group.startsWith('T') ? '3' : '',
+    ),
+    internalCard('CELL', '999', level: '2'),
+    internalCard('OTH', '99', level: '2'),
+    internalCard('THR', '9', level: '2'),
+  ],
+  dataCard(name: 'T2', level: '1', quantity: '3'),
+  internalCard('C2', '999', level: '2'),
+  dataCard(name: 'T3', level: '1', quantity: '3'),
+  internalCard('C3', '999', level: '2'),
+  internalCard('I', '9'),
+  internalCard('K', '9'),
+  internalCard('NUM', '999'),
+  dataCard(name: 'AREA', level: '1'),
+  dataCard(level: '2', description: "'001002003'"),
+  dataCard(type: 'REDEF', description: 'AREA'),
+  dataCard(name: 'XT', level: '1', quantity: '3'),
+  dataCard(name: 'XF', level: '2', mode: 'E', description: '999'),
+  dataCard(name: 'XG', level: '1'),
+  internalCard('XF', '999', level: '2'),
+  '      *PROCEDURE',
+  '      START.  SET G CELL = 7, SET G OTH = 8, SET G THR = 3.',
+  '            SET NUM = 1, MOVE CORRESPONDING G TO TAB (2).',
+  '            ADD CORRESPONDING G TO TAB (2).',
+  '            ADD NUM TO TAB CELL (2), T2 C2 (3).',
+  '            SET T3 C3 (1) = NUM + 4.',
+  '            ADD CORRESPONDING XT (2) TO XG.',
+  '            SET K = 0, MOVE CORRESPONDING G TO TB2 (K + 1).',
+  '            SET K = K + 2, ADD CORRESPONDING G TO TB2 (K + 1).',
+  '            DO RTN FOR I = 2(1)3.',
+  '            STOP RUN.',
+  '      RTN.  BEGIN SECTION.',
+  '            MOVE CORRESPONDING G TO TB3 (I).',
+  '            END RTN.',
+  '      *FINISH',
+];
+
 /// A sub-chain inside a chain: 2·5 + (3·5 + 1) is 26.
 final List<String> _subChain = <String>[
   '      *DATA',
@@ -1813,6 +1861,30 @@ void main() {
       expect(words('T2', 3), <int>[0, 1, 0]);
       expect(words('T3', 3), <int>[0, 1, 0]);
       expect(subject.state.read(addressOf(job, 'I')), 2);
+    });
+
+    test('a literal or expression subscript reaches a CORRESPONDING field', () {
+      final (JobCompilation job, Machine subject) = compiled(_literalElements);
+      // Element 2 of TAB takes G, twice G, then 1 more in CELL.
+      expect(_words(subject, job, 'TAB', 9), <int>[
+        0,
+        0,
+        0,
+        15,
+        16,
+        6,
+        0,
+        0,
+        0,
+      ]);
+      expect(_words(subject, job, 'T2', 3), <int>[0, 0, 1]);
+      expect(_words(subject, job, 'T3', 3), <int>[5, 0, 0]);
+      // Element 2 of XT is 002, at byte 3 of its first word.
+      expect(_words(subject, job, 'XG', 1), <int>[2]);
+      // K + 1 names element 1, then element 3 after the step of 2.
+      expect(_words(subject, job, 'TB2', 9), <int>[7, 8, 3, 0, 0, 0, 7, 8, 3]);
+      // The DO FOR starts the field indicators at FROM, element 2.
+      expect(_words(subject, job, 'TB3', 9), <int>[0, 0, 0, 7, 8, 3, 7, 8, 3]);
     });
 
     test('a sub-chain inside a chain keeps the outer park', () {

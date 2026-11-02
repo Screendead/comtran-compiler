@@ -1004,8 +1004,6 @@ final class _Text {
   /// The indicator list keys on the array and the written subscript
   /// notation together, and codegen holds no copy of the notation, so
   /// two indicators over one array have no rule here (M3-20; M4-9).
-  /// An indicator whose subscripts are all literals takes its value at
-  /// load time (J 02.04.07; M4-10).
   int _indicator(DataItem array) {
     final numbers = <int>[
       for (var i = 0; i < semantics.positionalIndicators.length; i++)
@@ -1015,23 +1013,30 @@ final class _Text {
       _unruled('two positional indicators over one array (no sample instance)');
     }
     final int indicator = numbers.single;
-    final terms = <_IndexTerm>[
-      for (final ArithExpr subscript
-          in semantics.positionalIndicators[indicator - 1].$3)
-        _indexTerm(subscript),
-    ];
-    if (terms.every((_IndexTerm term) => term.variable == null)) {
-      _constantIndicators.putIfAbsent(
-        indicator,
-        () => _elementPointer(array, <int>[
-          for (final _IndexTerm term in terms) term.b,
-        ]),
-      );
-    }
+    // A form outside F p. 31 refuses at its first use, ahead of the
+    // notes of later statements.
+    semantics.positionalIndicators[indicator - 1].$3.forEach(_indexTerm);
     return indicator;
   }
 
-  final Map<int, ElementPointer> _constantIndicators = <int, ElementPointer>{};
+  /// Each indicator whose subscripts are all literals takes its value at
+  /// load time (J 02.04.07; M6-10), whether or not a word reads it: the
+  /// group of a CORRESPONDING operand keeps one (M6-9).
+  late final Map<int, ElementPointer> _constantIndicators = {
+    for (var i = 0; i < semantics.positionalIndicators.length; i++)
+      if (_literalElements(semantics.positionalIndicators[i].$3)
+          case final List<int> elements)
+        i + 1: _elementPointer(semantics.positionalIndicators[i].$1, elements),
+  };
+
+  /// The element numbers of [subscripts], or `null` when one of them
+  /// names a variable.
+  List<int>? _literalElements(List<ArithExpr> subscripts) {
+    final List<_IndexTerm> terms = subscripts.map(_indexTerm).toList();
+    return terms.any((_IndexTerm term) => term.variable != null)
+        ? null
+        : <int>[for (final _IndexTerm term in terms) term.b];
+  }
 
   /// A subscript as `a * VARIABLE + b`, the form F p. 31 admits; a
   /// literal subscript has no variable and the value b.

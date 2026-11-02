@@ -2636,6 +2636,36 @@ void main() {
         ]);
       });
 
+      test('a literal subscript sets each field indicator at load time', () {
+        final List<String> all = lines(groups, [
+          '      START.  MOVE CORRESPONDING G TO TAB (2).',
+          '            ADD G CELL TO TAB CELL (2).',
+          '            STOP RUN.',
+        ]);
+        // The written `TAB (2)` keeps `PI)1`, which no word reads, and
+        // each field's indicator follows it, `TAB CELL (2)`'s too: every
+        // one points at element 2, three words on.
+        final int head = all.indexOf('\tUSE 2');
+        expect(all.sublist(head, head + 8), [
+          '\tUSE 2',
+          '\tORG BL)1',
+          '\tPZE IOC)29',
+          '\tPZE TAB+3',
+          '\tPZE 2)CELL+3',
+          '\tPZE 2)OTH+3',
+          '\tPZE 2)THR+3',
+          '\tUSE 1',
+        ]);
+        // No store moves a literal indicator.
+        expect(
+          all.where(
+            (String line) =>
+                line.contains('\tLAC PI)') || line.contains('\tSTO PI)'),
+          ),
+          [for (var pi = 2; pi <= 4; pi++) '\tLAC PI)$pi,1', '\tLAC PI)2,1'],
+        );
+      });
+
       test('an external source field fetches through its indicator', () {
         // The words of `ADD XT XF (I) TO G XF`: `SYS)132` takes the
         // indicator of XF, not of XT.
