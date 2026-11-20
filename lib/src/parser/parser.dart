@@ -1,9 +1,6 @@
 /// The M2 parser: `runParser` over the M1 front end's result.
 ///
-/// Design: `docs/design/m2-parser.md`. At this stage the fixed-form
-/// divisions and the control cards parse; procedure groups carry their
-/// scan through unparsed until the procedure parser lands (staging
-/// entry, design note).
+/// Design: `docs/design/m2-parser.md`.
 library;
 
 import '../ast/control_ast.dart';
