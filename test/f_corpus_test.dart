@@ -19,36 +19,56 @@ import 'support/deck_fixtures.dart';
 /// nothing (`test/fixtures/f-payroll-deck-notes.md`).
 const List<String> _pageHead = <String>['--date=06/01/60', '--time=1.00'];
 
-void _printsGolden(String deck, String golden, {required int exitCode}) {
-  final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
-    'run',
-    'comtran:comtranc',
-    deck,
-    ..._pageHead,
-  ]);
-  expect(run.exitCode, exitCode, reason: '${run.stderr}');
-  expect(run.stdout, File(golden).readAsStringSync());
-}
+/// Runs comtranc over [deck] with the fixed page head and [options].
+Future<ProcessResult> _comtranc(
+  String deck, [
+  List<String> options = const [],
+]) => Process.run(Platform.resolvedExecutable, [
+  'run',
+  'comtran:comtranc',
+  deck,
+  ..._pageHead,
+  ...options,
+]);
+
+String _golden(String name) => File('test/goldens/$name').readAsStringSync();
 
 JobCompilation _job(String deck) =>
     compileDeck(decodeCanon(File(deck).readAsBytesSync())).jobs.single;
 
 void main() {
-  test('the verbatim deck prints its golden', () {
+  test('the verbatim deck prints its golden', () async {
     // The generator refuses the deck, so the run ends in a refusal. It
     // is the listing reading's, per Jack's ruling of 2026-11-02 (M6-9).
-    _printsGolden(
-      fVerbatimDeckPath,
-      'test/goldens/f-payroll.listing',
-      exitCode: 1,
-    );
+    final ProcessResult run = await _comtranc(fVerbatimDeckPath);
+    expect(run.exitCode, 1, reason: '${run.stderr}');
+    expect(run.stdout, _golden('f-payroll.listing'));
   });
 
-  test('the applied deck prints its golden', () {
-    _printsGolden(
-      fAppliedDeckPath,
-      'test/goldens/f-payroll-j.listing',
-      exitCode: 0,
+  test('the applied deck prints its listing, then over its tapes its '
+      'reports', () async {
+    // The golden reports are our output; test/f_acceptance_test.dart
+    // classifies their distance from the 1962 sample's report (M6-9,
+    // the run).
+    final Directory tapes = Directory.systemTemp.createTempSync(
+      'comtran-f-tapes',
+    );
+    addTearDown(() => tapes.deleteSync(recursive: true));
+    for (final unit in <String>['D1', 'C2']) {
+      File('$fTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
+    }
+    final ProcessResult run = await _comtranc(fAppliedDeckPath, [
+      '--run',
+      '--tapes=${tapes.path}',
+      '--list-tapes',
+    ]);
+    expect(run.exitCode, 0, reason: '${run.stderr}');
+    expect(
+      run.stdout,
+      '${_golden('f-payroll-j.listing')}'
+      'AT 139,00 STOP 1234\n'
+      'AT 140,00 STOP RUN\n'
+      '${_golden('f-payroll-j.report')}',
     );
   });
 
