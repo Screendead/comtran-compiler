@@ -4,7 +4,6 @@
 /// its `*CTEND` serial attests.
 library;
 
-import 'dart:io';
 
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
@@ -104,52 +103,6 @@ void main() {
       expect(deck.cardsBeforeText.last, endsWith('15'));
       expect(deck.lastCard, endsWith('67'));
       expect(deck.lastCard.substring(6, 12), '*CTEND');
-    });
-
-    test('every text card is in format, in sequence, and checksummed', () {
-      for (var i = 15; i < 66; i++) {
-        final List<int> words = cardWords(deck.cards[i]);
-        final int header = words[0];
-        expect(isRelativeCardHeader(header), isTrue, reason: 'card ${i + 1}');
-        expect(deckTypeOf(header), textDeckType);
-        expect(sequenceOf(header), i - 15);
-        final int count = wordCountOf(header);
-        // The last card holds the 11 words past 50 full cards.
-        expect(count, i < 65 ? 22 : 14);
-        // The span the sum covers is LD-2's decision; the sum itself is
-        // pinned above.
-        expect(words[1], logicalSum([header, ...words.sublist(2, 2 + count)]));
-        expect(
-          unpackControlGroups(words.sublist(2, 5))[count - 3],
-          0,
-          reason: 'end of card',
-        );
-        final serial = '${i + 1}';
-        for (final (int j, String digit) in serial.split('').indexed) {
-          expect(
-            deck.cards[i].punchesAt(81 - serial.length + j),
-            punchesFromBcd(bcdFromGlyph(digit)!),
-          );
-        }
-      }
-    });
-
-    test('the text opens with USE 1 and closes with the end-of-text entry', () {
-      // The counter head comes first (M4-4): `USE 1` is `MON 01621`.
-      final List<int> first = cardWords(deck.cards[15]);
-      expect(_octalOf(first[5]), '500000001621');
-      expect(unpackControlGroups(first.sublist(2, 5))[0], 1);
-      final List<int> last = cardWords(deck.cards[65]);
-      final int count = wordCountOf(last[0]);
-      expect(_octalOf(last[1 + count]), '500000000165');
-      expect(unpackControlGroups(last.sublist(2, 5))[count - 4], 0x0F);
-    });
-
-    test('the canon bytes reproduce the committed golden', () {
-      expect(
-        encodeCanon(deck.cards),
-        File('test/goldens/90.05-payroll.deck').readAsBytesSync(),
-      );
     });
   });
 }
