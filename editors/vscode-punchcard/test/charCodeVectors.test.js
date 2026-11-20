@@ -2,10 +2,8 @@
 
 // Checks the committed cross-language parity fixtures
 // (test/fixtures/char-code-*-vectors.csv) against the TypeScript codec that
-// generated them. See test/fixtures/README.md for the file format this
-// parses. A future Dart-side consumer compares the same files against
-// lib/src/chars/char_code.dart (review finding VSC-5); until then this test
-// guards against src/charCode.ts drifting from the committed fixture.
+// generated them; test/char_code_vectors_test.dart checks the same files
+// against the Dart codec (VSC-5). test/fixtures/README.md gives the format.
 
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

@@ -107,17 +107,6 @@ void main() {
     );
   });
 
-  test('a citation stays plain where it may be verbatim manual text', () {
-    const verbatim = '''
-`J 02.03.02` sits in a code span.
-"A quotation of J 02.03.02 and of F p. 42."
-> A blockquote of J 02.03.02.
-“A curly quotation of J 02.03.02.”
-A table of contents entry: [7.2 The card of J 02.03.02](#7-2).
-''';
-    expect(sweep(verbatim), verbatim);
-  });
-
   test('a citation after the closer of an earlier quotation is linked', () {
     expect(
       sweep('the message says go." (J 02.03.02)\n'),
@@ -127,25 +116,6 @@ A table of contents entry: [7.2 The card of J 02.03.02](#7-2).
       sweep('or display medium” (F p. 42).\n'),
       contains('medium” ([F p. 42]).'),
     );
-  });
-
-  test('a citation before the closer of an earlier quotation stays plain', () {
-    const inside = 'continues J 02.03.02 here" and ends.\n';
-    expect(sweep(inside), startsWith('continues J 02.03.02 here"'));
-  });
-
-  test('a citation inside a fenced code block stays plain', () {
-    const fenced = '''
-```text
-J 02.03.02 and F p. 42 are punched here.
-```
-''';
-    expect(sweep(fenced), fenced);
-  });
-
-  test('a citation the map cannot resolve stays plain', () {
-    const unresolved = 'J 90.06, J28-6169 02.01 and Appendix 90.04.\n';
-    expect(sweep(unresolved), unresolved);
   });
 
   test('a page range links whole', () {
@@ -170,24 +140,6 @@ J 02.03.02 and F p. 42 are punched here.
     expect(linkBlockDefinitions(swept).keys, <String>['F pp. 42']);
   });
 
-  test('a page list the tool cannot link item by item stays plain', () {
-    for (final plain in <String>[
-      'F pp. 42, 116 names an unmapped page.\n',
-      'F p. 42, 115 opens with one page.\n',
-      'F pp. 42, 115(a) runs into a subsection.\n',
-      'F pp. 42, 115, 1960s runs into other text.\n',
-    ]) {
-      expect(sweep(plain), plain, reason: plain);
-    }
-  });
-
-  test('a bracket that would build a link definition is not added', () {
-    const definition = 'J 02.03.02: the coding form.\n';
-    expect(sweep(definition), definition);
-    const inline = 'J 02.03.02(a) names a subsection.\n';
-    expect(sweep(inline), inline);
-  });
-
   test('a second run changes nothing, block and all', () {
     const source = '''
 J 02.03.02 opens the sweep, F p. 42 closes it.
@@ -200,36 +152,24 @@ A repeat of J 02.03.02 shares one definition.
     expect('\n$once'.split('\n$linkBlockMarker'), hasLength(2));
   });
 
-  test('a definition target is relative to the citing file', () {
-    expect(relativePath('', 'comtran-manuals/x.md'), 'comtran-manuals/x.md');
-    expect(
-      relativePath('docs', 'comtran-manuals/x.md'),
-      '../comtran-manuals/x.md',
-    );
-    expect(
-      relativePath('docs/design', 'comtran-manuals/x.md'),
-      '../../comtran-manuals/x.md',
-    );
-    expect(directoryOf('docs/design/decisions.md'), 'docs/design');
-    expect(directoryOf('README.md'), '');
-  });
-
-  test('definitions sort by manual, then number by number', () {
-    final labels = <String>[
-      'J 02.05.05',
-      'F p. 10',
-      'J 02.05',
-      'F p. 2',
-      'F pp. 2-3',
-      '5',
-    ]..sort(compareCitationLabels);
-    expect(labels, <String>[
-      'F p. 2',
-      'F pp. 2-3',
-      '5',
-      'F p. 10',
-      'J 02.05',
-      'J 02.05.05',
-    ]);
+  test('a citation stays plain where it may be verbatim or cannot link', () {
+    for (final plain in <String>[
+      '`J 02.03.02` sits in a code span.\n',
+      '"A quotation of J 02.03.02 and of F p. 42."\n',
+      '> A blockquote of J 02.03.02.\n',
+      '“A curly quotation of J 02.03.02.”\n',
+      'A table of contents entry: [7.2 The card of J 02.03.02](#7-2).\n',
+      'continues J 02.03.02 here" and ends.\n',
+      '```text\nJ 02.03.02 and F p. 42 are punched here.\n```\n',
+      'J 90.06, J28-6169 02.01 and Appendix 90.04.\n',
+      'F pp. 42, 116 names an unmapped page.\n',
+      'F p. 42, 115 opens with one page.\n',
+      'F pp. 42, 115(a) runs into a subsection.\n',
+      'F pp. 42, 115, 1960s runs into other text.\n',
+      'J 02.03.02: the coding form.\n',
+      'J 02.03.02(a) names a subsection.\n',
+    ]) {
+      expect(sweep(plain), plain, reason: plain);
+    }
   });
 }

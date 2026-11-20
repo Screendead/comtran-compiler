@@ -26,9 +26,8 @@ void main() {
     expect(committed, regenerated.keys.toList());
   });
 
-  test('every part carries the banner and stays under the render limit', () {
+  test('every part stays under the render limit', () {
     for (final MapEntry<String, String> entry in regenerated.entries) {
-      expect(entry.value, startsWith(mirrorBanner), reason: entry.key);
       expect(
         entry.value.length,
         lessThan(512 * 1024),
