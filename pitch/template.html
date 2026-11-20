@@ -1,0 +1,189 @@
+<title>COMTRAN Open Calls</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Serif:wght@600&display=swap">
+<style>
+/* Layout: one tab per call; each tab plays its explainer, then lays out the context and the options as selectable rows on punched-card stock. */
+:root {
+  --bg: #f4f5f2; --surface: #ffffff; --ink: #1c221f; --muted: #5b6560;
+  --line: #d4d9d4; --card: #efe7cf; --card-ink: #6b5a2c;
+  --pick: #1f5a8a; --pick-soft: #e2edf6; --rec: #2f6b4a; --rec-soft: #e1efe6; --warn: #8b2d3a;
+  --display: "IBM Plex Serif", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141816; --surface: #1c211e; --ink: #e4e9e5; --muted: #9aa49e; --line: #2f3632;
+  --card: #3a3424; --card-ink: #e3d3a4; --pick: #8cc0ea; --pick-soft: #1b2c3a;
+  --rec: #7cc59b; --rec-soft: #1f3328; --warn: #f0909c; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #141816; --surface: #1c211e; --ink: #e4e9e5; --muted: #9aa49e; --line: #2f3632;
+  --card: #3a3424; --card-ink: #e3d3a4; --pick: #8cc0ea; --pick-soft: #1b2c3a;
+  --rec: #7cc59b; --rec-soft: #1f3328; --warn: #f0909c; color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); }
+main { max-width: 860px; margin: 0 auto; padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 24px; }
+h1 { font: 600 1.9rem/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 1.35rem/1.3 var(--display); margin: 0; text-wrap: balance; }
+h3 { font: 600 .78rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0; }
+p { margin: 0; max-width: 70ch; }
+a { color: inherit; }
+code { font: .85em var(--mono); }
+.eyebrow { font: 600 .72rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+header { display: flex; flex-direction: column; gap: 8px; }
+#status { font: .8rem var(--mono); color: var(--muted); }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.tab { font: 600 .82rem var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 3px; padding: 6px 10px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.tab .n { font: 600 .7rem var(--mono); color: var(--card-ink); background: var(--card); padding: 1px 5px; border-radius: 2px; }
+.tab .done { width: 8px; height: 8px; border-radius: 50%; background: var(--pick); }
+.tab[aria-selected="true"] { border-color: var(--pick); background: var(--pick-soft); }
+.tab:focus-visible, .opt:focus-visible { outline: 2px solid var(--pick); outline-offset: 2px; }
+.panel { display: flex; flex-direction: column; gap: 18px; }
+video { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 4px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; text-align: left; font: inherit; color: inherit;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; cursor: pointer; }
+.opt:hover { border-color: var(--pick); }
+.opt[aria-pressed="true"] { border-color: var(--pick); background: var(--pick-soft); }
+.opt .dot { width: 14px; height: 14px; border: 2px solid var(--muted); border-radius: 50%; margin-top: 4px; }
+.opt[aria-pressed="true"] .dot { border-color: var(--pick); background: var(--pick); }
+.opt .t { font-weight: 600; }
+.opt .rec { font: 600 .66rem var(--mono); color: var(--rec); background: var(--rec-soft); padding: 1px 6px; border-radius: 2px; margin-left: 6px; letter-spacing: .06em; text-transform: uppercase; vertical-align: 2px; }
+.opt dl { grid-column: 2; margin: 0; display: grid; grid-template-columns: 7.5em 1fr; gap: 4px 10px; font-size: .9rem; min-width: 0; }
+.opt dt { color: var(--muted); }
+.opt dd { margin: 0; min-width: 0; }
+.opt pre { grid-column: 2; font: .76rem/1.45 var(--mono); background: var(--bg); border: 1px solid var(--line); padding: 6px 8px; margin: 0; overflow-x: auto; color: var(--ink); white-space: pre; }
+.recwhy { border-left: 3px solid var(--rec); padding-left: 12px; display: flex; flex-direction: column; gap: 4px; }
+.saved { font: .78rem var(--mono); color: var(--pick); min-height: 1em; }
+textarea { font: .9rem var(--body); width: 100%; box-sizing: border-box; min-height: 4em; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; }
+.proto { font-size: .9rem; color: var(--muted); }
+ul.plain { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; max-width: 70ch; }
+@media (prefers-reduced-motion: no-preference) { .opt, .tab { transition: background .12s, border-color .12s; } }
+</style>
+
+<main>
+<header>
+  <div class="eyebrow">COMTRAN compiler · 20 November 2026</div>
+  <h1>COMTRAN Open Calls</h1>
+  <p>Nine calls, one per tab. Each opens with a short narrated explainer, then the facts and the options. Every open pull request is a draft prototype for one of these calls. Pick one option per tab; picks save as you click.</p>
+  <p id="status">Connecting to the saved picks…</p>
+</header>
+<nav class="tabs" role="tablist" id="tabs" aria-label="Calls"></nav>
+<section class="panel" id="panel" role="tabpanel"></section>
+</main>
+
+<script>
+const CARDS = /*CARDS*/[];
+const VIDEOS = /*VIDEOS*/{};
+const EXTRA = { id: "other", short: "Anything else", title: "Anything else" };
+const state = { picks: {}, db: null, cur: 0 };
+const status = document.getElementById("status");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const linkPR = s => esc(s).replace(/#(\d{3})\b/g, '<a href="https://github.com/Screendead/comtran-compiler/pull/$1">#$1</a>');
+const ALL = [...CARDS, EXTRA];
+
+function tabs() {
+  document.getElementById("tabs").innerHTML = ALL.map((c, i) => `
+    <button type="button" class="tab" role="tab" id="tab-${c.id}" aria-selected="${i === state.cur}" data-i="${i}">
+      ${c.id === "other" ? "" : `<span class="n">${i + 1}</span>`}${esc(c.short)}${state.picks[c.id] ? '<span class="done" title="Answered"></span>' : ""}
+    </button>`).join("");
+}
+
+function panel() {
+  const c = ALL[state.cur];
+  const p = document.getElementById("panel");
+  p.setAttribute("aria-labelledby", "tab-" + c.id);
+  if (c.id === "other") {
+    p.innerHTML = `<h2>Anything else</h2>
+      <p>Anything to add, or a call to overrule. Saved as you type.</p>
+      <label for="free-other" class="eyebrow">Your note</label>
+      <textarea id="free-other">${esc(state.picks.other?.note || "")}</textarea>
+      <p class="saved" id="saved-other">${state.picks.other ? "Saved." : ""}</p>
+      <h3>Only you can do</h3>
+      <ul class="plain"><li><b>Send the museum follow-up, if you have not.</b> The Computer History Museum never answered your 6 August request for the four COMTRAN reproductions. A short follow-up waits in your Gmail drafts, in the same thread.</li></ul>
+      <h3>Done since the last page</h3>
+      <ul class="plain">
+        <li>Merged on your word to merge what needs no input: ${linkPR("#195")} (the design record says the table-cell store words are our own design), ${linkPR("#194")} (HANDOVER records the 2 November end state) and ${linkPR("#180")} (8 dev-only npm updates in the VS Code extension).</li>
+        <li>After you answer, each chosen prototype leaves draft and goes through the two-reviewer loop; each rejected one is closed.</li>
+      </ul>`;
+    return;
+  }
+  const pick = state.picks[c.id]?.choice;
+  const v = VIDEOS[c.id];
+  p.innerHTML = `
+    <div class="eyebrow">Call ${state.cur + 1} of ${CARDS.length}</div>
+    <h2>${esc(c.title)}</h2>
+    ${v ? `<video id="vid-${c.id}" controls preload="metadata" playsinline src="${esc(v)}"></video>` : `<p class="proto">The explainer video is not available.</p>`}
+    <div class="facts">
+      <div class="fact"><h3>Today</h3><p>${linkPR(c.today)}</p></div>
+      <div class="fact"><h3>Why now</h3><p>${linkPR(c.why_now)}</p></div>
+      <div class="fact"><h3>If you do nothing</h3><p>${linkPR(c.if_nothing)}</p></div>
+    </div>
+    <h3>Options</h3>
+    <div class="opts" role="group" aria-label="Options">
+      ${c.options.map(o => `<button type="button" class="opt" id="opt-${c.id}-${esc(o.k)}" data-call="${c.id}" data-k="${esc(o.k)}" aria-pressed="${pick === o.k}">
+        <span class="dot"></span><span class="t">${esc(o.label)}${o.rec ? '<span class="rec">Recommended</span>' : ""}</span>
+        <dl><dt>What changes</dt><dd>${linkPR(o.what_changes)}</dd><dt>Cost and risk</dt><dd>${linkPR(o.cost_risk)}</dd><dt>To reverse</dt><dd>${linkPR(o.reverse)}</dd></dl>
+        ${o.example ? `<pre>${esc(o.example)}</pre>` : ""}</button>`).join("")}
+    </div>
+    <div class="recwhy"><h3>Why the recommendation</h3><p>${linkPR(c.recommendation)}</p></div>
+    <p class="proto"><b>Prototype:</b> ${linkPR(c.prototype)}</p>
+    <p class="saved" id="saved-${c.id}">${pick ? "Saved." : ""}</p>`;
+}
+
+function show(i, push) {
+  state.cur = i; tabs(); panel();
+  if (push) { try { history.replaceState(null, "", "#" + ALL[i].id); } catch (e) {} }
+}
+
+async function save(id, data) {
+  const el = document.getElementById("saved-" + id);
+  if (!state.db) { if (el) el.textContent = "Not saved: this view cannot store picks. Type it in the chat."; return; }
+  if (el) el.textContent = "Saving…";
+  try { await state.db.doc("picks/" + id).set({ ...data, at: new Date().toISOString() }); if (el) el.textContent = "Saved."; tabs(); }
+  catch (e) { if (el) el.textContent = "Not saved (" + (e && e.code || "error") + "). Type it in the chat."; }
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest(".tab");
+  if (t) { show(+t.dataset.i, true); return; }
+  const b = e.target.closest(".opt"); if (!b) return;
+  const id = b.dataset.call;
+  state.picks[id] = { ...(state.picks[id] || {}), choice: b.dataset.k };
+  document.querySelectorAll(`.opt[data-call="${id}"]`).forEach(x => x.setAttribute("aria-pressed", x === b));
+  save(id, state.picks[id]);
+});
+document.addEventListener("keydown", e => {
+  if (!e.target.closest(".tab") || (e.key !== "ArrowRight" && e.key !== "ArrowLeft")) return;
+  const i = (state.cur + (e.key === "ArrowRight" ? 1 : ALL.length - 1)) % ALL.length;
+  show(i, true); document.getElementById("tab-" + ALL[i].id).focus();
+});
+let timer;
+document.addEventListener("input", e => {
+  if (e.target.id !== "free-other") return;
+  clearTimeout(timer);
+  timer = setTimeout(() => { state.picks.other = { note: e.target.value }; save("other", state.picks.other); }, 800);
+});
+function fromHash() { const i = ALL.findIndex(c => "#" + c.id === location.hash); return i < 0 ? 0 : i; }
+window.addEventListener("hashchange", () => show(fromHash(), false));
+
+show(fromHash(), false);
+(async () => {
+  const t = setTimeout(() => { status.textContent = "Saved picks unavailable here; type your answers in the chat."; }, 10000);
+  const db = window.claude ? await window.claude.use("db") : null;
+  if (!db) { clearTimeout(t); status.textContent = "Saved picks unavailable here; type your answers in the chat."; return; }
+  state.db = db;
+  try {
+    const snap = await db.collection("picks").get();
+    clearTimeout(t);
+    (snap.docs || snap).forEach(d => { state.picks[d.id] = d.data ? d.data() : d; });
+    const keep = document.activeElement && document.activeElement.id === "free-other";
+    tabs(); if (!keep) panel();
+    status.textContent = "Your picks save as you click.";
+  } catch (e) { clearTimeout(t); status.textContent = "Could not load saved picks; clicks will still try to save."; }
+})();
+</script>
