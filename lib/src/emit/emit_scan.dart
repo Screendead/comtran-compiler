@@ -88,8 +88,10 @@ void _writeUnit(
   String kind,
   String text,
 ) {
-  final String number =
-      frontEnd.statementNumberByCard[firstCard.cardNumber] ?? '9999,99';
+  final String number = statementNumber(
+    frontEnd.statementNumberByCard,
+    firstCard.cardNumber,
+  );
   buffer.writeln('$number  $kind  $text');
 }
 

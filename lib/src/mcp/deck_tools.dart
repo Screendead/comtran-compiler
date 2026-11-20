@@ -126,23 +126,7 @@ Map<String, Object?> writeDeck(
   }
   final Uint8List bytes = encodeCanon(deck);
   final String mirror = deckToMirror(deck);
-  if (mirror != text) {
-    // mirrorToDeck accepts normal form only, so this cannot normally happen.
-    throw const DeckToolException(
-      'format',
-      'mirror text is not in normal form (spec §3.3)',
-    );
-  }
-  final Directory parent = File(path).parent;
-  if (!parent.existsSync()) {
-    throw DeckToolException('not_found', 'no such directory: ${parent.path}');
-  }
-  try {
-    writeAtomic(path, (File f) => f.writeAsBytesSync(bytes));
-    writeAtomic(mirrorPath, (File f) => f.writeAsStringSync(mirror));
-  } on FileSystemException catch (e) {
-    throw DeckToolException('io', '${e.message}: ${e.path}');
-  }
+  _writePair(path, mirrorPath, bytes, mirror);
   return {
     'path': path,
     'mirror_path': mirrorPath,
@@ -214,16 +198,7 @@ Map<String, Object?> editDeckCards(
   ];
   final Uint8List bytes = encodeCanon(newDeck);
   final String mirror = deckToMirror(newDeck);
-  final Directory parent = File(path).parent;
-  if (!parent.existsSync()) {
-    throw DeckToolException('not_found', 'no such directory: ${parent.path}');
-  }
-  try {
-    writeAtomic(path, (File f) => f.writeAsBytesSync(bytes));
-    writeAtomic(mirrorPath, (File f) => f.writeAsStringSync(mirror));
-  } on FileSystemException catch (e) {
-    throw DeckToolException('io', '${e.message}: ${e.path}');
-  }
+  _writePair(path, mirrorPath, bytes, mirror);
   return {
     'path': path,
     'mirror_path': mirrorPath,
@@ -404,6 +379,26 @@ String _mirrorPathOf(String canonPath) {
     return mirrorPathFor(canonPath);
   } on FormatException catch (e) {
     throw DeckToolException('bad_extension', e.message);
+  }
+}
+
+/// Writes the canon file and its mirror, each atomically, once the
+/// directory is known to exist.
+void _writePair(
+  String path,
+  String mirrorPath,
+  Uint8List bytes,
+  String mirror,
+) {
+  final Directory parent = File(path).parent;
+  if (!parent.existsSync()) {
+    throw DeckToolException('not_found', 'no such directory: ${parent.path}');
+  }
+  try {
+    writeAtomic(path, (File f) => f.writeAsBytesSync(bytes));
+    writeAtomic(mirrorPath, (File f) => f.writeAsStringSync(mirror));
+  } on FileSystemException catch (e) {
+    throw DeckToolException('io', '${e.message}: ${e.path}');
   }
 }
 

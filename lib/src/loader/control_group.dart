@@ -2,10 +2,8 @@
 /// 5-bit group of each object word, which the deck writer punches, the
 /// loader reads, and the listing prints as M4-8's CNTRL column.
 ///
-/// M4-16 charters the control groups as the deck's, and
-/// `../codegen/text_model.dart` scopes itself to the listing's SYMBOLIC
-/// column ([J 90.02.02]). The two vocabularies are different subjects
-/// that shared one file.
+/// `../codegen/text_model.dart` holds the listing's SYMBOLIC column
+/// ([J 90.02.02]); the control groups are the deck's, not that column's.
 library;
 
 /// A field's relocation class in a standard word's control group

@@ -1,4 +1,4 @@
-/// The website's browser entry point (roadmap W1, `docs/HANDOVER.md`).
+/// The website's browser entry point.
 ///
 /// `tool/build_web.dart` compiles this file to `web/main.dart.js`. It
 /// crosses the JavaScript boundary and does nothing else: every decision

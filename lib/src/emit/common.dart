@@ -9,6 +9,12 @@ library;
 const String reconstructionLabel =
     '* RECONSTRUCTION - NO 1962 ARTIFACT ATTESTS THIS FORM';
 
+/// The card's statement number, or `9999,99` when the front end
+/// numbered no card of its unit (J 02.02.01; D9.5), the fallback the
+/// listing's own diagnostic rows print.
+String statementNumber(Map<int, String> byCard, int card) =>
+    byCard[card] ?? '9999,99';
+
 /// The line that opens job [number]'s section of a dump.
 String jobHeader(int number) => '* JOB $number';
 
