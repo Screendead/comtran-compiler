@@ -4,7 +4,8 @@
 /// either one survives, so each golden is decision-conformance,
 /// not an oracle. The listing cannot carry a refusal, so the verbatim
 /// deck's refusal test pins what the generator stopped on, and the
-/// applied deck's test pins the object deck it now punches.
+/// applied deck's tests pin the object deck it punches and the
+/// reports it prints over its tapes.
 library;
 
 import 'dart:io';
