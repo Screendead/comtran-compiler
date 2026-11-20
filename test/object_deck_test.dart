@@ -4,7 +4,6 @@
 /// its `*CTEND` serial attests.
 library;
 
-
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
