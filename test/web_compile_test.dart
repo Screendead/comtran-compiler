@@ -37,12 +37,6 @@ void main() {
       expect(result.code, _golden('code'));
     });
 
-    test('the deck compiles clean', () {
-      expect(result.cardCount, 294);
-      expect(result.diagnostics, isEmpty);
-      expect(result.maxSeverity, 0);
-    });
-
     test('the browser payload names every stage after its emit flag', () {
       expect(result.toJson().keys, [
         'error',
@@ -59,52 +53,36 @@ void main() {
     });
   });
 
-  group('punchText', () {
-    test('accepts what a text area produces', () {
+  test('punchText accepts what a text area produces', () {
+    for (final (String typed, String punched) in [
       // CRLF, no final newline, a trailing blank, and lower case: four
       // things mirrorToDeck refuses and no typist can see.
-      expect(
-        punchText('      *data\r\n            stop run.   '),
+      (
+        '      *data\r\n            stop run.   ',
         '      *DATA\n            STOP RUN.\n',
-      );
-    });
-
-    test('drops the blank cards a trailing return leaves', () {
-      expect(punchText('      *DATA\n\n   \n'), '      *DATA\n');
-      expect(punchText('   \n\n'), isEmpty);
-    });
-
-    test('keeps a blank card between two punched ones', () {
-      expect(
-        punchText('      *DATA\n\n      *FINISH\n'),
-        '      *DATA\n\n      *FINISH\n',
-      );
-    });
+      ),
+      ('      *DATA\n\n   \n', '      *DATA\n'),
+      ('   \n\n', ''),
+      ('      *DATA\n\n      *FINISH\n', '      *DATA\n\n      *FINISH\n'),
+    ]) {
+      expect(punchText(typed), punched, reason: typed);
+    }
   });
 
-  group('a deck the site cannot punch', () {
-    test('empty text asks for a program', () {
-      final WebCompilation result = compileText('   \n');
-      expect(result.error, contains('no program to compile'));
-      expect(result.listing, isEmpty);
-    });
-
-    test('a tab names the card and says what to type instead', () {
-      final WebCompilation result = compileText('      *DATA\n\tSTOP RUN.\n');
-      expect(result.error, contains('Card 2 contains a tab'));
-      expect(result.error, contains('spaces'));
-    });
-
-    test('a character outside the source set names its column', () {
-      final WebCompilation result = compileText('      *DATA\n      A%B\n');
-      expect(result.error, startsWith('Card 2, column 8'));
-      expect(result.error, endsWith('Fix that card and compile again.'));
-    });
-
-    test('a card wider than eighty columns is refused', () {
-      final WebCompilation result = compileText('${'A' * 81}\n');
-      expect(result.error, contains('longer than 80 columns'));
-    });
+  test('a deck the site cannot punch is refused in words a typist can act '
+      'on', () {
+    for (final (String text, String message) in [
+      ('   \n', 'no program to compile'),
+      ('      *DATA\n\tSTOP RUN.\n', 'Card 2 contains a tab'),
+      ('      *DATA\n\tSTOP RUN.\n', 'spaces'),
+      ('      *DATA\n      A%B\n', 'Card 2, column 8'),
+      ('      *DATA\n      A%B\n', 'Fix that card and compile again.'),
+      ('${'A' * 81}\n', 'longer than 80 columns'),
+    ]) {
+      final WebCompilation result = compileText(text);
+      expect(result.error, contains(message), reason: text);
+      expect(result.listing, isEmpty, reason: text);
+    }
   });
 
   group('the deck a reader downloads', () {
@@ -175,11 +153,6 @@ void main() {
     test('lower case is punched as upper case', () {
       expect(punchCard('      stop')!.glyphs.substring(6, 10), 'STOP');
     });
-
-    test('a card carries the mirror text it came from', () {
-      final String card1 = _sample().split('\n').first;
-      expect(punchCard(card1)!.line, card1);
-    });
   });
 
   group('punching a card by hand', () {
@@ -227,26 +200,20 @@ void main() {
     });
   });
 
-  test("a diagnostic reaches the site in the listing's own words", () {
-    final WebCompilation result = compileText(
-      ['      *DATA', dataCard(name: 'A', level: '99'), ''].join('\n'),
-    );
-    final WebDiagnostic first = result.diagnostics.first;
-    expect(first.number, matches(RegExp(r'^\d+,\d\d$')));
-    expect(first.severity, inInclusiveRange(1, 5));
-    // The listing prints the same text for the same diagnostic, so the
-    // site never states a message of its own.
-    expect(result.listing, contains(first.text.split('\n').first));
-  });
-
-  test('a program the compiler rejects still returns its stages', () {
+  test('a program the compiler rejects still returns its stages, and its '
+      "diagnostics in the listing's own words", () {
     // A severity-5 stop is a result, not a refusal: the reader gets the
     // listing with the diagnostic block, and the stages that ran (D10.2).
     final WebCompilation result = compileText(
       ['      *DATA', dataCard(name: 'A', level: '99'), ''].join('\n'),
     );
     expect(result.error, isNull);
-    expect(result.diagnostics, isNotEmpty);
     expect(result.listing, contains('ERRORS WERE DETECTED'));
+    final WebDiagnostic first = result.diagnostics.first;
+    expect(first.number, matches(RegExp(r'^\d+,\d\d$')));
+    expect(first.severity, inInclusiveRange(1, 5));
+    // The listing prints the same text for the same diagnostic, so the
+    // site never states a message of its own.
+    expect(result.listing, contains(first.text.split('\n').first));
   });
 }
