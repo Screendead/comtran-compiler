@@ -89,22 +89,6 @@ void main() {
     // entered ahead of the first sentence. `STOP RUN` then enters its
     // two stamp words, the ` STOP ` and ` RUN  ` words, SYS)178,
     // SYS)177, IOC)1 and IOC)40.
-    test('the 3501st name of the program crosses in the generator', () {
-      // 3489 programmer names and GN)000 make 3490; the ten fixed
-      // names make 3500; the stamp's first word is the 3501st.
-      final JobCompilation job = _compile(_namesThenStop(3489));
-      expect(_ids(job), ['942,00']);
-      final Diagnostic capacity = job.diagnostics.single;
-      expect(capacity.card?.cardNumber, 3492, reason: 'the STOP RUN card');
-      expect(job.semantics!.stopped, isFalse);
-      expect(job.semantics!.nameCount, 3490);
-      expect(job.codegen!.stopped, isTrue);
-      expect(job.codegen!.units, isEmpty);
-      expect(job.codegen!.image, isNull);
-      expect(job.unrecovered, isNull);
-      expect(job.sink.maxSeverity, 5);
-    });
-
     test('a fixed name crossing the limit reports against no statement', () {
       // 3490 programmer names and GN)000 make 3491: the tenth fixed
       // name is the 3501st, and no statement owns it (D11.3).
@@ -142,13 +126,13 @@ void main() {
       );
     });
 
-    test('a SYS) or IOC) number counts once, not per use', () {
-      // Two STOP RUNs share every generated name but the second's
-      // statement-number word: the second frame enters one name, not
-      // its eight. 3480 names, GN)000 and the ten fixed names make
-      // 3491; the first frame's eight make 3499; the second frame's
-      // one makes 3500 and compiles. One more programmer name and the
-      // second frame's word is the 3501st.
+    test('the 3501st name of the program crosses in the generator', () {
+      // A SYS) or IOC) number counts once, not per use: two STOP RUNs
+      // share every generated name but the second's statement-number
+      // word, so the second frame enters one name, not its eight. 3480
+      // names, GN)000 and the ten fixed names make 3491; the first
+      // frame's eight make 3499; the second frame's one makes 3500 and
+      // compiles. One more programmer name and that word is the 3501st.
       List<String> twoStops(int names) => [
         '      *DATA',
         for (var i = 0; i < names; i++)
@@ -164,6 +148,12 @@ void main() {
       final JobCompilation over = _compile(twoStops(3481));
       expect(_ids(over), ['942,00']);
       expect(over.diagnostics.single.card?.cardNumber, 3485);
+      expect(over.semantics!.stopped, isFalse);
+      expect(over.codegen!.stopped, isTrue);
+      expect(over.codegen!.units, isEmpty);
+      expect(over.codegen!.image, isNull);
+      expect(over.unrecovered, isNull);
+      expect(over.sink.maxSeverity, 5);
     });
   });
 
