@@ -1,11 +1,11 @@
-/// Pictorial measurement (M3 stage 1, design note M3-5).
+/// Pictorial measurement (M3-5).
 ///
 /// From a pictorial run the mapper needs: the storage character count
 /// (each format character one position; `V`, `S`, and `F` reserve
 /// nothing — F p. 80; J 02.05.05), the digit count, the scale, and
 /// the sign convention. A single trailing zone letter A–R is an
-/// overpunched digit — the punch-level form of the chart's `9̅` (M2-3
-/// amendment; design note M3-5).
+/// overpunched digit — the punch-level form of the chart's `9̅` (M2-3;
+/// M3-5).
 library;
 
 /// The sign conventions a pictorial can state: the external-decimal
@@ -71,7 +71,7 @@ final class Pictorial {
   /// The largest repetition count kept as punched. A blocksize holds
   /// at most 9999 words, 59994 characters (J 02.06.04), so no field
   /// a machine can read reaches this bound; a larger count is a
-  /// keying error (M3-16 amendment).
+  /// keying error (M3-16).
   static const int maxCount = 99999;
 
   int _count(_Kind kind) => _elements
@@ -106,10 +106,7 @@ final class Pictorial {
     for (final (_Kind kind, int _) in _elements) {
       if (kind == _Kind.s) {
         behind = behind || stored;
-      } else if (kind == _Kind.nine ||
-          kind == _Kind.eight ||
-          kind == _Kind.star ||
-          kind == _Kind.overpunch) {
+      } else if (_isDigit(kind)) {
         if (behind) {
           return false;
         }
@@ -300,11 +297,7 @@ final class Pictorial {
       if (!seenV) {
         continue;
       }
-      if (kind == _Kind.nine ||
-          kind == _Kind.eight ||
-          kind == _Kind.star ||
-          kind == _Kind.s ||
-          kind == _Kind.overpunch) {
+      if (_isDigit(kind) || kind == _Kind.s) {
         fraction += count;
       }
     }

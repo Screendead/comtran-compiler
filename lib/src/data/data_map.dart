@@ -85,7 +85,7 @@ final class ItemSemantics {
 
   /// Storage characters of one occurrence: a leaf's reservation, or a
   /// group's end-to-start extent including interior alignment. This is
-  /// the D3.3 comparison length (amended 2026-08-04).
+  /// the D3.3 comparison length.
   int storageChars = 0;
 
   /// More than 10 represented digits, or FF (J 02.05.06).
@@ -141,8 +141,7 @@ final class ItemSemantics {
 final class AreaInfo {
   AreaInfo(this.name, {required this.root, required this.words});
 
-  /// The punched name; empty for an unnamed entry (its GN name is
-  /// stage 3's).
+  /// The punched name; empty for an unnamed entry.
   final String name;
 
   /// The entry whose space this area is. Codegen addresses a data item
@@ -304,8 +303,8 @@ final class SemanticResult {
   final List<(DataItem, String, List<ArithExpr>)> positionalIndicators;
 
   /// Sentences msg 177 deleted from the text: their references
-  /// overflowed the per-sentence table, so M4 generates nothing for
-  /// them (M3-20).
+  /// overflowed the per-sentence table, so code generation emits
+  /// nothing for them (M3-20).
   final Set<Sentence> capacityDeletedSentences;
 
   /// The names the job has entered so far — the programmer's and the

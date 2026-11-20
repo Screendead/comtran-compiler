@@ -2,8 +2,8 @@
 /// the MOVE, ADD, SET, comparison, and figurative-constant tables of
 /// J 02.04 become checks over the procedure clauses.
 ///
-/// The checker classifies and diagnoses only; the code shapes stay M4's
-/// (M3-10). Its one product for M4 is [LegalityChecker.correspondingPairs].
+/// The checker classifies and diagnoses only (M3-10). Its one product
+/// for code generation is [LegalityChecker.correspondingPairs].
 library;
 
 import '../ast/data_ast.dart';
@@ -35,8 +35,8 @@ final class LegalityChecker extends ClauseWalk with OperandWalk {
   final bool pedantic;
 
   /// The CORRESPONDING pairs of each clause, source first, in
-  /// data-description order — M4 generates one move or add sequence per
-  /// pair (D4.12).
+  /// data-description order — code generation emits one move or add
+  /// sequence per pair (D4.12).
   final Map<Clause, List<(DataItem, DataItem)>> correspondingPairs =
       Map.identity();
 

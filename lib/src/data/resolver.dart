@@ -1,4 +1,4 @@
-/// The name resolver (M3 stage 2): the dictionary build, the CALL
+/// The name resolver: the dictionary build, the CALL
 /// pass, and reference resolution over the procedure division.
 ///
 /// The triage and every site reading follow design notes M3-17 to
@@ -49,8 +49,8 @@ final class NameResolver extends ClauseWalk with OperandWalk {
   /// The job's dictionary (M3-8; M3-17).
   final Dictionary dictionary = Dictionary();
 
-  /// Every resolved data reference, identity-keyed — M4 generates code
-  /// from these.
+  /// Every resolved data reference, identity-keyed — code generation
+  /// reads these.
   final Map<NameReference, DataItem> dataResolutions = Map.identity();
 
   /// Condition references that resolve to an Environment COND card —
@@ -208,8 +208,8 @@ final class NameResolver extends ClauseWalk with OperandWalk {
         if (label != programStartName &&
             keyWordClassOf(label) != null &&
             keyWordClassOf(label) != KeyWordClass.environmentConditional) {
-          // An operation found in the name field (msg 61; M3-17 as
-          // amended). List-3 words are legal procedure names
+          // An operation found in the name field (msg 61; M3-17).
+          // List-3 words are legal procedure names
           // (J 02.03.03); msg 152 covers the environment-used ones.
           diagnostics.reportAt(
             msgOperationAsName,
@@ -351,8 +351,8 @@ final class NameResolver extends ClauseWalk with OperandWalk {
   // ── Reference resolution (M3-17) ─────────────────────────────────
 
   /// Resolves every data and condition reference of the procedure
-  /// division. The I/O verb operands are the binder walk's (M3-18) and
-  /// the transfer targets stage 3 of the walk's own rows (M3-20).
+  /// division. The I/O verb operands are the verb binder's (M3-18) and
+  /// the transfer targets the transfer checker's (M3-20).
   void resolve(List<List<Sentence>> procedureGroups) {
     walkClauses(procedureGroups, _resolveClause);
     _checkConditionEntries();
@@ -481,8 +481,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
     }
     if (dictionary.named(last).isNotEmpty) {
       // The name exists only as an environment or procedure name — a
-      // format-less object at a data site (M3-17 as amended
-      // 2026-08-04).
+      // format-less object at a data site (M3-17).
       report(msgImproperFormatForUse, ref.anchor, operands: [ref.text]);
       return null;
     }
@@ -492,8 +491,8 @@ final class NameResolver extends ClauseWalk with OperandWalk {
 
   /// Whether [ref] fits the sentence's reference table (M3-20). The
   /// 101st distinct name deletes the sentence with msg 177, and every
-  /// later reference of it is refused, so the stage-2 checks below
-  /// this point never see it. The 100-name size is invented (D9.7;
+  /// later reference of it is refused, so the later checks never see
+  /// it. The 100-name size is invented (D9.7;
   /// Open Question 9).
   bool _admittedToSentenceTable(NameReference ref) {
     final Sentence? sentence = currentSentence;
@@ -614,7 +613,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
       }
       final Token? constant = item.constant;
       if (constant == null) {
-        continue; // The absence drew msg 4-family rows at M2.
+        continue; // The parser reports the absence (the msg 4 family).
       }
       final List<int> bcd = constantBcd(constant, item.entry.cards);
       final bool mismatch = switch (sem.fieldClass) {
@@ -689,9 +688,10 @@ final class NameResolver extends ClauseWalk with OperandWalk {
   }
 }
 
-/// The procedure walk the stage-2 phases share (M3-17): every clause of
-/// every live sentence, IF arms and ON OVERFLOW clauses included, with
-/// the clause number the `n,cc` diagnostic form needs (M2-6).
+/// The procedure walk the resolver and its checkers share (M3-17):
+/// every clause of every live sentence, IF arms and ON OVERFLOW clauses
+/// included, with the clause number the `n,cc` diagnostic form needs
+/// (M2-6).
 abstract base class ClauseWalk {
   ClauseWalk(this.diagnostics);
 
@@ -707,7 +707,7 @@ abstract base class ClauseWalk {
 
   /// Sentences msg 177 deleted from the text (M3-20). A phase that
   /// runs after the resolver overrides this with the resolver's set,
-  /// so a deleted sentence takes no further stage-2 check.
+  /// so a deleted sentence takes no further check.
   Set<Sentence> get deletedSentences => const {};
 
   void walkClauses(
@@ -746,7 +746,7 @@ abstract base class ClauseWalk {
   }
 }
 
-/// The operand walk the stage-2 checkers share: the names, function
+/// The operand walk the procedure checkers share: the names, function
 /// calls, and condition names of one expression or condition, reached
 /// through the operators, the two sides of a relation, and the
 /// condition inside a TruthExpr. Subscripts and function arguments hang

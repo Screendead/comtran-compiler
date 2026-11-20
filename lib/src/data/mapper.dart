@@ -1,10 +1,10 @@
-/// The data mapper (M3 stage 1): the six-way field classifier (M3-4),
+/// The data mapper: the six-way field classifier (M3-4),
 /// pictorial measurement (M3-5), and the storage allocator (M3-6).
 ///
 /// The allocator replays the 1962 storage assignment counter over the
 /// entries in source order (J 02.05.04; D3.4's save/restore rule for
-/// REDEF). Offsets are relative to each top-level item's space; M4
-/// binds spaces to object addresses (M3-6).
+/// REDEF). Offsets are relative to each top-level item's space; code
+/// generation binds spaces to object addresses (M3-6).
 library;
 
 import 'dart:math' as math;
@@ -52,8 +52,8 @@ final class DataMapper {
 
   final List<Diagnostic> diagnostics;
 
-  /// The Environment specification names, for msg 46's stage-1 case (a
-  /// REDEF or QUANTITY IN naming a file).
+  /// The Environment specification names, for msg 46 (a REDEF or
+  /// QUANTITY IN naming a file).
   final Set<String> environmentNames;
 
   final bool pedantic;
@@ -149,7 +149,7 @@ final class DataMapper {
         sem.fieldClass = FieldClass.redefinition;
         return;
       case DataTypeCode.copy:
-        // Refused at M2 with msg 110 (D9.8); no storage.
+        // The parser refuses it with msg 110 (D9.8); no storage.
         sem.dropped = true;
         return;
       case DataTypeCode.label:
@@ -271,8 +271,7 @@ final class DataMapper {
     if (overpunch != null && overpunch != 8 && overpunch != 9) {
       // The chart's rightmost-character lists admit an overpunched 9
       // (external decimal) and 8 (edited) only; any other digit sits
-      // outside both. The measured format stands (M3-21 amends M3-5's
-      // open).
+      // outside both. The measured format stands (M3-21).
       conflict(msgIllegalFormatCombination);
     }
 
@@ -364,7 +363,7 @@ final class DataMapper {
       return Pictorial.tryParse(token.text);
     }
     // The msg 133 form: a would-be pictorial whose count has no right
-    // parenthesis reads as a name at M2; the mapper reclaims it.
+    // parenthesis reads as a name in the parser; the mapper reclaims it.
     final Token? stray = item.targetName;
     if (stray != null) {
       final Pictorial? shape = Pictorial.tryParse(
@@ -402,7 +401,7 @@ final class DataMapper {
   void _effectiveQuantity(ItemSemantics sem) {
     final DataEntry entry = sem.item.entry;
     if (sem.item.typeCode == DataTypeCode.record) {
-      return; // Quantity at record level is an M2 coding conflict.
+      return; // Quantity at record level is a parser coding conflict.
     }
     final int? quantity = entry.quantity;
     if (quantity != null && quantity >= 1 && quantity <= 32767) {
@@ -588,7 +587,7 @@ final class DataMapper {
   void _startRedef(DataItem marker) {
     final Token? name = marker.targetName;
     if (name == null) {
-      return; // Already an M2 coding conflict.
+      return; // The parser reports the coding conflict.
     }
     final List<DataItem> candidates = _byName[name.text] ?? const [];
     final int here = _index[marker]!;
@@ -835,7 +834,7 @@ final class DataMapper {
     }
     if (_redef != null) {
       // Constants cannot be part of a redefinition (J 02.05.06 iv;
-      // D3.6 as amended 2026-08-04: msg 43 covers the case).
+      // D3.6: msg 43 covers the case).
       diagnostics.report(msgConstantPlacementIllegal, item.constant!);
       sem.constantSuppressed = true;
       return;

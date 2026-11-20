@@ -17,7 +17,7 @@
 /// numbers in source order — the sample's GN)058–083 — which is why
 /// the printed label words skip (71466, 71471, 71474, …). DO-loop
 /// machinery and EQU'd symbols number in a later compiler pass
-/// (GN)084 on) and take no source-order word; they are M4's.
+/// (GN)084 on) and take no source-order word.
 ///
 /// A word's value prints only for a programmer name, on the line where
 /// the name completes; a GN-named entry consumes its word without

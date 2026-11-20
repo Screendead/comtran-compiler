@@ -1,7 +1,7 @@
-/// The environment binder (M3 stage 1, design note M3-11): records
-/// bind to files before storage is final.
+/// The environment binder (M3-11): records bind to files before
+/// storage is final.
 ///
-/// Stage 1 covers what needs no procedure walk: FILE-card record
+/// The binder covers what needs no procedure walk: FILE-card record
 /// resolution, the BLOCKSIZE checks (D7.1; D10.8), SPECIF file
 /// resolution, the BCD-output mode check, and the located-or-
 /// transmitted classification (J 02.07.03; J 02.07.05). The rows that
@@ -27,8 +27,8 @@ final class EnvironmentBinder {
   final List<RecordInfo> records = [];
 
   /// The first declaration under each record name, and the first FILE
-  /// card under each file name — the lookups the stage-2 verb binder
-  /// resolves its operands through (M3-18).
+  /// card under each file name — the lookups the verb binder resolves
+  /// its operands through (M3-18).
   final Map<String, RecordInfo> recordByName = {};
   final Map<String, FileCard> fileByName = {};
 
@@ -45,7 +45,7 @@ final class EnvironmentBinder {
         final record = RecordInfo(item, item.entry.name);
         records.add(record);
         // Record names must be unique (D2.5); uniqueness itself is
-        // stage 2's check, so the first declaration wins here.
+        // the resolver's check, so the first declaration wins here.
         recordByName.putIfAbsent(record.name, () => record);
       }
     }
@@ -212,7 +212,7 @@ final class EnvironmentBinder {
     }
     int? blocksize = file.blocksize;
     if (blocksize == null) {
-      return; // The absence drew msg 89 at M2 (D10.8).
+      return; // The parser reports the absence: msg 89 (D10.8).
     }
     if (file.card && file.direction == FileDirection.input && blocksize < 24) {
       // "All input card files must have a block size of at lease 24

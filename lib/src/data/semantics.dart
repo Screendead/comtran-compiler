@@ -19,7 +19,7 @@ import 'resolver.dart';
 import 'transfers.dart';
 import 'verb_binder.dart';
 
-/// Runs the M3 semantic layer over [parse].
+/// Runs the semantic layer over [parse].
 ///
 /// Diagnostics go to [sink] when one is given — the compilation's one
 /// [DiagnosticSink] (D9.1), shared with the earlier phases by the
@@ -101,7 +101,7 @@ SemanticResult runSemantics(
       tableLimits: tableLimits,
     ).check(environmentCards, procedureGroups);
     // The allocator runs last: a stopped phase prints blank LOC and GN
-    // columns, like M1 (M3-8; D10.2).
+    // columns (M3-8; D10.2).
     allocation = allocateDictionary(parse, names: resolver.names);
   } on StopCompilation {
     // A severity-5 diagnostic stops the phase at the point of

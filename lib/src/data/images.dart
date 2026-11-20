@@ -1,11 +1,11 @@
-/// Initial images (M3 stage 1, design note M3-7): each transmitted
+/// Initial images (M3-7): each transmitted
 /// area's initial words — constants in their stored form, the
 /// automatic blank fill, and no image for wholly uninitialized words.
 ///
 /// Word images bind to the emulator's 36-bit word model (ED-1) and
 /// the D0.6 BCD codes — no parallel representation. Literal values
-/// are re-read from the card images, because M1 token text uses
-/// display placeholders (M1-9; M3-2).
+/// are re-read from the card images, because token text uses display
+/// placeholders (M1-9; M3-2).
 library;
 
 import '../ast/data_ast.dart';
@@ -24,7 +24,7 @@ const int _bcdMinus = 0x20;
 const int _bcdPeriod = 0x1B;
 
 /// Re-reads a quoted constant's characters from the card images as
-/// BCD codes, replaying the M1 scan's walk (M1-9 directs the re-read;
+/// BCD codes, replaying the lexer's walk (M1-9 directs the re-read;
 /// D1.1's join rules; D9.10's zero repair).
 List<int> constantBcd(Token constant, List<SourceCard> group) {
   final result = <int>[];
@@ -49,7 +49,7 @@ List<int> constantBcd(Token constant, List<SourceCard> group) {
       }
       final int? bcd = card.bcdAt(column);
       if (bcd == null) {
-        result.add(0); // The D9.10 repair; M1 diagnosed the column.
+        result.add(0); // The D9.10 repair; the lexer diagnoses the column.
         continue;
       }
       if (card.glyphAt(column) == "'") {
@@ -59,7 +59,7 @@ List<int> constantBcd(Token constant, List<SourceCard> group) {
     }
     blanks = 0; // The card's unpunched tail never joins (D1.1).
   }
-  return result; // Unclosed: msg 167 was issued at M1.
+  return result; // Unclosed: the lexer reports msg 167.
 }
 
 /// Builds the transmitted areas with their initial words.
@@ -127,7 +127,7 @@ final class ImageBuilder {
           root: root,
           words: [
             for (var i = 0; i < extentWords; i++)
-              _touched[i] ? _words[i] : null,
+              if (_touched[i]) _words[i] else null,
           ],
         ),
       );
@@ -419,7 +419,7 @@ final class ImageBuilder {
         if (buffer.isNotEmpty) {
           // A sign after the leading position is an incorrect sign
           // usage, not a foreign character: this path reads no F
-          // exponent (M3-21 amends M3-16's open).
+          // exponent (M3-21).
           diagnostics.report(msgIncorrectNumericForm, item.constant!);
           return false;
         }
