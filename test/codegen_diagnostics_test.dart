@@ -1,7 +1,8 @@
-/// The code generator's diagnostics (M4-18): the eight-class name tally behind msg 942 (M4-5), the pool counter behind msg 172
-/// (D9.7), the two `--pedantic` notes 946 and 947 (D5.1; D5.7), the
-/// reopen after CLOSE ALL FILES behind msg 948 (D6.3), and the D10.2
-/// stop shape of the phase (M4-2).
+/// The code generator's diagnostics (M4-18): the eight-class name tally
+/// behind msg 942 (M4-5), the pool counter behind msg 172 (D9.7), the
+/// two `--pedantic` notes 946 and 947 (D5.1; D5.7), the reopen after
+/// CLOSE ALL FILES behind msg 948 (D6.3), and the D10.2 stop shape of
+/// the phase (M4-2).
 library;
 
 import 'package:comtran/comtran.dart';
