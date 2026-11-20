@@ -1,4 +1,4 @@
-/// The M3 stage-2 reference legality checks (M3-10; M3-21): the MOVE
+/// The reference legality checks (M3-10; M3-21): the MOVE
 /// table (J 02.04.03 c), CORRESPONDING pairing (D4.12), the comparison
 /// rules (J 02.04.07), the arithmetic-operand rule (J 02.04.05 §6), and
 /// the figurative-constant chart (J 02.04.02; D4.6, D4.11).

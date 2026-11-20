@@ -1,4 +1,4 @@
-/// The M3 stage-2 mapper capacity counters (M3-12; M3-21's capacity
+/// The mapper capacity counters (M3-12; M3-21's capacity
 /// homes): the four data-division tables of J 90.01.05, each rejecting
 /// at its printed "Appox-Max" number (D9.7).
 library;

@@ -1,4 +1,4 @@
-/// The M3 stage-2 transfer, DO, and function checks: the procedure
+/// The transfer, DO, and function checks: the procedure
 /// target model (D2.5; M3-20), DO substitution and functions (M3-19),
 /// loop control (F pp. 49–53), and the per-sentence reference table
 /// (D9.7; Open Question 9).
