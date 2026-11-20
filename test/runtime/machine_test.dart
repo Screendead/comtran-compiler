@@ -1326,6 +1326,8 @@ void main() {
       tapeImage(fault, 'D1', const <List<int>>[]);
       tapeImage(fault, 'C2', const <List<int>>[]);
       faultRun = _sample(['--run', '--tapes=${fault.path}', '--list-tapes']);
+      // Registered last, so it runs before the directories go.
+      addTearDown(() => Future.wait([golden, unopenedRun, faultRun]));
     });
 
     test('the reconstructed tapes print the report of PDF p. 217', () async {
@@ -1984,6 +1986,8 @@ void main() {
             in _bands.entries) ...['\$CMPLE BAND$severity', ...job],
       ]);
       guard = _compileAndRun(_guard);
+      // Registered last, so it runs before the directories go.
+      addTearDown(() => Future.wait([budget, bands, guard]));
     });
 
     test('an exhausted budget names the budget and fails the job', () async {
