@@ -69,8 +69,7 @@ void main() {
     });
 
     test('the maximum count (255) clears the register', () {
-      // TSTC-08: the maximum count, after the modulo-400-octal mask
-      // (0o377 = 255), is untested for every shift.
+      // The maximum count, after the modulo-400-octal mask (0o377 = 255).
       m.acMagnitude = 5;
       runOne(typeB(0x1F7, address: 255));
       expect(m.acMagnitude, 0);
@@ -87,19 +86,9 @@ void main() {
       expect(m.overflow, isFalse);
     });
 
-    test('a shift of 37 or more clears the register', () {
-      m.acMagnitude = MachineState.acMagnitudeMask;
-      runOne(typeB(0x1F9, address: 40));
-      expect(m.acMagnitude, 0);
-    });
-
-    test('matches the closed form over the documented count range', () {
-      // EMU-1: ARS now runs the same stepwise loop the other five shifts
-      // use, with the dead `n > 36` guard removed. This proves the
-      // rewrite changed no observable result: the stepwise loop still
-      // agrees with the old guarded closed form at every documented
-      // count, including the boundary (36, 37) and the maximum (255,
-      // after the modulo-400-octal mask; M p. 31).
+    test('shifts by the count, and 37 or more clears the register', () {
+      // The boundary (36, 37) and the maximum (255, after the
+      // modulo-400-octal mask; M p. 31).
       const int initial = MachineState.acMagnitudeMask; // All 37 bits set.
       for (final n in [0, 1, 35, 36, 37, 63, 255]) {
         m.acMagnitude = initial;
@@ -131,10 +120,8 @@ void main() {
     });
 
     test('a count above 35 continues draining Q and P into the MQ', () {
-      // TSTC-08: a count above 35 drains the AC-MQ pair further than the
-      // 35-count case above; Q and P (positions above 1-35) still have
-      // 2 more places to move at count 35, so a count of 37 is needed to
-      // carry the Q bit all the way into the MQ.
+      // Q and P still have 2 more places to move at count 35, so a count
+      // of 37 carries the Q bit all the way into the MQ.
       m.acMagnitude = MachineState.acQBit;
       runOne(typeB(0x1F5, address: 37));
       expect(m.acMagnitude, 0);
@@ -142,7 +129,7 @@ void main() {
     });
 
     test('the maximum count (255) drains the pair to zero', () {
-      // TSTC-08: the maximum count, after the modulo-400-octal mask.
+      // The maximum count, after the modulo-400-octal mask.
       m
         ..acMagnitude = MachineState.acMagnitudeMask
         ..mq = data(Word36.magnitudeMask);
@@ -179,7 +166,7 @@ void main() {
     });
 
     test('the maximum count (255) drains the pair to zero', () {
-      // TSTC-08: the maximum count, after the modulo-400-octal mask.
+      // The maximum count, after the modulo-400-octal mask.
       m
         ..acMagnitude = MachineState.acMagnitudeMask
         ..mq = data(Word36.magnitudeMask, negative: true);
@@ -206,9 +193,8 @@ void main() {
     });
 
     test('a count above 35 continues draining Q and P into the MQ', () {
-      // TSTC-08: at 36 the Q bit has only reached the AC's own low end
-      // (positions 1-35 hold room for it); a 37th step is needed to move
-      // it out of the AC and into the MQ's own sign position.
+      // At 36 the Q bit has only reached the AC's own low end; a 37th
+      // step moves it out of the AC and into the MQ's own sign position.
       m.acMagnitude = MachineState.acQBit;
       runOne(typeB(0x9F5, address: 37));
       expect(m.acMagnitude, 0);
@@ -216,7 +202,7 @@ void main() {
     });
 
     test('the maximum count (255) drains the pair to zero', () {
-      // TSTC-08: the maximum count, after the modulo-400-octal mask.
+      // The maximum count, after the modulo-400-octal mask.
       m
         ..acMagnitude = MachineState.acMagnitudeMask
         ..mq = Word36.wordMask;
@@ -249,8 +235,8 @@ void main() {
     });
 
     test('the maximum count (255) is 255 mod 36 places', () {
-      // TSTC-08: the maximum count, after the modulo-400-octal mask
-      // (M p. 31). 255 = 7 * 36 + 3, so a 255-place rotation is the same
+      // The maximum count, after the modulo-400-octal mask (M p. 31).
+      // 255 = 7 * 36 + 3, so a 255-place rotation is the same
       // as a 3-place rotation; no bits are lost either way.
       m.mq = 1;
       runOne(typeB(0x9FB, address: 255));
@@ -258,9 +244,8 @@ void main() {
     });
   });
 
-  // TSTC-07: shifts and the 0760 family call
-  // `_effectiveAddress(..., indirectable: false)`, so a flagged shift word
-  // must ignore the flag, unlike CLA*, STO*, CAS*, and TRA*.
+  // A flagged shift word ignores the flag, unlike CLA*, STO*, CAS*, and
+  // TRA*.
   test('the flag bit is ignored: shift counts are never indirectable', () {
     m
       ..acMagnitude = 1

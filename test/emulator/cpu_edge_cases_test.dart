@@ -1,7 +1,3 @@
-// TSTC-08: emulator edge cases that no single opcode group covers on its
-// own — IC wraparound at the top of memory, a compare/skip crossing that
-// boundary, and the stickiness of the overflow and divide-check
-// indicators across an instruction that does not itself trip them.
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 

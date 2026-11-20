@@ -2,7 +2,7 @@
 /// reports `f-payroll-j.ctd` prints over its tapes, against the report
 /// the 1962 sample prints over the same employees (M6-9 of
 /// `docs/design/m6-acceptance.md`, the run). The golden's own test in
-/// `test/runtime/machine_test.dart` proves the run prints it; this test
+/// `test/f_corpus_test.dart` proves the run prints it; this test
 /// pins every column that matches and every difference with its cause.
 library;
 

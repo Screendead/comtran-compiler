@@ -24,7 +24,7 @@ const int _unassigned = 0x0F;
 List<int> _print(String text) {
   final codes = <int>[
     for (final String glyph in text.split(''))
-      glyph == '~' ? bcdRecordMark : bcdFromGlyph(glyph)!,
+      if (glyph == '~') bcdRecordMark else bcdFromGlyph(glyph)!,
   ];
   while (codes.length % 6 != 0) {
     codes.add(bcdBlank);

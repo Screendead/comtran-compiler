@@ -39,9 +39,6 @@ void main() {
     });
 
     test("CLA* indirects through the indirect word's own tag", () {
-      // TSTC-07: indirect addressing is tested only on TRA. This pins it
-      // for a load. The indirect shape mirrors the TRA* test
-      // (test/emulator/cpu_transfer_index_test.dart).
       m
         ..xrWrite(1, 3)
         ..write(0x300, typeA(0, tag: 1, address: 0x403)) // Indirect word.
@@ -291,8 +288,8 @@ void main() {
     });
 
     test('a zero divisor forces the divide check', () {
-      // TSTC-08: |C(Y)| = 0 is never greater than |AC|, so any nonzero
-      // dividend with a zero divisor turns the check on.
+      // |C(Y)| = 0 is never greater than |AC|, so any nonzero dividend
+      // with a zero divisor turns the check on.
       m
         ..acMagnitude = 5
         ..mq = data(1)
@@ -303,9 +300,9 @@ void main() {
     });
 
     test('a minus dividend and a minus divisor give a plus quotient', () {
-      // TSTC-08: only the minus/plus case is covered above. The quotient
-      // sign is the exclusive-or of the dividend and divisor signs; the
-      // remainder keeps the dividend sign either way (M p. 24).
+      // The quotient sign is the exclusive-or of the dividend and
+      // divisor signs; the remainder keeps the dividend sign either way
+      // (M p. 24).
       m
         ..acSign = 1
         ..acMagnitude = 0

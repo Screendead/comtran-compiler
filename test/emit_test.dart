@@ -19,17 +19,19 @@ import 'package:test/test.dart';
 
 import 'support/deck_fixtures.dart';
 
-/// Compiles the 90.05 job deck with the golden listing's fixed page head.
-ProcessResult _compile(List<String> options) =>
-    Process.runSync(Platform.resolvedExecutable, [
-      'run',
-      'comtran:comtranc',
-      jobDeckPath,
-      '--date=10/18/61',
-      '--time=2.45',
-      '--title=COMPILATION OF SAMPLE PROBLEM',
-      ...options,
-    ]);
+/// Runs comtranc over [deck] with the golden listing's fixed page head.
+Future<ProcessResult> _compile(
+  List<String> options, {
+  String deck = jobDeckPath,
+}) => Process.run(Platform.resolvedExecutable, [
+  'run',
+  'comtran:comtranc',
+  deck,
+  '--date=10/18/61',
+  '--time=2.45',
+  '--title=COMPILATION OF SAMPLE PROBLEM',
+  ...options,
+]);
 
 /// The lines under job [number]'s `* JOB n` header in [dump], less the
 /// blank line that separates the section from the next job and less the
@@ -54,15 +56,44 @@ List<List<String>> _storageRows(List<String> dump) {
 void main() {
   late Directory dumps;
   late ProcessResult run;
+  late Future<ProcessResult> plainRun;
+
+  // Each default-path run compiles its own copy of the job deck, so one
+  // run's default-named dumps cannot satisfy another's assertions.
+  final defaults = <String, Directory>{};
+  final defaultRuns = <String, Future<ProcessResult>>{};
 
   String dump(String stage) => File('${dumps.path}/$stage').readAsStringSync();
 
   String golden(String name) =>
       File('test/goldens/90.05-payroll.$name').readAsStringSync();
 
-  setUpAll(() {
+  setUpAll(() async {
+    // Every run starts here, so the processes overlap.
+    plainRun = _compile(const []);
+    for (final (
+          String name,
+          String file,
+          List<String> Function(Directory) options,
+        )
+        in [
+          ('bundle', 'payroll.ctd', (_) => const ['-cpsSldL']),
+          ('bare', 'payroll.ctd', (_) => const ['--emit-semantics']),
+          ('trap', 'oops.cards', (_) => const ['-c']),
+          (
+            'all',
+            'payroll.ctd',
+            (Directory dir) => ['-A', '--emit-parse=${dir.path}/custom.tree'],
+          ),
+        ]) {
+      final Directory dir = defaults[name] = Directory.systemTemp
+          .createTempSync('comtran-emit-default');
+      final deck = '${dir.path}/$file';
+      File(jobDeckPath).copySync(deck);
+      defaultRuns[name] = _compile(options(dir), deck: deck);
+    }
     dumps = Directory.systemTemp.createTempSync('comtran-emit');
-    run = _compile([
+    run = await _compile([
       for (final String stage in ['cards', 'scan', 'parse', 'semantics'])
         '--emit-$stage=${dumps.path}/$stage',
       '--emit-listing=${dumps.path}/listing',
@@ -72,7 +103,12 @@ void main() {
     ]);
   });
 
-  tearDownAll(() => dumps.deleteSync(recursive: true));
+  tearDownAll(() async {
+    await Future.wait([plainRun, ...defaultRuns.values]);
+    for (final Directory dir in [dumps, ...defaults.values]) {
+      dir.deleteSync(recursive: true);
+    }
+  });
 
   group('the 90.05 dumps', () {
     test('the reconstruction dumps reproduce their goldens', () {
@@ -99,14 +135,13 @@ void main() {
       );
     });
 
-    test('the flags change neither output stream nor the exit code', () {
-      final ProcessResult plain = _compile(const []);
+    test('the flags change neither output stream nor the exit code', () async {
+      final ProcessResult plain = await plainRun;
       expect(run.exitCode, plain.exitCode);
       expect(run.stdout, plain.stdout);
       expect(plain.stderr, isEmpty);
       expect(run.stderr, plain.stderr);
     });
-
     test('the STORAGE section prints the M3-14 fixture rows', () {
       final List<List<String>> printed = _storageRows(
         File('${dumps.path}/semantics').readAsLinesSync(),
@@ -130,102 +165,72 @@ void main() {
     });
   });
 
-  test('a malformed emit flag, date or time is a usage error', () {
+  test('a malformed emit flag, date or time is a usage error', () async {
     // The `*CTEXT` card's fields hold `mm/dd/yy` and `h.hh` only.
-    for (final flag in [
+    const flags = [
       '--emit-parse=',
       '--emit-all=x',
-      '-x',
       '-cx',
       '--date=2026-08-30',
       '--time=2.4',
-    ]) {
-      final ProcessResult run = _compile([flag]);
-      expect(run.exitCode, 2, reason: flag);
-      expect(run.stdout, isEmpty, reason: flag);
-      expect(run.stderr, startsWith('Usage:'), reason: flag);
+    ];
+    final List<ProcessResult> runs = await Future.wait([
+      for (final flag in flags) _compile([flag]),
+    ]);
+    for (final (int i, String flag) in flags.indexed) {
+      expect(runs[i].exitCode, 2, reason: flag);
+      expect(runs[i].stdout, isEmpty, reason: flag);
+      expect(runs[i].stderr, startsWith('Usage:'), reason: flag);
     }
   });
 
   group('the default dump paths', () {
-    // Each test gets its own copy of the job deck, so one test's
-    // default-named dumps cannot satisfy another's assertions.
-    late Directory dir;
-    late String deck;
+    test(
+      'the -cpsSldL bundle writes all seven dumps next to the deck',
+      () async {
+        final ProcessResult run = await defaultRuns['bundle']!;
+        final String dir = defaults['bundle']!.path;
+        expect(run.exitCode, 0, reason: '${run.stderr}');
+        for (final stage in [
+          'cards',
+          'scan',
+          'semantics',
+          'listing',
+          'deck',
+          'loader',
+        ]) {
+          expect(File('$dir/payroll.$stage').existsSync(), isTrue);
+        }
+        expect(File('$dir/payroll.parse').readAsStringSync(), golden('parse'));
+      },
+    );
 
-    setUp(() {
-      dir = Directory.systemTemp.createTempSync('comtran-emit-default');
-      deck = '${dir.path}/payroll.ctd';
-      File(jobDeckPath).copySync(deck);
-    });
-
-    tearDown(() => dir.deleteSync(recursive: true));
-
-    ProcessResult compile(List<String> options) =>
-        Process.runSync(Platform.resolvedExecutable, [
-          'run',
-          'comtran:comtranc',
-          deck,
-          '--date=10/18/61',
-          '--time=2.45',
-          '--title=COMPILATION OF SAMPLE PROBLEM',
-          ...options,
-        ]);
-
-    test('the -cpsSldL bundle writes all seven dumps next to the deck', () {
-      final ProcessResult run = compile(const ['-cpsSldL']);
-      expect(run.exitCode, 0, reason: '${run.stderr}');
-      for (final stage in [
-        'cards',
-        'scan',
-        'semantics',
-        'listing',
-        'deck',
-        'loader',
-      ]) {
-        expect(File('${dir.path}/payroll.$stage').existsSync(), isTrue);
-      }
-      expect(
-        File('${dir.path}/payroll.parse').readAsStringSync(),
-        golden('parse'),
-      );
-    });
-
-    test('a bare long flag writes the default file', () {
-      final ProcessResult run = compile(const ['--emit-semantics']);
+    test('a bare long flag writes the default file', () async {
+      final ProcessResult run = await defaultRuns['bare']!;
       expect(run.exitCode, 0, reason: '${run.stderr}');
       expect(
-        File('${dir.path}/payroll.semantics').readAsStringSync(),
+        File('${defaults['bare']!.path}/payroll.semantics').readAsStringSync(),
         golden('semantics'),
       );
     });
 
-    test('a default that equals the deck path is refused', () {
-      final trap = '${dir.path}/oops.cards';
-      File(jobDeckPath).copySync(trap);
-      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
-        'run',
-        'comtran:comtranc',
-        trap,
-        '-c',
-      ]);
+    test('a default that equals the deck path is refused', () async {
+      final ProcessResult run = await defaultRuns['trap']!;
       expect(run.exitCode, 2);
       expect(run.stderr, contains('the deck itself'));
-      expect(File(trap).readAsBytesSync(), File(jobDeckPath).readAsBytesSync());
+      expect(
+        File('${defaults['trap']!.path}/oops.cards').readAsBytesSync(),
+        File(jobDeckPath).readAsBytesSync(),
+      );
     });
 
-    test('an explicit path after -A replaces that stage default', () {
-      final ProcessResult run = compile([
-        '-A',
-        '--emit-parse=${dir.path}/custom.tree',
-      ]);
+    test('an explicit path after -A replaces that stage default', () async {
+      final ProcessResult run = await defaultRuns['all']!;
+      final String dir = defaults['all']!.path;
       expect(run.exitCode, 0, reason: '${run.stderr}');
-      expect(
-        File('${dir.path}/custom.tree').readAsStringSync(),
-        golden('parse'),
-      );
-      expect(File('${dir.path}/payroll.parse').existsSync(), isFalse);
-      expect(File('${dir.path}/payroll.listing').existsSync(), isTrue);
+      expect(File('$dir/custom.tree').readAsStringSync(), golden('parse'));
+      expect(File('$dir/payroll.parse').existsSync(), isFalse);
+      expect(File('$dir/payroll.listing').existsSync(), isTrue);
     });
   });
 

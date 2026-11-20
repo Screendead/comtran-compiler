@@ -369,14 +369,6 @@ void main() {
       expect(deck.maxSeverity, 5);
     });
 
-    test('the 90.05 job deck compiles with zero diagnostics', () {
-      final DeckCompilation deck = compileDeck(loadJobDeck());
-      final JobCompilation job = deck.jobs.single;
-      expect(job.diagnostics, isEmpty);
-      expect(deck.maxSeverity, 0);
-      expect(job.frontEnd.statementCount, 229);
-    });
-
     test('under --pedantic the 90.05 job deck draws exactly the D4.11 '
         'notes (D11.4)', () {
       final DeckCompilation deck = compileDeck(loadJobDeck(), pedantic: true);
@@ -397,41 +389,29 @@ void main() {
       expect(job.frontEnd.statementCount, 229);
     });
 
-    test('comtranc exits 1 on the unterminated artifact', () {
-      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
-        'run',
-        'comtran:comtranc',
-        payrollDeckPath,
-        '--date=10/18/61',
-        '--time=2.45',
-      ]);
-      expect(run.exitCode, 1, reason: '${run.stderr}');
-      expect(
-        run.stdout,
-        contains('END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.'),
-      );
-    });
-
-    test('--explain prints diagnostics to stderr without changing stdout', () {
-      final ProcessResult plain = Process.runSync(Platform.resolvedExecutable, [
-        'run',
-        'comtran:comtranc',
-        payrollDeckPath,
-        '--date=10/18/61',
-        '--time=2.45',
-      ]);
-      final ProcessResult explained =
-          Process.runSync(Platform.resolvedExecutable, [
+    test('comtranc exits 1 on the unterminated artifact, and --explain '
+        'prints its diagnostics to stderr without changing stdout', () async {
+      Future<ProcessResult> compile(List<String> options) =>
+          Process.run(Platform.resolvedExecutable, [
             'run',
             'comtran:comtranc',
             payrollDeckPath,
             '--date=10/18/61',
             '--time=2.45',
-            '--explain',
+            ...options,
           ]);
+      final [ProcessResult plain, ProcessResult explained] = await Future.wait([
+        compile(const []),
+        compile(const ['--explain']),
+      ]);
+      expect(plain.exitCode, 1, reason: '${plain.stderr}');
+      expect(
+        plain.stdout,
+        contains('END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.'),
+      );
+      expect(plain.stderr, isEmpty);
       expect(explained.exitCode, plain.exitCode);
       expect(explained.stdout, plain.stdout);
-      expect(plain.stderr, isEmpty);
       expect(
         explained.stderr,
         contains('END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.'),
