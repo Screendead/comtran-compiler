@@ -33,87 +33,52 @@ _EnvParse _parse(
 
 void main() {
   group('FILE card errors', () {
-    test('no direction word draws 89,00', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'MASTER,BLOCKSIZE 10',
-        ),
-      ]);
-      expect(result.scan.diagnostics, isEmpty);
-      expect(result.diagnostics.single.message, msgFileCardFormatError);
-      expect(result.cards.single, isA<FileCard>());
-    });
-
-    test('BLOCKSIZE with no following integer draws 91,00', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'INPUT,MASTER,BLOCKSIZE',
-        ),
-      ]);
-      expect(result.diagnostics.single.message, msgBlocksizeNeedsInteger);
-    });
-
-    test('ON ERROR with no following name draws 92,00', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'INPUT,MASTER,BLOCKSIZE 10,ON ERROR',
-        ),
-      ]);
-      expect(result.diagnostics.single.message, msgOnErrorNeedsName);
-    });
-
-    test('PRIMARY on an INPUT file draws 96,00', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'INPUT,MASTER,BLOCKSIZE 10,PRIMARY',
-        ),
-      ]);
-      expect(result.diagnostics.single.message, msgIllegalWordInFileCard);
-    });
-
-    test('a FILE card without BLOCKSIZE draws 89,00 (J 02.06.04)', () {
-      final _EnvParse result = _parse([
-        environmentCard(name: 'F', type: 'FILE', options: 'INPUT,MASTER'),
-      ]);
-      expect(result.diagnostics.single.message, msgFileCardFormatError);
-    });
-
-    test('a CHECKPOINT file needs no BLOCKSIZE', () {
-      final _EnvParse result = _parse([
-        environmentCard(name: 'F', type: 'FILE', options: 'CHECKPOINT'),
-      ]);
-      expect(result.diagnostics, isEmpty);
-    });
-
-    test('BLOCK CONTROL on an OUTPUT file draws 96,00 (J 02.06.03)', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'OUTPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
-        ),
-      ]);
-      expect(result.diagnostics.single.message, msgIllegalWordInFileCard);
-    });
-
-    test('BLOCK CONTROL on an INPUT record stays clean', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'INPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
-        ),
-      ]);
-      expect(result.diagnostics, isEmpty);
-    });
+    // Each row: the options of one FILE card, and the one message the
+    // card draws, or null where it stays clean.
+    final Map<String, (String, Message?)> rows = {
+      'no direction word draws 89,00': (
+        'MASTER,BLOCKSIZE 10',
+        msgFileCardFormatError,
+      ),
+      'BLOCKSIZE with no following integer draws 91,00': (
+        'INPUT,MASTER,BLOCKSIZE',
+        msgBlocksizeNeedsInteger,
+      ),
+      'ON ERROR with no following name draws 92,00': (
+        'INPUT,MASTER,BLOCKSIZE 10,ON ERROR',
+        msgOnErrorNeedsName,
+      ),
+      'PRIMARY on an INPUT file draws 96,00': (
+        'INPUT,MASTER,BLOCKSIZE 10,PRIMARY',
+        msgIllegalWordInFileCard,
+      ),
+      'a FILE card without BLOCKSIZE draws 89,00 (J 02.06.04)': (
+        'INPUT,MASTER',
+        msgFileCardFormatError,
+      ),
+      'a CHECKPOINT file needs no BLOCKSIZE': ('CHECKPOINT', null),
+      'BLOCK CONTROL on an OUTPUT file draws 96,00 (J 02.06.03)': (
+        'OUTPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
+        msgIllegalWordInFileCard,
+      ),
+      'BLOCK CONTROL on an INPUT record stays clean': (
+        'INPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
+        null,
+      ),
+    };
+    for (final MapEntry(key: name, value: (options, message)) in rows.entries) {
+      test(name, () {
+        final _EnvParse result = _parse([
+          environmentCard(name: 'F', type: 'FILE', options: options),
+        ]);
+        expect(result.scan.diagnostics, isEmpty);
+        expect(result.cards.single, isA<FileCard>());
+        expect(
+          [for (final Diagnostic d in result.diagnostics) d.message],
+          [?message],
+        );
+      });
+    }
 
     test('a key word as a FILE or record name draws 178,00 (D10.8)', () {
       final _EnvParse result = _parse([
@@ -199,7 +164,7 @@ void main() {
     });
   });
 
-  group('FILE keyword coverage (TSTC-02)', () {
+  group('FILE keyword coverage', () {
     FileCard parse(String options) {
       final _EnvParse result = _parse([
         environmentCard(name: 'F', type: 'FILE', options: options),
@@ -368,7 +333,7 @@ void main() {
     });
   });
 
-  group('SPECIF keyword coverage (TSTC-02)', () {
+  group('SPECIF keyword coverage', () {
     SpecifCard parse(String options) {
       final _EnvParse result = _parse([
         environmentCard(type: 'SPECIF', options: options),
@@ -647,7 +612,7 @@ void main() {
 
         // The exact spread of message ids this parser issues, in source
         // order, each paired with its card: a duplicated, missing, or
-        // misattributed diagnostic fails this (TSTC-09). Card 1 (F1) draws
+        // misattributed diagnostic fails this. Card 1 (F1) draws
         // 89 twice — once for the missing direction word, once because
         // BLOCKSIZE, unreachable after that, is never seen either. Card 4
         // (F3) likewise draws 89 at the end: its options never mention

@@ -1712,7 +1712,7 @@ void main() {
       // Card 2 draws a semantic diagnostic (32,00, mode-pictorial
       // conflict); card 3 draws a parser diagnostic (178,00, key word
       // as data name). Plain concatenation of the two phases would
-      // print card 3's diagnostic first (mirrors parser_test.dart:50).
+      // print card 3's diagnostic first.
       final List<String> lines = [
         '      *DATA',
         dataCard(name: 'X', level: '1', mode: 'I', description: '99R'),

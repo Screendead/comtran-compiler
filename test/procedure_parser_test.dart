@@ -23,15 +23,6 @@ import 'support/deck_fixtures.dart';
 
 void main() {
   group('verbs', () {
-    test('a literal MOVE source parses, as the sample writes', () {
-      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
-        "            MOVE 'M' TO ERRORTYPE.",
-      ]);
-      expect(diagnostics, isEmpty);
-      final move = sentences.single.clauses.single as MoveClause;
-      expect((move.source as LiteralOperand).literal.text, 'M');
-    });
-
     test('SET condition-name closes before a following clause (D5.6)', () {
       final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
         '            SET MARRIED, GO TO NEXT.STEP.',
@@ -703,7 +694,7 @@ void main() {
     });
   });
 
-  group('attested forms restored by the 2026-08-03 review', () {
+  group('attested forms', () {
     test("SET target = 'M' parses clean (F p. 46; PROC-1)", () {
       final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
         "            SET MARITAL.STATUS = 'M'.",

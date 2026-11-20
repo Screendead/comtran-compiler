@@ -218,7 +218,7 @@ void main() {
     });
   });
 
-  group('name bars and the REDEF line (2026-08-03 review)', () {
+  group('name bars and the REDEF line', () {
     test('a key word as a data name draws 178 and is kept (D1.5)', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
         dataCard(name: 'RECORD', level: '2', description: '99'),
