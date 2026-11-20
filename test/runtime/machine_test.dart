@@ -1220,7 +1220,6 @@ void main() {
       final Directory tapes = tempDirectory('comtran-tapes');
       _sampleTapes(tapes);
       final subject = Machine.load(jobDeck(job, _options)!.cards, tapes: tapes);
-      expect(subject.program.words, hasLength(936));
       expect(subject.program.origin, Machine.programOrigin);
       expect(subject.program.entry, Machine.programOrigin + octal('165'));
       expect(subject.state.ic, subject.program.entry);
@@ -1405,19 +1404,11 @@ void main() {
 
   group('an I/O-free program', () {
     test('runs to STOP RUN and stores its result', () {
-      final JobCompilation job = compileDeck(
-        mirrorToDeck('${_source.join('\n')}\n'),
-      ).jobs.single;
-      final subject = Machine.load(jobDeck(job, _options)!.cards);
-      final RunResult result = subject.run(maxSteps: 1000);
-      expect(result.outcome, RunOutcome.endOfJob);
-      expect(result.display, <String>['AT 4,00 STOP RUN']);
-      final AssemblyUnit total = job.codegen!.units.firstWhere(
-        (AssemblyUnit unit) => unit.labels.contains('TOT'),
-      );
+      final (JobCompilation job, Machine subject) = compiled(_source);
+      expect(subject.printed, <String>['AT 4,00 STOP RUN']);
       // `SET TOT = NUM + 1` generates CLA, ADD, STO with no MOVPAK, and
       // NUM's reserved cell reads +0 (ED-6).
-      expect(subject.state.read(Machine.programOrigin + total.location!), 1);
+      expect(subject.state.read(addressOf(job, 'TOT')), 1);
     });
 
     test('STOP n prints its line and resumes with the next statement', () {

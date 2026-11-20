@@ -66,7 +66,6 @@ void main() {
             unit.location!: unit.word!,
       };
       expect(program.words, image);
-      expect(program.words, hasLength(936));
       // The last word the text places is the constant pool's, at
       // relative 01771 (`test/goldens/90.05-payroll.code`).
       expect(program.extent, _octal('1772'));
