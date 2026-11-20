@@ -1,5 +1,4 @@
-/// The code generator's diagnostics (M4-18, chunk B8): the eight-class
-/// name tally behind msg 942 (M4-5), the pool counter behind msg 172
+/// The code generator's diagnostics (M4-18): the eight-class name tally behind msg 942 (M4-5), the pool counter behind msg 172
 /// (D9.7), the two `--pedantic` notes 946 and 947 (D5.1; D5.7), the
 /// reopen after CLOSE ALL FILES behind msg 948 (D6.3), and the D10.2
 /// stop shape of the phase (M4-2).
@@ -34,8 +33,8 @@ List<String> _namesThenStop(int count) => [
   '      *FINISH',
 ];
 
-/// A section DO'd FOR [index] over a twelve-element table it subscripts
-/// — the one DO FOR shape the generator fills (chunk B5).
+/// A section DO'd FOR [index] over a twelve-element table it subscripts,
+/// the one DO FOR shape the generator fills.
 List<String> _doFor(String index) => [
   '      *DATA',
   dataCard(name: 'TAB', level: '1', quantity: '12'),
@@ -61,6 +60,16 @@ List<String> _doFor(String index) => [
   '            MOVE NUM TO TAB CELL (IDX).',
   '            END RTN.',
   '      LAST.  STOP RUN.',
+  '      *FINISH',
+];
+
+/// [count] distinct literals, each a `SET` sentence, then `STOP RUN.`
+List<String> _literals(int count) => [
+  '      *DATA',
+  dataCard(name: 'N', level: '1', mode: 'I', justify: 'R', description: '999'),
+  '      *PROCEDURE',
+  for (var k = 2; k < 2 + count; k++) '            SET N = $k.',
+  '            STOP RUN.',
   '      *FINISH',
 ];
 
@@ -158,28 +167,13 @@ void main() {
   });
 
   group('the constant pool counter (D9.7; msg 172)', () {
-    List<String> literals(int count) => [
-      '      *DATA',
-      dataCard(
-        name: 'N',
-        level: '1',
-        mode: 'I',
-        justify: 'R',
-        description: '999',
-      ),
-      '      *PROCEDURE',
-      for (var k = 2; k < 2 + count; k++) '            SET N = $k.',
-      '            STOP RUN.',
-      '      *FINISH',
-    ];
-
     test('the 500th entry compiles and the 501st draws 172,00', () {
       // The seeds 0 and 1, 494 written literals, and STOP RUN's four
       // machine words fill the pool exactly.
-      final JobCompilation full = _compile(literals(494));
+      final JobCompilation full = _compile(_literals(494));
       expect(full.diagnostics, isEmpty);
       expect(full.codegen!.image!.blockWords[StorageBlock.cp], 500);
-      final JobCompilation over = _compile(literals(495));
+      final JobCompilation over = _compile(_literals(495));
       expect(_ids(over), ['172,00']);
       final Diagnostic overflow = over.diagnostics.single;
       expect(overflow.severity, 5);
@@ -190,11 +184,11 @@ void main() {
     });
 
     test('--no-table-limits lifts the counter and changes nothing else', () {
-      final JobCompilation job = _compile(literals(495), tableLimits: false);
+      final JobCompilation job = _compile(_literals(495), tableLimits: false);
       expect(job.diagnostics, isEmpty);
       expect(job.codegen!.image!.blockWords[StorageBlock.cp], 501);
       // The D9.7 oracle: under the limit, the switch changes no output.
-      final full = '${literals(494).join('\n')}\n';
+      final full = '${_literals(494).join('\n')}\n';
       expect(
         emitCode(compileDeck(mirrorToDeck(full), tableLimits: false)),
         emitCode(compileDeck(mirrorToDeck(full))),
@@ -360,7 +354,7 @@ void main() {
     test('a generator stop never starves the next job (J 90.04.02)', () {
       final List<String> lines = [
         r'$CMPLE FULL',
-        ..._namesThenStop(3489),
+        ..._literals(495),
         r'$CMPLE GOOD',
         '      *PROCEDURE',
         '            STOP RUN.',
@@ -370,7 +364,7 @@ void main() {
         mirrorToDeck('${lines.join('\n')}\n'),
       );
       expect(deck.jobs, hasLength(2));
-      expect(_ids(deck.jobs.first), ['942,00']);
+      expect(_ids(deck.jobs.first), ['172,00']);
       expect(deck.jobs.first.codegen!.stopped, isTrue);
       expect(deck.jobs.last.diagnostics, isEmpty);
       expect(deck.jobs.last.codegen!.stopped, isFalse);
@@ -383,18 +377,12 @@ void main() {
     });
 
     test('the sample draws no generator diagnostic in either mode', () {
-      final JobCompilation quiet = compileDeck(loadJobDeck()).jobs.single;
-      expect(quiet.diagnostics, isEmpty);
-      expect(quiet.codegen!.stopped, isFalse);
-      final JobCompilation noted = compileDeck(
-        loadJobDeck(),
-        pedantic: true,
-      ).jobs.single;
-      expect(_ids(noted), ['943,00', '943,00', '943,00']);
-      expect(
-        emitCode(compileDeck(loadJobDeck(), pedantic: true)),
-        emitCode(compileDeck(loadJobDeck())),
-      );
+      final DeckCompilation quiet = compileDeck(loadJobDeck());
+      expect(quiet.jobs.single.diagnostics, isEmpty);
+      expect(quiet.jobs.single.codegen!.stopped, isFalse);
+      final DeckCompilation noted = compileDeck(loadJobDeck(), pedantic: true);
+      expect(_ids(noted.jobs.single), ['943,00', '943,00', '943,00']);
+      expect(emitCode(noted), emitCode(quiet));
     });
   });
 
@@ -437,19 +425,6 @@ void main() {
     ];
 
     test('an OPEN in the straight run after the close draws it', () {
-      final JobCompilation job = _compile(
-        program([
-          '      START.  OPEN ALL FILES.',
-          '            CLOSE ALL FILES.',
-          '            OPEN ALL FILES.',
-          '            STOP RUN.',
-        ]),
-      );
-      expect(_ids(job), ['948,00']);
-      expect(job.diagnostics.single.clause, 1);
-    });
-
-    test('the reopen is severity 4 and keeps its OPEN', () {
       final List<String> lines = program([
         '      START.  OPEN ALL FILES.',
         '            CLOSE ALL FILES.',
@@ -459,6 +434,8 @@ void main() {
       final DeckCompilation deck = compileDeck(
         mirrorToDeck('${lines.join('\n')}\n'),
       );
+      expect(_ids(deck.jobs.single), ['948,00']);
+      expect(deck.jobs.single.diagnostics.single.clause, 1);
       // Severity 4 punches the deck but suppresses execution (D7.6).
       expect(deck.maxSeverity, 4);
       expect(deck.jobs.single.unrecovered?.toString(), isNull);
