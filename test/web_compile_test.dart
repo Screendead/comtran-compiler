@@ -71,12 +71,14 @@ void main() {
 
   test('a deck the site cannot punch is refused in words a typist can act '
       'on', () {
+    expect(
+      compileText('      *DATA\n      A%B\n').error,
+      allOf(startsWith('Card 2, column 8'), endsWith('compile again.')),
+    );
     for (final (String text, String message) in [
       ('   \n', 'no program to compile'),
       ('      *DATA\n\tSTOP RUN.\n', 'Card 2 contains a tab'),
       ('      *DATA\n\tSTOP RUN.\n', 'spaces'),
-      ('      *DATA\n      A%B\n', 'Card 2, column 8'),
-      ('      *DATA\n      A%B\n', 'Fix that card and compile again.'),
       ('${'A' * 81}\n', 'longer than 80 columns'),
     ]) {
       final WebCompilation result = compileText(text);

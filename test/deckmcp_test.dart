@@ -769,7 +769,7 @@ void main() {
               'mirror': 'TRAILING SPACE \n',
             },
             'format',
-            'normal form',
+            'card 1 is not in normal form',
           ),
           (
             'a glyph outside the source set',
