@@ -15,9 +15,7 @@
 /// bitwise operators truncate to 32 bits. A 7090 word is 36 bits, so the
 /// JavaScript build silently drops the top four bits of every packed word:
 /// the semantics and code dumps print `006060606060` where the machine held
-/// `606060606060`. WebAssembly gives a true 64-bit `int` and reproduces all
-/// six goldens byte for byte. Measured 2026-08-10; the same trap waits for
-/// the M4 emulator in a browser.
+/// `606060606060`. WebAssembly gives a true 64-bit `int`.
 ///
 /// Run it from the repository root:
 ///
