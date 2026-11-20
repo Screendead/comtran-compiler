@@ -21,6 +21,9 @@ reads them back; the machine assembly runs a compiled program under
 `comtranc --run`, and the 1962 sample runs to end of job over its
 reconstructed input tapes and prints the report of PDF p. 217 under
 `--list-tapes`, up to four recorded findings.
+M6 is done: the 1960 payroll program compiles and runs to end of job, and
+codegen defects 1 to 4, 6 and 8 to 13 are handled. W2 of the website is live.
+M7 opens after W3 and W4.
 Read `docs/HANDOVER.md`
 for the live state and the next task.
 
