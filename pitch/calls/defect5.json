@@ -1,0 +1,178 @@
+{
+ "id": "defect5",
+ "short": "Mixed 8 and * warning",
+ "title": "Should a money field whose picture mixes 8 and * draw a warning, and how loud should it be?",
+ "today": "A picture is the field format that controls how a number prints. In a picture, 8 turns a leading zero into a blank, * turns it into a star, and a $ before an 8 floats up to the first digit (the 1960 manual, page 80). No manual forbids 8 and * in one field. The 1962 machine code for an edited field holds one count for the whole leading run and one star switch (the 1962 manual, section 90.02.17). So our compiler stars the whole run. With the picture $8*89.99, the value 1.23 prints as $***1.23, the dollar sign stays fixed, and the listing says NO ERRORS WERE DETECTED DURING COMPILATION.",
+ "why_now": "Read cell by cell, the manual implies a blank 8 cell and a floating dollar, which the 1962 code cannot print, so the user gets output that differs from that reading and is not told. Draft PR 185 builds a fix and waits on which message, if any, to print. Whether the real 1963 compiler warned here is in the surviving 1963 compiler, which stays sealed until the final comparison stage.",
+ "if_nothing": "The compiler keeps compiling these fields with no message in any mode, and prints $***1.23 with no explanation. Draft PR 185 stays open and unmerged.",
+ "options": [
+  {
+   "k": "A",
+   "label": "Keep the 1962 code; add our own note, shown only with --pedantic",
+   "what_changes": "Default listings and output do not change. The program compiles and runs on the 1962 code. Under --pedantic, a strict mode for extra notes, the listing adds a note that stars fill the whole run, marked as not historical.",
+   "example": "   3,00    1    LEADING RUN OF 'MIX' MIXES 8 AND *. ASTERISKS FILL IT. (NON-HISTORICAL.)",
+   "cost_risk": "The printed $***1.23 still differs from the manual's cell-by-cell reading, where the 8 cell is blank and the dollar floats. A user who does not ask for strict mode is not told.",
+   "reverse": "Easy: remove one message, its check and its tests.",
+   "rec": true
+  },
+  {
+   "k": "B",
+   "label": "Print the 1962 message 33, \"ILLEGAL COMBINATION OF FORMAT CHARACTERS.\", in default mode",
+   "what_changes": "The program still compiles and runs. But every listing with such a field prints the message by default and calls the picture illegal.",
+   "example": "   3,00    1    ILLEGAL COMBINATION OF FORMAT CHARACTERS. CHECK DATA DESCRIPTION.\n                    'MIX' FORMAT USED.",
+   "cost_risk": "No manual says this picture is illegal. A later reader learns a rule that does not exist. Every default listing that holds such a field changes.",
+   "reverse": "Easy in code, but any listing or note that already took up the false rule must be corrected.",
+   "rec": false
+  },
+  {
+   "k": "C",
+   "label": "Refuse to generate code",
+   "what_changes": "A program that the 1962 compiler would have compiled stops at code generation, and nothing runs.",
+   "example": "Not built. An illustrative refusal: \"an edited field whose leading run mixes 8 and *\".",
+   "cost_risk": "Breaks your rule of 14 September: if the 1962 compiler would compile a program, ours must. Also goes against your 2 November ruling to generate the correct code wherever the manuals show the code, and the manual shows it here.",
+   "reverse": "Easy: remove the refusal.",
+   "rec": false
+  }
+ ],
+ "recommendation": "Choose A. Two of your own rules settle this call: the 1962 compiler would compile this picture, so ours must, and the manual shows the code, so we generate it rather than refuse. Option A changes no default listing and does not make up a rule that no manual states. A user who wants to know why the run fills with stars can see it in strict mode.",
+ "prototype": "Draft PR 185 builds option A: the picture still compiles on the 1962 code and prints 1.23 as $***1.23, and a new note appears only under --pedantic. CI is green; the default listing of the test program says NO ERRORS and the run ends at STOP RUN.",
+ "recommendation_changed": "",
+ "sources": [
+  "scratchpad/calls.json (old card for this call)",
+  "gh pr view 185 (body: manual evidence, listing lines, tests)",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/evidence/calls-round3.json (defect5 entry)",
+  "comtran-manuals/F28-8043/04-data-description.md page 80 format characters table (8, *, $)",
+  "comtran-manuals/J28-6169/90.02-generated-code.md section 90.02.17 Notes 1 and 2 (edit bits, target control word)",
+  "comtran-manuals/J28-6169/90.04-error-messages.md message 33,00",
+  "origin/master:docs/HANDOVER.md (open draft PR table, rulings of 2026-11-02)",
+  "pitch/video/render.py frames-only run, exit 0, 8 scenes, 251 words"
+ ],
+ "storyboard": {
+  "meta": {
+   "id": "defect5",
+   "number": 5,
+   "of": 9,
+   "short": "Mixed 8 and * warning"
+  },
+  "scenes": [
+   {
+    "type": "title",
+    "heading": "Should a picture that mixes 8 and * draw a warning?",
+    "sub": "A money field like $8*89.99 compiles today with no message.",
+    "say": "Call five of nine. A money field whose picture mixes eights and stars compiles today with no message. Should our compiler warn, and how loudly?"
+   },
+   {
+    "type": "points",
+    "heading": "What the picture characters mean",
+    "bullets": [
+     "A picture is the field format that inserts $ and * when a number prints",
+     "8: a leading zero prints as a blank. *: a leading zero prints as a star",
+     "$ placed before an 8 floats up to the first digit (1960 manual, page 80)",
+     "No manual forbids 8 and * in the same field"
+    ],
+    "say": "A picture sets how a number prints. An eight turns a leading zero into a blank. A star turns it into a star. A dollar before an eight floats. No manual forbids the mix."
+   },
+   {
+    "type": "code",
+    "heading": "The 1962 code holds one fill for the whole run",
+    "lines": [
+     "1962 manual, section 90.02.17, the target control word:",
+     "",
+     "Address = number of leading *'s, or 8's in pictorial.",
+     "",
+     "Edit bits:  00001  asterisks",
+     "            00010  dollar sign"
+    ],
+    "highlight": [
+     2,
+     4
+    ],
+    "caption": "One count for the leading run, one star switch.",
+    "say": "The 1962 manual shows the machine code for this field. It keeps one count for the whole leading run, and one star switch. So every suppressed cell gets the same fill."
+   },
+   {
+    "type": "code",
+    "heading": "What a user sees today",
+    "lines": [
+     "Picture:  $8*89.99",
+     "Value:    1.23",
+     "Prints:   $***1.23",
+     "",
+     "Listing:  NO ERRORS WERE DETECTED DURING COMPILATION",
+     "Run:      ends AT 5,00 STOP RUN"
+    ],
+    "highlight": [
+     2
+    ],
+    "caption": "Draft PR 185 probe program, default mode.",
+    "say": "Our compiler uses that code with the star switch on. So one dollar twenty three prints as dollar, star, star, star, one point two three. The listing reports no errors."
+   },
+   {
+    "type": "points",
+    "heading": "Why this is asked now",
+    "bullets": [
+     "Per cell, the manual implies a blank cell and a floating $",
+     "The 1962 code can only print one fill, so the output differs",
+     "Draft PR 185 is built and waits on your choice of message",
+     "The 1963 compiler's own answer is sealed until the final comparison"
+    ],
+    "say": "Read cell by cell, the manual implies a blank and a floating dollar. The 1962 code cannot print that. Whether the real 1963 compiler warned is sealed until the final comparison."
+   },
+   {
+    "type": "code",
+    "heading": "The two warnings on offer",
+    "lines": [
+     "Our own note, shown only with --pedantic:",
+     "LEADING RUN OF 'MIX' MIXES 8 AND *. ASTERISKS FILL IT.",
+     "(NON-HISTORICAL.)",
+     "",
+     "The 1962 message 33, in every listing:",
+     "ILLEGAL COMBINATION OF FORMAT CHARACTERS. CHECK DATA DESCRIPTION.",
+     "'MIX' FORMAT USED."
+    ],
+    "highlight": [
+     1,
+     5
+    ],
+    "caption": "Listing message text, wrapped to fit.",
+    "say": "Here are the two warnings. Ours is labelled non historical and shows only in strict mode. The 1962 message thirty three calls the picture illegal, and would print in every listing."
+   },
+   {
+    "type": "options",
+    "heading": "Three options",
+    "options": [
+     {
+      "label": "A. Keep the code; add our note under --pedantic",
+      "see": "Default listing and output unchanged. Strict mode says the whole run fills with stars.",
+      "cost": "Output still differs from the per-cell reading. Undo: remove one message and its tests.",
+      "rec": true
+     },
+     {
+      "label": "B. Print message 33 in default mode",
+      "see": "Program still compiles and runs, but every listing calls the picture illegal.",
+      "cost": "Asserts a rule no manual states. Later readers learn a false rule.",
+      "rec": false
+     },
+     {
+      "label": "C. Refuse to generate code",
+      "see": "The program stops compiling and nothing runs.",
+      "cost": "Breaks your 14 September rule and your 2 November ruling. Not built.",
+      "rec": false
+     }
+    ],
+    "say": "Option A adds our note in strict mode only. Option B prints message thirty three everywhere and invents an illegality. Option C refuses, so a program the 1962 compiler accepted stops running."
+   },
+   {
+    "type": "recommend",
+    "heading": "Recommendation",
+    "label": "A. Keep the 1962 code; add our note under --pedantic",
+    "reasons": [
+     "The 1962 compiler would compile it, so ours must",
+     "The manual shows the code, so we generate it, not refuse",
+     "No default listing changes and no rule is invented"
+    ],
+    "say": "Choose option A. Your rule says that if the 1962 compiler would compile a program, ours must. The manual shows the code, so we use it. Nothing changes by default, and nobody is told a false rule."
+   }
+  ]
+ }
+}

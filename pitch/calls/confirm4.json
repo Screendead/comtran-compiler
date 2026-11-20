@@ -1,0 +1,136 @@
+{
+ "id": "confirm4",
+ "short": "Listing ruling, corrected",
+ "title": "Does your 2 November ruling, that \"compile\" means the printed listing, still stand now that the fact behind it is corrected?",
+ "today": "The 1960 manual prints a payroll program. We key it exactly as printed, and it draws 55 error messages. Our compiler prints the full listing, and a test checks it byte for byte. Then code generation stops and punches no object deck, the cards that hold the machine program. It stops at a read of a record that no file supplies, and it has a second refusal for writing a record into a file that is not one of its output files. The corrected version of the program compiles to a 68-card object deck.",
+ "why_now": "On 2 November you ruled that \"compile\", in your 14 September rule, means the listing. The pitch told you the 1962 compiler refused to punch a deck for this program. That was wrong: it punched a deck and did not run it. You decided on a false fact, so you should confirm. No code waits on the answer.",
+ "if_nothing": "Your 2 November ruling stands as recorded. Pull request 182, already merged, records the listing reading, and the compiler keeps refusing the deck at those spots.",
+ "options": [
+  {
+   "k": "stands",
+   "label": "Yes, it stands",
+   "what_changes": "Nothing changes. We print the full listing and refuse the object deck where no source shows the code. The design record already says that the 1962 compiler punched the deck and did not run it.",
+   "cost_risk": "No cost. A reader could ask why we stop where 1962 went on. The record answers that question.",
+   "reverse": "Easy. A later decision can still build the deck code.",
+   "rec": true
+  },
+  {
+   "k": "deck",
+   "label": "No: punch the object deck as 1962 did",
+   "what_changes": "The generator would emit code for a read of a record with no input file, a write to a file that is not an output file, and the 26 references to undefined names. It would then punch a deck.",
+   "cost_risk": "No manual and no surviving listing shows that code, so we invent all of it. The 1962 system did not run this deck, so nothing can check it. Several days of design work with no oracle.",
+   "reverse": "Hard. Invented code enters the generator and the tests, and taking it out later is a second change.",
+   "rec": false
+  }
+ ],
+ "recommendation": "Keep the ruling. The listing is still the only reading that needs no invented code. No source shows what the 1962 deck held, so any code we wrote for these spots could not be checked. The corrected fact changes the story, not the cost.",
+ "prototype": "Pull request 182, merged, records the listing reading in the acceptance design record and relabels the two refusals in code comments only. It also corrects the wrong fact about the deck. No compiler behaviour changed.",
+ "recommendation_changed": "",
+ "sources": [
+  "scratchpad calls.json, element confirm4 (old card)",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/index.html (round-one call 4 and its correction note; round-two call 1 evidence)",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/evidence/calls-round2.json and calls-round3.json",
+  "origin/master:docs/design/m6-acceptance.md lines 557-800 (the six refused shapes, severity finding, the 2026-11-02 decision, the FILE IN decision)",
+  "PR #182 (gh pr view): Record the M6-9 listing ruling, merged",
+  "origin/master:lib/src/codegen/procedure.dart (the _unruled refusals, FILE IN guard at about line 2331)",
+  "origin/master:test/f_corpus_test.dart (verbatim deck refuses 'a GET record on 0 input files'; applied deck makes 68 cards)",
+  "origin/master:test/goldens/f-payroll.listing (lines 217-218, 235-236, the tail; 26 UNDEFINED SYMBOL lines)",
+  "origin/master:test/fixtures/f-payroll-deck-notes.md lines 240-260",
+  "J 02.01.01 and J 90.04.02 as quoted in m6-acceptance.md"
+ ],
+ "storyboard": {
+  "meta": {
+   "id": "confirm4",
+   "number": 1,
+   "of": 9,
+   "short": "Listing ruling, corrected"
+  },
+  "scenes": [
+   {
+    "type": "title",
+    "heading": "Does your listing ruling stand on the corrected facts?",
+    "sub": "On 2 November you ruled on a premise that was wrong. Confirm or change it.",
+    "say": "One question. On 2 November you ruled that compile, in your rule of 14 September, means the printed listing. The pitch gave you a wrong fact. Does your answer still stand?"
+   },
+   {
+    "type": "points",
+    "heading": "What our compiler does today",
+    "bullets": [
+     "The 1960 manual's payroll program, keyed as printed, draws 55 error messages",
+     "We print the whole listing, byte for byte against a test",
+     "Then code generation stops: no object deck is punched",
+     "The corrected program compiles to a 68-card object deck"
+    ],
+    "say": "Today we key the 1960 manual's payroll program exactly as printed. It draws 55 error messages. We print the full listing, then stop. We punch no object deck, the cards that hold the machine program."
+   },
+   {
+    "type": "code",
+    "heading": "Where the generator stops",
+    "lines": [
+     "   3,01    4    RECORD 'MASTER' MUST BE ON A -FILE- CARD.",
+     "                    CHECK ENVIRONMENT DESCRIPTION.",
+     "  13,02    4    RECORD 'PAYRECORD' MUST BE ON AN OUTPUT -FILE- CARD.",
+     "                    CHECK ENVIRONMENT DESCRIPTION OR NAME.",
+     "",
+     "SEVERITY LIMIT WAS NOT REACHED"
+    ],
+    "highlight": [
+     0,
+     2
+    ],
+    "caption": "From our listing of the 1960 program as printed. The 4 is the severity.",
+    "say": "The program reads a record that no file supplies, and writes a record to no output file. The listing flags both. Our generator refuses to invent code for these spots, so it stops."
+   },
+   {
+    "type": "points",
+    "heading": "The fact the pitch got wrong",
+    "bullets": [
+     "The pitch said the 1962 compiler refused to punch a deck. It did not.",
+     "1962 manual, 02.01.01: \"If the severity code is 5, a deck will not be produced.\"",
+     "1962 manual, 90.04.02: any code above 1 stops the run straight after compiling",
+     "Our highest code here is 4, so 1962 punched the deck and did not run it"
+    ],
+    "say": "The pitch said the 1962 compiler refused the deck. Wrong. It withheld a deck only at severity five. Our worst code here is four. So 1962 punched a deck, but did not run it."
+   },
+   {
+    "type": "points",
+    "heading": "Why it is asked now",
+    "bullets": [
+     "You answered on a misstated premise, so the answer needs your confirmation",
+     "Pull request 182, merged, already records the listing reading",
+     "No code waits on this. Doing nothing leaves the ruling as recorded."
+    ],
+    "say": "You decided on a false premise, so you should confirm. The record already says listing, through merged pull request 182. Nothing waits. If you do nothing, the listing ruling stands."
+   },
+   {
+    "type": "options",
+    "heading": "The two options",
+    "options": [
+     {
+      "label": "Yes, it stands",
+      "rec": true,
+      "see": "No change. We print the listing and refuse the deck at those spots. The record says 1962 punched it.",
+      "cost": "None. Reversible later by building deck code."
+     },
+     {
+      "label": "No: punch the deck as 1962 did",
+      "see": "We generate code for a read with no input file, a write to no output file, and 26 undefined-name references.",
+      "cost": "No manual or listing shows that code. We would invent it, for a deck 1962 did not run."
+     }
+    ],
+    "say": "Option one: keep it. No change. Option two: punch the deck as 1962 did. That means inventing code no manual shows, for a deck the 1962 system did not run."
+   },
+   {
+    "type": "recommend",
+    "heading": "Recommendation",
+    "label": "Yes, it stands",
+    "reasons": [
+     "The listing is the only reading that needs no invented code",
+     "No source shows what the 1962 deck held, so we cannot check invented code",
+     "The correction changes the story, not the cost"
+    ],
+    "say": "Recommendation: let it stand. The listing is the only reading that invents nothing. No source shows what the 1962 deck held. The corrected fact changes the story, not the cost."
+   }
+  ]
+ }
+}

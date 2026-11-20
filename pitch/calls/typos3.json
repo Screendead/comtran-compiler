@@ -1,0 +1,155 @@
+{
+ "id": "typos3",
+ "short": "Three doubtful misprints",
+ "title": "Should the website mark three more misprints in IBM's 1962 manual with [sic]?",
+ "today": "The project website shows IBM's 1962 COMTRAN manual page by page, exactly as printed. PR #178 built those pages and was merged on 2 November. It puts a [sic] mark, meaning \"thus in the original\", after eleven scan-checked misprints such as \"dinsity\" and \"alwyas\". The stylesheet draws the mark, so copied text stays IBM's own words. A site rule forbids marking a genuine 1960s spelling such as \"alphameric\". Three words were held back and are unmarked: \"synonomous\" and \"indicies\" on page 116, and \"in not used\" on page 171, where the sense needs \"is not used\".",
+ "why_now": "The site's rule text names these three as waiting for your call. They stay unmarked until you decide. Nothing else waits on the answer.",
+ "if_nothing": "The result is the same as marking none: the three words show unmarked, as if IBM meant them. Three other doubtful words, on pages 54, 72 and 124, are outside this call and stay unmarked whatever you pick.",
+ "options": [
+  {
+   "k": "none",
+   "label": "Mark none of the three",
+   "what_changes": "No change. All three words stay unmarked on the website's manual pages.",
+   "cost_risk": "No work. Two clear slips stay unmarked while eleven others are marked. That includes \"synonomous\", which the manual itself spells correctly on page 30.",
+   "reverse": "Trivial. A later decision adds the words to the list.",
+   "example": "\"OU, OU1, OU2, are synonomous.\" shows with no mark.",
+   "rec": false
+  },
+  {
+   "k": "two",
+   "label": "Mark \"in not used\" only",
+   "what_changes": "The phrase on page 171 gets a [sic] mark. \"synonomous\" and \"indicies\" on page 116 stay unmarked.",
+   "cost_risk": "One entry on the site's list of typos, plus the rule text that names the list. Near-zero risk: nobody reads \"in\" for \"is\" as a period usage. It leaves \"synonomous\" unmarked, although page 30 proves it a slip.",
+   "reverse": "Delete one list entry. The next site build drops the mark.",
+   "example": "\"whenever the 'ON ERROR' option in not used [sic] in the Environment description\"",
+   "rec": false
+  },
+  {
+   "k": "all",
+   "label": "Mark all three",
+   "what_changes": "All three words get a [sic] mark on the website's manual pages.",
+   "cost_risk": "Three list entries, plus the rule text. Small risk on \"indicies\": the manual never spells the word another way, so only the conversion note's hedge speaks to it.",
+   "reverse": "Delete the entries. The next site build drops the marks.",
+   "example": "\"OU, OU1, OU2, are synonomous [sic].\"",
+   "rec": true
+  }
+ ],
+ "recommendation": "Mark all three. The 1962 manual prints \"synonymous\" correctly on page 30, so \"synonomous\" is a slip and not IBM's own spelling. \"In not used\" is a cleanly printed \"in\" where the sense needs \"is\", and nobody reads it as a period usage. Only \"indicies\" rests on the hedged note alone, and a wrong mark comes off by deleting one list entry.",
+ "prototype": "No draft PR. PR #178, which built the website's manual pages with their eleven [sic] marks, was merged on 2 November. Each option is a short change to its list of typos and to the rule text that names them.",
+ "recommendation_changed": "The old page recommended marking none. It gave two reasons, and the sources contradict both. First, it said the notes call the two page-116 words period spellings. The note actually says \"apparent period typos/spelling variants\". That same wording covers \"standart\" and \"Mimimum\", which the site already marks. Second, the 1962 manual prints \"synonymous\" correctly on page 30, in section 02.05.04. I checked that on the scan, so \"synonomous\" is a slip. The old page also called \"in not used\" a possible print defect. The scan shows a cleanly printed \"in\". The recommendation moves to marking all three. One caveat: the fidelity policy in the manuals README calls \"standart\" and \"Mimimum\" genuine typos by name, and it does not name \"indicies\". So \"indicies\" remains the one weak case.",
+ "sources": [
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/index.html (record of this call, its evidence and the 'our reading' note)",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/evidence/calls-round3.json",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/crops/j-p116-synonomous.png, j-p116-indicies.png, j-p171-in-not-used.png",
+  "origin/master:docs/design/web-copy.md rules E3, E4 and the closed W2 items",
+  "origin/master:tool/web_sources_source.dart (typos list, sicMark)",
+  "comtran-manuals/J28-6169/02-compiler.md line 721 (section 02.05.04, 'synonymous') and scan images/page-030.png",
+  "comtran-manuals/J28-6169/06-systems-maintenance.md lines 165, 180, 352 (words and conversion note)",
+  "comtran-manuals/J28-6169/90.02-generated-code.md lines 1818, 1910",
+  "comtran-manuals/README.md fidelity policy",
+  "PR #178 (gh pr list)"
+ ],
+ "storyboard": {
+  "meta": {
+   "id": "typos3",
+   "number": 3,
+   "of": 9,
+   "short": "Three doubtful misprints"
+  },
+  "scenes": [
+   {
+    "type": "title",
+    "heading": "Mark three more misprints in the 1962 manual with [sic]?",
+    "sub": "The project website's copy of IBM's 1962 COMTRAN manual, pages 116 and 171",
+    "say": "Should the website mark three more words in IBM's 1962 manual as misprints? Two are on page 116. One is on page 171."
+   },
+   {
+    "type": "points",
+    "heading": "What the website does today",
+    "bullets": [
+     "It shows the 1962 manual page by page, exactly as IBM printed it",
+     "Eleven checked misprints, such as “dinsity”, carry [sic]: “thus in the original”",
+     "The stylesheet draws the mark, so copied text stays IBM's own words",
+     "Rule: never mark a genuine 1960s spelling, such as “alphameric”"
+    ],
+    "say": "The website shows the 1962 manual exactly as printed. Eleven checked misprints carry a sic mark, meaning thus in the original. One rule limits this: a genuine spelling of the period, like alphameric, is never marked."
+   },
+   {
+    "type": "image",
+    "heading": "Page 116: “synonomous”",
+    "image": "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/crops/j-p116-synonomous.png",
+    "caption": "The 1962 manual, section 06.02.05, page 116 of the scan",
+    "say": "Here is the first word on page 116, synonomous, with an o in the middle. The same page also prints indicies, with an extra i."
+   },
+   {
+    "type": "code",
+    "heading": "The same manual spells it correctly on page 30",
+    "lines": [
+     "Page 116:  OU, OU1, OU2, are synonomous.",
+     "Page 116:  the programmers' indicies or relative unit assignment",
+     "",
+     "Page 30:   The pictorial characters A and X are considered to be",
+     "           synonymous by the 7090 CT Compiler."
+    ],
+    "highlight": [
+     0,
+     4
+    ],
+    "caption": "Page 30 checked on the scan. “Indicies” has no second spelling in the manual.",
+    "say": "On page 30 the same manual prints synonymous correctly. So synonomous is a slip, not IBM's house spelling. Indicies appears only once, so the manual cannot settle it."
+   },
+   {
+    "type": "image",
+    "heading": "Page 171: “in not used”",
+    "image": "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/crops/j-p171-in-not-used.png",
+    "caption": "The scan prints a clean “in” where the sense needs “is”. “not” is underlined.",
+    "say": "On page 171 the manual says the option in not used, where it means is not used. The scan shows a cleanly printed in. Nobody reads that as a period usage."
+   },
+   {
+    "type": "points",
+    "heading": "Why the three were held back, and what changed",
+    "bullets": [
+     "A conversion note calls the page 116 words “apparent period typos/spelling variants”",
+     "That note's wording also covers “standart” and “Mimimum”, both already marked",
+     "No note calls “in not used” a typo, so the site's test was not met",
+     "Nothing else waits on this; the words stay unmarked until you decide"
+    ],
+    "say": "They were held back because a note hedged that the spellings might be period variants. The same note covers two words the site already marks. Nothing else waits on this call."
+   },
+   {
+    "type": "options",
+    "heading": "The options",
+    "options": [
+     {
+      "label": "Mark none",
+      "see": "No change. All three stay unmarked, as if IBM meant them.",
+      "cost": "No work. Leaves two clear slips unmarked while eleven others are marked."
+     },
+     {
+      "label": "Mark “in not used” only",
+      "see": "Page 171 gets the mark. The two page 116 words stay unmarked.",
+      "cost": "One list entry. Leaves “synonomous” unmarked though page 30 proves it a slip."
+     },
+     {
+      "label": "Mark all three",
+      "see": "All three words get [sic] on the website's manual pages.",
+      "cost": "Three list entries. Small risk that “indicies” was an accepted variant.",
+      "rec": true
+     }
+    ],
+    "say": "Mark none, and two clear slips stay unmarked. Mark only page 171, and the best proven slip stays out. Mark all three, and the only risk is indicies. Any mark comes off by deleting one list entry."
+   },
+   {
+    "type": "recommend",
+    "heading": "Recommendation",
+    "label": "Mark all three",
+    "reasons": [
+     "Page 30 proves “synonomous” a slip; “in” for “is” is plainly an error",
+     "Only “indicies” rests on the hedged note alone",
+     "A wrong mark comes off by deleting one list entry"
+    ],
+    "say": "Mark all three. The manual itself proves synonomous a slip, and in not used is plainly an error. Only indicies rests on the hedged note. Any wrong mark comes off in minutes."
+   }
+  ]
+ }
+}

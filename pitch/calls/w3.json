@@ -1,0 +1,163 @@
+{
+ "id": "w3",
+ "short": "Statement links",
+ "title": "Should the compiler, the panel text, or the website say which lines of each panel belong to one statement?",
+ "today": "The website compiles a program in the browser and shows six panels: Cards, Scan, Parse, Semantics, Listing and Code. Each panel is plain text that the compiler prints. Nothing ties a line in one panel to the same statement in another. In the 1962 sample, statement 188 is three listing lines and nineteen rows of machine code, and only the first code row carries the name START.",
+ "why_now": "The next web step lets a reader click a statement and see its part in all six panels. That needs a link between lines, and the roadmap rule says the site may hold no compiler knowledge. Your 2 November ruling opens the archive comparison only after this web step and the one after it.",
+ "if_nothing": "The click-through view stays unbuilt, and the archive comparison waits behind it. The draft pull request already conflicts with master and drifts further.",
+ "options": [
+  {
+   "k": "A",
+   "label": "The compiler sends the statement numbers beside the text (built in draft PR #189)",
+   "what_changes": "The 1962 compiler numbered every statement and clause, for example 188,03 for the third clause of line 188, and printed that number in its listing. Our compiler now sends one list of these numbers per panel, one entry per line. No panel's text changes. A reader clicks a line and all six panels mark that statement, down to the clause.",
+   "cost_risk": "About 190 lines of site code, plus small changes in each stage printer. Not yet numbered: 412 of 619 Semantics lines and 169 of 970 Code lines, mostly data words and shared blocks. Which clause owns a code word is our own judgement: no 1962 printout says. The draft conflicts with master and needs a merge first.",
+   "reverse": "Easy. No golden file changes (the reference outputs that tests compare byte for byte), so removing the list removes the feature.",
+   "example": "Code row 00165, GN)000 START TSX SYS)175,4, carries the number 188,01, the OPEN clause of statement 188.",
+   "rec": true
+  },
+  {
+   "k": "B",
+   "label": "Write the numbers into the panel text",
+   "what_changes": "The Scan, Parse, Semantics and Code text gain a statement number on each line. The site reads them from the text.",
+   "cost_risk": "Four golden files change. The Cards panel is the deck's own text file, whose format is frozen. The Listing must match the 1962 printout byte for byte. So those two panels cannot take a number, and the link covers four panels of six unless each gets a second numbered copy.",
+   "reverse": "Costly. Every changed golden file must be changed back, and the numbered text spreads into tests and tools.",
+   "rec": false
+  },
+  {
+   "k": "C",
+   "label": "The website works out the numbers from the text",
+   "what_changes": "The site learns the column layout of each panel and reads statement numbers and names out of it. The compiler does not change.",
+   "cost_risk": "Breaks the roadmap rule that the site holds no compiler knowledge. Any later change to a panel's text breaks the site with no error. In Code, it can match only statements with a name such as START: statement 189 has no name, and single clauses have nothing to match. Cheapest to start; every later milestone costs more.",
+   "reverse": "Easy to delete, but every milestone built meanwhile must also update the site.",
+   "rec": false
+  }
+ ],
+ "recommendation": "Take A. It is the only option that changes no golden file, links all six panels down to the clause, and keeps the site free of compiler knowledge. The untagged rows are work still to add, not a redesign: data entries carry their own statement numbers, so data words and the untagged Semantics rows can take them later.",
+ "prototype": "Draft PR #189 builds option A: the compiler sends a per-line list of statement numbers for all six panels, and the site marks a clicked statement in each. Its gate and CI passed at head deab534, but it now conflicts with master and needs a merge before it can land.",
+ "recommendation_changed": "",
+ "sources": [
+  "calls.json old card w3",
+  "gh pr view 189 (body, files, CI, mergeable: CONFLICTING)",
+  "gh pr diff 189 (docs/design/emit-stages.md 'The statement marks', lib/src/codegen/text_model.dart, test/web_compile_test.dart, web/app.js +133, index.html +12, styles.css +46)",
+  "origin/master:docs/HANDOVER.md lines 62, 68, 145-152, 744-760, 929-934",
+  "origin/master:test/goldens/90.05-payroll.listing line 217 and following",
+  "origin/master:test/goldens/90.05-payroll.code rows 00165-00207 (970 lines)",
+  "origin/master:test/goldens/90.05-payroll.semantics (619 lines)",
+  "origin/master:test/goldens/90.05-payroll.parse lines 214-224",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/evidence/calls-round3.json and picks.json"
+ ],
+ "storyboard": {
+  "meta": {
+   "id": "w3",
+   "number": 8,
+   "of": 9,
+   "short": "Statement links"
+  },
+  "scenes": [
+   {
+    "type": "title",
+    "heading": "Who tells the site which lines belong to one statement?",
+    "sub": "The website's stage-by-stage view waits on this, and the archive comparison waits behind it.",
+    "say": "Call eight. The website shows a program in six panels. To follow one statement through all six, something must say which lines belong to it. Who should say so?"
+   },
+   {
+    "type": "points",
+    "heading": "What the site does today",
+    "bullets": [
+     "Six panels: Cards, Scan, Parse, Semantics, Listing and Code",
+     "Each panel is plain text that the compiler prints",
+     "No line in one panel points to the same statement in another",
+     "A reader cannot click a statement and see where it went"
+    ],
+    "say": "Today each panel is plain text the compiler prints. Nothing ties a line in the listing to the machine code it became. A reader cannot click a statement and follow it."
+   },
+   {
+    "type": "code",
+    "heading": "One statement, two panels",
+    "lines": [
+     "188,00   71466 START.          OPEN ALL FILES,",
+     "                     MOVE ZEROS TO INTERNAL.TOTALS, GRAND.TOTALS,",
+     "                     GET MASTER, AT END DO END.OF.MASTERS.",
+     "00165  GN)000 START  TSX     SYS)175,4         007400400257  10010",
+     "00200                TSX     IOC)8,4           007400400010  10010",
+     "00207                TRA     END.OF.MASTERS+1  002000000332  10001"
+    ],
+    "highlight": [
+     0,
+     3,
+     5
+    ],
+    "caption": "Top: the 1962 sample's listing. Bottom: 3 of the 19 code rows statement 188 becomes.",
+    "say": "Statement one eighty eight of the 1962 sample: three listing lines become nineteen rows of machine code. Only the first code row carries the name START. The rest say nothing of their source."
+   },
+   {
+    "type": "points",
+    "heading": "The key already exists",
+    "bullets": [
+     "The 1962 compiler numbered each statement: line, comma, clause",
+     "188,03 is the third clause of line 188, the GET",
+     "It printed the number in its listing and keyed its errors to it",
+     "So the site joins on the 1962 compiler's own key, not one we invent"
+    ],
+    "say": "The join key already exists. The 1962 compiler numbered every statement and clause, and printed that number in its listing. The question is only who attaches it to each line."
+   },
+   {
+    "type": "options",
+    "heading": "Three ways to attach the number",
+    "options": [
+     {
+      "label": "A. The compiler sends numbers beside the text",
+      "see": "One new list per panel. No panel's text changes. All six panels link, down to the clause.",
+      "cost": "About 190 lines of site code. Many Semantics and Code rows untagged yet. Easy to undo.",
+      "rec": true
+     },
+     {
+      "label": "B. Write the numbers into the text",
+      "see": "Four golden files change. Cards and Listing cannot take a number at all.",
+      "cost": "Links four panels of six. The Listing must match the 1962 printout byte for byte.",
+      "rec": false
+     },
+     {
+      "label": "C. The site works the numbers out",
+      "see": "The site learns each panel's layout. Code links only through statement names.",
+      "cost": "Breaks the rule that the site holds no compiler knowledge. Any text change breaks it silently.",
+      "rec": false
+     }
+    ],
+    "say": "Option A: the compiler sends the numbers beside the text, and no text changes. Option B writes them into the text, but cards and listing cannot take them. Option C makes the site guess."
+   },
+   {
+    "type": "points",
+    "heading": "What A leaves open",
+    "bullets": [
+     "Untagged: 412 of 619 Semantics lines and 169 of 970 Code lines",
+     "Mostly data words, shared constants and shared blocks",
+     "Which clause owns a code word is our call; no 1962 printout says",
+     "The draft now conflicts with master and needs a merge first"
+    ],
+    "say": "Option A is built as a draft, pull request one eighty nine. It leaves gaps. Data words and shared blocks carry no number yet. And which clause owns a code word is our own judgement."
+   },
+   {
+    "type": "points",
+    "heading": "If you do nothing",
+    "bullets": [
+     "The stage-by-stage view stays unbuilt",
+     "Your ruling of 2 November opens the archive comparison only after it",
+     "The draft pull request goes further out of date"
+    ],
+    "say": "If you do nothing, the stage view stays unbuilt. Your ruling of the second of November opens the archive comparison only after it, so that waits too."
+   },
+   {
+    "type": "recommend",
+    "heading": "Recommendation",
+    "label": "A. The compiler sends the numbers beside the text",
+    "reasons": [
+     "The only option that changes no golden file and links all six panels",
+     "The site still holds no compiler knowledge",
+     "The untagged rows are later work, with no redesign"
+    ],
+    "say": "Take option A. It is the only one that changes no golden file, links all six panels to the clause, and keeps the site free of compiler knowledge. The gaps are work to add, not a redesign."
+   }
+  ]
+ }
+}

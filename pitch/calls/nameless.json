@@ -1,0 +1,192 @@
+{
+ "id": "nameless",
+ "short": "Nameless section message",
+ "title": "What should the compiler print when a BEGIN SECTION has no name of its own?",
+ "today": "A section is a named group of sentences that other code can call with DO. The 1960 manual, page 26, says a section must begin with its own name, then BEGIN SECTION. Two shapes break that: a named sentence with two BEGIN SECTIONs, which opens two sections both called S1, and a BEGIN SECTION in an unnamed sentence. Today the first prints message 6, \"ONE OR MORE SECTIONS NOT CLOSED.\", and the second prints \"NO ERRORS WERE DETECTED\". Then the code generator stops both with an internal error.",
+ "why_now": "No 1962 message names this mistake, so a person has to choose what to print. Your rule of 14 September says: if the 1962 compiler would compile a program, ours must. That makes the question of whether these shapes were legal your call. Draft PR 183 is built and waits on your answer.",
+ "if_nothing": "Both shapes keep stopping the compiler with an internal error, and the second one first reports no errors. Draft PR 183 stays open.",
+ "options": [
+  {
+   "k": "196",
+   "label": "Delete the whole sentence with the real 1962 message 196, \"ILLEGAL SENTENCE STRUCTURE NOTHING DONE.\"",
+   "what_changes": "The parser drops the sentence. It opens no section, so the END that follows also draws message 64, \"CANNOT -END- SECTION WHEN NONE ARE OPEN.\" The program compiles. The parser already deletes sentences that mix program and processor commands with this same message.",
+   "cost_risk": "If the 1962 compiler accepted these shapes, a real 1962 message now calls them illegal. The extra message at END is the same side effect the mixed-command rule already produces. Built and checked: 1602 tests pass, and the sample listings are unchanged.",
+   "example": "Both shapes: '   3,00    3    ILLEGAL SENTENCE STRUCTURE NOTHING DONE.' then '   5,00    3    CANNOT -END- SECTION WHEN NONE ARE OPEN.'",
+   "reverse": "Easy. One parser check and its tests; swapping in another message is a small change.",
+   "rec": true
+  },
+  {
+   "k": "192",
+   "label": "Drop only the extra BEGIN SECTION with message 192 and keep the rest of the sentence",
+   "what_changes": "In the first shape S1 stays open once, so END S1 closes it and only one message prints. The second shape still draws message 64 at the END.",
+   "cost_risk": "Message 192 reads \"SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD.\" That names the wrong fault. The parser has no code that drops one clause and keeps the sentence, so it must be written. Not built.",
+   "example": "From a throwaway patch, not checked. First shape: '   3,02    3    SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD.'",
+   "reverse": "Moderate. New clause-dropping code in the parser would have to be removed.",
+   "rec": false
+  },
+  {
+   "k": "950",
+   "label": "A new message of our own, marked non-historical, that deletes the sentence",
+   "what_changes": "Behaves like the 196 option, with our own wording. The project already added one such message for another shape that has no 1962 message.",
+   "cost_risk": "Its strength: if 1962 accepted these shapes, no real 1962 message makes a false 'illegal' claim. Its cost: a message the 1962 compiler never printed, plus a new number, text and severity to choose. Not built.",
+   "example": "From a throwaway patch, not checked. Both shapes: '   3,00    3    BEGIN SECTION HAS NO NAME OF ITS OWN. NOTHING DONE. (NON-HISTORICAL.)' then message 64 at 5,00.",
+   "reverse": "Easy once built, but a new message number becomes part of the catalogue users see.",
+   "rec": false
+  },
+  {
+   "k": "leave",
+   "label": "Accept both shapes with no message, on the view that the 1962 compiler accepted them",
+   "what_changes": "Under your 14 September rule, the compiler must then generate code for them. The 1962 sample shows no such code, so that code is our own design.",
+   "cost_risk": "Unsolved: what END S1 and DO S1 mean when two sections share one name, and how DO reaches a section with no name. Not built. Until it is, the internal error stays.",
+   "example": "Today, checked. First shape: '   6,00    4    ONE OR MORE SECTIONS NOT CLOSED.' then 'error: job 1: unrecovered shape: a section beginning inside an open section (no sample instance)'.",
+   "reverse": "Hard once built. Code generation for these shapes would be an invented design to unwind.",
+   "rec": false
+  }
+ ],
+ "recommendation": "Delete the sentence with message 196. The 1960 manual says a section \"must\" begin with its own name. That is the strongest evidence that the 1962 compiler rejected these shapes, and the 1962 sample names every section. Message 196 is real, its text says what happens, and the parser already uses it this way. It needs no new message, both shapes then compile, and the risk that 1962 accepted them is weaker than the manual's \"must\".",
+ "prototype": "Draft PR 183 makes the parser delete a sentence whose BEGIN SECTION has no name of its own, with message 196. All 1602 tests pass and the sample listings are byte-identical to today's; the code generator's now-unreachable \"unnamed section\" stop was deleted.",
+ "recommendation_changed": "",
+ "sources": [
+  "scratchpad/calls.json, card 'nameless' (old)",
+  "gh pr view 183 and gh pr diff 183 (design note on nameless BEGIN SECTION, parser check, tests)",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/evidence/calls-round3.json",
+  "comtran-manuals/F28-8043/02-language-structure.md:494 (F p. 26)",
+  "comtran-manuals/F28-8043/03-procedure-description.md:1235-1252 (F pp. 56-57)",
+  "comtran-manuals/J28-6169/90.04-error-messages.md lines 113, 114, 280, 285 (messages 64, 65, 192, 196)",
+  "comtran-manuals/J28-6169/90.05-sample-program.md:540-586 (every sample section is named)",
+  "origin/master:docs/comtran-language-definition.md section 2.5",
+  "pitch/video/render.py (frames rendered, exit 0)"
+ ],
+ "storyboard": {
+  "meta": {
+   "id": "nameless",
+   "number": 6,
+   "of": 9,
+   "short": "Nameless section message"
+  },
+  "scenes": [
+   {
+    "type": "title",
+    "heading": "A section with no name of its own: which message?",
+    "sub": "Two malformed programs stop our compiler with an internal error today.",
+    "say": "Call six of nine. A section is a named group of sentences that other code can call. What should our compiler say when a BEGIN SECTION has no name of its own?"
+   },
+   {
+    "type": "code",
+    "heading": "The rule: a section starts with its own name",
+    "lines": [
+     "\"The beginning of a section must be identified by a procedure-name\"",
+     "",
+     "210,00   71524  FICA.ROUTINE.   BEGIN SECTION.",
+     "214,00   71527  WITHOLDING.TAX.ROUTINE.  BEGIN SECTION."
+    ],
+    "highlight": [
+     0
+    ],
+    "caption": "Top: the 1960 manual, page 26. Below: the 1962 sample listing.",
+    "say": "The 1960 manual says a section must begin with its own name. The 1962 manual adds no rule of its own, and every section in its sample program is named."
+   },
+   {
+    "type": "code",
+    "heading": "Two shapes break the rule",
+    "lines": [
+     "      S1.         BEGIN SECTION, BEGIN SECTION.",
+     "            MOVE A TO B.",
+     "            END S1.",
+     "",
+     "            BEGIN SECTION.",
+     "            MOVE A TO B.",
+     "            END."
+    ],
+    "highlight": [
+     0,
+     4
+    ],
+    "caption": "Top: two sections, both called S1. Bottom: a section with no name.",
+    "say": "Two shapes break it. In the first, one named sentence opens two sections, so both are called S one. In the second, a section opens with no name at all."
+   },
+   {
+    "type": "code",
+    "heading": "Today: no proper verdict, then an internal error",
+    "lines": [
+     "   6,00    4    ONE OR MORE SECTIONS NOT CLOSED.",
+     "error: job 1: unrecovered shape: a section beginning inside an open",
+     "  section (no sample instance)",
+     "",
+     "  NO ERRORS WERE DETECTED DURING COMPILATION",
+     "error: job 1: unrecovered shape: an unnamed section",
+     "  (no sample instance)"
+    ],
+    "highlight": [
+     1,
+     5
+    ],
+    "caption": "Top: the first shape. Bottom: the second. Output of the compiler today.",
+    "say": "Today neither shape gets a proper verdict. The first prints a misleading message about unclosed sections. The second prints no errors at all. Then the code generator stops both with an internal error."
+   },
+   {
+    "type": "points",
+    "heading": "Why this is your call, and why now",
+    "bullets": [
+     "No 1962 message names this mistake: we pick one, or none",
+     "Your 14 September rule: if 1962 compiled a program, ours must",
+     "If 1962 accepted these shapes, any 'illegal' message is false",
+     "Draft PR 183 builds the recommended option and waits on you"
+    ],
+    "say": "No 1962 message names this mistake. Your rule of 14 September says that if the 1962 compiler would compile a program, ours must. So whether these shapes were legal is your call."
+   },
+   {
+    "type": "options",
+    "heading": "Four options",
+    "options": [
+     {
+      "label": "Delete the sentence, real message 196",
+      "see": "Prints ILLEGAL SENTENCE STRUCTURE NOTHING DONE, then message 64 at the END. Compiles. Built in draft PR 183.",
+      "cost": "If 1962 accepted these shapes, a real message wrongly calls them illegal. Easy to change later.",
+      "rec": true
+     },
+     {
+      "label": "Drop only the extra BEGIN, message 192",
+      "see": "First shape keeps one S1 open and prints one message: POSSIBLE ILLEGAL USE OF A KEY WORD.",
+      "cost": "The text names the wrong fault. Needs new parser code to drop one clause. Not built."
+     },
+     {
+      "label": "A new message of our own",
+      "see": "Deletes the sentence like 196, with our wording: BEGIN SECTION HAS NO NAME OF ITS OWN. Marked non-historical.",
+      "cost": "The 1962 compiler never printed it. Needs a new number, text and severity. Not built."
+     },
+     {
+      "label": "Accept both shapes, no message",
+      "see": "Generate code for them, on the view that 1962 accepted them.",
+      "cost": "Our own code design with no sample. END S1 with two sections called S1 is unsolved. Internal error stays until built."
+     }
+    ],
+    "say": "Four options. Delete the sentence with a real 1962 message. Drop only the extra BEGIN. Write a new message of our own. Or accept both shapes and design their code ourselves."
+   },
+   {
+    "type": "code",
+    "heading": "What the recommended option prints",
+    "lines": [
+     "   3,00    3    ILLEGAL SENTENCE STRUCTURE NOTHING DONE.",
+     "   5,00    3    CANNOT -END- SECTION WHEN NONE ARE OPEN."
+    ],
+    "highlight": [
+     0
+    ],
+    "caption": "Both shapes, as built in draft PR 183. The sample listings do not change.",
+    "say": "With message 196, both shapes print these two lines. The sentence is dropped, so the END after it has nothing to close. The program still compiles."
+   },
+   {
+    "type": "recommend",
+    "heading": "Recommendation",
+    "label": "Delete the sentence with message 196",
+    "reasons": [
+     "The 1960 manual says a section must have its own name",
+     "Message 196 is a real 1962 message, and its text says what happens",
+     "The parser already uses it for sentences that mix command kinds"
+    ],
+    "say": "Recommendation: message 196. The 1960 manual's must is the strongest evidence that 1962 rejected these shapes. The message is real and says what happens. If you do nothing, both shapes keep stopping on an internal error."
+   }
+  ]
+ }
+}

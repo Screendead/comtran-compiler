@@ -1,0 +1,145 @@
+{
+ "id": "d21",
+ "short": "Two start labels",
+ "title": "When a program labels two statements PROGRAM.START, should our compiler build it using the first label, or keep refusing it?",
+ "today": "PROGRAM.START is the label that marks where a COMTRAN program begins running. The 1962 manual's error table has a message for a program with two: message 141, \"MORE THAN ONE -PROGRAM.START-. FIRST USED.\". Our design record says the same: the first label wins and compilation continues. Our compiler prints the listing with both warnings, then stops with \"a procedure name defined twice (no sample instance)\" and produces no object deck.",
+ "why_now": "The design record and the code disagree, so one of them must change. Your 2 November rulings pull both ways: one says to generate code wherever the manuals show the code, and the other says compiling means printing the listing, so refusals may stay. Draft PR 184 builds the compile option and waits on your answer.",
+ "if_nothing": "The compiler keeps refusing, and the design record keeps saying \"first one wins, compilation continues\", the opposite of what the code does. PR 184 stays a draft.",
+ "options": [
+  {
+   "k": "first",
+   "label": "Compile it, using the first label (PR 184)",
+   "what_changes": "The object deck is punched. Its start address and every GO TO PROGRAM.START go to the first label. The second label prints on its line and means nothing. No new kind of machine code is added. The change only chooses which label the name means. Message 166, \"'PROGRAM.START' IS NOT UNIQUE IN THIS SECTION.\", still fires at severity 3, so --run does not start the job automatically.",
+   "cost_risk": "No sample program shows the object code for this case, so only the design record can check it. Two narrow cases still refuse: a second label that opens a section, and a second label that a DO calls. In both, its END would return to the wrong place. A machine test confirms the main case: NUM reads 1 only when the run starts at the first label.",
+   "reverse": "Revert one pull request: two code changes, four tests and one dated paragraph in the design record.",
+   "rec": true,
+   "example": "3,00   71177 PROGRAM.START.  SET NUM = NUM + 1.\n5,00   71200 PROGRAM.START.  SET NUM = 2.\n5,00    1    MORE THAN ONE -PROGRAM.START-. FIRST USED.\n5,00    3    'PROGRAM.START' IS NOT UNIQUE IN THIS SECTION.\nSEVERITY LIMIT WAS NOT REACHED\njob 1: not run: maximum severity 3"
+  },
+  {
+   "k": "refuse",
+   "label": "Keep the refusal and correct the design record",
+   "what_changes": "Nothing changes in the compiler. The listing prints with both warnings and no object deck. One dated paragraph goes into the design record. It says the refusal comes from a general guard against any name defined twice, and that \"first one wins\" describes the 1962 compiler, not ours.",
+   "cost_risk": "It claims less: no code without a sample behind it enters the later comparison with the surviving 1963 compiler. But the guard is meant for shapes no manual message covers, and this shape draws two manual messages, 141 and 166. Under your 2 November ruling that compiling means the listing, it still meets your 14 September rule.",
+   "reverse": "Delete one paragraph from the design record later.",
+   "rec": false,
+   "example": "5,00    1    MORE THAN ONE -PROGRAM.START-. FIRST USED.\n5,00    3    'PROGRAM.START' IS NOT UNIQUE IN THIS SECTION.\nSEVERITY LIMIT WAS NOT REACHED\nerror: job 1: unrecovered shape: a procedure name defined twice (no sample instance)"
+  }
+ ],
+ "recommendation": "Compile with the first label. The deciding question is whether the manual's message, \"FIRST USED\", counts as the manual showing what the 1962 compiler did. It names the outcome exactly, and the change adds no new machine code, only a choice of label. That fits your ruling to generate code wherever the manuals show it. Choose refuse only if you count a sample listing as the sole evidence.",
+ "prototype": "Draft PR 184 makes the compiler use the first PROGRAM.START label and still refuse a second one that opens a section or that a DO calls. It adds four tests, a machine run and a dated design-record paragraph tagged as a prototype; the golden files are unchanged.",
+ "recommendation_changed": "",
+ "sources": [
+  "calls.json old card d21",
+  "gh pr view 184 (body, head 72d922c)",
+  "gh pr diff 184 (procedure.dart, decisions.md amendment, codegen_test, codegen_refusal_test, machine_test)",
+  "origin/master:docs/design/decisions.md D2.1 and its 2026-08-30 and 2026-09-06 amendments",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/evidence/calls-round3.json (d21)",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/index.html (2 November rulings text)",
+  "comtran-manuals/J28-6169/90.04-error-messages.md lines 219-221, 244 (messages 141-143, 166)",
+  "comtran-manuals/J28-6169/90.02-generated-code.md line 30"
+ ],
+ "storyboard": {
+  "meta": {
+   "id": "d21",
+   "number": 7,
+   "of": 9,
+   "short": "Two start labels"
+  },
+  "scenes": [
+   {
+    "type": "title",
+    "heading": "Two start labels in one program: compile, or refuse?",
+    "sub": "PROGRAM.START is the label that marks where a COMTRAN program begins running.",
+    "say": "Call seven. A COMTRAN program may label one statement PROGRAM.START, the point where its run begins. What should our compiler do when a program labels two statements that way?"
+   },
+   {
+    "type": "code",
+    "heading": "The 1962 manual covers this exact case",
+    "lines": [
+     "141,00     0    MORE THAN ONE -PROGRAM.START-. FIRST USED.",
+     "166,00     0    'NAME.1' IS NOT UNIQUE IN THIS SECTION."
+    ],
+    "highlight": [
+     0
+    ],
+    "caption": "The 1962 manual, section 90.04.01, the compiler's error-message table",
+    "say": "The 1962 manual's error table has a message for this case: more than one PROGRAM.START, first used. The 1962 compiler warned, took the first label, and carried on. Our design record says the same."
+   },
+   {
+    "type": "code",
+    "heading": "What our compiler does today",
+    "lines": [
+     "5,00    1    MORE THAN ONE -PROGRAM.START-. FIRST USED.",
+     "5,00    3    'PROGRAM.START' IS NOT UNIQUE IN THIS SECTION.",
+     "SEVERITY LIMIT WAS NOT REACHED",
+     "error: job 1: unrecovered shape:",
+     "  a procedure name defined twice (no sample instance)"
+    ],
+    "highlight": [
+     3,
+     4
+    ],
+    "caption": "The listing prints in full; no object deck is produced",
+    "say": "Today the listing prints both warnings in full. Then the code generator stops with no object deck. A general guard against any name defined twice fires, because no sample program shows this case."
+   },
+   {
+    "type": "points",
+    "heading": "Why this is asked now",
+    "bullets": [
+     "The design record says the first label wins and compilation continues.",
+     "The code refuses, so the record and the code disagree.",
+     "Your 2 November rulings pull both ways on this case.",
+     "Draft PR 184 builds the compile option and waits on your answer."
+    ],
+    "say": "The record and the code disagree, so one must change. Your second of November rulings pull both ways: generate code wherever the manuals show it, but refusals that still print the listing may stay."
+   },
+   {
+    "type": "code",
+    "heading": "With PR 184: the first label is used",
+    "lines": [
+     "3,00   71177 PROGRAM.START.  SET NUM = NUM + 1.",
+     "5,00   71200 PROGRAM.START.  SET NUM = 2.",
+     "5,00    1    MORE THAN ONE -PROGRAM.START-. FIRST USED.",
+     "5,00    3    'PROGRAM.START' IS NOT UNIQUE IN THIS SECTION.",
+     "SEVERITY LIMIT WAS NOT REACHED",
+     "job 1: not run: maximum severity 3"
+    ],
+    "highlight": [
+     0
+    ],
+    "caption": "The deck is punched; a machine test reads NUM as 1",
+    "say": "With pull request 184, the deck is punched. The start address and every jump to PROGRAM.START go to the first label. A machine test confirms it: the counter reads one only when the run starts there."
+   },
+   {
+    "type": "options",
+    "heading": "The two options",
+    "options": [
+     {
+      "label": "Compile with the first label (PR 184)",
+      "see": "Object deck punched. The run starts at the first label. No new kind of machine code, only a choice of label.",
+      "cost": "No sample shows the result. A second label that opens a section still refuses. Undo by reverting one PR.",
+      "rec": true
+     },
+     {
+      "label": "Keep the refusal, correct the record",
+      "see": "Listing prints both warnings, no object deck. One paragraph in the record says the 1962 behaviour is not ours.",
+      "cost": "Leans on a no-sample guard although two manual messages cover the case. Undo by deleting one paragraph.",
+      "rec": false
+     }
+    ],
+    "say": "Option one compiles with the first label, and reverting one pull request undoes it. Option two keeps the refusal and corrects the record. It claims less, but refuses a case the manual describes."
+   },
+   {
+    "type": "recommend",
+    "heading": "Recommendation",
+    "label": "Compile with the first label (PR 184)",
+    "reasons": [
+     "The manual's own message names the outcome: FIRST USED.",
+     "It adds no new machine code, only which label the name means.",
+     "Doing nothing leaves a record that says the opposite of the code."
+    ],
+    "say": "Recommendation: compile with the first label. The manual's own message states the result, and the change adds no new code. Doing nothing keeps the refusal and a record that contradicts it."
+   }
+  ]
+ }
+}

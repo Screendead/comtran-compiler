@@ -1,0 +1,146 @@
+{
+ "id": "subscripts2",
+ "short": "Bad subscript messages",
+ "title": "Two bad subscripts already get an error message. Keep those messages, or switch to the 1962 messages you named on 2 November?",
+ "today": "A subscript picks one element of a table. TAB CELL (3) is the third cell. The 1960 manual, page 31, says a subscript \"must represent a positive integral value\". Today MOVE TAB CELL ('A') TO NUM. draws message 912, \"ALPHABETIC LITERAL CANNOT BE AN ARITHMETIC OPERAND OUTSIDE -TR-. (NON-HISTORICAL.)\". That message is our own invention, not a 1962 one. MOVE TAB CELL (ZERO) TO NUM. draws message 192, \"SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD.\", a real 1962 message. ZERO is the word for the value nought. A plain digit, TAB CELL (0), draws a different 1962 message, 182, \"IMPROPER DATA FORMAT.\". Both faults are rejected today.",
+ "why_now": "On 2 November you ruled that three subscript faults should draw messages 79, 182 and 71, on the premise that all three compiled with no message. The audit behind that premise checked only the later stage of the compiler and missed two messages that the earlier stage already prints. PR 181, merged, did the third case: a function call used as a subscript now draws message 71. The other two were left unchanged, and the design record says the question is back with you.",
+ "if_nothing": "The compiler keeps today's behaviour: the quoted letter draws message 912, ZERO draws message 192, and both programs are rejected. Your 2 November ruling stays unfulfilled for these two cases, and the item stays on the list of calls waiting for you.",
+ "options": [
+  {
+   "k": "keep",
+   "label": "Keep messages 912 and 192 as they are",
+   "what_changes": "Nothing in the compiler. A quoted letter in a subscript keeps message 912; ZERO keeps message 192. Your 2 November ruling is revised for these two cases only.",
+   "cost_risk": "No work. The letter keeps a message we invented, marked non-historical, where a 1962 message might have printed. ZERO and the digit 0 keep printing different messages for the same fault.",
+   "reverse": "Easy. The switch can still be built later, for example once the surviving 1963 compiler is opened for comparison.",
+   "example": "MOVE TAB CELL ('A') TO NUM. prints 912, ALPHABETIC LITERAL CANNOT BE AN ARITHMETIC OPERAND OUTSIDE -TR-. (NON-HISTORICAL.)",
+   "rec": true
+  },
+  {
+   "k": "swap",
+   "label": "Inside a subscript, print 79 and 182 instead of 912 and 192",
+   "what_changes": "Carries out your 2 November ruling as written. A quoted letter prints message 79, \"SUBSCRIPT VARIABLE 'NAME.1' MUST BE OF NUMERIC TYPE.\". ZERO prints message 182, \"IMPROPER DATA FORMAT.\", matching the digit 0.",
+   "cost_risk": "A parser change to hold back 912 and 192 inside a subscript, or two messages print for one fault. Two design records amended, and the test from PR 181 that pins 912 and 192 rewritten. Message 79 names a variable, and a quoted letter is not one, so its printed text reads oddly.",
+   "reverse": "Moderate. Reversing means undoing the parser change, the record amendments and the tests.",
+   "example": "MOVE TAB CELL (ZERO) TO NUM. would print 182, IMPROPER DATA FORMAT.",
+   "rec": false
+  }
+ ],
+ "recommendation": "Keep messages 912 and 192. Both options reject exactly the same programs, so no user program compiles differently either way. Message 79's text speaks of a subscript variable, which a quoted letter is not. Nobody knows which message the 1962 compiler printed for these two faults, so switching spends parser work and record changes on a guess. The honest case for switching is that 912 is our own message, while 79 and 182 are real 1962 messages, and ZERO would then match the digit 0.",
+ "prototype": "PR 181, merged, makes a function call used as a subscript draw message 71, and adds a test that pins messages 912 and 192 for the other two cases. Nothing is built for the switch option.",
+ "recommendation_changed": "The recommendation is unchanged. The old card left out one fact: message 912 is a non-historical message we invented, and 79 and 182 are 1962 messages. That fact is the strongest argument for switching, so the card now states it. It does not change the outcome, because both options reject the same programs and 79's wording does not fit a literal. The old card also called PR 181 a draft prototype. It is merged, and nothing prototypes the switch.",
+ "sources": [
+  "gh pr view/diff 181 (Diagnose a function call in a subscript, merged)",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/index.html (2 November ruling and the follow-up call)",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/evidence/calls-round3.json",
+  "origin/master:docs/design/message-checklist.tsv (texts of 71, 79, 182, 192, 912)",
+  "origin/master:docs/design/severity-notes.md (900-series messages are our own; 912 row)",
+  "origin/master:docs/design/m3-data.md (subscript message table and its 2026-11-02 amendment)",
+  "origin/master:docs/design/m2-parser.md (figurative constants inside expressions are a syntax error)",
+  "origin/master:docs/design/decisions.md (EQUALS record: 192 as a design decision for key-word misuse)",
+  "origin/master:docs/HANDOVER.md (calls waiting for Jack table)",
+  "origin/master:test/subscript_checks_test.dart (_move helper; TAB CELL (0) draws 182)",
+  "origin/master:comtran-manuals/F28-8043/02-language-structure.md (F p. 30-31 subscripts)",
+  "origin/master:docs/comtran-language-definition.md (TR is the truth-value operator)"
+ ],
+ "storyboard": {
+  "meta": {
+   "id": "subscripts2",
+   "number": 2,
+   "of": 9,
+   "short": "Bad subscript messages"
+  },
+  "scenes": [
+   {
+    "type": "title",
+    "heading": "Two bad subscripts already get a message. Keep them?",
+    "sub": "A follow-up to your 2 November ruling on three subscript faults",
+    "say": "Two kinds of bad subscript already draw an error message. Your November ruling assumed they drew none. Do we keep today's messages, or switch to the ones you named?"
+   },
+   {
+    "type": "points",
+    "heading": "What a subscript is, and what goes wrong",
+    "bullets": [
+     "A subscript picks one element of a table: TAB CELL (3) is the third cell",
+     "The 1960 manual, page 31: it \"must represent a positive integral value\"",
+     "TAB CELL ('A') uses a letter; TAB CELL (ZERO) points at no element",
+     "Both are faults. The compiler already rejects both today"
+    ],
+    "say": "A subscript picks one element of a table. The 1960 manual says it must be a positive whole number. A letter in quotes, or the word ZERO, breaks that rule. The compiler already rejects both."
+   },
+   {
+    "type": "code",
+    "heading": "What the compiler prints today",
+    "lines": [
+     "MOVE TAB CELL ('A') TO NUM.",
+     "  912 ALPHABETIC LITERAL CANNOT BE AN ARITHMETIC OPERAND",
+     "      OUTSIDE -TR-. (NON-HISTORICAL.)",
+     "MOVE TAB CELL (ZERO) TO NUM.",
+     "  192 SENTENCE STRUCTURE ERROR. POSSIBLE ILLEGAL USE OF A KEY WORD.",
+     "MOVE TAB CELL (0) TO NUM.",
+     "  182 IMPROPER DATA FORMAT."
+    ],
+    "highlight": [
+     1,
+     2,
+     4
+    ],
+    "caption": "Statements from the test suite; message texts from the compiler's catalog",
+    "say": "The letter draws message 912, a message we invented, marked non-historical. ZERO draws message 192, a real 1962 message about misused key words. A plain digit zero draws a different 1962 message, 182."
+   },
+   {
+    "type": "points",
+    "heading": "Why this is back with you",
+    "bullets": [
+     "On 2 November you ruled: messages 79, 182 and 71 for three faults",
+     "An audit had called all three silent. Only the function-call case was",
+     "PR 181, merged, gives a function call in a subscript message 71",
+     "The other two were left alone until you decide"
+    ],
+    "say": "On 2 November you asked for three new messages. The audit behind that question was wrong on two of them. The third, a function call in a subscript, now draws message 71. The other two wait for you."
+   },
+   {
+    "type": "code",
+    "heading": "The two 1962 messages your ruling named",
+    "lines": [
+     "79  SUBSCRIPT VARIABLE 'NAME.1' MUST BE OF NUMERIC TYPE.",
+     "182 IMPROPER DATA FORMAT."
+    ],
+    "highlight": [
+     0
+    ],
+    "caption": "From the 1962 manual's message list; NAME.1 is filled in when printed",
+    "say": "Message 79 speaks of a subscript variable, and a quoted letter is not a variable. Message 182 has no name in it, so it would fit ZERO well."
+   },
+   {
+    "type": "options",
+    "heading": "Two options",
+    "options": [
+     {
+      "label": "Keep 912 and 192",
+      "see": "No change. Both faults stay rejected with today's messages. Your 2 November ruling is revised for these two cases.",
+      "cost": "Nothing to build. The letter keeps a message we invented.",
+      "rec": true
+     },
+     {
+      "label": "Switch to 79 and 182",
+      "see": "Inside a subscript, the letter prints 79 and ZERO prints 182. This carries out your 2 November ruling as written.",
+      "cost": "Parser change to hold back 912 and 192 there, two design records amended, tests rewritten.",
+      "rec": false
+     }
+    ],
+    "say": "Keep costs nothing and rejects the same programs. Switch carries out your ruling as written. It needs a parser change so one fault prints one message, plus record and test updates."
+   },
+   {
+    "type": "recommend",
+    "heading": "Recommendation",
+    "label": "Keep 912 and 192",
+    "reasons": [
+     "Both options reject exactly the same programs",
+     "Message 79's text names a variable, and a quoted letter is not one",
+     "Which message 1962 printed is unknown; switch buys a guess with code"
+    ],
+    "say": "Keep today's messages. Both options reject the same programs. Message 79 does not fit a quoted letter. And nobody knows which message the 1962 compiler printed here, so switching spends work on a guess."
+   }
+  ]
+ }
+}

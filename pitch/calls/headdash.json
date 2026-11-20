@@ -1,0 +1,142 @@
+{
+ "id": "headdash",
+ "short": "Heading em dashes",
+ "title": "Should the 21 headings in the language reference that still hold an em dash lose it, with their links repointed?",
+ "today": "On 10 August you ruled that the site's own text carries no em dash, and a test enforces it. On 2 November you extended that rule to the language reference, the project's own description of COMTRAN that the site publishes as reference pages. That change took 944 dashes out of it, but held back the headings. 21 headings still hold an em dash, and 10 contents lines repeat them, so readers of the reference pages still see the mark in those places.",
+ "why_now": "The headings were held back because a heading's text sets its anchor, the link address after the # sign. Changing one changes the address, so every link to it must change in the same edit, and that needed its own decision. Draft PR 192 has made the change and passes every check. It waits only on your answer.",
+ "if_nothing": "The headings keep the dash, and the site rule keeps a standing exception for headings and their contents lines. PR 192 stays open as a draft.",
+ "options": [
+  {
+   "k": "change",
+   "label": "Change them and repoint every link",
+   "what_changes": "Merge PR 192. 21 headings take a colon or a comma, for example \"4.3 The SET command: arithmetic assignment\". The 10 contents links move to the new addresses. The reference then keeps em dashes only in quotations, code, citation brackets and four table cells that hold the mark alone.",
+   "cost_risk": "21 anchors change once. An outside bookmark to an old anchor opens at the top of the page instead. Two close-out edits, to the site style record and the handover note, go in before the merge.",
+   "reverse": "Easy: one revert commit restores the headings and links.",
+   "rec": true,
+   "example": "\"### 4.3 The SET command — arithmetic assignment\" becomes \"### 4.3 The SET command: arithmetic assignment\"; its contents link changes from #43-the-set-command--arithmetic-assignment to #43-the-set-command-arithmetic-assignment."
+  },
+  {
+   "k": "keep",
+   "label": "Keep them",
+   "what_changes": "Close PR 192. The 21 headings and 10 contents lines keep the em dash on the reference pages.",
+   "cost_risk": "Readers keep seeing the mark you ruled out. The no-em-dash rule keeps a written exception for headings. Changing later costs the same as now.",
+   "reverse": "Easy: the change can be made at any later time; the prototype's approach still applies.",
+   "rec": false
+  }
+ ],
+ "recommendation": "Change them. It finishes the ruling you made on 2 November, and the only reason the headings were held back was the link risk, which PR 192 has dealt with. A search of the whole repository finds none of the 21 old anchors left, and a test checks that every link in the generated reading copy resolves. The one cost is that an outside bookmark to an old heading opens at the page top, which is small and happens once.",
+ "prototype": "Draft PR 192 replaces the em dash in 21 language-reference headings with a colon or comma, repoints the 10 contents links, and regenerates the reading copy; all five checks pass and it is mergeable.",
+ "recommendation_changed": "",
+ "sources": [
+  "calls.json old card for headdash",
+  "gh pr view 192 and gh pr diff 192 (heading and contents-link lines, check status: 5 SUCCESS, MERGEABLE)",
+  "origin/master:docs/design/web-copy.md (no-em-dash rule, 2 November extension to the reference, open entry on headings)",
+  "origin/master:test/definition_mirror_test.dart (test that every anchor link in the reading copy resolves)",
+  "origin/master:test/web_copy_test.dart (heading exception in the dash check)",
+  "commit ba88a18 on origin/master (dash removal; 1051 em dashes before, 107 after, so 944 removed)",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/evidence/calls-round3.json (same entry as the old card)",
+  "Storyboard: /private/tmp/claude-501/-Users-jacklusher-development-comtran-compiler--claude-worktrees-audit-open-prs-d3caf1/3a6294a4-1f6c-4249-8105-36f25edb04f5/scratchpad/calls/headdash/storyboard.json; frames rendered, exit 0"
+ ],
+ "storyboard": {
+  "meta": {
+   "id": "headdash",
+   "number": 4,
+   "of": 9,
+   "short": "Heading em dashes"
+  },
+  "scenes": [
+   {
+    "type": "title",
+    "heading": "Should 21 reference headings lose their em dash?",
+    "sub": "The last em dashes in the project's own reference text, outside quotations and code",
+    "say": "Twenty-one headings in the project's language reference still hold an em dash. Should they lose it, as the rest of that text already has?"
+   },
+   {
+    "type": "points",
+    "heading": "What exists today",
+    "bullets": [
+     "Since 10 August, the site carries no em dash in its own text",
+     "On 2 November you extended that rule to the language reference",
+     "944 dashes came out of it; headings were held back",
+     "21 headings, and 10 contents lines, still show the dash"
+    ],
+    "say": "Since August the site has used no em dash. On the second of November you extended that rule to the language reference, and 944 dashes came out. Headings were held back. Twenty-one still carry one."
+   },
+   {
+    "type": "points",
+    "heading": "Why the headings were held back",
+    "bullets": [
+     "A heading's text sets its anchor: the link address after the # sign",
+     "Change the heading, and its anchor changes with it",
+     "Every link to that anchor must change in the same edit"
+    ],
+    "say": "A heading's text sets its anchor, the address that a link jumps to. Change the text and the address changes. So every link to that heading must change in the same edit, and that needed its own decision."
+   },
+   {
+    "type": "code",
+    "heading": "The prototype: draft pull request 192",
+    "lines": [
+     "- ### 4.3 The SET command — arithmetic assignment",
+     "+ ### 4.3 The SET command: arithmetic assignment",
+     "- #### 7.5.2 ENTER — entering another language",
+     "+ #### 7.5.2 ENTER: entering another language",
+     "- #### PARAM and FUNCT (F only — removed)",
+     "+ #### PARAM and FUNCT (F only, removed)",
+     "- [3.10 Numeric limits and defaults — summary]",
+     "-   (#310-numeric-limits-and-defaults--summary)",
+     "+ [3.10 Numeric limits and defaults: summary]",
+     "+   (#310-numeric-limits-and-defaults-summary)"
+    ],
+    "highlight": [
+     1,
+     3,
+     5,
+     8,
+     9
+    ],
+    "caption": "Real lines from the diff. The last pair is a contents link: its anchor changes too.",
+    "say": "Draft pull request 192 makes the change. A colon replaces a dash that introduces an explanation. A comma replaces one inside brackets. The ten contents links move to the new addresses."
+   },
+   {
+    "type": "points",
+    "heading": "What was checked",
+    "bullets": [
+     "A repository-wide search for each of the 21 old anchors finds nothing",
+     "A test checks that every link in the generated reading copy resolves",
+     "All five checks pass on the pull request",
+     "The one outside cost: an old bookmark opens at the top of the page"
+    ],
+    "say": "A search of the whole repository finds none of the old addresses left. A test checks every link in the generated reading copy. All checks pass. The one cost is outside: an old bookmark opens at the page top."
+   },
+   {
+    "type": "options",
+    "heading": "The two options",
+    "options": [
+     {
+      "label": "Change them and repoint every link",
+      "see": "Merge 192. The reference keeps em dashes only in quotations, code, citation brackets and four 'none' table cells.",
+      "cost": "21 anchors change once; outside bookmarks to them land at page top. Undone by one revert.",
+      "rec": true
+     },
+     {
+      "label": "Keep them",
+      "see": "Close 192. 21 headings and 10 contents lines keep the dash on the reference pages.",
+      "cost": "The site rule keeps a standing heading exception. Changing later costs the same as now."
+     }
+    ],
+    "say": "Change means merging the pull request, and the heading exception goes away. Keep means closing it, and the rule keeps a standing exception. Either is easy to reverse. Doing nothing leaves the headings as they are."
+   },
+   {
+    "type": "recommend",
+    "heading": "Recommendation",
+    "label": "Change them and repoint every link",
+    "reasons": [
+     "It finishes your 2 November ruling",
+     "Nothing in the repository breaks, and a test guards the links",
+     "The only cost, stale outside bookmarks, is small and one-off"
+    ],
+    "say": "Recommendation: change them. It finishes the ruling you already made. Nothing inside the repository breaks, and a test guards the links. The only cost is an old outside bookmark landing at the top of the page."
+   }
+  ]
+ }
+}

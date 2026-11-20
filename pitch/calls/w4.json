@@ -1,0 +1,163 @@
+{
+ "id": "w4",
+ "short": "Tutorial page form",
+ "title": "Where should the website's COMTRAN tutorial live, and how much should it teach?",
+ "today": "The public site compiles a deck in the browser and prints the 1962 compiler listing, but it cannot run the program. Draft PR #188 adds a Run button. It runs the compiled program on an emulated IBM 7090, over the two input tapes of the 1962 payroll sample. Those tapes are built into the page, under 5 KB, so a run needs no download. No tutorial text exists yet. The PR holds only an eleven-lesson outline.",
+ "why_now": "The tutorial prose cannot start until its page form is fixed. You asked for a tutorial page separate from the front page, and the roadmap says that page uses the existing card editor and never a second one. Your 2 November ruling holds the comparison against the surviving 1963 compiler until this phase and the one before it are done.",
+ "if_nothing": "PR #188 stays a draft, so the live site keeps no Run button and no tutorial. The comparison against the 1963 compiler stays closed behind this phase.",
+ "options": [
+  {
+   "k": "A",
+   "label": "A separate tutorial page that reuses the front page's editor, output panels and script",
+   "what_changes": "Each lesson sits beside the one card editor. A lesson loads a deck, and the reader presses Run on the same screen. One script means one set of card-column rules.",
+   "cost_risk": "About 100 lines of page markup (the editor and its output panels) get copied, plus a test that keeps both copies equal. The script needs a small change to start on a second page: today it writes a build line into an element only the front page has, and fails without it.",
+   "reverse": "Easy. Delete the page and its test.",
+   "example": "Lesson 8 says 'change this line', the reader edits the deck, presses Run, and sees the report line move.",
+   "rec": true
+  },
+  {
+   "k": "B",
+   "label": "Put the lessons around the editor on the front page",
+   "what_changes": "No copied markup. Eleven lessons wrap around the compiler on the first page a visitor sees.",
+   "cost_risk": "Goes against your own request for a separate page. The front page exists to bring a reader in, and the site's copy rules cap a front-page paragraph at three sentences. Eleven lessons would bury the compiler.",
+   "reverse": "Hard. Moving the lessons out later means rewriting the front page.",
+   "example": "",
+   "rec": false
+  },
+  {
+   "k": "C",
+   "label": "A text-only tutorial page whose examples are share links into the front page",
+   "what_changes": "No editor code on the tutorial page. Each example is a link that opens the front page with that deck loaded. Share links already exist.",
+   "cost_risk": "Cheapest. The reader flips between two pages and loses 'change a line, run, see the report change' on one screen. The roadmap entry 'the tutorial page, with the existing editor' would need an edit.",
+   "reverse": "Easy, but the prose would need reworking to sit beside an editor later.",
+   "example": "",
+   "rec": false
+  },
+  {
+   "k": "S2",
+   "label": "Scope alternative: a course of many small programs instead of one walk through the 1962 sample",
+   "what_changes": "This changes what the tutorial covers, not where it lives; it combines with A, B or C. It teaches more of COMTRAN than the one payroll sample.",
+   "cost_risk": "Any example that reads input needs its own input tapes built into the site. Each example also needs a test that keeps it compiling, or the tutorial breaks silently when the compiler changes. Writing and test cost is several times that of the walk through the sample.",
+   "reverse": "Moderate. Examples can be added later on top of the walk.",
+   "example": "",
+   "rec": false
+  }
+ ],
+ "recommendation": "Take A, scoped to one guided walk through the 1962 payroll sample. It is the only form that puts the lesson and the running program on one screen with one editor, which is the roadmap's reason for refusing a second editor. Its one cost, a copied block of markup, is caught by a cheap test. Every lesson that uses the unedited sample is already pinned by the existing tests, including the warning lesson: the sample reads the retirement premium as the insurance premium, on the 1962 page and in our run, and your ruling keeps that 1962 behaviour. The lesson where the reader edits a line needs one test of its own.",
+ "prototype": "Draft PR #188 adds a Run button to the site that runs the compiled program on an emulated IBM 7090 over the sample's built-in input tapes, with a seventh output panel for what it prints; all five CI checks pass. It holds the tutorial outline only, no lesson text.",
+ "recommendation_changed": "",
+ "sources": [
+  "gh pr view 188 (body, draft state, status checks: 5 SUCCESS)",
+  "origin/w4-design:web/index.html (editor section lines 134-237; build element at line 315, outside it; Run button and 07 Run tab)",
+  "origin/w4-design:web/app.js lines 695-715 (build line written after load; catch reports 'compiler did not load')",
+  "origin/master:docs/HANDOVER.md lines 234-246 (premium defect ruling 2026-10-25, kept 2026-11-02; tutorial must warn), 682-690 (Jack asked for a tutorial page), 936-955 (teach-and-run phase; cut of a second editor), 62 and 553 (1963 comparison opens after the web phases)",
+  "origin/master:docs/design/web-copy.md rule on front-page paragraph length (three sentences)",
+  "origin/master:test/goldens/90.05-payroll.report (first report lines)",
+  "origin/master:test/fixtures/90.05-payroll-job.ct (INS.PREM / RET.PREM, INSPREM / RETPREM)",
+  "origin/review/2026-11-02-pitch-rulings:reviews/2026-11-02-pitch-rulings/evidence/calls-round3.json (long-form w4 entry)",
+  "calls.json old card w4"
+ ],
+ "storyboard": {
+  "meta": {
+   "id": "w4",
+   "number": 9,
+   "of": 9,
+   "short": "Tutorial page form"
+  },
+  "scenes": [
+   {
+    "type": "title",
+    "heading": "Where should the COMTRAN tutorial live?",
+    "sub": "The site can now run the 1962 payroll sample. The tutorial's form is open.",
+    "say": "The website can now run a COMTRAN program in the browser. The question is where the tutorial goes, and how much it should teach."
+   },
+   {
+    "type": "points",
+    "heading": "What exists today",
+    "bullets": [
+     "The live site compiles a deck and prints the 1962 listing. It cannot run it yet.",
+     "Draft PR #188 adds a Run button that runs the program on an emulated IBM 7090.",
+     "The sample's two input tapes ride inside the page, under 5 KB. A run makes no request.",
+     "No tutorial text exists. Only an eleven-lesson outline in the PR."
+    ],
+    "say": "Today the live site compiles a program but cannot run it. Draft pull request one eight eight adds a Run button. It runs the program on an emulated IBM seventy ninety, over input tapes built into the page."
+   },
+   {
+    "type": "code",
+    "heading": "What Run prints for the 1962 payroll sample",
+    "lines": [
+     "AT 199,14 STOP RUN",
+     "CHECKFILE REPORT",
+     "",
+     "110-06-61                              011010",
+     "2BLUT H                                 $112.20",
+     "110-06-61                              021021",
+     "2CASPERIAN J                             $80.60"
+    ],
+    "highlight": [
+     0
+    ],
+    "caption": "The console line, then the reports. Tests match them byte for byte to the saved reports.",
+    "say": "Press Run, and the page prints the machine's stop message, then the four payroll reports. Tests check them byte for byte against the reports the project already holds."
+   },
+   {
+    "type": "points",
+    "heading": "Why decide now",
+    "bullets": [
+     "The tutorial prose cannot start until its page form is fixed.",
+     "You asked for a tutorial page separate from the front page.",
+     "The roadmap says that page uses the existing card editor, never a second one.",
+     "Per your 2 November ruling, the check against the 1963 compiler waits on this."
+    ],
+    "say": "The lessons cannot be written until their page is chosen. You asked for a separate tutorial page. The roadmap forbids a second card editor, because two editors mean two sets of column rules."
+   },
+   {
+    "type": "options",
+    "heading": "Where the lessons sit",
+    "options": [
+     {
+      "label": "A. Separate tutorial page, same editor and script",
+      "see": "Lessons beside the one editor. A lesson loads a deck and the reader presses Run in place.",
+      "cost": "About 100 lines of page markup copied, plus a test that keeps both copies equal. Easy to undo.",
+      "rec": true
+     },
+     {
+      "label": "B. Lessons on the front page",
+      "see": "No copied markup. Eleven lessons wrap around the compiler on the first page.",
+      "cost": "Goes against your request for a separate page. Buries the compiler. Moving out later means a rewrite.",
+      "rec": false
+     },
+     {
+      "label": "C. Text page with share links",
+      "see": "Each example is a link that opens the front page with that deck loaded.",
+      "cost": "Cheapest. The reader flips between two pages and loses edit, run, compare on one screen.",
+      "rec": false
+     }
+    ],
+    "say": "Option A is a separate page with the same editor and script. Option B puts the lessons on the front page. Option C is a text page whose examples link back to the front page."
+   },
+   {
+    "type": "points",
+    "heading": "A separate question: how much to teach",
+    "bullets": [
+     "One guided walk through the 1962 sample: each lesson ties to existing tests.",
+     "A course of many small programs teaches more of the language.",
+     "But each program needs its own tapes built in, and its own test.",
+     "The course costs several times the walk to write and keep working."
+    ],
+    "say": "Scope is a separate choice. A course of many small programs teaches more. But each one needs its own input tapes and its own test, or it breaks silently when the compiler changes."
+   },
+   {
+    "type": "recommend",
+    "heading": "Recommendation",
+    "label": "A, as one walk through the 1962 sample",
+    "reasons": [
+     "Only form with the lesson and a running program on one screen, with one editor.",
+     "Its one cost, a copied block of markup, is caught by a cheap test.",
+     "Unedited-sample lessons reuse the existing tests; the edit lesson gets one of its own."
+    ],
+    "say": "Take option A, scoped to one walk through the sample. It is the only form that keeps lesson and running program on one screen, with one editor. A cheap test guards its one cost."
+   }
+  ]
+ }
+}
