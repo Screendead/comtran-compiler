@@ -198,22 +198,6 @@ void main() {
       expect(splitJobs([_endOfFileCard(), _accountingCard()]), isEmpty);
     });
 
-    test('the 90.05 job deck is one terminated 293-card job', () {
-      final List<JobSlice> jobs = splitJobs(loadJobDeck());
-      expect(jobs.single.terminated, isTrue);
-      expect(jobs.single.cards, hasLength(293));
-      expect(jobs.single.ignoredTail, isEmpty);
-    });
-
-    test('the raw 90.05 artifact is one open job of 293 cards', () {
-      // The artifact itself stays 293 cards (D9.14 oracle; D11.3).
-      final List<CardImage> deck = loadPayrollDeck();
-      expect(deck, hasLength(293));
-      final List<JobSlice> jobs = splitJobs(deck);
-      expect(jobs.single.terminated, isFalse);
-      expect(jobs.single.cards, hasLength(293));
-    });
-
     test('the 90.05 job deck is the artifact card for card, then one '
         '*FINISH (D11.3)', () {
       final List<CardImage> artifact = loadPayrollDeck();

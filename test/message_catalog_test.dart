@@ -45,8 +45,9 @@ void main() {
     );
   });
 
-  test('the M1 message constants match their catalog rows', () {
-    const List<Message> m1 = [
+  test('the lexer message constants match their catalog rows', () {
+    const List<Message> lexer = [
+      msgEndOfFileWithoutFinish,
       msgFileCardLacksName,
       msgNumericLengthExceeded,
       msgIncorrectNumericForm,
@@ -64,7 +65,7 @@ void main() {
       msgIllegalJustification,
       msgDataNameLacksLevel,
     ];
-    for (final message in m1) {
+    for (final message in lexer) {
       expect(
         messageCatalog[message.number]?.text,
         message.text,

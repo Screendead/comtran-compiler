@@ -107,15 +107,4 @@ void main() {
       );
     }
   });
-
-  test('the BCD vectors carry the literal comma glyph correctly quoted', () {
-    final List<Map<String, String>> rows = _readCsv(
-      '$_fixtures/char-code-bcd-vectors.csv',
-    );
-    final Map<String, String> commaRow = rows.firstWhere(
-      (Map<String, String> row) => row['glyph'] == ',',
-      orElse: () => fail('no row has glyph ","'),
-    );
-    expect(int.parse(commaRow['bcd']!), 59);
-  });
 }

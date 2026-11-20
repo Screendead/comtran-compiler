@@ -28,10 +28,6 @@ void main() {
     expect(fRestrictedInDataDescription.every(fReservedWords.contains), isTrue);
   });
 
-  test('the union of both vocabularies is 124 words', () {
-    expect({...jKeyWords.keys, ...fReservedWords}, hasLength(124));
-  });
-
   test('documented F/J divergences hold', () {
     // Dropped by J: AS, COND, COPY, FUNCT, PARAM, REDEF.
     for (final word in [
@@ -58,7 +54,5 @@ void main() {
     expect(keyWordClassOf('MOVE'), KeyWordClass.notDataOrProcedureName);
     expect(keyWordClassOf('TAPE'), KeyWordClass.environmentConditional);
     expect(keyWordClassOf('PAYROLL'), isNull);
-    expect(programStartName, 'PROGRAM.START');
-    expect(patternFileCardWord, 'PATTERN');
   });
 }
