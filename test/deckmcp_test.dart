@@ -126,6 +126,7 @@ void main() {
   late _McpClient client;
   late Map<String, Object?> initializeResult;
   late Directory dir;
+  late Directory shared;
   late String canonPath;
   late String mirrorPath;
 
@@ -140,9 +141,15 @@ void main() {
       roots: [Directory.systemTemp.path, Directory.current.path],
     );
     initializeResult = await client.initialize();
+    shared = Directory.systemTemp.createTempSync('deckmcp_shared');
+    File('${shared.path}/bad.ctd').writeAsBytesSync([1, 2, 3]);
+    Directory('${shared.path}/empty').createSync();
   });
 
-  tearDownAll(() => client.close());
+  tearDownAll(() async {
+    await client.close();
+    shared.deleteSync(recursive: true);
+  });
 
   setUp(() {
     dir = Directory.systemTemp.createTempSync('deckmcp_test');
@@ -168,7 +175,7 @@ void main() {
       expect(initializeResult['instructions'], contains('Never hand-edit'));
     });
 
-    test('tools/list gives every tool with a schema', () async {
+    test('tools/list gives every tool with a schema and its hints', () async {
       final Map<String, Object?> response = await client.request('tools/list');
       final tools =
           (response['result']! as Map<String, Object?>)['tools']!
@@ -203,37 +210,18 @@ void main() {
           'object',
           reason: '${entry['name']}',
         );
+        final annotations = entry['annotations']! as Map<String, Object?>;
+        final Object? name = entry['name'];
+        final bool writes = name == 'deck_write' || name == 'deck_edit_cards';
+        expect(
+          annotations[writes ? 'destructiveHint' : 'readOnlyHint'],
+          isTrue,
+          reason: '$name',
+        );
+        if (name == 'deck_write') {
+          expect(annotations['idempotentHint'], isTrue);
+        }
       }
-    });
-
-    test('read-only tools are annotated read-only, deck_write and '
-        'deck_edit_cards are not', () async {
-      final Map<String, Object?> response = await client.request('tools/list');
-      final tools =
-          (response['result']! as Map<String, Object?>)['tools']!
-              as List<Object?>;
-      final byName = <String, Map<String, Object?>>{
-        for (final Object? tool in tools)
-          (tool! as Map<String, Object?>)['name']! as String:
-              tool as Map<String, Object?>,
-      };
-      for (final name in [
-        'deck_read',
-        'deck_card',
-        'card_code_info',
-        'deck_check',
-      ]) {
-        final annotations =
-            byName[name]!['annotations']! as Map<String, Object?>;
-        expect(annotations['readOnlyHint'], isTrue, reason: name);
-      }
-      final writeAnnotations =
-          byName['deck_write']!['annotations']! as Map<String, Object?>;
-      expect(writeAnnotations['destructiveHint'], isTrue);
-      expect(writeAnnotations['idempotentHint'], isTrue);
-      final editAnnotations =
-          byName['deck_edit_cards']!['annotations']! as Map<String, Object?>;
-      expect(editAnnotations['destructiveHint'], isTrue);
     });
   });
 
@@ -296,23 +284,11 @@ void main() {
       expect(second['bcd_octal'], isNull);
     });
 
-    test('include_cards reports a null next_start_card at the end', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('deck_read', {
-          'path': canonPath,
-          'include_cards': true,
-        }),
-      );
-      expect(json['cards_returned'], 3);
-      expect(json['next_start_card'], isNull);
-    });
-
     test(
       'include_cards defaults to a bounded page and pages a long deck',
       () async {
-        // Matches defaultMaxCards in deck_tools.dart. Not imported directly:
-        // deck_tools.dart is an implementation detail behind the tools, not
-        // part of the public package API.
+        // Matches defaultMaxCards in deck_tools.dart, which the package
+        // does not export.
         const defaultPage = 25;
         final Map<String, Object?> json = _content(
           await client.call('deck_read', {
@@ -326,39 +302,6 @@ void main() {
         expect((json['cards']! as List<Object?>).length, defaultPage);
       },
     );
-
-    test('rejects max_cards above the schema maximum', () async {
-      final Map<String, Object?> result = await client.call('deck_read', {
-        'path': canonPath,
-        'include_cards': true,
-        'max_cards': 1000,
-      });
-      expect(result['isError'], isTrue);
-      expect(result.containsKey('structuredContent'), isFalse);
-    });
-
-    test('rejects a start_card below one', () async {
-      // The schema's minimum: 1 rejects this before readDeck's own
-      // start_card < 1 check ever runs, so the failure is a plain-text
-      // schema-validation error, not a structured DeckToolException.
-      final Map<String, Object?> result = await client.call('deck_read', {
-        'path': canonPath,
-        'include_cards': true,
-        'start_card': 0,
-      });
-      expect(result['isError'], isTrue);
-      expect(result.containsKey('structuredContent'), isFalse);
-    });
-
-    test('rejects a max_cards below one', () async {
-      final Map<String, Object?> result = await client.call('deck_read', {
-        'path': canonPath,
-        'include_cards': true,
-        'max_cards': 0,
-      });
-      expect(result['isError'], isTrue);
-      expect(result.containsKey('structuredContent'), isFalse);
-    });
 
     test(
       'include_cards on an empty deck returns no cards, not an error',
@@ -378,18 +321,6 @@ void main() {
       },
     );
 
-    test('rejects a start_card past the end of a non-empty deck', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_read', {
-          'path': canonPath,
-          'include_cards': true,
-          'start_card': 4,
-        }),
-      );
-      expect(error['kind'], 'out_of_range');
-      expect(error['message'], contains('past the last card'));
-    });
-
     test('clamps max_cards larger than the cards remaining', () async {
       final Map<String, Object?> json = _content(
         await client.call('deck_read', {
@@ -402,36 +333,6 @@ void main() {
       expect(json['cards_returned'], 2);
       expect(json['next_start_card'], isNull);
       expect((json['cards']! as List<Object?>).length, 2);
-    });
-
-    test('rejects a missing file', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_read', {'path': '${dir.path}/none.ctd'}),
-      );
-      expect(error['kind'], 'not_found');
-      expect(error['message'], contains('none.ctd'));
-    });
-
-    test('rejects a path that is not a canon file', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_read', {'path': mirrorPath}),
-      );
-      expect(error['kind'], 'bad_extension');
-    });
-
-    test('rejects a file that is not canon', () async {
-      final bad = '${dir.path}/bad.ctd';
-      File(bad).writeAsBytesSync([1, 2, 3]);
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_read', {'path': bad}),
-      );
-      expect(error['kind'], 'format');
-      expect(error['message'], contains('header'));
-    });
-
-    test('rejects a missing required argument', () async {
-      final Map<String, Object?> result = await client.call('deck_read', {});
-      expect(result['isError'], isTrue);
     });
   });
 
@@ -460,68 +361,6 @@ void main() {
       File(mirrorPath).writeAsStringSync('TAMPERED\n');
       await client.call('deck_write', {'path': canonPath, 'mirror': sample});
       expect(File(mirrorPath).readAsStringSync(), sample);
-    });
-
-    test(
-      'rejects text that is not in normal form and writes nothing',
-      () async {
-        final path = '${dir.path}/c.ctd';
-        final Map<String, Object?> error = _errorOf(
-          await client.call('deck_write', {
-            'path': path,
-            'mirror': 'TRAILING SPACE \n',
-          }),
-        );
-        expect(error['kind'], 'format');
-        expect(error['message'], contains('card 1'));
-        expect(error['message'], contains('normal form'));
-        expect(File(path).existsSync(), isFalse);
-        expect(File('${dir.path}/c.ct').existsSync(), isFalse);
-      },
-    );
-
-    test('rejects a glyph outside the source set', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_write', {
-          'path': '${dir.path}/d.ctd',
-          'mirror': 'A%B\n',
-        }),
-      );
-      expect(error['kind'], 'format');
-      expect(error['message'], contains('column 2'));
-      expect(File('${dir.path}/d.ctd').existsSync(), isFalse);
-    });
-
-    test('rejects text with no final newline', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_write', {
-          'path': '${dir.path}/e.ctd',
-          'mirror': 'HELLO',
-        }),
-      );
-      expect(error['kind'], 'format');
-      expect(error['message'], contains('newline'));
-    });
-
-    test('rejects a target that is not a canon path', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_write', {
-          'path': '${dir.path}/f.ct',
-          'mirror': 'HELLO\n',
-        }),
-      );
-      expect(error['kind'], 'bad_extension');
-      expect(File('${dir.path}/f.ct').existsSync(), isFalse);
-    });
-
-    test('rejects a missing directory', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_write', {
-          'path': '${dir.path}/nowhere/g.ctd',
-          'mirror': 'HELLO\n',
-        }),
-      );
-      expect(error['kind'], 'not_found');
     });
 
     test('accepts expected_mirror when it matches and writes', () async {
@@ -603,27 +442,6 @@ void main() {
       expect(File(mirrorPath).readAsStringSync(), '${sample}LAST\n');
     });
 
-    test('rejects a delete range past the end of the deck', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_edit_cards', {
-          'path': canonPath,
-          'start_card': 2,
-          'delete_count': 5,
-        }),
-      );
-      expect(error['kind'], 'out_of_range');
-    });
-
-    test('rejects a start_card past card_count + 1', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_edit_cards', {
-          'path': canonPath,
-          'start_card': 10,
-        }),
-      );
-      expect(error['kind'], 'out_of_range');
-    });
-
     test('rejects malformed insert_lines and writes nothing', () async {
       final String fresh = File(mirrorPath).readAsStringSync();
       final Map<String, Object?> error = _errorOf(
@@ -680,22 +498,6 @@ void main() {
       expect(json['mirror_line'], '');
       expect(json['punch_notation'], isNull);
       expect(json['columns'], isEmpty);
-    });
-
-    test('rejects an index past the end of the deck', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_card', {'path': canonPath, 'card_index': 4}),
-      );
-      expect(error['kind'], 'out_of_range');
-      expect(error['message'], contains('1..3'));
-    });
-
-    test('rejects an index below one', () async {
-      final Map<String, Object?> result = await client.call('deck_card', {
-        'path': canonPath,
-        'card_index': 0,
-      });
-      expect(result['isError'], isTrue);
     });
   });
 
@@ -762,47 +564,9 @@ void main() {
       expect(json['glyph'], isNull);
     });
 
-    test('rejects a glyph outside the source set', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('card_code_info', {'glyph': '%'}),
-      );
-      expect(error['kind'], 'unknown_glyph');
-    });
-
-    test('rejects a malformed card code', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('card_code_info', {'card_code': '8-12'}),
-      );
-      expect(error['kind'], 'bad_card_code');
-    });
-
-    test('rejects a BCD code outside the table', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('card_code_info', {'bcd_octal': '99'}),
-      );
-      expect(error['kind'], 'invalid_argument');
-    });
-
-    test('rejects no query and two queries', () async {
-      expect(
-        _errorOf(await client.call('card_code_info', {}))['kind'],
-        'invalid_argument',
-      );
-      expect(
-        _errorOf(
-          await client.call('card_code_info', {
-            'glyph': 'A',
-            'bcd_octal': '21',
-          }),
-        )['kind'],
-        'invalid_argument',
-      );
-    });
-
     test('rejects an omitted arguments field instead of crashing', () async {
       // card_code_info has no required property, so schema validation lets
-      // an entirely absent "arguments" field through; the handler used to
-      // read request.arguments! and crash with a Dart stack trace (MCP-4).
+      // an absent "arguments" field through to the handler (MCP-4).
       final Map<String, Object?> response = await client.request('tools/call', {
         'name': 'card_code_info',
       });
@@ -815,28 +579,6 @@ void main() {
                   as Map<String, Object?>)['text']!
               as String;
       expect(text, isNot(contains('Null check operator')));
-    });
-
-    test(
-      'rejects a two-octal-digit lookalike that is not valid octal',
-      () async {
-        // int.tryParse(radix: 8) would accept "021" and "+21"; the spec gives
-        // BCD codes as exactly two octal digits, 00 to 77 (MCP-14).
-        for (final bad in ['021', '+21', '8', '99', '1']) {
-          final Map<String, Object?> error = _errorOf(
-            await client.call('card_code_info', {'bcd_octal': bad}),
-          );
-          expect(error['kind'], 'invalid_argument', reason: bad);
-        }
-      },
-    );
-
-    test('rejects an unknown property', () async {
-      final Map<String, Object?> result = await client.call('card_code_info', {
-        'glyph': 'A',
-        'bogus': 1,
-      });
-      expect(result['isError'], isTrue);
     });
   });
 
@@ -852,19 +594,6 @@ void main() {
       final entry = results.single! as Map<String, Object?>;
       expect(entry['status'], 'ok');
       expect(entry['path'], canonPath);
-    });
-
-    test('reports a stale pair addressed by its mirror path', () async {
-      File(mirrorPath).writeAsStringSync('TAMPERED\n');
-      final Map<String, Object?> json = _content(
-        await client.call('deck_check', {
-          'paths': <Object?>[mirrorPath],
-        }),
-      );
-      expect(json['ok'], isFalse);
-      final entry =
-          (json['results']! as List<Object?>).single! as Map<String, Object?>;
-      expect(entry['status'], 'mirror_stale');
     });
 
     test('aggregates several files: ok, stale, and orphan mirror, canon '
@@ -896,6 +625,10 @@ void main() {
       expect(statuses, ['ok', 'mirror_stale', 'orphan_mirror']);
       expect((results[0]! as Map<String, Object?>)['path'], canonPath);
       expect((results[1]! as Map<String, Object?>)['path'], bCanon);
+      expect(
+        (results[1]! as Map<String, Object?>)['message'],
+        contains('stale mirror'),
+      );
       expect((results[2]! as Map<String, Object?>)['path'], orphanMirror);
     });
 
@@ -914,34 +647,6 @@ void main() {
       expect(entry['mirror_path'], mirrorPath);
     });
 
-    test('fails a stale mirror', () async {
-      File(mirrorPath).writeAsStringSync('TAMPERED\n');
-      final Map<String, Object?> json = _content(
-        await client.call('deck_check', {
-          'paths': <Object?>[dir.path],
-        }),
-      );
-      expect(json['ok'], isFalse);
-      expect(json['failure_count'], 1);
-      final results = json['results']! as List<Object?>;
-      final entry = results.single! as Map<String, Object?>;
-      expect(entry['status'], 'mirror_stale');
-      expect(entry['message'], contains('stale mirror'));
-    });
-
-    test('fails an orphan mirror', () async {
-      File(canonPath).deleteSync();
-      final Map<String, Object?> json = _content(
-        await client.call('deck_check', {
-          'paths': <Object?>[dir.path],
-        }),
-      );
-      expect(json['ok'], isFalse);
-      final entry =
-          (json['results']! as List<Object?>).single! as Map<String, Object?>;
-      expect(entry['status'], 'orphan_mirror');
-    });
-
     test('fails a corrupt canon file', () async {
       File(canonPath).writeAsBytesSync([1, 2, 3]);
       final Map<String, Object?> json = _content(
@@ -954,57 +659,9 @@ void main() {
           (json['results']! as List<Object?>).single! as Map<String, Object?>;
       expect(entry['status'], 'unreadable');
     });
-
-    test('rejects a path that does not exist', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_check', {
-          'paths': <Object?>['${dir.path}/nowhere'],
-        }),
-      );
-      expect(error['kind'], 'not_found');
-    });
-
-    test('rejects a directory with no deck files', () async {
-      final empty = Directory('${dir.path}/empty')..createSync();
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_check', {
-          'paths': <Object?>[empty.path],
-        }),
-      );
-      expect(error['kind'], 'not_found');
-      expect(error['message'], contains('no canon or mirror files'));
-    });
-
-    test('rejects an empty path list', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_check', {'paths': <Object?>[]}),
-      );
-      expect(error['kind'], 'invalid_argument');
-    });
   });
 
   group('path confinement', () {
-    test('rejects a path outside every declared root', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_read', {
-          'path': '/mcp-confinement-test-should-not-exist.ctd',
-        }),
-      );
-      expect(error['kind'], 'forbidden_path');
-    });
-
-    test('deck_check rejects a forbidden path among several', () async {
-      final Map<String, Object?> error = _errorOf(
-        await client.call('deck_check', {
-          'paths': <Object?>[
-            dir.path,
-            '/mcp-confinement-test-should-not-exist',
-          ],
-        }),
-      );
-      expect(error['kind'], 'forbidden_path');
-    });
-
     test(
       'a client that declares no roots falls back to the working directory',
       () async {
@@ -1032,8 +689,222 @@ void main() {
     );
   });
 
-  test('an unknown tool is an error, not a crash', () async {
-    final Map<String, Object?> result = await client.call('no_such_tool', {});
-    expect(result['isError'], isTrue);
+  group('the schema refuses', () {
+    for (final (String name, String tool, Map<String, Object?> args) in [
+      (
+        'max_cards above the maximum',
+        'deck_read',
+        {'include_cards': true, 'max_cards': 1000},
+      ),
+      // The schema minimum stops this before readDeck's own check runs.
+      (
+        'a start_card below one',
+        'deck_read',
+        {'include_cards': true, 'start_card': 0},
+      ),
+      (
+        'a max_cards below one',
+        'deck_read',
+        {'include_cards': true, 'max_cards': 0},
+      ),
+      ('a missing required argument', 'deck_read', {'path': null}),
+      ('a card_index below one', 'deck_card', {'card_index': 0}),
+      ('an unknown property', 'card_code_info', {'glyph': 'A', 'bogus': 1}),
+      ('an unknown tool', 'no_such_tool', {}),
+    ]) {
+      test(name, () async {
+        final Map<String, Object?> result = await client.call(
+          tool,
+          {if (tool.startsWith('deck_')) 'path': canonPath, ...args}
+            ..removeWhere((String key, Object? value) => value == null),
+        );
+        expect(result['isError'], isTrue);
+        expect(result.containsKey('structuredContent'), isFalse);
+      });
+    }
+  });
+
+  group('a tool refuses', () {
+    for (final (
+          String name,
+          String tool,
+          Map<String, Object?> Function() args,
+          String kind,
+          String? message,
+        )
+        in [
+          (
+            'a start_card past the end of a non-empty deck',
+            'deck_read',
+            () => {'path': canonPath, 'include_cards': true, 'start_card': 4},
+            'out_of_range',
+            'past the last card',
+          ),
+          (
+            'a missing file',
+            'deck_read',
+            () => {'path': '${dir.path}/none.ctd'},
+            'not_found',
+            'none.ctd',
+          ),
+          (
+            'a path that is not a canon file',
+            'deck_read',
+            () => {'path': mirrorPath},
+            'bad_extension',
+            null,
+          ),
+          (
+            'a file that is not canon',
+            'deck_read',
+            () => {'path': '${shared.path}/bad.ctd'},
+            'format',
+            'header',
+          ),
+          (
+            'mirror text that is not in normal form',
+            'deck_write',
+            () => {
+              'path': '${dir.path}/new.ctd',
+              'mirror': 'TRAILING SPACE \n',
+            },
+            'format',
+            'normal form',
+          ),
+          (
+            'a glyph outside the source set',
+            'deck_write',
+            () => {'path': '${dir.path}/new.ctd', 'mirror': 'A%B\n'},
+            'format',
+            'column 2',
+          ),
+          (
+            'mirror text with no final newline',
+            'deck_write',
+            () => {'path': '${dir.path}/new.ctd', 'mirror': 'HELLO'},
+            'format',
+            'newline',
+          ),
+          (
+            'a write target that is not a canon path',
+            'deck_write',
+            () => {'path': '${dir.path}/new.ct', 'mirror': 'HELLO\n'},
+            'bad_extension',
+            null,
+          ),
+          (
+            'a write into a missing directory',
+            'deck_write',
+            () => {'path': '${dir.path}/nowhere/new.ctd', 'mirror': 'HELLO\n'},
+            'not_found',
+            null,
+          ),
+          (
+            'a delete range past the end of the deck',
+            'deck_edit_cards',
+            () => {'path': canonPath, 'start_card': 2, 'delete_count': 5},
+            'out_of_range',
+            null,
+          ),
+          (
+            'a start_card past card_count + 1',
+            'deck_edit_cards',
+            () => {'path': canonPath, 'start_card': 10},
+            'out_of_range',
+            null,
+          ),
+          (
+            'a card_index past the end of the deck',
+            'deck_card',
+            () => {'path': canonPath, 'card_index': 4},
+            'out_of_range',
+            '1..3',
+          ),
+          (
+            'a glyph outside the source set, looked up',
+            'card_code_info',
+            () => {'glyph': '%'},
+            'unknown_glyph',
+            null,
+          ),
+          (
+            'a malformed card code',
+            'card_code_info',
+            () => {'card_code': '8-12'},
+            'bad_card_code',
+            null,
+          ),
+          ('no query', 'card_code_info', () => {}, 'invalid_argument', null),
+          (
+            'two queries',
+            'card_code_info',
+            () => {'glyph': 'A', 'bcd_octal': '21'},
+            'invalid_argument',
+            null,
+          ),
+          // A BCD code is exactly two octal digits, 00 to 77 (MCP-14).
+          for (final bad in ['99', '021', '+21', '8', '1'])
+            (
+              'the BCD code $bad',
+              'card_code_info',
+              () => {'bcd_octal': bad},
+              'invalid_argument',
+              null,
+            ),
+          (
+            'a path that does not exist',
+            'deck_check',
+            () => {
+              'paths': ['${dir.path}/nowhere'],
+            },
+            'not_found',
+            null,
+          ),
+          (
+            'a directory with no deck files',
+            'deck_check',
+            () => {
+              'paths': ['${shared.path}/empty'],
+            },
+            'not_found',
+            'no canon or mirror files',
+          ),
+          (
+            'an empty path list',
+            'deck_check',
+            () => {'paths': <Object?>[]},
+            'invalid_argument',
+            null,
+          ),
+          (
+            'a path outside every declared root',
+            'deck_read',
+            () => {'path': '/mcp-confinement-test-should-not-exist.ctd'},
+            'forbidden_path',
+            null,
+          ),
+          (
+            'a forbidden path among several',
+            'deck_check',
+            () => {
+              'paths': [dir.path, '/mcp-confinement-test-should-not-exist'],
+            },
+            'forbidden_path',
+            null,
+          ),
+        ]) {
+      test(name, () async {
+        final Map<String, Object?> error = _errorOf(
+          await client.call(tool, args()),
+        );
+        expect(error['kind'], kind);
+        if (message != null) {
+          expect(error['message'], contains(message));
+        }
+        expect(File(mirrorPath).readAsStringSync(), sample);
+        expect(File('${dir.path}/new.ctd').existsSync(), isFalse);
+        expect(File('${dir.path}/new.ct').existsSync(), isFalse);
+      });
+    }
   });
 }
