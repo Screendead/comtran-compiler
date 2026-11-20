@@ -294,7 +294,8 @@ final class TransferChecker extends ClauseWalk with OperandWalk {
 
   // ── Functions (M3-19) ────────────────────────────────────────────
 
-  void _checkFunction(FunctionCall call) {
+  @override
+  void visitFunction(FunctionCall call) {
     call.arguments.forEach(_checkReference);
     final DataItem? item = resolver.dataResolutions[call.function];
     if (item == null) {
@@ -332,9 +333,6 @@ final class TransferChecker extends ClauseWalk with OperandWalk {
   @override
   void visitName(NameReference name, {required bool inArithmetic}) =>
       _checkReference(name);
-
-  @override
-  void visitFunction(FunctionCall call) => _checkFunction(call);
 
   void _checkReference(NameReference reference) =>
       reference.subscripts.forEach(walkExpr);

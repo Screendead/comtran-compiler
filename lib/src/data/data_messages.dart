@@ -1,4 +1,4 @@
-/// The data mapper's diagnostic vocabulary (M3 stage 1).
+/// The semantic layer's diagnostic vocabulary.
 ///
 /// Catalog messages are referenced from `messageCatalog` — one source,
 /// no restated text to drift (the catalog itself is golden-tested
@@ -33,7 +33,8 @@ final Message msgRecordOnTwoInputFiles = messageCatalog['11,00']!;
 
 /// `12,00` — a GET RECORD FROM on a file that meets none of the
 /// J 02.07.04 preconditions, so no record length can be determined.
-/// PATTERN, the fifth precondition, waits for its M5 syntax (D9.12).
+/// PATTERN, the fifth precondition, never holds: the parser refuses
+/// the option (D9.12).
 final Message msgGetRecordFromLength = messageCatalog['12,00']!;
 
 /// `13,00` — a FILE card that names no record at all. The 13/15 split
@@ -103,8 +104,7 @@ final Message msgIllegalFormatCombination = messageCatalog['33,00']!;
 
 /// `34,00` — a repetition count over `Pictorial.maxCount`, which the
 /// clamped format replaces. The 1962 maximum is unstated; 99999 sits
-/// above every field a blocksize can hold (M3-16 as amended
-/// 2026-08-04).
+/// above every field a blocksize can hold (M3-16).
 final Message msgFormatCharacterCountExceeded = messageCatalog['34,00']!;
 
 /// `35,00` — a numeric length past what the field form can hold: a
@@ -148,9 +148,8 @@ final Message msgRedefTargetUndefined = messageCatalog['41,00']!;
 final Message msgDataItemWithoutLength = messageCatalog['42,00']!;
 
 /// `43,00` — a constant inside a REDEF's extent, in a located input
-/// record, or after a variable length field (J 02.05.06; D3.6 as
-/// amended 2026-08-04: this catalog text covers all three). The
-/// constant is not stored.
+/// record, or after a variable length field (J 02.05.06; D3.6: this
+/// catalog text covers all three). The constant is not stored.
 final Message msgConstantPlacementIllegal = messageCatalog['43,00']!;
 
 /// `44,00` — QUANTITY IN with a blank Quantity field: storage for one
@@ -162,7 +161,7 @@ final Message msgQuantityAssumedOne = messageCatalog['44,00']!;
 final Message msgRedefTargetIsCond = messageCatalog['45,00']!;
 
 /// `46,00` — a REDEF or QUANTITY IN name that resolves to something
-/// other than a data name — an Environment name in stage 1.
+/// other than a data name: an Environment name.
 final Message msgRedefTargetNotDataName = messageCatalog['46,00']!;
 
 /// `47,00` — QUANTITY IN on an entry without an explicitly described
@@ -295,8 +294,8 @@ final Message msgImproperlyQualified = messageCatalog['101,00']!;
 final Message msgQuantityInNotNumeric = messageCatalog['102,00']!;
 
 /// `103,00` — a Quantity on a LABEL entry. RECORD and REDEF carry
-/// M2's card-coding conflict instead; COND takes msg 38 (the split
-/// is ours).
+/// the parser's card-coding conflict instead; COND takes msg 38 (the
+/// split is ours).
 final Message msgLabelCannotHaveQuantity = messageCatalog['103,00']!;
 
 /// `104,00` — a REDEF or LABEL between a non-format entry and

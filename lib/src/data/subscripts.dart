@@ -77,7 +77,7 @@ final class SubscriptChecker {
       }
       _countIndexExpression(subscript);
     }
-    _countIndicator(array, reference);
+    countIndicator(array, reference, resolver);
   }
 
   void _checkTerm(ArithExpr term, NameReference array) {
@@ -203,9 +203,6 @@ final class SubscriptChecker {
       );
     }
   }
-
-  void _countIndicator(DataItem array, NameReference reference) =>
-      countIndicator(array, reference, resolver);
 
   /// Counts the indicator of [array] under [reference]'s subscripts, and
   /// reports the cap through [walk], the pass that holds the clause. A

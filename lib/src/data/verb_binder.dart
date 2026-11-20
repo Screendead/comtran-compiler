@@ -1,8 +1,8 @@
-/// The I/O verb binding map (M3 stage 2, design note M3-18).
+/// The I/O verb binding map (M3-18).
 ///
-/// The stage-1 binder kept every per-card check; these rows need the
-/// resolved program. The verb walk runs after name resolution, so a
-/// record or file operand is looked up in the stage-1 binder's tables
+/// The environment binder keeps every per-card check; these rows need
+/// the resolved program. The verb walk runs after name resolution, so a
+/// record or file operand is looked up in the environment binder's tables
 /// rather than resolved again. The entry also carries the FILE-card
 /// options that need the data map, the POOL and GROUP buffer minimums
 /// (J 02.06.13–14), the LABEL area cap (J 02.05.03), the field-after-
@@ -84,7 +84,7 @@ final class VerbBinder extends ClauseWalk {
   }
 
   /// The FILE cards whose bindings stand: a card msg 931 rejected
-  /// binds nothing, so no row below speaks for it (stage 1's reading).
+  /// binds nothing, so no row below speaks for it.
   Iterable<FileCard> _liveFiles(List<EnvironmentCard> cards) => cards
       .whereType<FileCard>()
       .where((FileCard file) => !binder.rejectedFiles.contains(file));
@@ -150,7 +150,7 @@ final class VerbBinder extends ClauseWalk {
   }
 
   /// Whether one J 02.07.04 condition holds. PATTERN, its fifth
-  /// condition, cannot rescue a file until its syntax lands (D9.12).
+  /// condition, never holds: the parser refuses the option (D9.12).
   bool _lengthDeterminable(FileCard file, List<FileRecordClause> clauses) {
     if (file.begin) {
       return true; // Condition b.
