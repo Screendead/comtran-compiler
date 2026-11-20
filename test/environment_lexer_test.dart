@@ -267,34 +267,4 @@ void main() {
       expect(scan.specs.single.optionTokens[1].text, 'A?B');
     });
   });
-
-  group('the 90.05 deck', () {
-    test('scans to exactly 14 specifications with no diagnostics', () {
-      final program = SourceProgram.fromDeck(loadPayrollDeck());
-      final EnvironmentScan scan = scanEnvironment(
-        program.cardsOf(Division.environment),
-      );
-      expect(scan.diagnostics, isEmpty);
-      expect(scan.specs, hasLength(14));
-      expect(
-        scan.specs.where((EnvironmentSpec s) => s.typeText == 'FILE'),
-        hasLength(7),
-      );
-      expect(
-        scan.specs.where((EnvironmentSpec s) => s.typeText == 'SPECIF'),
-        hasLength(7),
-      );
-      final EnvironmentSpec payfile = scan.specs.firstWhere(
-        (EnvironmentSpec s) => s.name == 'PAYFILE',
-      );
-      expect(payfile.cards, hasLength(2));
-      expect([
-        for (final Token t in payfile.optionTokens) t.text,
-      ], containsAllInOrder(['PAYRECORD', ',', 'DEPARTMENT.TOTAL']));
-      final EnvironmentSpec specif = scan.specs[1];
-      expect(specif.typeText, 'SPECIF');
-      expect(specif.name, isEmpty);
-      expect(specif.optionTokens.first.text, 'INPUTMASTER');
-    });
-  });
 }

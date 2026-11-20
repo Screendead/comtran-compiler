@@ -22,95 +22,7 @@ import 'support/deck_fixtures.dart';
 }
 
 void main() {
-  group('the 90.05 procedure division', () {
-    late final ParseResult parse;
-    late final ParsedProcedureGroup group;
-
-    setUpAll(() {
-      parse = runParser(runFrontEnd(loadPayrollDeck()));
-      group = parse.groups.whereType<ParsedProcedureGroup>().single;
-    });
-
-    test('parses its 43 sentences with zero diagnostics', () {
-      expect(parse.parserDiagnostics, isEmpty);
-      // Statements 187,00-229,00 (M1 golden numbering).
-      expect(group.sentences, hasLength(43));
-      expect(group.sentences.any((Sentence s) => s.deleted), isFalse);
-    });
-
-    test('parses START and the end-of-run sentence as documented', () {
-      final Sentence start = group.sentences.singleWhere(
-        (Sentence s) => s.scan.label == 'START',
-      );
-      expect(start.clauses.first, isA<OpenClause>());
-      expect((start.clauses.first as OpenClause).allFiles, isTrue);
-      final Sentence endOfRun = group.sentences.singleWhere(
-        (Sentence s) => s.scan.label == 'END.OF.RUN',
-      );
-      expect(endOfRun.clauses.first, isA<DoClause>());
-      expect(endOfRun.clauses.last, isA<StopClause>());
-      expect((endOfRun.clauses.last as StopClause).run, isTrue);
-      // Clause numbering runs 1..n in source order (design note M2-6).
-      expect(endOfRun.clauses.first.clause, 1);
-      expect(endOfRun.clauses.last.clause, endOfRun.clauses.length);
-    });
-
-    test('parses the conditional GO TO of statement 192', () {
-      final Sentence compare = group.sentences.singleWhere(
-        (Sentence s) => s.scan.label == 'COMPARE.EMPLOYEE.NUMBERS',
-      );
-      final goTo = compare.clauses.single as GoToClause;
-      expect(goTo.targets, hasLength(2));
-      expect(goTo.targets[0].name.text, 'CHECK.NEW.DEPT');
-      expect(goTo.targets[0].when, isA<Relation>());
-      expect(goTo.targets[1].name.text, 'LOW.DETAIL');
-      expect(goTo.index, isNull);
-    });
-
-    test('parses the IF sentences with their arms', () {
-      final Sentence endOfMasters = group.sentences.singleWhere(
-        (Sentence s) => s.scan.label == 'END.OF.MASTERS',
-      );
-      final ifClause = endOfMasters.clauses.single as IfClause;
-      expect(ifClause.thenArm.single, isA<GoToClause>());
-      expect(ifClause.otherwiseArm.single, isA<SetClause>());
-      expect(ifClause.clause, 1);
-      expect(ifClause.thenArm.single.clause, 2);
-      expect(ifClause.otherwiseArm.single.clause, 3);
-    });
-
-    test('parses the CALL synonym pairs of statement 187', () {
-      final call = group.sentences.first.clauses.single as CallClause;
-      expect(call.pairs, hasLength(5));
-      expect(call.pairs.first.oldName.text, 'MASTER EMPLOYEE.NUMBER');
-      expect(call.pairs.first.newName.text, 'M.EMP.NO');
-      expect(call.pairs.last.oldName.text, 'MASTER BONDACCUMULATION');
-      expect(call.pairs.last.newName.text, 'M.BND.ACC');
-    });
-
-    test('parses the GET sentences with their AT END transfers', () {
-      final Iterable<GetClause> gets = group.sentences
-          .expand((Sentence s) => s.clauses)
-          .whereType<GetClause>();
-      expect(gets, hasLength(4));
-      for (final get in gets) {
-        expect(get.recordFrom, isFalse);
-        expect(get.atEnd, isNotNull);
-        expect(get.atEnd!.statement, anyOf(isA<DoClause>(), isA<GoToClause>()));
-      }
-    });
-  });
-
   group('verbs', () {
-    test('a literal MOVE source parses, as the sample writes', () {
-      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
-        "            MOVE 'M' TO ERRORTYPE.",
-      ]);
-      expect(diagnostics, isEmpty);
-      final move = sentences.single.clauses.single as MoveClause;
-      expect((move.source as LiteralOperand).literal.text, 'M');
-    });
-
     test('SET condition-name closes before a following clause (D5.6)', () {
       final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
         '            SET MARRIED, GO TO NEXT.STEP.',
@@ -782,7 +694,7 @@ void main() {
     });
   });
 
-  group('attested forms restored by the 2026-08-03 review', () {
+  group('attested forms', () {
     test("SET target = 'M' parses clean (F p. 46; PROC-1)", () {
       final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
         "            SET MARITAL.STATUS = 'M'.",

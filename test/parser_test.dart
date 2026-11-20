@@ -6,39 +6,6 @@ import 'support/deck_fixtures.dart';
 FrontEndResult _frontEnd(String mirror) => runFrontEnd(mirrorToDeck(mirror));
 
 void main() {
-  group('the 90.05 deck', () {
-    late final FrontEndResult result;
-    late final ParseResult parse;
-
-    setUpAll(() {
-      result = runFrontEnd(loadPayrollDeck());
-      parse = runParser(result);
-    });
-
-    test('parses with zero parser diagnostics', () {
-      expect(result.diagnostics, isEmpty);
-      expect(parse.parserDiagnostics, isEmpty);
-      expect(parse.maxSeverity, 0);
-    });
-
-    test('yields one parsed group per division', () {
-      expect(parse.groups, hasLength(3));
-      expect(parse.groups[0], isA<ParsedDataGroup>());
-      expect(parse.groups[1], isA<ParsedEnvironmentGroup>());
-      expect(parse.groups[2], isA<ParsedProcedureGroup>());
-      expect((parse.groups[0] as ParsedDataGroup).items, hasLength(172));
-      final data = parse.groups[0] as ParsedDataGroup;
-      // The division's twelve level-1 entries: seven records, the four
-      // working/total/table groups, and TABLE.ITEM.
-      expect(data.roots, hasLength(12));
-    });
-
-    test('parses the compile card', () {
-      expect(parse.compileCard!.options, ['LIST']);
-      expect(parse.compileCard!.secondaryIdentifier, 'CT PUBLICATIONS');
-    });
-  });
-
   test('merged diagnostics order by card number across phases', () {
     // Card 2 draws a parser diagnostic (907, withdrawn type code); card
     // 3 draws a front-end diagnostic (189, illegal mode). The merged

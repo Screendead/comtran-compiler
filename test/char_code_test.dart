@@ -82,7 +82,6 @@ void main() {
         '3-8': '=',
         '4-8': "'",
       };
-      // ignore: cascade_invocations, reason: specials is const; cascading forEach onto it would force dropping const.
       specials.forEach((code, glyph) {
         final int? bcd = bcdFromPunches(_punches(code));
         expect(bcd, isNotNull, reason: code);

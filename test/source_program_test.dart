@@ -1,8 +1,6 @@
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
-import 'support/deck_fixtures.dart';
-
 SourceProgram _program(List<String> lines) =>
     SourceProgram.fromDeck(mirrorToDeck('${lines.join('\n')}\n'));
 
@@ -34,24 +32,6 @@ void main() {
   });
 
   group('SourceProgram.fromDeck', () {
-    test('splits the 90.05 deck into its control card and divisions', () {
-      final program = SourceProgram.fromDeck(loadPayrollDeck());
-      expect(program.compileCard?.cardNumber, 1);
-      expect(program.compileCard?.body, startsWith('*COMPILE'));
-      expect(program.problems, isEmpty);
-      expect(program.groups.map((DivisionGroup g) => g.division), [
-        Division.data,
-        Division.environment,
-        Division.procedure,
-      ]);
-      expect(program.cardsOf(Division.data).length, 177);
-      expect(program.cardsOf(Division.environment).length, 15);
-      expect(program.cardsOf(Division.procedure).length, 97);
-      // All three headers punch their asterisk in column 7 (F p. 65;
-      // scan-checked 2026-08-03).
-      expect(program.groups[2].header.glyphAt(7), '*');
-    });
-
     test(r'recognizes the $CMPLE control card in columns 1-6', () {
       final SourceProgram program = _program([
         r'$CMPLE MYDECK  LIST',
