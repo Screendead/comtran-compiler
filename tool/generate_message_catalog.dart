@@ -98,6 +98,9 @@ String _dart(String text) {
   }
   return [
     for (var i = 0; i < lines.length; i++)
-      i == lines.length - 1 ? quote(lines[i]) : '${quote('${lines[i]}\n')}\n',
+      if (i == lines.length - 1)
+        quote(lines[i])
+      else
+        '${quote('${lines[i]}\n')}\n',
   ].join('      ');
 }
