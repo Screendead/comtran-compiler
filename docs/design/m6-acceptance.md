@@ -1901,11 +1901,13 @@ the report our run prints against the page.
   crosses a word.
 
   **Decided 2026-11-02: the subscripted SET and ADD targets.** Jack's
-  rule of 2026-09-14 and his ruling of 2026-11-02
-  (`review/2026-11-02-pitch-rulings`) bind it: generate the right
-  words where attested words exist, and refuse only where none do. A
-  SET or ADD target refused (codegen defect 8); a CORRESPONDING operand
-  dropped its subscript. All now store through the indicator:
+  rule of 2026-09-14 binds it: the 1962 processor compiled a
+  subscripted target, so ours must. A SET or ADD target refused
+  (codegen defect 8); a CORRESPONDING operand dropped its subscript.
+
+  No printed code stores into a table cell: the sample's subscripts
+  are all reads. These store words are our design, built from the
+  printed element read and ADD. Evidence exists and is sealed until M7:
 
   - The prologue is `LAC PI)n,r / TXL SYS)294,r,0` (LOC 01410 to
     01411). It follows each MOVPAK sequence and park.
@@ -1925,7 +1927,7 @@ the report our run prints against the page.
     the subscript recomputes it, no word reads it, and it counts
     toward the 90 indicators of 184,00 ([J 90.01.05]).
 
-  These refusals stay; no site gives their words:
+  These refusals stay:
 
   - `a whole-word read of an element whose stride is 11 characters
     (M6-9)`: `STO 0,r` writes a whole word.
@@ -1934,8 +1936,7 @@ the report our run prints against the page.
     subscripts.
 
   A CORRESPONDING store into a subscript variable still updates no
-  indicator (`docs/HANDOVER.md` item 9). The rejected option is to
-  keep the refusals; the 1962 processor compiled these shapes.
+  indicator (`docs/HANDOVER.md` item 9).
 
   **Ruled by Jack 2026-11-02 (call 10, "cellstore"): the external and
   edited elements.** A subscripted SET, ADD or MOVE target of external
