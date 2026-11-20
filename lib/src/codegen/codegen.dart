@@ -7,9 +7,6 @@
 /// from a deleted sentence, or from a sentence in
 /// `capacityDeletedSentences` (M3-20): those units keep their statement
 /// numbers and emit nothing.
-///
-/// Chunk B1 sizes every unit of the program and binds it to an address.
-/// It fills no other column: the verb generators B2 to B6 do that.
 library;
 
 import '../data/data_map.dart';
@@ -25,8 +22,8 @@ import 'text_model.dart';
 export 'procedure.dart' show UnrecoveredShape;
 
 /// The words result storage reserves: [resultStorageCells], two words a
-/// cell (D4.8). Chunk B3 addresses the same list section by section, so
-/// the reservation and the addressing cannot disagree.
+/// cell (D4.8). The procedure walk addresses the same list section by
+/// section, so the reservation and the addressing cannot disagree.
 final int resultStorageWords =
     2 * resultStorageCells.reduce((int a, int b) => a + b);
 

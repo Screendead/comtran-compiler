@@ -1,14 +1,10 @@
-/// The `*DATA` storage-map print (M4-7).
-///
-/// M3-14 computed the values and deferred the lines. These are the
-/// lines: the counter head, then one `OCT` per initialized word and one
-/// `BSS n` per uninitialized run, over the transmitted areas in program
-/// order.
+/// The `*DATA` storage-map print (M4-7; the values are M3-14's): the
+/// counter head, then one `OCT` per initialized word and one `BSS n` per
+/// uninitialized run, over the transmitted areas in program order.
 ///
 /// Location Counter 1's head — `USE 1` and `BGN 2,PI)1` — is not here.
-/// Both carry the counter-1 origin, which sits after the procedure
-/// text, so no stage that generates no procedure text can compute them.
-/// Stage 2 prepends them.
+/// Both carry the counter-1 origin, which sits after the procedure text,
+/// so `counterHead` builds them once the text is placed.
 library;
 
 import '../data/data_map.dart';

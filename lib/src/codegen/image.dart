@@ -25,11 +25,7 @@ enum StorageBlock {
   /// listing's LOC values, not stated by J).
   rs,
 
-  /// Temporary storage. It has no sizing rule and will not get one: the
-  /// manuals do not hold it, and the 90.05 sample reserves 7 words while
-  /// addressing none of them, which refutes any rule derived from what
-  /// the code uses. M4-4 as amended 2026-08-10 takes the attested 7 as a
-  /// constant and forbids inventing a rule that returns it.
+  /// Temporary storage, sized by [temporaryStorageWords].
   ts,
 
   /// Base locators: one word each (M4-4).
@@ -49,12 +45,11 @@ enum StorageBlock {
 /// The words temporary storage reserves.
 ///
 /// A constant, and deliberately not a rule. The manuals hold no sizing
-/// rule for `TS)`, the sample reserves 7 words and addresses none of
-/// them, and an eleven-agent hunt over both manuals left two readings
-/// one sample cannot separate. M4-4 as amended 2026-08-10 takes the
-/// attested 7 and forbids inventing a rule that returns it. For any
-/// program but the sample this size is unverifiable, which is stated
-/// rather than hidden.
+/// rule for `TS)`, and the 90.05 sample reserves 7 words while
+/// addressing none of them, which refutes any rule derived from what the
+/// code uses. M4-4 as amended 2026-08-10 takes the attested 7 and
+/// forbids inventing a rule that returns it. For any program but the
+/// sample this size is unverifiable.
 const int temporaryStorageWords = 7;
 
 /// Base locators the program needs: one for the IOCS label area, plus
