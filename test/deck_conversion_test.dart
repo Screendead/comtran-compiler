@@ -233,9 +233,8 @@ void main() {
     });
 
     test('a squeezed blank run in the conversion fails the comparison', () {
-      // The error this comparison found on 2026-08-05: the print and the
-      // deck hold two blanks after `ERRORTYPE,` in statement 193 and the
-      // conversion held one (`90.05-payroll-deck-notes.md`, item 4).
+      // The print and the deck hold two blanks after `ERRORTYPE,` in
+      // statement 193 (`90.05-payroll-deck-notes.md`, item 4).
       final List<String> squeezed = _conversionListingLines()
           .map(
             (String l) => l.replaceAll('ERRORTYPE,  MOVE', 'ERRORTYPE, MOVE'),

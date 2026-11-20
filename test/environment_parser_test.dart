@@ -4,9 +4,7 @@ import 'package:test/test.dart';
 import 'support/deck_fixtures.dart';
 
 /// The result of [_parse]: the parsed cards, the diagnostics the parse
-/// drew, and the scan they came from. Most call sites want only the cards
-/// and diagnostics fields; the scan field is kept for the few tests that
-/// inspect the scan directly (its own diagnostics, or `scan.specs`).
+/// drew, and the scan they came from.
 typedef _EnvParse = ({
   List<EnvironmentCard> cards,
   List<Diagnostic> diagnostics,
