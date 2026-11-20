@@ -6,8 +6,8 @@ export const meta = {
 }
 const base = (args && args.base) || 'origin/master'
 const tag = (args && args.tag) || 'a1'
-const REPO = '/Users/jacklusher/development/comtran-compiler'
-const ROOT = '/Users/jacklusher/development/comtran-compiler-worktrees'
+const REPO = '~/development/comtran-compiler'
+const ROOT = '~/development/comtran-compiler-worktrees'
 const common = (name) => `
 You are a senior owner at the studio making the COMTRAN compiler, a Dart compiler for IBM's 1959-62 Commercial Translator, recovered from two IBM manuals. Read CONSTITUTION.md first. Then the code rule: comments state constraints the code cannot show, and nothing else; an abstraction exists only to remove a repeated idea; notes and analysis stay out of tracked files unless they are a document someone asked for.
 
