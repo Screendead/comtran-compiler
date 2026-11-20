@@ -101,6 +101,7 @@ clone does not have them.
 
 | Document | What it governs |
 |---|---|
+| `CONSTITUTION.md` | How the work is run: owners, done, and what a test must earn. Section 14. |
 | `docs/HANDOVER.md` | Project state, the roadmap, and the next task |
 | `docs/design/decisions.md` | The D-number decision slate. Every record binds the code. |
 | the other files in `docs/design/` | The per-milestone and per-component design records |
@@ -294,7 +295,7 @@ Four cases follow. Only the last one is banned:
 | Exercised | Tested | Verdict |
 |---|---|---|
 | yes | yes | Good. Nothing to do. |
-| yes | no | Permitted, with caution. The code has a caller, so a change to it can break the program silently. Prefer to add the test. |
+| yes | no | Permitted, with caution. The code has a caller, so a change to it can break the program silently. Add a test only when it guards what the eye cannot see (`CONSTITUTION.md`). |
 | no | yes | Permitted. Keep watch: the code needs a concrete plan to get a caller. Record the plan in the design record that asks for the code. |
 | no | no | **Banned. Delete it.** |
 
@@ -423,3 +424,17 @@ These rules govern assistant responses, at the paragraph and response level:
 - Do not use invented shorthand that points at an earlier label. Restate the
   thing in place.
 - Prefer one concrete example to one abstraction.
+
+## 14. How work is done
+
+`CONSTITUTION.md` governs how the work is run. Jack set it on 2026-11-20.
+Read it before you write a brief or hire a worker. It says:
+
+- One owner for each piece of work, and as many owners as finish the work
+  sooner. The owner hands in finished work, not work that waits for review.
+- The eye is the test. The eye reads the compiler's output against the
+  manual page and its scan. A test guards only what the eye cannot see.
+- The workflow `constitution-audit` brings the code back into line between
+  waves.
+
+The merge rules of section 12 stay in force until Jack changes them.
