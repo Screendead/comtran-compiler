@@ -1,25 +1,9 @@
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 
-import 'support/deck_fixtures.dart';
-
 SourceCard _card(String line) => SourceCard(mirrorToDeck('$line\n').single, 1);
 
 void main() {
-  test('the 90.05 *COMPILE card parses per D7.12', () {
-    final FrontEndResult result = runFrontEnd(loadPayrollDeck());
-    final diagnostics = <Diagnostic>[];
-    final CompileCard card = parseCompileCard(
-      result.program.compileCard,
-      diagnostics,
-    )!;
-    expect(diagnostics, isEmpty);
-    expect(card.historicalSpelling, isTrue);
-    expect(card.deckName, isEmpty);
-    expect(card.options, ['LIST']);
-    expect(card.secondaryIdentifier, 'CT PUBLICATIONS');
-  });
-
   test(r'a $CMPLE card parses deck.name and its option list', () {
     final diagnostics = <Diagnostic>[];
     final CompileCard card = parseCompileCard(

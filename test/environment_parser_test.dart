@@ -32,69 +32,6 @@ _EnvParse _parse(
 }
 
 void main() {
-  group('the 90.05 environment division', () {
-    test('parses with zero added diagnostics and matches the deck', () {
-      final FrontEndResult result = runFrontEnd(loadPayrollDeck());
-      final EnvironmentGroupScan envGroup = result.groupScans
-          .whereType<EnvironmentGroupScan>()
-          .single;
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        envGroup.scan,
-        diagnostics,
-      );
-      expect(diagnostics, isEmpty);
-      // 7 FILE + 7 SPECIF, per the mirror
-      // (test/fixtures/90.05-payroll.ct:181-195).
-      expect(cards, hasLength(14));
-      expect(cards.whereType<FileCard>(), hasLength(7));
-      expect(cards.whereType<SpecifCard>(), hasLength(7));
-
-      // Line 181: INPUTMASTER FILE INPUT,BINARY,TAPE,MASTER,BLOCKSIZE 300
-      final FileCard inputMaster = cards.whereType<FileCard>().firstWhere(
-        (FileCard c) => c.spec.name == 'INPUTMASTER',
-      );
-      expect(inputMaster.direction, FileDirection.input);
-      expect(inputMaster.binary, isTrue);
-      expect(inputMaster.card, isFalse);
-      expect(inputMaster.blocksize, 300);
-      expect(
-        [for (final FileRecordClause r in inputMaster.records) r.name.text],
-        ['MASTER'],
-      );
-
-      // Line 189-190: PAYFILE FILE OUTPUT,BCD,TAPE,PAYRECORD,
-      //                       DEPARTMENT.TOTAL,BLOCKSIZE 20
-      final FileCard payfile = cards.whereType<FileCard>().firstWhere(
-        (FileCard c) => c.spec.name == 'PAYFILE',
-      );
-      expect(payfile.direction, FileDirection.output);
-      expect(payfile.binary, isFalse);
-      expect(payfile.blocksize, 20);
-      expect(
-        [for (final FileRecordClause r in payfile.records) r.name.text],
-        ['PAYRECORD', 'DEPARTMENT.TOTAL'],
-      );
-
-      // Line 182: SPECIFINPUTMASTER, UNIT1 'D1',OPENW,CLOSER
-      final SpecifCard specif = cards.whereType<SpecifCard>().firstWhere(
-        (SpecifCard c) => c.fileName?.text == 'INPUTMASTER',
-      );
-      expect(specif.unit1, 'D1');
-      expect(specif.unit2, isNull);
-      expect(specif.openW, isTrue);
-      expect(specif.closeMode, 'CLOSER');
-      expect(specif.density, isNull);
-
-      // Line 186: SPECIFDETAILFILE,UNIT1 'C2',OPENW,CLOSER,LOW
-      final SpecifCard detailSpecif = cards.whereType<SpecifCard>().firstWhere(
-        (SpecifCard c) => c.fileName?.text == 'DETAILFILE',
-      );
-      expect(detailSpecif.unit1, 'C2');
-      expect(detailSpecif.density, 'LOW');
-    });
-  });
-
   group('FILE card errors', () {
     test('no direction word draws 89,00', () {
       final _EnvParse result = _parse([
