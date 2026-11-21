@@ -1219,7 +1219,10 @@ void main() {
     test('reads its two records and runs to the end of the job', () {
       final Directory tapes = tempDirectory('comtran-tapes');
       _sampleTapes(tapes);
-      final subject = Machine.load(jobDeck(job, _options)!.cards, tapes: tapes);
+      final subject = Machine.load(
+        jobDeck(job, _options)!.cards,
+        tapes: DirectoryTapes(tapes),
+      );
       expect(subject.program.origin, Machine.programOrigin);
       expect(subject.program.entry, Machine.programOrigin + octal('165'));
       expect(subject.state.ic, subject.program.entry);
@@ -1284,7 +1287,10 @@ void main() {
       final Directory tapes = tempDirectory('comtran-tapes');
       tapeImage(tapes, 'D1', const <List<int>>[]);
       tapeImage(tapes, 'C2', const <List<int>>[]);
-      final subject = Machine.load(jobDeck(job, _options)!.cards, tapes: tapes);
+      final subject = Machine.load(
+        jobDeck(job, _options)!.cards,
+        tapes: DirectoryTapes(tapes),
+      );
       final RunResult result = subject.run(maxSteps: 5000);
       expect(result.outcome, RunOutcome.errorExit);
       expect(result.display, <String>['BASE LOCATOR NOT LOADED']);
@@ -1675,7 +1681,10 @@ void main() {
       final JobCompilation job = compileDeck(
         mirrorToDeck('${_locatedStore.join('\n')}\n'),
       ).jobs.single;
-      final subject = Machine.load(jobDeck(job, _options)!.cards, tapes: tapes);
+      final subject = Machine.load(
+        jobDeck(job, _options)!.cards,
+        tapes: DirectoryTapes(tapes),
+      );
       expect(subject.run(maxSteps: 5000).outcome, RunOutcome.endOfJob);
       // 123 - 200 is -77. `P` is 7 over an 11 punch, and IPAD keeps its
       // characters, so the store wrote three characters from byte 0.

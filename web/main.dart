@@ -34,6 +34,12 @@ external set _comtranToggle(JSFunction value);
 @JS('comtranCanon')
 external set _comtranCanon(JSFunction value);
 
+/// Runs the typed deck over the tape images the page holds and returns
+/// the [WebRun] as JSON. The images arrive as one JSON object of base64
+/// strings keyed by unit, so the boundary stays one string each way.
+@JS('comtranRun')
+external set _comtranRun(JSFunction value);
+
 /// The compiler version the page prints, so a reader can tell which build
 /// produced the listing on the screen.
 @JS('comtranVersion')
@@ -59,5 +65,12 @@ void main() {
     final Uint8List? bytes = canonDeck(typed.toDart);
     return bytes?.toJS;
   }).toJS;
+  _comtranRun = ((JSString typed, JSString tapes) => jsonEncode(
+    runText(typed.toDart, {
+      for (final MapEntry<String, Object?> tape
+          in (jsonDecode(tapes.toDart) as Map<String, Object?>).entries)
+        tape.key: base64Decode(tape.value! as String),
+    }).toJson(),
+  ).toJS).toJS;
   _comtranVersion = comtranVersion.toJS;
 }

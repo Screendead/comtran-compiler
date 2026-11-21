@@ -13,6 +13,7 @@
   <a href="index.html" class="wordmark">COMTRAN Reconstruction</a>
   <nav>
     <a href="index.html" aria-current="page">The compiler</a>
+    <a href="tutorial.html">Run a program</a>
     <a href="sources.html">The sources</a>
     <a href="reading-the-scans.html">How we read the scans</a>
     <a href="roadmap.html">What is built</a>
@@ -172,6 +173,7 @@
         <span class="pane-title">The deck</span>
         <span class="controls">
           <button type="button" id="compile">Compile</button>
+          <button type="button" id="run">Run the program</button>
           <button type="button" id="load">Load the sample program</button>
           <button type="button" id="download">Download the deck</button>
           <button type="button" id="share">Copy a link to this deck</button>
@@ -219,6 +221,7 @@
         <button type="button" role="tab" id="tab-semantics" data-stage="semantics" aria-controls="panel"><span class="tab-n">04</span>Semantics</button>
         <button type="button" role="tab" id="tab-listing" data-stage="listing" aria-controls="panel"><span class="tab-n">05</span>Listing</button>
         <button type="button" role="tab" id="tab-code" data-stage="code" aria-controls="panel"><span class="tab-n">06</span>Code</button>
+        <button type="button" role="tab" id="tab-run" data-stage="run" aria-controls="panel"><span class="tab-n">07</span>Run</button>
       </div>
       <p class="stage-caption" id="caption"></p>
       <div class="evidence" id="evidence">
@@ -247,24 +250,17 @@
 </section>
 
 <section class="next">
-  <h2>What comes next</h2>
+  <h2>Run it</h2>
   <p>
-    Today this page compiles the whole way: it reads your deck, checks it,
-    lays out storage, prints the listing and writes the 7090 program in the
-    Code panel. Click any line in a panel and follow its statement through
-    all six. One thing is still missing here: running the program.
+    Today this page compiles the whole way and runs what it writes. Press
+    <strong>Run the program</strong> and an emulated IBM 7090 runs the deck
+    over input tapes rebuilt from the report the 1962 manual prints. The
+    <strong>07 Run</strong> panel prints what the program printed, then each
+    report it wrote.
   </p>
-
-  <div class="step">
-    <h3>Running it</h3>
-    <p>
-      The compiler already runs what it writes. On an emulated 7090, over
-      input tapes rebuilt from the printed report, the payroll sample runs to
-      the end of the job and prints the report the 1962 manual prints beside
-      it, up to four recorded differences. A Run button brings that run to
-      this page, with a walk through the sample that explains each step.
-    </p>
-  </div>
+  <p>
+    <a href="tutorial.html">A guided walk through the sample, from one card to the finished report</a>.
+  </p>
 
   <p class="note">
     There is no timetable, and this page will not invent one. It takes as long

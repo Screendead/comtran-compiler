@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Run the 1962 payroll &middot; COMTRAN</title>
+<meta name="description" content="A guided walk through the one COMTRAN program the 1962 manual prints in full: read its cards, compile it, run it over its tapes, and see where the 1962 compiler went wrong.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="runner">
+  <a href="index.html" class="wordmark">COMTRAN Reconstruction</a>
+  <nav>
+    <a href="index.html">The compiler</a>
+    <a href="tutorial.html" aria-current="page">Run a program</a>
+    <a href="sources.html">The sources</a>
+    <a href="reading-the-scans.html">How we read the scans</a>
+    <a href="roadmap.html">What is built</a>
+  </nav>
+</header>
+
+<main>
+
+<section class="hero">
+  <p class="mark" aria-hidden="true"></p>
+  <h1>Run a payroll<br>from 1962</h1>
+  <p class="lede">
+    The January 1962 manual prints one whole program: a weekly payroll, with
+    the cards it was punched on, the listing the compiler printed, the
+    machine code it made and the report it wrote. The cards are already in
+    the bench at the foot of this page.
+  </p>
+  <p class="lede">
+    Eleven short steps take you from one card to a finished report, and to
+    a mistake the 1962 compiler made that this one keeps.
+  </p>
+</section>
+
+<section class="walk">
+
+  <div class="step">
+    <h3>1. A deck of cards</h3>
+    <p>
+      A program was a stack of punched cards, one line to a card, eighty
+      columns wide. Look at the card at the top of <a href="#bench">the
+      bench</a>: it is card 1 of the sample, and each dark spot is a hole.
+      A column with holes in it is one character, and the keypunch printed
+      that character along the top edge. Click any position on the card to
+      punch it, and watch the deck text change with it.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>2. Three divisions</h3>
+    <p>
+      Scroll the deck. Card 2, <code>*DATA</code>, starts the description
+      of every record the program reads or writes. Card 180,
+      <code>*ENVIRONMENT</code>, ties each file to a tape unit, and card
+      196, <code>*PROCEDURE</code>, starts the sentences that do the work.
+      The last card, <code>*FINISH</code>, ends the job.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>3. Describing a record</h3>
+    <p>
+      Put the cursor on card 11 of the deck, the field <code>RATE</code>.
+      The columns do the talking: the name sits in columns 7 to 22, the level
+      <code>2</code> says it sits one step inside the <code>MASTER</code>
+      record, and <code>I</code> in column 36 says it is held in binary. The
+      <code>R</code> beside it keeps it to the right of its space, and the
+      picture <code>99V999</code> gives two digits, a decimal point that is
+      never stored, and three more.
+      <a href="sources/reference/index.html">The language reference sets out every column of a data card</a>.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>4. Sentences that pay people</h3>
+    <p>
+      Find <code>COMPUTE.PAY</code>, at card 237. It reads the week&rsquo;s
+      hours from the detail record and sets the gross pay, at time and a half over forty
+      hours. <code>DO FICA.ROUTINE</code> and <code>DO
+      WITHOLDING.TAX.ROUTINE</code> work out the deductions, and the
+      sentence named <code>NET</code> takes them away. The spelling
+      <code>WITHOLDING</code> is the program&rsquo;s own.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>5. Compile, and read the listing</h3>
+    <p>
+      The bench compiled the deck as soon as the page loaded. Open the
+      <strong>05 Listing</strong> tab: this is what the 1962 compiler printed,
+      and the one on this page matches IBM&rsquo;s print byte for byte. Each
+      statement gets a number, the line and then the clause, so
+      <code>202,00</code> is <code>COMPUTE.PAY</code>. The listing ends
+      <span class="mono">NO ERRORS WERE DETECTED DURING COMPILATION</span>.
+      Click any line, and its statement lights up in every panel.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>6. Run it</h3>
+    <p>
+      Press <strong>Run the program</strong>. An emulated IBM 7090 loads the
+      machine code from the <strong>06 Code</strong> tab and runs it over two
+      input tapes: one of employee records, one of the week&rsquo;s hours. The
+      first line, <span class="mono">AT 199,14 STOP RUN</span>, names the
+      statement that ended the job: clause 14 of statement 199. Below it are the four reports the
+      program wrote: the paycheques, the payroll, one savings bond order and
+      the records that matched nothing.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>7. Where the tapes came from</h3>
+    <p>
+      The manual prints the report but not the tapes. We worked them out from
+      <a href="sources/J28-6169/page-217.html">the report on PDF page 217</a>
+      and the record descriptions in the deck, field by field.
+      <a href="https://github.com/Screendead/comtran-compiler/blob/master/test/fixtures/90.05-tapes-notes.md">The derivation of every field on both tapes</a>.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>8. Where our run and the page differ</h3>
+    <p>
+      In two places. The page prints the grand total of net pay as 2180.63,
+      but its own department totals add up to 2183.83, and our run prints
+      2183.83. The page also prints the name WOO once as WCO, where the same
+      field prints WOO twice elsewhere. A test pins both differences, so
+      neither can hide and neither can quietly grow.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>9. A mistake the 1962 compiler made</h3>
+    <p>
+      Every line of the payroll report prints RET.PREM, the retirement
+      premium, equal to INS.PREM, the insurance premium, and every net pay
+      takes the insurance premium off twice. The page shows it and so does
+      our run. The cause is in the machine code the manual prints: when a
+      table field starts partway into a 36-bit word, the 1962 compiler could
+      read it from the start of the word, so <code>MOVE RETPREM (POS)</code>
+      fetched <code>INSPREM</code>. We chose to keep that behaviour, so the run
+      matches the page, and a program of your own that reads a table the same
+      way can fetch the wrong field too.
+      <a href="https://github.com/Screendead/comtran-compiler/blob/master/docs/design/m6-acceptance.md">The acceptance record, with the machine code that shows the cause</a>.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>10. Change one line, run again</h3>
+    <p>
+      Find <code>SET WORKING FICA = .03 * WORKING GROSS</code> in
+      <code>FICA.ROUTINE</code>, at card 260, and change <code>.03</code> to
+      <code>.04</code>. Press <strong>Run the program</strong> again.
+      CASPERIAN J&rsquo;s cheque drops from $80.60 to $79.53, and the
+      department and grand totals move with it. Nobody else&rsquo;s pay
+      changes, because every other employee on the tapes has already paid,
+      or this week reaches, the 144.00 ceiling the next sentence sets.
+    </p>
+  </div>
+
+  <div class="step">
+    <h3>11. What this run cannot tell you</h3>
+    <p>
+      The manuals survive in one scanned copy each, read by one reader. Where
+      they leave a question open, the language reference marks the reading
+      we chose as a choice. The manuals never say which messages stopped a
+      compile, so every severity on this site is this project&rsquo;s own
+      decision. <a href="roadmap.html">What is built, and what is not</a>, or
+      <a href="sources.html">both manuals, every page beside its scan</a>.
+    </p>
+  </div>
+
+</section>
+
+<section class="machine" id="bench">
+  <h2>The bench</h2>
+  <p class="machine-intro">
+    This is the compiler from the repository, built to WebAssembly and running
+    on this page. Type into the deck, and the panels beside it show what the
+    compiler makes of it. The program already loaded is the payroll sample
+    printed in the 1962 manual: the one program whose source, compiler listing
+    and object code all survive together in the manuals.
+  </p>
+  <p class="machine-intro">
+    Click any line in a panel and its statement lights up in all six: the
+    cards it was punched on, the words it compiled to, and every stage
+    between. The thread is the number the 1962 compiler gave each statement
+    and printed on its own listing.
+  </p>
+
+  <div class="card-view">
+    <div class="pane-head">
+      <span class="pane-title">The card under the cursor</span>
+      <span class="verdict" id="card-no"></span>
+    </div>
+    <div class="card-scroll">
+      <div class="card" id="card" role="grid" tabindex="0" aria-label="The punched card under the cursor. Arrow keys move, space punches."></div>
+    </div>
+    <p class="note">
+      Twelve rows by eighty columns, the rows numbered 12, 11 and 0 at the
+      top, then 1 to 9. The characters along the top are what the keypunch
+      printed above the holes it cut; the holes are the part the compiler
+      reads. Click a position to punch it, and the deck text follows. Cut a
+      combination no character matches and the card leaves the character form
+      for the punch form, which is what the deck format is for.
+    </p>
+  </div>
+
+  <div class="bench">
+
+    <div class="deck-pane">
+      <div class="pane-head">
+        <span class="pane-title">The deck</span>
+        <span class="controls">
+          <button type="button" id="compile">Compile</button>
+          <button type="button" id="run">Run the program</button>
+          <button type="button" id="load">Load the sample program</button>
+          <button type="button" id="download">Download the deck</button>
+          <button type="button" id="share">Copy a link to this deck</button>
+          <button type="button" id="clear">Clear</button>
+        </span>
+      </div>
+      <div class="ruler-wrap"><pre class="ruler" id="ruler" aria-hidden="true"></pre></div>
+      <div class="editor">
+        <pre class="gutter" id="gutter" aria-hidden="true"></pre>
+        <textarea id="source" spellcheck="false" autocomplete="off" autocapitalize="characters" wrap="off" aria-label="COMTRAN source deck, eighty columns to a card"></textarea>
+      </div>
+      <p class="pane-foot">
+        <span id="where">Card 1, column 1</span>
+        <span id="deck-size"></span>
+      </p>
+      <p class="link-note" id="link-note" role="status" hidden></p>
+      <div class="whinge-head">
+        <span class="pane-title">What the compiler said</span>
+        <span class="verdict" id="whinge-count"></span>
+      </div>
+      <div class="whinges" id="whinges"></div>
+      <p class="note">
+        Eighty columns to a card. Columns 1 to 6 hold a serial number the 1962
+        compiler does not read, columns 7 to 72 hold the program, and columns
+        73 to 80 are never read at all. Lower case is punched as upper case,
+        because the card character set has none.
+      </p>
+      <p class="note">
+        Download the deck and you get the holes, not the text: the same
+        card-image file the compiler, the deck tool and the card editor in
+        this repository all read. Copy a link and the whole deck rides inside
+        the address, so nothing you type is stored anywhere.
+      </p>
+    </div>
+
+    <div class="out-pane">
+      <div class="pane-head">
+        <span class="pane-title">What the compiler made of it</span>
+        <span id="verdict" class="verdict" role="status" aria-live="polite"></span>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Compiler stage">
+        <button type="button" role="tab" id="tab-cards" data-stage="cards" aria-controls="panel"><span class="tab-n">01</span>Cards</button>
+        <button type="button" role="tab" id="tab-scan" data-stage="scan" aria-controls="panel"><span class="tab-n">02</span>Scan</button>
+        <button type="button" role="tab" id="tab-parse" data-stage="parse" aria-controls="panel"><span class="tab-n">03</span>Parse</button>
+        <button type="button" role="tab" id="tab-semantics" data-stage="semantics" aria-controls="panel"><span class="tab-n">04</span>Semantics</button>
+        <button type="button" role="tab" id="tab-listing" data-stage="listing" aria-controls="panel"><span class="tab-n">05</span>Listing</button>
+        <button type="button" role="tab" id="tab-code" data-stage="code" aria-controls="panel"><span class="tab-n">06</span>Code</button>
+        <button type="button" role="tab" id="tab-run" data-stage="run" aria-controls="panel"><span class="tab-n">07</span>Run</button>
+      </div>
+      <p class="stage-caption" id="caption"></p>
+      <div class="evidence" id="evidence">
+        <p class="box-label" id="evidence-label"></p>
+        <p id="evidence-text"></p>
+      </div>
+      <p class="refusal" id="refusal" role="status" hidden></p>
+      <div class="stepper">
+        <button type="button" id="step-prev" aria-label="Previous statement">&larr;</button>
+        <span id="step-at" class="step-at" role="status" aria-live="polite"></span>
+        <button type="button" id="step-next" aria-label="Next statement">&rarr;</button>
+        <button type="button" id="step-clear">Clear</button>
+      </div>
+      <div class="panel" id="panel" role="tabpanel" tabindex="0"><pre id="out"></pre></div>
+      <p class="pane-foot"><span id="panel-foot"></span></p>
+    </div>
+
+  </div>
+
+  <p class="note wide">
+    Every listing on this page prints <span class="mono">DATE 10/18/61</span>
+    and <span class="mono">TIME 2.45</span> in its page head. Those are the
+    sample listing&rsquo;s own values, pinned so that one program always
+    prints the same bytes, whoever compiles it and whenever.
+  </p>
+</section>
+
+</main>
+
+<footer class="runner">
+  <span>Static pages. No server, no tracking, no outbound request.</span>
+  <span id="build"></span>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

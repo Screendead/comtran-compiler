@@ -9,8 +9,6 @@
 /// it is the program's own text.
 library;
 
-import 'dart:io';
-
 import '../cards/card_image.dart';
 import '../emulator/cpu.dart';
 import '../emulator/machine_state.dart';
@@ -20,6 +18,7 @@ import 'iocs.dart';
 import 'monitor.dart';
 import 'movpak.dart';
 import 'tape.dart';
+import 'tape_store.dart';
 
 /// How a run ended.
 enum RunOutcome {
@@ -66,7 +65,7 @@ final class UnimplementedRuntimeEntry implements RunFault {
       : 'unimplemented runtime entry $name: $detail';
 }
 
-/// A tape image an input file needs and the host directory does not
+/// A tape image an input file needs and the run's store does not
 /// hold. The fault is the environment's and not the program's, so no
 /// [J 90.04] diagnostic covers it (M5-3).
 final class MissingTapeImage implements RunFault {
@@ -75,7 +74,7 @@ final class MissingTapeImage implements RunFault {
   /// The name on the `*FILE` card.
   final String file;
 
-  /// Where the machine looked.
+  /// Where the machine looked: [TapeStore.where].
   final String path;
 
   @override
@@ -162,11 +161,11 @@ final class RecordTooLong implements RunFault {
 /// close-all keep for one `*FILE` card (M5-3), and the buffer a GET
 /// reads a block into and a FILE builds a block in (M5-10).
 final class RuntimeFile {
-  RuntimeFile(this.host, {required this.buffer, required this.blocksize});
+  RuntimeFile(this.unit, {required this.buffer, required this.blocksize});
 
-  /// The host tape image, or `null` when the run named no tape
-  /// directory.
-  final File? host;
+  /// The unit whose image in the run's [TapeStore] this file reads or
+  /// writes, or `null` when the run named no store.
+  final String? unit;
 
   /// The buffer's first word (M5-10).
   final int buffer;
@@ -204,11 +203,12 @@ final class RuntimeFile {
 
 /// One control block per `*FILE` card of [program], each file taking a
 /// buffer of BLOCKSIZE words in card order from the program's extent
-/// upward (M5-10). A file's host image is `<tapes>/<UNIT1>.tap`.
+/// upward (M5-10). A file's host image is the one [tapes] holds on its
+/// UNIT1.
 ///
 /// Throws [NoBlocksize] for a file that declares no BLOCKSIZE, and
 /// [NoBufferRoom] for a program whose buffers run past core.
-List<RuntimeFile> _fileTable(LoadedProgram program, Directory? tapes) {
+List<RuntimeFile> _fileTable(LoadedProgram program, TapeStore? tapes) {
   int top = program.extent;
   final table = <RuntimeFile>[];
   for (final LoaderFile file in program.files) {
@@ -221,7 +221,7 @@ List<RuntimeFile> _fileTable(LoadedProgram program, Directory? tapes) {
     }
     table.add(
       RuntimeFile(
-        tapes == null ? null : File('${tapes.path}/${file.unit1}.tap'),
+        tapes == null ? null : file.unit1,
         buffer: top,
         blocksize: size,
       ),
@@ -257,15 +257,14 @@ final class Machine {
   /// entry point (D2.1). A cell no word was placed in reads +0 (ED-6).
   ///
   /// The file table takes one control block per `*FILE` card, with the
-  /// buffers above the program (M5-10). With no [tapes] directory every
+  /// buffers above the program (M5-10). With no [tapes] store every
   /// output file runs with no host image, and open-all refuses an input
   /// file (M5-3 as amended).
   ///
   /// Cell 1 is IOC)1, and the machine seeds it because no word of the
   /// object deck writes it. The address field stays zero: the file list
   /// itself is Dart's, and no compiled word dereferences it (M5-3).
-  Machine(this.program, {Directory? tapes})
-    : files = _fileTable(program, tapes) {
+  Machine(this.program, {this.tapes}) : files = _fileTable(program, tapes) {
     program.words.forEach(state.write);
     state
       ..write(1, pzeWord(decrement: program.files.length))
@@ -274,7 +273,7 @@ final class Machine {
 
   /// Loads [objectDeck] at [programOrigin], resolving every system
   /// reference to its own 15-bit code (RT-1).
-  factory Machine.load(List<CardImage> objectDeck, {Directory? tapes}) =>
+  factory Machine.load(List<CardImage> objectDeck, {TapeStore? tapes}) =>
       Machine(
         loadDeck(
           objectDeck,
@@ -290,6 +289,10 @@ final class Machine {
   static const int programOrigin = 0x1000;
 
   final LoadedProgram program;
+
+  /// Where the run's tape images live, or `null` when it named none.
+  final TapeStore? tapes;
+
   final MachineState state = MachineState();
 
   /// The run's files, in `*FILE` card order, so file ordinal k is
@@ -325,10 +328,11 @@ final class Machine {
   ///
   /// Throws [UnrunnableFile] for a file shape that has no run,
   /// [NoTapeDirectory] for an input file in a run that named no
-  /// directory, and [MissingTapeImage] for an input file the host
-  /// directory does not hold.
+  /// store, and [MissingTapeImage] for an input file the store does not
+  /// hold.
   void openFiles(int count) {
     final taken = <String>{};
+    final images = <List<int>?>[];
     for (var i = 0; i < count; i++) {
       final LoaderFile declaration = program.files[i];
       if (!_directed(declaration)) {
@@ -337,8 +341,9 @@ final class Machine {
           'its direction column is not I, T or P',
         );
       }
-      final File? host = files[i].host;
-      if (host == null) {
+      final TapeStore? store = tapes;
+      if (store == null) {
+        images.add(null);
         if (_input(declaration)) {
           throw NoTapeDirectory(declaration.name);
         }
@@ -353,21 +358,28 @@ final class Machine {
           'another file already holds unit ${declaration.unit1}',
         );
       }
-      if (_input(declaration) && !host.existsSync()) {
-        throw MissingTapeImage(declaration.name, host.path);
+      final List<int>? image = _input(declaration)
+          ? store.read(declaration.unit1)
+          : null;
+      if (_input(declaration) && image == null) {
+        throw MissingTapeImage(
+          declaration.name,
+          store.where(declaration.unit1),
+        );
       }
+      images.add(image);
     }
     for (var i = 0; i < count; i++) {
       final RuntimeFile file = files[i];
-      final File? host = file.host;
-      if (host != null) {
-        if (_input(program.files[i])) {
+      final String? unit = file.unit;
+      if (unit != null) {
+        if (images[i] case final List<int> image) {
           file
-            ..reader = TapeReader(host.readAsBytesSync())
+            ..reader = TapeReader(image)
             ..unread = 0
             ..block = 0;
         } else {
-          host.writeAsBytesSync(const <int>[]);
+          tapes!.write(unit, const <int>[]);
         }
       }
       file
@@ -387,10 +399,11 @@ final class Machine {
       if (!file.open) {
         continue;
       }
-      final File? host = file.host;
       if (!_input(program.files[i])) {
         writeBlock(file);
-        host?.writeAsBytesSync(tapeField(0), mode: FileMode.append);
+        if (file.unit case final String unit) {
+          tapes!.append(unit, tapeField(0));
+        }
       }
       file
         ..reader = null
@@ -403,13 +416,13 @@ final class Machine {
   /// of zero length is a tape mark, and a file must not hold one. With
   /// no host image the write is dropped (M5-10).
   void writeBlock(RuntimeFile file) {
-    final File? host = file.host;
-    if (host != null && file.held > 0) {
-      host.writeAsBytesSync(
+    final String? unit = file.unit;
+    if (unit != null && file.held > 0) {
+      tapes!.append(
+        unit,
         tapeRecord(<int>[
           for (var i = 0; i < file.held; i++) state.read(file.buffer + i),
         ]),
-        mode: FileMode.append,
       );
     }
     file.held = 0;
@@ -450,5 +463,63 @@ final class Machine {
       outcome: outcome ?? RunOutcome.stepLimit,
       display: printed,
     );
+  }
+}
+
+/// The step budget of a run a reader starts, by `comtranc --run` or on
+/// the website: instructions and runtime entries together. A program
+/// still running here is looping, which is a reproduced result and not
+/// a diagnostic (D5.1 as amended; `docs/design/runtime.md` RT-1).
+const int runStepBudget = 1000000;
+
+/// The report of one output file (M5-11).
+final class TapeReport {
+  const TapeReport(this.file, this.lines, [this.fault]);
+
+  /// The name on the `*FILE` card.
+  final String file;
+
+  /// The print lines, up to the frame that faulted, if one did.
+  final List<String> lines;
+
+  /// The frame the lister could not read, or `null`.
+  final UnreadableRecord? fault;
+}
+
+/// One report per output file of [machine], in `*FILE` card order. A
+/// binary file, and a file the run never opened, have none (M5-11).
+List<TapeReport> tapeReports(Machine machine) {
+  final reports = <TapeReport>[];
+  for (final (int index, LoaderFile file) in machine.program.files.indexed) {
+    final String? unit = machine.files[index].unit;
+    if (!machine.files[index].opened ||
+        unit == null ||
+        file.type == 'I' ||
+        file.mode == 'B') {
+      continue;
+    }
+    final lines = <String>[];
+    try {
+      listTape(machine.tapes!.read(unit)!).forEach(lines.add);
+    } on UnreadableRecord catch (e) {
+      reports.add(TapeReport(file.name, lines, e));
+      continue;
+    }
+    reports.add(TapeReport(file.name, lines));
+  }
+  return reports;
+}
+
+/// [reports] as `comtranc --list-tapes` prints them: each file's name and
+/// the word `REPORT`, a blank line, and the file's print lines, with one
+/// blank line between two files (M5-11).
+Iterable<String> reportLines(List<TapeReport> reports) sync* {
+  for (final (int index, TapeReport report) in reports.indexed) {
+    if (index > 0) {
+      yield '';
+    }
+    yield '${report.file} REPORT';
+    yield '';
+    yield* report.lines;
   }
 }

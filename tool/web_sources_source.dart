@@ -576,6 +576,7 @@ String shell({
   <a href="../../index.html" class="wordmark">COMTRAN Reconstruction</a>
   <nav>
     <a href="../../index.html">The compiler</a>
+    <a href="../../tutorial.html">Run a program</a>
     <a href="../../sources.html" aria-current="page">The sources</a>
     <a href="../../reading-the-scans.html">How we read the scans</a>
     <a href="../../roadmap.html">What is built</a>
