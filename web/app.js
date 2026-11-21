@@ -77,15 +77,14 @@ const STAGES = {
   code: {
     caption:
       'The assembled text: address, symbol, operation, octal word and ' +
-      'control field. Today the compiler lays down the data: the constants ' +
-      'and the space each record needs. It generates no procedure code yet.',
+      'control field, for the data and for every procedure sentence. This ' +
+      'is the machine code the Run button loads.',
     kind: 'derived',
     label: 'We worked this out from',
     evidence:
       'The manual prints this program’s assembled text in full (J 90.05). ' +
-      'That printed text is the target the code generator is measured ' +
-      'against, and the distance between this panel and it is the work in ' +
-      'progress.',
+      'The text here is compared against that print byte for byte, and the ' +
+      'comparison is a test that must pass before any change is merged.',
   },
   run: {
     caption:

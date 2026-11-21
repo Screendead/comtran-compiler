@@ -688,15 +688,17 @@ figcaption {
 
 /* ---- What comes next ---- */
 
-.next { max-width: 660px; }
+.next, .walk { max-width: 660px; }
 
-.next .step {
+.walk { margin-top: 44px; }
+
+.next .step, .walk .step {
   border-left: 2px solid var(--rule);
   padding-left: 18px;
   margin: 18px 0;
 }
 
-.next h3 {
+.next h3, .walk h3 {
   font-family: var(--display);
   font-weight: 800;
   font-stretch: 85%;
@@ -705,7 +707,7 @@ figcaption {
   margin: 0 0 6px;
 }
 
-.next .step p { font-size: 16px; margin-bottom: 0; }
+.next .step p, .walk .step p { font-size: 16px; margin-bottom: 0; }
 
 .links { padding-left: 20px; max-width: 660px; }
 
