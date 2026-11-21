@@ -158,10 +158,10 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 >
 > Done
 
-M7-3 holds the fetch checksums. M7-5 chooses `s709`, and the Mac
-ran its steps 1 to 3 (issue #219). M7-6 holds the method for step 4
-part 1 and its result (issue #222). M7-7 holds the method for part 2,
-the library. Next: the Mac runs `tool/m7/ct_library.sh`.
+M7-3 holds the fetch checksums, M7-5 the simulator (issue #219),
+M7-6 the CT system tape (issue #222), and M7-7 the library. Its X4
+step compiles 37 of 40 decks clean (issues #226, #227). Next: the
+Mac runs `tool/m7/ct_probe.sh` to narrow the three faults.
 
 ### Codegen defects the runtime exposed
 

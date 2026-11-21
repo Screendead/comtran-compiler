@@ -499,3 +499,83 @@ the tape image.
 - LOAD reads the text file forward only (LD036290). The table order is
   the order of the subroutine numbers, so LOAD can find each routine in
   turn.
+
+**The result of the X4 step (2026-11-21, issues #226 and #227).** The
+Mac ran step 2 of the method on `CTSYS1.BIN`. The step is not a pass.
+
+| Count | Pass value | Result |
+|---|---|---|
+| `$CMPLE` cards in the job | 40 | 40 |
+| `NO ERRORS WERE DETECTED DURING COMPILATION` | 40 | 37 |
+| `THE LAST LOADER CONTROL CARD PUNCHED IS` | 40 | 39 |
+
+Three compiles print `ILLEGAL INTERNAL CONDITION. NOTHING DONE.
+POSSIBLE COMPILER ERROR.`:
+
+| Deck | Statement | Severity | Card of the statement | Deck punched |
+|---|---|---|---|---|
+| `EXPERR` | 32 (two messages) | 4 | 15700410 `BCI 4,ERROR IN EXPONENTIAL AT` | yes |
+| `BCDERR` | 24 | 4 | 26300300 `BCI 3,NUMERIC CHARACTER` | yes |
+| `SYSCOL` | 68 | 5 | 16100730 `ENTER COMMERCIAL TRANSLATOR` | no |
+
+Statement 1 of each deck is its `ENTER CRYPT.` card, and each later
+card that is not a comment is one statement. The probe of issue #227
+ran three more jobs. Each gave the same three faults:
+
+| Run | Change |
+|---|---|
+| A | the three decks alone |
+| B | all 40 decks, on the 7090 model of `s709` |
+| C | the three decks alone, on the 7090 model |
+
+Thus the faults do not come from the decks before them, and they do not
+come from the 7094 mode of the simulator. `SYSCOL` stops the compile,
+so the library has no `SYS)161`. Step 3, SUBUP, waits until the three
+compiles are clean (issue #228, closed unrun).
+
+**What the source shows.** Five message numbers print this text: 18,
+24, 29 and 124 of the assembler phase (CE017640 to CE018700), and 182
+of the compiler phase (`KMS006`, CC004120 to CC004140). The listing
+does not print the number, so the source does not yet show which
+check fails. The compiler phase copies the text of a `BCI` card into
+the internal text as one control word and the card words (CC027880 to
+CC028140). M7-5 found that the compiler words of our assembly equal the
+words of `CT/ct.obj`. Thus the compiler is the 1963 compiler, and the
+cause is one of these:
+
+- the simulator runs an instruction of the compiler wrongly;
+- the system of `ASYS1.BIN` differs from the system of 1963;
+- the 1963 compiler gave the same faults on these decks.
+
+Two of the three faults are on `BCI` cards, and other `BCI` cards of
+the library compile clean. For example, `BCI 4,EXPONENTIAL OVERFLOW AT`
+of `EXPERR` compiles clean two cards before the fault.
+
+**The punch tape.** Each record of the punch tape holds 168
+characters, 28 words. The first 24 words are a column-binary card. The
+form of the last four words is not known yet. `punch_split.dart` takes
+a card only at 162 characters, so it finds no program on this tape.
+SUBUP reads the tape itself, so the method does not need the tool.
+
+**The probe of the faults.** `tool/m7/ct_probe.sh` compiles 15 decks
+in one job on `CTSYS1.BIN`. Each deck is one of the three, renamed, with
+one change:
+
+| Deck | Change | A clean compile shows |
+|---|---|---|
+| `E0`, `B0`, `S0` | none | the probe repeats the fault |
+| `E1` | 15700410 gets the text `EXPONENTIAL OVERFLOW AT` | the text of the card causes the fault |
+| `E2` | no card 15700410 | the fault is on this card |
+| `E3` | no cards 15700420 and 15700430, the two `OCT` cards | the fault is on the cards after it |
+| `E4` | `ERROR` becomes `XXXXX` | the word `ERROR` causes the fault |
+| `E5` | `IN` becomes `XX` | the word `IN` causes the fault |
+| `B1` | 26300300 gets the text `NUMBER OF BUFFERS` | the text of the card causes the fault |
+| `B2` | no card 26300300 | the fault is on this card |
+| `B3` | no card 26300320, the `BCI` of 18 periods | the fault is on that card |
+| `B4` | `NUMERIC` becomes `XXXXXXX` | the word `NUMERIC` causes the fault |
+| `B5` | `CHARACTER` becomes `XXXXXXXXX` | the word `CHARACTER` causes the fault |
+| `S1` | no cards 16100410 to 16100720, the second half of the table | the fault is in the second half |
+| `S2` | no cards 16100090 to 16100400, the first half of the table | the fault is in the first half |
+
+Each change keeps the length of the text, so the columns of each card
+do not move. The result tells which part of the compiler to read next.
