@@ -238,16 +238,22 @@ The entries below close the surface-syntax gaps the sources leave open:
   - a BEGIN SECTION in an unnamed sentence;
   - a second BEGIN SECTION in a named sentence.
 
-  The parser deletes the sentence with msg 196. No 1962 message is
-  attested for the rule. M2-12 is the precedent: 196's "ILLEGAL
-  SENTENCE STRUCTURE NOTHING DONE." deletes a sentence that F calls
-  meaningless. The deletion opens no section, so a later END draws
-  msg 64 or 65. Before this note, the shapes opened a section with no
-  name, or two sections with one name, and codegen refused them.
-  *Prototype (2026-11-02):* the call is open for Jack. The options are
-  msg 196 (this note), msg 192 with the clause dropped and the sentence
-  kept (the D1.5 precedent), a non-historical message (the D9.12
-  pattern), or no message.
+  Jack's ruling of 2026-11-21 decides both shapes (review record
+  `review/2026-11-02-pitch-rulings`, call "nameless"). The parser
+  deletes the sentence with msg 196, at severity 3 from the D9.2 table.
+  No 1962 message is attested for the rule. M2-12 is the precedent:
+  msg 196, "ILLEGAL SENTENCE STRUCTURE NOTHING DONE.", deletes a
+  sentence that breaks a stated F rule. The deleted sentence opens no
+  section, so a later END draws msg 64 or 65. The ruling rejected three
+  other options:
+  - msg 192, with the clause dropped and the sentence kept (the D1.5
+    precedent);
+  - a non-historical message that deletes the sentence (the D9.12
+    pattern);
+  - no message, with both shapes accepted.
+
+  Before the ruling, the two shapes opened a section with no name, or
+  two sections with one name, and codegen refused them.
 
 ## Error recovery
 
