@@ -14,7 +14,8 @@ A reviewed false positive is allowed by putting the exact text, one per line, in
 Manual scan of history: privacy_check.py --scan DIR REV [MAX_COMMITS] [--show]
 (--show prints matched text; keep that output off anything that is published).
 """
-import hashlib
+import bisect
+import codecs
 import json
 import os
 import re
@@ -26,11 +27,12 @@ MAX_COMMITS = 2000
 GIT_TIMEOUT_S = 25
 MAX_REPORTED = 8
 
-# sha256 of the lowercased surname and of first name + surname, so neither appears in the
-# public repos this file is vendored into. The bare surname is also an English word, so it
-# counts only when capitalised; the joined form (a username) counts in any case.
-SURNAME_DIGEST = "b21a859f6d74709fbafa239f255cbf12f052613c758f680a746a38b443b11998"
-FULL_NAME_DIGEST = "1fa2c8471e8c12a759ce19d892b49750985e12c1251edd384876c729aa2caed8"
+# The owner's surname and first name, rot13-encoded so neither is spelt out in the public
+# repos this file is vendored into (nor trips this check). The bare surname is also an
+# English word, so it counts only when capitalised; joined to the first name (a username)
+# it counts in any case.
+_SURNAME = codecs.decode("Yhfure", "rot13")
+_FIRST = codecs.decode("Wnpx", "rot13")
 
 MCP_TOOLS = {
     "create_pull_request", "update_pull_request", "add_issue_comment", "issue_write",
@@ -56,7 +58,6 @@ PLACEHOLDER_USERS = {
 }
 UDID = re.compile(r"(?<![0-9A-Fa-f-])00008[0-9A-Fa-f]{3}-[0-9A-Fa-f]{16}(?![0-9A-Fa-f])")
 HEX40 = re.compile(r"(?<![0-9A-Fa-f])[0-9a-fA-F]{40}(?![0-9A-Fa-f])")
-DEVICE_WORDS = re.compile(r"(?i)udid|device|iphone")
 MONEY = re.compile(
     r"(?<![\w\\$])(?:[£€]\s?\d[\d,]*(?:\.\d+)?"
     r"|\$(?:\d{1,3}(?:,\d{3})+|\d+\.\d{2}(?!\d)|\d{2,}(?![\w}])|\d(?=\s?(?:/|per\b|k\b|m\b|bn\b))))"
@@ -66,8 +67,6 @@ MONEY = re.compile(
 CODE_SPAN = re.compile(r"`[^`]*`")
 FENCE = re.compile(r"^\s*(```|~~~)")
 COPYRIGHT = re.compile(r"(?i)copyright|©|\(c\)")
-WORD = re.compile(r"[A-Za-z]+")
-CAMEL = re.compile(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])")
 
 
 class Context:
@@ -112,37 +111,68 @@ def email_allowed(match, ctx):
     return bool(ctx.own_email) and address == ctx.own_email
 
 
-def line_hits(line, prose, ctx):
-    """(category, start, end) for each personal detail in one line."""
-    for m in EMAIL.finditer(line):
-        if not email_allowed(m, ctx):
-            yield "email address", m.start(), m.end()
-    for m in HOME_PATH.finditer(line):
-        if m.group(2).lower() not in PLACEHOLDER_USERS:
-            yield "local home path", m.start(), m.end()
-    for m in UDID.finditer(line):
-        yield "device UDID", m.start(), m.end()
-    for m in HEX40.finditer(line):
-        if DEVICE_WORDS.search(line[max(0, m.start() - 40):m.end() + 40]):
+def positions(haystack, needle):
+    i = haystack.find(needle)
+    while i != -1:
+        yield i
+        i = haystack.find(needle, i + 1)
+
+
+def text_hits(text, ctx):
+    """(category, start, end) for each personal detail in text. Each detector is anchored on a
+    literal found with str.find, so large pushes (hundreds of MB of data) stay fast."""
+    for p in positions(text, "@"):
+        for m in EMAIL.finditer(text, max(0, p - 64), p + 256):
+            if m.start(2) - 1 == p and not email_allowed(m, ctx):
+                yield "email address", m.start(), m.end()
+    for prefix in ("/Users/", "/home/"):
+        for p in positions(text, prefix):
+            m = HOME_PATH.match(text, p)
+            if m and m.group(2).lower() not in PLACEHOLDER_USERS:
+                yield "local home path", m.start(), m.end()
+    for p in positions(text, "00008"):
+        m = UDID.match(text, p)
+        if m:
             yield "device UDID", m.start(), m.end()
-    if not COPYRIGHT.search(line):
-        for run in WORD.finditer(line):
-            for part in CAMEL.finditer(run.group(0)):
-                word = part.group(0)
-                if len(word) == 6 and word[0].isupper():
-                    digest, want = hashlib.sha256(word.lower().encode()).hexdigest(), SURNAME_DIGEST
-                elif len(word) == 10:
-                    digest, want = hashlib.sha256(word.lower().encode()).hexdigest(), FULL_NAME_DIGEST
-                else:
-                    continue
-                if digest == want:
-                    start = run.start() + part.start()
-                    yield "owner's surname", start, start + len(word)
-    if prose:
-        code = [m.span() for m in CODE_SPAN.finditer(line)]
-        for m in MONEY.finditer(line):
-            if not any(a <= m.start() < b for a, b in code):
-                yield "money amount", m.start(), m.end()
+    lower = text.lower()
+    seen = set()
+    for word in ("udid", "device", "iphone"):
+        for p in positions(lower, word):
+            for m in HEX40.finditer(text, max(0, p - 300), p + 300):
+                near = m.start() <= p + len(word) + 40 and m.end() >= p - 40
+                inside = m.start() > max(0, p - 300) and m.end() < p + 300
+                if near and inside and m.start() not in seen:
+                    seen.add(m.start())
+                    yield "device UDID", m.start(), m.end()
+    joined = (_FIRST + _SURNAME).lower()
+    named = set()
+    for p in positions(lower, joined):
+        named.add(p + len(_FIRST))
+        if not COPYRIGHT.search(line_at(text, p)):
+            yield "owner's surname", p, p + len(joined)
+    for p in positions(lower, _SURNAME.lower()):
+        word, before, after = text[p:p + len(_SURNAME)], text[p - 1:p], text[p + len(_SURNAME):p + len(_SURNAME) + 1]
+        capitalised = word == _SURNAME and not ("a" <= after <= "z")
+        upper = word == _SURNAME.upper() and not before.isalpha() and not after.isalpha()
+        if (capitalised or upper) and p not in named and not COPYRIGHT.search(line_at(text, p)):
+            yield "owner's surname", p, p + len(_SURNAME)
+
+
+def line_at(text, pos):
+    return text[text.rfind("\n", 0, pos) + 1:(text.find("\n", pos) + 1 or len(text) + 1) - 1]
+
+
+def money_hits(text):
+    fenced, offset = False, 0
+    for line in text.split("\n"):
+        if FENCE.match(line):
+            fenced = not fenced
+        elif not fenced:
+            code = [m.span() for m in CODE_SPAN.finditer(line)]
+            for m in MONEY.finditer(line):
+                if not any(a <= m.start() < b for a, b in code):
+                    yield "money amount", offset + m.start(), offset + m.end()
+        offset += len(line) + 1
 
 
 def allowed(line, start, end, ctx):
@@ -155,20 +185,28 @@ def allowed(line, start, end, ctx):
     return False
 
 
-def scan_text(text, label, prose, ctx, out, numbered=None):
-    """Appends (category, location, value) for each hit; location is label[:line]."""
-    lines = text.splitlines()
-    fenced = False
-    for n, line in enumerate(lines, 1):
-        if prose and FENCE.match(line):
-            fenced = not fenced
-        for category, start, end in line_hits(line, prose and not fenced, ctx):
-            if not allowed(line, start, end, ctx):
-                if numbered or (numbered is None and len(lines) > 1):
-                    where = f"{label}:{n}" if numbered else f"{label} line {n}"
-                else:
-                    where = label
-                out.append((category, where, line[start:end]))
+def scan_text(text, label, prose, ctx, out, numbered=None, labels=None):
+    """Appends (category, location, value) for each hit. The location is labels[line] when
+    given, else label, with the line number appended when numbered (default: if multi-line)."""
+    hits = list(text_hits(text, ctx))
+    if prose:
+        hits += money_hits(text)
+    if not hits:
+        return
+    starts = [0] + [m.end() for m in re.finditer("\n", text)]
+    multi = len(starts) > 1
+    for category, start, end in sorted(hits, key=lambda h: h[1]):
+        i = bisect.bisect_right(starts, start) - 1
+        line = line_at(text, start)
+        if allowed(line, start - starts[i], end - starts[i], ctx):
+            continue
+        if labels:
+            where = labels[i]
+        elif numbered or (numbered is None and multi):
+            where = f"{label}:{i + 1}" if numbered else f"{label} line {i + 1}"
+        else:
+            where = label
+        out.append((category, where, text[start:end]))
 
 
 def scan_commits(ctx, revs, out, exclude_remotes=True, max_count=MAX_COMMITS):
@@ -183,39 +221,81 @@ def scan_commits(ctx, revs, out, exclude_remotes=True, max_count=MAX_COMMITS):
     for chunk in log.split("\x01")[1:]:
         head, _, diff = chunk.partition("\x02")
         sha, _, message = head.partition("\n")
-        scan_text(message, f"commit {sha} message", True, ctx, out, numbered=False)
-        path, n, in_header = None, 0, True
-        for line in diff.splitlines():
-            if line.startswith("diff --git "):
-                path, in_header = None, True
-            elif in_header and line.startswith("+++ "):
-                path = None if line[4:] == "/dev/null" else line[4:].removeprefix("b/")
-            elif line.startswith("@@"):
-                in_header = False
-                m = re.match(r"@@ -\S+ \+(\d+)", line)
-                n = int(m.group(1)) if m else 0
-            elif not in_header and path and line.startswith("+"):
-                before = len(out)
-                scan_text(line[1:], f"{path}:{n}", False, ctx, out, numbered=False)
-                for i in range(before, len(out)):
-                    category, where, value = out[i]
-                    out[i] = (category, f"{where} (commit {sha})", value)
-                n += 1
+        scan_text(message.strip("\n"), f"commit {sha} message", True, ctx, out, numbered=False)
+        scan_diff(diff, f"(commit {sha})", ctx, out)
+
+
+def scan_diff(diff, suffix, ctx, out):
+    """Scans the added lines of a unified diff."""
+    added, labels = [], []
+    path, n, in_header = None, 0, True
+    for line in diff.split("\n"):
+        if line.startswith("diff --git "):
+            path, in_header = None, True
+        elif in_header and line.startswith("+++ "):
+            path = None if line[4:] == "/dev/null" else line[4:].removeprefix("b/")
+        elif line.startswith("@@"):
+            in_header = False
+            m = re.match(r"@@ -\S+ \+(\d+)", line)
+            n = int(m.group(1)) if m else 0
+        elif not in_header and path and line.startswith("+"):
+            added.append(line[1:])
+            labels.append((path, n))
+            n += 1
+    if added:
+        scan_text("\n".join(added), "", False, ctx, out,
+                  labels=[f"{p}:{k} {suffix}" for p, k in labels])
+
+
+def scan_worktree(ctx, include_untracked, out):
+    """What a `git commit` earlier in the same Bash call is about to record."""
+    diff = git(ctx.cwd, "diff", "--no-color", "--no-ext-diff", "--no-textconv", "-U0", "HEAD", "--")
+    if diff:
+        scan_diff(diff, "(uncommitted)", ctx, out)
+    if not include_untracked:
+        return
+    for name in (git(ctx.cwd, "ls-files", "-z", "--others", "--exclude-standard") or "").split("\0"):
+        try:
+            with open(os.path.join(ctx.cwd, name), "rb") as f:
+                data = f.read(1_000_001)
+        except OSError:
+            continue
+        if name and len(data) <= 1_000_000 and b"\0" not in data:
+            text = data.decode("utf-8", "replace")
+            count = text.count("\n") + 1
+            scan_text(text, name, False, ctx, out, labels=[f"{name}:{k} (uncommitted)" for k in range(1, count + 1)])
 
 
 # ---- command parsing -------------------------------------------------------------------
 
 SEPARATORS = {";", "&&", "||", "|", "&", "(", ")", "\n", "|&", ";;"}
-WRAPPERS = {"command", "builtin", "exec", "time", "noglob", "nohup"}
+PREFIX_WORDS = {
+    "command", "builtin", "exec", "time", "noglob", "nohup",
+    "do", "then", "else", "elif", "if", "while", "until", "{", "}", "!",
+}
+HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)([A-Za-z_]\w*)\1([^\n]*)\n(.*?)\n[ \t]*\2[ \t]*(?=\n|\)|$)", re.S)
+HEREDOC_MARK = "__privacy_heredoc__"
+UNRESOLVED = "unresolved directory"
+UNPARSED = "command it could not parse"
+
+
+def cut_heredocs(command):
+    """The command with heredoc bodies replaced by a marker, and the bodies."""
+    bodies = []
+
+    def mark(m):
+        bodies.append(m.group(4))
+        return f"<< {HEREDOC_MARK}{m.group(3)}"
+
+    return HEREDOC.sub(mark, command), bodies
 
 
 def segments(command):
     lex = shlex.shlex(command, posix=True, punctuation_chars=";&|()<>\n")
     lex.whitespace = " \t\r"
     lex.whitespace_split = True
-    tokens = list(lex)
     current = []
-    for i, token in enumerate(tokens):
+    for token in lex:
         if token in SEPARATORS:
             if current:
                 yield current
@@ -228,7 +308,7 @@ def segments(command):
 
 def strip_redirections(tokens):
     out, skip = [], False
-    for i, token in enumerate(tokens):
+    for token in tokens:
         if skip:
             skip = False
             continue
@@ -244,7 +324,7 @@ def strip_redirections(tokens):
 def strip_prefix(tokens):
     while tokens:
         t = tokens[0]
-        if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", t) or t in WRAPPERS:
+        if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", t) or t in PREFIX_WORDS:
             tokens = tokens[1:]
         elif t == "env":
             tokens = tokens[1:]
@@ -266,12 +346,13 @@ def strip_prefix(tokens):
 
 
 def resolve(base, path):
-    return os.path.normpath(os.path.join(base, os.path.expanduser(os.path.expandvars(path))))
-
-
-def heredoc_bodies(command):
-    pattern = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_]\w*)\1[^\n]*\n(.*?)\n\s*\2\s*(?:\n|\)|$)", re.S)
-    return [m.group(3) for m in pattern.finditer(command)]
+    """The directory path names, or None when it holds an unexpanded variable or substitution."""
+    if base is None:
+        return None
+    full = os.path.normpath(os.path.join(base, os.path.expanduser(os.path.expandvars(path))))
+    if "$" in full or "`" in full or not os.path.isdir(full):
+        return None
+    return full
 
 
 def push_revs(cwd, args):
@@ -306,10 +387,11 @@ def push_revs(cwd, args):
         elif git(cwd, "rev-parse", "--verify", "-q", f"{src}^{{commit}}") is not None:
             revs.append(src)
         else:
-            print(f"privacy_check: cannot resolve push source {src!r}", file=sys.stderr)
-    if not revs and not everything and not tags and len(positional) <= 1:
+            # Usually a variable or $(git branch --show-current): the current branch is the best guess.
+            revs.append("HEAD")
+    if not revs and len(positional) <= 1:
         revs.append("HEAD")
-    return revs
+    return sorted(set(revs), key=revs.index)
 
 
 GH_FIELDS = {
@@ -324,7 +406,8 @@ GH_ACTIONS = {
 }
 
 
-def gh_values(args):
+def option_values(args, fields):
+    """(field, value) for each option in args named in fields; handles --opt=value."""
     found = []
     i = 0
     while i < len(args):
@@ -332,7 +415,7 @@ def gh_values(args):
         name, value = a, None
         if a.startswith("--") and "=" in a:
             name, value = a.split("=", 1)
-        for field, flags in GH_FIELDS.items():
+        for field, flags in fields.items():
             if name in flags:
                 if value is None and i + 1 < len(args):
                     value = args[i + 1]
@@ -344,16 +427,31 @@ def gh_values(args):
     return found
 
 
+def gh_values(args):
+    return option_values(args, GH_FIELDS)
+
+
+class BashState:
+    def __init__(self, cwd):
+        self.cwd = cwd
+        self.committing = False
+        self.adding = False
+        self.messages = []
+        self.commit_heredoc = False
+        self.heredoc_label = None
+
+
 def check_bash(command, cwd, out):
     if not re.search(r"\b(git|gh)\b", command):
         return
+    stripped, bodies = cut_heredocs(command)
     try:
-        parsed = list(segments(command))
-    except ValueError as error:
-        print(f"privacy_check: could not parse command ({error}); checking HEAD", file=sys.stderr)
-        if re.search(r"\bgit\b.*\bpush\b", command, re.S):
-            scan_commits(Context(cwd), ["HEAD"], out)
+        parsed = list(segments(stripped))
+    except ValueError:
+        if re.search(r"\bgit\b.*\bpush\b|\bgh\s+(pr|issue)\s+(create|edit|comment|review|merge)\b", command, re.S):
+            out.append((UNPARSED, "this Bash call", ""))
         return
+    state = BashState(cwd)
     for tokens in parsed:
         tokens = strip_prefix(strip_redirections(tokens))
         if not tokens:
@@ -361,14 +459,19 @@ def check_bash(command, cwd, out):
         program = os.path.basename(tokens[0])
         if program in ("cd", "pushd"):
             target = tokens[1] if len(tokens) > 1 and tokens[1] != "-" else "~"
-            cwd = resolve(cwd, target)
+            state.cwd = resolve(state.cwd, target)
         elif program == "git":
-            check_git(tokens[1:], cwd, out)
+            check_git(tokens[1:], state, out)
         elif program == "gh":
-            check_gh(tokens[1:], cwd, command, out)
+            check_gh(tokens[1:], state, out)
+    if state.heredoc_label:
+        ctx = Context(cwd)
+        for body in bodies:
+            scan_text(body, state.heredoc_label, True, ctx, out)
 
 
-def check_git(args, cwd, out):
+def check_git(args, state, out):
+    cwd = state.cwd
     i = 0
     while i < len(args):
         a = args[i]
@@ -381,13 +484,36 @@ def check_git(args, cwd, out):
             i += 1
         else:
             break
-    if i < len(args) and args[i] == "push":
-        revs = push_revs(cwd, args[i + 1:])
-        if revs:
-            scan_commits(Context(cwd), revs, out)
+    command, rest = (args[i], args[i + 1:]) if i < len(args) else (None, [])
+    if command == "add":
+        state.adding = True
+    elif command == "commit":
+        state.committing = True
+        for field, value in option_values(rest, {"message": {"-m", "--message"}, "file": {"-F", "--file"}}):
+            if HEREDOC_MARK in value or (field == "file" and value == "-"):
+                state.commit_heredoc = True
+            if field == "message":
+                state.messages.append(value)
+        state.messages += [a[2:] for a in rest if a.startswith("-m") and len(a) > 2]
+    elif command == "push":
+        if cwd is None:
+            out.append((UNRESOLVED, "git push", ""))
+            return
+        revs = push_revs(cwd, rest)
+        if not revs:
+            return
+        ctx = Context(cwd)
+        scan_commits(ctx, revs, out)
+        if state.committing:
+            # The commit made earlier in this same call does not exist yet.
+            scan_worktree(ctx, state.adding, out)
+            if state.commit_heredoc and not state.heredoc_label:
+                state.heredoc_label = "commit message"
+            for message in state.messages:
+                scan_text(message, "commit message", True, ctx, out)
 
 
-def check_gh(args, cwd, command, out):
+def check_gh(args, state, out):
     while args and args[0] in ("-R", "--repo"):
         args = args[2:]
     if len(args) < 2 or args[1] not in GH_ACTIONS.get(args[0], ()):
@@ -396,25 +522,29 @@ def check_gh(args, cwd, command, out):
     noun = "PR" if kind == "pr" else "issue"
     if action in ("comment", "review"):
         noun += " comment"
+    cwd = state.cwd or os.getcwd()
     ctx = Context(cwd)
     head = None
     for field, value in gh_values(args[2:]):
+        if HEREDOC_MARK in value or (field == "body-file" and value == "-"):
+            state.heredoc_label = f"{noun} body"
+            value = value.replace(f"<< {HEREDOC_MARK}", "")
         if field == "title":
             scan_text(value, f"{noun} title", True, ctx, out)
         elif field == "body":
             scan_text(value, f"{noun} body", True, ctx, out)
         elif field == "head":
             head = value.split(":")[-1]
-        elif value == "-":
-            for body in heredoc_bodies(command):
-                scan_text(body, f"{noun} body", True, ctx, out)
-        else:
+        elif value != "-":
             try:
-                with open(resolve(cwd, value), encoding="utf-8", errors="replace") as f:
+                with open(os.path.join(cwd, os.path.expanduser(value)), encoding="utf-8", errors="replace") as f:
                     scan_text(f.read(), f"{noun} body", True, ctx, out)
             except OSError as error:
                 print(f"privacy_check: cannot read body file: {error}", file=sys.stderr)
     if kind == "pr" and action == "create":
+        if state.cwd is None:
+            out.append((UNRESOLVED, "gh pr create", ""))
+            return
         rev = head if head and git(cwd, "rev-parse", "--verify", "-q", head) else "HEAD"
         scan_commits(ctx, [rev], out)
 
@@ -452,6 +582,11 @@ def reason(event):
     if not out:
         return None
     seen, lines = set(), []
+    hint = ""
+    if any(c == UNRESOLVED for c, _, _ in out):
+        hint = "\nIt could not tell which repository a push is in: use a literal path with cd or git -C."
+    if any(c == UNPARSED for c, _, _ in out):
+        hint += "\nIt could not parse the command: split it into simpler commands."
     for category, where, _ in out:
         if (category, where) not in seen:
             seen.add((category, where))
@@ -459,7 +594,7 @@ def reason(event):
     more = f"\n- ...and {len(lines) - MAX_REPORTED} more" if len(lines) > MAX_REPORTED else ""
     return (
         "Privacy check: this would publish personal details to GitHub.\n"
-        + "\n".join(lines[:MAX_REPORTED]) + more
+        + "\n".join(lines[:MAX_REPORTED]) + more + hint
         + "\nRemove them (amend or rebase unpushed commits if needed) and retry. If one is a reviewed "
         "false positive, add its exact text on its own line to .privacy-allow at the repo root."
     )
