@@ -158,10 +158,10 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 >
 > Done
 
-M7-3 holds the fetch checksums, M7-5 the simulator (issue #219),
-M7-6 the CT system tape (issue #222), and M7-7 the library. Its X4
-step compiles 37 of 40 decks clean (issues #226, #227). Next: the
-Mac runs `tool/m7/ct_probe.sh` to narrow the three faults.
+M7-3 holds the checksums, M7-5 the simulator, M7-6 the CT tape,
+and M7-7 the library: 37 of 40 decks compile clean, and no `BCI`
+card gives words (issue #230). Next: the Mac runs
+`tool/m7/ct_probe.sh KIT colag`.
 
 ### Codegen defects the runtime exposed
 

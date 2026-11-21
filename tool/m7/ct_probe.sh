@@ -2,12 +2,15 @@
 # Probes the three library compiles that fail on the CT system tape:
 # EXPERR, BCDERR and SYSCOL (M7-7 in docs/design/m7-diff.md). Each probe
 # deck is one of the three with a change to the cards that M7-7 names.
-# Usage: ct_probe.sh KIT   (KIT holds archive/, s709-2.4.4/, utils/ and
-# the CTSYS1.BIN that ct_tape.sh writes)
+# Usage: ct_probe.sh KIT [colag]   (KIT holds archive/, s709-2.4.4/, utils/
+# and the CTSYS1.BIN that ct_tape.sh writes)
 # It works in KIT/run/probe/, keeps probe.job and probe.lst, and prints one
 # line for each deck: its name and the result line of its compile.
+# With "colag" it compiles five decks with the COLAG option, which prints
+# every internal text buffer, into colag.job and colag.lst instead.
 set -e
 kit=$(cd "$1" && pwd) here=$(cd "$(dirname "$0")" && pwd)
+mode=${2:-probe}
 ct=$kit/archive/CT/ct.job
 mkdir -p "$kit/run/probe"
 cd "$kit/run/probe"
@@ -29,6 +32,33 @@ deck() {
     '"$3"'
     { print }' "$ct"
 }
+# colag SEQ: an edit that adds COLAG to the options of the $CMPLE card
+# with sequence number SEQ. The options end at the first blank, so the
+# edit takes six of the blanks after them and no column moves.
+colag() {
+  echo "s == \"$1\" { sub(/LIST,DICT,SUB      /, \"LIST,DICT,SUB,COLAG\") }"
+}
+if [ "$mode" = colag ]; then
+{
+  echo '$EXECUTE       CT'
+  # E0 holds a clean BCI card (statement 30) and the failing one (32).
+  deck EXPERR E0 "$(colag 15700020)"
+  # E1: both BCI cards hold the clean text; it compiles clean.
+  deck EXPERR E1 "$(colag 15700020)"'
+  s == "15700410" { sub(/ERROR IN EXPONENTIAL AT/, "EXPONENTIAL OVERFLOW AT") }'
+  deck BCDERR B0 "$(colag 26300020)"
+  # B5 compiles clean.
+  deck BCDERR B5 "$(colag 26300020)"'
+  s == "26300300" { sub(/CHARACTER/, "XXXXXXXXX") }'
+  # KAPUT compiled clean in X4 and holds nine BCI 1 cards.
+  deck KAPUT K0 "$(colag 26600020)"
+  echo '$IBSYS'
+  echo '$ENDFILE       SYSPP1'
+} >colag.job
+LIMIT=300 sh "$here/run_ibsys.sh" "$kit" colag.job colag.lst "$kit/CTSYS1.BIN"
+grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' colag.lst || true
+exit
+fi
 {
   echo '$EXECUTE       CT'
   # EXPERR fails at statement 32, card 15700410, BCI 4,ERROR IN EXPONENTIAL AT.
