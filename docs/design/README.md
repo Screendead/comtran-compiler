@@ -30,6 +30,7 @@ and the roadmap live in `docs/HANDOVER.md`.*
 | `runtime.md` | The machine assembly and the SYS)/IOC) handlers in `lib/src/runtime/`. Holds the `RT-n` entries: the addresses, the dispatch rule, the run loop, and each handler's contract. |
 | `m5-io.md` | The M5 I/O runtime. Holds the `M5-n` entries. |
 | `m6-acceptance.md` | The M6 acceptance of the 1962 sample. Holds the `M6-n` entries. |
+| `m6-verbatim-deck.md` | Entry M6-11: the object deck of the 1960 program as keyed, and the code for a statement that needs an undefined name or a file that no FILE card supplies. |
 | `emit-stages.md` | The requirement that every compilation stage is dumpable behind a flag, with attested stages oracled against their evidence. Recorded 2026-08-04; M4 adopts or amends it. |
 | `severity-notes.md` | The severity assigned to every 90.04 message, under D9.2. Every value is our design decision, not recovered history. |
 | `web-copy.md` | The register and the copy rules for the public website (the W track). Proposed 2026-08-10; Jack has approved the register and the tiebreak, not the rule list. |

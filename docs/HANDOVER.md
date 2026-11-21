@@ -145,9 +145,10 @@ defect. Most differences are the CORRESPONDING finding
 #182). That ruling rested on a wrong fact: the 1962 processor punched
 an object deck for the verbatim 1960 program and did not run it
 ([J 02.01.01], [J 90.04.02]). With the fact corrected, he ruled
-"punch the object deck as 1962 did". The generator must emit code for
-the shapes it refuses today. No source shows that code, so it is our
-own design: evidence exists and is sealed until M7.
+"punch the object deck as 1962 did". The generator now writes code
+for the shapes it refused, and the verbatim deck punches 35 cards
+(M6-11, `docs/design/m6-verbatim-deck.md`). The code is our own
+design: evidence exists and is sealed until M7.
 
 **The next work is the list in "Rulings of 2026-11-21" below**, in its
 order. W2 is merged (PR #178); W3 and W4 follow the compiler items.
@@ -526,8 +527,10 @@ binds work outside the definition.
 Jack answered every open call on the pitch page
 https://claude.ai/artifact/MU65CGChwwxR6517WYckra (one tab and one
 explainer video per call). The record `review/2026-11-02-pitch-rulings`
-holds his picks. Nothing waits for Jack. Do the next steps in this
-order. A pull request that changes `lib/` merges on review convergence;
+holds his picks. Do the next steps in this
+order. Items 1 to 3 and 7 to 9 are draft pull requests on Jack's own
+branches. The cloud lead may not push to them, so one call waits for
+Jack (issue #208): may the lead finish them? A pull request that changes `lib/` merges on review convergence;
 the others merge on Jack's word.
 
 | # | Ruling | Next step |
@@ -535,7 +538,7 @@ the others merge on Jack's word.
 | 1 | A second or unnamed BEGIN SECTION: delete the sentence with msg 196 ([F p. 26]) | Take draft PR #183 out of draft; run the review loop |
 | 2 | Two PROGRAM.START labels: compile with the first, as D2.1 says | Draft PR #184: remove the "prototype for Jack's call" tag from the D2.1 amendment; run the review loop |
 | 3 | Defect 5: keep the 1962 words; message 950,00, `--pedantic` only | Draft PR #185: merge master (it conflicts); run the review loop |
-| 4 | M6-9: punch the object deck for the verbatim 1960 program, as 1962 did | Amend M6-9 with a dated entry. Design the code for each refused shape (a GET with no input file, a FILE into a non-output file, the undefined names) as our own design. The job stays above severity 1, so `--run` does not run it. `test/f_corpus_test.dart` then expects a deck. Run the review loop |
+| 4 | M6-9: punch the object deck for the verbatim 1960 program, as 1962 did | Done 2026-11-21 (PR #205): M6-9 as amended and M6-11 (`docs/design/m6-verbatim-deck.md`); the verbatim deck punches 35 cards and does not run |
 | 5 | Keep messages 912,00 and 192,00 for a literal and a ZERO subscript | Done 2026-11-21 (PR #206): M3-20 records the ruling; no code |
 | 6 | Mark all three doubtful words `[sic]`: "synonomous" and "indicies" (PDF p. 116), "in not used" (PDF p. 171) | Done 2026-11-21 (PR #207): the three are on the W2 `[sic]` list; web-copy.md E3 records the ruling |
 | 7 | Take the em dashes out of the 21 definition headings | Take draft PR #192 out of draft; merge on Jack's word |
