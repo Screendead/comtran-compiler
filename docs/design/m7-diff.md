@@ -932,3 +932,88 @@ The results read as follows:
   probe turns to the table words.
 - Any other result: this record states the facts, and the next probe
   starts from them.
+
+**The result of the position probe (2026-11-21, issue #240).** The Mac
+ran `tool/m7/ct_probe.sh KIT pad` on master at `51b2018`. All four
+compiles ran. `pad.lst` holds 831 lines.
+
+| Deck | Statement of the `ENTER` card | Table words | Result | Deck punched |
+|---|---|---|---|---|
+| `S0` | 68 | 64 | dump at `LOC 13721`, severity limit | no |
+| `S8` | 69 | 64 | clean | yes |
+| `S9` | 68 | 32 | clean | yes |
+| `S10` | 68 | 63 | clean | yes |
+
+This is the third reading of the table above, "any other result". The
+facts:
+
+- Only the unchanged deck fails. `S9` and `S10` put the `ENTER` card at
+  statement 68 and compile clean. Thus the statement number alone does
+  not cause the fault.
+- `S8` keeps all 64 table words and compiles clean. Thus the table alone
+  does not cause it.
+- In this run `S0` prints no message line. The listing goes from the
+  `ENTER` card to the dump. In the probe of issue #238 the same deck
+  printed `ILLEGAL INTERNAL CONDITION` (message 18) at statement 68. The dump header is the same in
+  both runs.
+
+Across the probes of issues #230, #238 and #240, one change of any kind
+makes the deck clean: a card more (`S7`, `S8`), a card less (`S5`), or
+a card of a different kind (`S9`, `S10`). The one change that kept the
+fault, `S3`, replaced the symbol `SYSCOL` with `0` in each table word.
+
+**What the source shows.** The definition pass reads the internal text
+one sentence at a time (CC012650 to CC012850):
+
+1. `READ` takes two words from the file `CTONEI`: the link word `CLINK`
+   and `BLINK`. An end of file here goes to `EOF2`, the normal end of
+   the text (CC012690 to CC012730).
+2. The decrement of `CLINK` gives the length of the sentence. `PLINK`
+   then reads that number of words into `BUFAA`. An end of file here
+   goes to `UNDAA`, which issues message 18, `KAPUT` (CC012820 to
+   CC012840, CC013040 to CC013050).
+
+The scanner wrote the same file as `CTWOHO`, on `SYSUT1`. Each sentence
+is one `WRITE` with the list `CLINK`, `BLINK` and the words of the
+sentence (CC035520 to CC035580). The scanner closes `CTWOHO` with a
+rewind, and the definition pass opens it again as `CTONEI` (CC004790
+to CC004820). Both files are in the big buffer pool (CB004280 to
+CB004290). Its buffers are of `BBFSZE`, 112 words (CB000790). The
+buffered `READ` and `WRITE` of IOCS move words across the end of a
+buffer without a call to the program.
+
+`ENTER COMMERCIAL TRANSLATOR` is the last sentence of `SYSCOL`. Only
+the `*FINISH` card follows it (16100730 to 16100740). Thus message 18
+at that card means that the file ended inside the last sentence: the
+header of the sentence was read, and its words were not.
+
+**The hypothesis: the length of the text.** The fault depends on the
+number of words in the internal text, not on the statement number or
+on the table. At one length, the end of the text meets the end of a
+buffer, and the last part of the text does not reach the definition
+pass. Each clean variant changes the length. `S3` probably keeps it:
+a symbol and the number `0` can each take one word of text. This is a
+hypothesis. The source read so far does not show the step of IOCS that
+loses the words.
+
+**The next probe: labels on the table.** `tool/m7/ct_probe.sh KIT
+labels` compiles 65 variants of `SYSCOL` in one job. Deck `L0` is
+`S0`. Deck `Ln` gives a label to the first n table cards, `XL009` on
+card 16100090 to `XL072` on card 16100720. A label adds words to the
+text of its sentence. It adds no statement, and it changes no table
+word. The `ENTER` card stays at statement 68 in all 65 decks.
+
+The results read as follows:
+
+- All 65 decks fail: the statement number, or the count of sentences,
+  causes the fault. The text length does not.
+- `L0` fails, and the other decks are clean: the text length causes
+  it. A label then takes a number of words that does not divide the
+  length of a buffer within 64 labels. The next probe uses a step of
+  one word.
+- `L0` fails, and a set of other decks fail at a fixed step: the text
+  length causes it. The step times the words of one label gives the
+  period of the fault, and the period is probably the length of a
+  buffer.
+- Any other result: this record states the facts, and the next probe
+  starts from them.
