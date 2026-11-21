@@ -19,6 +19,8 @@ const Map<String, int> budgets = <String, int>{
   // run of chunk 2b. M6-10 carries the amendments the locked M4 record
   // has no room for.
   'docs/design/m6-acceptance.md': 19400,
+  // M7-7 records each probe of the 1963 library and its result.
+  'docs/design/m7-diff.md': 11000,
   // Locked by Jack, 2026-08-09. This number never rises again. A stage 2
   // amendment that needs room pays for it by deleting prose from the same
   // record.
