@@ -1561,7 +1561,8 @@ void main() {
     });
 
     test('a second PROGRAM.START that opens a section', () {
-      // Its END would return through the first label's cell.
+      // Msg 141 binds the first label, so the END would return
+      // through that label's word (D2.1).
       expect(
         _refuses(
           [
@@ -1572,22 +1573,7 @@ void main() {
           ],
           flagged: ['166,00'],
         ),
-        'a second PROGRAM.START that owns a return cell',
-      );
-    });
-
-    test('a second PROGRAM.START that a DO addresses', () {
-      // Its paragraph cell would return through the first label's cell.
-      expect(
-        _refuses(
-          [
-            '            DO PROGRAM.START.',
-            '      PROGRAM.START.  SET NUM = NUM + NUM.',
-            '      PROGRAM.START.  SET NUM = NUM + TOT.',
-          ],
-          flagged: ['166,00', '166,00'],
-        ),
-        'a second PROGRAM.START that owns a return cell',
+        'a second PROGRAM.START that opens a section',
       );
     });
 

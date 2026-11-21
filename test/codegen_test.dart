@@ -1966,7 +1966,7 @@ void main() {
       ]);
     });
 
-    test('a second label prints on its word and the first is used', () {
+    test('a second label binds nothing and owns no cell', () {
       // Msg 141: "MORE THAN ONE -PROGRAM.START-. FIRST USED."
       final SemanticResult semantics = runJob(
         data: [
@@ -1979,31 +1979,30 @@ void main() {
           ),
         ],
         procedure: <String>[
+          '            DO PROGRAM.START.',
+          '            GO TO WRAP.UP.',
           '      PROGRAM.START.  SET NUM = NUM + 1.',
-          '            GO TO PROGRAM.START.',
           '      PROGRAM.START.  SET NUM = NUM + NUM.',
-          '            STOP RUN.',
+          '      WRAP.UP.  STOP RUN.',
         ],
       );
-      // The second label and the GO TO each draw D2.5's 166.
+      // The second label and the DO each draw D2.5's 166.
       expect(ids(semantics), <String>['166,00', '166,00']);
       final List<AssemblyUnit> units = runCodegen(semantics).units;
       final List<AssemblyUnit> labelled = units
           .where((AssemblyUnit u) => u.labels.contains('PROGRAM.START'))
           .toList();
-      expect(labelled, hasLength(2));
-      final int first = labelled.first.location!;
-      expect(labelled.last.location, greaterThan(first));
-      final AssemblyUnit end = units.singleWhere(
-        (AssemblyUnit u) => u.control == ControlGroup.endOfText,
+      // The DO's return cell is on the first label only.
+      expect([for (final u in labelled) u.operation], <String>['AXT', 'CLA']);
+      // The call, the first paragraph's return and the entry all
+      // address the first label.
+      final Iterable<AssemblyUnit> uses = units.where(
+        (AssemblyUnit u) => u.operand.split(',').first == 'PROGRAM.START',
       );
-      expect(end.operand, 'PROGRAM.START');
-      expect(Word36.address(end.word!), first);
-      final AssemblyUnit transfer = units.singleWhere(
-        (AssemblyUnit u) =>
-            u.operation == 'TRA' && u.operand == 'PROGRAM.START',
-      );
-      expect(Word36.address(transfer.word!), first);
+      expect(uses, hasLength(3));
+      for (final use in uses) {
+        expect(Word36.address(use.word!), labelled.first.location);
+      }
     });
   });
 
