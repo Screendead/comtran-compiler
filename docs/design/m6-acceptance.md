@@ -732,6 +732,22 @@ the report our run prints against the page.
   deck is where chunk 2b works, so nothing in the repository waited on
   the answer.
 
+  **Amended 2026-11-21: punch the object deck as 1962 did (Jack's
+  ruling).** The ruling of 2026-11-02 rested on a wrong fact. It took
+  the 1962 processor to refuse a deck for the verbatim program. Under
+  [J 02.01.01] and [J 90.04.02] it punched one and did not run it. With
+  the fact corrected, Jack ruled: "punch the object deck as 1962 did".
+  The object-deck reading above is now the course. The listing reading
+  is withdrawn.
+
+  - The generator emits code for each shape that the verbatim deck
+    refuses today: a GET of a record on no input file, a FILE of a
+    record on no output file, and the operands that name no data item.
+  - No source shows that code. Each form is our own design under D0.4.
+    Evidence exists and is sealed until M7.
+  - The job stays above severity 1, so `--run` does not run it
+    ([J 90.04.02]; D7.6).
+
   **Chunk 2b's design list.** Each item is a recorded decision under
   D0.4, with no listing oracle behind it:
 
