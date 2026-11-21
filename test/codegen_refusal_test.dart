@@ -1653,16 +1653,15 @@ void main() {
   });
 
   group('a diagnosed program that reaches code generation', () {
-    test('an undefined operand', () {
+    test('an undefined subscript variable', () {
+      // An undefined operand of a clause compiles to an undefined
+      // symbol (M6-11 a). A subscript has no such form, and the first
+      // store checks every indicator.
       expect(
-        _refuses(['            SET TOT = NUM + ZZZ.'], flagged: ['108,00']),
-        'an operand that names no data item (no sample instance)',
-      );
-    });
-
-    test('an improperly qualified operand', () {
-      expect(
-        _refuses(['            SET TOT = NUM OF TOT.'], flagged: ['101,00']),
+        _refuses(
+          ['            SET IDX = 1.', '            MOVE CELL (ZZZ) TO TOT.'],
+          flagged: ['108,00'],
+        ),
         'an operand that names no data item (no sample instance)',
       );
     });
@@ -1843,15 +1842,23 @@ void main() {
       );
     });
 
-    test('a FILE record on no output file', () {
+    test('a FILE record on two output files', () {
+      // On no output file the FILE writes no call (M6-11 b); on two,
+      // the order of the calls has no evidence.
       expect(
         _refuses(
-          ['            FILE IREC.'],
+          ['            FILE OREC.'],
           data: _records(),
-          environment: [_input()],
-          flagged: ['19,00', '198,00'],
+          environment: [
+            _output(),
+            environmentCard(
+              name: 'TAPE3',
+              type: 'FILE',
+              options: 'OUTPUT,BCD,TAPE,OREC,BLOCKSIZE 5',
+            ),
+          ],
         ),
-        'a FILE record on 0 output files (no sample instance)',
+        'a FILE record on 2 output files (no sample instance)',
       );
     });
 
