@@ -579,3 +579,100 @@ one change:
 
 Each change keeps the length of the text, so the columns of each card
 do not move. The result tells which part of the compiler to read next.
+
+**The result of the probe (2026-11-21, issue #230).** The Mac ran
+`tool/m7/ct_probe.sh` on master at `175849e`. The run ended at
+`END OF JOBS` and printed all 15 lines:
+
+| Deck | Result | Messages (statement, severity) | Deck punched |
+|---|---|---|---|
+| `E0` | not clean | 32, 4, twice | yes |
+| `E1` | clean | none | yes |
+| `E2` | clean | none | yes |
+| `E3` | not clean | 20 and 21, 4, `'OMAX' IS AN UNDEFINED SYMBOL.`; 32, 4, twice | yes |
+| `E4` | not clean | 32, 4, twice | yes |
+| `E5` | not clean | 32, 4, once | yes |
+| `B0` | not clean | 24, 4, once | yes |
+| `B1` | clean | none | yes |
+| `B2` | clean | none | yes |
+| `B3` | not clean | 17, 4, `'L3A' IS AN UNDEFINED SYMBOL.`; 24, 4, once | yes |
+| `B4` | not clean | 24, 4, once | yes |
+| `B5` | clean | none | yes |
+| `S0` | discontinued | 68, 5, once | no |
+| `S1` | clean | none | yes |
+| `S2` | clean | none | yes |
+
+Each message without a text in the table is `ILLEGAL INTERNAL CONDITION.
+NOTHING DONE. POSSIBLE COMPILER ERROR.` The undefined symbols of `E3`
+and `B3` are the labels that the probe removed.
+
+These facts follow:
+
+- The fault is on the card, and the text of the card causes it (`E1`,
+  `E2`, `B1`, `B2`). The cards after it do not cause it (`E3`, `B3`).
+- No single word causes it. `ERROR` (`E4`) and `NUMERIC` (`B4`) are not
+  the cause. `IN` takes away one of the two messages of `EXPERR` (`E5`).
+  `CHARACTER` takes away the message of `BCDERR` (`B5`).
+- The fault of `SYSCOL` is in its table. Each half alone compiles clean
+  (`S1`, `S2`).
+
+**No `BCI` card gave words.** The object listing of `E0` gives these
+locations:
+
+```
+      00030  4 00004 0 00031   10001    OVW            MZE    *+1,,4
+      00031  4 00004 0 00032   10001    NGW            MZE    *+1,,4
+      00032  377777777777      10000    OMAX           OCT    377777777777
+```
+
+`OVW`, `NGW` and `OMAX` are in sequence. Thus `BCI 4,EXPONENTIAL OVERFLOW
+AT` (statement 30) took no location, and it drew no message. The same is
+true of statement 32. A 1963 library routine that printed a message with
+no text is not credible. Thus the fault is not three faults on three
+cards. Each `BCI` card loses its text, and the lost text causes a
+message only for some contents.
+
+**What the source shows.** The `BCI` card passes through three phases:
+
+1. The scanner of the compiler phase (CC027880 to CC028140, and the
+   patch at CC10163M) enters a control word with the code 74, "BCD
+   INFORMATION FOLLOWS". It puts the word count of the card in the
+   decrement of that word, and six times the count in the address. It
+   then copies the card words into the internal text without a scan. A
+   card with no comma gets one word of blanks at its period instead
+   (CC035230 to CC035310).
+2. The next phase (CD010620 to CD010740) finds the code 74. It takes the
+   character count from the address of the control word, and it copies
+   that number of words, six characters each, with no other test.
+3. The assembler phase (CE) assigns the locations.
+
+The copy is the only thing that keeps the text words out of the scan of
+the internal text. If the count in the control word is zero or lost, the
+phases read the text words as internal text. Most of the words then
+give nothing, so the card gets no location and no message. Some words
+look like a control code, and the assembler phase prints `ILLEGAL
+INTERNAL CONDITION`. This explains all four facts above. It is a
+hypothesis: the source shows the path, but not which step fails.
+
+**The next probe: the internal text.** The `COLAG` option of `$CMPLE`
+(CB024540) prints every internal text buffer. `tool/m7/ct_probe.sh KIT
+colag` compiles five decks with it: `E0`, `E1`, `B0`, `B5`, and `K0`,
+an unchanged copy of `KAPUT`. `KAPUT` compiled clean in X4 and holds
+nine `BCI 1` cards. The print shows these things:
+
+- whether the control word with the code 74 is in the buffer, and the
+  count it holds. For `BCI 4` the scanner makes the word
+  `740004000030`, if the constant `SYX` holds 6 (this record derives the
+  value from CD010630; the listing does not print it);
+- whether the card words follow it. In octal, statement 30 of `E0`
+  holds `256747464525`, `456331214360`, `466525512643` and
+  `466660216360`, and statement 32 holds `255151465160`,
+  `314560256747`, `464525456331` and `214360216360`;
+- whether `KAPUT` gives locations for its `BCI` cards. If it does not,
+  the whole library compiled in X4 has lost its message texts.
+
+If the control word holds the right count, the next phase loses the
+text, and the next probe dumps that phase with the `CHECK` option and
+its dump cards (CB032530 to CB032620). If the count is wrong, the fault
+is in the scanner, and the probe moves to the 18-bit constant switch
+(CC027900) that reads the count.
