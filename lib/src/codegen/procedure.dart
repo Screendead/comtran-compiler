@@ -51,6 +51,7 @@ final class ProcedureText {
     required this.poolWords,
     required this.poolUnits,
     required this.constantIndicators,
+    required this.undefinedSymbol,
   });
 
   /// The assembly units, program order.
@@ -76,6 +77,9 @@ final class ProcedureText {
   /// The load-time word of each indicator whose subscripts are all
   /// literals, keyed by its `PI)` number (J 02.04.07; M4-4).
   final Map<int, ElementPointer> constantIndicators;
+
+  /// Whether the text holds an undefined symbol (M6-11 a).
+  final bool undefinedSymbol;
 }
 
 /// What the measuring pass diagnoses (M4-18): the sink the notes and
@@ -139,8 +143,8 @@ ProcedureText generateProcedure(
 
 /// A refusal of this recovery, not a diagnostic of the program. Its
 /// label is "no evidence describes the code", never "the 1962 compiler
-/// refused": under our severities J punches a deck for the as-keyed
-/// 1960 program, which the generator refuses (m6-acceptance.md M6-9).
+/// refused": J punches a deck for every job below severity 5
+/// ([J 02.01.01]; m6-acceptance.md M6-9).
 ///
 /// The sample never reaches the refusing site, so no generated shape
 /// is attested and none is invented (the notes, section 7). The 1962
@@ -899,6 +903,7 @@ final class _Text {
           : (name: programStartName, location: start),
       poolWords: _layout.length,
       constantIndicators: _constantIndicators,
+      undefinedSymbol: _undefinedSymbol,
       poolUnits: <AssemblyUnit>[
         if (placed != null)
           // An `OCT` entry echoes its word as its operand; a `PZE` entry
@@ -924,10 +929,61 @@ final class _Text {
 
   /// The item [name] resolves to. A name the resolver left unbound drew
   /// its diagnostic (108,00 or 101,00, among others) below the stop
-  /// severity, and no generated shape is attested for it.
+  /// severity. As an operand of a clause it takes the word of
+  /// [_unbound] and never comes here; at any other site, a subscript
+  /// among them, no deck reaches it and it has no form.
   DataItem _resolved(NameReference name) =>
       _item(name) ??
       _unruled('an operand that names no data item (no sample instance)');
+
+  /// Writes one word for each of [names] the resolver bound to no data
+  /// item, and returns whether it wrote any (M6-11 a).
+  ///
+  /// The word is the undefined symbol of [J 02.01.02] in the generated
+  /// code: the address reference `PZE LOC,,BYTE` of [J 90.02.14], under
+  /// the name the reference ends in, with a zero address and a zero
+  /// byte that the loader leaves alone. An undefined name has no class,
+  /// scale or length, so the caller writes no instruction that reads
+  /// or stores it.
+  bool _unbound(Iterable<NameReference> names) {
+    var any = false;
+    for (final name in names) {
+      if (_item(name) == null) {
+        _emit(
+          'PZE',
+          WordForm.prefix,
+          () => '${name.words.last.text},,0',
+          () => 0,
+          control: ControlGroup.constantWord,
+        );
+        any = true;
+      }
+    }
+    _undefinedSymbol |= any;
+    return any;
+  }
+
+  bool _undefinedSymbol = false;
+
+  /// The names [expressions] read, in source order.
+  List<NameReference> _namesOf(Iterable<ArithExpr> expressions) {
+    final names = <NameReference>[];
+    void walk(ArithExpr expr) {
+      switch (expr) {
+        case NameOperand(:final name):
+          names.add(name);
+        case BinaryExpr(:final left, :final right):
+          walk(left);
+          walk(right);
+        default:
+          // A name under any other node refuses at its own site.
+          break;
+      }
+    }
+
+    expressions.forEach(walk);
+    return names;
+  }
 
   ItemSemantics _sem(DataItem item) => semantics.semantics[item]!;
 
@@ -1850,7 +1906,7 @@ final class _Text {
       } else {
         // The target's TRA is the true slot of the vector itself, and
         // the false outcomes fall to the next clause or past the last.
-        _compare(
+        _condition(
           condition,
           trueTo: _Cont.named(target.name.text),
           falseTo: const _Cont.falls(),
@@ -2249,8 +2305,19 @@ final class _Text {
     if (_duplicateFiles) {
       _unruled('a GET where two FILE cards share a name (no sample instance)');
     }
+    final List<String> names =
+        semantics.allocation?.clauseNames[clause] ?? const <String>[];
+    if (info.inputFiles.isEmpty) {
+      // No input FILE card lists the record (msgs 9 and 10), so the
+      // call has no file word and no buffer, and no word of it is
+      // written. The frame stays: the transfer over the AT END block,
+      // the block, and the join (M6-11 b).
+      _op(Op.tra, _labelSym(names[1]));
+      _atEndBlock(clause, atEnd, names);
+      return;
+    }
     if (info.inputFiles.length != 1) {
-      // Zero files, or the two-input-file program behind msg 11.
+      // The two-input-file program behind msg 11.
       _unruled(
         'a GET record on ${info.inputFiles.length} input files '
         '(no sample instance)',
@@ -2270,8 +2337,6 @@ final class _Text {
       _statement,
       _ordinals[clause] ?? 0,
     );
-    final List<String> names =
-        semantics.allocation?.clauseNames[clause] ?? const <String>[];
     _emit(
       // The stamp rides ahead of the call, prefixed TXH (M4-14).
       mnemonic(Op.txh),
@@ -2289,6 +2354,12 @@ final class _Text {
     _pzePair(_labelSym(names[0]), _sys(283));
     _ioctn(locator, _recordWords(info.item));
     _op(Op.tra, _labelSym(names[1])); // Over the block, to the join.
+    _atEndBlock(clause, atEnd, names);
+  }
+
+  /// The AT END block of [clause] under its own label, and the join on
+  /// the resume word.
+  void _atEndBlock(GetClause clause, AtEndClause atEnd, List<String> names) {
     label(names[0]);
     if (atEnd.bareName != null) {
       _doEdge(atEnd.bareName!, clause.clause);
@@ -2309,6 +2380,14 @@ final class _Text {
       _unruled('a FILE where two FILE cards share a name (no sample instance)');
     }
     final String? named = clause.inFile?.text;
+    if (named == null
+        ? info.outputFiles.isEmpty
+        : !_fileCards.containsKey(named)) {
+      // No output FILE card lists the record (msg 19), or the IN form
+      // names no file (msg 21). The call has no file word, so no word
+      // of it is written (M6-11 b).
+      return;
+    }
     if (named != null) {
       // The IN form names the file, so the record may sit on several
       // (J 02.07.08 b; M6-9).
@@ -2359,7 +2438,13 @@ final class _Text {
       );
       return;
     }
+    // Each target is a clause of its own (M4-14), so one unbound
+    // target loses its own move alone; an unbound source loses all.
+    final bool sourceUnbound = _unbound(_namesOf([clause.source]));
     for (final NameReference target in clause.targets) {
+      if (_unbound([target]) || sourceUnbound) {
+        continue;
+      }
       switch (clause.source) {
         case FigurativeOperand(:final Token word):
           _figurativeFill(target, word);
@@ -3137,6 +3222,12 @@ final class _Text {
       _unruled('SET with a target list (no sample instance)');
     }
     final NameReference target = clause.targets.single;
+    if (_unbound([
+      target,
+      ..._namesOf([clause.value]),
+    ])) {
+      return;
+    }
     if (clause.value case FigurativeOperand(:final word)) {
       _figurativeFill(target, word);
       _subscriptRecomputation(target);
@@ -3277,6 +3368,12 @@ final class _Text {
           sourceSubscripted: sourceSubscripted,
         );
       }
+      return;
+    }
+    if (_unbound([
+      ..._namesOf([clause.source]),
+      ...clause.targets,
+    ])) {
       return;
     }
     if (clause.source case NameOperand(:final name)) {
@@ -3992,7 +4089,7 @@ final class _Text {
     final List<String> names =
         semantics.allocation?.clauseNames[clause] ?? const <String>[];
     final bool otherwise = clause.otherwiseArm.isNotEmpty;
-    _compare(
+    _condition(
       clause.condition,
       trueTo: const _Cont.falls(),
       // The false outcomes go to the OTHERWISE arm's own label, not to
@@ -4020,6 +4117,22 @@ final class _Text {
       (arm.last as GoToClause).targets.every(
         (GoToTarget target) => target.when == null,
       );
+
+  /// The test of an IF or of a GO TO WHEN. A relation with an unbound
+  /// side writes the words of [_unbound] and no compare word or skip
+  /// vector, because both depend on the class of each side. The arms
+  /// and the frame of the statement stay (M6-11 a).
+  void _condition(
+    CondExpr condition, {
+    required _Cont trueTo,
+    required _Cont falseTo,
+  }) {
+    if (condition is Relation &&
+        _unbound(_namesOf([condition.left, condition.right]))) {
+      return;
+    }
+    _compare(condition, trueTo: trueTo, falseTo: falseTo);
+  }
 
   /// One comparison: the operand preparations, the compare, and the
   /// skip vector. [trueTo] and [falseTo] carry each outcome's

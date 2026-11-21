@@ -853,8 +853,9 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   FROM, GET with no AT END (SYS)265 unattested), GET from a file
   declaring ON ERROR (the SYS)283 replacement is unknown), GET of a
   transmitted record, and FILE record IN file (until M6-9). A GET or
-  plain FILE refuses off the roster, on other than one matching file,
-  or where two FILE cards share a name. M6-9 holds the IN form's rule.
+  plain FILE refuses off the roster, on more than one matching file,
+  or where two FILE cards share a name. **Amended 2026-11-21:** on
+  none, neither refuses (M6-11).
 
 ## The object deck and the loader cards
 

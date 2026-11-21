@@ -361,8 +361,10 @@ int _run(List<String> arguments) {
 /// (M5-11).
 /// Returns false unless the run reached the end of the job. A job with
 /// no punched deck runs nothing and fails nothing. Nor does a job whose
-/// maximum severity is above 1: it says so on the error stream and
-/// keeps the exit status, which only severity 5 changes (D7.6; D11.2).
+/// maximum severity is above 1, or whose text holds an undefined
+/// symbol: each bar says so on the error stream and keeps the exit
+/// status, which only severity 5 changes (J 02.01.02; D7.6; D9.1;
+/// D11.2).
 bool _runObjectProgram(
   JobCompilation job,
   ListingOptions options,
@@ -375,8 +377,16 @@ bool _runObjectProgram(
     return true;
   }
   final int severity = job.sink.maxSeverity;
+  final bool undefinedSymbol = job.codegen!.undefinedSymbol;
   if (severity > 1) {
     stderr.writeln('job $number: not run: maximum severity $severity');
+  }
+  if (undefinedSymbol) {
+    stderr.writeln(
+      'job $number: not run: undefined symbol in the generated code',
+    );
+  }
+  if (severity > 1 || undefinedSymbol) {
     return true;
   }
   // The load allocates every file's buffer, so it faults on a program
