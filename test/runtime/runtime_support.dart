@@ -47,7 +47,7 @@ Machine machine(
       files: files,
       cardsRead: 0,
     ),
-    tapes: tapes,
+    tapes: tapes == null ? null : DirectoryTapes(tapes),
   );
   built.state
     ..xrWrite(1, junkCount)
