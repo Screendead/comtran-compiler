@@ -71,6 +71,21 @@ is known.
 network refuses the host. Jack has a call for this: the cloud network can
 allow the host, or the work can move to the Mac.
 
+**Status, 2026-11-21, later.** Jack allowed the host for the cloud
+(issue #216). The first M7 fetch gave these values:
+
+| File | Bytes | SHA-256 |
+|---|---|---|
+| the tarball | 9,829,802 | `7442d355e0077cee6f40dc2937d22bd400d65840de7ef33564d1e90dd163bfb0` |
+| `CT/ct.job` | 5,398,204 | `ec41c0a19dc09a6c2b181218761f696c9ccab25c352fcd0ce845804c1039be6b` |
+| `CT/ct.lst` | 7,747,434 | `dcdadfa3d02f5dee30cbe860f7c05724b1a7c84c853502dba810039d81ff16dc` |
+| `CT/ct.obj` | 927,369 | `0ba4531b4ca93e954741717281b4274aca375e54b540d9bdac30afae848113b8` |
+| `CT/Makefile` | 205 | `6418076d24fe33fa7865425b3db56892231bf8bcece881a7c5df9ad97486300b` |
+
+The tarball byte count agrees with the count of 2026-09-06. The `CT/`
+directory holds the four files of the review record. Each later fetch
+compares against this table.
+
 ## M7-4 The plan
 
 The roadmap gives the method: assemble the 1963 processor, and diff our
