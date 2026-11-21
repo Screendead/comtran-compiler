@@ -33,6 +33,7 @@ final class CodegenResult {
     required this.units,
     required ProgramImage this.image,
     required this.controlCards,
+    required this.undefinedSymbol,
   }) : stopped = false;
 
   /// The result of a phase a severity-5 diagnostic stopped (D10.2): no
@@ -43,6 +44,7 @@ final class CodegenResult {
     : units = const <AssemblyUnit>[],
       image = null,
       controlCards = const <String>[],
+      undefinedSymbol = false,
       stopped = true;
 
   /// The assembly text, program order.
@@ -58,6 +60,10 @@ final class CodegenResult {
 
   /// Whether a severity-5 diagnostic stopped the phase (D10.2).
   final bool stopped;
+
+  /// Whether the text holds an undefined symbol (M6-11 a). It bars the
+  /// run on its own, whatever the severity ([J 02.01.02]; D9.1; D9.13).
+  final bool undefinedSymbol;
 }
 
 /// Generates the object text of [semantics].
@@ -144,5 +150,6 @@ CodegenResult runCodegen(
     ],
     image: image,
     controlCards: cards,
+    undefinedSymbol: text.undefinedSymbol,
   );
 }

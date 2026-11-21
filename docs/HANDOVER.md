@@ -145,9 +145,10 @@ defect. Most differences are the CORRESPONDING finding
 #182). That ruling rested on a wrong fact: the 1962 processor punched
 an object deck for the verbatim 1960 program and did not run it
 ([J 02.01.01], [J 90.04.02]). With the fact corrected, he ruled
-"punch the object deck as 1962 did". The generator must emit code for
-the shapes it refuses today. No source shows that code, so it is our
-own design: evidence exists and is sealed until M7.
+"punch the object deck as 1962 did". The generator now writes code
+for the shapes it refused, and the verbatim deck punches 35 cards
+(M6-11, `docs/design/m6-verbatim-deck.md`). The code is our own
+design: evidence exists and is sealed until M7.
 
 **The next work is the list in "Rulings of 2026-11-21" below**, in its
 order. W2 is merged (PR #178); W3 and W4 follow the compiler items.
