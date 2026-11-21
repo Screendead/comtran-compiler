@@ -766,10 +766,10 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
     branched on sign: D5.1's magnitude exit. The loop
     runs while i ≤ r after each increment; a +0 result (i = r) transfers,
     so the body runs for i = r; normal exit leaves i at the first value
-    past r — r + q when q divides r − p exactly. D5.1's
-    pre-committed amendment is applied in `decisions.md` with this
-    citation. Consequences: the at-least-once rule holds (entry precedes
-    any test, [J 90.01.02]); an overshooting step terminates, so the
+    past r — r + q when q divides r − p exactly. `decisions.md`
+    applies D5.1's amendment with this citation. Consequences: the
+    at-least-once rule holds (entry precedes any test, [J 90.01.02]);
+    an overshooting step terminates, so the
     equality reading's non-termination hazard is gone; a zero or
     wrong-signed q with p ≤ r never terminates (p > r exits at the
     first test), and the emulator reproduces both faithfully.
@@ -802,7 +802,7 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
   - A paragraph with no written END closes at the next label
     (attested: GN)067) or at a bare END, both through the cell.
   Seven refusals:
-  - an unnamed section;
+  - an unnamed section — withdrawn (M2-18);
   - a section beginning inside an open section;
   - an END inside an open paragraph and an open section;
   - a procedure open at the end of the text;

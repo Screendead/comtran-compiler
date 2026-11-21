@@ -538,7 +538,7 @@ closes the draft with a link.
 
 | # | Ruling | Next step |
 |---|---|---|
-| 1 | A second or unnamed BEGIN SECTION: delete the sentence with msg 196 ([F p. 26]) | Take draft PR #183 out of draft; run the review loop |
+| 1 | A second or unnamed BEGIN SECTION: delete the sentence with msg 196 ([F p. 26]) | Done 2026-11-21 (PR #209): M2-18 records the ruling |
 | 2 | Two PROGRAM.START labels: compile with the first, as D2.1 says | Draft PR #184: remove the "prototype for Jack's call" tag from the D2.1 amendment; run the review loop |
 | 3 | Defect 5: keep the 1962 words; message 950,00, `--pedantic` only | Done 2026-11-21 (PR #211) |
 | 4 | M6-9: punch the object deck for the verbatim 1960 program, as 1962 did | Done 2026-11-21 (PR #205): M6-9 as amended and M6-11 (`docs/design/m6-verbatim-deck.md`); the verbatim deck punches 35 cards and does not run |
