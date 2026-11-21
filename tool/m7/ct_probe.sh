@@ -2,7 +2,7 @@
 # Probes the three library compiles that fail on the CT system tape:
 # EXPERR, BCDERR and SYSCOL (M7-7 in docs/design/m7-diff.md). Each probe
 # deck is one of the three with a change to the cards that M7-7 names.
-# Usage: ct_probe.sh KIT [colag|label|syscol|pad|labels|steps|edge]   (KIT holds archive/, s709-2.4.4/,
+# Usage: ct_probe.sh KIT [colag|label|syscol|pad|labels|steps|edge|ut1]   (KIT holds archive/, s709-2.4.4/,
 # utils/ and the CTSYS1.BIN that ct_tape.sh writes)
 # It works in KIT/run/probe/, keeps probe.job and probe.lst, and prints one
 # line for each deck: its name and the result line of its compile.
@@ -21,6 +21,9 @@
 # cards (n = 0 to 64), into steps.job and steps.lst.
 # With "edge" it compiles five of those variants with COLAG, L0, L1, P8N62,
 # P8N63 and P8N64, into edge.job and edge.lst.
+# With "ut1" it compiles L0, L1, P8N63 and P8N64, each in a job of its own.
+# It keeps the SYSUT1 tape of each job as ut1-NAME.bin, and prints every
+# record of the tape in octal into ut1-NAME.txt with tape_map.dart.
 set -e
 kit=$(cd "$1" && pwd) here=$(cd "$(dirname "$0")" && pwd)
 mode=${2:-probe}
@@ -157,6 +160,27 @@ pjnn() {
   s >= \"16100090\" && s < \"$((16100090 + 10 * $2))\" {
     \$0 = sprintf(\"%-6s\", \"XL\" substr(s, 5, 3)) substr(\$0, 7) }"
 }
+if [ "$mode" = ut1 ]; then
+  # Each deck compiles alone, so SYSUT1 holds the internal text that the
+  # scanner wrote for that deck. L0 and P8N63 fail; L1 and P8N64 are clean.
+  for d in L0:0:0 L1:0:1 P8N63:8:63 P8N64:8:64; do
+    name=${d%%:*} jn=${d#*:}
+    {
+      echo '$EXECUTE       CT'
+      deck SYSCOL "$name" "$(pjnn "${jn%:*}" "${jn#*:}")"
+      echo '$IBSYS'
+      echo '$ENDFILE       SYSPP1'
+    } >"ut1-$name.job"
+    rm -f sysut1.bin
+    sh "$here/run_ibsys.sh" "$kit" "ut1-$name.job" "ut1-$name.lst" "$kit/CTSYS1.BIN"
+    cp sysut1.bin "ut1-$name.bin"
+    dart run "$here/tape_map.dart" --words "ut1-$name.bin" >"ut1-$name.txt"
+    printf '%-6s %s  records: %s\n' "$name" \
+      "$(grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' "ut1-$name.lst")" \
+      "$(grep -c '^[0-9]*\.[0-9]* ' "ut1-$name.txt")"
+  done
+  exit
+fi
 if [ "$mode" = edge ]; then
 {
   echo '$EXECUTE       CT'
