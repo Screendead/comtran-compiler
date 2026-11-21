@@ -150,9 +150,8 @@ for the shapes it refused, and the verbatim deck punches 35 cards
 (M6-11, `docs/design/m6-verbatim-deck.md`). The code is our own
 design: evidence exists and is sealed until M7.
 
-**M7 is open (2026-11-21).** Every item of "Rulings of 2026-11-21"
-below is done. `docs/design/m7-diff.md` holds the plan. Issue #216
-asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
+**M7 is open (2026-11-21).** `docs/design/m7-diff.md` holds the
+plan. Issue #216 asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 
 > **Jack's answer:** A · Allow the site for the cloud
 >
@@ -163,11 +162,9 @@ twelve unlabeled `BCI` cards. Jack, 2026-11-21:
 
 > **Jack's answer:** A · Name the twelve cards
 
-`tool/m7/ct_library.sh` labels them. The `SYSCOL` fault has its cause
-(issue #248): a text 1 word past a block of 111 leaves a last tape
-record of two words, and IOEX discards it as noise. One label on a
-`SYSCOL` card cures it, and the script adds it. Next: the Mac runs the
-library job; M7-7 says why.
+`tool/m7/ct_library.sh` labels them, and one `SYSCOL` card: IOEX
+drops the last tape record of its text as noise (issue #248). Next:
+the Mac runs the library job (M7-7).
 
 ### Codegen defects the runtime exposed
 
