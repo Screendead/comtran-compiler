@@ -1073,3 +1073,81 @@ The results read as follows:
   dictionary, so the next probe then turns to the dictionary.
 - Any other result: this record states the facts, and the next probe
   starts from them.
+
+**The result of the step probe (2026-11-21, issue #244).** The Mac ran
+`tool/m7/ct_probe.sh KIT steps` on master at `05467d1`. All 455
+compiles ran. `steps.lst` holds 103343 lines. 451 decks compiled clean
+and punched a deck. Each deck with j = 1, 2 or 4 is clean. Four decks
+failed:
+
+| Deck | Statement of the `ENTER` card | Result | Deck punched |
+|---|---|---|---|
+| `P8N63` | 76 | `ILLEGAL INTERNAL CONDITION` at 76, severity 5; dump at `LOC 13721` | no |
+| `P16N15` | 84 | the same, at 84 | no |
+| `P32N30` | 100 | the same, at 100 | no |
+| `P64N60` | 132 | the same, at 132 | no |
+
+The four dumps have the header line of the dumps of `S0` and `L0`. This
+is the first reading of the table above: two or more decks fail, so
+the length of the text causes the fault.
+
+**The period.** Deck `PjNn` adds j·h + n words to the text of `L0`.
+Each failing deck adds a multiple of P:
+
+| Deck | Words added |
+|---|---|
+| `P8N63` | 8h + 63 |
+| `P16N15` | 16h + 15 |
+| `P32N30` | 32h + 30 |
+| `P64N60` | 64h + 60 |
+
+Two times the first line, less the second, is 111. Thus P divides 111,
+which is 3 times 37. The label sweep showed that P is more than 64.
+Thus P is 111. Then 16h + 15 is a multiple of 111, and h is 6: a `BSS 0`
+card with no label adds six words of text. With h = 6 and P = 111 the
+four decks add 111, 111, 222 and 444 words. The same values give no
+other failing deck among the 455: for j = 1, 2 and 4, the first
+failing n is 105, 99 and 87, which are past 64. The prediction agrees
+with every line of the result.
+
+**What the source shows.** P is not the buffer size of 112. It is the
+effective size of a buffer of a file with block sequence words:
+
+- The file blocks `CTWOHO` and `CTONEI` (CB003290 to CB003430) both
+  set the indicator `BLKSEQ`, octal 000200 in the left half of their
+  second word. IOCS defines that bit as "BLOCK SEQ CHECKS" (IOC40170).
+- When IOCS gives an output buffer to a file, it subtracts one word
+  from the size if `BLKSEQ` is set: "FORM EFFECTIVE SIZE OF BUFFER"
+  (IOC57060 to IOC57090). The select routine stores the block sequence
+  number in the last word of the buffer (IOC61920).
+- The big buffer pool has buffers of 112 words (CB000790, CB024920 to
+  CB024940). Thus each block holds 111 words of text.
+
+Thus the fault comes back each time the text grows by one block. At
+one position of the end of the text in its last block, the definition
+pass reads the header of the last sentence and does not get its words.
+The source read so far does not show that position, or the step of
+IOCS that loses the words.
+
+**The next probe: the edge.** `tool/m7/ct_probe.sh KIT edge` compiles
+five decks of the step probe with the `COLAG` option, which prints
+every internal text buffer: `L0`, `L1`, `P8N62`, `P8N63` and `P8N64`.
+`L0` and `P8N63` fail. Each of the other three is one word of text away
+from a deck that fails. The print shows these facts:
+
+- the number of buffers of each deck, and the number of words in the
+  last buffer;
+- the position of the header words of the last sentence, the
+  `ENTER COMMERCIAL TRANSLATOR` card, in those buffers;
+- whether the words of that sentence are in the print.
+
+The results read as follows:
+
+- The words of the last sentence are in the print of `L0` and `P8N63`:
+  the scanner wrote them, and the reader lost them. The next step reads
+  the `READ` routine of IOCS (IOC47240 to IOC47440) at that position.
+- The words are not in the print: the writer lost them. The next step
+  reads the `WRITE` routine (IOC47610 to IOC47730) and the close of the
+  file (CC004790 to CC004820).
+- Any other result: this record states the facts, and the next probe
+  starts from them.

@@ -2,7 +2,7 @@
 # Probes the three library compiles that fail on the CT system tape:
 # EXPERR, BCDERR and SYSCOL (M7-7 in docs/design/m7-diff.md). Each probe
 # deck is one of the three with a change to the cards that M7-7 names.
-# Usage: ct_probe.sh KIT [colag|label|syscol|pad|labels|steps]   (KIT holds archive/, s709-2.4.4/,
+# Usage: ct_probe.sh KIT [colag|label|syscol|pad|labels|steps|edge]   (KIT holds archive/, s709-2.4.4/,
 # utils/ and the CTSYS1.BIN that ct_tape.sh writes)
 # It works in KIT/run/probe/, keeps probe.job and probe.lst, and prints one
 # line for each deck: its name and the result line of its compile.
@@ -19,6 +19,8 @@
 # With "steps" it compiles 455 variants of SYSCOL, PjNn: j BSS 0 cards
 # (j = 1, 2, 4, ..., 64) before the table and labels on the first n table
 # cards (n = 0 to 64), into steps.job and steps.lst.
+# With "edge" it compiles five of those variants with COLAG, L0, L1, P8N62,
+# P8N63 and P8N64, into edge.job and edge.lst.
 set -e
 kit=$(cd "$1" && pwd) here=$(cd "$(dirname "$0")" && pwd)
 mode=${2:-probe}
@@ -147,6 +149,35 @@ grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' labels.lst >results.txt || 
 paste -d' ' names.txt results.txt
 exit
 fi
+# pjnn J N: the edit of deck PjNn of the steps probe.
+pjnn() {
+  echo "s == \"16100080\" { print
+    for (i = 0; i < $1; i++) print sprintf(\"%-72s\", \
+      \"       BSS     0\") \"16100081\"; next }
+  s >= \"16100090\" && s < \"$((16100090 + 10 * $2))\" {
+    \$0 = sprintf(\"%-6s\", \"XL\" substr(s, 5, 3)) substr(\$0, 7) }"
+}
+if [ "$mode" = edge ]; then
+{
+  echo '$EXECUTE       CT'
+  # Each deck prints its internal text with COLAG. L0 and P8N63 fail;
+  # L1, P8N62 and P8N64 are one word of text away from them, and are clean.
+  deck SYSCOL L0 "$(colag 16100020)"
+  deck SYSCOL L1 "$(colag 16100020)
+  $(pjnn 0 1)"
+  for n in 62 63 64; do
+    deck SYSCOL "P8N$n" "$(colag 16100020)
+  $(pjnn 8 $n)"
+  done
+  echo '$IBSYS'
+  echo '$ENDFILE       SYSPP1'
+} >edge.job
+LIMIT=300 sh "$here/run_ibsys.sh" "$kit" edge.job edge.lst "$kit/CTSYS1.BIN"
+grep '^\$CMPLE' edge.job | cut -c8-13 >names.txt
+grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' edge.lst >results.txt || true
+paste -d' ' names.txt results.txt
+exit
+fi
 if [ "$mode" = steps ]; then
 {
   echo '$EXECUTE       CT'
@@ -155,11 +186,7 @@ if [ "$mode" = steps ]; then
   for j in 1 2 4 8 16 32 64; do
     n=0
     while [ $n -le 64 ]; do
-      deck SYSCOL "P${j}N$n" "s == \"16100080\" { print
-        for (i = 0; i < $j; i++) print sprintf(\"%-72s\", \
-          \"       BSS     0\") \"16100081\"; next }
-      s >= \"16100090\" && s < \"$((16100090 + 10 * n))\" {
-        \$0 = sprintf(\"%-6s\", \"XL\" substr(s, 5, 3)) substr(\$0, 7) }"
+      deck SYSCOL "P${j}N$n" "$(pjnn $j $n)"
       n=$((n + 1))
     done
   done
