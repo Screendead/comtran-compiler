@@ -160,9 +160,11 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 
 M7-7 holds the library. Twelve unlabeled `BCI` cards lose their text
 (issue #234). Issue #236 asks Jack: label them, or patch the compiler.
-SUBUP waits on it. The `SYSCOL` fault recurs each 111 words of text
-(issues #242, #244). Next: the Mac runs the `ut1` probe; M7-7 says
-why.
+SUBUP waits on it. The `SYSCOL` fault has its cause (issue #248): a
+text 1 word past a block of 111 leaves a last tape record of two words,
+and IOEX discards it as noise. One label on a `SYSCOL` card cures it.
+Next: add that label to the library method with the twelve, and run
+the library job; M7-7 says why.
 
 ### Codegen defects the runtime exposed
 

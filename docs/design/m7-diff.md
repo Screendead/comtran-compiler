@@ -1225,3 +1225,111 @@ The results read as follows:
 
 The tape of `P8N63` must give the same reading as the tape of `L0`. If it
 does not, this record states the facts.
+
+**The result of the SYSUT1 probe (2026-11-21, issue #248).** The Mac ran
+`tool/m7/ct_probe.sh KIT ut1` on master at `dbcbb32`. All four compiles
+ran:
+
+| Deck | Result | Records of file 0 | Words of the last record | Bytes of the tape |
+|---|---|---|---|---|
+| `L0` | `ILLEGAL INTERNAL CONDITION` at 68, severity 5; dump at `LOC 13721` | 7 | 2 | 4046 |
+| `L1` | clean | 7 | 3 | 4052 |
+| `P8N63` | `ILLEGAL INTERNAL CONDITION` at 76, severity 5; dump at `LOC 13721` | 8 | 2 | 4718 |
+| `P8N64` | clean | 8 | 3 | 4724 |
+
+Each record of file 0 before the last holds 112 words. Its last word
+holds the block sequence number. File 0 ends with a file mark, and
+file 1 is empty.
+
+**How the text reads.** The writer and the reader show the form of a
+sentence on the tape (CC035520 to CC035580, CC012690 to CC012850):
+
+1. `CLINK`, an `IOCT LINK,,n` command. The reader reads this word into
+   the command at its own `CLINK` and executes it.
+2. `BLINK`. Its address holds the statement number.
+3. The n words of the sentence.
+
+The last two sentences of `L0` are both of statement 68 (octal 104):
+
+| Sentence | `CLINK` | `BLINK` | Words |
+|---|---|---|---|
+| first | `500002063622` | `500000000104` | `570000000032`, `770000000075` |
+| last | `500002063622` | `500000000104` | `400001000036`, `770000000075` |
+
+In `L0`, the `CLINK` and `BLINK` of the last sentence and its first word
+are the last three data words of record 0.5. Its second word,
+`770000000075`, is the one data word of record 0.6. In `L1` the label adds
+one word earlier in the text. Thus record 0.5 ends after `BLINK`, and
+record 0.6 holds both words of the sentence. `P8N63` and `P8N64` give the
+same two shapes one record later.
+
+This is the first reading of the probe: the tape holds the last sentence
+whole. The scanner wrote the words, and the reader lost them. The tape of
+`P8N63` gives the same reading.
+
+**The rule: a failing text is 1 word past a block.** `L0` holds
+6 × 111 + 1 = 667 words of text, and `P8N63` holds 7 × 111 + 1 = 778. Its
+last block thus holds one data word and the block sequence word: a record
+of two words. Each clean deck has a last record of three words. This agrees
+with the period of 111 words of the step probe.
+
+**What the source shows: a record of two words is noise.** The I/O
+executor of IBSYS, IOEX, tests the length of each tape record when the
+channel ends:
+
+- `NRTST` takes the word count of the record. A count above 2 is not
+  noise (IBB54050 to IBB54120).
+- `NTEST` takes a count of 0 as no record. A count of 1 or 2 turns off
+  the indicator 400000, "NOISE RECORD INDICATION" (IBB66641 to
+  IBB66643).
+- The select routine of IOCS then takes the second return, "DISCARD
+  NOISE RECORD", for a read (IOC60680 to IOC60740).
+- IOEX goes to `END11`, "STANDARD NOISE RECORD ACTION". For a read it
+  prints `REC DISCRDED-NOISE` and reads the next record (IBB53280,
+  IBB53460 to IBB53600, IBB61690).
+- For a write it issues `WROTE SHORT REC.` and goes on (IBB53500 to
+  IBB53510, IBB53610 to IBB53620, IBB61660).
+
+These cards are from `IBSYS/ibsys.map`, version 6, modification 11. The
+kit runs the nucleus of `ASYS1.BIN`, not that assembly. Thus this record
+checked the nucleus too. File 0, record 1 of `ASYS1.BIN` holds the same
+code: words 4557 to 4564 are `NRTST` with the test `TXH 1255,4,2`, and
+words 5214 to 5216 are `NTEST` with `TXL 1255,4,0` and `RIL 400000`.
+Both tests go to the same exit, 1255.
+
+**The cause of the `SYSCOL` fault.** The chain is now complete:
+
+1. The scanner writes the text in blocks of 111 words and a sequence
+   word. When the text is 1 word past a block, the last block is a
+   record of two words.
+2. On the read, IOEX discards that record as noise and reads the file
+   mark after it.
+3. The definition pass reads the header of the last sentence from the
+   block before. The read of its words then meets the end of file, at
+   `UNDAA`, and issues message 18, `KAPUT` (CC012820 to CC012850,
+   CC013040 to CC013050).
+
+A record of one data word can only hold the last word of a sentence,
+because each sentence starts with two words. Thus each such text loses
+the end of its last sentence and draws message 18. No such text compiles
+clean.
+
+The simulator does not cause this fault. The code that discards the
+record is in the system tape, and the archive holds the same code. Thus a
+1963 machine would discard the record too, if its tape unit ended the
+record at two words. This is a hypothesis about the real unit: the
+manuals and the archive do not show it. The fault can reach any compile
+under this system, the 90.05 job too, about one text in 111.
+
+**What the library needs.** `SYSCOL` must not leave a text 1 word past a
+block. A label on one card changes the length by one word, and `L1`
+proves that the deck then compiles clean. That change is of the kind
+that Jack chose for the twelve `BCI` cards (issue #236): the label goes in
+columns 1 to 6, and the compiler and the system stay as found. Thus the
+method gives card 16100090 the label `XL009`, as `L1` does. The change
+goes into `tool/m7/ct_library.sh` with the twelve labels of issue #236.
+
+**The next step.** The four `.lst` files of the probe hold the whole
+printer output. A search of them for `WROTE SHORT REC.` and
+`REC DISCRDED-NOISE` checks step 2 above. Then the library job runs with
+the thirteen labels.
