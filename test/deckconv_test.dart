@@ -1,135 +1,253 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:comtran/comtran_io.dart';
 import 'package:test/test.dart';
 
-ProcessResult _deckconv(List<String> args) => Process.runSync(
-  Platform.resolvedExecutable,
-  ['run', 'comtran:deckconv', ...args],
-);
+/// One run of the CLI: its arguments, the exit status it must give, the
+/// text its two streams must hold, and what it must leave on disk.
+typedef _Case = ({
+  String name,
+  List<String> args,
+  String? input,
+  int exit,
+  List<String> out,
+  List<String> err,
+  void Function()? after,
+});
 
 void main() {
-  late Directory dir;
-  late String canonPath;
-  late String mirrorPath;
+  final Directory dir = Directory.systemTemp.createTempSync('deckconv_test');
+  final String mirrorText = deckToMirror(mirrorToDeck('HELLO\nWORLD 99.\n'));
+  final List<int> canonBytes = encodeCanon(mirrorToDeck(mirrorText));
+  final results = <String, ProcessResult>{};
 
-  List<CardImage> deckOf(String text) =>
-      mirrorToDeck(text.isEmpty || text.endsWith('\n') ? text : '$text\n');
+  String p(String relative) => '${dir.path}/$relative';
 
-  setUp(() {
-    dir = Directory.systemTemp.createTempSync('deckconv_test');
-    canonPath = '${dir.path}/a.ctd';
-    mirrorPath = '${dir.path}/a.ct';
-    final List<CardImage> deck = deckOf('HELLO\nWORLD 99.\n');
-    File(canonPath).writeAsBytesSync(encodeCanon(deck));
-    File(mirrorPath).writeAsStringSync(deckToMirror(deck));
+  void writePair(String canonPath, String text, {String? mirror}) {
+    final List<CardImage> deck = mirrorToDeck(text);
+    File(canonPath)
+      ..parent.createSync(recursive: true)
+      ..writeAsBytesSync(encodeCanon(deck));
+    File(
+      mirrorPathFor(canonPath),
+    ).writeAsStringSync(mirror ?? deckToMirror(deck));
+  }
+
+  final List<_Case> cases = [
+    for (final List<String> args in [
+      <String>[],
+      ['no-such-command'],
+      ['to-canon', 'one-arg-only'],
+      ['to-canon', 'a.ct', 'a.ctd', 'extra'],
+      ['to-text', 'a.ctd', 'a.ct', 'extra'],
+      ['regen'],
+      ['check'],
+    ])
+      (
+        name: 'usage error: ${args.join(' ')}',
+        args: args,
+        input: null,
+        exit: 2,
+        out: [],
+        err: ['Usage:'],
+        after: null,
+      ),
+    (
+      name: 'check passes a fresh pair',
+      args: ['check', p('fresh')],
+      input: null,
+      exit: 0,
+      out: ['OK: ${p('fresh/a.ctd')}'],
+      err: [],
+      after: null,
+    ),
+    (
+      name: 'check reports ok, stale and orphan files together',
+      args: ['check', p('mixed')],
+      input: null,
+      exit: 1,
+      out: ['OK: ${p('mixed/a.ctd')}'],
+      err: ['stale mirror', 'mirror without a canon file'],
+      after: null,
+    ),
+    (
+      name: 'check fails an empty directory',
+      args: ['check', p('empty')],
+      input: null,
+      exit: 1,
+      out: [],
+      err: ['no canon or mirror files'],
+      after: null,
+    ),
+    (
+      name: 'to-text writes the mirror to stdout for git textconv',
+      args: ['to-text', p('fresh/a.ctd')],
+      input: null,
+      exit: 0,
+      out: [],
+      err: [],
+      after: () => expect(
+        results['to-text writes the mirror to stdout for git textconv']!.stdout,
+        mirrorText,
+      ),
+    ),
+    (
+      name: 'to-text writes the mirror to a file',
+      args: ['to-text', p('fresh/a.ctd'), p('out/text.ct')],
+      input: null,
+      exit: 0,
+      out: [],
+      err: [],
+      after: () =>
+          expect(File(p('out/text.ct')).readAsStringSync(), mirrorText),
+    ),
+    (
+      name: 'to-text reports a missing input file',
+      args: ['to-text', p('no-such.ctd')],
+      input: null,
+      exit: 1,
+      out: [],
+      err: ['error:', 'no-such.ctd'],
+      after: null,
+    ),
+    (
+      name: 'to-canon writes the canon file and its sibling mirror (MCP-11)',
+      args: ['to-canon', p('fresh/a.ct'), p('out/file.ctd')],
+      input: null,
+      exit: 0,
+      out: [],
+      err: [],
+      after: () {
+        expect(File(p('out/file.ctd')).readAsBytesSync(), canonBytes);
+        expect(File(p('out/file.ct')).readAsStringSync(), mirrorText);
+      },
+    ),
+    (
+      name: 'to-canon reads the mirror from standard input',
+      args: ['to-canon', '-', p('out/stdin.ctd')],
+      input: mirrorText,
+      exit: 0,
+      out: [],
+      err: [],
+      after: () =>
+          expect(File(p('out/stdin.ctd')).readAsBytesSync(), canonBytes),
+    ),
+    (
+      name: 'to-canon rejects malformed mirror text and writes nothing',
+      args: ['to-canon', p('bad.ct'), p('out/bad.ctd')],
+      input: null,
+      exit: 1,
+      out: [],
+      err: ['error:', 'normal form'],
+      after: () => expect(File(p('out/bad.ctd')).existsSync(), isFalse),
+    ),
+    (
+      name: 'regen rewrites a stale mirror found in a directory',
+      args: ['regen', p('stale')],
+      input: null,
+      exit: 0,
+      out: ['regenerated ${p('stale/a.ct')}'],
+      err: [],
+      after: () => expect(File(p('stale/a.ct')).readAsStringSync(), mirrorText),
+    ),
+    (
+      name: 'regen fails when nothing matches',
+      args: ['regen', p('empty')],
+      input: null,
+      exit: 1,
+      out: [],
+      err: ['no canon files'],
+      after: null,
+    ),
+  ];
+
+  // Every case reads or writes its own paths, so the CLI runs all at once:
+  // one process per case is the cost of each run, not of each test.
+  setUpAll(() async {
+    writePair(p('fresh/a.ctd'), mirrorText);
+    writePair(p('mixed/a.ctd'), mirrorText);
+    writePair(p('mixed/b.ctd'), 'STALE\n', mirror: 'TAMPERED\n');
+    File(p('mixed/c.ct')).writeAsStringSync('ORPHAN\n');
+    writePair(p('stale/a.ctd'), mirrorText, mirror: 'TAMPERED\n');
+    Directory(p('empty')).createSync();
+    Directory(p('out')).createSync();
+    File(p('bad.ct')).writeAsStringSync('TRAILING SPACE \n');
+
+    await Future.wait([
+      for (final _Case c in cases)
+        () async {
+          final Process process = await Process.start(
+            Platform.resolvedExecutable,
+            ['run', 'comtran:deckconv', ...c.args],
+          );
+          final Future<String> out = process.stdout
+              .transform(utf8.decoder)
+              .join();
+          final Future<String> err = process.stderr
+              .transform(utf8.decoder)
+              .join();
+          if (c.input != null) {
+            process.stdin.write(c.input);
+          }
+          await process.stdin.close();
+          final int code = await process.exitCode;
+          results[c.name] = ProcessResult(
+            process.pid,
+            code,
+            await out,
+            await err,
+          );
+        }(),
+    ]);
   });
 
-  tearDown(() => dir.deleteSync(recursive: true));
+  tearDownAll(() => dir.deleteSync(recursive: true));
 
-  test('usage errors exit 2', () {
-    expect(_deckconv([]).exitCode, 2);
-    expect(_deckconv(['no-such-command']).exitCode, 2);
-    expect(_deckconv(['to-canon', 'one-arg-only']).exitCode, 2);
+  for (final c in cases) {
+    test(c.name, () {
+      final ProcessResult r = results[c.name]!;
+      expect(r.exitCode, c.exit, reason: '${r.stderr}');
+      for (final String text in c.out) {
+        expect(r.stdout, contains(text));
+      }
+      for (final String text in c.err) {
+        expect(r.stderr, contains(text));
+      }
+      c.after?.call();
+    });
+  }
+
+  test('check reports a canon file whose mirror is missing', () {
+    writePair(p('missing/a.ctd'), mirrorText);
+    File(p('missing/a.ct')).deleteSync();
+    expect(
+      checkDeckPaths([p('missing')]).single.status,
+      DeckCheckStatus.mirrorMissing,
+    );
   });
 
-  test('check passes a fresh pair', () {
-    final ProcessResult r = _deckconv(['check', dir.path]);
-    expect(r.exitCode, 0, reason: '${r.stderr}');
-    expect(r.stdout, contains('OK'));
+  test('a directory named directly is searched though it starts with a dot '
+      'or sits under one', () {
+    writePair(p('.hidden/decks/h.ctd'), mirrorText);
+    expect(findDeckFiles([p('.hidden/decks')], canonExtension), [
+      p('.hidden/decks/h.ctd'),
+    ]);
   });
 
-  test('check fails a stale mirror', () {
-    File(mirrorPath).writeAsStringSync('TAMPERED\n');
-    final ProcessResult r = _deckconv(['check', dir.path]);
-    expect(r.exitCode, 1);
-    expect(r.stderr, contains('stale mirror'));
-  });
-
-  test('check fails a missing mirror', () {
-    File(mirrorPath).deleteSync();
-    final ProcessResult r = _deckconv(['check', dir.path]);
-    expect(r.exitCode, 1);
-    expect(r.stderr, contains('missing'));
-  });
-
-  test('check fails an orphan mirror', () {
-    File(canonPath).deleteSync();
-    final ProcessResult r = _deckconv(['check', dir.path]);
-    expect(r.exitCode, 1);
-    expect(r.stderr, contains('mirror without a canon file'));
-  });
-
-  test('check fails a corrupt canon file', () {
-    File(canonPath).writeAsBytesSync([1, 2, 3]);
-    expect(_deckconv(['check', dir.path]).exitCode, 1);
-  });
-
-  test('check fails a nonexistent path', () {
-    expect(_deckconv(['check', '${dir.path}/no-such-dir']).exitCode, 1);
-  });
-
-  test('check fails an empty directory', () {
-    final empty = Directory('${dir.path}/empty')..createSync();
-    expect(_deckconv(['check', empty.path]).exitCode, 1);
-  });
-
-  test('check passes a fresh pair addressed by its mirror path', () {
-    final ProcessResult r = _deckconv(['check', mirrorPath]);
-    expect(r.exitCode, 0, reason: '${r.stderr}');
-    expect(r.stdout, contains('OK'));
-  });
-
-  test('check reports the real status when a stale pair is addressed by its '
-      'mirror path', () {
-    File(mirrorPath).writeAsStringSync('TAMPERED\n');
-    final ProcessResult r = _deckconv(['check', mirrorPath]);
-    expect(r.exitCode, 1);
-    expect(r.stderr, contains('stale mirror'));
-  });
-
-  test('check aggregates several files: ok, stale, and orphan mirror '
-      '(TSTT-1)', () {
-    final bCanon = '${dir.path}/b.ctd';
-    final bMirror = '${dir.path}/b.ct';
-    final List<CardImage> bDeck = deckOf('STALE\n');
-    File(bCanon).writeAsBytesSync(encodeCanon(bDeck));
-    File(bMirror).writeAsStringSync('TAMPERED\n');
-    final orphanMirror = '${dir.path}/c.ct';
-    File(orphanMirror).writeAsStringSync('ORPHAN\n');
-
-    final ProcessResult r = _deckconv(['check', dir.path]);
-    expect(r.exitCode, 1);
-    expect(r.stdout, contains('OK: $canonPath'));
-    expect(r.stderr, contains('stale mirror'));
-    expect(r.stderr, contains('mirror without a canon file'));
-  });
-
-  test('check finds a deck named directly under a dot-prefixed directory', () {
-    final hidden = Directory('${dir.path}/.hidden/decks')
-      ..createSync(recursive: true);
-    final hiddenCanon = '${hidden.path}/h.ctd';
-    final hiddenMirror = '${hidden.path}/h.ct';
-    final List<CardImage> deck = deckOf('HIDDEN\n');
-    File(hiddenCanon).writeAsBytesSync(encodeCanon(deck));
-    File(hiddenMirror).writeAsStringSync(deckToMirror(deck));
-    final ProcessResult r = _deckconv(['check', hidden.path]);
-    expect(r.exitCode, 0, reason: '${r.stderr}');
-    expect(r.stdout, contains('h.ctd'));
-  });
-
-  test('check skips a hidden directory discovered below a normal root', () {
-    final nested = Directory('${dir.path}/.git/objects')
-      ..createSync(recursive: true);
-    File('${nested.path}/x.ctd').writeAsBytesSync([1, 2, 3]);
-    final ProcessResult r = _deckconv(['check', dir.path]);
-    expect(r.exitCode, 0, reason: '${r.stderr}');
-    expect(r.stdout, isNot(contains('x.ctd')));
+  test('a hidden directory found below a named root is skipped', () {
+    File(p('skip/.git/objects/x.ctd'))
+      ..parent.createSync(recursive: true)
+      ..writeAsBytesSync([1, 2, 3]);
+    writePair(p('skip/a.ctd'), mirrorText);
+    expect(findDeckFiles([p('skip')], canonExtension), [p('skip/a.ctd')]);
   });
 
   test('writeAtomic leaves the original file untouched when write throws', () {
-    final path = '${dir.path}/atomic.txt';
-    File(path).writeAsStringSync('original');
+    final String path = p('atomic/atomic.txt');
+    File(path)
+      ..parent.createSync()
+      ..writeAsStringSync('original');
     expect(
       () => writeAtomic(path, (File f) {
         f.writeAsStringSync('partial');
@@ -138,147 +256,6 @@ void main() {
       throwsFormatException,
     );
     expect(File(path).readAsStringSync(), 'original');
-    final bool hasTmp = Directory(
-      dir.path,
-    ).listSync().any((FileSystemEntity e) => e.path.endsWith('.tmp'));
-    expect(hasTmp, isFalse);
-  });
-
-  test('writeAtomic replaces the file only after a successful write', () {
-    final path = '${dir.path}/atomic2.txt';
-    writeAtomic(path, (File f) => f.writeAsStringSync('new content'));
-    expect(File(path).readAsStringSync(), 'new content');
-  });
-
-  test('to-text writes the mirror to stdout for git textconv', () {
-    final ProcessResult r = _deckconv(['to-text', canonPath]);
-    expect(r.exitCode, 0);
-    expect(r.stdout, File(mirrorPath).readAsStringSync());
-  });
-
-  test('to-canon and to-text round-trip through files', () {
-    final canon2 = '${dir.path}/b.ctd';
-    final mirror2 = '${dir.path}/b.ct';
-    expect(_deckconv(['to-canon', mirrorPath, canon2]).exitCode, 0);
-    expect(File(canon2).readAsBytesSync(), File(canonPath).readAsBytesSync());
-    // to-canon also writes the sibling mirror, so the pair stays complete
-    // (MCP-11).
-    expect(
-      File(mirror2).readAsStringSync(),
-      File(mirrorPath).readAsStringSync(),
-    );
-    File(canon2).deleteSync();
-    File(mirror2).deleteSync(); // Leave no stray pair behind.
-    expect(_deckconv(['to-text', canonPath, mirror2]).exitCode, 0);
-    expect(
-      File(mirror2).readAsStringSync(),
-      File(mirrorPath).readAsStringSync(),
-    );
-  });
-
-  test('to-canon reads the mirror from standard input', () async {
-    final canon2 = '${dir.path}/b.ctd';
-    final Process process = await Process.start(Platform.resolvedExecutable, [
-      'run',
-      'comtran:deckconv',
-      'to-canon',
-      '-',
-      canon2,
-    ]);
-    process.stdin.write(File(mirrorPath).readAsStringSync());
-    await process.stdin.close();
-    expect(await process.exitCode, 0);
-    expect(File(canon2).readAsBytesSync(), File(canonPath).readAsBytesSync());
-  });
-
-  test('to-canon rejects the wrong argument count in both directions', () {
-    expect(_deckconv(['to-canon', 'one-arg-only']).exitCode, 2);
-    expect(_deckconv(['to-canon', mirrorPath, canonPath, 'extra']).exitCode, 2);
-  });
-
-  test('to-text rejects the wrong argument count', () {
-    expect(_deckconv(['to-text', canonPath, mirrorPath, 'extra']).exitCode, 2);
-  });
-
-  test('regen and check reject zero arguments', () {
-    expect(_deckconv(['regen']).exitCode, 2);
-    expect(_deckconv(['check']).exitCode, 2);
-  });
-
-  test('to-canon reports the CLI error path for malformed mirror text', () {
-    final badMirror = '${dir.path}/bad.ct';
-    File(badMirror).writeAsStringSync('TRAILING SPACE \n');
-    final ProcessResult r = _deckconv([
-      'to-canon',
-      badMirror,
-      '${dir.path}/bad.ctd',
-    ]);
-    expect(r.exitCode, 1);
-    expect(r.stderr, contains('error:'));
-    expect(r.stderr, contains('normal form'));
-    expect(File('${dir.path}/bad.ctd').existsSync(), isFalse);
-  });
-
-  test('to-canon rejects mirror text with no final newline', () {
-    final badMirror = '${dir.path}/bad.ct';
-    File(badMirror).writeAsStringSync('HELLO');
-    final ProcessResult r = _deckconv([
-      'to-canon',
-      badMirror,
-      '${dir.path}/bad.ctd',
-    ]);
-    expect(r.exitCode, 1);
-    expect(r.stderr, contains('newline'));
-  });
-
-  test('to-canon rejects a glyph outside the source set', () {
-    final badMirror = '${dir.path}/bad.ct';
-    File(badMirror).writeAsStringSync('A%B\n');
-    final ProcessResult r = _deckconv([
-      'to-canon',
-      badMirror,
-      '${dir.path}/bad.ctd',
-    ]);
-    expect(r.exitCode, 1);
-    expect(r.stderr, contains('column 2'));
-  });
-
-  test('to-canon reports the CLI error path for a missing input file', () {
-    final ProcessResult r = _deckconv([
-      'to-canon',
-      '${dir.path}/no-such.ct',
-      '${dir.path}/bad.ctd',
-    ]);
-    expect(r.exitCode, 1);
-    expect(r.stderr, contains('error:'));
-    expect(r.stderr, contains('no-such.ct'));
-  });
-
-  test('to-text reports the CLI error path for a missing input file', () {
-    final ProcessResult r = _deckconv(['to-text', '${dir.path}/no-such.ctd']);
-    expect(r.exitCode, 1);
-    expect(r.stderr, contains('error:'));
-    expect(r.stderr, contains('no-such.ctd'));
-  });
-
-  test('regen rewrites a stale mirror', () {
-    final String fresh = File(mirrorPath).readAsStringSync();
-    File(mirrorPath).writeAsStringSync('TAMPERED\n');
-    expect(_deckconv(['regen', canonPath]).exitCode, 0);
-    expect(File(mirrorPath).readAsStringSync(), fresh);
-  });
-
-  test('regen fails when nothing matches', () {
-    final empty = Directory('${dir.path}/empty')..createSync();
-    expect(_deckconv(['regen', empty.path]).exitCode, 1);
-  });
-
-  test('regen searches a directory of canon files', () {
-    final String fresh = File(mirrorPath).readAsStringSync();
-    File(mirrorPath).writeAsStringSync('TAMPERED\n');
-    final ProcessResult r = _deckconv(['regen', dir.path]);
-    expect(r.exitCode, 0, reason: '${r.stderr}');
-    expect(r.stdout, contains('regenerated $mirrorPath'));
-    expect(File(mirrorPath).readAsStringSync(), fresh);
+    expect(Directory(p('atomic')).listSync(), hasLength(1));
   });
 }

@@ -45,10 +45,6 @@ void main() {
     });
 
     test("STO* indirects through the indirect word's own tag", () {
-      // TSTC-07: indirect addressing is tested only on TRA; the store
-      // side is untested, so a wrong-cell indirect write would go
-      // undetected. The indirect shape mirrors the TRA* test
-      // (test/emulator/cpu_transfer_index_test.dart).
       m
         ..acSign = 1
         ..acMagnitude = 5

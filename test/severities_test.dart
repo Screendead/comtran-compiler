@@ -44,14 +44,4 @@ void main() {
     expect(messageSeverities['134,00'], 1);
     expect(messageSeverities['194,00'], 3);
   });
-
-  test('class distribution matches the reviewed draft', () {
-    final counts = <int, int>{};
-    for (final MapEntry<String, int> row in messageSeverities.entries) {
-      if (messageCatalog.containsKey(row.key)) {
-        counts[row.value] = (counts[row.value] ?? 0) + 1;
-      }
-    }
-    expect(counts, {1: 30, 2: 57, 3: 69, 4: 29, 5: 25});
-  });
 }

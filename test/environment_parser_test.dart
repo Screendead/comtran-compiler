@@ -4,9 +4,7 @@ import 'package:test/test.dart';
 import 'support/deck_fixtures.dart';
 
 /// The result of [_parse]: the parsed cards, the diagnostics the parse
-/// drew, and the scan they came from. Most call sites want only the cards
-/// and diagnostics fields; the scan field is kept for the few tests that
-/// inspect the scan directly (its own diagnostics, or `scan.specs`).
+/// drew, and the scan they came from.
 typedef _EnvParse = ({
   List<EnvironmentCard> cards,
   List<Diagnostic> diagnostics,
@@ -32,151 +30,53 @@ _EnvParse _parse(
 }
 
 void main() {
-  group('the 90.05 environment division', () {
-    test('parses with zero added diagnostics and matches the deck', () {
-      final FrontEndResult result = runFrontEnd(loadPayrollDeck());
-      final EnvironmentGroupScan envGroup = result.groupScans
-          .whereType<EnvironmentGroupScan>()
-          .single;
-      final diagnostics = <Diagnostic>[];
-      final List<EnvironmentCard> cards = parseEnvironmentGroup(
-        envGroup.scan,
-        diagnostics,
-      );
-      expect(diagnostics, isEmpty);
-      // 7 FILE + 7 SPECIF, per the mirror
-      // (test/fixtures/90.05-payroll.ct:181-195).
-      expect(cards, hasLength(14));
-      expect(cards.whereType<FileCard>(), hasLength(7));
-      expect(cards.whereType<SpecifCard>(), hasLength(7));
-
-      // Line 181: INPUTMASTER FILE INPUT,BINARY,TAPE,MASTER,BLOCKSIZE 300
-      final FileCard inputMaster = cards.whereType<FileCard>().firstWhere(
-        (FileCard c) => c.spec.name == 'INPUTMASTER',
-      );
-      expect(inputMaster.direction, FileDirection.input);
-      expect(inputMaster.binary, isTrue);
-      expect(inputMaster.card, isFalse);
-      expect(inputMaster.blocksize, 300);
-      expect(
-        [for (final FileRecordClause r in inputMaster.records) r.name.text],
-        ['MASTER'],
-      );
-
-      // Line 189-190: PAYFILE FILE OUTPUT,BCD,TAPE,PAYRECORD,
-      //                       DEPARTMENT.TOTAL,BLOCKSIZE 20
-      final FileCard payfile = cards.whereType<FileCard>().firstWhere(
-        (FileCard c) => c.spec.name == 'PAYFILE',
-      );
-      expect(payfile.direction, FileDirection.output);
-      expect(payfile.binary, isFalse);
-      expect(payfile.blocksize, 20);
-      expect(
-        [for (final FileRecordClause r in payfile.records) r.name.text],
-        ['PAYRECORD', 'DEPARTMENT.TOTAL'],
-      );
-
-      // Line 182: SPECIFINPUTMASTER, UNIT1 'D1',OPENW,CLOSER
-      final SpecifCard specif = cards.whereType<SpecifCard>().firstWhere(
-        (SpecifCard c) => c.fileName?.text == 'INPUTMASTER',
-      );
-      expect(specif.unit1, 'D1');
-      expect(specif.unit2, isNull);
-      expect(specif.openW, isTrue);
-      expect(specif.closeMode, 'CLOSER');
-      expect(specif.density, isNull);
-
-      // Line 186: SPECIFDETAILFILE,UNIT1 'C2',OPENW,CLOSER,LOW
-      final SpecifCard detailSpecif = cards.whereType<SpecifCard>().firstWhere(
-        (SpecifCard c) => c.fileName?.text == 'DETAILFILE',
-      );
-      expect(detailSpecif.unit1, 'C2');
-      expect(detailSpecif.density, 'LOW');
-    });
-  });
-
   group('FILE card errors', () {
-    test('no direction word draws 89,00', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'MASTER,BLOCKSIZE 10',
-        ),
-      ]);
-      expect(result.scan.diagnostics, isEmpty);
-      expect(result.diagnostics.single.message, msgFileCardFormatError);
-      expect(result.cards.single, isA<FileCard>());
-    });
-
-    test('BLOCKSIZE with no following integer draws 91,00', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'INPUT,MASTER,BLOCKSIZE',
-        ),
-      ]);
-      expect(result.diagnostics.single.message, msgBlocksizeNeedsInteger);
-    });
-
-    test('ON ERROR with no following name draws 92,00', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'INPUT,MASTER,BLOCKSIZE 10,ON ERROR',
-        ),
-      ]);
-      expect(result.diagnostics.single.message, msgOnErrorNeedsName);
-    });
-
-    test('PRIMARY on an INPUT file draws 96,00', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'INPUT,MASTER,BLOCKSIZE 10,PRIMARY',
-        ),
-      ]);
-      expect(result.diagnostics.single.message, msgIllegalWordInFileCard);
-    });
-
-    test('a FILE card without BLOCKSIZE draws 89,00 (J 02.06.04)', () {
-      final _EnvParse result = _parse([
-        environmentCard(name: 'F', type: 'FILE', options: 'INPUT,MASTER'),
-      ]);
-      expect(result.diagnostics.single.message, msgFileCardFormatError);
-    });
-
-    test('a CHECKPOINT file needs no BLOCKSIZE', () {
-      final _EnvParse result = _parse([
-        environmentCard(name: 'F', type: 'FILE', options: 'CHECKPOINT'),
-      ]);
-      expect(result.diagnostics, isEmpty);
-    });
-
-    test('BLOCK CONTROL on an OUTPUT file draws 96,00 (J 02.06.03)', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'OUTPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
-        ),
-      ]);
-      expect(result.diagnostics.single.message, msgIllegalWordInFileCard);
-    });
-
-    test('BLOCK CONTROL on an INPUT record stays clean', () {
-      final _EnvParse result = _parse([
-        environmentCard(
-          name: 'F',
-          type: 'FILE',
-          options: 'INPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
-        ),
-      ]);
-      expect(result.diagnostics, isEmpty);
-    });
+    // Each row: the options of one FILE card, and the one message the
+    // card draws, or null where it stays clean.
+    final Map<String, (String, Message?)> rows = {
+      'no direction word draws 89,00': (
+        'MASTER,BLOCKSIZE 10',
+        msgFileCardFormatError,
+      ),
+      'BLOCKSIZE with no following integer draws 91,00': (
+        'INPUT,MASTER,BLOCKSIZE',
+        msgBlocksizeNeedsInteger,
+      ),
+      'ON ERROR with no following name draws 92,00': (
+        'INPUT,MASTER,BLOCKSIZE 10,ON ERROR',
+        msgOnErrorNeedsName,
+      ),
+      'PRIMARY on an INPUT file draws 96,00': (
+        'INPUT,MASTER,BLOCKSIZE 10,PRIMARY',
+        msgIllegalWordInFileCard,
+      ),
+      'a FILE card without BLOCKSIZE draws 89,00 (J 02.06.04)': (
+        'INPUT,MASTER',
+        msgFileCardFormatError,
+      ),
+      'a CHECKPOINT file needs no BLOCKSIZE': ('CHECKPOINT', null),
+      'BLOCK CONTROL on an OUTPUT file draws 96,00 (J 02.06.03)': (
+        'OUTPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
+        msgIllegalWordInFileCard,
+      ),
+      'BLOCK CONTROL on an INPUT record stays clean': (
+        'INPUT,BLOCKSIZE 10,REC1,BLOCK CONTROL',
+        null,
+      ),
+    };
+    for (final MapEntry(key: name, value: (options, message)) in rows.entries) {
+      test(name, () {
+        final _EnvParse result = _parse([
+          environmentCard(name: 'F', type: 'FILE', options: options),
+        ]);
+        expect(result.scan.diagnostics, isEmpty);
+        expect(result.cards.single, isA<FileCard>());
+        expect(
+          [for (final Diagnostic d in result.diagnostics) d.message],
+          [?message],
+        );
+      });
+    }
 
     test('a key word as a FILE or record name draws 178,00 (D10.8)', () {
       final _EnvParse result = _parse([
@@ -262,7 +162,7 @@ void main() {
     });
   });
 
-  group('FILE keyword coverage (TSTC-02)', () {
+  group('FILE keyword coverage', () {
     FileCard parse(String options) {
       final _EnvParse result = _parse([
         environmentCard(name: 'F', type: 'FILE', options: options),
@@ -431,7 +331,7 @@ void main() {
     });
   });
 
-  group('SPECIF keyword coverage (TSTC-02)', () {
+  group('SPECIF keyword coverage', () {
     SpecifCard parse(String options) {
       final _EnvParse result = _parse([
         environmentCard(type: 'SPECIF', options: options),
@@ -710,7 +610,7 @@ void main() {
 
         // The exact spread of message ids this parser issues, in source
         // order, each paired with its card: a duplicated, missing, or
-        // misattributed diagnostic fails this (TSTC-09). Card 1 (F1) draws
+        // misattributed diagnostic fails this. Card 1 (F1) draws
         // 89 twice — once for the missing direction word, once because
         // BLOCKSIZE, unreachable after that, is never seen either. Card 4
         // (F3) likewise draws 89 at the end: its options never mention

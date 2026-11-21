@@ -75,7 +75,7 @@ void main() {
     });
 
     test('at location zero, the return index wraps to zero', () {
-      // TSTC-08: 0x8000 - 0 masks to 0, not 0x8000.
+      // 0x8000 - 0 masks to 0, not 0x8000.
       m
         ..write(0x000, typeB(0x03C, address: 0x300, tag: 4))
         ..ic = 0x000;
@@ -262,8 +262,6 @@ void main() {
     });
 
     test("CAS* indirects through the indirect word's own tag", () {
-      // TSTC-07: indirect addressing is tested only on TRA; this pins it
-      // for a compare. The indirect shape mirrors the TRA* test above.
       m
         ..acMagnitude = 5
         ..xrWrite(1, 3)

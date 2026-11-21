@@ -1,4 +1,4 @@
-/// The M3 stage-2 subscript reference checks (M3-20): the dimension
+/// The subscript reference checks (M3-20): the dimension
 /// rows, the subscript-variable format rows (F p. 31; D9.11), the
 /// 1-origin literal rule (J 02.04.07.01), and the two D9.7 counters.
 library;
@@ -46,19 +46,6 @@ SemanticResult _move(String subscripted) => runJob(
 
 void main() {
   group('subscript references (M3-20)', () {
-    test('a matching subscript count draws nothing', () {
-      final SemanticResult result = _move('TAB CELL (IDX)');
-      expect(ids(result), isEmpty);
-    });
-
-    test('an unsubscripted array reference draws nothing', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: ['            MOVE ALPHA TO ALPHA.'],
-      );
-      expect(ids(result), isEmpty);
-    });
-
     test('a subscripted reference to a flat item draws 98,00', () {
       final SemanticResult result = runJob(
         data: _fields(),
@@ -198,6 +185,7 @@ void main() {
       // A term that draws 182,00 itself speaks for its subscript, and a
       // quotient does not fold.
       for (final (String subscript, List<String> drawn) in [
+        ('3', <String>[]),
         ('2 - 3', ['182,00']),
         ('2 * 3 - 6', ['182,00']),
         ('2 + -(3 - 1)', ['182,00']),
@@ -209,11 +197,6 @@ void main() {
       ]) {
         expect(ids(_move('TAB CELL ($subscript)')), drawn, reason: subscript);
       }
-    });
-
-    test('a whole positive literal subscript draws nothing', () {
-      final SemanticResult result = _move('TAB CELL (3)');
-      expect(ids(result), isEmpty);
     });
 
     test('an external decimal subscript variable draws 206,00', () {

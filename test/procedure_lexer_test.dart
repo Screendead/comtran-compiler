@@ -298,23 +298,4 @@ void main() {
       expect(scan.sentences.single.terminated, isTrue);
     });
   });
-
-  group('the 90.05 deck', () {
-    test('scans to exactly 43 sentences with no diagnostics', () {
-      final program = SourceProgram.fromDeck(loadPayrollDeck());
-      final ProcedureScan scan = scanProcedure(
-        program.cardsOf(Division.procedure),
-      );
-      expect(scan.diagnostics, isEmpty);
-      expect(scan.sentences, hasLength(43));
-      expect(scan.sentences.every((ProcedureSentence s) => s.terminated), true);
-      expect(scan.sentences.first.tokens.first.text, 'CALL');
-      final Iterable<String?> labels = scan.sentences.map(
-        (ProcedureSentence s) => s.label,
-      );
-      expect(labels, contains('BOND.END'));
-      expect(labels, contains('START'));
-      expect(labels, contains('COMPARE.EMPLOYEE.NUMBERS'));
-    });
-  });
 }

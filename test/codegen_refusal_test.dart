@@ -1,10 +1,7 @@
-/// The refusal sites of chunks B1 through B6 (M4-2 as amended
-/// 2026-08-15):
-/// a valid shape the sample never reaches has no attested generated
-/// form, so the sizers throw [UnrecoveredShape] rather than invent one.
-/// Every site a valid program reaches is pinned here, one program per
-/// site; the driver's per-job scoping of the refusal is in
-/// `driver_test.dart`.
+/// The refusal sites (M4-2 as amended): a valid shape the sample never
+/// reaches has no attested generated form, so the sizers throw
+/// [UnrecoveredShape] rather than invent one. Every site a valid program
+/// reaches has one program here.
 library;
 
 import 'package:comtran/comtran.dart';
@@ -722,8 +719,8 @@ void main() {
     });
 
     test('a SET into an external-decimal subscript variable', () {
-      // The SET now recomputes the indicators its target drives, as the
-      // MOVE does, and the recomputation reads the variable as binary.
+      // The SET recomputes the indicators its target drives, as the MOVE
+      // does, and the recomputation reads the variable as binary.
       expect(
         _refuses(
           [
@@ -1434,8 +1431,7 @@ void main() {
 
     group('a table stride of part of a word (M6-9)', () {
       // An element of 11 characters, as the corpus's TABLE.ITEM: a word
-      // of internal decimal and five characters. Codegen defect 7
-      // stepped it one word.
+      // of internal decimal and five characters (codegen defect 7).
       final List<String> data = [
         ..._data(),
         dataCard(name: 'T11', level: '1', quantity: '12'),

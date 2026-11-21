@@ -1,9 +1,3 @@
-// TSTC-06: `machine_state.dart` had no test file. Line coverage on the
-// guard clauses overstated the truth (`RangeError.checkValueInInterval`
-// runs on every CPU step and so counts as hit whether or not it throws).
-// This file states the throw behavior directly, plus the tag-0
-// no-operation rule and the register accessors that the CPU opcode tests
-// only ever exercise indirectly (through STO and SLW).
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
 

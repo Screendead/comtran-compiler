@@ -51,42 +51,27 @@ const FIXTURE_MAP = {
   },
 };
 
-test('finds a two-component J code', () => {
-  const [citation] = findCitations('See J 02.03 for the rule.');
-  assert.equal(citation.key, 'J:02.03');
-  assert.equal(citation.text, 'J 02.03');
-});
-
-test('finds a three-component J code', () => {
-  const [citation] = findCitations('See J 02.03.02 for the rule.');
-  assert.equal(citation.key, 'J:02.03.02');
-  assert.equal(citation.text, 'J 02.03.02');
+test('finds a J code or an F page or range, keyed on its first page', () => {
+  for (const [line, key, text, pages] of [
+    ['See J 02.03 for the rule.', 'J:02.03', 'J 02.03'],
+    ['See J 02.03.02 for the rule.', 'J:02.03.02', 'J 02.03.02'],
+    ['See F p. 42 for the table.', 'F:42', 'F p. 42', { from: 42, to: 42 }],
+    ['See F pp. 50–51 for the SET command.', 'F:50', 'F pp. 50–51', { from: 50, to: 51 }],
+    ['See F pp. 50-51 for the SET command.', 'F:50', 'F pp. 50-51', { from: 50, to: 51 }],
+  ]) {
+    const [citation] = findCitations(line);
+    assert.equal(citation.key, key, line);
+    assert.equal(citation.text, text, line);
+    if (pages) {
+      assert.deepEqual(citation.pages, pages, line);
+    }
+  }
 });
 
 test('a lettered subsection does not match as a prefix of itself', () => {
   // "J 02.07.F" is not a canonical numeric code; it must not be read as
   // "J 02.07" with the ".F" left dangling.
   assert.deepEqual(findCitations('See J 02.07.F for the block.'), []);
-});
-
-test('finds an F single page', () => {
-  const [citation] = findCitations('See F p. 42 for the table.');
-  assert.equal(citation.key, 'F:42');
-  assert.equal(citation.text, 'F p. 42');
-  assert.deepEqual(citation.pages, { from: 42, to: 42 });
-});
-
-test('finds an F en-dash page range, keyed on the first page', () => {
-  const [citation] = findCitations('See F pp. 50–51 for the SET command.');
-  assert.equal(citation.key, 'F:50');
-  assert.equal(citation.text, 'F pp. 50–51');
-  assert.deepEqual(citation.pages, { from: 50, to: 51 });
-});
-
-test('finds an F hyphen page range, keyed on the first page', () => {
-  const [citation] = findCitations('See F pp. 50-51 for the SET command.');
-  assert.equal(citation.key, 'F:50');
-  assert.deepEqual(citation.pages, { from: 50, to: 51 });
 });
 
 test('finds every citation in a line with more than one', () => {
@@ -96,21 +81,10 @@ test('finds every citation in a line with more than one', () => {
   assert.equal(citations[1].key, 'F:42');
 });
 
-test('resolves a known J code against the map', () => {
-  const entry = resolveCitation(FIXTURE_MAP, 'J:02.03.02');
-  assert.equal(entry.heading, 'A. Use of Coding Forms');
-});
-
-test('resolves a known F page against the map', () => {
-  const entry = resolveCitation(FIXTURE_MAP, 'F:42');
-  assert.equal(entry.heading, 'Commands');
-});
-
-test('an unknown J code resolves to null', () => {
+test('a citation resolves against the map, or to null when the map lacks it', () => {
+  assert.equal(resolveCitation(FIXTURE_MAP, 'J:02.03.02').heading, 'A. Use of Coding Forms');
+  assert.equal(resolveCitation(FIXTURE_MAP, 'F:42').heading, 'Commands');
   assert.equal(resolveCitation(FIXTURE_MAP, 'J:90.06'), null);
-});
-
-test('an unknown F page resolves to null', () => {
   assert.equal(resolveCitation(FIXTURE_MAP, 'F:999'), null);
 });
 

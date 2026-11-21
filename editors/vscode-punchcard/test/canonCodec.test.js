@@ -63,31 +63,20 @@ test('column order is column 1 first, column 80 last', () => {
   assert.deepEqual(Array.from(back), Array.from(card));
 });
 
-test('decode rejects a short file', () => {
-  assert.throws(() => decodeCanon(new Uint8Array(11)), /shorter than/);
-});
-
-test('decode rejects a bad magic', () => {
-  const bytes = encodeCanon([blankCard()]);
-  bytes[0] = 0x58;
-  assert.throws(() => decodeCanon(bytes), /bad magic/);
-});
-
-test('decode rejects an unknown version', () => {
-  const bytes = encodeCanon([blankCard()]);
-  bytes[6] = 2;
-  assert.throws(() => decodeCanon(bytes), /unknown canon format version 2/);
-});
-
-test('decode rejects nonzero flags', () => {
-  const bytes = encodeCanon([blankCard()]);
-  bytes[7] = 1;
-  assert.throws(() => decodeCanon(bytes), /reserved flags byte is nonzero/);
-});
-
-test('decode rejects a length that the count does not match', () => {
-  const bytes = encodeCanon([blankCard(), blankCard()]);
-  assert.throws(() => decodeCanon(bytes.subarray(0, bytes.length - 1)), /does not match/);
+test('decode rejects a file that is not a canon deck', () => {
+  const corrupt = (edit) => {
+    const bytes = encodeCanon([blankCard(), blankCard()]);
+    return edit(bytes) ?? bytes;
+  };
+  for (const [bytes, message] of [
+    [new Uint8Array(11), /shorter than/],
+    [corrupt((b) => { b[0] = 0x58; }), /bad magic/],
+    [corrupt((b) => { b[6] = 2; }), /unknown canon format version 2/],
+    [corrupt((b) => { b[7] = 1; }), /reserved flags byte is nonzero/],
+    [corrupt((b) => b.subarray(0, b.length - 1)), /does not match/],
+  ]) {
+    assert.throws(() => decodeCanon(bytes), message);
+  }
 });
 
 test('encode rejects a card that is not 80 columns', () => {

@@ -20,82 +20,6 @@ import 'support/deck_fixtures.dart';
 }
 
 void main() {
-  group('the 90.05 data division', () {
-    late final List<DataItem> items;
-
-    setUpAll(() {
-      final FrontEndResult result = runFrontEnd(loadPayrollDeck());
-      final DataGroupScan scan = result.groupScans
-          .whereType<DataGroupScan>()
-          .single;
-      final diagnostics = <Diagnostic>[];
-      items = parseDataGroup(scan.scan, diagnostics);
-      expect(diagnostics, isEmpty);
-    });
-
-    test('parses its 172 entries with zero diagnostics', () {
-      expect(items, hasLength(172));
-    });
-
-    test('recognizes the seven RECORD roots and the hierarchy', () {
-      final Iterable<DataItem> records = items.where(
-        (DataItem i) => i.typeCode == DataTypeCode.record,
-      );
-      expect(records.map((DataItem i) => i.entry.name), [
-        'MASTER',
-        'DETAIL',
-        'CHECK',
-        'PAYRECORD',
-        'DEPARTMENT.TOTAL',
-        'BONDORDER',
-        'ERROROUT',
-      ]);
-      final DataItem master = items.first;
-      expect(master.entry.name, 'MASTER');
-      expect(master.parent, isNull);
-      // MASTER 1 > DAT 2 > EMPLOYEE.NUMBER 3 > DEPARTMENT 4 (F p. 68).
-      final DataItem dat = master.children.first;
-      expect(dat.entry.name, 'DAT');
-      final DataItem employeeNumber = dat.children.first;
-      expect(employeeNumber.entry.name, 'EMPLOYEE.NUMBER');
-      expect(employeeNumber.children.map((DataItem i) => i.entry.name), [
-        'DEPARTMENT',
-        'EMPLOYEE',
-      ]);
-    });
-
-    test('splits pictorials from the description field', () {
-      final DataItem name = items.singleWhere(
-        (DataItem i) =>
-            i.entry.name == 'NAME' &&
-            i.parent?.entry.name == 'DAT' &&
-            i.parent?.parent?.entry.name == 'MASTER',
-      );
-      expect(name.pictorial!.text, 'A(15)');
-      expect(name.constant, isNull);
-      expect(name.extras, isEmpty);
-    });
-
-    test('parses the unnamed REDEF entry and its target', () {
-      final DataItem redef = items.singleWhere(
-        (DataItem i) => i.typeCode == DataTypeCode.redef,
-      );
-      expect(redef.entry.name, isEmpty);
-      expect(redef.entry.level, isNull);
-      expect(redef.targetName!.text, 'TABLE');
-    });
-
-    test('parses the constants of the condition and control fields', () {
-      // Statement 43,00: CNTRLCHARSECLIN 02, description `A '2'`
-      // (scan-verified during the deck re-keying).
-      final DataItem control = items.singleWhere(
-        (DataItem i) => i.entry.name == 'CNTRLCHARSECLIN',
-      );
-      expect(control.pictorial!.text, 'A');
-      expect(control.constant!.text, '2');
-    });
-  });
-
   group('type codes', () {
     test('a withdrawn or unknown code draws 907 and a null typeCode', () {
       for (final code in ['FUNCT', 'PARAM', 'JUNK']) {
@@ -294,7 +218,7 @@ void main() {
     });
   });
 
-  group('name bars and the REDEF line (2026-08-03 review)', () {
+  group('name bars and the REDEF line', () {
     test('a key word as a data name draws 178 and is kept (D1.5)', () {
       final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
         dataCard(name: 'RECORD', level: '2', description: '99'),

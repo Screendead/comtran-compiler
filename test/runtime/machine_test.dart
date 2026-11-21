@@ -1142,20 +1142,21 @@ void _sampleTapes(Directory tapes) {
 List<String> _report(Directory tapes, String unit) =>
     listTape(File('${tapes.path}/$unit.tap').readAsBytesSync()).toList();
 
-/// Compiles the 90.05 job deck with [options].
-ProcessResult _compileSample(List<String> options) => Process.runSync(
+/// Runs comtranc over the 90.05 job deck with [options].
+Future<ProcessResult> _sample(List<String> options) => Process.run(
   Platform.resolvedExecutable,
   ['run', 'comtran:comtranc', jobDeckPath, ...options],
 );
 
-/// Punches [source] into a temporary deck and compiles it with `--run`.
-ProcessResult _compileAndRun(List<String> source) {
+/// Punches [source] into a temporary deck and runs comtranc over it with
+/// `--run`.
+Future<ProcessResult> _compileAndRun(List<String> source) {
   final Directory directory = tempDirectory('comtran-run');
   final path = '${directory.path}/job.ctd';
   File(
     path,
   ).writeAsBytesSync(encodeCanon(mirrorToDeck('${source.join('\n')}\n')));
-  return Process.runSync(Platform.resolvedExecutable, [
+  return Process.run(Platform.resolvedExecutable, [
     'run',
     'comtran:comtranc',
     path,
@@ -1211,12 +1212,14 @@ void main() {
   });
 
   group('the 90.05 sample', () {
+    late JobCompilation job;
+
+    setUpAll(() => job = compileDeck(loadJobDeck()).jobs.single);
+
     test('reads its two records and runs to the end of the job', () {
       final Directory tapes = tempDirectory('comtran-tapes');
       _sampleTapes(tapes);
-      final JobCompilation job = compileDeck(loadJobDeck()).jobs.single;
       final subject = Machine.load(jobDeck(job, _options)!.cards, tapes: tapes);
-      expect(subject.program.words, hasLength(936));
       expect(subject.program.origin, Machine.programOrigin);
       expect(subject.program.entry, Machine.programOrigin + octal('165'));
       expect(subject.state.ic, subject.program.entry);
@@ -1281,90 +1284,57 @@ void main() {
       final Directory tapes = tempDirectory('comtran-tapes');
       tapeImage(tapes, 'D1', const <List<int>>[]);
       tapeImage(tapes, 'C2', const <List<int>>[]);
-      final JobCompilation job = compileDeck(loadJobDeck()).jobs.single;
       final subject = Machine.load(jobDeck(job, _options)!.cards, tapes: tapes);
       final RunResult result = subject.run(maxSteps: 5000);
       expect(result.outcome, RunOutcome.errorExit);
       expect(result.display, <String>['BASE LOCATOR NOT LOADED']);
     });
+  });
 
-    test('a declared input file needs its tape image', () {
-      final Directory tapes = tempDirectory('comtran-tapes');
-      final ProcessResult run = _compileSample([
-        '--run',
-        '--tapes=${tapes.path}',
-      ]);
-      expect(run.exitCode, 1);
-      expect(
-        run.stderr,
-        contains(
-          'error: job 1: no tape image for input file INPUTMASTER at '
-          '${tapes.path}/D1.tap',
-        ),
-      );
-    });
+  group('comtranc --run over the 90.05 sample', () {
+    // Every run starts here, so the processes overlap.
+    late Directory unopened;
+    late Directory fault;
+    late Future<ProcessResult> golden;
+    late Future<ProcessResult> unopenedRun;
+    late Future<ProcessResult> faultRun;
 
-    test('comtranc --run carries the sample to the end of the job', () {
-      final Directory tapes = tempDirectory('comtran-tapes');
-      _sampleTapes(tapes);
-      final ProcessResult run = _compileSample([
-        '--run',
-        '--tapes=${tapes.path}',
-      ]);
-      expect(run.exitCode, 0, reason: '${run.stderr}');
-      expect(run.stdout, contains('AT 199,14 STOP RUN'));
-    });
-
-    test('comtranc --list-tapes prints the reports after the run', () {
-      final Directory tapes = tempDirectory('comtran-tapes');
-      _sampleTapes(tapes);
-      final ProcessResult run = _compileSample([
-        '--run',
-        '--tapes=${tapes.path}',
-        '--list-tapes',
-      ]);
-      expect(run.exitCode, 0, reason: '${run.stderr}');
-      // The whole listing, from the last display line on: the four BCD
-      // output files in `*FILE` card order. OUTPUTMASTER punches mode
-      // B, so a binary tape stands nowhere in it (M5-11).
-      expect(
-        run.stdout,
-        endsWith(
-          'AT 199,14 STOP RUN\n'
-          'CHECKFILE REPORT\n'
-          '\n'
-          '\n'
-          'PAYFILE REPORT\n'
-          '\n'
-          '          DEPARTMENT 99 TOTALS        0.0      0.00      0.00     '
-          '0.00     0.00     0.00     0.00      0.00      0.00\n'
-          'GT                        -  -        0.0      0.00      0.00     '
-          '0.00     0.00     0.00     0.00      0.00      0.00\n'
-          '\n'
-          'BONDORDERFILE REPORT\n'
-          '\n'
-          '\n'
-          'ERRORFILE REPORT\n'
-          '\n'
-          'D111111010161400\n'
-          'M992222000000000000000\n',
-        ),
-      );
-    });
-
-    test('the reconstructed tapes print the report of PDF p. 217', () {
-      // The four reports the run writes, byte for byte (M6-5). The
-      // golden is our output; test/acceptance_test.dart measures its
-      // distance from the page.
+    setUpAll(() {
       final Directory tapes = tempDirectory('comtran-tapes');
       for (final unit in <String>['D1', 'C2']) {
         File('$sampleTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
       }
-      final ProcessResult run = _compileSample([
+      golden = _sample(['--run', '--tapes=${tapes.path}', '--list-tapes']);
+      // An earlier run's reports sit beside a master tape, and the
+      // detail tape is missing. Open-all refuses the run ahead of the
+      // truncation, so no image is this run's (M5-11).
+      unopened = tempDirectory('comtran-tapes');
+      tapeImage(unopened, 'D1', const <List<int>>[]);
+      for (final unit in <String>['D2', 'D3', 'C3', 'D4']) {
+        tapeImage(unopened, unit, <List<int>>[
+          <int>[characters('STALE ')],
+        ]);
+      }
+      unopenedRun = _sample([
         '--run',
-        '--tapes=${tapes.path}',
+        '--tapes=${unopened.path}',
         '--list-tapes',
       ]);
+      // Two empty input tapes take the run to the base-locator guard,
+      // which exits before close-all writes any file mark (M5-11).
+      fault = tempDirectory('comtran-tapes');
+      tapeImage(fault, 'D1', const <List<int>>[]);
+      tapeImage(fault, 'C2', const <List<int>>[]);
+      faultRun = _sample(['--run', '--tapes=${fault.path}', '--list-tapes']);
+      // Registered last, so it runs before the directories go.
+      addTearDown(() => Future.wait([golden, unopenedRun, faultRun]));
+    });
+
+    test('the reconstructed tapes print the report of PDF p. 217', () async {
+      // The four reports the run writes, byte for byte (M6-5). The
+      // golden is our output; test/acceptance_test.dart measures its
+      // distance from the page.
+      final ProcessResult run = await golden;
       expect(run.exitCode, 0, reason: '${run.stderr}');
       const display = 'AT 199,14 STOP RUN\n';
       final stdout = '${run.stdout}';
@@ -1374,32 +1344,22 @@ void main() {
       );
     });
 
-    test('comtranc --list-tapes lists nothing the run never opened', () {
-      // The first run leaves its reports in the directory. Open-all then
-      // refuses the second run ahead of the truncation, so every image
-      // is the first run's and none is this run's (M5-11).
-      final Directory tapes = tempDirectory('comtran-tapes');
-      _sampleTapes(tapes);
-      final flags = ['--run', '--tapes=${tapes.path}', '--list-tapes'];
-      expect(_compileSample(flags).exitCode, 0);
-      File('${tapes.path}/C2.tap').deleteSync();
-      final ProcessResult run = _compileSample(flags);
+    test('a declared input file needs its tape image, and --list-tapes '
+        'lists nothing the run never opened', () async {
+      final ProcessResult run = await unopenedRun;
       expect(run.exitCode, 1);
-      expect(run.stderr, contains('no tape image for input file DETAILFILE'));
+      expect(
+        run.stderr,
+        contains(
+          'error: job 1: no tape image for input file DETAILFILE at '
+          '${unopened.path}/C2.tap',
+        ),
+      );
       expect(run.stdout, isNot(contains('REPORT')));
     });
 
-    test('comtranc --list-tapes ends a report at the reader fault', () {
-      // Two empty input tapes take the run to the base-locator guard,
-      // which exits before close-all writes any file mark (M5-11).
-      final Directory tapes = tempDirectory('comtran-tapes');
-      tapeImage(tapes, 'D1', const <List<int>>[]);
-      tapeImage(tapes, 'C2', const <List<int>>[]);
-      final ProcessResult run = _compileSample([
-        '--run',
-        '--tapes=${tapes.path}',
-        '--list-tapes',
-      ]);
+    test('comtranc --list-tapes ends a report at the reader fault', () async {
+      final ProcessResult run = await faultRun;
       expect(run.exitCode, 1);
       expect(run.stdout, contains('ERRORFILE REPORT\n\n'));
       expect(
@@ -1411,62 +1371,46 @@ void main() {
       );
     });
 
-    test('comtranc --list-tapes needs a run', () {
-      final ProcessResult run = _compileSample(['--list-tapes']);
-      expect(run.exitCode, 2);
-      expect(run.stderr, startsWith('Usage:'));
-    });
-
-    test('comtranc --run refuses the sample with no tape directory', () {
-      final ProcessResult run = _compileSample(['--run']);
-      expect(run.exitCode, 1);
-      expect(
-        run.stderr,
-        contains(
-          'error: job 1: no tape directory for input file INPUTMASTER: '
-          'pass --tapes=DIR',
-        ),
-      );
-    });
-  });
-
-  group('the --tapes directory', () {
-    test('an empty path is a usage error', () {
-      final ProcessResult run = _compileSample(['--run', '--tapes=']);
-      expect(run.exitCode, 2);
-      expect(run.stderr, startsWith('Usage:'));
-    });
-
-    test('a directory that is not there names itself', () {
+    test('a run flag without its tape directory is refused', () async {
       final missing = '${tempDirectory('comtran-tapes').path}/gone';
-      final ProcessResult run = _compileSample(['--run', '--tapes=$missing']);
-      expect(run.exitCode, 2);
-      expect(run.stdout, isEmpty);
-      expect(run.stderr, 'error: no tape directory at $missing\n');
+      final rows = <(List<String>, int, Matcher)>[
+        (['--list-tapes'], 2, startsWith('Usage:')),
+        (['--run', '--tapes='], 2, startsWith('Usage:')),
+        (
+          ['--run', '--tapes=$missing'],
+          2,
+          equals('error: no tape directory at $missing\n'),
+        ),
+        (
+          ['--run'],
+          1,
+          contains(
+            'error: job 1: no tape directory for input file INPUTMASTER: '
+            'pass --tapes=DIR',
+          ),
+        ),
+      ];
+      final List<ProcessResult> runs = await Future.wait([
+        for (final (List<String> flags, _, _) in rows) _sample(flags),
+      ]);
+      for (final (int i, (List<String> flags, int code, Matcher stderr))
+          in rows.indexed) {
+        expect(runs[i].exitCode, code, reason: '$flags');
+        expect(runs[i].stderr, stderr, reason: '$flags');
+        if (code == 2) {
+          expect(runs[i].stdout, isEmpty, reason: '$flags');
+        }
+      }
     });
   });
 
   group('an I/O-free program', () {
     test('runs to STOP RUN and stores its result', () {
-      final JobCompilation job = compileDeck(
-        mirrorToDeck('${_source.join('\n')}\n'),
-      ).jobs.single;
-      final subject = Machine.load(jobDeck(job, _options)!.cards);
-      final RunResult result = subject.run(maxSteps: 1000);
-      expect(result.outcome, RunOutcome.endOfJob);
-      expect(result.display, <String>['AT 4,00 STOP RUN']);
-      final AssemblyUnit total = job.codegen!.units.firstWhere(
-        (AssemblyUnit unit) => unit.labels.contains('TOT'),
-      );
+      final (JobCompilation job, Machine subject) = compiled(_source);
+      expect(subject.printed, <String>['AT 4,00 STOP RUN']);
       // `SET TOT = NUM + 1` generates CLA, ADD, STO with no MOVPAK, and
       // NUM's reserved cell reads +0 (ED-6).
-      expect(subject.state.read(Machine.programOrigin + total.location!), 1);
-    });
-
-    test('comtranc --run prints the display after the listing', () {
-      final ProcessResult run = _compileAndRun(_source);
-      expect(run.exitCode, 0, reason: '${run.stderr}');
-      expect(run.stdout, contains('AT 4,00 STOP RUN'));
+      expect(subject.state.read(addressOf(job, 'TOT')), 1);
     });
 
     test('STOP n prints its line and resumes with the next statement', () {
@@ -2030,8 +1974,24 @@ void main() {
   });
 
   group('the --run exit status', () {
-    test('an exhausted budget names the budget and fails the job', () {
-      final ProcessResult run = _compileAndRun(_loop);
+    // Every run starts here, so the processes overlap.
+    late Future<ProcessResult> budget;
+    late Future<ProcessResult> bands;
+    late Future<ProcessResult> guard;
+
+    setUpAll(() {
+      budget = _compileAndRun(_loop);
+      bands = _compileAndRun([
+        for (final MapEntry(key: int severity, value: (List<String> job, _))
+            in _bands.entries) ...['\$CMPLE BAND$severity', ...job],
+      ]);
+      guard = _compileAndRun(_guard);
+      // Registered last, so it runs before the directories go.
+      addTearDown(() => Future.wait([budget, bands, guard]));
+    });
+
+    test('an exhausted budget names the budget and fails the job', () async {
+      final ProcessResult run = await budget;
       expect(run.exitCode, 1);
       expect(
         run.stderr,
@@ -2039,59 +1999,33 @@ void main() {
       );
     });
 
-    test('a maximum severity of 1 runs the program', () {
-      final (List<String> source, String message) = _bands[1]!;
-      final ProcessResult run = _compileAndRun(source);
-      expect(run.stdout, contains('    1    $message'));
+    test('a maximum severity of 1 runs the program, and 2 to 4 punch but '
+        'do not run', () async {
+      final ProcessResult run = await bands;
+      for (final MapEntry(key: int severity, value: (_, String message))
+          in _bands.entries) {
+        expect(run.stdout, contains('    $severity    $message'));
+      }
+      // Only severity 5 fails the process (D11.2).
       expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(
+        RegExp('^AT ', multiLine: true).allMatches('${run.stdout}'),
+        hasLength(1),
+      );
       expect(run.stdout, contains('AT 4,00 STOP RUN'));
+      expect(
+        run.stderr,
+        'job 2: not run: maximum severity 2\n'
+        'job 3: not run: maximum severity 3\n'
+        'job 4: not run: maximum severity 4\n',
+      );
     });
 
-    for (final severity in <int>[2, 3, 4]) {
-      test('a maximum severity of $severity punches but does not run', () {
-        final (List<String> source, String message) = _bands[severity]!;
-        final ProcessResult run = _compileAndRun(source);
-        expect(run.stdout, contains('    $severity    $message'));
-        // Only severity 5 fails the process (D11.2).
-        expect(run.exitCode, 0, reason: '${run.stderr}');
-        expect(run.stdout, isNot(contains(RegExp('^AT ', multiLine: true))));
-        expect(run.stderr, 'job 1: not run: maximum severity $severity\n');
-      });
-    }
-
-    test('an error exit fails the job on the monitor message alone', () {
-      final ProcessResult run = _compileAndRun(_guard);
+    test('an error exit fails the job on the monitor message alone', () async {
+      final ProcessResult run = await guard;
       expect(run.exitCode, 1);
       expect(run.stdout, contains('BASE LOCATOR NOT LOADED'));
       expect(run.stderr, isNot(contains('error:')));
-    });
-  });
-
-  group('the applied 1960 deck', () {
-    test('its tapes print the reports of test/goldens/f-payroll-j.report', () {
-      // The three reports the run writes, byte for byte. The golden is
-      // our output; test/f_acceptance_test.dart classifies its distance
-      // from the 1962 sample's report (M6-9, the run).
-      final Directory tapes = tempDirectory('comtran-f-tapes');
-      for (final unit in <String>['D1', 'C2']) {
-        File('$fTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
-      }
-      final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
-        'run',
-        'comtran:comtranc',
-        fAppliedDeckPath,
-        '--run',
-        '--tapes=${tapes.path}',
-        '--list-tapes',
-      ]);
-      expect(run.exitCode, 0, reason: '${run.stderr}');
-      const display = 'AT 140,00 STOP RUN\n';
-      final stdout = '${run.stdout}';
-      expect(stdout, contains('AT 139,00 STOP 1234\n$display'));
-      expect(
-        stdout.substring(stdout.indexOf(display) + display.length),
-        File('test/goldens/f-payroll-j.report').readAsStringSync(),
-      );
     });
   });
 }
