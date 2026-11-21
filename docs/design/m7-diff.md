@@ -1383,3 +1383,61 @@ the record of two words. The library job does not wait on this check:
 the label on card 16100090 removes the record of two words. A console
 capture for each deck can check step 2 later, if a later fault asks
 for it.
+
+**The result of the library job (2026-11-21, issue #252).** The Mac ran
+`tool/m7/ct_library.sh` on master at `9a740fc`. The thirteen labels
+work. The SUBUP step fails.
+
+| Step | Result |
+|---|---|
+| X4 | 40 of 40 compiles print `NO ERRORS WERE DETECTED DURING COMPILATION` and `THE LAST LOADER CONTROL CARD PUNCHED IS` |
+| SUBUP | `IOEXMP  SBR CONTROL CARD IS NOT FOLLOWED BY *CTEXT CARD`, then `SUBUP NOT COMPLETED BECAUSE OF ERROR.` and `SUBUP BYPASSED 367 UNUSED MODIFICATION CARDS` |
+| Splice | not done: the partial `SYSUT2` mixes odd and even parity |
+| Map | not run |
+
+No listing holds `SHORT REC` or `NOISE`. The object listing of `EXPERR`
+gives `XLB30` the four words of its text at 00031 to 00034, and `XLB32`
+the four words at 00036 to 00041. The punch tape holds 366 records of 28
+words in file 0, an empty file 1, and one record of 4 words in file 2.
+
+`run_ibsys.sh` returns 0 when a job fails, so `set -e` did not stop the
+script after SUBUP.
+
+**What the source shows.** The forms of the two programs agree:
+
+- The compiler punches each control card as a column-binary image of 28
+  words. `HBC` makes two words from each word of the 14-word image, three
+  columns to a word (CE066580 to CE066900). `CCOPPP` punches it
+  (CE065150 to CE065340).
+- `OUTCTX` puts the job name in column 1 and `*CTEXT` in column 7
+  (CE060780 to CE060900, CE061320 to CE061360).
+- With `TAPE`, SUBUP reads the next record of `SYSUT4` with `XCARD`
+  (SU014960 to SU015260). `MD009` tests words 2 and 3 of the record
+  (SU022930 to SU023010). The masks `MASKL3` and `MASKR3` are the
+  complements of the column codes of `*CT` and `EXT` (SU023140 to
+  SU023150). Thus SUBUP expects `*CTEXT` in columns 7 to 12.
+- `CTPNCH` and `SRFAI` are both binary files (CB002970 to CB002980,
+  SU002970 to SU002980).
+
+Thus the first record of the punch tape must hold these words for the
+test to pass:
+
+| Word | Columns | Octal |
+|---|---|---|
+| 0 | `IOE` | `400120104020` |
+| 1 | `XMP` | `100420402004` |
+| 2 | `*CT` | `204241001100` |
+| 3 | `EXT` | `402010041100` |
+
+**The count does not agree.** After the error, SUBUP reads `SYSUT4` to
+its end. The count starts at 1 and adds 1 for each record read
+(SU007160 to SU007340). Thus SUBUP read 366 records after the failed
+test. The Mac counted 366 records in file 0. Thus the record that failed
+was not a record of file 0, or file 0 holds 367 records. A record before
+the `*CTEXT` card fits the second case: for example a loader control
+card (CE061050 to CE061310), or a record that IBSYS writes first.
+
+**The next probe: the SUBUP input.** The outputs of the job are still in
+the kit. The Mac prints the first three and the last two records of
+file 0 of the punch tape in octal, and the console output and the unit
+lines of the SUBUP run. The first record shows which case holds.

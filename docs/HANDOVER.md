@@ -162,9 +162,9 @@ twelve unlabeled `BCI` cards. Jack, 2026-11-21:
 
 > **Jack's answer:** A · Name the twelve cards
 
-`tool/m7/ct_library.sh` labels them, and one `SYSCOL` card: IOEX
-drops the last tape record of its text as noise (issue #248). No noise
-message appeared (issue #251). Next: the Mac runs the library job (#252).
+`tool/m7/ct_library.sh` labels them, and one `SYSCOL` card (issue
+#248). All 40 routines then compile clean, but SUBUP finds no `*CTEXT`
+card (issue #252). Next: the Mac prints the SUBUP input (M7-7).
 
 ### Codegen defects the runtime exposed
 
