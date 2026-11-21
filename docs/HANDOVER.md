@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-11-02. Audience: the next agent, or Jack. This file is the
+*Updated 2026-11-21. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -41,7 +41,7 @@ Terms that appear without expansion:
 |---|---|---|
 | Language definition | Complete and verified | `docs/comtran-language-definition.md` |
 | M0 design decisions (85 records) | Locked 2026-08-02; D4.14 back-filled 2026-08-16 | `docs/design/decisions.md` |
-| The 1963 processor source | Found 2026-09-06; sealed until M7 opens; M7 diffs our reconstruction against it | `docs/design/decisions.md` D0.9 |
+| The 1963 processor source | Found 2026-09-06; sealed until M7 opened, 2026-11-21; M7 diffs our reconstruction against it | `docs/design/decisions.md` D0.9 |
 | Punch-level deck format | Frozen | `docs/design/deck-format.md` |
 | 90.05 canon deck (293 cards) | Authoritative; its mirror is CI-slaved | `test/fixtures/90.05-payroll.ctd` |
 | M1 front end | Done 2026-08-03 | `lib/src/lexer/`, `lib/src/listing/` |
@@ -59,7 +59,7 @@ Terms that appear without expansion:
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
 | M6 stage 2 — the second corpus | Done 2026-11-02. Chunk 2a (2026-09-14) keyed the 1960 program as printed, as a diagnostic corpus, and the applied deck with its five divergences. Chunk 2b recovered the six shapes the generator refused, because each one compiled in 1962 (Jack's rule of 2026-09-14). The applied deck runs over its tapes to end of job: 233 values compare, 77 match, and every difference has a named cause. `--run` obeys the D7.6 severity gate | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/f_acceptance_test.dart` |
-| M7 | Not started. It opens after W3 and W4 (Jack's ruling of 2026-11-02) | — |
+| M7 | Opened 2026-11-21 (PR #215). The reconstruction of record is commit `a465077` (M7-1). The archive fetch waits on Jack: the cloud network refuses its host | `docs/design/m7-diff.md` |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -89,7 +89,7 @@ draws exactly three non-historical 943 notes, the sample's own doubtful
 blank-moves (D11.4 as amended). A golden test guards the default listing byte
 for byte.
 
-## The next task — the web track, then M7
+## The next task — M7
 
 **M4 is complete (2026-09-06). M5 is complete (2026-09-13).**
 `docs/design/runtime.md` RT-1 to RT-5 hold the machine assembly and the
@@ -150,12 +150,9 @@ for the shapes it refused, and the verbatim deck punches 35 cards
 (M6-11, `docs/design/m6-verbatim-deck.md`). The code is our own
 design: evidence exists and is sealed until M7.
 
-**The next work is the list in "Rulings of 2026-11-21" below**, in its
-order. W2 is merged (PR #178); W3 and W4 follow the compiler items.
-
-**Then M7.** Jack ruled on 2026-11-02 that M7 opens after W3 and W4.
-M7 opens the sealed archive (D0.9) and measures our reconstruction
-against the surviving processor.
+**M7 is open (2026-11-21).** Every item of "Rulings of 2026-11-21"
+below is done. `docs/design/m7-diff.md` holds the plan. Its first step,
+the archive fetch, waits on Jack: the cloud network refuses the host.
 
 ### Codegen defects the runtime exposed
 
@@ -547,7 +544,7 @@ closes the draft with a link.
 | 7 | Take the em dashes out of the 21 definition headings | Done 2026-11-21 (PR #212) |
 | 8 | W3: the compiler sends a statement mark beside each panel line | Done 2026-11-21 (PR #213), from draft PR #189 |
 | 9 | W4: a separate `tutorial.html` with the same bench markup and `app.js`; one walk through the sample | Done 2026-11-21 (PR #214) |
-| 10 | M7 opens after W3 and W4 (2026-11-02) | Open M7 |
+| 10 | M7 opens after W3 and W4 (2026-11-02) | Done 2026-11-21 (PR #215): `docs/design/m7-diff.md` |
 
 ## Rulings of 2026-11-02
 
@@ -641,8 +638,8 @@ PDF p. 217. It makes every milestone below testable at once.
   the 1962 front end forces applied and the rest recorded (M6-9). The
   applied deck runs to end of job over its own tapes — **DONE
   2026-11-02**.
-- **M7 — The diff pass**: it opens after the web track's W3 and W4
-  (Jack's ruling of 2026-11-02). The seal ends when it opens. Assemble the
+- **M7 — The diff pass** — **OPENED 2026-11-21** after W3 and W4, as
+  Jack ruled on 2026-11-02 (`docs/design/m7-diff.md`). The seal ended then. Assemble the
   1963 processor, and diff our reconstruction against it. Each difference is one
   of two findings: a real change between January 1962 and July 1963, or an error
   in our recovery. Treat MOVPAK and Open Question 31 as contaminated; D0.9 says
