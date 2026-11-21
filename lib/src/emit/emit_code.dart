@@ -20,8 +20,12 @@ import '../loader/control_group.dart';
 import 'common.dart';
 
 /// Renders the assembly text of every job on [deck], in deck order.
-String emitCode(DeckCompilation deck) {
-  final out = StringBuffer()..writeln(reconstructionLabel);
+String emitCode(DeckCompilation deck) => markCode(deck).text;
+
+/// The code dump of [deck], each unit's row marked with the statement
+/// and clause that wrote it (W3).
+MarkedText markCode(DeckCompilation deck) {
+  final out = MarkedText()..writeln(reconstructionLabel);
   for (final (int index, JobCompilation job) in deck.jobs.indexed) {
     if (index > 0) {
       out.writeln();
@@ -34,13 +38,23 @@ String emitCode(DeckCompilation deck) {
     }
     out.writeln('* TEXT');
     for (final AssemblyUnit unit in codegen.units) {
-      out.writeln(_row(unit));
+      final ({int statement, int clause})? source = unit.source;
+      out
+        ..mark = source == null
+            ? null
+            : statementMark(
+                index + 1,
+                '${source.statement},'
+                '${source.clause.toString().padLeft(2, '0')}',
+              )
+        ..writeln(_row(unit));
     }
+    out.mark = null;
     if (codegen.stopped) {
       out.writeln(stageStopped);
     }
   }
-  return out.toString();
+  return out;
 }
 
 String _octal(int? value, int digits) =>

@@ -77,14 +77,13 @@ const STAGES = {
   code: {
     caption:
       'The assembled text: address, symbol, operation, octal word and ' +
-      'control field, for the data and for every procedure sentence. This ' +
-      'is the machine code the Run button loads.',
+      'control field, for the data and the procedure alike.',
     kind: 'derived',
     label: 'We worked this out from',
     evidence:
       'The manual prints this program’s assembled text in full (J 90.05). ' +
-      'The text here is compared against that print byte for byte, and the ' +
-      'comparison is a test that must pass before any change is merged.',
+      'The layout of this panel is ours. The words in it are checked ' +
+      'against that printed text, and for the sample every one matches.',
   },
   run: {
     caption:
@@ -131,9 +130,27 @@ const linkNote = el('link-note');
 const whinges = el('whinges');
 const whingeCount = el('whinge-count');
 const tabs = [...document.querySelectorAll('[role="tab"]')];
+const stepAt = el('step-at');
+const stepPrev = el('step-prev');
+const stepNext = el('step-next');
+const stepClear = el('step-clear');
+
+// Each tab carries a count of the lines the selected statement marks in it.
+for (const tab of tabs) {
+  const hits = document.createElement('span');
+  hits.className = 'tab-hits';
+  tab.append(hits);
+}
 
 let stage = 'listing';
 let latest = null;
+
+// The statement the reader follows through the stages (roadmap W3). The
+// compiler marks every line it can with `job:n,cc`, the statement number
+// the 1962 listing printed (J 02.02.01). Lines join on the part before the
+// comma; `clause` is the whole mark, when the reader picked a clause line.
+let statement = null;
+let clause = null;
 let ready = false;
 
 // The last run and the deck text it ran. A run answers to that text
@@ -328,7 +345,27 @@ card.addEventListener('keydown', (event) => {
   card.querySelector('.p.at')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 });
 
-function drawStage() {
+function statementOf(mark) {
+  return mark ? mark.slice(0, mark.indexOf(',')) : null;
+}
+
+function marksOf(name) {
+  return latest && !latest.error ? (latest.marks[name] ?? []) : [];
+}
+
+// The statements in the order the compiler numbered them, for stepping.
+function statementOrder() {
+  const seen = [];
+  for (const mark of marksOf('scan')) {
+    const key = statementOf(mark);
+    if (key && seen[seen.length - 1] !== key) seen.push(key);
+  }
+  return seen;
+}
+
+// `keep` holds the panel where it is: a click inside the panel must not
+// move the line the reader just clicked.
+function drawStage(keep = false) {
   const meta = STAGES[stage];
   caption.textContent = meta.caption;
   evidence.dataset.kind = meta.kind;
@@ -340,16 +377,48 @@ function drawStage() {
   if (!latest) return;
   if (stage === 'run') {
     drawRun();
+    drawStepper();
     return;
   }
   refusal.hidden = !latest.error;
   refusal.textContent = latest.error ?? '';
   const text = latest.error ? '' : latest[stage];
-  out.textContent = text;
-  panel.scrollTop = 0;
+  const marks = marksOf(stage);
+  const lines = text.split('\n');
+  if (lines[lines.length - 1] === '') lines.pop();
+  const fragment = document.createDocumentFragment();
+  let first = null;
+  lines.forEach((line, index) => {
+    const span = document.createElement('span');
+    span.className = 'ln';
+    span.textContent = line;
+    const mark = marks[index];
+    if (mark) {
+      span.dataset.mark = mark;
+      span.classList.add('stmt');
+      if (statementOf(mark) === statement) {
+        // A whole statement takes one colour; a picked clause stands out.
+        const picked = mark === clause && !clause.endsWith(',00');
+        span.classList.add(picked ? 'on-clause' : 'on');
+        first ??= span;
+      }
+    }
+    fragment.append(span);
+  });
+  const scrolled = panel.scrollTop;
+  out.replaceChildren(fragment);
+  if (keep) {
+    panel.scrollTop = scrolled;
+  } else if (first) {
+    const top = first.offsetTop - panel.clientHeight / 3;
+    panel.scrollTop = Math.max(top, 0);
+  } else {
+    panel.scrollTop = 0;
+  }
   panelFoot.textContent = text
     ? `${lineCount(text) - 1} lines · ${text.length.toLocaleString('en-GB')} characters`
     : '';
+  drawStepper();
 }
 
 // The run panel prints what the program printed and nothing else. What the
@@ -376,6 +445,67 @@ function drawRun() {
     : `${lineCount(ran.result.output) - 1} lines · ` +
       `${ran.result.ended ? 'reached end of job' : 'did not reach end of job'} · ${took}`;
 }
+
+// The stepper names the statement and counts its lines in every stage, so
+// the reader sees at once which stages it reached.
+function drawStepper() {
+  const order = statementOrder();
+  const at = order.indexOf(statement);
+  stepPrev.disabled = order.length === 0 || at === 0;
+  stepNext.disabled = order.length === 0 || at === order.length - 1;
+  stepClear.disabled = statement === null;
+  for (const tab of tabs) {
+    const hits = tab.querySelector('.tab-hits');
+    // What the program printed carries no statement marks, so the run
+    // tab takes no count.
+    if (tab.dataset.stage === 'run') continue;
+    const count = statement
+      ? marksOf(tab.dataset.stage).filter((m) => statementOf(m) === statement)
+          .length
+      : 0;
+    hits.textContent = statement ? String(count) : '';
+    hits.dataset.none = String(statement !== null && count === 0);
+  }
+  if (statement === null) {
+    stepAt.textContent =
+      'Click a line in any stage to follow its statement through all six.';
+    return;
+  }
+  const job = statement.slice(0, statement.indexOf(':'));
+  const number = clause.slice(clause.indexOf(':') + 1);
+  stepAt.textContent =
+    `Statement ${number}` +
+    (job === '1' ? '' : ` of job ${job}`) +
+    (at === -1 ? '' : ` · ${at + 1} of ${order.length}`);
+}
+
+function select(mark, keep = false) {
+  statement = statementOf(mark);
+  clause = mark;
+  drawStage(keep);
+}
+
+function step(by) {
+  const order = statementOrder();
+  if (order.length === 0) return;
+  const at = order.indexOf(statement);
+  const next = at === -1 ? (by > 0 ? 0 : order.length - 1) : at + by;
+  if (next < 0 || next >= order.length) return;
+  select(`${order[next]},00`);
+}
+
+out.addEventListener('click', (event) => {
+  const line = event.target.closest('.stmt');
+  if (!line) return;
+  select(line.dataset.mark, true);
+});
+stepPrev.addEventListener('click', () => step(-1));
+stepNext.addEventListener('click', () => step(1));
+stepClear.addEventListener('click', () => {
+  statement = null;
+  clause = null;
+  drawStage();
+});
 
 // The compiler's own messages, in its own words and its own order. The
 // site adds a statement number and a severity to each and nothing else.

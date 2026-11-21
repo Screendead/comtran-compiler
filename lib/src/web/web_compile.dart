@@ -22,11 +22,13 @@ import '../cards/text_codec.dart';
 import '../chars/char_code.dart';
 import '../driver/driver.dart';
 import '../driver/job_run.dart';
+import '../emit/common.dart';
 import '../emit/emit_code.dart';
 import '../emit/emit_parse.dart';
 import '../emit/emit_scan.dart';
 import '../emit/emit_semantics.dart';
 import '../lexer/diagnostic.dart';
+import '../lexer/source_card.dart';
 import '../listing/listing.dart';
 import '../runtime/machine.dart';
 import '../runtime/tape.dart';
@@ -84,6 +86,7 @@ final class WebCompilation {
     required this.cardCount,
     required this.diagnostics,
     required this.maxSeverity,
+    required this.marks,
   }) : error = null;
 
   /// A deck the site could not punch, described for the reader.
@@ -96,7 +99,8 @@ final class WebCompilation {
       code = '',
       cardCount = 0,
       diagnostics = const [],
-      maxSeverity = 0;
+      maxSeverity = 0,
+      marks = const {};
 
   final String? error;
 
@@ -126,6 +130,12 @@ final class WebCompilation {
   /// The worst severity on the deck (D11.2); 5 stopped a job.
   final int maxSeverity;
 
+  /// Per stage, one mark per line of that stage's text: `j:n,cc`, the
+  /// job and the statement number the line belongs to (J 02.02.01), or
+  /// `null`. The site joins the stages on the part before the comma, so
+  /// it learns no stage's layout (roadmap W3, `docs/design/emit-stages.md`).
+  final Map<String, List<String?>> marks;
+
   /// The shape the browser reads. The keys are the stage names
   /// `--emit-<stage>` uses, so the site names its panels after the flags.
   Map<String, Object?> toJson() => {
@@ -139,6 +149,7 @@ final class WebCompilation {
     'cardCount': cardCount,
     'diagnostics': [for (final WebDiagnostic d in diagnostics) d.toJson()],
     'maxSeverity': maxSeverity,
+    'marks': marks,
   };
 }
 
@@ -344,15 +355,19 @@ WebCompilation compileText(String typed) {
     return const WebCompilation.refused(_stopped);
   }
   final listing = StringBuffer();
+  final listingMarks = <String?>[];
   final diagnostics = <WebDiagnostic>[];
-  for (final JobCompilation job in compilation.jobs) {
-    listing.write(
-      writeListing(
-        job.frontEnd,
-        webListingOptions,
-        diagnostics: job.diagnostics,
-        annotations: job.semantics?.allocation?.annotations,
-      ).text,
+  for (final (int index, JobCompilation job) in compilation.jobs.indexed) {
+    final ({String text, int pages, List<String?> statements}) page =
+        writeListing(
+          job.frontEnd,
+          webListingOptions,
+          diagnostics: job.diagnostics,
+          annotations: job.semantics?.allocation?.annotations,
+        );
+    listing.write(page.text);
+    listingMarks.addAll(
+      page.statements.map((String? n) => statementMark(index + 1, n)),
     );
     for (final Diagnostic d in job.diagnostics) {
       diagnostics.add(
@@ -364,16 +379,28 @@ WebCompilation compileText(String typed) {
       );
     }
   }
+  final MarkedText scan = markScan(compilation);
+  final MarkedText parse = markParse(compilation);
+  final MarkedText semantics = markSemantics(compilation);
+  final MarkedText code = markCode(compilation);
   return WebCompilation(
     cards: deckToMirror(deck),
-    scan: emitScan(compilation),
-    parse: emitParse(compilation),
-    semantics: emitSemantics(compilation),
+    scan: scan.text,
+    parse: parse.text,
+    semantics: semantics.text,
     listing: listing.toString(),
-    code: emitCode(compilation),
+    code: code.text,
     cardCount: deck.length,
     diagnostics: diagnostics,
     maxSeverity: compilation.maxSeverity,
+    marks: {
+      'cards': _cardMarks(deck, compilation),
+      'scan': scan.marks,
+      'parse': parse.marks,
+      'semantics': semantics.marks,
+      'listing': listingMarks,
+      'code': code.marks,
+    },
   );
 }
 
@@ -484,6 +511,20 @@ WebRun runText(String typed, Map<String, List<int>> tapes) {
         run.reports.every((TapeReport report) => report.fault == null);
   }
   return WebRun(output: output.toString(), notes: notes, ended: ran && ended);
+/// One mark per card of [deck]: the statement the card belongs to in
+/// the job that read it. A card no job read, such as a `*FINISH` card,
+/// takes none.
+List<String?> _cardMarks(List<CardImage> deck, DeckCompilation compilation) {
+  final Map<CardImage, String?> byImage = Map.identity();
+  for (final (int index, JobCompilation job) in compilation.jobs.indexed) {
+    for (final SourceCard card in job.frontEnd.program.cards) {
+      byImage[card.image] = statementMark(
+        index + 1,
+        job.frontEnd.statementNumberByCard[card.cardNumber],
+      );
+    }
+  }
+  return [for (final CardImage card in deck) byImage[card]];
 }
 
 /// Capitalizes a codec message and closes it with a full stop, so it reads

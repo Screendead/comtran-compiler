@@ -27,8 +27,14 @@ import 'common.dart';
 /// [stageNotReached] as its whole section; a pass that stopped mid-run
 /// ends its section with [stageStopped], the sections above it holding
 /// only what the phase built before the stop (D10.2).
-String emitSemantics(DeckCompilation deck) {
-  final out = StringBuffer()..writeln(reconstructionLabel);
+String emitSemantics(DeckCompilation deck) => markSemantics(deck).text;
+
+/// The semantics dump of [deck], with each row that names a statement
+/// marked with it (W3). A record or item row takes the statement of its
+/// data entry. A storage row takes none: one word can hold several
+/// entries.
+MarkedText markSemantics(DeckCompilation deck) {
+  final out = MarkedText()..writeln(reconstructionLabel);
   for (final (int index, JobCompilation job) in deck.jobs.indexed) {
     if (index > 0) {
       out.writeln();
@@ -41,24 +47,24 @@ String emitSemantics(DeckCompilation deck) {
     }
     _storage(out, semantics);
     out.writeln();
-    _dictionary(out, semantics, job.frontEnd);
+    _dictionary(out, semantics, job.frontEnd, index + 1);
     out.writeln();
-    _records(out, semantics);
+    _records(out, semantics, job.frontEnd, index + 1);
     out.writeln();
-    _items(out, semantics);
+    _items(out, semantics, job.frontEnd, index + 1);
     out.writeln();
-    _resolutions(out, semantics, job.frontEnd);
+    _resolutions(out, semantics, job.frontEnd, index + 1);
     out.writeln();
-    _corresponding(out, semantics, job.frontEnd);
+    _corresponding(out, semantics, job.frontEnd, index + 1);
     out.writeln();
-    _keys(out, semantics, job.frontEnd);
+    _keys(out, semantics, job.frontEnd, index + 1);
     out.writeln();
-    _deleted(out, semantics, job.frontEnd);
+    _deleted(out, semantics, job.frontEnd, index + 1);
     if (semantics.stopped) {
       out.writeln(stageStopped);
     }
   }
-  return out.toString();
+  return out;
 }
 
 /// The M3-14 fixture rows: one `oct` row per initialized word, one
@@ -66,7 +72,7 @@ String emitSemantics(DeckCompilation deck) {
 /// offsets across the areas in program order, and a run never crosses
 /// an area boundary — each area opens a row of its own, carrying its
 /// name as the symbol.
-void _storage(StringBuffer out, SemanticResult semantics) {
+void _storage(MarkedText out, SemanticResult semantics) {
   out.writeln('* STORAGE');
   for (final StorageRun run in storageRuns(semantics.areas)) {
     final int? word = run.word;
@@ -91,9 +97,10 @@ String _row(int loc, String kind, String value, String symbol) => <String>[
 ].join('\t');
 
 void _dictionary(
-  StringBuffer out,
+  MarkedText out,
   SemanticResult semantics,
   FrontEndResult frontEnd,
+  int job,
 ) {
   out.writeln('* DICTIONARY');
   for (final DictionaryEntry entry in semantics.dictionary.entries) {
@@ -102,41 +109,67 @@ void _dictionary(
     final String? statement = card == null
         ? null
         : frontEnd.statementNumberByCard[card];
-    out.writeln(
-      <String>[
-        entry.name,
-        'kind=${entry.kind.name}',
-        'encounter=${entry.encounter}',
-        if (item != null) 'item=${_qualifiedName(item)}',
-        if (statement != null) 'statement=$statement',
-        if (entry.section != null) 'section=${entry.section}',
-      ].join('\t'),
-    );
+    // A declared data name takes its entry's statement. A synonym's item
+    // is the field it names, not the card that declares the synonym, so
+    // a synonym and an environment name take no mark.
+    final bool declaredHere = item != null && entry.kind != NameKind.synonym;
+    out
+      ..mark = declaredHere
+          ? _entryMark(frontEnd, job, item)
+          : statementMark(job, statement)
+      ..writeln(
+        <String>[
+          entry.name,
+          'kind=${entry.kind.name}',
+          'encounter=${entry.encounter}',
+          if (item != null) 'item=${_qualifiedName(item)}',
+          if (statement != null) 'statement=$statement',
+          if (entry.section != null) 'section=${entry.section}',
+        ].join('\t'),
+      );
   }
+  out.mark = null;
 }
 
-void _records(StringBuffer out, SemanticResult semantics) {
+void _records(
+  MarkedText out,
+  SemanticResult semantics,
+  FrontEndResult frontEnd,
+  int job,
+) {
   out.writeln('* RECORDS');
   for (final RecordInfo record in semantics.records) {
-    out.writeln(
-      <String>[
-        record.name,
-        'located=${_yesNo(record.located)}',
-        'variable=${_yesNo(record.variable)}',
-        'forced-transmit=${_yesNo(record.forcedTransmit)}',
-        if (record.inputFiles.isNotEmpty)
-          'input=${record.inputFiles.join(',')}',
-        if (record.outputFiles.isNotEmpty)
-          'output=${record.outputFiles.join(',')}',
-      ].join('\t'),
-    );
+    out
+      ..mark = _entryMark(frontEnd, job, record.item)
+      ..writeln(
+        <String>[
+          record.name,
+          'located=${_yesNo(record.located)}',
+          'variable=${_yesNo(record.variable)}',
+          'forced-transmit=${_yesNo(record.forcedTransmit)}',
+          if (record.inputFiles.isNotEmpty)
+            'input=${record.inputFiles.join(',')}',
+          if (record.outputFiles.isNotEmpty)
+            'output=${record.outputFiles.join(',')}',
+        ].join('\t'),
+      );
   }
+  out.mark = null;
 }
+
+/// The mark of [item]'s data entry: the statement of its first card.
+String? _entryMark(FrontEndResult frontEnd, int job, DataItem item) =>
+    statementMark(job, _number(frontEnd, item.entry.cards.first.cardNumber));
 
 /// Every item's semantic record, program order. `word` and `byte` are
 /// the offsets inside the item's own space root (J 90.02.05
 /// granularity), not the absolute LOCs of the storage section above.
-void _items(StringBuffer out, SemanticResult semantics) {
+void _items(
+  MarkedText out,
+  SemanticResult semantics,
+  FrontEndResult frontEnd,
+  int job,
+) {
   out.writeln('* ITEMS');
   for (final MapEntry<DataItem, ItemSemantics> entry
       in semantics.semantics.entries) {
@@ -151,47 +184,55 @@ void _items(StringBuffer out, SemanticResult semantics) {
       if (sem.dropped) 'dropped',
       if (sem.constantSuppressed) 'constant-suppressed',
     ];
-    out.writeln(
-      <String>[
-        _qualifiedName(item),
-        'class=${sem.fieldClass.name}',
-        'word=${sem.word}',
-        'byte=${sem.byte}',
-        'chars=${sem.storageChars}',
-        'qty=${sem.quantity}',
-        'stride=${sem.strideChars}',
-        'extent=${sem.extentChars}',
-        'digits=${sem.digits}',
-        'frac=${sem.fractionDigits}',
-        'just=${sem.justification.name}',
-        if (pictorial != null) 'pic=${pictorial.text}',
-        if (shape != null && shape.sign != SignConvention.none)
-          'sign=${shape.sign.name}',
-        if (root != null) 'root=${_qualifiedName(root)}',
-        if (flags.isNotEmpty) 'flags=${flags.join(',')}',
-      ].join('\t'),
-    );
+    out
+      ..mark = _entryMark(frontEnd, job, item)
+      ..writeln(
+        <String>[
+          _qualifiedName(item),
+          'class=${sem.fieldClass.name}',
+          'word=${sem.word}',
+          'byte=${sem.byte}',
+          'chars=${sem.storageChars}',
+          'qty=${sem.quantity}',
+          'stride=${sem.strideChars}',
+          'extent=${sem.extentChars}',
+          'digits=${sem.digits}',
+          'frac=${sem.fractionDigits}',
+          'just=${sem.justification.name}',
+          if (pictorial != null) 'pic=${pictorial.text}',
+          if (shape != null && shape.sign != SignConvention.none)
+            'sign=${shape.sign.name}',
+          if (root != null) 'root=${_qualifiedName(root)}',
+          if (flags.isNotEmpty) 'flags=${flags.join(',')}',
+        ].join('\t'),
+      );
   }
+  out.mark = null;
 }
 
 /// Every resolved data reference (M3-17), map order: where the
 /// reference stands, the name as punched, and the item it binds to.
 void _resolutions(
-  StringBuffer out,
+  MarkedText out,
   SemanticResult semantics,
   FrontEndResult frontEnd,
+  int job,
 ) {
   out.writeln('* RESOLUTIONS');
   for (final MapEntry<NameReference, DataItem> entry
       in semantics.dataResolutions.entries) {
     final NameReference reference = entry.key;
-    out.writeln(
-      <String>[
-        _number(frontEnd, reference.anchor.card.cardNumber),
-        '${reference.text} -> ${_qualifiedName(entry.value)}',
-      ].join('\t'),
-    );
+    final String number = _number(frontEnd, reference.anchor.card.cardNumber);
+    out
+      ..mark = statementMark(job, number)
+      ..writeln(
+        <String>[
+          number,
+          '${reference.text} -> ${_qualifiedName(entry.value)}',
+        ].join('\t'),
+      );
   }
+  out.mark = null;
 }
 
 /// The matched pairs of every MOVE or ADD CORRESPONDING clause (D4.12),
@@ -199,50 +240,63 @@ void _resolutions(
 /// pair. A clause whose search matched nothing prints its header row
 /// alone.
 void _corresponding(
-  StringBuffer out,
+  MarkedText out,
   SemanticResult semantics,
   FrontEndResult frontEnd,
+  int job,
 ) {
   out.writeln('* CORRESPONDING');
   for (final MapEntry<Clause, List<(DataItem, DataItem)>> entry
       in semantics.correspondingPairs.entries) {
-    out.writeln(_clauseNumber(frontEnd, entry.key));
+    final String number = _clauseNumber(frontEnd, entry.key);
+    out
+      ..mark = statementMark(job, number)
+      ..writeln(number);
     for (final (DataItem source, DataItem target) in entry.value) {
       out.writeln('  ${_qualifiedName(source)} -> ${_qualifiedName(target)}');
     }
   }
+  out.mark = null;
 }
 
 /// The condition references that resolve to an Environment COND card —
 /// the console-key test (J 02.06.17). They resolve to no data item, so
 /// the RESOLUTIONS section above holds none of them.
 void _keys(
-  StringBuffer out,
+  MarkedText out,
   SemanticResult semantics,
   FrontEndResult frontEnd,
+  int job,
 ) {
   out.writeln('* KEYS');
   for (final NameReference reference in semantics.keysConditions) {
-    out.writeln(
-      <String>[
-        _number(frontEnd, reference.anchor.card.cardNumber),
-        reference.text,
-      ].join('\t'),
-    );
+    final String number = _number(frontEnd, reference.anchor.card.cardNumber);
+    out
+      ..mark = statementMark(job, number)
+      ..writeln(<String>[number, reference.text].join('\t'));
   }
+  out.mark = null;
 }
 
 /// The sentences msg 177 deleted from the text (M3-20). Each keeps its
 /// statement number, which is all the deletion leaves to print.
 void _deleted(
-  StringBuffer out,
+  MarkedText out,
   SemanticResult semantics,
   FrontEndResult frontEnd,
+  int job,
 ) {
   out.writeln('* DELETED');
   for (final Sentence sentence in semantics.capacityDeletedSentences) {
-    out.writeln(_number(frontEnd, sentence.scan.cards.first.cardNumber));
+    final String number = _number(
+      frontEnd,
+      sentence.scan.cards.first.cardNumber,
+    );
+    out
+      ..mark = statementMark(job, number)
+      ..writeln(number);
   }
+  out.mark = null;
 }
 
 /// The clause's `n,cc` number: its statement number with the clause
