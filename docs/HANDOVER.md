@@ -537,7 +537,7 @@ the others merge on Jack's word.
 | 3 | Defect 5: keep the 1962 words; message 950,00, `--pedantic` only | Draft PR #185: merge master (it conflicts); run the review loop |
 | 4 | M6-9: punch the object deck for the verbatim 1960 program, as 1962 did | Amend M6-9 with a dated entry. Design the code for each refused shape (a GET with no input file, a FILE into a non-output file, the undefined names) as our own design. The job stays above severity 1, so `--run` does not run it. `test/f_corpus_test.dart` then expects a deck. Run the review loop |
 | 5 | Keep messages 912,00 and 192,00 for a literal and a ZERO subscript | Record the ruling in M3-20; no code |
-| 6 | Mark all three doubtful words `[sic]`: "synonomous" and "indicies" (PDF p. 116), "in not used" (PDF p. 171) | Add the three to the W2 `[sic]` list; regenerate the sources page |
+| 6 | Mark all three doubtful words `[sic]`: "synonomous" and "indicies" (PDF p. 116), "in not used" (PDF p. 171) | Done 2026-11-21 (PR #207): the three are on the W2 `[sic]` list; web-copy.md E3 records the ruling |
 | 7 | Take the em dashes out of the 21 definition headings | Take draft PR #192 out of draft; merge on Jack's word |
 | 8 | W3: the compiler sends a statement mark beside each panel line | Build W3 from draft PR #189 (merge master first; it conflicts) |
 | 9 | W4: a separate `tutorial.html` with the same bench markup and `app.js`; one walk through the sample | Build W4 from draft PR #188; warn of defect 10 |
