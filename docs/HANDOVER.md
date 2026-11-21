@@ -59,7 +59,7 @@ Terms that appear without expansion:
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
 | M6 stage 2 — the second corpus | Done 2026-11-02. Chunk 2a (2026-09-14) keyed the 1960 program as printed, as a diagnostic corpus, and the applied deck with its five divergences. Chunk 2b recovered the six shapes the generator refused, because each one compiled in 1962 (Jack's rule of 2026-09-14). The applied deck runs over its tapes to end of job: 233 values compare, 77 match, and every difference has a named cause. `--run` obeys the D7.6 severity gate | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/f_acceptance_test.dart` |
-| M7 | Opened 2026-11-21 (PR #215). The reconstruction of record is commit `a465077` (M7-1). The archive fetch waits on Jack: the cloud network refuses its host | `docs/design/m7-diff.md` |
+| M7 | Opened 2026-11-21 (PR #215). The reconstruction of record is commit `a465077` (M7-1). The archive is fetched and its checksums recorded (M7-3) | `docs/design/m7-diff.md` |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -151,15 +151,15 @@ for the shapes it refused, and the verbatim deck punches 35 cards
 design: evidence exists and is sealed until M7.
 
 **M7 is open (2026-11-21).** Every item of "Rulings of 2026-11-21"
-below is done. `docs/design/m7-diff.md` holds the plan. Its first step
-is the archive fetch. The cloud network refused the host, so issue #216
-asked Jack how to reach it. Jack, 2026-11-21:
+below is done. `docs/design/m7-diff.md` holds the plan. Issue #216
+asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 
 > **Jack's answer:** A · Allow the site for the cloud
 >
 > Done
 
-The cloud network now reaches the host. The fetch is the next task.
+The fetch is done, and M7-3 holds its checksums. Next: M7-4 step 2,
+the choice of a 7090 simulator that runs the 1963 processor.
 
 ### Codegen defects the runtime exposed
 
