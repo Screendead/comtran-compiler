@@ -301,3 +301,56 @@ follow the order of the records on the tape.
 - The record names of X2 need a check in the editor map. Its
   assembly stores `BASIC`, then `IOCT`, into the name cell
   (IO001130 to IO001160).
+
+**The result of part 1 (2026-11-21, issue #222).** The Mac ran the
+method in a live session with Jack. The kit and the tapes are outside
+the repository, in the tools folder beside it. `tool/m7/ct_tape.sh`
+builds the tape again in about 15 seconds.
+
+| Step | Result |
+|---|---|
+| 1. Punch | X1, X2, X3 and X5 punch with IBSFAP, one job for each step. |
+| 2. Order | `tool/m7/punch_split.dart` writes the programs to `SYSUT2` in file order. |
+| 3. Edit | The editor writes the ten CT files as files 15 to 24 of the new tape. |
+| 4. Boot | `$EXECUTE CT` gives no `UNKNOWN SYSTEM`. CT compiles a library deck. |
+
+The name table of the new tape holds `CT 10 1 15`: ten files, on
+`SYSLB1`, from file 15. The editor map shows these record names:
+
+| CT file | Records |
+|---|---|
+| 0 | `CT` (669 words) |
+| 1 | `BASIC` (3674) |
+| 2 | `CTB`, `CTC`, `CTI`, `CTD`, `CTE` |
+| 3 | `BASIC` (3647) |
+| 4 | `LOAD` |
+| 5, 6 | file marks only |
+| 7 | `IOBB`, `IOBM`, `NOBS` |
+| 8 | `SUBUP` |
+| 9 | `MAIN` |
+
+The editor names a record by the first word that it reads. The label
+IOCS of file 3 thus shows `BASIC`, not `IOCS`. The `IOCT` word comes
+later in the deck. The monitor finds each record by its position, so
+the name does not stop CT.
+
+A job with `$EXECUTE CT` and `$STOP` returns to IBSYS with no output.
+The monitor prints no sign-on: `$STOP` is one of its own control cards
+(CT002070). A second probe gave CT the first deck of X4, `IOBSMP`. CT
+listed it under the header `CT0500 07/15/63` and version `CT0506`,
+printed `NO ERRORS WERE DETECTED DURING COMPILATION`, and punched five
+loader cards. Thus CT loads its compiler and IOCS records from the new
+tape. The origin check of the risks above is not necessary.
+
+Three facts differ from the method:
+
+- One job for all the steps stops in X5. Each step now runs as its
+  own job.
+- In X5, IBSFAP punches the 12-word `SRDLOC` assembly (SDL00010 to
+  SDL00360) and then never returns to IBSYS. File 5 thus has no
+  `SRDLOC` record. The editor refuses its octal card form after
+  `*INSERT`. Part 2 must supply `SRDLOC` before CT reads file 5.
+- `s709` stops with a trap when a file name is long. The scripts link
+  each tape into the work folder.
+
+Part 2 runs X4 on this tape. It needs `SRDLOC` in file 5 first.
