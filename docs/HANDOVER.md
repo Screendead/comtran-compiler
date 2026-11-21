@@ -159,9 +159,9 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 > Done
 
 M7-3 holds the checksums, M7-5 the simulator, M7-6 the CT tape,
-and M7-7 the library: 37 of 40 decks compile clean, and no `BCI`
-card gives words (issue #230). Next: the Mac runs
-`tool/m7/ct_probe.sh KIT colag`.
+and M7-7 the library: 37 of 40 decks compile clean. A `BCI` card
+with no label loses its text (issue #232). Next: the Mac runs
+`tool/m7/ct_probe.sh KIT label`.
 
 ### Codegen defects the runtime exposed
 

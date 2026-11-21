@@ -2,12 +2,14 @@
 # Probes the three library compiles that fail on the CT system tape:
 # EXPERR, BCDERR and SYSCOL (M7-7 in docs/design/m7-diff.md). Each probe
 # deck is one of the three with a change to the cards that M7-7 names.
-# Usage: ct_probe.sh KIT [colag]   (KIT holds archive/, s709-2.4.4/, utils/
-# and the CTSYS1.BIN that ct_tape.sh writes)
+# Usage: ct_probe.sh KIT [colag|label]   (KIT holds archive/, s709-2.4.4/,
+# utils/ and the CTSYS1.BIN that ct_tape.sh writes)
 # It works in KIT/run/probe/, keeps probe.job and probe.lst, and prints one
 # line for each deck: its name and the result line of its compile.
 # With "colag" it compiles five decks with the COLAG option, which prints
 # every internal text buffer, into colag.job and colag.lst instead.
+# With "label" it compiles three decks with COLAG, each with a label on
+# the BCI cards that have none, into label.job and label.lst instead.
 set -e
 kit=$(cd "$1" && pwd) here=$(cd "$(dirname "$0")" && pwd)
 mode=${2:-probe}
@@ -57,6 +59,32 @@ if [ "$mode" = colag ]; then
 } >colag.job
 LIMIT=300 sh "$here/run_ibsys.sh" "$kit" colag.job colag.lst "$kit/CTSYS1.BIN"
 grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' colag.lst || true
+exit
+fi
+# label SEQ NAME: an edit that puts the label NAME in columns 1 to 6 of
+# the card with sequence number SEQ. The card had no label.
+label() {
+  echo "s == \"$1\" { \$0 = sprintf(\"%-6s\", \"$2\") substr(\$0, 7) }"
+}
+if [ "$mode" = label ]; then
+{
+  echo '$EXECUTE       CT'
+  # Each deck gives a label to the BCI cards that have none, and prints
+  # its internal text with COLAG.
+  deck EXPERR E6 "$(colag 15700020)
+  $(label 15700390 XLB30)
+  $(label 15700410 XLB32)"
+  deck BCDERR B6 "$(colag 26300020)
+  $(label 26300300 XLB24)"
+  deck KAPUT K1 "$(colag 26600020)
+  $(label 26600520 XLB43)
+  $(label 26600540 XLB45)
+  $(label 26600560 XLB47)"
+  echo '$IBSYS'
+  echo '$ENDFILE       SYSPP1'
+} >label.job
+LIMIT=300 sh "$here/run_ibsys.sh" "$kit" label.job label.lst "$kit/CTSYS1.BIN"
+grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' label.lst || true
 exit
 fi
 {
