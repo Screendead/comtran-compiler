@@ -724,6 +724,9 @@ starts from a fully resolved program and generates code only.
   the literal (D9.7) and msg 192 to ZERO (M2-8). This record adds
   neither; the question is back with Jack.*
 
+  *Amended 2026-11-21 (Jack's ruling): the literal keeps msg 912 and
+  ZERO keeps msg 192, and neither draws more. No code changes.*
+
   *Amended 2026-11-02 (PR #191, round 1 review): the folded row is new.
   Each term of `2 - 3` is legal, but element -1 does not exist
   ([J 02.04.07.01]). Sums, differences and products fold; a quotient

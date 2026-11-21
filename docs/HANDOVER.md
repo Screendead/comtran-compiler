@@ -536,7 +536,7 @@ the others merge on Jack's word.
 | 2 | Two PROGRAM.START labels: compile with the first, as D2.1 says | Draft PR #184: remove the "prototype for Jack's call" tag from the D2.1 amendment; run the review loop |
 | 3 | Defect 5: keep the 1962 words; message 950,00, `--pedantic` only | Draft PR #185: merge master (it conflicts); run the review loop |
 | 4 | M6-9: punch the object deck for the verbatim 1960 program, as 1962 did | Amend M6-9 with a dated entry. Design the code for each refused shape (a GET with no input file, a FILE into a non-output file, the undefined names) as our own design. The job stays above severity 1, so `--run` does not run it. `test/f_corpus_test.dart` then expects a deck. Run the review loop |
-| 5 | Keep messages 912,00 and 192,00 for a literal and a ZERO subscript | Record the ruling in M3-20; no code |
+| 5 | Keep messages 912,00 and 192,00 for a literal and a ZERO subscript | Done 2026-11-21 (PR #206): M3-20 records the ruling; no code |
 | 6 | Mark all three doubtful words `[sic]`: "synonomous" and "indicies" (PDF p. 116), "in not used" (PDF p. 171) | Add the three to the W2 `[sic]` list; regenerate the sources page |
 | 7 | Take the em dashes out of the 21 definition headings | Take draft PR #192 out of draft; merge on Jack's word |
 | 8 | W3: the compiler sends a statement mark beside each panel line | Build W3 from draft PR #189 (merge master first; it conflicts) |
@@ -558,7 +558,7 @@ https://claude.ai/artifact/VF2SjodMseA7aQMekdqRqw. The record
 | M6-9: "compile" means the diagnostic listing; the refusals stay and get a new label | Merged: #182. Overturned 2026-11-21 (see above) |
 | Dangling continuation: message 949,00, class 1, `--pedantic` only | Merged: #177; D11.4 amended 2026-11-02 |
 | W2: mark the genuine manual typos [sic] on the generated transcription pages; remove the em dashes from the language reference | Merged: #178 |
-| The three silent subscripts draw messages 79, 182 and 71 | Merged: #181 adds 71,00; #191 and #193 fold literal and expression subscripts for 182,00. The literal and ZERO terms already draw 912,00 and 192,00, so Jack decided on 2026-11-21 that they keep those (M3-20) |
+| The three silent subscripts draw messages 79, 182 and 71 | Merged: #181 adds 71,00; #191 and #193 fold literal and expression subscripts for 182,00. The literal and ZERO terms already draw 912,00 and 192,00, so Jack decided on 2026-11-21 that they keep those (M3-20, amended 2026-11-21) |
 | M7 opens after W3 and W4 | This file |
 
 ## The mission: the compiler — roadmap
