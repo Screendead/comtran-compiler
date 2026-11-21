@@ -158,8 +158,8 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 >
 > Done
 
-The fetch is done, and M7-3 holds its checksums. Next: M7-4 step 2,
-the choice of a 7090 simulator that runs the 1963 processor.
+The fetch is done, and M7-3 holds its checksums. M7-5 chooses the
+`s709` simulator. Its steps run on the Mac (issue #219).
 
 ### Codegen defects the runtime exposed
 

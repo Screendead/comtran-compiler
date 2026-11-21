@@ -106,3 +106,46 @@ reconstruction against it. The order:
    error. Give the evidence for each class.
 
 Each step gets its own entry in this record when it starts.
+
+## M7-5 The simulator
+
+**Decision.** Run the 1963 processor on `s709` 2.4.4, the 709/7090/7094
+simulator of Dave Pitts (external: cozx.com, 2026-11-21). Build the
+system tape with his `asm7090` 2.3.2, `lnk7090` 2.2.3 and `utils`
+1.1.15 from the same host.
+
+**Why this course.**
+
+- The archive comes from the same author. Its `CT/Makefile` assembles
+  `ct.job` with his `asm7090`.
+- The `s709` kit holds IBSYS system tapes (`ASYS1.BIN`, `ASYS8.BIN`)
+  and scripts that run IBSYS jobs (`runibsys`). The processor is an
+  IBSYS subsystem: `ct.job` is an IBSYS job that assembles the
+  "709/7090 COMMERCIAL TRANSLATOR MONITOR (VERSION 5) 07/15/63"
+  under IBSFAP.
+- The cloud network reaches the host, so a later fetch can repeat
+  every input.
+
+**The rejected course.** The Open SIMH `i7090` simulator also runs IBSYS.
+The survey of 2026-09-06 preferred it for an instruction-level test
+of our emulator, not for an IBSYS job. Its system tapes come from a
+second source, and the cloud network refuses that host. It stays the
+fallback if `s709` cannot run the processor.
+
+**Where it runs.** The Mac runs every step. A cloud session must not
+build or run code that it downloads, so the cloud fetches and reads
+only. The simulator, its tapes and its outputs stay out of this
+repository, as M7-3 requires for the archive. The Mac reports each
+step in a needs-mac issue.
+
+**The steps.**
+
+1. Build the four tools. Check the tarball against the M7-3 table.
+2. Boot IBSYS from `ASYS1.BIN` and run one sample job of the kit.
+3. Assemble `CT/ct.job` with `asm7090`, and compare the object file and
+   the listing against `CT/ct.obj` and `CT/ct.lst`.
+4. Put the processor on a system tape, and run the 90.05 job and the
+   1960 payroll deck under it.
+
+Steps 1 to 3 have a known end. Step 4 needs a method that this record
+does not hold yet. Its entry follows when step 3 is done.
