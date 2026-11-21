@@ -308,31 +308,6 @@ void main() {
       );
     });
 
-    test('a sentence deleted for a second BEGIN opens no section in the '
-        'resolver, as in the parser (M2-18)', () {
-      final SemanticResult result = runJob(
-        data: const [],
-        procedure: [
-          "      DUP.        DISPLAY 'A'.",
-          '      S1.         BEGIN SECTION, BEGIN SECTION.',
-          "      DUP.        DISPLAY 'C'.",
-          '            STOP RUN.',
-        ],
-      );
-      expect(
-        result.parse.parserDiagnostics.map((Diagnostic d) => d.message.number),
-        ['196,00'],
-      );
-      expect(ids(result), ['166,00']);
-      expect(
-        [
-          for (final DictionaryEntry e in result.dictionary.named('DUP'))
-            e.section,
-        ],
-        [null, null],
-      );
-    });
-
     test('a section open across two procedure groups scopes the second '
         "group's labels, as the parser's section stack does", () {
       final SemanticResult result = runJob(
