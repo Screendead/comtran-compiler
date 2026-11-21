@@ -354,3 +354,60 @@ Three facts differ from the method:
   each tape into the work folder.
 
 Part 2 runs X4 on this tape. It needs `SRDLOC` in file 5 first.
+
+## M7-7 The runtime library compile
+
+*Read 2026-11-21 from `CT/ct.job`. The fetch gave the checksum of the
+M7-3 table.*
+
+**Part 2 does not need `SRDLOC`.** The result of M7-6 says that part 2
+needs `SRDLOC` in file 5. The source refutes this for step X4:
+
+- X4 holds one `$EXECUTE CT`, then 40 `$ID` and `$CMPLE` pairs. It has
+  no `$LOAD` card and no `$SUBUP` card.
+- The monitor reads file 5 only for the action `CTSUBD` (CT001850 to
+  CT001860, position `TP070`, file 5 record 0).
+- Only the loader (LD100450) and the subroutine updater (SU004030) ask
+  for `CTSUBD`. A `$CMPLE` job calls neither.
+- The probe of M7-6 compiled `IOBSMP` on the new tape with no error.
+  Files 5 and 6 held no record then.
+
+Thus CT can compile its own library on the tape of part 1 as it stands.
+
+**The method for part 2.** `tool/m7/ct_library.sh` runs it.
+
+1. Take the cards of X4 from its `$EXECUTE CT` card (X4000090) up to
+   the `$IBSYS` card of X5 (X5000010). Leave out the `$PAUSE` before
+   X4: it asks an operator for a new output reel.
+2. Add `$IBSYS` and `$ENDFILE SYSPP1`, as for the steps of part 1.
+3. Run the job under IBSYS with `CTSYS1.BIN` on `SYSLB1`. Allow ten
+   minutes: the job compiles 5,889 cards.
+4. Keep the listing and the punch tape.
+
+A pass shows these three counts:
+
+| Count | Pass value |
+|---|---|
+| `$CMPLE` cards in the job | 40 |
+| `NO ERRORS WERE DETECTED DURING COMPILATION` in the listing | 40 |
+| `THE LAST LOADER CONTROL CARD PUNCHED IS` in the listing | 40 |
+
+The punch tape then holds the 40 relative binary decks of the library.
+The assembler phase punches a `*CTEXT` card at the start of each deck
+(CE061330) and a `*CTEND` card at its end.
+
+**What part 3 needs.** Part 3 puts the library in files 5 and 6. The
+source shows two facts that it must handle:
+
+- `SRDLOC` must be record 0 of file 5. The action `CTSUBD` reads that
+  record first. On tape, its code returns at once (SDL00250 to
+  SDL00260). The archive's `ct.lst` holds its 12 words (lines 68893 to
+  68913). Thus a card deck can come from the listing, if IBSFAP still
+  does not return after it.
+- The subroutine updater cannot start from an empty library. It reads
+  the old dictionary first, and an end of file there stops it with
+  `EOF IN READING SBR RECORD` (SU006540 to SU006610, SU034000). Thus part 3 needs a
+  seed `SRDICT` record. The archive holds none in binary. The writer of
+  the dictionary (SU031440 to SU031470) gives its form.
+
+Part 3 gets its own method when part 2 is done.

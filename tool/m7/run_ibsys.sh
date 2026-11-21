@@ -1,6 +1,7 @@
 #!/bin/sh
 # Runs one IBSYS job under s709 and keeps every tape it writes.
 # Usage: run_ibsys.sh KIT JOB LISTING [SYSLB1.BIN]
+# TIMEOUT sets the seconds a job may run before s709 is stopped (default 60).
 # KIT is the folder that holds the built s709-2.4.4 and utils trees.
 # Run it in a work folder: the tapes stay there as sysut1.bin, sysut2.bin,
 # syspp1.bin and so on. Put an input SYSUT2 tape at sysut2.bin first.
@@ -22,11 +23,11 @@ taskpolicy -c utility -d utility \
   a1r=syslb1.bin a2r=syslb2.bin a3=sysin.bcd a4=sysou1.bcd \
   a5=sysut1.bin a6=sysut3.bin a7=sysut2.bin a8=syspp1.bin \
   a9=sysut4.bin a10=sysck2.bin </dev/null >console.txt &
-# A job that never ends keeps s709 running, so stop it after 60 seconds.
-pid=$! n=0
+# A job that never ends keeps s709 running, so stop it after TIMEOUT seconds.
+pid=$! n=0 limit=${TIMEOUT:-60}
 while kill -0 $pid 2>/dev/null; do
   n=$((n + 1))
-  if [ $n -gt 60 ]; then kill $pid; echo "s709 stopped after 60 s" >&2; fi
+  if [ $n -gt $limit ]; then kill $pid; echo "s709 stopped after $limit s" >&2; fi
   sleep 1
 done
 bcd2txt -p sysou1.bcd "$lst"
