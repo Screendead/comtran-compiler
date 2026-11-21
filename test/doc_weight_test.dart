@@ -13,8 +13,9 @@ const Map<String, int> budgets = <String, int>{
   'docs/comtran-language-definition.md': 115000,
   'docs/design/decisions.md': 50000,
   // The calls-waiting table of 2026-11-02 and the merged-by-PR cross
-  // references (#186, #190, #191, #193) added about 100 words.
-  'docs/HANDOVER.md': 9800,
+  // references (#186, #190, #191, #193) added about 100 words; the
+  // ordered next-step table of the 2026-11-21 rulings about 180 more.
+  'docs/HANDOVER.md': 10000,
   // M3-20 gained the folded-subscript row of 182,00 (PR #191).
   'docs/design/m3-data.md': 9200,
   // M6-9 records one decision per chunk 2b item, and the tapes and the
