@@ -546,6 +546,24 @@ void main() {
       expect(sentences.single.deleted, isTrue);
     });
 
+    test('a BEGIN SECTION with no name of its own deletes the sentence '
+        'with 196 (M2-18, F p. 26)', () {
+      for (final (String first, int column) in [
+        ('            BEGIN SECTION.', 13),
+        ('      S1.         BEGIN SECTION, BEGIN SECTION.', 34),
+      ]) {
+        final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse(
+          [first, '            MOVE A TO B.', '            END S1.'],
+        );
+        expect(diagnostics.map((Diagnostic d) => d.message.number), [
+          '196,00',
+          '64,00',
+        ]);
+        expect(diagnostics.first.column, column);
+        expect(sentences.first.deleted, isTrue);
+      }
+    });
+
     test('the 36th section stops compilation with one 149 (D9.1)', () {
       final lines = <String>['      *PROCEDURE'];
       for (var i = 1; i <= 36; i++) {
