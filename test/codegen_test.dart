@@ -1965,6 +1965,45 @@ void main() {
         '      WRAP.UP.  STOP RUN.',
       ]);
     });
+
+    test('a second label binds nothing and owns no cell', () {
+      // Msg 141: "MORE THAN ONE -PROGRAM.START-. FIRST USED."
+      final SemanticResult semantics = runJob(
+        data: [
+          dataCard(
+            name: 'NUM',
+            level: '1',
+            mode: 'I',
+            justify: 'R',
+            description: '999',
+          ),
+        ],
+        procedure: <String>[
+          '            DO PROGRAM.START.',
+          '            GO TO WRAP.UP.',
+          '      PROGRAM.START.  SET NUM = NUM + 1.',
+          '      PROGRAM.START.  SET NUM = NUM + NUM.',
+          '      WRAP.UP.  STOP RUN.',
+        ],
+      );
+      // The second label and the DO each draw D2.5's 166.
+      expect(ids(semantics), <String>['166,00', '166,00']);
+      final List<AssemblyUnit> units = runCodegen(semantics).units;
+      final List<AssemblyUnit> labelled = units
+          .where((AssemblyUnit u) => u.labels.contains('PROGRAM.START'))
+          .toList();
+      // The DO's return cell is on the first label only.
+      expect([for (final u in labelled) u.operation], <String>['AXT', 'CLA']);
+      // The call, the first paragraph's return and the entry all
+      // address the first label.
+      final Iterable<AssemblyUnit> uses = units.where(
+        (AssemblyUnit u) => u.operand.split(',').first == 'PROGRAM.START',
+      );
+      expect(uses, hasLength(3));
+      for (final use in uses) {
+        expect(Word36.address(use.word!), labelled.first.location);
+      }
+    });
   });
 
   group('the subscript store and the subscripted target (M6-9)', () {

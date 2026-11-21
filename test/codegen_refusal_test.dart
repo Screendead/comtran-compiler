@@ -1553,6 +1553,23 @@ void main() {
       );
     });
 
+    test('a second PROGRAM.START that opens a section', () {
+      // Msg 141 binds the first label, so the END would return
+      // through that label's word (D2.1).
+      expect(
+        _refuses(
+          [
+            '      PROGRAM.START.  SET NUM = NUM + NUM.',
+            '      PROGRAM.START.  BEGIN SECTION.',
+            '            SET NUM = NUM + TOT.',
+            '            END PROGRAM.START.',
+          ],
+          flagged: ['166,00'],
+        ),
+        'a second PROGRAM.START that opens a section',
+      );
+    });
+
     test('a label spelled like a section of another scope', () {
       // Legal under D2.5's per-section scope; the flat binder would
       // keep only the later address.
