@@ -70,9 +70,10 @@ Scrutinise new and existing tests when things change."
   reaches but no test asserts on is permitted, and gets a test only when the test earns its place as above.
 - The evidence rules and the seal of `CLAUDE.md` sections 8 and 9 bind every owner. No owner reads the sealed
   archive.
-- The two-reviewer merge loop of `EXTERNAL-REVIEW.md`, and the adversarial review of a multi-agent refactor in
-  `CLAUDE.md` section 12, are review rounds after the fact. They change only on Jack's instruction. Until he
-  rules, they stay the merge gate.
+- The two-reviewer merge loop of `EXTERNAL-REVIEW.md` stays only for a change to what the compiler generates
+  or diagnoses. A constitution-audit pull request (comments, dead code, wrappers, tests) changes neither, and
+  the unchanged goldens prove it. It skips the loop and the adversarial review, and its owner merges it once CI
+  passes. Jack's ruling, 2026-11-21.
 
 ## Keeping to it
 

@@ -9,6 +9,11 @@ hard codegen stuff needs the two-reviewers; routine maintenance does
 not"). Jack can also waive the review for one pull request; his
 instruction to merge is such a waiver.
 
+**Amended 2026-11-21 on Jack's ruling.** A constitution-audit pull
+request (comments, dead code, wrappers, tests, with every golden
+unchanged) skips the loop and merges once CI passes. A pull request
+that changes what the compiler generates or diagnoses keeps the loop.
+
 The reviewers are two Claude Code subagents. The orchestrator starts
 them with the Agent tool:
 
