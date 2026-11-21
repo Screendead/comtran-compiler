@@ -159,7 +159,11 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 > Done
 
 The fetch is done, and M7-3 holds its checksums. M7-5 chooses the
-`s709` simulator. Its steps run on the Mac (issue #219).
+`s709` simulator. The Mac ran its steps 1 to 3 (issue #219): the tools
+build, IBSYS boots, and `asm7090` assembles the FAP parts of the
+processor to the archive's words. The IBSYS tape has no Commercial
+Translator. Next: M7-5 step 4 part 1, a system tape that holds CT. The
+cloud reads `EDITOR/editor.map` for the System Editor method first.
 
 ### Codegen defects the runtime exposed
 

@@ -149,3 +149,62 @@ step in a needs-mac issue.
 
 Steps 1 to 3 have a known end. Step 4 needs a method that this record
 does not hold yet. Its entry follows when step 3 is done.
+
+**The result of steps 1 to 3 (2026-11-21, issue #219).** The Mac ran
+the steps in a live session with Jack, outside the repository.
+
+| Step | Result |
+|---|---|
+| Fetch | The `ibsys.tar.gz` checksum matches M7-3. |
+| 1. Build | `make` builds `s709`, `asm7090`, `lnk7090` and `utils` with no error. |
+| 2. Boot | `runibsys primes.job` runs the kit's FORTRAN sample to `END OF JOBS`. |
+| 3. Assemble | `asm7090` reports 405 errors, all in file 9. The other ten assemblies have none. |
+
+The errors in file 9 are not a defect of the tool. `ct.job` is an
+IBSYS job of six steps, not one FAP program:
+
+| Step | Control card | Content |
+|---|---|---|
+| X1 | `$EXECUTE IBSFAP` | the CT monitor, version 5, 07/15/63 |
+| X2 | `$EXECUTE IBSFAP` | the CT IOCS |
+| X3 | `$EXECUTE IBSFAP` | a third FAP part |
+| X4 | `$EXECUTE CT` | 40 `$CMPLE` decks: the runtime library, in COMTRAN and CRYPT source |
+| X5 | `$EXECUTE IBSFAP` | a last FAP part |
+| X6 | `$STOP` | end of job |
+
+`asm7090` reads X4 as FAP, so it rejects it. The archive's own
+`ct.lst` shows 357 errors in the same file. Thus `asm7090` alone
+cannot build the runtime library. The processor must compile the 40
+decks of X4 under IBSYS.
+
+The Mac decoded both object decks to memory images, one image for
+each of the 14 segments, and compared them word by word:
+
+- Ten segments are identical. Segments 3 to 5 add one empty record
+  only.
+- Segment 2, the CT IOCS, differs in three address fields of 3,597
+  words. The source gives `**` for each, and the program fills them
+  at run time. Version 2.3.2 assembles 1200 and version 2.2.1
+  assembles 1220.
+- Segment 12 comes from X4, so neither deck holds meaningful words
+  there.
+
+The listings differ in headers, column layout and mode line. The
+2.3.2 listing says 7094 mode, but the object words do not change.
+
+`ASYS1.BIN` holds no Commercial Translator. A probe job with
+`$EXECUTE CT` gets `CT     UNKNOWN SYSTEM`. The kit has no job that
+adds a new subsystem to a system tape. Its editor jobs change the
+IBJOB libraries only. The System Editor control cards for a new
+subsystem are in the archive's `EDITOR/editor.map`.
+
+**Step 4, in two parts.**
+
+1. Make a system tape that holds CT. Run steps X1 to X3 of `ct.job`
+   under IBSYS to punch the object deck. Then run a System Editor job
+   that adds it to the tape.
+2. Run step X4 on the new tape, so the processor compiles its own
+   runtime library.
+
+The method for part 1 comes from `EDITOR/editor.map`. Its entry
+follows when the cloud reads that file.
