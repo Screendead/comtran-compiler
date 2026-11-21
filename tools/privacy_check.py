@@ -355,7 +355,7 @@ def resolve(base, path):
     return full
 
 
-def push_revs(cwd, args):
+def push_revs(cwd, args, default="HEAD"):
     value_opts = {"-o", "--push-option", "--repo", "--receive-pack", "--exec"}
     positional, everything, tags = [], False, False
     i = 0
@@ -388,9 +388,9 @@ def push_revs(cwd, args):
             revs.append(src)
         else:
             # Usually a variable or $(git branch --show-current): the current branch is the best guess.
-            revs.append("HEAD")
+            revs.append(default)
     if not revs and len(positional) <= 1:
-        revs.append("HEAD")
+        revs.append(default)
     return sorted(set(revs), key=revs.index)
 
 
@@ -432,13 +432,24 @@ def gh_values(args):
 
 
 class BashState:
-    def __init__(self, cwd):
+    def __init__(self, cwd, bodies, command):
         self.cwd = cwd
+        self.command = command
+        self.bodies = bodies
+        self.heads = {}
         self.committing = False
         self.adding = False
         self.messages = []
         self.commit_heredoc = False
         self.heredoc_label = None
+
+
+# Commands that may mention git or gh as text rather than run them.
+TEXT_COMMANDS = {
+    "echo", "printf", "grep", "egrep", "rg", "cat", "sed", "awk", "head", "tail", "less", "man",
+    "which", "type", "whereis", "find", "ls", "trash", "rm", "brew",
+}
+UNREADABLE = "PR or issue text it could not read"
 
 
 def check_bash(command, cwd, out):
@@ -451,12 +462,18 @@ def check_bash(command, cwd, out):
         if re.search(r"\bgit\b.*\bpush\b|\bgh\s+(pr|issue)\s+(create|edit|comment|review|merge)\b", command, re.S):
             out.append((UNPARSED, "this Bash call", ""))
         return
-    state = BashState(cwd)
+    state = BashState(cwd, bodies, stripped)
     for tokens in parsed:
         tokens = strip_prefix(strip_redirections(tokens))
         if not tokens:
             continue
         program = os.path.basename(tokens[0])
+        if program not in ("cd", "pushd", "git", "gh") and program not in TEXT_COMMANDS:
+            # A wrapper such as timeout, sudo, xargs or caffeinate.
+            later = [i for i, t in enumerate(tokens) if os.path.basename(t) in ("git", "gh")]
+            if later:
+                tokens = tokens[later[0]:]
+                program = os.path.basename(tokens[0])
         if program in ("cd", "pushd"):
             target = tokens[1] if len(tokens) > 1 and tokens[1] != "-" else "~"
             state.cwd = resolve(state.cwd, target)
@@ -465,7 +482,7 @@ def check_bash(command, cwd, out):
         elif program == "gh":
             check_gh(tokens[1:], state, out)
     if state.heredoc_label:
-        ctx = Context(cwd)
+        ctx = Context(state.cwd or cwd)
         for body in bodies:
             scan_text(body, state.heredoc_label, True, ctx, out)
 
@@ -487,6 +504,11 @@ def check_git(args, state, out):
     command, rest = (args[i], args[i + 1:]) if i < len(args) else (None, [])
     if command == "add":
         state.adding = True
+    elif command in ("checkout", "switch") and cwd:
+        # A later push in the same call pushes the branch switched to, which may not be checked out yet.
+        words = [a for a in rest if not a.startswith("-")]
+        if "--" not in rest and words and git(cwd, "rev-parse", "--verify", "-q", f"{words[-1]}^{{commit}}"):
+            state.heads[cwd] = words[-1]
     elif command == "commit":
         state.committing = True
         for field, value in option_values(rest, {"message": {"-m", "--message"}, "file": {"-F", "--file"}}):
@@ -499,7 +521,7 @@ def check_git(args, state, out):
         if cwd is None:
             out.append((UNRESOLVED, "git push", ""))
             return
-        revs = push_revs(cwd, rest)
+        revs = push_revs(cwd, rest, state.heads.get(cwd, "HEAD"))
         if not revs:
             return
         ctx = Context(cwd)
@@ -513,6 +535,39 @@ def check_git(args, state, out):
                 scan_text(message, "commit message", True, ctx, out)
 
 
+SUBSTITUTION = re.compile(r"\$\(|`|^\$\{?[A-Za-z_]\w*\}?$")
+
+
+def literal_spans(command):
+    """Spans of command inside single quotes, where $( and backticks are plain text."""
+    spans, i, quote = [], 0, None
+    while i < len(command):
+        c = command[i]
+        if quote == "'":
+            if c == "'":
+                spans.append((start, i))
+                quote = None
+        elif c == "\\":
+            i += 1
+        elif quote == '"':
+            if c == '"':
+                quote = None
+        elif c in "'\"":
+            quote, start = c, i
+        i += 1
+    return spans
+
+
+def substituted(value, command):
+    """Whether the shell builds value from a command or variable, which the hook cannot see."""
+    m = SUBSTITUTION.search(value)
+    if not m:
+        return False
+    snippet = value[m.start():m.start() + 24].split("\n")[0]
+    spans = literal_spans(command)
+    return any(not any(a < p < b for a, b in spans) for p in positions(command, snippet))
+
+
 def check_gh(args, state, out):
     while args and args[0] in ("-R", "--repo"):
         args = args[2:]
@@ -522,30 +577,34 @@ def check_gh(args, state, out):
     noun = "PR" if kind == "pr" else "issue"
     if action in ("comment", "review"):
         noun += " comment"
+    # Heredocs in the call may feed the text (directly or through a file written first).
+    state.heredoc_label = f"{noun} body"
     cwd = state.cwd or os.getcwd()
     ctx = Context(cwd)
     head = None
     for field, value in gh_values(args[2:]):
-        if HEREDOC_MARK in value or (field == "body-file" and value == "-"):
-            state.heredoc_label = f"{noun} body"
-            value = value.replace(f"<< {HEREDOC_MARK}", "")
-        if field == "title":
-            scan_text(value, f"{noun} title", True, ctx, out)
-        elif field == "body":
-            scan_text(value, f"{noun} body", True, ctx, out)
+        if field in ("title", "body"):
+            if HEREDOC_MARK in value:
+                value = value.replace(HEREDOC_MARK, "")
+            elif substituted(value, state.command):
+                out.append((UNREADABLE, f"{noun} {field} (built by a command or variable)", ""))
+                continue
+            scan_text(value, f"{noun} {field}", True, ctx, out)
         elif field == "head":
             head = value.split(":")[-1]
         elif value != "-":
+            path = os.path.join(cwd, os.path.expanduser(os.path.expandvars(value)))
             try:
-                with open(os.path.join(cwd, os.path.expanduser(value)), encoding="utf-8", errors="replace") as f:
+                with open(path, encoding="utf-8", errors="replace") as f:
                     scan_text(f.read(), f"{noun} body", True, ctx, out)
-            except OSError as error:
-                print(f"privacy_check: cannot read body file: {error}", file=sys.stderr)
+            except OSError:
+                if not state.bodies:
+                    out.append((UNREADABLE, f"{noun} body file", ""))
     if kind == "pr" and action == "create":
         if state.cwd is None:
             out.append((UNRESOLVED, "gh pr create", ""))
             return
-        rev = head if head and git(cwd, "rev-parse", "--verify", "-q", head) else "HEAD"
+        rev = head if head and git(cwd, "rev-parse", "--verify", "-q", head) else state.heads.get(cwd, "HEAD")
         scan_commits(ctx, [rev], out)
 
 
@@ -587,6 +646,9 @@ def reason(event):
         hint = "\nIt could not tell which repository a push is in: use a literal path with cd or git -C."
     if any(c == UNPARSED for c, _, _ in out):
         hint += "\nIt could not parse the command: split it into simpler commands."
+    if any(c == UNREADABLE for c, _, _ in out):
+        hint += ("\nIt could not read the text to be posted: pass it inline, with -F - and a heredoc, "
+                 "or with --body-file and a literal path to a file that already exists.")
     for category, where, _ in out:
         if (category, where) not in seen:
             seen.add((category, where))
