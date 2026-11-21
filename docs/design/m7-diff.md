@@ -824,6 +824,29 @@ run, and each change alters 1963 material:
 
 The call is issue #236. SUBUP waits on it.
 
+**Jack's call (2026-11-21, issue #236).** Jack, 2026-11-21:
+
+> **Jack's answer:** A · Name the twelve cards
+
+Thus the compiler stays as the archive holds it. `tool/m7/ct_library.sh`
+gives each of the twelve cards the label `XLBn` in columns 1 to 6, where
+`n` is the statement number of the card. The labels of the label probe
+keep their names. No deck holds the string `XLB`, so no label is a
+duplicate. The script stops if one of the twelve cards has a label in the
+archive, or if the job does not hold all twelve labels.
+
+| Deck | Card | Label |
+|---|---|---|
+| `EXPERR` | 15700390, 15700410 | `XLB30`, `XLB32` |
+| `BCDERR` | 26300300 | `XLB24` |
+| `KAPUT` | 26600520, 26600540, 26600560 | `XLB43`, `XLB45`, `XLB47` |
+| `WRTEOB` | 29100300, 29100320 | `XLB24`, `XLB26` |
+| `BLERR` | 29400300 | `XLB16` |
+| `TRAPEM` | 29700280, 29700290, 29700300 | `XLB15`, `XLB16`, `XLB17` |
+
+Each M7 summary states these twelve changes. The method does not run yet:
+the `SYSCOL` fault below still stops the X4 step.
+
 **What stays open.** `SYSCOL` holds no `BCI` card, so this result does
 not explain its fault. Each half of its table compiles clean alone
 (probe of issue #230). Its fault blocks `SYS)161` under each of the
