@@ -1017,3 +1017,59 @@ The results read as follows:
   buffer.
 - Any other result: this record states the facts, and the next probe
   starts from them.
+
+**The result of the label sweep (2026-11-21, issue #242).** The Mac ran
+`tool/m7/ct_probe.sh KIT labels` on master at `7d5c39b`. All 65
+compiles ran. `labels.lst` holds 12401 lines.
+
+| Decks | Statement of the `ENTER` card | Result | Deck punched |
+|---|---|---|---|
+| `L0` | 68 | `ILLEGAL INTERNAL CONDITION` at 68, severity 5; dump at `LOC 13721` | no |
+| `L1` to `L64` | 68 | clean | yes |
+
+This is the second reading of the table above. The facts:
+
+- One label is enough to make the deck clean. Thus the statement
+  number and the count of sentences do not cause the fault.
+- The dump of `L0` has the same header line as the dump of `S0` in the
+  probes of issues #238 and #240. The message page printed again in this
+  run.
+
+A label is one word of text: the words before the comma of a `BCI`
+card are the label, the control word and the count (table above). Thus
+`Ln` adds n words to the text of `L0`. If the fault comes back at a
+period of P words, it comes back at `Ln` with n = P. No deck failed, so
+P is more than 64. The buffer of 112 words fits this. The probe does
+not yet show a period.
+
+**What the source shows.** The scanner writes each sentence with one
+`WRITE`: `CLINK`, `BLINK`, then the words at `LINK` (CC035520 to
+CC035580). The definition pass reads them with two calls of `READ`.
+The first reads `CLINK` and `BLINK` (CC012690 to CC012730). The second
+reads the words of the sentence (CC012820 to CC012850). Message 18
+comes from an end of file in the second call. Thus the writer and the
+reader split each sentence at different points.
+
+**The next probe: steps of one word.** `tool/m7/ct_probe.sh KIT steps`
+compiles 455 variants of `SYSCOL` in one job. Deck `PjNn` is `Ln` with
+j `BSS 0` cards with no label after card 16100080. Here j is 1, 2, 4,
+8, 16, 32 or 64, and n is 0 to 64. `P1N0` is `S8`.
+
+A `BSS 0` card with no label adds one sentence of h words, and h is not
+known. Deck `PjNn` adds j·h + n words. A fault at a period P comes back
+where j·h + n is a multiple of P. For each h from 1 to 112, one j of the
+list gives j·h between 48 and 112. Thus if P is 112, at least one deck
+fails, and n gives its step of one word. The statement number of the
+`ENTER` card changes with j, and the position probe showed that it does
+not cause the fault.
+
+The results read as follows:
+
+- Two or more decks fail: the text length causes the fault. Two
+  failures give h and P. If P is 112, the next step reads the `WRITE`
+  and `READ` of IOCS at the end of a buffer.
+- No deck fails: the text length alone does not cause it, or no deck
+  reaches a multiple of P. A label also adds a symbol to the
+  dictionary, so the next probe then turns to the dictionary.
+- Any other result: this record states the facts, and the next probe
+  starts from them.
