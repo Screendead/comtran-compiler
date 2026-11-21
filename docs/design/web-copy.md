@@ -142,13 +142,11 @@ C1.
   `review/2026-11-02-pitch-rulings`.* D5 reaches the language reference that
   W2 builds under `web/sources/reference/`. The em dashes came out of
   `docs/comtran-language-definition.md`, and its reading copy in
-  `docs/definition/` follows it. The reference keeps the mark in five places
+  `docs/definition/` follows it. The reference keeps the mark in four places
   only:
 
   - a quotation, because E2 keeps it verbatim;
   - code;
-  - a heading and the contents entry that repeats it, because the heading
-    text sets an anchor that other files link to;
   - a parenthesis that holds a citation, because a change of punctuation
     there can move what the citation attaches to;
   - a table cell that holds the mark alone, as "none".
@@ -338,8 +336,8 @@ above, not in small print.
      dashes go.
 
   Rule D5 now states the scope and the dashes the reference keeps.
-- **Headings that hold an em dash.** *Open, raised 2026-11-02. Jack
-  decides.* Twenty-one headings of the language definition keep an em dash,
-  and ten contents entries repeat them. A heading sets the anchor that other
-  files link to, so a change to one needs a change to each link in the same
-  pull request. Until Jack rules, the headings keep the mark.
+- **Headings that hold an em dash.** *Raised 2026-11-02. Closed
+  2026-11-21: Jack ruled that the headings lose the mark.* Twenty-one
+  headings of the language definition held an em dash, and ten contents
+  entries repeated them. Each now uses a colon or a comma. No file links to
+  the anchors that changed.
