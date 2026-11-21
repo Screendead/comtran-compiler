@@ -22,11 +22,12 @@ taskpolicy -c utility -d utility \
   a1r=syslb1.bin a2r=syslb2.bin a3=sysin.bcd a4=sysou1.bcd \
   a5=sysut1.bin a6=sysut3.bin a7=sysut2.bin a8=syspp1.bin \
   a9=sysut4.bin a10=sysck2.bin </dev/null >console.txt &
-# A job that never ends keeps s709 running, so stop it after 60 seconds.
+# A job that never ends keeps s709 running, so stop it after LIMIT seconds
+# (60 if unset).
 pid=$! n=0
 while kill -0 $pid 2>/dev/null; do
   n=$((n + 1))
-  if [ $n -gt 60 ]; then kill $pid; echo "s709 stopped after 60 s" >&2; fi
+  if [ $n -gt "${LIMIT:-60}" ]; then kill $pid; echo "s709 stopped after $n s" >&2; fi
   sleep 1
 done
 bcd2txt -p sysou1.bcd "$lst"
