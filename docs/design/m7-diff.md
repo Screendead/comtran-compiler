@@ -765,3 +765,66 @@ If the probe passes, the hypothesis holds. The library then needs one
 of two changes before SUBUP can run: a label on each `BCI` card with
 no label, or a correction of the patch. Each changes 1963 material, so
 the choice goes to Jack.
+
+**The result of the label probe (2026-11-21, issue #234).** The Mac
+ran `tool/m7/ct_probe.sh KIT label` on master at `4ad10a1`. All three
+compiles ran, and each printed `NO ERRORS WERE DETECTED DURING
+COMPILATION`. No deck drew a message. `label.lst` holds 509 lines.
+
+The print shows these facts:
+
+- Each of the eight text words of `E6` statements 30 and 32 is in the
+  print, once in the object listing and once in the buffer print.
+- Each control word with the code 74 now holds a count, and that number
+  of text words follows it. The words are `740004000004` (`E6`),
+  `740011000011` and `740003000003` (`B6`), `740010000010` (`B6`), and
+  `740001000001` (`K1`).
+- The object listing gives each `BCI` card a location in sequence. In
+  `E6`, `OVW` is at 00030, its text at 00031 to 00034, `NGW` at 00035,
+  its text at 00036 to 00041, and `OMAX` at 00042. In `B6`, `L1` to
+  `L3A` take 00021 to 00045 with no gap. In `K1`, `C06HED` to `C06IR1`
+  take 00041 to 00050, one word each.
+
+Thus the hypothesis holds. A `BCI` card with a count and no label
+loses its text, and a label on the card is enough to keep it.
+
+**A correction to this record.** The control word holds the word count
+in its address, not six times the count. The pass above expected
+`740004000030`, and the print shows `740004000004`. The scanner adds
+`SYX` to the address once for each word (CC027990 to CC028010), so
+`SYX` holds 1. The next phase takes the address as the count of words
+it copies (CD010650 to CD010730). `AXT 6,1` at CD010630 is not on this
+path. This changes no conclusion above.
+
+**The cards that lose their text.** The 40 X4 decks hold 33 `BCI`
+cards. Twelve of them have a count and no label:
+
+| Deck | Cards | Text |
+|---|---|---|
+| `EXPERR` | 15700390, 15700410 | `EXPONENTIAL OVERFLOW AT`, `ERROR IN EXPONENTIAL AT` |
+| `BCDERR` | 26300300 | `NUMERIC CHARACTER` |
+| `KAPUT` | 26600520, 26600540, 26600560 | ` IR4=`, ` IR2=`, ` IR1=` |
+| `WRTEOB` | 29100300, 29100320 | `NUMBER OF BUFFERS`, `FIED AS 24 WORDS` |
+| `BLERR` | 29400300 | `M BEFORE THE ITEM` |
+| `TRAPEM` | 29700280 to 29700300 | three cards of 30 sixes |
+
+`EXPERR` and `BCDERR` draw a message. The other four decks compile
+clean in X4, but their texts are lost all the same. Thus a clean X4
+listing does not show a correct library.
+
+**The choice for Jack.** The library needs one change before SUBUP can
+run, and each change alters 1963 material:
+
+1. Give a label to each of the twelve cards. The compiler stays as the
+   archive holds it, and the decks change on twelve cards, columns 1 to
+   6 only.
+2. Correct the patch at CC10163M. The decks stay as the archive holds
+   them, and the compiler that M7 measures changes.
+3. Change nothing, and build the library with the twelve texts lost.
+
+The call is issue #236. SUBUP waits on it.
+
+**What stays open.** `SYSCOL` holds no `BCI` card, so this result does
+not explain its fault. Each half of its table compiles clean alone
+(probe of issue #230). Its fault blocks `SYS)161` under each of the
+three choices.

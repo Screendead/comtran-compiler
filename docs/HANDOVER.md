@@ -159,9 +159,9 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 > Done
 
 M7-3 holds the checksums, M7-5 the simulator, M7-6 the CT tape,
-and M7-7 the library: 37 of 40 decks compile clean. A `BCI` card
-with no label loses its text (issue #232). Next: the Mac runs
-`tool/m7/ct_probe.sh KIT label`.
+and M7-7 the library. Twelve unlabeled `BCI` cards lose their text
+(issue #234). Issue #236 asks Jack: label them, or patch the compiler.
+SUBUP waits on it. The `SYSCOL` fault is open.
 
 ### Codegen defects the runtime exposed
 
@@ -533,9 +533,9 @@ binds work outside the definition.
 Jack answered every open call on the pitch page
 https://claude.ai/artifact/MU65CGChwwxR6517WYckra (one tab and one
 explainer video per call). The record `review/2026-11-02-pitch-rulings`
-holds his picks. Do the next steps in this
-order. Items 1 to 3 and 7 to 9 started as drafts on Jack's branches.
-Issue #208 asked if the cloud lead may finish them. Jack, 2026-11-21:
+holds his picks. Items 1 to 3 and 7 to 9 started as drafts on
+Jack's branches. Issue #208 asked if the cloud lead may finish them.
+Jack, 2026-11-21:
 
 > **Jack's answer:** A · Hand them over
 
