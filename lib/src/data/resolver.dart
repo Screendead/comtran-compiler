@@ -256,7 +256,8 @@ final class NameResolver extends ClauseWalk with OperandWalk {
       // best-effort.
       for (final Clause clause in clauseTree(sentence.clauses)) {
         if (clause is BeginSectionClause) {
-          sectionStack.add((begin: clause, name: label));
+          // The parser deleted a BEGIN with no name of its own (M2-18).
+          sectionStack.add((begin: clause, name: label!));
         } else if (clause is EndClause && sectionStack.isNotEmpty) {
           sectionStack.removeLast();
         }
@@ -816,4 +817,4 @@ int _internalDigits(List<int> bcd) {
 }
 
 /// A section the procedure walk has opened and not yet closed.
-typedef _OpenSection = ({BeginSectionClause begin, String? name});
+typedef _OpenSection = ({BeginSectionClause begin, String name});

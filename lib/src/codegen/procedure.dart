@@ -410,6 +410,9 @@ final class _Text {
   /// section's cell.
   String? _openSection;
 
+  /// Whether the walk has passed a PROGRAM.START label (D2.1).
+  bool _sawProgramStart = false;
+
   /// Which section the walk is in, counting from 1 at the first BEGIN
   /// SECTION. Sections are sequential, never nested, so the counter never
   /// falls: the main program before the first one is section 0. It names
@@ -426,6 +429,11 @@ final class _Text {
     final List<String> names = _pending;
     _pending = <String>[];
     for (final name in names) {
+      if (name == programStartName && _labelled.containsKey(name)) {
+        // Msg 141: the first PROGRAM.START is used (D2.1). The later
+        // one prints on its word and binds nothing.
+        continue;
+      }
       if (_labelled.containsKey(name)) {
         // Rebinding keeps only the later address, against D2.5's
         // section scoping, and no sample label repeats.
@@ -1692,6 +1700,14 @@ final class _Text {
       _card = scan.cards.first;
       final String? name = scan.label;
       _sentenceLabel = name;
+      // Msg 141 binds the first PROGRAM.START (D2.1), so a later one is
+      // no DO target and owns no return cell.
+      final bool later = name == programStartName && _sawProgramStart;
+      _sawProgramStart |= name == programStartName;
+      if (later && _beginsSection(sentence)) {
+        // Its END would return through the first label's word.
+        _unruled('a second PROGRAM.START that opens a section');
+      }
       if (name != null) {
         final String? open = _openParagraph;
         if (open != null) {
@@ -1702,7 +1718,7 @@ final class _Text {
           _openParagraph = null;
         }
         label(name);
-        if (_doTargets.contains(name) && !_beginsSection(sentence)) {
+        if (!later && _doTargets.contains(name) && !_beginsSection(sentence)) {
           // The call-site-driven return cell (catalogue 4.1).
           _op(Op.axt, _Sym(() => '0', () => 0, Relocation.constant));
           _openParagraph = name;
@@ -1756,9 +1772,6 @@ final class _Text {
       case CallClause() || NoteClause() || EnterClause():
         break; // No object word (F p. 59; J 02.04.02.01).
       case BeginSectionClause():
-        if (_sentenceLabel == null) {
-          _unruled('an unnamed section (no sample instance)');
-        }
         if (_openSection != null) {
           // Overwriting the open name would drop its return; every
           // sample section ends before the next begins.

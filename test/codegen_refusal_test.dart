@@ -1366,13 +1366,6 @@ void main() {
       );
     });
 
-    test('an unnamed section', () {
-      expect(
-        _refuses(['            BEGIN SECTION.']),
-        'an unnamed section (no sample instance)',
-      );
-    });
-
     test('a DO FOR index with no data definition', () {
       expect(
         _refuses(['            DO RTN FOR ZZZ = 1(1)12.'], flagged: ['108,00']),
@@ -1557,6 +1550,23 @@ void main() {
           '            END S2.',
         ]),
         'a procedure name defined twice (no sample instance)',
+      );
+    });
+
+    test('a second PROGRAM.START that opens a section', () {
+      // Msg 141 binds the first label, so the END would return
+      // through that label's word (D2.1).
+      expect(
+        _refuses(
+          [
+            '      PROGRAM.START.  SET NUM = NUM + NUM.',
+            '      PROGRAM.START.  BEGIN SECTION.',
+            '            SET NUM = NUM + TOT.',
+            '            END PROGRAM.START.',
+          ],
+          flagged: ['166,00'],
+        ),
+        'a second PROGRAM.START that opens a section',
       );
     });
 

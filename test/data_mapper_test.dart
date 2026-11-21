@@ -174,6 +174,35 @@ void main() {
       expect(_sem(result, 'X').fieldClass, FieldClass.alphameric);
     });
 
+    test('--pedantic notes a leading run of 8 and * with 950,00', () {
+      // Codegen defect 5: one asterisk bit fills the whole run, so the
+      // manuals' per-position fills do not survive (J 90.02.17).
+      for (final pictorial in <String>[r'$8*89.99', '**8.99', '+8*8,889']) {
+        final List<String> data = [
+          dataCard(name: 'X', level: '1', description: pictorial),
+        ];
+        expect(ids(runJob(data: data)), isEmpty, reason: pictorial);
+        final SemanticResult noted = runJob(data: data, pedantic: true);
+        expect(ids(noted), ['950,00'], reason: pictorial);
+        expect(noted.semanticDiagnostics.single.operands, [
+          'X',
+        ], reason: pictorial);
+        expect(_sem(noted, 'X').fieldClass, FieldClass.edited);
+      }
+      for (final pictorial in <String>[r'$8889.99', '****.99', '*99.88']) {
+        expect(
+          ids(
+            runJob(
+              data: [dataCard(name: 'X', level: '1', description: pictorial)],
+              pedantic: true,
+            ),
+          ),
+          isEmpty,
+          reason: pictorial,
+        );
+      }
+    });
+
     test('a scientific fraction over 16 digits draws 35,00', () {
       final SemanticResult result = runJob(
         data: [
