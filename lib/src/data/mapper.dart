@@ -331,6 +331,9 @@ final class DataMapper {
       if (internal) {
         conflict(msgModeDescriptionConflict);
       }
+      if (pedantic && shape.leadingRunMixesFills) {
+        conflict(msgLeadingRunMixesFills);
+      }
       sem
         ..fieldClass = FieldClass.edited
         ..doublePrecision = shape.valueDigits > 10;
