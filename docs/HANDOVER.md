@@ -152,7 +152,8 @@ design: evidence exists and is sealed until M7.
 
 **M7 is open (2026-11-21).** Every item of "Rulings of 2026-11-21"
 below is done. `docs/design/m7-diff.md` holds the plan. Its first step,
-the archive fetch, waits on Jack: the cloud network refuses the host.
+the archive fetch, waits on Jack's call (issue #216): the cloud network
+refuses the host.
 
 ### Codegen defects the runtime exposed
 
