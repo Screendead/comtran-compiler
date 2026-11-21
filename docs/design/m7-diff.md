@@ -1383,3 +1383,84 @@ the record of two words. The library job does not wait on this check:
 the label on card 16100090 removes the record of two words. A console
 capture for each deck can check step 2 later, if a later fault asks
 for it.
+
+**The result of the library job (issue #252, 2026-11-21).** The Mac ran
+`tool/m7/ct_library.sh KIT` on master at `9a740fc`. The job stopped at
+step 4.
+
+| Step | Result |
+|---|---|
+| 2, X4 | 40 of 40 compiles print `NO ERRORS WERE DETECTED DURING COMPILATION` and `THE LAST LOADER CONTROL CARD PUNCHED IS`. |
+| 3, SUBUP | `IOEXMP  SBR CONTROL CARD IS NOT FOLLOWED BY *CTEXT CARD`, then `SUBUP NOT COMPLETED BECAUSE OF ERROR.` and `SUBUP BYPASSED 367 UNUSED MODIFICATION CARDS`. |
+| 4, splice | `ct_lib.dart` stopped: the partial `SYSUT2` mixes odd and even parity. |
+| 5, map | not run. |
+
+The `XLB30` and `XLB32` cards of `EXPERR` keep their text. Thus the
+thirteen labels work. The punch tape holds 366 records of 28 words in
+file 0.
+
+The script went on after the SUBUP error, because `run_ibsys.sh`
+returns 0 when a job fails. The script now stops when `subup.lst` holds
+`NOT COMPLETED`.
+
+**What the source shows: SUBUP never read SYSUT4.** The count of 367
+shows it. After the error, SUBUP reads the rest of the modification deck
+from `SYSUT4` to its end, and counts from 1 (SU007160 to SU007300).
+Each read adds 1, and the end of file prints the count. Thus 366 reads
+give 367. The tape holds 366 records, so SUBUP read none of them before
+the error.
+
+The cause is the `TAPE` indicator `ILTIN` (SU002400):
+
+1. The scan of the `$SUBUP` card sets `ILTIN` in `VMODE` when columns 1
+   to 4 hold `TAPE` (SU006170 to SU006210).
+2. The `*INSERT` path loads the indicators from `VMODE` (SU020420), and
+   keeps them to SU020510.
+3. A card with a type, octal or `PRIMARY`, calls `BSCAN` for the type
+   (SU020870). `BSCAN` loads the indicators with the codes of the
+   characters it scans (SU013080 to SU013100, SU013900). No code of the
+   table `CTBL` holds the bit of `ILTIN` (SU018090 and after).
+4. `MODPRC` tests `ILTIN` in the indicators, and it does not load
+   `VMODE` first (SU021950 to SU021960). Thus a typed card reads its
+   `*CTEXT` card from the card reader. The next card of the reader is
+   the next `*INSERT` card, and SUBUP prints message `ERM09` (SU022010
+   to SU022020, SU033960).
+5. The binary cards and the `*CTEND` card load `VMODE` before the test
+   (SU022090 to SU022110, SU022570 to SU022590). They read `SYSUT4`.
+
+A card with no type does not call `BSCAN` (SU020850). It keeps `ILTIN`,
+and reads all of its deck from `SYSUT4`. Eight of the 40 cards have a
+type: routines 1 to 7 and 34, `MOVPAK`.
+
+**The format of the punch tape agrees with SUBUP.** The compiler punches
+each control card as 28 words of column binary, three columns to a word
+(`HBC`, CE066580 to CE066940; `PNCHC`, CE066960 to CE067030). SUBUP reads
+records of 28 words (`BQ00`, SU019420). It finds `*CTEXT` in words 2 and
+3 (SU022940 to SU023000). `MASKL3` and `MASKR3` are the complements of
+`*CT` and `EXT` in column binary (SU023140 to SU023150). Thus a typed
+deck fails only on the source of its `*CTEXT` card.
+
+**The method for step 3, amended.** SUBUP stays as the archive holds it.
+The job gives each typed deck its `*CTEXT` card where SUBUP reads it:
+
+- After each typed `*INSERT` card, the card reader gets a BCD card with
+  `*CTEXT` in columns 7 to 12. SUBUP tests columns 7 to 12 only
+  (SU022000 to SU022010).
+- `tool/m7/ctext_drop.dart` copies the punch tape to `SYSUT4` without
+  the `*CTEXT` cards of the eight typed decks. The X4 job compiles the
+  decks in table order, so the n-th `*CTEXT` card is the card of routine
+  n.
+- The `$SUBUP` card gives `MAP,48`. SUBUP counts each card that it reads
+  from the card reader (SU015440 to SU015460): 40 `*INSERT` cards and
+  eight `*CTEXT` cards.
+
+The deck words do not change: the `*CTEXT` card holds no deck word. The
+rejected courses:
+
+| Course | Cost |
+|---|---|
+| Correct `MODPRC` to load `VMODE` | changes the 1963 SUBUP that M7 measures |
+| Put every deck on the card reader | `SYSIN` then needs binary cards, and no tool of the kit writes them into `sysin.bcd` |
+| Give no type to the eight routines | the four fixed origins and the four primary routines are lost |
+
+The next step: the Mac runs the library job again.

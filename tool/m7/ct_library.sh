@@ -60,9 +60,15 @@ mv syspp1.bin x4.pp.bin
 
 # 3. SUBUP inserts the 40 compiled decks and writes the new library, two
 # files, to SYSUT2. A blank type is secondary; SUBUP refuses SECONDARY.
+# The scan of a type overwrites the TAPE indicator before SUBUP reads the
+# *CTEXT card (SU020870, SU013900, SU021950), so a typed deck takes its
+# *CTEXT card from the reader and the rest from SYSUT4. Thus the reader
+# gets a *CTEXT card after each typed *INSERT card, SYSUT4 loses that
+# deck's *CTEXT card, and the card count is 40 plus one for each.
+typed=$(awk '$3 != "SECONDARY" { print NR }' table.txt)
 {
   echo '$EXECUTE       CT'
-  echo '$SUBUP         MAP,40'
+  echo "\$SUBUP         MAP,$((40 + $(echo "$typed" | wc -l)))"
   while read -r _ name type org; do
     case $type in
     FIXED) t=",$org" ;;
@@ -70,10 +76,17 @@ mv syspp1.bin x4.pp.bin
     *) t= ;;
     esac
     echo "TAPE  *INSERT  SR($name)$t"
+    [ -z "$t" ] || echo '      *CTEXT'
   done <table.txt
 } >subup.job
-ln -sf x4.pp.bin sysut4.bin
+[ "$(grep -c '^      \*CTEXT' subup.job)" -eq 8 ]
+dart run "$here/ctext_drop.dart" x4.pp.bin sysut4.bin $typed
 sh "$here/run_ibsys.sh" "$kit" subup.job subup.lst "$PWD/seed.bin"
+# run_ibsys.sh returns 0 when a job fails, so check the listing.
+if grep -q 'NOT COMPLETED' subup.lst; then
+  echo 'SUBUP failed: see subup.lst' >&2
+  exit 1
+fi
 mv sysut2.bin library.bin
 
 # 4. Splice the library into files 5 and 6.
