@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|mcp__.*__(create_pull_request|update_pull_request|add_issue_comment|issue_write|update_issue_comment|create_or_update_file|push_files|add_comment_to_pending_review|pull_request_review_write|add_reply_to_pull_request_comment|merge_pull_request)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ ! -f \"$CLAUDE_PROJECT_DIR/tools/privacy_check.py\" ] || python3 -I \"$CLAUDE_PROJECT_DIR/tools/privacy_check.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
