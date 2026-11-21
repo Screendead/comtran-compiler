@@ -354,3 +354,148 @@ Three facts differ from the method:
   each tape into the work folder.
 
 Part 2 runs X4 on this tape. It needs `SRDLOC` in file 5 first.
+
+**Amendment, 2026-11-21: what file 5 needs.** Part 2 needs `SRDLOC`
+and a dictionary in file 5 before SUBUP or LOAD can run. M7-7 holds the
+evidence and the method.
+
+## M7-7 The CT subroutine library
+
+*Read 2026-11-21 from `CT/ct.job`, `CT/ct.lst` and `EDITOR/editor.map`.
+A fetch gave the checksum of the M7-3 table. The cited cards are
+sequence numbers in columns 73 to 80.*
+
+**What reads files 5 and 6.** The compiler does not read them. The
+`SUB` option of `$CMPLE` (CB031850) only sets the switch `CTSUBX`. The
+switch skips the `STOP RUN` test (CD008340) and the storage and constant
+pool of a main program (CE047490). Two programs read the library:
+
+| Program | Call | Effect |
+|---|---|---|
+| `SUBUP` | SU004770 to SU004800 | positions to file 5 and reads it |
+| `LOAD` | LD059980 to LD060010 | positions to file 5 and reads it |
+
+Both calls use the `CTSUBD` action with prefix `PZE`, "PERFORM ACTION
+(INCL. POSITIONING)" (CT003730). The action reads the record at
+`TP070`, record 0 of file 5, with the system loader (CT004510).
+
+**Why file 5 starts with `SRDLOC`.** The system loader can only read a
+loader record, so record 0 of file 5 must be one. That record is
+`SRDLOC` (SDL00010 to SDL00360):
+
+- The monitor keeps room for it: `BSS 26  SPACE FOR RECORD BEFORE
+  SRDICT` (CT000800). `SRDLOC` assembles at that place, CT+21.
+- It takes control from the loader (`ORG SYSTRA` / `TTR START`,
+  SDL00220 to SDL00230).
+- On tape it returns at once (SDL00250 to SDL00260). On disk it also
+  sets the seek address.
+- The caller sets the return point first: `FILL RETURN POINT INTO
+  SYSSUT` (SU004770, LD059980).
+
+Thus the 1963 tape held `SRDLOC`, then the dictionary records, in
+file 5. The tape diagram of the monitor (CT001130 to CT001140) does not
+show `SRDLOC`, but the code needs it.
+
+**What SUBUP needs.** SUBUP makes a new library from the old library
+and a modification deck. It has no path that starts a library from
+nothing:
+
+- It reads the first dictionary record before it does any change
+  (SU006540 to SU006570).
+- An end of file there prints `EOF IN READING SBR RECORD` and stops
+  SUBUP (SU006600 to SU006620).
+- After the dictionary it reads file 6, and it requires a file mark at
+  the end (SU021490 to SU021530).
+
+Thus the first run needs a seed: an empty dictionary. It is one record
+of four words, as SUBUP itself writes it for no subroutines (SU030840
+to SU030990):
+
+| Word | Octal | Meaning |
+|---|---|---|
+| 0 | `300000200000` | `IORTN 0`, the last block of the dictionary |
+| 1 | `625124312363` | `BCI 1,SRDICT` |
+| 2 | `000000000000` | no system references |
+| 3 | `000000000000` | no subroutines |
+
+File 6 of the seed tape is a file mark only.
+
+**What SUBUP writes.** SUBUP writes the new library to `SYSUT2` as two
+files: the dictionary, then the subroutine text (SU030880 to SU031330).
+Each record has two control words, then data. The control words are
+not loader words, so the System Editor cannot copy the records with
+`*INSERT`. The archive has no statement of how IBM moved the two files
+to the system tape. The editor of the archive has a `*DUP` card
+(ED002330 to ED002410) that can copy such records, but the editor on
+`ASYS1.BIN` may not have it. Thus this record writes the tape image
+directly.
+
+**The modification deck.** The first X4 deck, `IOBSMP`, holds a table of
+the 40 library routines in comment cards 00300110 to 00300890. It
+gives each routine its number, name, type, fixed origin and source
+file. The deck for SUBUP follows the table:
+
+```
+$SUBUP         MAP,40
+TAPE  *INSERT  SR(IOEXMP),702
+TAPE  *INSERT  SR(IBMAP),100
+TAPE  *INSERT  SR(CTMCOM),3720
+TAPE  *INSERT  SR(IOBSMP),4660
+TAPE  *INSERT  SR(UNITAS),PRIMARY
+TAPE  *INSERT  SR(INREAD),PRIMARY
+TAPE  *INSERT  SR(PRGINT),PRIMARY
+TAPE  *INSERT  SR(2CELLS)
+...
+```
+
+These rules apply:
+
+- `TAPE` in columns 1 to 4 makes SUBUP read the deck from `SYSUT4`
+  (SU006180 to SU006200). Each `*INSERT` card needs it, because SUBUP
+  turns it off after each deck (SU022670).
+- A fixed routine gives its octal origin, a primary routine gives
+  `PRIMARY`, and a secondary routine gives no type (SU020790 to
+  SU021040). SUBUP refuses the word `SECONDARY`, although its own
+  comment card SU001150 allows it.
+- SUBUP reads `SYSUT4` in sequence. X4 compiles the decks in the order
+  of their source files, which is not the order of the table. Thus the
+  X4 job of this method compiles them in table order.
+- The deck ends with an end of file (SU000300). `MAP,40` prints the
+  dictionary and checks that SUBUP read 40 cards after the `$SUBUP` card.
+
+**The method for part 2.** `tool/m7/ct_library.sh` runs it from the
+`CTSYS1.BIN` of M7-6. `tool/m7/ct_lib.dart` writes files 5 and 6 of
+the tape image.
+
+1. Seed: write `SRDLOC` and the empty dictionary into file 5, and make
+   file 6 empty.
+2. Run X4 on the seed tape, with the 40 decks in table order. The
+   punch tape holds 40 relative decks, each from `*CTEXT` to `*CTEND`.
+3. Run `$SUBUP MAP,40` on the seed tape, with the punch tape on
+   `SYSUT4`. SUBUP writes the library to `SYSUT2`.
+4. Splice: write `SRDLOC` and the new dictionary into file 5, and the
+   text into file 6. The result is `CTSYS2.BIN`.
+5. Run `$SUBUP MAP` on `CTSYS2.BIN` with no changes. It prints the
+   dictionary of the new tape.
+
+**What a pass shows.**
+
+- The X4 listing shows 40 compilations, each with `NO ERRORS WERE
+  DETECTED DURING COMPILATION`.
+- The map of step 5 shows 40 routines with the numbers, types and fixed
+  origins of the table.
+- The four fixed origins are the system origins: octal 702 is IOEX at
+  450, 100 is IBSYS at 64, 3720 is the monitor at 2000, and 4660 is the
+  IOCS at 2480 (CT000080 to CT000110).
+
+**The risks.**
+
+- The comment table gives `IOBSMP` a length of octal 7520. Its `BSS`
+  cards give 7517. The map shows the compiled length.
+- `SYSSUT` must hold the return point when the system loader runs
+  `SRDLOC`. If the loader of `ASYS1.BIN` differs from the loader of the
+  archive, the read of file 5 can stop. The step 3 listing then shows
+  where.
+- LOAD reads the text file forward only (LD036290). The table order is
+  the order of the subroutine numbers, so LOAD can find each routine in
+  turn.
