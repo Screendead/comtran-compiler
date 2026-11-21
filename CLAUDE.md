@@ -326,7 +326,10 @@ Two consequences to expect:
   head, under the EXTERNAL-REVIEW.md charter. Every other pull
   request is routine maintenance: it skips the loop and merges on Jack's
   instruction. His instruction to merge is also a waiver of the
-  convergence requirement. A pull request that changes REVIEW.md, the
+  convergence requirement. A constitution-audit pull request (comments,
+  dead code, wrappers, tests, with every golden unchanged) skips the loop
+  and the adversarial review below, and merges once CI passes (Jack,
+  2026-11-21). A pull request that changes REVIEW.md, the
   charter, this section, or the external-review skill merges only on his
   instruction. The charter quotes his standing authorization of
   2026-08-16 in full, and his instruction of 2026-10-25 that moved the
@@ -437,4 +440,5 @@ Read it before you write a brief or hire a worker. It says:
 - The workflow `constitution-audit` brings the code back into line between
   waves.
 
-The merge rules of section 12 stay in force until Jack changes them.
+Section 12 holds the merge rules, with Jack's 2026-11-21 ruling for audit
+pull requests.
