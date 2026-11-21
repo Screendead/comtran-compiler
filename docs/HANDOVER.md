@@ -151,9 +151,15 @@ for the shapes it refused, and the verbatim deck punches 35 cards
 design: evidence exists and is sealed until M7.
 
 **M7 is open (2026-11-21).** Every item of "Rulings of 2026-11-21"
-below is done. `docs/design/m7-diff.md` holds the plan. Its first step,
-the archive fetch, waits on Jack's call (issue #216): the cloud network
-refuses the host.
+below is done. `docs/design/m7-diff.md` holds the plan. Its first step
+is the archive fetch. The cloud network refused the host, so issue #216
+asked Jack how to reach it. Jack, 2026-11-21:
+
+> **Jack's answer:** A · Allow the site for the cloud
+>
+> Done
+
+The cloud network now reaches the host. The fetch is the next task.
 
 ### Codegen defects the runtime exposed
 
