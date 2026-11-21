@@ -23,6 +23,8 @@
   --chosen: #f4f2ec;
   --chosen-edge: #96928a;
   --flag: #8c2f18;
+  --mark: #f6edc6;
+  --mark-strong: #ecd98a;
 
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
@@ -444,6 +446,50 @@ button:focus-visible {
   padding: 12px 14px;
   white-space: pre;
 }
+
+/* ---- The statement the reader follows through the stages (W3) ---- */
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.step-at {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.stepper button:disabled { opacity: 0.4; cursor: default; }
+
+.tab-hits {
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.tab-hits:empty { display: none; }
+
+.tab-hits::before { content: "· "; }
+
+.tab-hits[data-none="true"] { text-decoration: line-through; }
+
+/* One block per line, so a mark spans the whole width of the panel. The
+   pre grows to its longest line for the same reason. */
+.panel pre:has(.ln) { display: inline-block; min-width: 100%; }
+
+.panel .ln { display: block; min-height: 15px; }
+
+.panel .ln.mk { cursor: pointer; }
+
+.panel .ln.mk:hover { background: var(--deck); }
+
+.panel .ln.on { background: var(--mark); }
+
+.panel .ln.on-clause { background: var(--mark-strong); }
 
 .verdict {
   font-family: var(--mono);

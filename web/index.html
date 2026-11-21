@@ -140,6 +140,12 @@
     printed in the 1962 manual: the one program whose source, compiler listing
     and object code all survive together in the manuals.
   </p>
+  <p class="machine-intro">
+    Click any line in a panel and its statement lights up in all six: the
+    cards it was punched on, the words it compiled to, and every stage
+    between. The thread is the number the 1962 compiler gave each statement
+    and printed on its own listing.
+  </p>
 
   <div class="card-view">
     <div class="pane-head">
@@ -220,6 +226,12 @@
         <p id="evidence-text"></p>
       </div>
       <p class="refusal" id="refusal" role="status" hidden></p>
+      <div class="stepper">
+        <button type="button" id="step-prev" aria-label="Previous statement">&larr;</button>
+        <span id="step-at" class="step-at" role="status" aria-live="polite"></span>
+        <button type="button" id="step-next" aria-label="Next statement">&rarr;</button>
+        <button type="button" id="step-clear">Clear</button>
+      </div>
       <div class="panel" id="panel" role="tabpanel" tabindex="0"><pre id="out"></pre></div>
       <p class="pane-foot"><span id="panel-foot"></span></p>
     </div>

@@ -945,6 +945,11 @@ statements itself and keyed its diagnostics to them, so the site uses the
 artifact's own key and invents none. This phase needs the structured emit
 surface, under the rule above.
 
+**W3, as prototyped on 2026-11-02** (branch `w3-design`, draft). The
+compiler marks each line of each stage with its statement number, and
+`docs/design/emit-stages.md`, "The statement marks", records the surface.
+A click on a marked line selects the statement in all six panels.
+
 **W4 — teach and run.** The tutorial page, with the W1 editor and no second
 editor. The run button runs the sample over its reconstructed input
 tapes, `test/fixtures/90.05-tapes/` (M6 stage 1, 2026-09-13). The tutorial
