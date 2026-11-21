@@ -528,10 +528,13 @@ Jack answered every open call on the pitch page
 https://claude.ai/artifact/MU65CGChwwxR6517WYckra (one tab and one
 explainer video per call). The record `review/2026-11-02-pitch-rulings`
 holds his picks. Do the next steps in this
-order. Items 1 to 3 and 7 to 9 are draft pull requests on Jack's own
-branches. The cloud lead may not push to them, so one call waits for
-Jack (issue #208): may the lead finish them? A pull request that changes `lib/` merges on review convergence;
-the others merge on Jack's word.
+order. Items 1 to 3 and 7 to 9 started as drafts on Jack's branches.
+Issue #208 asked if the cloud lead may finish them. Jack, 2026-11-21:
+
+> **Jack's answer:** A · Hand them over
+
+So the lead finishes each draft on its own branch, merges it, and
+closes the draft with a link.
 
 | # | Ruling | Next step |
 |---|---|---|
@@ -541,7 +544,7 @@ the others merge on Jack's word.
 | 4 | M6-9: punch the object deck for the verbatim 1960 program, as 1962 did | Done 2026-11-21 (PR #205): M6-9 as amended and M6-11 (`docs/design/m6-verbatim-deck.md`); the verbatim deck punches 35 cards and does not run |
 | 5 | Keep messages 912,00 and 192,00 for a literal and a ZERO subscript | Done 2026-11-21 (PR #206): M3-20 records the ruling; no code |
 | 6 | Mark all three doubtful words `[sic]`: "synonomous" and "indicies" (PDF p. 116), "in not used" (PDF p. 171) | Done 2026-11-21 (PR #207): the three are on the W2 `[sic]` list; web-copy.md E3 records the ruling |
-| 7 | Take the em dashes out of the 21 definition headings | Take draft PR #192 out of draft; merge on Jack's word |
+| 7 | Take the em dashes out of the 21 definition headings | Done 2026-11-21 (PR #212) |
 | 8 | W3: the compiler sends a statement mark beside each panel line | Build W3 from draft PR #189 (merge master first; it conflicts) |
 | 9 | W4: a separate `tutorial.html` with the same bench markup and `app.js`; one walk through the sample | Build W4 from draft PR #188; warn of defect 10 |
 | 10 | M7 opens after W3 and W4 (2026-11-02) | Open M7 |
@@ -935,8 +938,8 @@ commits it.
 
 Jack closed both copy calls on 2026-11-02 (`docs/design/web-copy.md`,
 section 6). The pages mark eleven J28-6169 typos `[sic]` (rule E3). The language
-definition keeps an em dash only in quotations, code, headings, citations
-and four empty table cells; the headings are an open call.
+definition keeps an em dash only in quotations, code, citations and four
+empty table cells (headings: PR #212).
 
 **W3 — the stages.** The step-through. The six `--emit-*` dumps become panels,
 and the reader selects a statement to mark its part in each one. The join key
