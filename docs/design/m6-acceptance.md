@@ -322,10 +322,10 @@ the report our run prints against the page.
   result is the first fixture that exercises the diagnostic machinery
   on a real program, because the sample compiles clean. The front end
   prints 55 messages of 12 kinds and closes with SEVERITY LIMIT WAS NOT
-  REACHED. The generator then refuses the first GET, because no FILE
-  card lists MASTER. `test/goldens/f-payroll.listing` pins the listing,
-  and the corpus test pins the refusal line, which the listing cannot
-  carry. The page head prints the run's date and time, so both goldens
+  REACHED. The generator then refused the first GET, because no FILE
+  card lists MASTER. Since 2026-11-21 it punches a deck (M6-11).
+  `test/goldens/f-payroll.listing` pins the listing.
+  The page head prints the run's date and time, so both goldens
   take `--date=06/01/60 --time=1.00`, two values that claim nothing.
   The golden has no 1962 oracle: the sample's listing carries no
   message, so the layout of a listing with messages is
@@ -694,7 +694,7 @@ the report our run prints against the page.
   they run 1 to 4 and never 5. So `test/goldens/f-payroll.listing`
   closes SEVERITY LIMIT WAS NOT REACHED, and the driver goes on to code
   generation. There the refusal `a GET record on 0 input files (no
-  sample instance)` stops it.
+  sample instance)` stopped it until 2026-11-21.
 
   Under J's letter, then, the 1962 processor compiled the 1960 deck as
   punched, punched an object deck, and refused to run it. No evidence
@@ -703,34 +703,30 @@ the report our run prints against the page.
   was deferred. The severities that could change this are unattested
   (Open Question 65).
 
-  **Decided 2026-11-02: "compile" in Jack's rule means the diagnostic
-  listing.** This entry put the question whether "compile" means the
-  listing or the object deck. Jack answered on the pitch page of
-  2026-11-02, call 4. `review/2026-11-02-pitch-rulings` records the call
-  and the answer. A banner on `review/2026-10-25-m6s2-deck-walkthrough`
-  repeats the answer. The two readings stay in `review/2026-09-14-m6s2-rule`.
+  **Decided 2026-11-02, and overturned 2026-11-21: "compile" in Jack's
+  rule meant the diagnostic listing.** This entry put the question
+  whether "compile" means the listing or the object deck. Jack chose
+  the listing on the pitch page of 2026-11-02, call 4
+  (`review/2026-11-02-pitch-rulings`). A banner on
+  `review/2026-10-25-m6s2-deck-walkthrough` repeats the answer, and the
+  two readings stay in `review/2026-09-14-m6s2-rule`. The listing
+  reading kept the two refusals, because no evidence describes the
+  code and an invented form breaks D0.4. The object-deck reading
+  follows [J 02.01.01], which ties the deck to the severity code alone.
 
-  - *The listing, chosen.* The listing is the artifact our corpus
-    reproduces and a golden pins, and chunk 2a delivered it whole. No
-    evidence describes the code for a GET bound to no file, and
-    inventing it breaks D0.4.
-  - *The object deck, rejected.* [J 02.01.01] ties deck production to
-    the severity code alone, and our severities allow it. This reading
-    makes the refusal a gap in our recovery. It needs invented code
-    for the shapes that the 1962 processor made code for.
+  The choice rested on a wrong statement of that pitch page: that the
+  1962 compiler refused to punch a deck. J withholds the deck only at
+  code 5 ([J 02.01.01]), and any code above 1 bars the run
+  ([J 90.04.02]). The verbatim deck's highest code is 4 under our
+  table, so J punched it and did not run it.
 
-  The two refusals for the verbatim deck stay, and their label
-  changes. Each refusal is the listing reading's: the listing is the
-  deliverable of that deck, and the generator stops where no evidence
-  describes the code. A refusal does not say that the 1962 processor
-  refused the deck. J withholds the deck only at code 5
-  ([J 02.01.01]), and any code above 1 bars the object program from
-  running ([J 90.04.02]). The verbatim deck's highest code is 4 under
-  our table, so J punched it and did not run it. The pitch page of
-  2026-11-02 said the 1962 compiler refused to punch a deck. That
-  statement is wrong, and the walkthrough record shows it. The applied
-  deck is where chunk 2b works, so nothing in the repository waited on
-  the answer.
+  **Amended 2026-11-21: punch the object deck as 1962 did (Jack's
+  ruling).** With the fact corrected, Jack ruled: "punch the object
+  deck as 1962 did". The object-deck reading is now the course, and
+  the listing reading is withdrawn. M6-11, in `m6-verbatim-deck.md`,
+  holds the code for each shape that the verbatim deck reaches. Each
+  form is our own design under D0.4. The job stays above severity 1,
+  so `--run` does not run it (D7.6).
 
   **Chunk 2b's design list.** Each item is a recorded decision under
   D0.4, with no listing oracle behind it:
@@ -800,13 +796,12 @@ the report our run prints against the page.
   The same refusal covers an IN form that names an input file. The
   front end then prints message 22,00, also at severity 3.
 
-  This refusal falls under the ruling of 2026-11-02 above. The message
-  says "CANNOT FILE RECORD 'NAME.2' IN THIS FILE". Our severity for it
-  is 3 (D7.5), and [J 90.04.01] prints no value. At severity 3 the 1962
-  processor punched a deck ([J 02.01.01]) and did not run it
-  ([J 90.04.02]). The case is the verbatim deck's case: a listing
-  exists, and no evidence describes the deck. Jack's ruling covers both
-  refusals: each is the listing reading's, and each stays.
+  The message says "CANNOT FILE RECORD 'NAME.2' IN THIS FILE". Our
+  severity for it is 3 (D7.5), and [J 90.04.01] prints no value. At
+  severity 3 the 1962 processor punched a deck ([J 02.01.01]) and did
+  not run it ([J 90.04.02]). Amended 2026-11-21: the refusal stays,
+  because no deck reaches the shape. An IN form that names no file
+  writes no call (M6-11 b).
 
   The tests:
 
@@ -2354,6 +2349,10 @@ the report our run prints against the page.
     into `TAB CELL (2)`, and a DO FOR over appended indicators.
   - `test/codegen_test.dart` asserts the words.
     `test/codegen_refusal_test.dart` pins the three refusals.
+
+- **M6-11. The object deck of the 1960 program as keyed.**
+  `m6-verbatim-deck.md` holds this entry, because this file is at its
+  word budget.
 
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 

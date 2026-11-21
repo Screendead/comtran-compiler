@@ -2,10 +2,10 @@
 /// F28-8043 Appendix 1, keyed as printed, and the same program with the
 /// five §9.8 divergences of M6-7 as amended. No 1962 listing of
 /// either one survives, so each golden is decision-conformance,
-/// not an oracle. The listing cannot carry a refusal, so the verbatim
-/// deck's refusal test pins what the generator stopped on, and the
-/// applied deck's tests pin the object deck it punches and the
-/// reports it prints over its tapes.
+/// not an oracle. Each deck punches an object deck, and a test pins its
+/// card count. The verbatim deck is above severity 1 and does not run
+/// (M6-11, `docs/design/m6-verbatim-deck.md`); the applied deck's tests pin
+/// the reports it prints over its tapes.
 library;
 
 import 'dart:io';
@@ -38,12 +38,19 @@ JobCompilation _job(String deck) =>
     compileDeck(decodeCanon(File(deck).readAsBytesSync())).jobs.single;
 
 void main() {
-  test('the verbatim deck prints its golden', () async {
-    // The generator refuses the deck, so the run ends in a refusal. It
-    // is the listing reading's, per Jack's ruling of 2026-11-02 (M6-9).
-    final ProcessResult run = await _comtranc(fVerbatimDeckPath);
-    expect(run.exitCode, 1, reason: '${run.stderr}');
+  test('the verbatim deck prints its golden and does not run', () async {
+    // The job punches a deck at severity 4 (J 02.01.01). The severity
+    // bars the run, and so does the undefined symbol in the text, each
+    // on its own (J 02.01.02; D7.6; D9.1). Only severity 5 changes the
+    // exit status (D11.2).
+    final ProcessResult run = await _comtranc(fVerbatimDeckPath, ['--run']);
+    expect(run.exitCode, 0, reason: '${run.stderr}');
     expect(run.stdout, _golden('f-payroll.listing'));
+    expect(
+      run.stderr,
+      'job 1: not run: maximum severity 4\n'
+      'job 1: not run: undefined symbol in the generated code\n',
+    );
   });
 
   test('the applied deck prints its listing, then over its tapes its '
@@ -73,12 +80,31 @@ void main() {
     );
   });
 
-  test('the verbatim deck refuses its first GET', () {
-    // No FILE card lists MASTER, so statement 3,00 has no input file.
+  test('the verbatim deck compiles to an object deck', () {
+    // Jack's ruling of 2026-11-21: punch the deck as 1962 did. The
+    // forms are our design, with no oracle (M6-11).
+    final JobCompilation job = _job(fVerbatimDeckPath);
+    expect(job.unrecovered, isNull);
+    // Each operand that names no data item is one undefined symbol in
+    // the text (M6-11 a), so the words count as the 108,00 and 101,00 rows.
     expect(
-      _job(fVerbatimDeckPath).unrecovered!.shape,
-      'a GET record on 0 input files (no sample instance)',
+      job.codegen!.units.where(
+        (AssemblyUnit u) =>
+            u.operation == 'PZE' &&
+            u.control == ControlGroup.constantWord &&
+            u.operand.endsWith(',,0'),
+      ),
+      hasLength(
+        job.diagnostics
+            .where(
+              (Diagnostic d) =>
+                  const ['108,00', '101,00'].contains(d.message.number),
+            )
+            .length,
+      ),
     );
+    const options = ListingOptions(date: '06/01/60', time: '1.00');
+    expect(jobDeck(job, options)!.cards, hasLength(35));
   });
 
   test('the applied deck compiles to an object deck', () {
