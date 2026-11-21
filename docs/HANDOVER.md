@@ -193,7 +193,7 @@ moves it has changed the sample's path. The three divides at LOC 00424,
    a CORRESPONDING expansion it does not: the expansion defers the
    kill of register 1 to its end. The run was right in both cases: the
    move restores register 1 (RT-3).
-5. **A leading run that mixes `8` and `*` compiles. Ruled 2026-11-21: keep the 1962 words and add message 950,00 under `--pedantic` (draft PR #185).** The
+5. **A leading run that mixes `8` and `*` compiles. Ruled 2026-11-21: keep the 1962 words and add message 950,00 under `--pedantic`. Handled by PR #211.** The
    control word has one address field for the leading run, so it
    cannot say which cells take a blank and which an asterisk.
    `$8*89.99` compiles with no diagnostic. RT-5 lists the shape among
@@ -540,7 +540,7 @@ closes the draft with a link.
 |---|---|---|
 | 1 | A second or unnamed BEGIN SECTION: delete the sentence with msg 196 ([F p. 26]) | Take draft PR #183 out of draft; run the review loop |
 | 2 | Two PROGRAM.START labels: compile with the first, as D2.1 says | Draft PR #184: remove the "prototype for Jack's call" tag from the D2.1 amendment; run the review loop |
-| 3 | Defect 5: keep the 1962 words; message 950,00, `--pedantic` only | Draft PR #185: merge master (it conflicts); run the review loop |
+| 3 | Defect 5: keep the 1962 words; message 950,00, `--pedantic` only | Done 2026-11-21 (PR #211) |
 | 4 | M6-9: punch the object deck for the verbatim 1960 program, as 1962 did | Done 2026-11-21 (PR #205): M6-9 as amended and M6-11 (`docs/design/m6-verbatim-deck.md`); the verbatim deck punches 35 cards and does not run |
 | 5 | Keep messages 912,00 and 192,00 for a literal and a ZERO subscript | Done 2026-11-21 (PR #206): M3-20 records the ruling; no code |
 | 6 | Mark all three doubtful words `[sic]`: "synonomous" and "indicies" (PDF p. 116), "in not used" (PDF p. 171) | Done 2026-11-21 (PR #207): the three are on the W2 `[sic]` list; web-copy.md E3 records the ruling |
