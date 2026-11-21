@@ -23,10 +23,24 @@ awk 'substr($0, 73, 5) == "00300" &&
 
 # 2. Step X4 of ct.job: CT compiles the 40 decks, in table order, because
 # SUBUP reads them from SYSUT4 in the order of its *INSERT cards.
+# The compiler drops the text of a BCI card with a count and no label, so
+# each of the twelve such cards gets the label XLBn in columns 1 to 6, n
+# its statement number (Jack's call, issue #236). Sequence number, label:
+labels='15700390 XLB30 15700410 XLB32 26300300 XLB24 26600520 XLB43
+  26600540 XLB45 26600560 XLB47 29100300 XLB24 29100320 XLB26
+  29400300 XLB16 29700280 XLB15 29700290 XLB16 29700300 XLB17'
 deck() { # the $ID card, the $CMPLE card and the source of routine $1
-  awk -v want="$1" 'NR >= 55729 && NR <= 61616 {
+  awk -v want="$1" -v labels="$(echo $labels)" 'BEGIN {
+    n = split(labels, f, " ")
+    for (i = 1; i < n; i += 2) name[f[i]] = f[i + 1] }
+  NR >= 55729 && NR <= 61616 {
     if (/^\$ID/) { id = $0; next }
     if (/^\$CMPLE/) { cur = $2; if (cur == want) print id }
+    s = substr($0, 73, 8)
+    if (s in name) {
+      if (substr($0, 1, 6) != "      ") exit 1
+      $0 = sprintf("%-6s", name[s]) substr($0, 7)
+    }
     if (cur == want) print }' "$ct"
 }
 {
@@ -35,6 +49,7 @@ deck() { # the $ID card, the $CMPLE card and the source of routine $1
   echo '$IBSYS'
   echo '$ENDFILE       SYSPP1'
 } >x4.job
+[ "$(grep -c '^XLB' x4.job)" -eq 12 ]
 LIMIT=600 sh "$here/run_ibsys.sh" "$kit" x4.job x4.lst "$PWD/seed.bin"
 mv syspp1.bin x4.pp.bin
 
