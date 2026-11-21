@@ -33,3 +33,28 @@ records each call points to hold their own evidence. Round two, put on the
 same page later the same day, has three: call 3 turns on what two scan
 pages print. Round three adds no crops: its evidence is the draft pull
 requests each call names.
+
+## The rulings of 2026-11-21
+
+The nine calls of round three stayed unanswered on the first page. On
+2026-11-20 they moved to a new page,
+https://claude.ai/artifact/MU65CGChwwxR6517WYckra. The new page gives
+each call its own tab and a narrated explainer video. The cards and the
+video storyboards are on local branch `archive/pitch-2026-11-20` at
+`94a0b06`. Jack answered all nine on 2026-11-21.
+`evidence/picks-2026-11-21.json` holds the picks as read back.
+
+| Call | Pick | Against the recommendation? |
+|---|---|---|
+| confirm4, the M6-9 listing ruling | `deck`: punch the object deck as 1962 did | Yes. It overturns the 2026-11-02 listing ruling |
+| subscripts2, messages 912,00 and 192,00 | `keep` | No |
+| typos3, three doubtful words | `all`: mark all three `[sic]` | No. The new page recommended `all`, not `none` as before. "synonymous" prints correctly at J 02.05.04, and the scan shows "in" printed clean |
+| headdash, the definition headings | `change` (draft PR #192) | No |
+| defect5, a run that mixes 8 and * | `A`: the 1962 words, message 950,00 under `--pedantic` (draft PR #185) | No |
+| nameless, a BEGIN SECTION with no name | `196`: delete the sentence (draft PR #183) | No |
+| d21, two PROGRAM.START labels | `first`: compile with the first (draft PR #184) | No |
+| w3, the stages | `A`: the compiler sends the marks (draft PR #189) | No |
+| w4, the tutorial | `A`: a separate tutorial page with the same editor (draft PR #188) | No |
+
+`index.html` does not yet show this section. `docs/HANDOVER.md`,
+"Rulings of 2026-11-21", holds the next step for each ruling.

@@ -1,0 +1,15 @@
+{
+  "page": "https://claude.ai/artifact/MU65CGChwwxR6517WYckra",
+  "read_back": "2026-11-21, from the page's database collection picks",
+  "picks": {
+    "confirm4": {"choice": "deck", "at": "2026-11-21T00:01:47.222Z"},
+    "subscripts2": {"choice": "keep", "at": "2026-11-21T00:03:17.581Z"},
+    "typos3": {"choice": "all", "at": "2026-11-21T00:04:29.493Z"},
+    "headdash": {"choice": "change", "at": "2026-11-21T00:04:45.085Z"},
+    "defect5": {"choice": "A", "at": "2026-11-21T00:06:08.123Z"},
+    "nameless": {"choice": "196", "at": "2026-11-21T00:07:41.975Z"},
+    "d21": {"choice": "first", "at": "2026-11-21T00:08:20.855Z"},
+    "w3": {"choice": "A", "at": "2026-11-21T00:09:20.342Z"},
+    "w4": {"choice": "A", "at": "2026-11-21T00:10:41.205Z"}
+  }
+}
