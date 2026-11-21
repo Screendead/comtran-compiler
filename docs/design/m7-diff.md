@@ -354,3 +354,18 @@ Three facts differ from the method:
   each tape into the work folder.
 
 Part 2 runs X4 on this tape. It needs `SRDLOC` in file 5 first.
+
+**Amendment, 2026-11-21: `SRDLOC` is a disk record.** The last
+paragraph above is wrong for a tape system. Three cards show it:
+
+| Card | Text |
+|---|---|
+| CT001560 | `TP070  PZE  0,,5  TAPE POSITION - SBRTN DICTIONARY` |
+| CT007800 | `BCI  1,SRDLOC  DISK POSITION-DUMMY BEFORE SRDICT` |
+| SDL00250, SDL00260 | `START NZT DISK` / `TRA* SYSSUT  TAPE - RETURN TO PROG.` |
+
+On tape, the monitor reads record 0 of file 5, and that record is
+`SRDICT`. Only the disk table names `SRDLOC`, as a dummy record
+before `SRDICT`. On tape, `SRDLOC` returns at once. Thus file 5 of
+the tape needs no `SRDLOC`. It needs the dictionary. M7-7 holds the
+method for files 5 and 6.
