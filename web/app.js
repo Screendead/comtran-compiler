@@ -366,7 +366,7 @@ function drawStage(keep = false) {
     const mark = marks[index];
     if (mark) {
       span.dataset.mark = mark;
-      span.classList.add('mk');
+      span.classList.add('stmt');
       if (statementOf(mark) === statement) {
         // A whole statement takes one colour; a picked clause stands out.
         const picked = mark === clause && !clause.endsWith(',00');
@@ -438,7 +438,7 @@ function step(by) {
 }
 
 out.addEventListener('click', (event) => {
-  const line = event.target.closest('.mk');
+  const line = event.target.closest('.stmt');
   if (!line) return;
   select(line.dataset.mark, true);
 });

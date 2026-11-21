@@ -483,9 +483,9 @@ button:focus-visible {
 
 .panel .ln { display: block; min-height: 15px; }
 
-.panel .ln.mk { cursor: pointer; }
+.panel .ln.stmt { cursor: pointer; }
 
-.panel .ln.mk:hover { background: var(--deck); }
+.panel .ln.stmt:hover { background: var(--deck); }
 
 .panel .ln.on { background: var(--mark); }
 
