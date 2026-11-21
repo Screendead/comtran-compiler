@@ -746,6 +746,7 @@ const Map<String, int> messageSeverities = {
   // ruling of 2026-11-02 (D11.4, amended).
   '949,00': 1,
   // C1 (ours, --pedantic only, D11.4; codegen defect 5): the 1962
-  // control word is punched unchanged - advisory.
+  // control word is punched unchanged - advisory. Jack's ruling of
+  // 2026-11-21 (D11.4, amended).
   '950,00': 1,
 };
