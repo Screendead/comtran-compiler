@@ -25,10 +25,14 @@ awk 'substr($0, 73, 5) == "00300" &&
 # SUBUP reads them from SYSUT4 in the order of its *INSERT cards.
 # The compiler drops the text of a BCI card with a count and no label, so
 # each of the twelve such cards gets the label XLBn in columns 1 to 6, n
-# its statement number (Jack's call, issue #236). Sequence number, label:
+# its statement number (Jack's call, issue #236). SYSCOL gets one label,
+# XL009, on its first table card: unchanged, its text ends 1 word past a
+# block, and IOEX drops that two-word record as noise (M7-7, issue #248).
+# Sequence number, label:
 labels='15700390 XLB30 15700410 XLB32 26300300 XLB24 26600520 XLB43
   26600540 XLB45 26600560 XLB47 29100300 XLB24 29100320 XLB26
-  29400300 XLB16 29700280 XLB15 29700290 XLB16 29700300 XLB17'
+  29400300 XLB16 29700280 XLB15 29700290 XLB16 29700300 XLB17
+  16100090 XL009'
 deck() { # the $ID card, the $CMPLE card and the source of routine $1
   awk -v want="$1" -v labels="$(echo $labels)" 'BEGIN {
     n = split(labels, f, " ")
@@ -50,6 +54,7 @@ deck() { # the $ID card, the $CMPLE card and the source of routine $1
   echo '$ENDFILE       SYSPP1'
 } >x4.job
 [ "$(grep -c '^XLB' x4.job)" -eq 12 ]
+[ "$(grep -c '^XL009' x4.job)" -eq 1 ]
 LIMIT=600 sh "$here/run_ibsys.sh" "$kit" x4.job x4.lst "$PWD/seed.bin"
 mv syspp1.bin x4.pp.bin
 
