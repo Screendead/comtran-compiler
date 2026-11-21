@@ -2,7 +2,7 @@
 # Probes the three library compiles that fail on the CT system tape:
 # EXPERR, BCDERR and SYSCOL (M7-7 in docs/design/m7-diff.md). Each probe
 # deck is one of the three with a change to the cards that M7-7 names.
-# Usage: ct_probe.sh KIT [colag|label]   (KIT holds archive/, s709-2.4.4/,
+# Usage: ct_probe.sh KIT [colag|label|syscol]   (KIT holds archive/, s709-2.4.4/,
 # utils/ and the CTSYS1.BIN that ct_tape.sh writes)
 # It works in KIT/run/probe/, keeps probe.job and probe.lst, and prints one
 # line for each deck: its name and the result line of its compile.
@@ -10,6 +10,8 @@
 # every internal text buffer, into colag.job and colag.lst instead.
 # With "label" it compiles three decks with COLAG, each with a label on
 # the BCI cards that have none, into label.job and label.lst instead.
+# With "syscol" it compiles six variants of SYSCOL, each with a change to
+# the references of its table, into syscol.job and syscol.lst instead.
 set -e
 kit=$(cd "$1" && pwd) here=$(cd "$(dirname "$0")" && pwd)
 mode=${2:-probe}
@@ -85,6 +87,41 @@ if [ "$mode" = label ]; then
 } >label.job
 LIMIT=300 sh "$here/run_ibsys.sh" "$kit" label.job label.lst "$kit/CTSYS1.BIN"
 grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' label.lst || true
+exit
+fi
+# table EXPR: an edit that applies the sub() of EXPR to columns 1 to 72
+# of each card of the SYSCOL table, 16100090 to 16100720, and pads them
+# with blanks, so the sequence number stays in columns 73 to 80.
+table() {
+  echo "s >= \"16100090\" && s <= \"16100720\" { t = substr(\$0, 1, 72); $1
+    \$0 = sprintf(\"%-72s\", t) substr(\$0, 73) }"
+}
+if [ "$mode" = syscol ]; then
+{
+  echo '$EXECUTE       CT'
+  # S0 fails at statement 68. Its table makes 64 references to SYSCOL.
+  deck SYSCOL S0 ''
+  # S3: no table word names a symbol; each address is 0.
+  deck SYSCOL S3 "$(table 'sub(/SYSCOL,,/, "0,,", t)')"
+  # S4: the first 56 table words, 56 references.
+  deck SYSCOL S4 's >= "16100650" && s <= "16100720" { next }'
+  # S5: the first 63 table words, 63 references.
+  deck SYSCOL S5 's == "16100720" { next }'
+  # S6: 64 table words; the second half names SYSCO2, a second label of
+  # the same location, so each symbol has 32 references.
+  deck SYSCOL S6 's == "16100080" { print; print sprintf("%-72s", \
+    "SYSCO2 BSS     0") "16100081"; next }
+  '"$(table 'if (s >= "16100410") sub(/SYSCOL,,/, "SYSCO2,,", t)')"
+  # S7: 65 table words, a copy of the first word at the end.
+  deck SYSCOL S7 's == "16100720" { print; print sprintf("%-72s", \
+    "       FVE     SYSCOL,,8192") "16100721"; next }'
+  echo '$IBSYS'
+  echo '$ENDFILE       SYSPP1'
+} >syscol.job
+LIMIT=300 sh "$here/run_ibsys.sh" "$kit" syscol.job syscol.lst "$kit/CTSYS1.BIN"
+grep '^\$CMPLE' syscol.job | cut -c8-13 >names.txt
+grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' syscol.lst >results.txt || true
+paste -d' ' names.txt results.txt
 exit
 fi
 {

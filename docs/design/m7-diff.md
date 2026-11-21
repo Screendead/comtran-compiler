@@ -828,3 +828,45 @@ The call is issue #236. SUBUP waits on it.
 not explain its fault. Each half of its table compiles clean alone
 (probe of issue #230). Its fault blocks `SYS)161` under each of the
 three choices.
+
+**What the source shows about `SYSCOL`.** The listing prints `ILLEGAL
+INTERNAL CONDITION` for messages 18, 24, 29, 124 and 182. A search of
+the listing finds one call that issues any of them at severity 5,
+`KAPUT` (CB002250): message 18 at CC013040 to CC013050. Two paths
+reach it:
+
+- the end of file of the internal text, when the scanner reads the next
+  sentence (CC012820 to CC012840);
+- a new symbol whose length is 0 or more than 30 characters (CC012980
+  to CC013030).
+
+The listing does not show which path `SYSCOL` takes.
+
+**What sets `SYSCOL` apart.** Its table makes 64 references to the one
+symbol `SYSCOL`. No other library deck refers to one symbol so often.
+The next is `MOVFLT`, with 48 references to `MOVT1`, and it compiles
+clean. Each half of the table makes 32 references, and each half
+compiles clean (`S1`, `S2`). Other decks have longer `CRYPT` blocks, so
+the length of the block is not a likely cause. This is a hypothesis:
+the source read so far shows no count of references.
+
+**The next probe: the references.** `tool/m7/ct_probe.sh KIT syscol`
+compiles six variants of `SYSCOL` in one job:
+
+| Deck | Change | References to one symbol |
+|---|---|---|
+| `S0` | none | 64 |
+| `S3` | each table address is `0`, not `SYSCOL` | 0 |
+| `S4` | the first 56 table words only | 56 |
+| `S5` | the first 63 table words only | 63 |
+| `S6` | a second label `SYSCO2` at the same location; the second half of the table names it | 32 and 32 |
+| `S7` | a 65th word, a copy of the first | 65 |
+
+The results read as follows:
+
+- `S3` and `S6` clean, `S0` and `S7` not: the count of references to
+  one symbol causes the fault. `S4` and `S5` then bound the limit.
+- `S3` clean and `S6` not: the count of symbolic references in the
+  block causes it.
+- `S3` not clean: the references do not cause it, and the next probe
+  turns to the table words themselves.
