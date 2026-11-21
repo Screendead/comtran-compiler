@@ -178,20 +178,23 @@ C1.
     definition calls it a typo or a printing error;
   - it is not a period spelling (E4).
 
-  The list holds eleven entries, all in J28-6169: "throught", "at lease",
+  The list holds fourteen entries, all in J28-6169: "throught", "at lease",
   "lables", "dinsity", "Parentheis", "alwyas", "Mimimum", "standart",
-  "Appox-Max", "depending of" and "bu" (for "but"). Each was checked on its
-  scan. In "Appox-Max Size" the mark follows "Appox-Max", the word that holds
-  the error. F28-8043 has no entry, because no conversion note records a
-  typo in it.
+  "Appox-Max", "depending of", "bu" (for "but"), "synonomous", "indicies"
+  and "in not used" (for "is not used"). Each was checked on its scan. In
+  "Appox-Max Size" the mark follows "Appox-Max", the word that holds the
+  error. F28-8043 has no entry, because no conversion note records a typo
+  in it.
+
+  *Amended 2026-11-21 (Jack's ruling, review/2026-11-02-pitch-rulings):
+  Jack marked all three of the doubtful words below `[sic]`. They are
+  "synonomous" and "indicies" (PDF page 116), and "in not used" (PDF page
+  171). The mark follows "used", at the end of the phrase, as it follows
+  "depending of".*
 
   The list is not a proofreading pass of the manuals. A typo that no note
   records stays unmarked until a record adds it. These words wait for
   Jack's call, and stay unmarked until he decides:
-  - "synonomous" and "indicies" (PDF page 116). The conversion note calls
-    them "apparent period typos/spelling variants", so E4 can apply.
-  - "in not used" (PDF page 171). It can be a print defect, and "not" is
-    underlined.
   - "MIMIMUM" (PDF page 72). It is an option word on the `$LOAD` card. The
     spelling that the 1962 loader accepted is a fact about the processor.
   - "a fixed number or words" (PDF page 54). The note says "appears to be" a

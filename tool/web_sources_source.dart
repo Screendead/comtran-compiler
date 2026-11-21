@@ -85,8 +85,10 @@ const List<Manual> manuals = <Manual>[
 /// (`at lease`), 46 (`lables`, `dinsity`), 66 (`Parentheis`), 87, 124 and
 /// 130 (`alwyas`), 110 (`Mimimum`), 121 (`standart`), 137 (`Appox-Max`, the
 /// misspelt half of the heading "Appox-Max Size"), 151 (`depending of`) and
-/// 219 (`bu`, for "but"). An authentic period spelling never goes here
-/// (rule E4). F28-8043 has no entry: no conversion note records a typo in it.
+/// 219 (`bu`, for "but"). Three more follow Jack's ruling of 2026-11-21:
+/// 116 (`synonomous`, `indicies`) and 171 (`in not used`, for "is not
+/// used"). An authentic period spelling never goes here (rule E4).
+/// F28-8043 has no entry: no conversion note records a typo in it.
 const Map<String, List<String>> typos = <String, List<String>>{
   'J28-6169': <String>[
     'throught',
@@ -100,6 +102,9 @@ const Map<String, List<String>> typos = <String, List<String>>{
     'Appox-Max',
     'depending of',
     'bu',
+    'synonomous',
+    'indicies',
+    'in not used',
   ],
 };
 
