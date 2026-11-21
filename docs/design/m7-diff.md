@@ -106,3 +106,105 @@ reconstruction against it. The order:
    error. Give the evidence for each class.
 
 Each step gets its own entry in this record when it starts.
+
+## M7-5 The simulator
+
+**Decision.** Run the 1963 processor on `s709` 2.4.4, the 709/7090/7094
+simulator of Dave Pitts (external: cozx.com, 2026-11-21). Build the
+system tape with his `asm7090` 2.3.2, `lnk7090` 2.2.3 and `utils`
+1.1.15 from the same host.
+
+**Why this course.**
+
+- The archive comes from the same author. Its `CT/Makefile` assembles
+  `ct.job` with his `asm7090`.
+- The `s709` kit holds IBSYS system tapes (`ASYS1.BIN`, `ASYS8.BIN`)
+  and scripts that run IBSYS jobs (`runibsys`). The processor is an
+  IBSYS subsystem: `ct.job` is an IBSYS job that assembles the
+  "709/7090 COMMERCIAL TRANSLATOR MONITOR (VERSION 5) 07/15/63"
+  under IBSFAP.
+- The cloud network reaches the host, so a later fetch can repeat
+  every input.
+
+**The rejected course.** The Open SIMH `i7090` simulator also runs IBSYS.
+The survey of 2026-09-06 preferred it for an instruction-level test
+of our emulator, not for an IBSYS job. Its system tapes come from a
+second source, and the cloud network refuses that host. It stays the
+fallback if `s709` cannot run the processor.
+
+**Where it runs.** The Mac runs every step. A cloud session must not
+build or run code that it downloads, so the cloud fetches and reads
+only. The simulator, its tapes and its outputs stay out of this
+repository, as M7-3 requires for the archive. The Mac reports each
+step in a needs-mac issue.
+
+**The steps.**
+
+1. Build the four tools. Check the tarball against the M7-3 table.
+2. Boot IBSYS from `ASYS1.BIN` and run one sample job of the kit.
+3. Assemble `CT/ct.job` with `asm7090`, and compare the object file and
+   the listing against `CT/ct.obj` and `CT/ct.lst`.
+4. Put the processor on a system tape, and run the 90.05 job and the
+   1960 payroll deck under it.
+
+Steps 1 to 3 have a known end. Step 4 needs a method that this record
+does not hold yet. Its entry follows when step 3 is done.
+
+**The result of steps 1 to 3 (2026-11-21, issue #219).** The Mac ran
+the steps in a live session with Jack, outside the repository.
+
+| Step | Result |
+|---|---|
+| Fetch | The `ibsys.tar.gz` checksum matches M7-3. |
+| 1. Build | `make` builds `s709`, `asm7090`, `lnk7090` and `utils` with no error. |
+| 2. Boot | `runibsys primes.job` runs the kit's FORTRAN sample to `END OF JOBS`. |
+| 3. Assemble | `asm7090` reports 405 errors, all in file 9. The other ten assemblies have none. |
+
+The errors in file 9 are not a defect of the tool. `ct.job` is an
+IBSYS job of six steps, not one FAP program:
+
+| Step | Control card | Content |
+|---|---|---|
+| X1 | `$EXECUTE IBSFAP` | the CT monitor, version 5, 07/15/63 |
+| X2 | `$EXECUTE IBSFAP` | the CT IOCS |
+| X3 | `$EXECUTE IBSFAP` | a third FAP part |
+| X4 | `$EXECUTE CT` | 40 `$CMPLE` decks: the runtime library, in COMTRAN and CRYPT source |
+| X5 | `$EXECUTE IBSFAP` | a last FAP part |
+| X6 | `$STOP` | end of job |
+
+`asm7090` reads X4 as FAP, so it rejects it. The archive's own
+`ct.lst` shows 357 errors in the same file. Thus `asm7090` alone
+cannot build the runtime library. The processor must compile the 40
+decks of X4 under IBSYS.
+
+The Mac decoded both object decks to memory images, one image for
+each of the 14 segments, and compared them word by word:
+
+- Ten segments are identical. Segments 3 to 5 add one empty record
+  only.
+- Segment 2, the CT IOCS, differs in three address fields of 3,597
+  words. The source gives `**` for each, and the program fills them
+  at run time. Version 2.3.2 assembles 1200 and version 2.2.1
+  assembles 1220.
+- Segment 12 comes from X4, so neither deck holds meaningful words
+  there.
+
+The listings differ in headers, column layout and mode line. The
+2.3.2 listing says 7094 mode, but the object words do not change.
+
+`ASYS1.BIN` holds no Commercial Translator. A probe job with
+`$EXECUTE CT` gets `CT     UNKNOWN SYSTEM`. The kit has no job that
+adds a new subsystem to a system tape. Its editor jobs change the
+IBJOB libraries only. The System Editor control cards for a new
+subsystem are in the archive's `EDITOR/editor.map`.
+
+**Step 4, in two parts.**
+
+1. Make a system tape that holds CT. Run steps X1 to X3 of `ct.job`
+   under IBSYS to punch the object deck. Then run a System Editor job
+   that adds it to the tape.
+2. Run step X4 on the new tape, so the processor compiles its own
+   runtime library.
+
+The method for part 1 comes from `EDITOR/editor.map`. Its entry
+follows when the cloud reads that file.
