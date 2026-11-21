@@ -160,8 +160,8 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 
 M7-3 holds the fetch checksums. M7-5 chooses `s709`, and the Mac
 ran its steps 1 to 3 (issue #219). M7-6 holds the method for step 4
-part 1 and its result (issue #222), and M7-7 part 2 (issue #226).
-Next: part 3, the library on the tape.
+part 1 and its result (issue #222), and M7-7 part 2 (issue #226): 37
+of 40 decks pass. Next: its probe.
 
 ### Codegen defects the runtime exposed
 

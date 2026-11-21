@@ -2,6 +2,7 @@
 # Runs one IBSYS job under s709 and keeps every tape it writes.
 # Usage: run_ibsys.sh KIT JOB LISTING [SYSLB1.BIN]
 # TIMEOUT sets the seconds a job may run before s709 is stopped (default 60).
+# MODEL sets the CPU model of s709: 709, 7090 or 7094 (default 7094).
 # KIT is the folder that holds the built s709-2.4.4 and utils trees.
 # Run it in a work folder: the tapes stay there as sysut1.bin, sysut2.bin,
 # syspp1.bin and so on. Put an input SYSUT2 tape at sysut2.bin first.
@@ -19,7 +20,7 @@ txt2bcd sysin
 txt2bcd "$s/ibsys.ctl" reader.bcd 80 80
 bcd2cbn reader
 taskpolicy -c utility -d utility \
-  s709 -cibsys.cmd -m7094 r=reader p=print u=punch \
+  s709 -cibsys.cmd -m${MODEL:-7094} r=reader p=print u=punch \
   a1r=syslb1.bin a2r=syslb2.bin a3=sysin.bcd a4=sysou1.bcd \
   a5=sysut1.bin a6=sysut3.bin a7=sysut2.bin a8=syspp1.bin \
   a9=sysut4.bin a10=sysck2.bin </dev/null >console.txt &

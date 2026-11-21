@@ -411,3 +411,48 @@ source shows two facts that it must handle:
   the dictionary (SU031440 to SU031470) gives its form.
 
 Part 3 gets its own method when part 2 is done.
+
+**The result of part 2 (2026-11-21, issue #226).** The Mac ran
+`ct_library.sh` on the tape of part 1. The run is not a pass.
+
+| Count | Pass value | Result |
+|---|---|---|
+| `$CMPLE` cards in the job | 40 | 40 |
+| `NO ERRORS WERE DETECTED DURING COMPILATION` | 40 | 37 |
+| `THE LAST LOADER CONTROL CARD PUNCHED IS` | 40 | 39 |
+
+The job took about 3 seconds and ran to `END OF JOBS`. Three
+compiles print the message `ILLEGAL INTERNAL CONDITION. NOTHING DONE.
+POSSIBLE COMPILER ERROR.`:
+
+| Deck | Statement | Code | Card of the statement | Deck punched |
+|---|---|---|---|---|
+| `EXPERR` | 32 (two messages) | 4 | 15700410 `BCI 4,ERROR IN EXPONENTIAL AT` | yes |
+| `SYSCOL` | 68 | 5 | 16100730 `ENTER COMMERCIAL TRANSLATOR` | no |
+| `BCDERR` | 24 | 4 | 26300300 `BCI 3,NUMERIC CHARACTER` | yes |
+
+The cards of the three statements hold only characters of the BCD
+set, and each card holds 80 columns. The assembler phase prints the
+message (CE025530, message 18). The compiler phase holds the same
+text for illegal internal text (CC004120 to CC004140, VCC081110).
+
+`punch_split.dart` finds no program on the punch tape. File 0 of the
+tape holds 358 records of 168 characters. The tool takes a card only
+at 162 characters, the length of an IBSFAP card. The form of a CT
+card is not known yet.
+
+**The probe that follows (issue to come).** Three runs separate the
+possible causes:
+
+| Run | What changes | A clean result shows |
+|---|---|---|
+| A | the three decks alone, `DECKS="EXPERR SYSCOL BCDERR"` | the fault depends on the decks before them |
+| B | all 40 decks under `MODEL=7090` | the fault comes from the 7094 mode of `s709` |
+| C | the three decks alone under `MODEL=7090` | the two causes together |
+
+IBSYS sets the multiple tag mode with `EMTM` before it starts a
+subsystem (IBB34800). The CT compiler uses multiple tags, for example
+`LXD HDISP,5` at XCC073150. Thus run B tests the CPU model as a whole,
+not the tag mode alone. `tape_map.dart TAPE F.R` prints one record word
+by word. Its output for the first records of the punch tape gives the
+form of a CT card.

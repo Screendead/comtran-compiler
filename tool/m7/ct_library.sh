@@ -8,18 +8,27 @@
 # x4.pp.bin, the punch tape of the 40 relative binary decks.
 # X4 starts at its $EXECUTE CT card; the $PAUSE before it asks an operator
 # for a new output reel, and a simulator run has none to mount.
+# DECKS="EXPERR SYSCOL" keeps only the $ID and $CMPLE decks of those names,
+# and NAME=x4a names the outputs x4a.job, x4a.lst and x4a.pp.bin.
 set -e
 kit=$(cd "$1" && pwd) here=$(cd "$(dirname "$0")" && pwd)
 ct=$kit/archive/CT/ct.job
 mkdir -p "$kit/run/library"
 cd "$kit/run/library"
-{ awk 'substr($0, 73, 8) == "X4000090" { on = 1 }
-       substr($0, 73, 8) == "X5000010" { exit }
-       on' "$ct"
-  echo '$IBSYS'; echo '$ENDFILE       SYSPP1'; } >x4.job
+n=${NAME:-x4}
+{ awk -v decks=" $DECKS " 'BEGIN { keep = 1 }
+    substr($0, 73, 8) == "X4000090" { on = 1 }
+    substr($0, 73, 8) == "X5000010" { exit }
+    !on { next }
+    /^\$ID/ { id = $0; next }
+    /^\$CMPLE/ { nm = substr($0, 8, 6); sub(/ +$/, "", nm)
+                 keep = decks == "  " || index(decks, " " nm " ") > 0
+                 if (keep) print id }
+    keep' "$ct"
+  echo '$IBSYS'; echo '$ENDFILE       SYSPP1'; } >"$n.job"
 TIMEOUT=${TIMEOUT:-600} \
-  sh "$here/run_ibsys.sh" "$kit" x4.job x4.lst "$kit/CTSYS1.BIN"
-mv syspp1.bin x4.pp.bin
-echo "compiles:  $(grep -c '^\$CMPLE' x4.job)"
-echo "no errors: $(grep -c 'NO ERRORS WERE DETECTED' x4.lst || true)"
-echo "decks:     $(grep -c 'THE LAST LOADER CONTROL CARD PUNCHED IS' x4.lst || true)"
+  sh "$here/run_ibsys.sh" "$kit" "$n.job" "$n.lst" "$kit/CTSYS1.BIN"
+mv syspp1.bin "$n.pp.bin"
+echo "compiles:  $(grep -c '^\$CMPLE' "$n.job")"
+echo "no errors: $(grep -c 'NO ERRORS WERE DETECTED' "$n.lst" || true)"
+echo "decks:     $(grep -c 'THE LAST LOADER CONTROL CARD PUNCHED IS' "$n.lst" || true)"
