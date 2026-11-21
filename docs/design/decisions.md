@@ -353,6 +353,12 @@ below quotes the excerpts listed above. It is the evidence for this decision
 and it is not a breach. Review branches are append-only and cannot be
 rewritten, so the record stands as it is.
 
+**Amended 2026-11-21: the seal ended.** M7 opened on 2026-11-21, after W3
+(PR #213) and W4 (PR #214) merged, as Jack ruled on 2026-11-02. The seal ends
+when M7 opens, so it ended on that date. The rules above bind every record
+written before it. `docs/design/m7-diff.md` M7-1 fixes the reconstruction of
+record at commit `a465077`, and M7-2 carries the two contaminated items.
+
 *Citations:* D0.1; D0.3; D0.4; D0.8; Open Question 31; `docs/opportunities.md`
 (Jack's instruction of 2026-08-05); review record
 `review/2026-09-06-emulator-reuse`

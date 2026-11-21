@@ -22,8 +22,8 @@ reads them back; the machine assembly runs a compiled program under
 reconstructed input tapes and prints the report of PDF p. 217 under
 `--list-tapes`, up to four recorded findings.
 M6 is done: the 1960 payroll program compiles and runs to end of job, and
-codegen defects 1 to 4, 6 and 8 to 13 are handled. W2 of the website is live.
-M7 opens after W3 and W4.
+codegen defects 1 to 4, 6 and 8 to 13 are handled. W2 to W4 of the website
+are merged. M7, the diff pass against the 1963 archive, opened on 2026-11-21.
 Read `docs/HANDOVER.md`
 for the live state and the next task.
 
@@ -229,6 +229,12 @@ The 1963 Commercial Translator survives, compiler and runtime library both, in
 a recovered IBSYS archive. **Do not read it, and do not search it, for any
 answer to any question in this repository.** The seal ends when M7 opens.
 
+**The seal ended on 2026-11-21, when M7 opened.** The rules below held until
+then, and they still bind every record written before that date. Read the
+archive now for M7 work only, under `docs/design/m7-diff.md`. Compare it
+against the reconstruction of record, commit `a465077`, and never rewrite a
+pre-seal record to match it: append a post-seal amendment.
+
 The seal is not a doubt about the archive. The archive is genuine, and it is
 the best evidence this project will ever hold. The seal exists because the
 result depends on it. The project reconstructs COMTRAN from the manuals, and M7
@@ -252,8 +258,9 @@ Five rules follow:
 `docs/design/decisions.md` D0.9 holds the find, the decision, and the boundary
 list of what was read before the seal. The review record
 `review/2026-09-06-emulator-reuse` is the evidence for D0.9 and quotes those
-excerpts. It is inside the boundary and it is not a breach. **A quotation from
-the archive anywhere else is a broken seal: stop and tell Jack.**
+excerpts. It is inside the boundary and it is not a breach. **Outside that
+record and the M7 records, a quotation from the archive is a breach: stop and
+tell Jack.**
 
 ## 10. Generated files
 
