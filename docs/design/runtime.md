@@ -117,6 +117,10 @@ states the same rule. The tool prints `job N: not run: maximum severity
 S` on the error stream. The exit status stays 0, because D11.2 lets
 only severity 5 change it.
 
+**Amended 2026-11-21.** The run also skips a job whose text holds an
+undefined symbol, the second bar of [J 02.01.02] (D9.1; M6-11 a). The
+tool prints `job N: not run: undefined symbol in the generated code`.
+
 ### The stage-4 set and what waits
 
 M4-17 charters about 130 runtime entries. Stage 4 built the entries an
