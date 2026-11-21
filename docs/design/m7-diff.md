@@ -870,3 +870,65 @@ The results read as follows:
   block causes it.
 - `S3` not clean: the references do not cause it, and the next probe
   turns to the table words themselves.
+
+**The result of the reference probe (2026-11-21, issue #238).** The Mac
+ran `tool/m7/ct_probe.sh KIT syscol` on branch `cloud/m7-syscol` at
+`e535c45`, the head of PR #237. All six compiles ran. `syscol.lst`
+holds 1271 lines.
+
+| Deck | Statements | References | Result | Deck punched |
+|---|---|---|---|---|
+| `S0` | 68 | 64 | 68, 5, once | no |
+| `S3` | 68 | 0 | 68, 5, once | no |
+| `S4` | 60 | 56 | clean | yes |
+| `S5` | 67 | 63 | clean | yes |
+| `S6` | 69 | 32 and 32 | clean | yes |
+| `S7` | 69 | 65 | clean | yes |
+
+The statement count is the number of the `ENTER COMMERCIAL TRANSLATOR`
+card. The message of `S0` and `S3` is `ILLEGAL INTERNAL CONDITION.
+NOTHING DONE. POSSIBLE COMPILER ERROR.` Each of the two compiles dumps
+with `LOC 13721`, and its dump differs from the other in five lines
+only.
+
+These facts follow:
+
+- The references do not cause the fault. `S3` names no symbol and
+  fails as `S0` does. `S7` makes 65 references and compiles clean.
+- The count of table words does not cause it. `S5` (63 words) and `S7`
+  (65 words) compile clean.
+- The two decks that fail are the two decks whose `ENTER COMMERCIAL
+  TRANSLATOR` card is statement 68.
+
+The record expected `S7` to fail if the count of references caused the
+fault. `S7` compiled clean, so this record withdraws that hypothesis.
+
+**What the source shows.** The MQ of each dump ends in `500022`. The
+word at CC013050, `WMS011,KAPUT`, ends in the same digits: tag 5 and
+address 22 octal, which is message 18. Thus the fault is probably that
+call. It has two paths (above). The first is the end of file of the
+internal text, at `PLINK` (CC012820 to CC012840). A fault at one
+statement number fits that path better than the path of a symbol
+length. This is a hypothesis: the source read so far does not show
+where the internal text ends.
+
+**The next probe: the position.** `tool/m7/ct_probe.sh KIT pad`
+compiles four variants of `SYSCOL` in one job. Each adds `BSS 0` cards
+with no label, which give no word and name no symbol:
+
+| Deck | Change | Statement of the `ENTER` card | Table words |
+|---|---|---|---|
+| `S0` | none | 68 | 64 |
+| `S8` | one `BSS 0` card before the table | 69 | 64 |
+| `S9` | `S2`, with a `BSS 0` card for each card it drops | 68 | 32 |
+| `S10` | `S5`, with a `BSS 0` card for the card it drops | 68 | 63 |
+
+The results read as follows:
+
+- `S8` clean, `S9` and `S10` not: the position of the `ENTER` card
+  causes the fault, and the table does not. The next probe then puts
+  the `ENTER` card of a clean library deck at statement 68.
+- `S8` not clean, `S9` clean: the table causes the fault, and the next
+  probe turns to the table words.
+- Any other result: this record states the facts, and the next probe
+  starts from them.

@@ -2,7 +2,7 @@
 # Probes the three library compiles that fail on the CT system tape:
 # EXPERR, BCDERR and SYSCOL (M7-7 in docs/design/m7-diff.md). Each probe
 # deck is one of the three with a change to the cards that M7-7 names.
-# Usage: ct_probe.sh KIT [colag|label|syscol]   (KIT holds archive/, s709-2.4.4/,
+# Usage: ct_probe.sh KIT [colag|label|syscol|pad]   (KIT holds archive/, s709-2.4.4/,
 # utils/ and the CTSYS1.BIN that ct_tape.sh writes)
 # It works in KIT/run/probe/, keeps probe.job and probe.lst, and prints one
 # line for each deck: its name and the result line of its compile.
@@ -12,6 +12,8 @@
 # the BCI cards that have none, into label.job and label.lst instead.
 # With "syscol" it compiles six variants of SYSCOL, each with a change to
 # the references of its table, into syscol.job and syscol.lst instead.
+# With "pad" it compiles four variants of SYSCOL that move its ENTER
+# COMMERCIAL TRANSLATOR card with BSS 0 cards, into pad.job and pad.lst.
 set -e
 kit=$(cd "$1" && pwd) here=$(cd "$(dirname "$0")" && pwd)
 mode=${2:-probe}
@@ -96,6 +98,30 @@ table() {
   echo "s >= \"16100090\" && s <= \"16100720\" { t = substr(\$0, 1, 72); $1
     \$0 = sprintf(\"%-72s\", t) substr(\$0, 73) }"
 }
+if [ "$mode" = pad ]; then
+pad='sprintf("%-72s", "       BSS     0") s'
+{
+  echo '$EXECUTE       CT'
+  # S0 fails at statement 68, its ENTER COMMERCIAL TRANSLATOR card.
+  deck SYSCOL S0 ''
+  # S8: S0 and one BSS 0 card before the table; the ENTER card is 69.
+  deck SYSCOL S8 's == "16100080" { print; print sprintf("%-72s", \
+    "       BSS     0") "16100081"; next }'
+  # S9: S2, with a BSS 0 card for each of the 32 cards it drops; the
+  # ENTER card is 68, with 32 table words.
+  deck SYSCOL S9 's >= "16100090" && s <= "16100400" { print '"$pad"'; next }'
+  # S10: S5, with a BSS 0 card for the card it drops; the ENTER card is
+  # 68, with 63 table words.
+  deck SYSCOL S10 's == "16100720" { print '"$pad"'; next }'
+  echo '$IBSYS'
+  echo '$ENDFILE       SYSPP1'
+} >pad.job
+LIMIT=300 sh "$here/run_ibsys.sh" "$kit" pad.job pad.lst "$kit/CTSYS1.BIN"
+grep '^\$CMPLE' pad.job | cut -c8-13 >names.txt
+grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' pad.lst >results.txt || true
+paste -d' ' names.txt results.txt
+exit
+fi
 if [ "$mode" = syscol ]; then
 {
   echo '$EXECUTE       CT'

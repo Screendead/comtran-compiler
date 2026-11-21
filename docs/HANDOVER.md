@@ -158,11 +158,10 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 >
 > Done
 
-M7-3 holds the checksums, M7-5 the simulator, M7-6 the CT tape,
-and M7-7 the library. Twelve unlabeled `BCI` cards lose their text
+M7-7 holds the library. Twelve unlabeled `BCI` cards lose their text
 (issue #234). Issue #236 asks Jack: label them, or patch the compiler.
-SUBUP waits on it. Next: the Mac runs `tool/m7/ct_probe.sh KIT syscol`
-(issue #238).
+SUBUP waits on it. `SYSCOL` fails only with its `ENTER` card at
+statement 68 (issue #238). Next: the Mac runs the `pad` probe.
 
 ### Codegen defects the runtime exposed
 
