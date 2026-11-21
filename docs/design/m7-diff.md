@@ -206,5 +206,98 @@ subsystem are in the archive's `EDITOR/editor.map`.
 2. Run step X4 on the new tape, so the processor compiles its own
    runtime library.
 
-The method for part 1 comes from `EDITOR/editor.map`. Its entry
-follows when the cloud reads that file.
+The method for part 1 comes from `EDITOR/editor.map`. The next
+entry holds it.
+
+## M7-6 The CT system tape
+
+*Read 2026-11-21 from `EDITOR/editor.map` and `CT/ct.job`. A second
+fetch gave the checksum of the M7-3 table.*
+
+**What the monitor needs on the tape.** The CT monitor (`ct.job`
+lines CT000820 to CT001620) describes its own part of the system
+tape. IBSYS positions the tape at the first file of CT. The monitor
+then finds each record by a file and record displacement from that
+point:
+
+| File | Records | Content |
+|---|---|---|
+| 0 | `CT` | the CT monitor |
+| 1 | `BASIC` | the basic IOCS |
+| 2 | `CTB`, `CTC`, `CTI`, `CTD`, `CTE` | the compiler |
+| 3 | `IOCS` | the label IOCS |
+| 4 | `LOAD` | the loader |
+| 5 | `SRDICT` and more | the subroutine dictionary |
+| 6 | `CTSUBT` and more | the subroutine text |
+| 7 | `IOBB`, `IOBM`, `NOBS` | the three IOCS overlays |
+| 8 | `SUBUP` | the subroutine updater |
+| 9 | `MAIN` | the file maintenance program |
+
+Each file ends with a file mark. CT thus takes ten files.
+
+**Where each record comes from.** `ct.job` punches its assemblies
+to `SYSPP1` as column-binary card images. Each assembly ends with a
+transfer card.
+
+| Step | Assemblies, in order | Records for file |
+|---|---|---|
+| X1 | the monitor | 0 |
+| X2 | the IOCS, version C | 3 and 7 |
+| X3 | `CTB`, `CTC`, `CTI`, `CTD`, `CTE`, `LOAD` | 2 and 4 |
+| X4 | the 40 library decks, compiled by CT | 5 and 6 |
+| X5 | the dictionary locator `SRDLOC`, `SUBUP`, `MAIN` | 5, 8 and 9 |
+
+Two facts need care:
+
+- X2 does not give the `BASIC` record as it stands. Cards IO000140
+  to IO000180 say how to make it: delete cards IO001150 to
+  IO001160, card IO046000, and cards IO046310 to IO047490, then
+  assemble the IOCS a second time.
+- X2 splits its output with `TCD -1` cards. The record before the
+  first split is the label IOCS. The three after it are `IOBB`,
+  `IOBM` and `NOBS`.
+
+**The System Editor.** IBSYS calls the editor with `$IBEDT`. The
+editor reads the old system tape on `SYSLB1` and writes a new one on
+`SYSUT1`. Its control cards have `*` in column 7, the operation in
+columns 8 to 14, and the operand from column 16. Part 1 uses four:
+
+| Card | Effect |
+|---|---|
+| `*EDIT  MAP` | starts the edit and prints a map of the new tape |
+| `*PLACE CT,10,1,n` | adds CT to the IBSYS name table: 10 files, on `SYSLB1`, in order `n` |
+| `*AFTER name` | copies the old tape up to and through the named record |
+| `*INSERT` | reads binary cards to a transfer card, and writes one record |
+
+`*INSERT FILEMK` writes a file mark. `TAPE` in columns 1 to 6 of an
+`*INSERT` card makes the editor read the binary cards from `SYSUT2`.
+The punch tape of `ct.job` can thus feed the editor directly. Each
+`*PLACE` card must come before the editor copies the IBSYS nucleus,
+because the name table is in that record. The control cards must
+follow the order of the records on the tape.
+
+**The method for part 1.**
+
+1. Run steps X1, X2, X3 and X5 of `ct.job` under IBSYS, with
+   `SYSPP1` on a scratch tape. Run X2 a second time with the
+   `BASIC` deletions.
+2. Write a modification deck that keeps the old tape to its last
+   system, then inserts the ten files of the table above. Put the
+   `*PLACE` card first. Give file 6 no record: a file mark only.
+3. Run the deck under `$IBEDT`, with `ASYS1.BIN` on `SYSLB1` and the
+   new tape on `SYSUT1`.
+4. Boot the new tape, and run a job with `$EXECUTE CT`. A pass
+   prints the CT sign-on, not `UNKNOWN SYSTEM`.
+
+**The risks.**
+
+- Files 5 and 6 hold no library before part 2 runs. Part 2 then
+  compiles the library on a CT that has none. If CT refuses that,
+  part 2 needs a seed library. The archive holds none in binary.
+- The monitor fixes the IBSYS origin at 64, the IOEX origin at 450
+  and the IOCS origin at 2480 (lines CT000080 to CT000110). The
+  IBSYS of the kit may differ. If CT stops at its start, compare the
+  nucleus of `ASYS1.BIN` against these origins first.
+- The record names of X2 need a check in the editor map. Its
+  assembly stores `BASIC`, then `IOCT`, into the name cell
+  (IO001130 to IO001160).
