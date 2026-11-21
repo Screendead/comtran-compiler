@@ -676,3 +676,92 @@ text, and the next probe dumps that phase with the `CHECK` option and
 its dump cards (CB032530 to CB032620). If the count is wrong, the fault
 is in the scanner, and the probe moves to the 18-bit constant switch
 (CC027900) that reads the count.
+
+**The result of the COLAG probe (2026-11-21, issue #232).** The Mac
+ran `tool/m7/ct_probe.sh KIT colag` on master at `53cf6bc`. All five
+compiles ran, with the results of the probe of issue #230: `E0` and
+`B0` are not clean, and `E1`, `B5` and `K0` are clean. `colag.lst`
+holds 773 lines.
+
+The print shows these facts:
+
+- No text word of `E0` statement 30 or 32 is in the print.
+- No word is `740004000030`. Each `74` word of `E0` is `740000000000`,
+  and no text word follows it.
+- In `K0`, each `BCI 1` card with a label gives `740001000001` and its
+  word. Each `BCI 1` card without a label gives `740000000000` and no
+  word.
+- The object listing of `K0` agrees. The six cards with a label take
+  locations 00041 to 00045 and 00061. The three cards without a label
+  (statements 43, 45 and 47) take no location.
+- Each card that loses its text has no label: statements 30 and 32 of
+  `EXPERR`, statement 24 of `BCDERR`, and the three cards of `KAPUT`.
+  Each `BCI` card with a label keeps its text.
+
+**What the print is.** The `COLAG` file is the input of the first pass
+of the assembler phase (CB004860). Thus the print shows the internal
+text after the phase of CD010620, not the output of the scanner.
+
+**What the source shows.** The comma of a `BCI` card goes to the patch
+at CC10163M (CC025060 to CC025070). The patch decides if a word count
+came before the comma:
+
+1. The comma backs the link pointer, index register 4, one word
+   (CC025070). The pointer then addresses the count.
+2. `TXL WBCIA,4,-2` (CC10163M) tests the pointer against a fixed
+   value. If the pointer is at 77776 or lower, the scanner takes the
+   count (`WBCIA`).
+3. If not, the scanner takes the card as a `BCI` with no count
+   (CC10163N to CC10163P). It goes to `WBCIA+4` and stores the count
+   one word later than the control word.
+
+The pointer is zero at the start of each sentence (CC035480, "IF NDX4
+= 0 IGNORE TEXT"). Each text word lowers it by one. Thus the test
+counts the words of the sentence:
+
+| Card | Words before the comma | Pointer at the test | Path |
+|---|---|---|---|
+| label, count | label, control word, count | 77776 | count |
+| no label, count | control word, count | 77777 | no count |
+| label, no count | label, control word | 77777 | no count |
+| no label, no count | control word | 00000 | count |
+
+The test is right only for a card with a label. A card with no label
+and a count takes the path with no count. That path leaves the control
+word at `740000000000`, and the next phase copies no words. The text
+words then pass as internal text. This matches each fact of the print,
+and the probe of issue #230. The words that give `ILLEGAL INTERNAL
+CONDITION` are the ones that look like a control code.
+
+The compiler words of our assembly equal the words of `CT/ct.obj`
+(M7-5). The path uses only `TXI` and `TXL`, and the probes of issue
+#227 ran on the 7090 model too. Thus the simulator is not a likely
+cause. The patch is of modification level 5. Its fault reaches every
+`BCI` card with no label, so the 1963 library was probably compiled by
+an earlier level. This is a hypothesis.
+
+`SYSCOL` holds no `BCI` card. Its fault is in its table of 64 words,
+and this reading does not explain it.
+
+**The next probe: labels.** `tool/m7/ct_probe.sh KIT label` compiles
+three decks with `COLAG`. Each deck gives a label to the `BCI` cards
+that have none:
+
+| Deck | Cards that get a label |
+|---|---|
+| `E6` (`EXPERR`) | 15700390 `XLB30`, 15700410 `XLB32` |
+| `B6` (`BCDERR`) | 26300300 `XLB24` |
+| `K1` (`KAPUT`) | 26600520 `XLB43`, 26600540 `XLB45`, 26600560 `XLB47` |
+
+A pass shows these things:
+
+- `E6` and `B6` compile clean.
+- The print holds `740004000030` and the four text words of each of
+  `E6` statements 30 and 32.
+- The object listing of `K1` gives a location and a word to each of
+  its nine `BCI 1` cards.
+
+If the probe passes, the hypothesis holds. The library then needs one
+of two changes before SUBUP can run: a label on each `BCI` card with
+no label, or a correction of the patch. Each changes 1963 material, so
+the choice goes to Jack.
