@@ -15,7 +15,7 @@ Manual scan of history: privacy_check.py --scan DIR REV [MAX_COMMITS] [--show]
 (--show prints matched text; keep that output off anything that is published).
 """
 import bisect
-import codecs
+import hashlib
 import json
 import os
 import re
@@ -27,12 +27,15 @@ MAX_COMMITS = 2000
 GIT_TIMEOUT_S = 25
 MAX_REPORTED = 8
 
-# The owner's surname and first name, rot13-encoded so neither is spelt out in the public
-# repos this file is vendored into (nor trips this check). The bare surname is also an
-# English word, so it counts only when capitalised; joined to the first name (a username)
-# it counts in any case.
-_SURNAME = codecs.decode("Yhfure", "rot13")
-_FIRST = codecs.decode("Wnpx", "rot13")
+# sha256 of the owner's surname and of first name + surname (lowercased), so neither is
+# spelt out in the public repos this file is vendored into, nor trips this check. The bare
+# surname is also an English word, so it counts only when capitalised or in capitals; joined
+# to the first name (a username) it counts in any case.
+SURNAME_DIGEST = "b21a859f6d74709fbafa239f255cbf12f052613c758f680a746a38b443b11998"
+JOINED_DIGEST = "1fa2c8471e8c12a759ce19d892b49750985e12c1251edd384876c729aa2caed8"
+CAPITAL_SIX = re.compile(r"[A-Z][a-z]{5}(?![a-z])|(?<![A-Za-z])[A-Z]{6}(?![A-Za-z])")
+LOWER_TEN = re.compile(r"(?<![a-z])[a-z]{10}(?![a-z])")
+
 
 MCP_TOOLS = {
     "create_pull_request", "update_pull_request", "add_issue_comment", "issue_write",
@@ -144,18 +147,23 @@ def text_hits(text, ctx):
                 if near and inside and m.start() not in seen:
                     seen.add(m.start())
                     yield "device UDID", m.start(), m.end()
-    joined = (_FIRST + _SURNAME).lower()
+    # Hash each distinct candidate word once, then find where the matching ones are.
+    joined = {w for w in set(LOWER_TEN.findall(lower)) if digest(w) == JOINED_DIGEST}
     named = set()
-    for p in positions(lower, joined):
-        named.add(p + len(_FIRST))
-        if not COPYRIGHT.search(line_at(text, p)):
-            yield "owner's surname", p, p + len(joined)
-    for p in positions(lower, _SURNAME.lower()):
-        word, before, after = text[p:p + len(_SURNAME)], text[p - 1:p], text[p + len(_SURNAME):p + len(_SURNAME) + 1]
-        capitalised = word == _SURNAME and not ("a" <= after <= "z")
-        upper = word == _SURNAME.upper() and not before.isalpha() and not after.isalpha()
-        if (capitalised or upper) and p not in named and not COPYRIGHT.search(line_at(text, p)):
-            yield "owner's surname", p, p + len(_SURNAME)
+    for word in joined:
+        for p in positions(lower, word):
+            named.update(range(p, p + len(word)))
+            if not COPYRIGHT.search(line_at(text, p)):
+                yield "owner's surname", p, p + len(word)
+    for word in {w for w in set(CAPITAL_SIX.findall(text)) if digest(w.lower()) == SURNAME_DIGEST}:
+        for p in positions(text, word):
+            m = CAPITAL_SIX.match(text, p)
+            if m and m.end() == p + len(word) and p not in named and not COPYRIGHT.search(line_at(text, p)):
+                yield "owner's surname", p, p + len(word)
+
+
+def digest(word):
+    return hashlib.sha256(word.encode()).hexdigest()
 
 
 def line_at(text, pos):
