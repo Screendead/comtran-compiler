@@ -511,6 +511,8 @@ WebRun runText(String typed, Map<String, List<int>> tapes) {
         run.reports.every((TapeReport report) => report.fault == null);
   }
   return WebRun(output: output.toString(), notes: notes, ended: ran && ended);
+}
+
 /// One mark per card of [deck]: the statement the card belongs to in
 /// the job that read it. A card no job read, such as a `*FINISH` card,
 /// takes none.
