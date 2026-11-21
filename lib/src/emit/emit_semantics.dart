@@ -30,7 +30,9 @@ import 'common.dart';
 String emitSemantics(DeckCompilation deck) => markSemantics(deck).text;
 
 /// The semantics dump of [deck], with each row that names a statement
-/// marked with it (W3). The storage, record and item rows name none.
+/// marked with it (W3). A record or item row takes the statement of its
+/// data entry. A storage row takes none: one word can hold several
+/// entries.
 MarkedText markSemantics(DeckCompilation deck) {
   final out = MarkedText()..writeln(reconstructionLabel);
   for (final (int index, JobCompilation job) in deck.jobs.indexed) {
@@ -47,9 +49,9 @@ MarkedText markSemantics(DeckCompilation deck) {
     out.writeln();
     _dictionary(out, semantics, job.frontEnd, index + 1);
     out.writeln();
-    _records(out, semantics);
+    _records(out, semantics, job.frontEnd, index + 1);
     out.writeln();
-    _items(out, semantics);
+    _items(out, semantics, job.frontEnd, index + 1);
     out.writeln();
     _resolutions(out, semantics, job.frontEnd, index + 1);
     out.writeln();
@@ -107,8 +109,14 @@ void _dictionary(
     final String? statement = card == null
         ? null
         : frontEnd.statementNumberByCard[card];
+    // A declared data name takes its entry's statement. A synonym's item
+    // is the field it names, not the card that declares the synonym, so
+    // a synonym and an environment name take no mark.
+    final bool declaredHere = item != null && entry.kind != NameKind.synonym;
     out
-      ..mark = statementMark(job, statement)
+      ..mark = declaredHere
+          ? _entryMark(frontEnd, job, item)
+          : statementMark(job, statement)
       ..writeln(
         <String>[
           entry.name,
@@ -123,28 +131,45 @@ void _dictionary(
   out.mark = null;
 }
 
-void _records(MarkedText out, SemanticResult semantics) {
+void _records(
+  MarkedText out,
+  SemanticResult semantics,
+  FrontEndResult frontEnd,
+  int job,
+) {
   out.writeln('* RECORDS');
   for (final RecordInfo record in semantics.records) {
-    out.writeln(
-      <String>[
-        record.name,
-        'located=${_yesNo(record.located)}',
-        'variable=${_yesNo(record.variable)}',
-        'forced-transmit=${_yesNo(record.forcedTransmit)}',
-        if (record.inputFiles.isNotEmpty)
-          'input=${record.inputFiles.join(',')}',
-        if (record.outputFiles.isNotEmpty)
-          'output=${record.outputFiles.join(',')}',
-      ].join('\t'),
-    );
+    out
+      ..mark = _entryMark(frontEnd, job, record.item)
+      ..writeln(
+        <String>[
+          record.name,
+          'located=${_yesNo(record.located)}',
+          'variable=${_yesNo(record.variable)}',
+          'forced-transmit=${_yesNo(record.forcedTransmit)}',
+          if (record.inputFiles.isNotEmpty)
+            'input=${record.inputFiles.join(',')}',
+          if (record.outputFiles.isNotEmpty)
+            'output=${record.outputFiles.join(',')}',
+        ].join('\t'),
+      );
   }
+  out.mark = null;
 }
+
+/// The mark of [item]'s data entry: the statement of its first card.
+String? _entryMark(FrontEndResult frontEnd, int job, DataItem item) =>
+    statementMark(job, _number(frontEnd, item.entry.cards.first.cardNumber));
 
 /// Every item's semantic record, program order. `word` and `byte` are
 /// the offsets inside the item's own space root (J 90.02.05
 /// granularity), not the absolute LOCs of the storage section above.
-void _items(MarkedText out, SemanticResult semantics) {
+void _items(
+  MarkedText out,
+  SemanticResult semantics,
+  FrontEndResult frontEnd,
+  int job,
+) {
   out.writeln('* ITEMS');
   for (final MapEntry<DataItem, ItemSemantics> entry
       in semantics.semantics.entries) {
@@ -159,27 +184,30 @@ void _items(MarkedText out, SemanticResult semantics) {
       if (sem.dropped) 'dropped',
       if (sem.constantSuppressed) 'constant-suppressed',
     ];
-    out.writeln(
-      <String>[
-        _qualifiedName(item),
-        'class=${sem.fieldClass.name}',
-        'word=${sem.word}',
-        'byte=${sem.byte}',
-        'chars=${sem.storageChars}',
-        'qty=${sem.quantity}',
-        'stride=${sem.strideChars}',
-        'extent=${sem.extentChars}',
-        'digits=${sem.digits}',
-        'frac=${sem.fractionDigits}',
-        'just=${sem.justification.name}',
-        if (pictorial != null) 'pic=${pictorial.text}',
-        if (shape != null && shape.sign != SignConvention.none)
-          'sign=${shape.sign.name}',
-        if (root != null) 'root=${_qualifiedName(root)}',
-        if (flags.isNotEmpty) 'flags=${flags.join(',')}',
-      ].join('\t'),
-    );
+    out
+      ..mark = _entryMark(frontEnd, job, item)
+      ..writeln(
+        <String>[
+          _qualifiedName(item),
+          'class=${sem.fieldClass.name}',
+          'word=${sem.word}',
+          'byte=${sem.byte}',
+          'chars=${sem.storageChars}',
+          'qty=${sem.quantity}',
+          'stride=${sem.strideChars}',
+          'extent=${sem.extentChars}',
+          'digits=${sem.digits}',
+          'frac=${sem.fractionDigits}',
+          'just=${sem.justification.name}',
+          if (pictorial != null) 'pic=${pictorial.text}',
+          if (shape != null && shape.sign != SignConvention.none)
+            'sign=${shape.sign.name}',
+          if (root != null) 'root=${_qualifiedName(root)}',
+          if (flags.isNotEmpty) 'flags=${flags.join(',')}',
+        ].join('\t'),
+      );
   }
+  out.mark = null;
 }
 
 /// Every resolved data reference (M3-17), map order: where the

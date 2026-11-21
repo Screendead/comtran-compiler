@@ -162,21 +162,31 @@ uses this rule and no other.
 | cards | the statement unit that holds the card, from the front end's card-to-statement map |
 | scan | the statement it prints |
 | parse | the number it prints, or else the nearest numbered line above it at a lower depth |
-| semantics | the number a DICTIONARY, RESOLUTIONS, CORRESPONDING, KEYS or DELETED row prints |
+| semantics | the number a RESOLUTIONS, CORRESPONDING, KEYS or DELETED row prints; for a DICTIONARY row, its declaring sentence or data entry; for a RECORDS or ITEMS row, its data entry |
 | listing | the statement unit of the card it echoes, or the number of the diagnostic row it prints |
 | code | the sentence and clause that the procedure walk was in when it wrote the unit |
 
-### Limits of the prototype
+A data entry's mark is the statement of its first card.
 
-- The STORAGE, RECORDS and ITEMS rows of the semantics dump take no mark.
-- The data words of the code dump take no mark. Each word comes from a data
-  entry, so a later change can mark it.
+### Limits
+
+Each limit below has a reason. None waits for a later change.
+
+- The STORAGE rows of the semantics dump and the data words of the code dump
+  take no mark. One word can hold the fields of several data entries, so no
+  one statement owns it.
+- A DICTIONARY row for a synonym or an environment name takes no mark. The
+  dictionary keeps the field that a synonym names, not the card that declares
+  the synonym, and it keeps no card for an environment name. A mark from the
+  field would point at the wrong statement.
 - The pool, the counter head, the pointer setup and the out-of-line blocks
   take no mark. No one sentence owns them.
 - The terminal return of a paragraph takes the mark of the sentence before
   the label that closes the paragraph.
 - The code marks are our attribution. This record cites no 1962 artifact
   that ties an object word to a statement or to a clause.
+
+Jack chose this shape on 2026-11-21. The site shipped it on the same day.
 
 ### What the marks are not
 
