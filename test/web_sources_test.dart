@@ -46,15 +46,11 @@ List<String> _brokenLinks(
   return broken;
 }
 
-final RegExp _heading = RegExp('<h[1-6][^>]*>(.*?)</h[1-6]>', dotAll: true);
 final RegExp _tag = RegExp('<[^>]*>');
 
-/// Spans of a reference page whose em dashes D5 leaves alone: a page title,
-/// a heading, code, a block quotation, and a table cell that holds the mark
-/// alone as "none".
+/// Spans of a reference page whose em dashes D5 leaves alone: code, a block
+/// quotation, and a table cell that holds the mark alone as "none".
 final List<RegExp> _keptBlocks = <RegExp>[
-  RegExp('<title>.*?</title>', dotAll: true),
-  _heading,
   RegExp('<pre>.*?</pre>', dotAll: true),
   RegExp('<code>.*?</code>', dotAll: true),
   RegExp('<blockquote>.*?</blockquote>', dotAll: true),
@@ -117,10 +113,8 @@ bool _inCitation(String line, int at) {
 }
 
 /// The em dashes of the reference page [html] that no rule keeps, each with
-/// its line, and the count of those a citation parenthesis keeps. [headings]
-/// holds the text of every heading of the reference, so a contents entry or
-/// a pager link that repeats a heading keeps it too.
-({List<String> stray, int cited}) _dashes(String html, Set<String> headings) {
+/// its line, and the count of those a citation parenthesis keeps.
+({List<String> stray, int cited}) _dashes(String html) {
   var text = html;
   for (final RegExp kept in _keptBlocks) {
     text = text.replaceAll(kept, '');
@@ -134,9 +128,6 @@ bool _inCitation(String line, int at) {
   var cited = 0;
   for (String line in _plain(text).split('\n')) {
     line = unquoted(line);
-    for (final heading in headings) {
-      line = line.replaceAll(heading, '');
-    }
     line = line.replaceAllMapped(_quotation, (Match m) => ' ' * m[0]!.length);
     for (int at = line.indexOf('—'); at >= 0; at = line.indexOf('—', at + 1)) {
       if (_inCitation(line, at)) {
@@ -362,18 +353,10 @@ text
         if (page.key.startsWith('$sourcesDir/reference/')) page.key: page.value,
     };
     expect(pages, contains('$sourcesDir/reference/index.html'));
-    final headings = <String>{
-      for (final String html in pages.values)
-        for (final RegExpMatch m in _heading.allMatches(html))
-          if (_plain(m[1]!).contains('—')) _plain(m[1]!),
-    };
     final stray = <String>[];
     var cited = 0;
     for (final MapEntry<String, String> page in pages.entries) {
-      final ({List<String> stray, int cited}) found = _dashes(
-        page.value,
-        headings,
-      );
+      final ({List<String> stray, int cited}) found = _dashes(page.value);
       stray.addAll(found.stray.map((String line) => '${page.key}: $line'));
       cited += found.cited;
     }
@@ -386,18 +369,13 @@ text
   });
 
   test('the reference dash check keeps only what the rules keep', () {
-    const headings = <String>{'3.1 Files — the hierarchy'};
-    ({List<String> stray, int cited}) check(String html) =>
-        _dashes(html, headings);
+    ({List<String> stray, int cited}) check(String html) => _dashes(html);
     expect(check('<p>A rule — and a reason.</p>').stray, hasLength(1));
     expect(check('<p>As printed "a — b" here.</p>').stray, isEmpty);
     expect(check('<p>See (<a href="x">F p. 3</a> — the form).</p>').cited, 1);
     expect(check('<p>A (side note — no source).</p>').stray, hasLength(1));
     expect(check('<p><code>a — b</code></p>').stray, isEmpty);
-    expect(
-      check('<li><a href="#x">3.1 Files — the hierarchy</a></li>').stray,
-      isEmpty,
-    );
+    expect(check('<h3>3.1 Files — the hierarchy</h3>').stray, hasLength(1));
     expect(check('<table><tr><td>—</td></tr></table>').stray, isEmpty);
   });
 }
