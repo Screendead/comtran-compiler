@@ -527,8 +527,10 @@ binds work outside the definition.
 Jack answered every open call on the pitch page
 https://claude.ai/artifact/MU65CGChwwxR6517WYckra (one tab and one
 explainer video per call). The record `review/2026-11-02-pitch-rulings`
-holds his picks. Nothing waits for Jack. Do the next steps in this
-order. A pull request that changes `lib/` merges on review convergence;
+holds his picks. Do the next steps in this
+order. Items 1 to 3 and 7 to 9 are draft pull requests on Jack's own
+branches. The cloud lead may not push to them, so one call waits for
+Jack (issue #208): may the lead finish them? A pull request that changes `lib/` merges on review convergence;
 the others merge on Jack's word.
 
 | # | Ruling | Next step |
