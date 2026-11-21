@@ -161,7 +161,8 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 M7-7 holds the library. Twelve unlabeled `BCI` cards lose their text
 (issue #234). Issue #236 asks Jack: label them, or patch the compiler.
 SUBUP waits on it. The `SYSCOL` fault recurs each 111 words of text
-(issues #242, #244). Next: the Mac runs the `edge` probe.
+(issues #242, #244). Next: the Mac runs the `ut1` probe; M7-7 says
+why.
 
 ### Codegen defects the runtime exposed
 

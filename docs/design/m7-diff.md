@@ -1151,3 +1151,77 @@ The results read as follows:
   file (CC004790 to CC004820).
 - Any other result: this record states the facts, and the next probe
   starts from them.
+
+**The result of the edge probe (2026-11-21, issue #246).** The Mac ran
+`tool/m7/ct_probe.sh KIT edge` on master at `491745c`. All five compiles
+ran. `edge.lst` holds 1392 lines.
+
+| Deck | Result | `COLAG` print |
+|---|---|---|
+| `L0` | `ILLEGAL INTERNAL CONDITION` at 68, severity 5; dump at `LOC 13721` | none |
+| `L1` | clean | 7 blocks |
+| `P8N62` | clean | 9 blocks |
+| `P8N63` | `ILLEGAL INTERNAL CONDITION` at 76, severity 5; dump at `LOC 13721` | none |
+| `P8N64` | clean | 9 blocks |
+
+This is the third reading of the table above, "any other result". The
+facts:
+
+- The two failing decks print no `COLAG` text. The listing goes from the
+  `ENTER` card to one line of octal, then to the dump. The dump holds the
+  same line. Thus the line is a buffer in core, not a `COLAG` print.
+- In the three clean decks, the print ends with the sentence of card
+  16100720, `SVN SYSCOL,,28672` (word `220000070000`), then zeros.
+- In the failing decks, block 1 of the line holds `600701360336
+  220000000001 000000000000`. In the clean decks it holds `600701360336
+  220000000000 020001070676`.
+
+**What the source shows.** The edge probe rested on a wrong premise. The
+`COLAG` option does not print the internal text that the scanner writes.
+It prints the file `CTCOLG`, "COLAG INTERNAL FILE" (CC002280). The
+definition pass writes that file with `TSX COLAG,4` (CC004830, CC067530
+and the cards after it), and the first pass of the assembly reads it
+(CB004860). The final buffer goes to the printer at the end of the
+compile (CB037160, CB037650 to CB037660). The definition pass stops at
+message 18, so a failing deck prints no `COLAG` text. The one line before
+the dump is probably the first `CTCOLG` buffer, as the definition pass
+left it.
+
+Thus the probe cannot show where the last sentence falls in the internal
+text. That text is on `SYSUT1`: the scanner writes it as `CTWOHO`, and
+the definition pass reads it as `CTONEI` (CB003290 to CB003430).
+`run_ibsys.sh` mounts `SYSUT1` as the file `sysut1.bin` and keeps it
+after the run.
+
+**The next probe: the SYSUT1 tape.** `tool/m7/ct_probe.sh KIT ut1`
+compiles `L0`, `L1`, `P8N63` and `P8N64`, each in a job of its own, with
+no `COLAG` option. After each job it keeps `sysut1.bin` as
+`ut1-NAME.bin`. `tool/m7/tape_map.dart --words` prints every record of
+that tape in octal, into `ut1-NAME.txt`.
+
+A failing compile stops in the definition pass. Thus the `SYSUT1` tape
+of `L0` and of `P8N63` holds the internal text as the scanner wrote it.
+A clean compile goes on, and a later phase can write `SYSUT1` again.
+Thus the tapes of `L1` and `P8N64` show the shape of a clean tape, but
+not always the internal text.
+
+Each block of the text is a record of 112 words. The last word of each
+record holds the block sequence number in its address (IOC61920). Each
+sentence starts with `CLINK`, and the decrement of `CLINK` gives the
+count of words that follow `BLINK` (CC012820 to CC012840).
+
+The results read as follows:
+
+- The tape of `L0` holds the last sentence whole: its `CLINK`, its
+  `BLINK`, and the count of words that its `CLINK` gives. The scanner
+  wrote the words, and the reader lost them. The next step reads the
+  `READ` routine of IOCS (IOC47240 to IOC47440) at that position.
+- The tape of `L0` ends inside the last sentence, or before it: the
+  writer lost the words. The next step reads the `WRITE` routine
+  (IOC47610 to IOC47730) and the close of the file (CC004790 to
+  CC004820).
+- Any other result: this record states the facts, and the next probe
+  starts from them.
+
+The tape of `P8N63` must give the same reading as the tape of `L0`. If it
+does not, this record states the facts.
