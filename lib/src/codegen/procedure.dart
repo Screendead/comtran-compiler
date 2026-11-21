@@ -1,10 +1,6 @@
-/// The procedure text (M4-1 chunks B1 to B6): every word the procedure
-/// division generates, sized, placed and written.
+/// The procedure text (M4-1): every word the procedure division
+/// generates, sized, placed and written.
 ///
-/// Chunk B1 laid the address spine: how many words each clause takes and
-/// where each one sits. Chunks B2 to B6 filled the mnemonics, operands
-/// and object words of every family the spine sized — the last of them
-/// the input-output frame and the STOP RUN close-down.
 /// The sizing rules are the shape catalogue of
 /// `test/fixtures/90.05-object-code-notes.md`; each family below names
 /// its catalogue section.
@@ -162,7 +158,7 @@ final class UnrecoveredShape implements Exception {
   String toString() => 'unrecovered shape: $shape';
 }
 
-/// A rule this chunk has no ground for. The sample never reaches these
+/// A rule with no ground. The sample never reaches these
 /// sites, so no shape is attested and none is invented (CLAUDE.md §11;
 /// notes section 7).
 Never _unruled(String what) => throw UnrecoveredShape(what);
@@ -186,7 +182,7 @@ enum _Outcome { greater, equal, less }
 
 /// One continuation of a comparison outcome: a transfer to [name] when
 /// the generator holds one, else the word [extra] words past the
-/// vector's end (catalogue 4.8; M4-11 as amended, chunk B1).
+/// vector's end (catalogue 4.8; M4-11 as amended).
 final class _Cont {
   const _Cont.falls([this.extra = 0]) : name = null;
   const _Cont.named(String this.name) : extra = 0;
@@ -380,12 +376,10 @@ final class _Text {
   /// label or a section entry clears the whole cache, a subroutine call
   /// (DO, GET, FILE, OPEN, CLOSE, STOP) clears it, and a MOVPAK
   /// sequence clears register 1 alone — its trailing `AXT n,1` is the
-  /// only register write. The two readings of notes question 2 are not
-  /// equally viable after all: statement 203's `MASTER RATE` takes no
+  /// only register write (notes question 2). A full post-MOVPAK reload
+  /// contradicts the listing: statement 203's `MASTER RATE` takes no
   /// guard at 00627 across the two MOVPAK sequences of statement 202,
-  /// and takes one at 00637 where only a label intervenes, so a full
-  /// post-MOVPAK reload contradicts the listing and the register-write
-  /// reading is the one implemented.
+  /// and takes one at 00637 where only a label intervenes.
   final Map<int, int> _registerHolds = <int, int>{};
 
   /// Whether a CLOSE ALL FILES precedes in the straight run: no label
@@ -1345,7 +1339,7 @@ final class _Text {
     return s.digits - shape.sCount;
   }
 
-  // --- The register cache (notes question 2, settled above) ---------------
+  // --- The register cache (notes question 2) ------------------------------
 
   /// The lowest free index register, bound to [key] for the statement.
   ///
@@ -1375,26 +1369,20 @@ final class _Text {
     );
   }
 
-  /// Emits the guard pair `LAC BL)n,i / TXL SYS)294,i,0` when no
-  /// register holds that locator, and records the load. A register
-  /// already holding it is reused with no words ([J 90.02.23]).
-  void _loadBase(DataItem record) {
-    final int locator = _baseLocators[record]!;
-    if (_registerHolds.containsValue(locator)) {
+  /// The guard for [item] when its record is located: the pair
+  /// `LAC BL)n,i / TXL SYS)294,i,0` when no register holds that locator,
+  /// and the load recorded. A register already holding it is reused with
+  /// no words ([J 90.02.23]).
+  void _loadBaseOf(DataItem item) {
+    final DataItem? record = _recordOf(item);
+    final int? locator = record == null ? null : _baseLocators[record];
+    if (locator == null || _registerHolds.containsValue(locator)) {
       return;
     }
     final int register = _assignRegister(locator);
     _registerHolds[register] = locator;
     _op(Op.lac, _blockWord(StorageBlock.bl, locator), tag: register);
     _trap(register);
-  }
-
-  /// The guard for [item] when its record is located.
-  void _loadBaseOf(DataItem item) {
-    final DataItem? record = _recordOf(item);
-    if (record != null && _baseLocators.containsKey(record)) {
-      _loadBase(record);
-    }
   }
 
   /// The 1962 compiler empties index register 1 after every MOVPAK
@@ -1903,7 +1891,7 @@ final class _Text {
   /// return cell (catalogue 4.1).
   _Sym _entrySym(NameReference procedure) => _Sym(
     () => '${procedure.text}+1',
-    () => _procedureEntry(procedure) + 1,
+    () => (_labelled[procedure.text] ?? 0) + 1,
     Relocation.relative,
   );
 
@@ -2185,10 +2173,6 @@ final class _Text {
     _op(Op.tpl, _Sym(() => '*+2', () => target, Relocation.relative));
     _op(Op.add, carry);
   }
-
-  /// The object entry word of the procedure [name] labels — the return
-  /// cell, which `TRA proc+1` skips.
-  int _procedureEntry(NameReference name) => _labelled[name.text] ?? 0;
 
   /// Where each label landed. Filled as the walk binds names, read only
   /// by the post-walk fixups, so a forward reference resolves on both
@@ -2889,7 +2873,7 @@ final class _Text {
       target,
     ).reversed.toList();
     if (driven.isEmpty) {
-      return; // Most moves drive no indicator at all.
+      return;
     }
     // Both EQU lines print ahead of the update blocks — the attested
     // 01742 and 01743, back to back before LOC 01421.
@@ -4425,8 +4409,8 @@ final class _Text {
     // Every attested pair compares equal lengths; a field may cross one
     // word boundary (M6-9, decided 2026-10-25). The D3.3 fold and the D5.3
     // truncation each wait for a site, and the longer field takes the
-    // SYS)162 path M4-11 leaves to a later chunk, the compound-condition
-    // precedent.
+    // SYS)162 path, which M4-11 leaves unbuilt as it leaves the compound
+    // condition.
     if (_compareChars(acc) != _compareChars(storage)) {
       _unruled('an unequal-length alphameric comparison (no sample instance)');
     }
@@ -4518,7 +4502,7 @@ final class _Text {
   /// The vector: one `TRA` slot per outcome in greater, equal, less
   /// order ([J 90.02.12]), each printing its continuation's symbol
   /// when the generator holds one and the relative form otherwise
-  /// (M4-11 as amended, chunk B1). Only the trailing slot can drop —
+  /// (M4-11 as amended). Only the trailing slot can drop —
   /// when the less continuation is the next word to be emitted
   /// (catalogue 4.8).
   void _vector(
@@ -4547,7 +4531,7 @@ final class _Text {
     }
     final slots = <_Cont>[
       for (final _Outcome outcome in _Outcome.values)
-        trueSet.contains(outcome) ? trueTo : falseTo,
+        if (trueSet.contains(outcome)) trueTo else falseTo,
     ];
     final _Cont less = slots.last;
     final count = less.name == null && less.extra == 0 ? 2 : 3;

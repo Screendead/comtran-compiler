@@ -38,9 +38,6 @@ AssemblyUnit _reservation(String symbol, int words, int origin) => AssemblyUnit(
 /// The two rows the listing opens with, ahead of the storage map: the
 /// counter-1 origin, and the program's `BGN` (M4-7.1). The storage map
 /// itself opens with `USE 0`.
-///
-/// Both carry an address that follows the procedure text, so stage 1
-/// could compute neither.
 List<AssemblyUnit> counterHead(ProgramImage image) => <AssemblyUnit>[
   _use(1, origin: image.counterOneOrigin),
   AssemblyUnit(
@@ -60,7 +57,7 @@ List<AssemblyUnit> counterHead(ProgramImage image) => <AssemblyUnit>[
 ///
 /// The `USE 2` word carries `PI)1`, the attested value. M4-4 reads it
 /// two ways, `PI)`'s origin or the end of the counter's text, which
-/// agree while the counter holds only `BL)` (chunk B7). A constant run
+/// agree while the counter holds only `BL)`. A constant run
 /// moves the end alone, and the word keeps `PI)1`: the `BGN 2,PI)1`
 /// head row names it too, and the `ORG` that follows sets the load
 /// address, so the word does not change the load (M6-10). `BL)1`

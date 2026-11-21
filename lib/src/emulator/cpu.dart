@@ -219,8 +219,9 @@ final class Cpu {
       case Op.tsx: // M p. 39: XR(T) <- 2's complement of the TSX location;
         // IC <- Y. The tag names the target register (M p. 10), so the
         // address takes no modification.
-        state.xrWrite(inst.tag, (0x8000 - location) & Word36.fieldMask15);
-        state.ic = inst.address;
+        state
+          ..xrWrite(inst.tag, (0x8000 - location) & Word36.fieldMask15)
+          ..ic = inst.address;
       case Op.nop: // M p. 35.
         break;
 

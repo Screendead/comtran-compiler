@@ -53,17 +53,17 @@ final class PoolHandle {
 /// call creates the entry, every call returns its handle.
 final class ConstantPool {
   /// The seeded head: indices 0 and 1 hold the integers 0 and 1 ahead
-  /// of every source literal (the notes, section 6.2 item 37 — pinned
-  /// at the diff). The callback runs once per entry created, the seeds
+  /// of every source literal (the notes, section 6.2 item 37). The
+  /// callback runs once per entry created, the seeds
   /// included: the msg 942 and 172 counters check on increment (D9.7).
-  ConstantPool({this._onEntry}) {
+  ConstantPool({required this._onEntry}) {
     _literals[0] = (-1, 0);
     _literals[1] = (-1, 1);
-    _onEntry?.call();
-    _onEntry?.call();
+    _onEntry();
+    _onEntry();
   }
 
-  final void Function()? _onEntry;
+  final void Function() _onEntry;
 
   /// Written literals, keyed on the word value; the position of the
   /// earliest source appearance orders them. The seeds sort ahead of
@@ -82,8 +82,12 @@ final class ConstantPool {
       LinkedHashMap<String, (int, int)>();
 
   /// A value the source writes at [card], [column].
-  PoolHandle literal(int bits, {required int card, required int column}) {
-    final at = (card, column);
+  PoolHandle literal(int bits, {required int card, required int column}) =>
+      _literal(bits, (card, column));
+
+  /// Enters [bits] at position [at], or moves its entry up to [at] when
+  /// [at] comes first.
+  PoolHandle _literal(int bits, (int, int) at) {
     _literals.update(
       bits,
       ((int, int) first) => first.compareTo(at) <= 0 ? first : at,
@@ -93,7 +97,7 @@ final class ConstantPool {
   }
 
   T _created<T>(T entry) {
-    _onEntry?.call();
+    _onEntry();
     return entry;
   }
 
@@ -110,19 +114,11 @@ final class ConstantPool {
   /// at the tail of the literal sub-pool, after every written literal —
   /// the attested `CP)+13`, first emitted three words ahead of the
   /// literal `CP)+8` yet laid out last.
-  PoolHandle stride(int word) {
-    final (int, int) at = (1 << 40, word);
-    _literals.update(
-      word,
-      ((int, int) first) => first.compareTo(at) <= 0 ? first : at,
-      ifAbsent: () => _created(at),
-    );
-    return PoolHandle._(SubPool.literals, word);
-  }
+  PoolHandle stride(int word) => _literal(word, (1 << 40, word));
 
   PoolHandle machineWord(int bits) {
     if (_machineWords.add(bits)) {
-      _onEntry?.call();
+      _onEntry();
     }
     return PoolHandle._(SubPool.machineWords, bits);
   }

@@ -555,10 +555,7 @@ final class _ParseDump {
     }
   }
 
-  /// The unit's statement number, or `9999,99` when the front end
-  /// numbered no card of it (J 02.02.01; D9.5), the fallback the
-  /// listing's own diagnostic rows print.
-  String _number(SourceCard card) => _numbers[card.cardNumber] ?? '9999,99';
+  String _number(SourceCard card) => statementNumber(_numbers, card.cardNumber);
 
   void _line(int depth, List<String> atoms) {
     final String text = atoms.where((String a) => a.isNotEmpty).join(' ');

@@ -12,11 +12,9 @@
 /// cross-referenced by statement number; the message id itself is never
 /// printed (decision D9.5).
 ///
-/// M3 stage 3 fills the two columns M1 left blank (M3-8): the
-/// five-octal-digit LOC field at D+18..D+22 and the GN)nnn generated
-/// names overlaid on blank name fields, both from [ListingAnnotations]
-/// built by the dictionary allocator. Without annotations — at M1/M2
-/// level, or when the semantic phase stopped — the columns stay blank.
+/// The five-octal-digit LOC field at D+18..D+22 and the GN)nnn generated
+/// names overlaid on blank name fields come from [ListingAnnotations]
+/// (M3-8). Without annotations the columns stay blank.
 library;
 
 import '../lexer/diagnostic.dart';
@@ -107,8 +105,7 @@ String diagnosticStatementNumber(FrontEndResult result, Diagnostic diagnostic) {
 }) => _ListingWriter(result, options, diagnostics, annotations).write();
 
 /// The page head every section of the printout carries, at the
-/// far-left margin: the object listing (M4-8) reuses this builder, so
-/// stage 2 writes no second template.
+/// far-left margin: the object listing (M4-8) reuses this builder.
 String listingPageHead(
   ListingOptions options, {
   required String id,

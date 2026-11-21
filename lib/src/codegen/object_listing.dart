@@ -1,11 +1,10 @@
 /// The object listing's symbolic pages (M4-8).
 ///
-/// The geometry is the one the page scans carry: M4-20 item (g) records
-/// it, and a second pass confirmed every column 2026-08-05 against the
-/// character grid of PDF pp. 199–200. The 90.05 transcription renders
-/// these pages in two other column conventions, and both are artifacts
-/// of the transcription passes. The transcription therefore supplies
-/// content here and never geometry.
+/// The geometry is the one the page scans carry, measured against the
+/// character grid of PDF pp. 199–200 (M4-20 item (g)). The 90.05
+/// transcription renders these pages in two other column conventions,
+/// both artifacts of the transcription, so it supplies content here and
+/// never geometry.
 library;
 
 import '../listing/listing.dart';
