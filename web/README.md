@@ -13,6 +13,11 @@ click cuts or fills one hole, and the deck text becomes whatever the punch
 now says. A hole combination no character matches puts that card into the
 `!` punch form, which is the deck format's answer to exactly this case.
 
+A click on a line in any stage panel selects that line's statement (W3).
+Every panel then shows the lines of that statement, and each tab counts
+them. The compiler marks each line with the statement number; the page only
+compares the marks (`docs/design/emit-stages.md`, "The statement marks").
+
 ## Build and run
 
 From the repository root:
