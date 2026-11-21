@@ -159,8 +159,9 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 > Done
 
 M7-3 holds the fetch checksums. M7-5 chooses `s709`, and the Mac
-ran its steps 1 to 3 (issue #219). Next: M7-5 step 4 part 1, a
-system tape that holds CT.
+ran its steps 1 to 3 (issue #219). M7-6 holds the method for step 4
+part 1, and the Mac runs it (issue #222). Next: its result, then part 2:
+CT compiles its own runtime library.
 
 ### Codegen defects the runtime exposed
 
