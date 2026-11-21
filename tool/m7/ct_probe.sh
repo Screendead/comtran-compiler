@@ -2,7 +2,7 @@
 # Probes the three library compiles that fail on the CT system tape:
 # EXPERR, BCDERR and SYSCOL (M7-7 in docs/design/m7-diff.md). Each probe
 # deck is one of the three with a change to the cards that M7-7 names.
-# Usage: ct_probe.sh KIT [colag|label|syscol|pad]   (KIT holds archive/, s709-2.4.4/,
+# Usage: ct_probe.sh KIT [colag|label|syscol|pad|labels]   (KIT holds archive/, s709-2.4.4/,
 # utils/ and the CTSYS1.BIN that ct_tape.sh writes)
 # It works in KIT/run/probe/, keeps probe.job and probe.lst, and prints one
 # line for each deck: its name and the result line of its compile.
@@ -14,6 +14,8 @@
 # the references of its table, into syscol.job and syscol.lst instead.
 # With "pad" it compiles four variants of SYSCOL that move its ENTER
 # COMMERCIAL TRANSLATOR card with BSS 0 cards, into pad.job and pad.lst.
+# With "labels" it compiles 65 variants of SYSCOL, L0 to L64: Ln gives a
+# label to the first n table cards, into labels.job and labels.lst.
 set -e
 kit=$(cd "$1" && pwd) here=$(cd "$(dirname "$0")" && pwd)
 mode=${2:-probe}
@@ -119,6 +121,26 @@ pad='sprintf("%-72s", "       BSS     0") s'
 LIMIT=300 sh "$here/run_ibsys.sh" "$kit" pad.job pad.lst "$kit/CTSYS1.BIN"
 grep '^\$CMPLE' pad.job | cut -c8-13 >names.txt
 grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' pad.lst >results.txt || true
+paste -d' ' names.txt results.txt
+exit
+fi
+if [ "$mode" = labels ]; then
+{
+  echo '$EXECUTE       CT'
+  # L0 is S0. Ln labels table cards 16100090 to the n-th, XL009 to XL072;
+  # each ENTER COMMERCIAL TRANSLATOR card stays at statement 68.
+  n=0
+  while [ $n -le 64 ]; do
+    deck SYSCOL "L$n" "s >= \"16100090\" && s < \"$((16100090 + 10 * n))\" {
+      \$0 = sprintf(\"%-6s\", \"XL\" substr(s, 5, 3)) substr(\$0, 7) }"
+    n=$((n + 1))
+  done
+  echo '$IBSYS'
+  echo '$ENDFILE       SYSPP1'
+} >labels.job
+LIMIT=3600 sh "$here/run_ibsys.sh" "$kit" labels.job labels.lst "$kit/CTSYS1.BIN"
+grep '^\$CMPLE' labels.job | cut -c8-13 >names.txt
+grep -E 'NO ERRORS WERE DETECTED|SEVERITY LIMIT WAS' labels.lst >results.txt || true
 paste -d' ' names.txt results.txt
 exit
 fi

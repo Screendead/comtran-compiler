@@ -160,8 +160,9 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 
 M7-7 holds the library. Twelve unlabeled `BCI` cards lose their text
 (issue #234). Issue #236 asks Jack: label them, or patch the compiler.
-SUBUP waits on it. `SYSCOL` fails only with its `ENTER` card at
-statement 68 (issue #238). Next: the Mac runs the `pad` probe.
+SUBUP waits on it. `SYSCOL` fails only as the archive holds it: each
+changed card makes it clean (issue #240). The probable cause is the
+length of its internal text. Next: the Mac runs the `labels` probe.
 
 ### Codegen defects the runtime exposed
 
