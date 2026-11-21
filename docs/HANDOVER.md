@@ -163,8 +163,10 @@ twelve unlabeled `BCI` cards. Jack, 2026-11-21:
 > **Jack's answer:** A · Name the twelve cards
 
 `tool/m7/ct_library.sh` labels them, and one `SYSCOL` card: IOEX
-drops the last tape record of its text as noise (issue #248). Next:
-the Mac runs the library job (M7-7).
+drops the last tape record of its text as noise (issue #248). A search
+of the probe output found no noise message (issue #251). The probe kept
+no console output for each deck, so the search does not refute the
+cause. Next: the Mac runs the library job (M7-7, issue #252).
 
 ### Codegen defects the runtime exposed
 

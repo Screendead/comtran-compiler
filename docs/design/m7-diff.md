@@ -1357,3 +1357,29 @@ the X4 step then expects 40 clean compiles.
 printer output. A search of them for `WROTE SHORT REC.` and
 `REC DISCRDED-NOISE` checks step 2 above (issue #251). Then the library
 job runs with the thirteen labels.
+
+**The result of the search (issue #251, 2026-11-21).** The Mac searched
+the probe output for `SHORT` and `NOISE`, case-insensitive. No file
+holds a match:
+
+- The four listings `ut1-L0.lst`, `ut1-L1.lst`, `ut1-P8N63.lst` and
+  `ut1-P8N64.lst` hold no match.
+- The other text files of `KIT/run/probe/` hold no match. These include
+  `console.txt` and `printlog.lst`.
+- A search for `WROTE`, `DISCRD` and `REC` found only the end-of-jobs
+  lines of the unit positions, for example `SYSOU1 IS A4 REC. 000nn`.
+
+The search does not refute step 2. It does not confirm step 2 either.
+Three limits apply:
+
+- The listings hold the `SYSOU1` output only. IOEX can print its
+  messages on the online printer or the console.
+- Each run of the probe overwrote `console.txt` and `printlog.lst`.
+  They hold the run of `P8N64` only, a clean deck.
+- The probe keeps no console output for each deck.
+
+Thus the cause stays as the source shows it, and the tape of `L0` gives
+the record of two words. The library job does not wait on this check:
+the label on card 16100090 removes the record of two words. A console
+capture for each deck can check step 2 later, if a later fault asks
+for it.
