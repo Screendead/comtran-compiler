@@ -158,13 +158,16 @@ asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
 >
 > Done
 
-M7-7 holds the library. Twelve unlabeled `BCI` cards lose their text
-(issue #234). Issue #236 asks Jack: label them, or patch the compiler.
-SUBUP waits on it. The `SYSCOL` fault has its cause (issue #248): a
-text 1 word past a block of 111 leaves a last tape record of two words,
-and IOEX discards it as noise. One label on a `SYSCOL` card cures it.
-Next: add that label to the library method with the twelve, and run
-the library job; M7-7 says why.
+M7-7 holds the library. Issue #236 asked Jack how to keep the text of
+twelve unlabeled `BCI` cards. Jack, 2026-11-21:
+
+> **Jack's answer:** A · Name the twelve cards
+
+`tool/m7/ct_library.sh` labels them. The `SYSCOL` fault has its cause
+(issue #248): a text 1 word past a block of 111 leaves a last tape
+record of two words, and IOEX discards it as noise. One label on a
+`SYSCOL` card cures it, and the script adds it. Next: the Mac runs the
+library job; M7-7 says why.
 
 ### Codegen defects the runtime exposed
 

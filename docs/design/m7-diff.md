@@ -824,6 +824,29 @@ run, and each change alters 1963 material:
 
 The call is issue #236. SUBUP waits on it.
 
+**Jack's call (2026-11-21, issue #236).** Jack, 2026-11-21:
+
+> **Jack's answer:** A · Name the twelve cards
+
+Thus the compiler stays as the archive holds it. `tool/m7/ct_library.sh`
+gives each of the twelve cards the label `XLBn` in columns 1 to 6, where
+`n` is the statement number of the card. The labels of the label probe
+keep their names. No deck holds the string `XLB`, so no label is a
+duplicate. The script stops if one of the twelve cards has a label in the
+archive, or if the job does not hold all twelve labels.
+
+| Deck | Card | Label |
+|---|---|---|
+| `EXPERR` | 15700390, 15700410 | `XLB30`, `XLB32` |
+| `BCDERR` | 26300300 | `XLB24` |
+| `KAPUT` | 26600520, 26600540, 26600560 | `XLB43`, `XLB45`, `XLB47` |
+| `WRTEOB` | 29100300, 29100320 | `XLB24`, `XLB26` |
+| `BLERR` | 29400300 | `XLB16` |
+| `TRAPEM` | 29700280, 29700290, 29700300 | `XLB15`, `XLB16`, `XLB17` |
+
+Each M7 summary states these twelve changes. The `SYSCOL` fault below
+stopped the X4 step until its cause was known (issue #248).
+
 **What stays open.** `SYSCOL` holds no `BCI` card, so this result does
 not explain its fault. Each half of its table compiles clean alone
 (probe of issue #230). Its fault blocks `SYS)161` under each of the
@@ -1326,10 +1349,11 @@ block. A label on one card changes the length by one word, and `L1`
 proves that the deck then compiles clean. That change is of the kind
 that Jack chose for the twelve `BCI` cards (issue #236): the label goes in
 columns 1 to 6, and the compiler and the system stay as found. Thus the
-method gives card 16100090 the label `XL009`, as `L1` does. The change
-goes into `tool/m7/ct_library.sh` with the twelve labels of issue #236.
+method gives card 16100090 the label `XL009`, as `L1` does.
+`tool/m7/ct_library.sh` adds it with the twelve labels of issue #236, and
+the X4 step then expects 40 clean compiles.
 
 **The next step.** The four `.lst` files of the probe hold the whole
 printer output. A search of them for `WROTE SHORT REC.` and
-`REC DISCRDED-NOISE` checks step 2 above. Then the library job runs with
-the thirteen labels.
+`REC DISCRDED-NOISE` checks step 2 above (issue #251). Then the library
+job runs with the thirteen labels.
