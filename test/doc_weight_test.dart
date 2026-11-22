@@ -22,8 +22,9 @@ const Map<String, int> budgets = <String, int>{
   // M7-7 records each probe of the 1963 library and its result. M7-8
   // records the 1963 compile of the corpus, and M7-9 the diff of its
   // outputs and object decks. M7-10 diffs the runtime library and the
-  // IOCS, and M7-11 records the 1963 run of the report.
-  'docs/design/m7-diff.md': 23000,
+  // IOCS, and M7-11 records the 1963 run of the report. M7-12 gives the
+  // class and the evidence of each of the 137 differences.
+  'docs/design/m7-diff.md': 33500,
   // Locked by Jack, 2026-08-09. This number never rises again. A stage 2
   // amendment that needs room pays for it by deleting prose from the same
   // record.
