@@ -59,7 +59,7 @@ Terms that appear without expansion:
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
 | M6 stage 2 — the second corpus | Done 2026-11-02. Chunk 2a (2026-09-14) keyed the 1960 program as printed, as a diagnostic corpus, and the applied deck with its five divergences. Chunk 2b recovered the six shapes the generator refused, because each one compiled in 1962 (Jack's rule of 2026-09-14). The applied deck runs over its tapes to end of job: 233 values compare, 77 match, and every difference has a named cause. `--run` obeys the D7.6 severity gate | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/f_acceptance_test.dart` |
-| M7 | Opened 2026-11-21 (PR #215). The reconstruction of record is commit `a465077` (M7-1). The archive is fetched and its checksums recorded (M7-3). The five steps of M7-4 are done 2026-11-22: M7-12 classifies the 137 differences | `docs/design/m7-diff.md` |
+| M7 | Opened 2026-11-21 (PR #215), done 2026-11-22. The baseline is `a465077` (M7-1); M7-12 classifies each difference | `docs/design/m7-diff.md` |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -163,25 +163,10 @@ cards. Jack, 2026-11-21:
 > **Jack's answer:** A · Name the twelve cards
 
 `tool/m7/ct_library.sh` labels them. M7-7 to M7-11 hold the library,
-the 1963 compile, the diffs, and the 1963 run of the corpus. The next
-task was step 5 of M7-4.
-
-**The five steps of M7-4 are done (2026-11-22).** M7-12 puts each of
-137 differences in a class: 31 changes, 20 recovery errors, 63
-undecided, 13 contaminated, and 10 with no class of their own. Each
-90.05 difference of the two processors is a change except one, because
-the 1962 print shows our form. Two 1963 changes bring the processor
-into line with the 1962 manual: the zero test and `RETPREM (POS)`.
-
-Two calls wait on Jack. No other item is in the queue.
-
-1. **The recovery errors.** M7-1 rule 2 lets an M7 finding change
-   `lib/`, but no record says if master takes the fixes. Seven are
-   compiler errors (M7-12, "What the classes show", item 3). The
-   runtime errors are mostly simplifications that M5 chose on purpose.
-2. **An erratum of [J 90.04.01].** The scan of PDF p. 182 prints two
-   spaces before `-REDEF-` in messages 80,00 and 81,00. The conversion
-   prints one. A change to the conversion needs his authorization.
+the 1963 compile, the diffs, and the 1963 run of the corpus.
+**M7 is done (2026-11-22).** M7-12 classifies the 137 differences.
+The queue is empty. Two calls wait on Jack: whether master takes the
+recovery-error fixes, and the erratum below.
 
 ### Codegen defects the runtime exposed
 
@@ -389,8 +374,8 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **One candidate is open**: the two spaces of messages
-  80,00 and 81,00 ([J 90.04.01], PDF p. 182; M7-12). Four candidates are closed.
+  authorization. **One candidate is open**: messages 80,00
+  and 81,00 (M7-12). Four candidates are closed.
   The first, opened 2026-09-14 and closed on 2026-09-15: the reflowed
   block of PDF p. 217 held three cells that the scan contradicts. The
   DEPARTMENT 09 TOTALS line prints `0.00` in the fourth amount column,
@@ -669,12 +654,11 @@ PDF p. 217. It makes every milestone below testable at once.
   applied deck runs to end of job over its own tapes — **DONE
   2026-11-02**.
 - **M7 — The diff pass** — **OPENED 2026-11-21** after W3 and W4, as
-  Jack ruled on 2026-11-02 (`docs/design/m7-diff.md`). The seal ended then. Assemble the
-  1963 processor, and diff our reconstruction against it. Each difference is one
-  of two findings: a real change between January 1962 and July 1963, or an error
-  in our recovery. Treat MOVPAK and Open Question 31 as contaminated; D0.9 says
-  why. That result is the project's headline finding (D0.9). **The five
-  steps are done 2026-11-22**: M7-12 holds the classes.
+  Jack ruled on 2026-11-02 (`docs/design/m7-diff.md`). The seal ended then. The
+  1963 processor ran, and each difference with our reconstruction has a class:
+  a real change between January 1962 and July 1963, or an error in our
+  recovery. That result is the project's headline finding (D0.9). **Done
+  2026-11-22** (M7-12).
 - **Withdrawn 2026-09-14 — the 1960 shapes.** This bullet parked a stage
   for the shapes the generator refuses in the applied deck. Jack's rule
   of that date makes them chunk 2b's work, because each one compiled in
@@ -1057,5 +1041,4 @@ this project's own decision (Open Question 65).
 [J 90.01.05]: ../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
 [J 90.02.10]: ../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
-[J 90.04.01]: ../comtran-manuals/J28-6169/90.04-error-messages.md#error-messages-and-severity-codes
 [J 90.04.02]: ../comtran-manuals/J28-6169/90.04-error-messages.md#a-error-messages
