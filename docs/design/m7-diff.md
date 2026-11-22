@@ -1829,18 +1829,157 @@ The `f-payroll` lists differ in these ways:
   -FILE- CARD` messages agree in text and code. The statement number
   differs: 3,00 in 1963, 3,01 in `a465077`.
 
-**What is left of step 3.**
+**Two corrections to the message comparison above.** The `f-payroll`
+listings of issue #266 show both.
 
-- The source and object listings of the two `f-payroll` decks. Issue
-  #263 holds only their first 120 lines and their messages. The Mac
-  posts the full listings.
-- The object decks. They need a reader for the 28-word punch record
-  of M7-8.
-- The report. It needs a run of the 1963 object program over the
-  input tapes, in a later entry.
+- The 141,00 level message does not agree in text. 1963 prints two
+  spaces in `AND  -REDEF-.` (line 251 of the `FPAYRL` listing).
+  `a465077` prints one.
+- The statement number differs on more messages than MASTER and
+  DETAIL. 1963 prints 4,00, 7,00, 6,01, 9,01, 36,03, 13,01, 21,00
+  and 22,08. `a465077` prints 4,01, 7,01, 6,02, 9,02, 36,04, 13,02,
+  21,01 and 22,04. 23,03 agrees.
+
+**The `f-payroll` listings (issue #266).** The Mac posted both
+listings and the three punch tapes of the run of issue #263, at
+`6ea426e`, with no new run. Line numbers in this part are lines of the
+1278-line `FPAYRL` listing (L) or of the 1594-line `FPAYRJ` listing
+(J). The object listings use the method of the 90.05 part.
+
+**The source listings.** The text and the numbers of every statement
+agree: 189 cards and 167 statements for the two decks. The four form
+differences of 90.05 hold. 1963 prints `X` in column 90 on 129,00
+(L192), and on 88,00, 98,00 and 124,00 (J104, J115, J147). Without
+the octal column, the text starts 8 columns to the left. These form
+differences are new:
+
+- The sequence number of `f-payroll` prints in column 1 in 1963 and
+  in column 9 in `a465077`.
+- The pages break at different statements.
+- 1963 starts the messages on a new page, and puts the code and the
+  text one column to the right. The number ends in column 9, not 7.
+- `a465077` ends the loader-card page with `DONE`. 1963 does not.
+
+**The loader cards.** The fields of the 90.05 part differ in the same
+way: the deck name in columns 1 to 6, the name and number in columns
+73 to 80, and column 23 of each `*SPEC` card. 1963 leaves the time of
+`*CTEXT` blank, where `a465077` prints `0.00`. The 90.05 part names
+columns 22 and 23 of `*SPEC`. The punch shows that only column 23
+holds the `1`.
+
+**The object listing of `f-payroll-j`.** 1963 has 1247 words, and
+`a465077` has 1119. The data, `BL)` and `PI)` are the same. These
+groups of the 90.05 part occur again:
+
+| Group | Where |
+|---|---|
+| Buffer test: `TZE SYS)294` at 48 places, and `TXL SYS)294,4,0` twice | first J530; J376, J402 |
+| Zero test before all 7 `CAS` | first J539 |
+| STOP RUN of 140,00: `TXI IOC)266,0` | J528 |
+| `TS)` of 8 words, set to 0 | J1404 to J1415 |
+| DO register: `AXT GN)048,7`, not `AXT GN)044,4` | J636 |
+| The `EQU` names of the pool | J278 to J280 |
+
+These groups are new:
+
+| Group | 1963 | `a465077` | Where |
+|---|---|---|---|
+| Truncation | `LRS 35` and `DVP 10^n` before each of 19 stores of a result into an external field | no division | first J574 |
+| Temporaries | `RS)n`, or `k.RS)n` in section k; `RS)` of 52 words | `TS)n`; `RS)` of 30 words | first J535 |
+| Order of the operands | 141,00 computes `RATE × 40` first; an ADD CORRESPONDING loads the target first; also 145,00, 148,00, 156,00, 161,00, 166,00 | source order | J584 to J1346 |
+| Comparison of 152,00 | the right side in the AC, one more `TRA *+3` | the left side in the AC | J1063 |
+| Alphameric compare of 130,00 | `ANA` on one operand | on both | J345 |
+| HIGH.VALUE of 136,00 and 137,00 | a two-word constant, positioned in the AC | one word, `747474747474` | J413, J436 |
+| STOP 1234 | `HTR *+1` after the message | none | J524 |
+| Edited move of 146,00 | `SYS)208,1,2`, `194,1,4`, `198,1,2`, `238,1,1`, `226,1,6` | `SYS)204,1,1`, `198,1,6`, `226,1,6` | J836 |
+| MOVE CORRESPONDING of 162,00 | a masked move of bytes 0 to 4: `CAL`, `ANS`, `COM`, `ANA`, `ORS` | `SYS)182` and MOVPAK | J1292 |
+| Head | `USE 2`, `ORG PI)1`, `USE 1` | none | J275 |
+| Pool | 91 words | 83 words | J1418 to J1514 |
+
+The DO FOR of 144,00 sets the same three bases. The 11-character
+step takes other constants but gives the same word and byte for each
+start byte. The loop differs in two ways. 1963 keeps a binary copy of
+INDEX in `TS)8` and stores it to INDEX on each pass. It also stores
+`TS)6`, which no line reads. `a465077` reads INDEX back through
+`SYS)182` on each pass. The end test of 1963 subtracts INDEX itself.
+`a465077` subtracts the binary copy in `TS)1`.
+
+The subscripted ADD sources and the subscripted read of 166,00 have
+the same code on both sides. This deck has no subscripted target.
+
+**The object listing of `f-payroll`.** 1963 has 973 words and
+`a465077` has 705. 1963 puts the code first, from 00000, and the data
+after it (L1069 to L1108). `a465077` puts the data first. Each data
+item has the same offset in the data except INDEX. The truncation, temporary, order, STOP
+1234, edited move, MOVE CORRESPONDING, loop, head and pool groups of
+`f-payroll-j` occur again. The zero test occurs at 7 places. The
+buffer test and STOP RUN groups do not occur. `END.OF.RUN` opens with
+`NOP 0` in 1963 (L348) and with `TSX SYS)177,4` in `a465077`.
+
+The M6-11 shapes differ most. 1963 binds each CALL synonym to
+instance `1)` of its old name, whatever its qualifier. Thus `DETAIL
+BONDEDUCT` and `DPT BONDEDUCT` both address `1)BONDEDUCTION` of
+MASTER. That is why 5,00 is always satisfied: both operands are
+`1)EMPLOYEE.NUMBER`. 1963 writes no `PZE name,,0` word.
+
+| Statement | 1963 | `a465077` |
+|---|---|---|
+| 5,00 | `TRA COMPUTE.PAY`, 1 word (L288) | 4 `PZE EMPLOYNO,,0`, no transfer |
+| 11,00 and 12,00 | a compare with HIGH.VALUE and a SET, 20 and 19 words (L305) | 5 and 4 words |
+| 17,00 | a conditional DO, 16 words | a `PZE` and a DO |
+| 19,00 | the whole SET, 43 words (L478) | 1 `PZE` |
+| 22,00 | `SYS)243` and 9 `SYS)244` moves (L630, L695) | 10 `PZE` |
+| 34,00 and 35,00 | the ADD, the IF and the SET, 56 words (L930) | 7 `PZE` and the transfers |
+| 36,00 | the ADD, 17 words (L991); no word for the dubious MOVE | 4 `PZE` |
+| 40,00 | two ADDs through `LDI PI)2` and `LDI PI)3`, which no line stores, 34 words (L1032) | 2 `PZE` and `TRA NET` |
+
+GET and FILE with no file, FILE IN ERROR.FILE, and COPY have the same
+code on both sides.
+
+Two readings are not certain. The dictionary prints INDEX at 26216
+(L1258), outside the program, and the code addresses it there. It is
+not known if `NOP 0` stands for the invalid statement 13,00.
+
+**The object decks.** `tool/m7/ct_deck.dart` prints each card of a
+1963 punch tape or of a canon deck of ours. M7-8 says that a punch
+record is row binary. It is column binary: three columns to a word,
+and characters 0 to 159 hold columns 1 to 80. Only columns 81 to 84
+are filler. The first card of the 90.05 tape reads `SAMPLE*FILE`.
+
+The tool checks the decks against the listings:
+
+- Each of the 162 binary cards of the three tapes passes the checksum
+  of [J 90.03]. Each of the 140 binary cards of ours passes too.
+- Each punched loader card of the `f-payroll` decks equals the card
+  that its listing prints.
+- Each punched word of the `f-payroll` decks equals the word of its
+  object listing: 876 and 1166 words.
+- The 90.05 tape holds `TXI IOC)266,0` at 00530 and `SIR 400000` at
+  01266, as the 90.05 part says. The rest of the 90.05 words were not
+  compared with its listing.
+
+The deck format of 1963 is the format of ours in each of these:
+the card order, the 22 words of a full card, the sequence numbers, the
+checksum, the location counter entries, and no transfer card. Each
+deck punches text cards only. The differences:
+
+| Item | 1963 | `a465077` |
+|---|---|---|
+| Cards, 90.05 | 69: 14 control, 53 text, `*CTEXT`, `*CTEND` | 67, with 51 text |
+| Cards, `f-payroll-j` | 74, with 62 text | 68, with 56 text |
+| Cards, `f-payroll` | 49, with 47 text | 35, with 33 text |
+| Columns 73 to 77 of each card | the deck name, 5 characters | blank |
+| Entry point of `f-payroll` | 00000 | 00134 |
+
+The program content of the text cards is the content of the object
+listings. The listing diffs above hold it.
+
+**What is left of step 3.** The report needs a run of the 1963 object
+program over the input tapes, in a later entry.
 
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
 [J 03.02.05]: ../../comtran-manuals/J28-6169/03-loader.md#d-spec-card
+[J 90.03]: ../../comtran-manuals/J28-6169/90.03-object-deck-format.md#appendix-9003
 [J 90.05]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#appendix-9005
