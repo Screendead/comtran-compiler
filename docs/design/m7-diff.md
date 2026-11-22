@@ -1464,3 +1464,66 @@ rejected courses:
 | Give no type to the eight routines | the four fixed origins and the four primary routines are lost |
 
 The next step: the Mac runs the library job again.
+
+**The result of the second library job (issue #257, 2026-11-21).** The
+Mac ran `tool/m7/ct_library.sh KIT` on master at `dfe6d80`. X4 compiled
+40 of 40 decks clean again, and `ctext_drop.dart` dropped the eight
+`*CTEXT` cards. SUBUP read the reader `*CTEXT` card and the text of
+`IOEXMP`, and then stopped:
+
+```
+      IOEXMP  4-00000   SBR TEXT IS NOT FOLLOWED BY *CTEND CARD
+       SUBUP NOT COMPLETED BECAUSE OF ERROR.
+       SUBUP BYPASSED     356 UNUSED MODIFICATION CARDS
+```
+
+**What the source shows: SUBUP refuses every `*CTEND` card on
+`SYSUT4`.** At the end of the text, SUBUP loads `VMODE` and tests
+`ILTIN` (SU022570 to SU022590). The indicator is on, so `MD011` reads
+the next record of `SYSUT4` (SU023040 to SU023110). It accepts the card
+only when both tests give zero:
+
+| Word | Test | Mask | The mask accepts |
+|---|---|---|---|
+| 2, columns 7 to 9 | `ANA MASKL3` | `573536776677` (SU023140) | `*CT`, `204241001100` |
+| 3, columns 10 to 12 | `ANA MASKS3` | `375757673737` (SU023160) | `EVD`, `402020104040` |
+
+The compiler punches `END` as `402020204040`. Its table `HBC2` gives
+`E` as `4020`, `N` as `2020` and `D` as `4040` (CE066880 to CE066940).
+`N` is the punches 11 and 5. The mask accepts `1020` in that column,
+the punches 0 and 5, which is `V`. Thus the test leaves `000000200000`
+in the accumulator, and SUBUP goes to `ERR24` (SU023080). No punched
+`*CTEND` card can pass. The masks for `*CTEXT`, `MASKL3` and `MASKR3`,
+agree with the punched card, and `IOEXMP` passed them.
+
+The `4-00000` field does not give the card. `ERMS2` prints the deck
+type, 4 for a text card (`SP066`, SU021670), and five octal digits from
+bits 8 to 22 of `SEQNO` (SU033090 to SU033240). The sequence number is
+in bits 21 to 35 (`SP065`, SU021660). Thus the field shows 0 for each
+deck shorter than 8,192 cards.
+
+The reader path tests `*CTEND` with the BCD word `SP062` (SU022600 to
+SU022650), and that word is correct. Thus the fault is in the `TAPE`
+path only, as the fault of `ILTIN` is.
+
+**The method for step 3, amended again.** SUBUP stays as the archive
+holds it. `tool/m7/ctext_drop.dart` now also writes `EVD` in columns 10
+to 12 of each `*CTEND` card on `SYSUT4`. That is the complement of
+`MASKS3`, the one card that the 1963 test accepts. The tool keeps the
+parity of the record, and it prints the count of the cards it changes.
+`ct_library.sh` stops unless the count is 40. The deck words do not
+change: the `*CTEND` card holds no deck word.
+
+The rejected courses:
+
+| Course | Cost |
+|---|---|
+| Correct `MASKS3` in SUBUP | changes the 1963 SUBUP that M7 measures |
+| Read the `*CTEND` card from the card reader | not possible: with `ILTIN` on, SUBUP reads `*CTEND` from `SYSUT4` only (SU022590) |
+| Put every deck on the card reader | `SYSIN` then needs binary cards, and no tool of the kit writes them into `sysin.bcd` |
+
+A good `*CTEND` card turns off `ILTIN` in `VMODE` (SU022660 to
+SU022680). Each `*INSERT` card of the job has `TAPE` in columns 1 to 4,
+so the scan of the next card sets it again (SU006170 to SU006210).
+
+The next step: the Mac runs the library job again.

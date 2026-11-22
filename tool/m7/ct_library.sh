@@ -65,6 +65,8 @@ mv syspp1.bin x4.pp.bin
 # *CTEXT card from the reader and the rest from SYSUT4. Thus the reader
 # gets a *CTEXT card after each typed *INSERT card, SYSUT4 loses that
 # deck's *CTEXT card, and the card count is 40 plus one for each.
+# SUBUP tests a *CTEND card on SYSUT4 with a mask that accepts EVD, not
+# END (SU023100, SU023160), so each *CTEND card gets EVD in columns 10 to 12.
 typed=$(awk '$3 != "SECONDARY" { print NR }' table.txt)
 {
   echo '$EXECUTE       CT'
@@ -80,7 +82,8 @@ typed=$(awk '$3 != "SECONDARY" { print NR }' table.txt)
   done <table.txt
 } >subup.job
 [ "$(grep -c '^      \*CTEXT' subup.job)" -eq 8 ]
-dart run "$here/ctext_drop.dart" x4.pp.bin sysut4.bin $typed
+dart run "$here/ctext_drop.dart" x4.pp.bin sysut4.bin $typed | tee drop.txt
+grep -qx '40 \*CTEND cards rewritten' drop.txt
 sh "$here/run_ibsys.sh" "$kit" subup.job subup.lst "$PWD/seed.bin"
 # run_ibsys.sh returns 0 when a job fails, so check the listing.
 if grep -q 'NOT COMPLETED' subup.lst; then

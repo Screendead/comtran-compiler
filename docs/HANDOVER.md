@@ -164,7 +164,9 @@ twelve unlabeled `BCI` cards. Jack, 2026-11-21:
 
 `tool/m7/ct_library.sh` labels them, and one `SYSCOL` card (issue
 #248). The library job (#252) compiled 40 clean decks, then SUBUP
-failed. M7-7 holds the cause and the fix. Next: the Mac reruns the job.
+failed. M7-7 holds the cause and the fix. The rerun (#257) then failed
+on the `*CTEND` card: the 1963 SUBUP tests it with a mask for `EVD`.
+M7-7 holds that cause and fix too. Next: the Mac reruns the job.
 
 ### Codegen defects the runtime exposed
 
