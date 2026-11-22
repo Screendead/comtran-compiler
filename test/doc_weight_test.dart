@@ -21,8 +21,8 @@ const Map<String, int> budgets = <String, int>{
   'docs/design/m6-acceptance.md': 19400,
   // M7-7 records each probe of the 1963 library and its result. M7-8
   // records the 1963 compile of the corpus, and M7-9 the diff of its
-  // outputs.
-  'docs/design/m7-diff.md': 17000,
+  // outputs and object decks. The 1963 run of the report follows.
+  'docs/design/m7-diff.md': 19000,
   // Locked by Jack, 2026-08-09. This number never rises again. A stage 2
   // amendment that needs room pays for it by deleting prose from the same
   // record.

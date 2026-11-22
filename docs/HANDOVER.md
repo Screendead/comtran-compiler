@@ -165,8 +165,8 @@ cards. Jack, 2026-11-21:
 `tool/m7/ct_library.sh` labels them. M7-7 holds the library and each
 probe; issue #261 built `CTSYS2.BIN`.
 M7-8: the 1963 processor compiles all three corpus decks.
-M7-9 diffs 90.05, M7-10 the library. Next: the `f-payroll` listings
-and punch decks (Mac).
+M7-9 diffs listings and decks, M7-10 the library. Next: the 1963
+report run.
 
 ### Codegen defects the runtime exposed
 
