@@ -164,8 +164,12 @@ twelve unlabeled `BCI` cards. Jack, 2026-11-21:
 
 `tool/m7/ct_library.sh` labels them, and one `SYSCOL` card (issue
 #248). The library job (#252) compiled 40 clean decks, then SUBUP
-failed, then reruns #257 and #259. M7-7 holds each cause.
-Next: a Mac rerun.
+failed, then reruns #257 and #259. M7-7 holds each cause. The fourth
+run (#261, 2026-11-22) completed: `CTSYS2.BIN` holds the compiler and
+its library of 40 routines.
+
+M7-8 compiles the 90.05 job and the two 1960 payroll decks under the
+1963 processor, with `tool/m7/ct_compile.sh`. Next: the Mac runs it.
 
 ### Codegen defects the runtime exposed
 
