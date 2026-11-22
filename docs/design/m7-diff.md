@@ -1874,6 +1874,153 @@ Each checksum passes.
 - The report. It needs a run of the 1963 object program over the
   input tapes, in a later entry.
 
+## M7-10 The diff of the runtime library
+
+*Read 2026-11-22 from `CT/ct.job`, which has the checksum of M7-3.*
+
+This entry starts step 4 of M7-4. It compares each runtime entry of
+`a465077` with the 1963 routine there. Step 5 classifies the
+differences.
+
+**The method.** The CRYPT card `SYS n` gives the number n to a
+location:
+
+- Deck OPEN2 names itself `SYS)175` (17500080) and holds `SYS 175`
+  at its entry (17500160).
+- The compiler agrees: `MVPAK1 EQU 180` (CD003550), `SYS 180`
+  (17900140).
+- `IOC)n` and `SYS)n` are one set: `SYS 40` (04600070) serves
+  `IOC)40` (26600110).
+- A fixed deck is a map: `SYS 8` (00301040) is word 13 of the IOCS,
+  the entry `READ` (IO001350).
+
+Each name is from the `SYS` card or the label below it.
+
+| Ours | 1963 deck, name, card | Result |
+|---|---|---|
+| SYS)175 | OPEN2 17500160 | agrees |
+| SYS)177 | CLOSE2 17700270 | agrees |
+| SYS)178 | STPPRT 17800180 | differs: the blanks |
+| SYS)260 | EOBERR `EOBCK` 26000200 | differs: message; closes files |
+| SYS)283 | EOBERR `ERROR1` 26000250 | differs: message; closes files |
+| SYS)294 | BLERR 29400180 | differs: message; closes files |
+| IOC)1 | CTMCOM 04600190; monitor `OPFLST` CT000690 | differs: L is 0 |
+| IOC)8 | IOBSMP 00301040; IOCS `READ` IO001350 | agrees |
+| IOC)9 | IOBSMP 00301060; IOCS `WRITE` IO001370 | differs: a long record |
+| IOC)29 | IOBSMP 00301200; IOCS `LAREA` IO001590 | agrees |
+| IOC)40 | CTMCOM 04600070; monitor `SYSTEM` CT000580 | agrees |
+
+Five agree and six differ.
+
+**The differences.**
+
+- **SYS)178.** 1963 prints `␢␢AT␢␢` (17800380) and the four pool
+  words as they are (17800300 to 17800340). RT-2 drops their blanks.
+- **SYS)294.** 1963 prints `PROCESSING TERMINATED DUE TO A REFERENCE
+  TO A DATA ITEM BEFORE THE ITEM WAS LOCATED.` (29400290). It goes
+  to `SYS)266`, which closes all files and returns at `IOC)40`
+  (29400260, 26600150, 26600240). RT-2 prints `BASE LOCATOR NOT
+  LOADED` and closes no file.
+- **SYS)260 and SYS)283.** 1963 prints `PROCESSING TERMINATED DUE TO
+  TAPE` and the kind: `RECORD LENGTH ERROR` for SYS)260, one of five
+  for SYS)283 (26000710 to 26000910). It adds the statement number
+  from the word before the `TSX` (26000320). It adds the name, serial
+  number, reel number and block count of the file (26000590 to
+  26000660), and ends at `SYS)266` (26000690). M5-8 prints one line
+  and closes no file.
+- **IOC)9.** IOCS cuts a record longer than the buffer to fit it
+  (IO014210 to IO014220). Rule 2 of M5-9 ends the run.
+- **IOC)1.** The loader stores `PZE L,,N` (LD044360), and SYS)175
+  reads the list at L (17500250). M5-3 stores L as 0.
+
+**Notes on the agreements.**
+
+- SYS)175 and SYS)177 read an open and a close option from the file
+  block (17400110, 17600110). D6.3 holds the same four close options.
+  Ours reads neither (M5-4).
+- IOC)8 has the exits of M5-5 (IO009180 to IO009250) and the rules of
+  M5-8 (IO009400, IO013060, IO013250, IO013780). IOCS returns with its
+  exit address in index register 4 (IO004710), where ours keeps the
+  link.
+- IOC)9 settles the open item of M5-9. With no room, IOCS writes the
+  buffer and puts the whole record in the next (IO014140 to
+  IO014280), as rule 3 does.
+- IOC)29 is word 42 of the IOCS, so it does not overlap IOC)40.
+
+**The MOVPAK deck.** It holds 36 more of our entries. M7-2 makes them
+contaminated, so none counts. SYS)131 is also the cell of Open
+Question 31.
+
+| Ours | Name and card |
+|---|---|
+| SYS)130 | `OVTRIG` 17900850 |
+| SYS)131 | `CKTRIG` 17900870 |
+| SYS)132 | `APOINT` 17900810 |
+| SYS)133 | `BPOINT` 17900830 |
+| SYS)180 | `MVPAK1` 17900140 |
+| SYS)182 | `MVPAK3` 17900510 |
+| SYS)183 | `MOVXX` 17905210 |
+| SYS)184 | `MOVXI` 17903780 |
+| SYS)185 | `MOVXE` 17907200 |
+| SYS)186 | `MOVIX` 17902540 |
+| SYS)187 | `MOVIXM` 17902610 |
+| SYS)188 | `MOVIXP` 17902580 |
+| SYS)190 | `MOVEE` 17907190 |
+| SYS)191 | `MVXX` 17905360 |
+| SYS)193 | `MVXE` 17905370 |
+| SYS)198 | `MVEE` 17907880 |
+| SYS)201 | `OVXE` 17905710 |
+| SYS)204 | `OVEE` 17907510 |
+| SYS)211 | `IZXE` 17906110 |
+| SYS)212 | `HIZXE` 17906130 |
+| SYS)214 | `HIZEE` 17906140 |
+| SYS)216 | `IZEE` 17906050 |
+| SYS)223 | `EMXX` 17907010 |
+| SYS)225 | `EMXE` 17908510 |
+| SYS)226 | `EMEE` 17908520 |
+| SYS)227 | `MSXX` 17905330 |
+| SYS)239 | `MOVAA` 17910890 |
+| SYS)240 | `MOVAAB` 17912130 |
+| SYS)241 | `MOVBAA` 17912190 |
+| SYS)243 | `MOVBA` 17912930 |
+| SYS)244 | `MOVZA` 17913480 |
+| SYS)245 | `MOVCA` 17913950 |
+| SYS)267 | `MOVIE` 17910380 |
+| SYS)268 | `MOVEI` 17907430 |
+| SYS)269 | `MVEI` 17907900 |
+| SYS)275 | `EMEI` 17910600 |
+
+These points differ from RT-3 to RT-5:
+
+- The members move SYS)132 and SYS)133 themselves (17900550 to
+  17900680), SYS)241 stores into SYS)133 (17912260), and the return
+  changes index register 4 (17900770).
+- No card of MOVPAK stores into SYS)131; only MOVFLT does (25107250).
+  A member keeps the low four bits of a character (17903870,
+  17905420).
+- SYS)198, 204 and 269 count characters and take each one as a digit
+  (17907950 to 17908260). SYS)207, 208 and 271 pass over characters
+  (17907630).
+- SYS)245 copies its word place for place into each target word
+  (17914030 to 17914440). Ours cycles from the first character.
+- A left sign follows the suppressed blanks (17909290, 17909970).
+- More than ten digits use the AC-MQ pair (17903550, 17904090).
+- SYS)268 keeps its decrement as the sign convention (17907440).
+- `MZE` with a zero base locator goes to SYS)294 (17900250).
+
+**Decks that no row reaches.** OPEN1, CLOSE1, KAPUT, IOEXMP and IBMAP
+serve the rows above. The other 27 are PRGINT, UNITAS, INREAD, 2CELLS,
+EXPERR, EXPDBL, FPTRP, SYSADJ, SYSCOL, SYSCOM, SYSSXY, SYSSDX, SYSDIV,
+SYSMPX, EXPSNG, NJJJNJ, MOVFLT, PATTRN, BCDBIN, BCDERR, GETVLM, UNXEOF,
+HOLBCD, WRTEOB, BCDHOL, TRAPEM and SRMOVE.
+
+**What is left of step 4.**
+
+- IOCS `OPEN` and `CLOSE`, and the buffer pools, against M5-7 and
+  M5-10.
+- Not settled: what SYS)186 to 188 and SYS)267 store for a value
+  longer than the count, and whether N of IOC)1 counts files only.
+
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
