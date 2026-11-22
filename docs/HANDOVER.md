@@ -151,21 +151,22 @@ for the shapes it refused, and the verbatim deck punches 35 cards
 design: evidence exists and is sealed until M7.
 
 **M7 is open (2026-11-21).** `docs/design/m7-diff.md` holds the
-plan. Issue #216 asked Jack how the cloud could reach the archive host. Jack, 2026-11-21:
+plan. Issue #216 asked Jack how the cloud reaches the archive host. Jack, 2026-11-21:
 
 > **Jack's answer:** A · Allow the site for the cloud
 >
 > Done
 
-M7-7 holds the library. Issue #236 asked Jack how to keep the text of
-twelve unlabeled `BCI` cards. Jack, 2026-11-21:
+Issue #236 asked Jack how to keep the text of twelve unlabeled `BCI`
+cards. Jack, 2026-11-21:
 
 > **Jack's answer:** A · Name the twelve cards
 
-`tool/m7/ct_library.sh` labels them. M7-7 holds each probe, and
-issue #261 built `CTSYS2.BIN`.
+`tool/m7/ct_library.sh` labels them. M7-7 holds the library and each
+probe; issue #261 built `CTSYS2.BIN`.
 M7-8: the 1963 processor compiles all three corpus decks.
-M7-9 diffs listings and decks. Next: the 1963 report run.
+M7-9 diffs listings and decks, M7-10 the library. Next: the 1963
+report run.
 
 ### Codegen defects the runtime exposed
 
