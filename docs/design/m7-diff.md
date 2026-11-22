@@ -1706,7 +1706,141 @@ punch (CE067700 to CE067720). `tool/m7/punch_split.dart` reads
 Step 3 needs a reader for the 28-word record before it can compare
 the object decks.
 
+## M7-9 The diff of the outputs
+
+*Written 2026-11-22 from the listings of issue #263.*
+
+This entry starts step 3 of M7-4. It finds and counts each difference
+between the 1963 outputs of M7-8 and the outputs of `a465077`. Step 5
+classifies them.
+
+**What this part compares.**
+
+| Output | 1963 | `a465077` |
+|---|---|---|
+| The 90.05 source listing | lines 1 to 325 of the `SAMPLE` listing | `test/goldens/90.05-payroll.listing` |
+| The 90.05 loader cards and object listing | lines 329 to 1418 | `test/goldens/90.05-payroll.storage-map` |
+| The messages of the three decks | the lists of M7-8 | the three listing goldens |
+
+The goldens did not change after `a465077`. The 90.05 goldens agree
+with the 1962 print byte for byte (M4 stage 2). Thus each 90.05
+difference is also a difference between the 1962 print and the 1963
+processor. Line numbers below are lines of the 1516-line `SAMPLE`
+listing.
+
+**The method for the object listing.** The 1963 program is 27 words
+longer, so most addresses move. The diff drops the page heads, the
+location and the octal fields. It compares the label, operation and
+address fields. It writes each `CP)+n` as `CP)`, because the 1963
+processor numbers its constants in a different order. It ignores the
+label offsets `+1`, `+2` and so on, because an added line moves the
+offsets after it.
+
+**The source listing of 90.05.** The text of the 229 statements is the
+same. The form differs in four ways:
+
+- 1963 prints no octal location column. The 1962 print shows one, for
+  example `71175` on 1,00.
+- 1963 prints `X` in column 90 on six entries whose text continues on
+  a second line: 3,00, 21,00, 22,00, 103,00, 107,00 and 181,00.
+- 1963 prints no `CTC`, `CTD` or `CTE` line.
+- The page head differs: `PAGE n` at the left, then the identification,
+  the date and `CT0506`.
+
+**The loader cards of 90.05.** The 15 cards agree in each field that
+the 1962 print fills, except the date and time of `*CTEXT`. 1963
+fills three more fields:
+
+- columns 1 to 6, the deck name `SAMPLE` from the `$CMPLE` card;
+- columns 73 to 80, `SAMPL` and the card number;
+- columns 22 and 23 of each `*SPEC` card, the activity `1`
+  ([J 03.02.05]), for example line 332.
+
+The 1962 deck has 67 cards and the 1963 deck has 69.
+
+**The object listing of 90.05.** After the method, up to the `START`
+card, 46 lines of the 1962 print and 82 lines of 1963 differ. They
+fall into these groups:
+
+| Group | 1963 | 1962 print | Where |
+|---|---|---|---|
+| Buffer test | `CAL BL)n`, `TZE SYS)294`, `ACL`, at 9 places | `CAL BL)n`, `ACL` | first at lines 528 and 529 |
+| Buffer test | `TXL SYS)294,4,0` after `LXA BL)2,4`, in the file of MASTER before `TRA GET.MASTER` | no test | line 1007 |
+| Buffer test | no `LAC BL)2,1` and `TXL SYS)294,1,0` in BOND.ROUTINE | the pair at 01301 | line 1098 |
+| Zero test | `NZT y` and `TZE *+3` before 6 of the `CAS y` comparisons | `CAS y` only | first at line 759 |
+| STOP RUN of 199,00 | `TXI IOC)266,0` | `TSX SYS)177,4`, `PZE IOC)1`, `TXI IOC)40,0` | line 701 |
+| Order in NET | the moves of the `DATE` fields to CHECK, 18 words, come before the move of `MONTH` to PAYRECORD | after it | line 893 |
+| Indicator | `SIR 400000` and `RFT 400000` in WITHOLDING.TAX.ROUTINE | `000001` | line 1072 |
+| The loop of 206,00, `DO SEARCH FOR INDEX` | `AXT GN)091,7` and a constant of the pool | `AXT GN)086,4` and `GN)088 EQU CP)+37` | line 821 |
+| `RETPREM (POS)` of 225,00 | a character address | a word address | line 1187 |
+| Temporary storage | `TS)` holds 8 words, and `ORG TS)1` sets each to 0 | 7 words, not set | line 1339 |
+| Constants | `6` and `-9` added; three words that start `73` become one; the `EQU` names of the pool removed | — | lines 1353 to 1417 |
+
+The zero test makes a comparison of two zeros take the equal branch,
+whatever their signs.
+
+The `RETPREM (POS)` row decodes as follows. INSPREM and RETPREM share
+the word at 00136. RETPREM starts at character 3 of it, and each
+element of TABLE.ITEM is 12 characters. The 1962 print computes the
+element address as `POS × 2 + (RETPREM − 2)`, and the constant prints
+00134, the address of INSPREM − 2. The 1963 code computes
+`(00136 × 6 − 9 + POS × 12) / 6`: the quotient is the word and the
+remainder is the character. Thus the 1963 processor addresses the
+RETPREM element, where the 1962 print addresses the INSPREM element.
+M6-4 records the 1962 result on PDF p. 217.
+
+The `DICT` option adds the dictionary after the object listing. The
+1962 job did not ask for it.
+
+**The messages.**
+
+| Deck | 1963 | `a465077` |
+|---|---|---|
+| 90.05 | none | none |
+| `f-payroll-j` | one `'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.`, code 1, at 9999,99 | three, code 1, at 166,01, 166,03 and 166,04 |
+| `f-payroll` | 29 messages | 55 messages |
+
+The `f-payroll` lists differ in these ways:
+
+- The six CALL old names: 1963 prints `'1)EMPLOYEE.NUMBER' IS AN
+  IMPROPERLY QUALIFIED NAME.`, code 2, at 1,00. `a465077` prints `IS NOT
+  UNIQUE IN THIS SECTION.`, code 3, at 1,01.
+- 1963 prints no message for a CALL synonym. `a465077` prints 26
+  `IS AN UNDEFINED SYMBOL.` messages, all on synonyms.
+- 1963 prints messages that `a465077` does not: `CONDITION TESTED IS
+  ALWAYS SATISFIED.` and `NEVER SATISFIED.` at 5,00 and 5,01;
+  `'ERROR.FILE' IS AN UNDEFINED SYMBOL.`, code 4, three times;
+  `INVALID -CORRESPONDING- STATEMENT.` at 13,00; the `DUBIOUS MOVE`
+  message at 36,02; and `CHECK DATA DESCRIPTION OF ARRAY OF ELEMENTS`
+  at 40,02 and 40,03.
+- For PAYRECORD and CHECK, 1963 prints `'PAYRECORD' MUST BE RECORD NAME
+  IN -FILE- CARD.` three times and the CHECK form once. `a465077`
+  prints `RECORD 'PAYRECORD' MUST BE ON AN OUTPUT -FILE- CARD.` three
+  times and the CHECK form once.
+- `'ERROR.FILE' IS NOT A FILE.` is code 4 in 1963 and code 3 in
+  `a465077`.
+- `NO -STOP RUN- IN PROGRAM.` is code 3 at 9999,99 in 1963, and code 4
+  at 41,00 in `a465077`. The `'INDEX'` message is at 9999,99 in 1963
+  and at 40,01 in `a465077`.
+- `a465077` prints three kinds of message that 1963 does not: the
+  non-historical 140,00, the justification message of 141,00, and the
+  seven `IMPROPERLY QUALIFIED NAME` messages on the DPT synonyms.
+- 132,00, 141,00 (level), and the MASTER and DETAIL `MUST BE ON A
+  -FILE- CARD` messages agree in text and code. The statement number
+  differs: 3,00 in 1963, 3,01 in `a465077`.
+
+**What is left of step 3.**
+
+- The source and object listings of the two `f-payroll` decks. Issue
+  #263 holds only their first 120 lines and their messages. The Mac
+  posts the full listings.
+- The object decks. They need a reader for the 28-word punch record
+  of M7-8.
+- The report. It needs a run of the 1963 object program over the
+  input tapes, in a later entry.
+
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
+[J 03.02.05]: ../../comtran-manuals/J28-6169/03-loader.md#d-spec-card
 [J 90.05]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#appendix-9005
