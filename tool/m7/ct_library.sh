@@ -84,6 +84,8 @@ typed=$(awk '$3 != "SECONDARY" { print NR }' table.txt)
 [ "$(grep -c '^      \*CTEXT' subup.job)" -eq 8 ]
 dart run "$here/ctext_drop.dart" x4.pp.bin sysut4.bin $typed | tee drop.txt
 grep -qx '40 \*CTEND cards rewritten' drop.txt
+# SUBUP writes SYSUT2 from the start; the X4 job can leave a longer tape there.
+rm -f sysut2.bin
 sh "$here/run_ibsys.sh" "$kit" subup.job subup.lst "$PWD/seed.bin"
 # run_ibsys.sh returns 0 when a job fails, so check the listing.
 if grep -q 'NOT COMPLETED' subup.lst; then
