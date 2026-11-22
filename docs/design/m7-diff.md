@@ -2220,7 +2220,8 @@ from RT-4 and RT-5. M7-2 still makes the four entries contaminated.
 - Each divide gives six quotient bits as one character (17903000 to
   17903310). The first character therefore holds the whole quotient.
 - A value of more than N digits makes that character 10 or more, up
-  to 63, and that is no digit. The lower digits are correct.
+  to 63, and that is no digit. The code implies that the lower digits
+  are correct.
 - The code implies that a larger quotient stops the divide with the
   divide check of the machine. No card of MOVPAK tests that check.
 - SYS)267 makes its digits with the same cards (17910510). It enters
