@@ -52,8 +52,10 @@ run() { # job name, deck, tape folder, inputs, outputs (UNIT:MODE ...)
     b=$(echo "${t%:*}" | tr 'A-Z' 'a-z')
     TAPES="$TAPES $b=$b.bin"
   done
-  TAPES=$TAPES LIMIT=180 sh "$here/run_ibsys.sh" "$kit" "$1.job" "$1.lst" \
-    "$kit/CTSYS3.BIN"
+  # The loader lists the files to mount and pauses for the START key
+  # (OPER. ACTION PAUSE), so the job needs one start more.
+  TAPES=$TAPES STARTS=1 LIMIT=180 sh "$here/run_ibsys.sh" "$kit" "$1.job" \
+    "$1.lst" "$kit/CTSYS3.BIN"
   for t in $5; do
     b=$(echo "${t%:*}" | tr 'A-Z' 'a-z')
     [ -s "$b.bin" ] || continue

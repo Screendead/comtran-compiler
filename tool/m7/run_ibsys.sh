@@ -5,12 +5,22 @@
 # Run it in a work folder: the tapes stay there as sysut1.bin, sysut2.bin,
 # syspp1.bin and so on. Put an input SYSUT2 tape at sysut2.bin first.
 # TAPES, if set, holds more s709 unit arguments, such as d1r=d1.bin.
+# STARTS, if set, is the number of operator pauses to answer: each one
+# adds a start to the command file (st, as the START key), before quit.
 # s709 aborts on long file names, so every file it opens is linked here.
 set -e
 kit=$1 job=$2 lst=$3 lb1=${4:-$1/s709-2.4.4/ASYS1.BIN}
 s=$kit/s709-2.4.4
 PATH=$s:$kit/utils:$PATH
-ln -sf "$s/ibsys.cmd" ibsys.cmd
+# The command file of the kit, with one start more for each pause. A
+# halt reads the next line, and c would clear the memory.
+rm -f ibsys.cmd
+{
+  sed '/^st/,$d' "$s/ibsys.cmd"
+  i=0
+  while [ $i -le "${STARTS:-0}" ]; do echo st; i=$((i + 1)); done
+  echo q
+} >ibsys.cmd
 ln -sf "$lb1" syslb1.bin
 ln -sf "$s/ASYS8.BIN" syslb2.bin
 gendate >sysin.txt

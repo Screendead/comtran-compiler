@@ -166,8 +166,9 @@ cards. Jack, 2026-11-21:
 probe; issue #261 built `CTSYS2.BIN`.
 M7-8: the 1963 processor compiles all three corpus decks.
 M7-9 diffs listings and decks, M7-10 the library. M7-11 is the report
-run. Its first run found no tape channels C and D in IBSYS. The next
-run, on the Mac, adds them to the nucleus.
+run. Its first run found no tape channels C and D in IBSYS; the second
+added them, and each job stopped at the tape mount pause. The next run,
+on the Mac, presses START at the pause.
 
 ### Codegen defects the runtime exposed
 
