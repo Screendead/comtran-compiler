@@ -1771,7 +1771,7 @@ fall into these groups:
 | STOP RUN of 199,00 | `TXI IOC)266,0` | `TSX SYS)177,4`, `PZE IOC)1`, `TXI IOC)40,0` | line 701 |
 | Order in NET | the moves of the `DATE` fields to CHECK, 18 words, come before the move of `MONTH` to PAYRECORD | after it | line 893 |
 | Indicator | `SIR 400000` and `RFT 400000` in WITHOLDING.TAX.ROUTINE | `000001` | line 1072 |
-| SEARCH loop of 225,00 | `AXT GN)091,7` and a constant of the pool | `AXT GN)086,4` and `GN)088 EQU CP)+37` | line 821 |
+| The loop of 206,00, `DO SEARCH FOR INDEX` | `AXT GN)091,7` and a constant of the pool | `AXT GN)086,4` and `GN)088 EQU CP)+37` | line 821 |
 | `RETPREM (POS)` of 225,00 | a character address | a word address | line 1187 |
 | Temporary storage | `TS)` holds 8 words, and `ORG TS)1` sets each to 0 | 7 words, not set | line 1339 |
 | Constants | `6` and `-9` added; three words that start `73` become one; the `EQU` names of the pool removed | — | lines 1353 to 1417 |
