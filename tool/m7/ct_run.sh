@@ -1,9 +1,9 @@
 #!/bin/sh
 # Compiles and runs the 90.05 job and the applied 1960 payroll deck with the
-# 1963 CT processor on CTSYS2.BIN, over our input tapes (M7-11 in
-# docs/design/m7-diff.md).
-# Usage: ct_run.sh KIT   (KIT holds the s709-2.4.4 and utils trees and the
-# CTSYS2.BIN of ct_library.sh). It works in KIT/run/run/ and keeps:
+# 1963 CT processor over our input tapes (M7-11 in docs/design/m7-diff.md).
+# Usage: ct_run.sh KIT   (KIT holds the archive, s709-2.4.4 and utils trees
+# and the CTSYS2.BIN of ct_library.sh). ct_units.sh first gives the system
+# tape channels C and D as CTSYS3.BIN. It works in KIT/run/run/ and keeps:
 # - units.lst, the unit table of IBSYS ($UNITS);
 # - for each job NAME, the folder NAME/ with NAME.job, NAME.lst,
 #   console.txt, each tape as UNIT.bin, and each output tape as UNIT.txt.
@@ -13,11 +13,12 @@ repo=$(cd "$here/../.." && pwd)
 mkdir -p "$kit/run/run"
 cd "$kit/run/run"
 conv() { (cd "$repo" && dart run tool/m7/tape_conv.dart "$@"); }
+sh "$here/ct_units.sh" "$kit"
 
 # 1. The unit table, to read beside a refusal of a unit by the loader.
 rm -rf units && mkdir units && cd units
 printf '$JOB\n$UNITS\n' >units.job
-sh "$here/run_ibsys.sh" "$kit" units.job ../units.lst "$kit/CTSYS2.BIN"
+sh "$here/run_ibsys.sh" "$kit" units.job ../units.lst "$kit/CTSYS3.BIN"
 cd ..
 
 # 2. One job a deck: the job of ct_compile.sh with the option RUN, which
@@ -52,7 +53,7 @@ run() { # job name, deck, tape folder, inputs, outputs (UNIT:MODE ...)
     TAPES="$TAPES $b=$b.bin"
   done
   TAPES=$TAPES LIMIT=180 sh "$here/run_ibsys.sh" "$kit" "$1.job" "$1.lst" \
-    "$kit/CTSYS2.BIN"
+    "$kit/CTSYS3.BIN"
   for t in $5; do
     b=$(echo "${t%:*}" | tr 'A-Z' 'a-z')
     [ -s "$b.bin" ] || continue
