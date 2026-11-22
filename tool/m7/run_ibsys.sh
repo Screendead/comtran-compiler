@@ -4,12 +4,23 @@
 # KIT is the folder that holds the built s709-2.4.4 and utils trees.
 # Run it in a work folder: the tapes stay there as sysut1.bin, sysut2.bin,
 # syspp1.bin and so on. Put an input SYSUT2 tape at sysut2.bin first.
+# TAPES, if set, holds more s709 unit arguments, such as d1r=d1.bin.
+# STARTS, if set, is the number of operator pauses to answer: each one
+# adds a start to the command file (st, as the START key), before quit.
 # s709 aborts on long file names, so every file it opens is linked here.
 set -e
 kit=$1 job=$2 lst=$3 lb1=${4:-$1/s709-2.4.4/ASYS1.BIN}
 s=$kit/s709-2.4.4
 PATH=$s:$kit/utils:$PATH
-ln -sf "$s/ibsys.cmd" ibsys.cmd
+# The command file of the kit, with one start more for each pause. A
+# halt reads the next line, and c would clear the memory.
+rm -f ibsys.cmd
+{
+  sed '/^st/,$d' "$s/ibsys.cmd"
+  i=0
+  while [ $i -le "${STARTS:-0}" ]; do echo st; i=$((i + 1)); done
+  echo q
+} >ibsys.cmd
 ln -sf "$lb1" syslb1.bin
 ln -sf "$s/ASYS8.BIN" syslb2.bin
 gendate >sysin.txt
@@ -21,7 +32,7 @@ taskpolicy -c utility -d utility \
   s709 -cibsys.cmd -m7094 r=reader p=print u=punch \
   a1r=syslb1.bin a2r=syslb2.bin a3=sysin.bcd a4=sysou1.bcd \
   a5=sysut1.bin a6=sysut3.bin a7=sysut2.bin a8=syspp1.bin \
-  a9=sysut4.bin a10=sysck2.bin </dev/null >console.txt &
+  a9=sysut4.bin a10=sysck2.bin $TAPES </dev/null >console.txt &
 # A job that never ends keeps s709 running, so stop it after LIMIT seconds
 # (60 if unset).
 pid=$! n=0

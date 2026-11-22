@@ -2237,6 +2237,238 @@ They arm nothing, and that agrees.
 
 **Step 4 is done.** Step 5 classifies each difference of this entry.
 
+## M7-11 The 1963 run of the corpus
+
+*Read 2026-11-22 from `CT/ct.job`, which has the checksum of M7-3, and
+from the source of `s709` 2.4.4 (external: cozx.com, 2026-11-22).*
+
+This entry ends step 3 of M7-4: the report. The 1963 processor compiles
+each deck again, loads the object program, and runs it over our input
+tapes.
+
+**The RUN option.** `RUN` on the `$CMPLE` card loads and runs the
+object program after the compile:
+
+- The compiler tests the severity of the errors. Above 1, it prints
+  `LOAD NOT PERFORMED BECAUSE ERROR SEVERITY GREATER THAN 1 OR UNDEFINED
+  ITEM IN ASSEMBLY LISTING.` and does not load (CE004360 to CE004490,
+  CE004710 to CE004730).
+- Otherwise it writes the quick-run file on `SYSUT1` with a `$LOAD` card
+  (CE004750, CE004780 to CE004830). It sets `CTMRUN` (CE004640 to
+  CE004650), and the monitor then acts on the card that it holds and
+  reads none (CT002210 to CT002220).
+
+Both decks pass the test. `SAMPLE` has no error and `FPAYRJ` has one
+error of severity 1 (M7-8).
+
+**The tapes.** Each FILE card of a deck names a unit, for example
+`UNIT1 'D1'`. That is channel D, unit 1. The `s709` argument `d1=` mounts
+a tape image there (`README.txt`). An image mounted with no flag holds
+one character a byte: bit 0200 starts a record, the byte 0217 alone is a
+file mark, and bit 0100 is the parity bit. `s709` checks the parity of
+each character that it reads: odd in binary mode, even in BCD mode
+(`chan7607.c`). The image holds the core code of a BCD character, so no
+translation applies.
+
+Our frame holds no parity bit (M5-2). `tool/m7/tape_conv.dart` moves a
+tape between the two forms:
+
+- `to-bin` writes our frame as an `s709` image, with the parity of the
+  mode of the file.
+- `list` prints a BCD image as `--list-tapes` prints an output tape of
+  ours (M5-11).
+
+The check: our run of the 90.05 job writes `D3` and `D4`. Each tape,
+moved by `to-bin` and printed by `list`, gives the 19 and 17 lines that
+`--list-tapes` prints for it.
+
+| Job | Inputs | Outputs |
+|---|---|---|
+| `SAMPLE` | `D1` binary, `C2` BCD, from `test/fixtures/90.05-tapes/` | `C1` binary; `D2`, `D3`, `C3`, `D4` BCD |
+| `FPAYRJ` | `D1` and `C2` BCD, from `test/fixtures/f-payroll-tapes/` | `D3`, `D2`, `D4` BCD |
+
+**The method.** `tool/m7/ct_run.sh KIT` runs two steps on `CTSYS2.BIN`:
+
+1. The IBSYS job `$UNITS`, which prints the unit table of the system.
+2. One job for each deck. The job is the job of M7-8 with the options
+   `LIST,DICT,RUN`. The input tapes mount read only. `run_ibsys.sh` now
+   takes more unit arguments in `TAPES`.
+
+**What the run shows.**
+
+- The unit table.
+- Each listing and console.
+- Each BCD output tape as print lines, and `C1` as words.
+
+**The risks.**
+
+- IBSYS can lack the units of channels C and D. The loader searches the
+  unit table of the system for each unit (LD007850 to LD007900). The
+  unit table shows which units exist, and a refusal shows in the
+  listing.
+- M7-8 found a skip that passed over the last cards of each job. A run
+  that stops before its program starts must find the card first.
+- A job that never ends stops after 180 seconds.
+
+**The result of the first run (2026-11-22, issue #272).** The Mac ran
+the script at `a9435db`. No job stopped at the limit.
+
+- Both decks compile as in M7-8, and the compiler loads each one. No
+  `LOAD NOT PERFORMED` shows.
+- The loader then refuses every FILE block with `NOT ENOUGH UNITS ON
+  CHANNEL`, prints `FILE UNIT ASSIGNMENT COULD NOT BE COMPLETED`, and
+  does not run the program: `THIS PROGRAM NOT EXECUTED BECAUSE OF NOGO
+  CONDITION`.
+- Each output tape is empty.
+- The unit table of `$UNITS` holds channel A only. The system uses all
+  ten of its tapes.
+- The console shows ` DECK ERROR` after `$ID`, as in M7-8.
+
+**The cause.** The loader finds the unit of a file by its channel and
+its relative number. It skips each unit that the system uses, and it
+does not use a disk (LD301, LD095510 to LD096000). The IBSYS nucleus
+fixes its channels when it is assembled. `IBSYS/ibsys.map` is the
+nucleus of `ASYS1.BIN`: it gives channel A ten tapes and channels B to
+H none (IBB00580, IBB01150, IBB01720, IBB02290). A `$ATTACH` card
+cannot add a unit that the nucleus does not hold.
+
+**Decision.** Give the nucleus four tapes on channel C and four on
+channel D, and run the jobs on that tape. The archive does the same:
+`ibsys2.map` adds channel B, and `ibsys3.map` adds six tapes each to
+channels C and D, by the same cards. Four tapes cover each deck: the
+decks use `C1` to `C3` and `D1` to `D4`. A small count keeps the
+nucleus small.
+
+`tool/m7/ct_units.sh KIT` builds the tape:
+
+1. It copies `IBSYS/ibsys.map` and changes four cards. `CHC1` and
+   `CHD1` become 4. `CHCAT` and `CHDAT` become `16077`, which marks
+   tapes 1 to 4 attached.
+2. IBJOB assembles the nucleus and punches it to `SYSPP1`.
+3. The editor replaces the `IBSYS` record of `CTSYS2.BIN` and writes
+   `CTSYS3.BIN`. The editor writes its own name table into the new
+   record (`VV151D`, ED021260 to ED021390), so CT stays in the table.
+
+`tool/m7/ct_run.sh` now runs `ct_units.sh` first and runs each job on
+`CTSYS3.BIN`.
+
+The rejected courses:
+
+| Course | Why not |
+|---|---|
+| Change the FILE cards of the decks to other units | The run would no longer be the run of the corpus decks. Channel A holds no free unit. |
+| Use `ASYS12.BIN`, which adds channel B | It holds no channel C or D, and four free tapes on B do not hold the seven files of `SAMPLE`. |
+| Use `ibsys3.map` as it stands | It changes more than the channels, for example the unit of `SYSOU1` and the sense switch code. |
+
+**The risks of the new tape.**
+
+- The nucleus grows by eight unit control blocks. The CT monitor fixes
+  some origins (M7-6). If CT stops at its start, compare the end of the
+  new nucleus against them.
+- If the editor does not find a record named `IBSYS`, its map shows
+  the names, and the record name of step 3 changes to match.
+
+**The result of the second run (2026-11-22, issue #274).** The Mac ran
+the script at `2aedc28`. No job stopped at the limit.
+
+- The nucleus assembles with highest severity 1: thirteen `OPERATION
+  CODE REDEFINED` lines. The editor map lists `IBSYS` (5250 words) as
+  record 2 of file 1, and CT stays in the name table.
+- `$UNITS` lists `C1` to `C4` and `D1` to `D4` as attached units.
+- Both decks compile and reach `$LOAD`. The loader assigns each file to
+  its unit and prints the file list on the console. ` DECK ERROR` no
+  longer shows.
+- The loader then prints `PRESS START KEY IF ALL INDICATED TAPES HAVE
+  BEEN MOUNTED.` and `OPER. ACTION PAUSE`, and halts. The command file
+  of the kit has one `st` and then `q`, so `s709` quits at the pause.
+  The program does not start, and each output tape is empty.
+
+**Decision.** Answer the pause with a second start. A halt makes `s709`
+read the next line of its command file (`s709.c`, `commands` in
+`console.c`). `st` continues from the halt, as the START key does. The
+command `c` clears the memory and resets the processor, so it does not
+continue the job (`README.txt`, section IV).
+
+- `run_ibsys.sh` now writes the command file of the kit with `STARTS`
+  more `st` lines before `q`. With `STARTS` unset, the file is the same
+  as before.
+- `ct_run.sh` sets `STARTS=1` for each job: one file list, one pause.
+
+The risk: the object program can halt again, for example at a close or
+an end of reel. Then the console shows the message and the next run
+adds a start. A start after the end of the jobs can run on until the
+limit of 180 seconds; the listing is kept all the same.
+
+**The result of the third run (2026-11-22, issue #275).** The Mac ran
+the script at `46cef65`. No job stopped at the limit. The second start
+answers the pause, the console shows `LOADING COMPLETED. PROGRAM
+EXECUTION FOLLOWS.`, and each program writes all its output tapes.
+
+`SAMPLE` runs to `STOP RUN` at 199,00, and IBSYS reaches `END OF JOBS`.
+The console shows ` DECK ERROR` between `STOP RUN` and `$STOP`. We
+compare each output tape with the tape of our run of the 90.05 job,
+`comtranc --run --list-tapes` at this commit:
+
+| Tape | 1963 | Ours |
+|---|---|---|
+| `D4` errors | 17 lines | the same 17 lines |
+| `C3` bond orders | ` 091980 WOO J            3750 100661` | the same line |
+| `C1` master | 165 words, then two file marks | 165 words, then one file mark |
+| `D3` register | 19 lines | 19 lines |
+| `D2` checks | 22 lines | 22 lines |
+
+`C1` differs in 11 words, word 9 of each record of 15 words. `D3`
+differs in two columns of each line: the eighth, `RET.PREM`, and the
+net pay. `D2` differs in each net pay. Each difference has one cause:
+
+- The 1963 program stores and prints `RETPREM (POS)`, for example 1.20
+  for `BLUT H`. Ours stores and prints `INSPREM (POS)`, 2.00.
+- The net pay subtracts that value, so the 1963 run prints 113.00 for
+  `BLUT H` and ours prints 112.20.
+- On the GT line the 1963 run prints `35.50` and `2176.33`. Ours prints
+  `28.00` and `2183.83`.
+
+M7-9 predicted this difference from the listing (the `RETPREM (POS)`
+row). The run confirms it: the 1963 processor addresses the RETPREM
+element. Our run prints what the 1962 processor printed on PDF p. 217
+(M6-4, difference 1). The page prints 2180.63 for the grand-total net
+pay (M6-4, difference 2). The 1963 value, 2176.33, does not settle that
+difference, because a different object program wrote it.
+
+`FPAYRJ` halts at `STOP 1234` of source line 158, at 139,00. M7-9 found
+the `HTR *+1` that the 1963 processor puts after that message. The one
+extra start is spent at the mount pause, so `s709` quits at this halt.
+The listing ends at `$LOAD`, and `STOP RUN` of line 159 does not run.
+The program writes its records before line 158, and the three tapes
+hold them. Our run prints `STOP 1234` and goes on to `STOP RUN`.
+
+| Tape | 1963 | Ours |
+|---|---|---|
+| `D4` errors | 18 lines | 18 lines |
+| `D3` report | 13 lines | 13 lines |
+| `D2` checks | 11 lines | 11 lines |
+
+The 17 master and detail lines of `D4` are the same. The two runs
+differ in these places:
+
+- The 18th line of `D4`, the record between `WUFFE T` and `ZUGEE W`.
+  The 1963 run writes `1I00006A0800037501PT000B61 80000`. Ours writes
+  `00000000000003750000000000000000`.
+- The fields of `D3` and `D2` that our run prints as zeros. The 1963
+  run prints other characters there, the same on each line, for
+  example `$70'00.76` and `1-*00H0-?00408+6I5G`.
+- Each net pay. The 1963 run prints 116.20 to 378.94; ours prints
+  113.00 to 370.94. The difference is 2.40 to 8.00 a line.
+- The hours of the first line of `D3`: the 1963 run prints `201.3`,
+  ours `40.0`.
+- Each column of the GT line of `D3`, for example the hours total,
+  390.7 against 389.5.
+
+These are raw results. Step 5 of M7-4 classifies them.
+
+The run of M7-11 is done. A fourth run with two starts for `FPAYRJ`
+would show only the end of its job, so this entry does not ask for it.
+
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction

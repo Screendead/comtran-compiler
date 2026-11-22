@@ -162,11 +162,9 @@ cards. Jack, 2026-11-21:
 
 > **Jack's answer:** A · Name the twelve cards
 
-`tool/m7/ct_library.sh` labels them. M7-7 holds the library and each
-probe; issue #261 built `CTSYS2.BIN`.
-M7-8: the 1963 processor compiles all three corpus decks.
-M7-9 diffs listings and decks, M7-10 the library. Next: the 1963
-report run.
+`tool/m7/ct_library.sh` labels them. M7-7 to M7-11 hold the library,
+the 1963 compile, the diffs, and the 1963 run of the corpus. The next
+task is step 5 of M7-4: classify each difference.
 
 ### Codegen defects the runtime exposed
 
