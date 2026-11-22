@@ -2154,12 +2154,88 @@ EXPERR, EXPDBL, FPTRP, SYSADJ, SYSCOL, SYSCOM, SYSSXY, SYSSDX, SYSDIV,
 SYSMPX, EXPSNG, NJJJNJ, MOVFLT, PATTRN, BCDBIN, BCDERR, GETVLM, UNXEOF,
 HOLBCD, WRTEOB, BCDHOL, TRAPEM and SRMOVE.
 
-**What is left of step 4.**
+**IOCS `OPEN` and `CLOSE`.** SYS)175 calls SYS)174 for each file, and
+SYS)174 calls IOC)7 (17500300, 17400310). SYS)177 calls SYS)176, and
+SYS)176 calls IOC)6 (17700440, 17600370).
 
-- IOCS `OPEN` and `CLOSE`, and the buffer pools, against M5-7 and
-  M5-10.
-- Not settled: what SYS)186 to 188 and SYS)267 store for a value
-  longer than the count, and whether N of IOC)1 counts files only.
+| Point | 1963 | Ours | Result |
+|---|---|---|---|
+| Tape at open | Rewinds, unless the open option says no (IO008560 to IO008620) | Starts at the first frame (M5-4) | agrees |
+| Input file at open | Takes a buffer and starts the first read (IO008720, IO015830 to IO015840) | Reads at the first GET (M5-8) | differs: the time |
+| Open file at open | Sets its bits and clears its error history (IO008200 to IO008260) | Opens it again at the first frame (M5-4, RT-2) | differs |
+| Unloaded file at open | Prints an error and waits; the file stays closed (IO008320 to IO008330, IO007330 to IO007400) | Opens it again (M5-4) | differs |
+| Checkpoint file at open | Opens it and keeps its location in `CPFILE` (IO008770 to IO008810) | Refuses it (M5-3) | differs |
+| Output file at close | Writes the buffer in use, with the words it holds (IO022260, IO017740 to IO017790), then the file mark (IO007880 to IO007890) | The same (M5-10) | agrees |
+| Empty buffer at close | Writes nothing (IO017810 to IO017840) | Writes nothing (M5-10) | agrees |
+| Closed file at close | SYS)176 returns and does not call IOCS (17600320 to 17600360) | Closes quietly (M5-4) | agrees |
+
+Three points have no rule of ours:
+
+- The close of an input file gives its buffers back to the pool, and
+  spaces the tape back over each block read ahead (IO021820 to
+  IO021990, IO022060 to IO022110).
+- SYS)176 calls IOCS for a closed file when the option is unload and
+  the file is not unloaded (17600340 to 17600370). The code implies
+  that IOCS then marks the file unloaded and tells the operator to
+  remove the reel (IO007570 to IO007590, IO007740 to IO007770).
+- After the files, SYS)177 gives the units back to the system
+  (17700470 to 17700500).
+
+**The buffer pools.** The loader builds them. It writes one `DEFINE`
+call and one `ATTACH` call for each pool (LD054790 to LD054840). The
+transfer to the program follows those calls (LD002510 to LD002540).
+
+| Point | 1963 | Ours | Result |
+|---|---|---|---|
+| Place | Above the loaded text, from the lower locator up (LD039800, LD040170, LD054540 to LD054590) | Above the extent of the program (M5-7) | agrees |
+| Unit | A pool. A file with no `*POOL` card and no `*GROUP` card joins the pool of its block size (LD048420 to LD048440, LD056750 to LD056930) | One buffer for each file (M5-10) | differs |
+| Size | The block size, two control words for each buffer, and two for the pool (IO004840, LD050480 to LD050550) | BLOCKSIZE words (M5-10) | differs: the control words |
+| Count | One buffer for each such file, a second where storage allows (LD048330 to LD048370, LD051070 to LD051130), and more for a pool with output activity (LD051170 to LD051250, LD052490 to LD053320) | One (M5-7) | differs |
+| Owner | The pool. A file takes a buffer and gives it back (IO010440 to IO010470, IO016860) | The file, until the run ends (M5-7) | differs |
+| Too little storage | An error of the loader (LD050850 to LD050870) | A refusal at load (M5-7) | agrees |
+
+**N of IOC)1.** N counts files only. M5-3 stores the count of the
+`*FILE` cards, and that agrees.
+
+- The loader counts each file block as it forms it (LD075060 to
+  LD075080, LD075520 to LD075540). It puts that count in the list
+  word (LD061350 to LD061360) and the word in IOC)1 (LD044320 to
+  LD044360).
+- The code implies that the files of one `*FILEQU` card count as one
+  (LD074920 to LD075080).
+- The list at L is longer than N. An `SVN` word stands before each
+  group, and `SVN 1,,1` stands before each file with no group
+  (LD053770 to LD053850, LD054020 to LD054210). IOCS sets one buffer
+  aside for such a file (IO006190 to IO006300).
+- SYS)175 and SYS)177 pass over a word whose prefix is not zero, and
+  do not count it (17500260 to 17500280, 17500320, 17700400 to
+  17700420, 17700460).
+
+**A value longer than the count.** SYS)186 to 188 and SYS)267 differ
+from RT-4 and RT-5. M7-2 still makes the four entries contaminated.
+
+- The count N selects the first divide (17902750 to 17902970). Its
+  divisor is 10 to the power N−1, with a binary scale (17903670 to
+  17903770).
+- Each divide gives six quotient bits as one character (17903000 to
+  17903310). The first character therefore holds the whole quotient.
+- A value of more than N digits makes that character 10 or more, up
+  to 63, and that is no digit. The code implies that the lower digits
+  are correct.
+- The code implies that a larger quotient stops the divide with the
+  divide check of the machine. No card of MOVPAK tests that check.
+- SYS)267 makes its digits with the same cards (17910510). It enters
+  the edit after the card that keeps four bits of each character
+  (17908560, 17910580).
+- The code implies that zero suppression then takes that character
+  as an index into a table of ten words (17908920, 17905110 to
+  17905200).
+- No card of the two paths stores into SYS)130.
+
+RT-4 and RT-5 drop the high-order digits, so the stored field differs.
+They arm nothing, and that agrees.
+
+**Step 4 is done.** Step 5 classifies each difference of this entry.
 
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
