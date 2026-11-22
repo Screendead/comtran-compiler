@@ -1922,7 +1922,7 @@ These groups are new:
 |---|---|---|---|
 | Truncation | `LRS 35` and `DVP 10^n` before each of 19 stores of a result into an external field | no division | first J574 |
 | Temporaries | `RS)n`, or `k.RS)n` in section k; `RS)` of 52 words | `TS)n`; `RS)` of 30 words | first J535 |
-| Order of the operands | 141,00 computes `RATE × 40` first; an ADD CORRESPONDING loads the target first; also 145,00, 148,00, 156,00, 161,00, 166,00 | source order | J584 to J1346 |
+| Order of the operands | 142,00 computes `RATE × 40` first; an ADD CORRESPONDING loads the target first; also 145,00, 148,00, 156,00, 161,00, 166,00 | source order | J584 to J1346 |
 | Comparison of 152,00 | the right side in the AC, one more `TRA *+3` | the left side in the AC | J1063 |
 | Alphameric compare of 130,00 | `ANA` on one operand | on both | J345 |
 | HIGH.VALUE of 136,00 and 137,00 | a two-word constant, positioned in the AC | one word, `747474747474` | J413, J436 |
@@ -2445,7 +2445,7 @@ hold them. Our run prints `STOP 1234` and goes on to `STOP RUN`.
 | Tape | 1963 | Ours |
 |---|---|---|
 | `D4` errors | 18 lines | 18 lines |
-| `D3` report | 13 lines | 13 lines |
+| `D3` report | 13 lines | 12 lines |
 | `D2` checks | 11 lines | 11 lines |
 
 The 17 master and detail lines of `D4` are the same. The two runs
@@ -2469,11 +2469,439 @@ These are raw results. Step 5 of M7-4 classifies them.
 The run of M7-11 is done. A fourth run with two starts for `FPAYRJ`
 would show only the end of its job, so this entry does not ask for it.
 
+## M7-12 The classes of the differences
+
+*Written 2026-11-22 from M7-9 to M7-11, the manuals and their scans,
+and the records at `a465077`. This entry reads nothing new from the
+archive.*
+
+This entry does step 5 of M7-4. It puts each difference of M7-9 to
+M7-11 in one class, and gives the evidence for the class.
+
+**The classes.**
+
+| Class | What it means | The evidence it needs |
+|---|---|---|
+| change | A real change between January 1962 and July 1963 | The 1962 print of 90.05 shows our form, or a J text states the 1962 form as we do it |
+| recovery error | Our reconstruction departs from what the 1962 manuals state or imply | The manual text that we missed or misread |
+| undecided | The manuals do not separate the two. A record of ours closed a gap, and 1963 closes it in another way | The record that made our choice, and the side the evidence leans to |
+| contaminated | M7-2 applies: MOVPAK or Open Question 31 | None. The row counts in no class |
+| no class | A sum of other rows, or a difference of the jobs and not of the processors | The rows or the inputs that cause it |
+
+M7-4 names two classes. The class "undecided" is necessary because a
+gap gives no 1962 fact to compare with. Each undecided row names its
+record and its lean, so a later source can settle it.
+
+**The 1962 print is evidence of the 1962 processor.** The 90.05
+goldens equal the print byte for byte (M4 stage 2). Thus each 90.05
+difference that the print shows is a change, also where the 1963 form
+obeys a J rule that the 1962 print breaks. The 1962 print of 90.05
+shows a page n of the object listing on PDF p. n + 191.
+
+### The summary
+
+| Part | Rows | change | recovery error | undecided | contaminated | no class |
+|---|---|---|---|---|---|---|
+| A. 90.05 object listing and run | 16 | 15 | 0 | 1 | 0 | 0 |
+| B. `f-payroll` object listings and run | 43 | 7 | 3 | 29 | 0 | 4 |
+| C. Listings, loader cards, decks, messages | 38 | 9 | 5 | 18 | 0 | 6 |
+| D. The runtime library | 40 | 0 | 12 | 15 | 13 | 0 |
+| All | 137 | 31 | 20 | 63 | 13 | 10 |
+
+The 13 contaminated rows of part D hold 36 MOVPAK entries as one row.
+Part C counts one finding twice: the deck name in columns 73 to 77 is
+rows L2 and O4. The three rows of part C that take the class of a code
+row are under "no class".
+
+**What the classes show.**
+
+1. **Each 90.05 difference of the two processors is a change, except
+   one.** The print shows our form on each of them. The exception is the
+   count of file marks on `C1`, which no manual gives.
+2. **Two changes bring the 1963 processor into line with the 1962
+   manual.** We copied the print in both, and the print breaks the
+   manual:
+   - The zero test. [J 02.04.07] rule 6: "For comparison purposes zero
+     is considered an unsigned number". The 1962 `CAS` alone does not
+     obey that rule. M4-11 does not cite it.
+   - `RETPREM (POS)`. [J 02.04.07] part D: "A positional indicator
+     contains the location (word and byte)". The 1962 word loses the
+     byte (M6-4, finding 1).
+3. **The recovery errors of the compiler are few.** Part B finds three,
+   part C four:
+   - the temporaries of `f-payroll-j`, where the print parks in
+     `RS)` ([J 90.02.03]);
+   - the order of the code and the data when `*PROCEDURE` comes first,
+     and the entry point that follows from it ([J 90.02.01]);
+   - the deck name in columns 73 to 77 ([J 05.05] A);
+   - `NO -STOP RUN- IN PROGRAM.` at 9999,99 ([J 02.02.01]);
+   - the columns of the message lines (the scan of PDF p. 181);
+   - the two spaces of messages 80,00 and 81,00 (the scan of PDF
+     p. 182).
+4. **The recovery errors of the runtime are mostly known
+   simplifications.** M5-7, M5-4 and M5-3 chose one buffer a file, no
+   open or close option, and L as 0 on purpose. The manuals state the
+   1963 behaviour in each case (part D).
+5. **Most undecided rows have one cause.** The CALL synonym of the 1960
+   program accounts for 9 rows of part B and 4 rows of part C. D4.13
+   and M6-11 closed that gap; 1963 binds each synonym to instance `1)`
+   of its old name. The evidence leans to recovery error.
+6. **Four run rows of `FPAYRJ` rest on the start value of storage.**
+   ED-6 sets every cell to +0. The 1963 run leaves other characters.
+   That is no difference of the processors.
+
+**An erratum candidate.** The scan of [J 90.04.01], PDF p. 182, prints
+two spaces before `-REDEF-` in messages 80,00 and 81,00. The
+conversion prints one, and `lib/src/lexer/message_catalog.dart`
+follows the conversion. 1963 prints two. A change to the conversion
+needs Jack's authorization (CLAUDE.md section 9).
+
+**Two slips in earlier entries, corrected in place.**
+
+- M7-9 put the product `RATE × 40` in 141,00. It is in 142,00
+  (`test/goldens/f-payroll-j.listing`).
+- M7-11 gave our `D3` of `FPAYRJ` 13 lines. The golden
+  `test/goldens/f-payroll-j.report` holds 12: 11 employee lines and
+  the GT line.
+
+### Part A. The 90.05 object listing and run
+
+**The object listing of 90.05 (M7-9)**
+
+The 1962 side of each row was read in `test/goldens/90.05-payroll.storage-map` and checked on the page scan. Listing page n prints on PDF p. n + 191.
+
+| Difference | Class | Evidence |
+|---|---|---|
+| Buffer test: 1963 puts `TZE SYS)294` between `CAL BL)n` and `ACL`, at 9 places | change | The 1962 print has `CAL BL)n` then `ACL` at all 9 places, with no test: 00265, 00312, 00342, 00361, 00571, 00601, 01124, 01133, 01347. Scans checked: PDF pp. 202, 205, 212. [J 90.02.11], Case 2, prints the same 1962 form for a simple base locator: "CAL BL)NN / ACL CP)+NN / SLW SYS)132", with no test. [J 90.02.33] gives SYS)294 only in the form `LAC BL)NN,N` / `TXL SYS)294,N,0`. |
+| Buffer test: 1963 puts `TXL SYS)294,4,0` after `LXA BL)2,4` in the file of MASTER | change | The 1962 print has `LXA BL)2,4` at 01157 and then `SXA GN)089,4` at 01160, with no test (PDF p. 210). [J 90.02.33] gives the test only after `LAC`. |
+| Buffer test: 1963 has no `LAC BL)2,1` / `TXL SYS)294,1,0` pair at 01301 in BOND.ROUTINE | change | The 1962 print has the pair at 01301 and 01302 (PDF p. 211). It comes directly after `AXT 6,1` at 01300, which is the last word of the SYS)180 calling sequence at 01274. J says nothing about when to load a base locator again. This row is code that the compiler generates, so M7-2 does not contaminate it. Note: the 1963 form works only if the call keeps index register 1. That is the MOVPAK rule of M6-4 finding 4, and M7-2 contaminates MOVPAK. |
+| Zero test: 1963 puts `NZT y` and `TZE *+3` before each `CAS y` | change | The 1962 print has `CAS` only, at all 6 sites: 00613, 00663, 01203, 01244, 01304, 01412 (PDF pp. 205, 206, 210, 211, 212). Our record `m4-codegen.md` M4-11 takes the `CLA`/`CAS` form from these sites. **Note:** [J 02.04.07] rule 6 already states the 1963 behaviour: "For comparison purposes zero is considered an unsigned number, even though computational sequences generated by the compiler may produce negative or positive zeros." `CAS` alone does not obey that rule. A plus zero is greater than a minus zero (our emulator, `lib/src/emulator/cpu.dart`:181-183 at `a465077`, after the 7090 reference). Thus the 1962 processor broke its own manual, and 1963 corrected it. We copied the print, not the rule. M4-11 does not cite the rule. |
+| STOP RUN of 199,00: 1963 `TXI IOC)266,0`; 1962 `TSX SYS)177,4`, `PZE IOC)1`, `TXI IOC)40,0` | change | The 1962 print has the three words at 00524 to 00526 (PDF p. 204). J text gives the 1962 form. [J 02.04.06]: "All open files are closed prior to this transfer of control as if a CLOSE ALL FILES had been supplied." [J 90.02.14] gives `TSX SYS)177,4` / `PZE IOC)1` as close-all. [J 90.02.09]: "IOC)40 This is the end of job return point". [J 90.02.07] numbers IOC cells "between 1 and 127", so IOC)266 is outside the 1962 numbering. |
+| Order in NET: 1963 puts the moves of the `DATE` fields to CHECK (18 words) before the move of `MONTH` to PAYRECORD | change | The 1962 print moves to PAYRECORD first: `4)MONTH` at 01007, `4)DAY` at 01014, `4)YEAR` at 01025. The move to CHECK `3)MONTH` comes later, at 01047 (PDF p. 208). The source order is "MOVE CORRESPONDING DETAIL TO PAYRECORD, CHECK" (208,00). [J 02.04.04]/02.04.05 (CORRESPONDING) gives no order of the generated moves. |
+| Indicator: 1963 `SIR 400000` and `RFT 400000` in WITHOLDING.TAX.ROUTINE; 1962 `000001` | change | The 1962 print has `SIR 000001` at 01247 and `RFT 000001` at 01251, after `RIR 777777` at 01240 (PDF p. 211). J names no indicator bit for TR. |
+| DO loop of 206,00: 1963 `AXT GN)091,7` and a constant of the pool; 1962 `AXT GN)086,4` and `GN)088 EQU CP)+37` | change | The 1962 print has `AXT GN)086,4` at 00702 and `GN)088 EQU CP)+37` at 01741 (PDF p. 206). M4-20 (d) measured these on the scan. J does not give a DO linkage. Note: in the same 1962 print, each plain DO uses tag 7 (`AXT *+3,7` at 00304, 00370, 00542, 00650, 00653, 00666). Thus 1963 uses one tag for both forms. |
+| `RETPREM (POS)` of 225,00: 1963 computes a character address; 1962 computes a word address. This row includes the RETPREM decoding paragraph. | change | The 1962 print has `PZE RETPREM-2` (CP)+38) and `PZE INSPREM-2` (CP)+39). Both print `0 00000 0 00134`, with decrement 0 (PDF p. 216). The lookup at 01421 to 01470 builds PI)3 and PI)2 from these two words with the same steps (PDF p. 213). The decode in M7-9 agrees: POS × 2 + 00134, at byte 0. That word is the INSPREM element. PDF p. 217 prints RET.PREM equal to INS.PREM on every line (M4-20 (a) as amended; `m6-acceptance.md` M6-4 finding 1). **Note:** [J 02.04.07] (part D, PDF p. 25) states the 1963 behaviour: "A positional indicator contains the location (word and byte) of the particular element". The 1962 word lost the byte, and 1963 keeps it. M6-4 difference 2 (2180.63) stays open. |
+| Temporary storage: 1963 `TS)` has 8 words, and `ORG TS)1` sets each word to 0; 1962 has 7 words, not set | change | The 1962 print has `TS) BSS 7` at 01657 (PDF p. 215). [J 90.02.04] gives the 1962 form: "Temporary Storage cells are reserved immediately after Result Storage cells by the instruction. `TS) BSS N`". This entry does not trace the cause of the eighth 1963 word. |
+| Constants: 1963 adds `6` and `-9`, makes three words that start `73` into one, and removes the `EQU` names of the pool | change | The 1962 pool is CP) to CP)+61 (PDF pp. 215, 216). (1) It holds no `6` and no `-9`. The 1963 RETPREM code uses those two constants (row above). (2) It holds three words that start `73`: `730002606060` (CP)+15), `730000606060` (CP)+19) and `730104606060` (CP)+27). Each is the second half of a statement number in BCD. The `TXH` words at 00177, 00221, 00232 and 00276 read them, and so does the SYS)178 `PZE` at 00522. [J 90.02.14] (SYS)178) says that "The CP (Constant Pool) entries contain the Statement Number of the Stop (in BCD)". (3) It has `GN)088`, `GN)091` and `GN)093 EQU CP)+37/+38/+39` (PDF pp. 206, 213). [J 90.02.06] says nothing about an `EQU` on a pool word. This entry does not decode the single 1963 word that starts `73`. |
+
+**The 1963 run of SAMPLE (M7-11)**
+
+Our run is the 1962 run where PDF p. 217 prints the same field (M6-4). The scan of p. 217 was checked.
+
+| Difference | Class | Evidence |
+|---|---|---|
+| `C1`: word 9 of each 15-word master record differs (11 words) | change | Word 9 is MASTER RETIREMENT. The 1962 print reads it as `1)RETIREMENT,1` at address 00010, which is word 8 counted from 0. In the 1962 print, `STO 3)RETIREMENT` at 01470 stores the INSPREM element (the RETPREM row). 208,00 then adds it into the master at 00763 to 00765. This is the cause of the RETPREM row. p. 217 does not print `C1`. The evidence is the 1962 object print, not the 1962 output. There are 11 employee lines, so 11 masters are written. |
+| `C1`: 1963 writes two file marks after the data; ours writes one | undecided | J leaves close to IOCS. [J 02.04.06] says that CLOSE ALL FILES closes "in accordance with the close options". [J 03.02.05] gives the codes, and code S writes "No file mark or trailers". No manual gives a count, and p. 217 shows no tape. Our record chose the count: `m5-io.md` M5-4, "Close writes one tape mark to each open output file", under D6.3 (`decisions.md`). The manuals do not lean to either class. The IOCS manual (external: C28-6100-2) can decide it. This entry does not read it. |
+| `D3`: the RET.PREM column and the net pay of each line differ | change | p. 217 prints RET.PREM equal to INS.PREM on every line, for example `2.00  2.00  112.20` for BLUT H. Our run prints the same. 1963 prints the true RET.PREM (1.20) and 113.00. The cause is the RETPREM row (M6-4 finding 1). |
+| `D2`: each net pay differs | change | p. 217 prints three checks: `$294.12`, `$364.16` and `$363.10`. Our run prints the same values. 1963 subtracts the true RET.PREM. The cause is the RETPREM row. |
+| GT line: 1963 prints `35.50` and `2176.33`; ours prints `28.00` and `2183.83` | change | p. 217 prints `28.00` in the RET.PREM column of GT, the same as ours. 2183.83 − 2176.33 = 7.50, and 35.50 − 28.00 = 7.50. Thus the RETPREM row explains all of the net pay difference between the two runs. p. 217 prints `2180.63`, which is not equal to either value. M6-4 difference 2 stays open: the 1963 object program is not the 1962 object program (M7-11). |
+
+Count: 15 changes (11 object-listing rows and 4 run rows), 0 recovery errors and 1 undecided (the `C1` file marks).
+No row in this part is contaminated under M7-2. The 01301 buffer-test row has a note: its explanation depends on the MOVPAK register rule.
+Two changes correct the 1962 processor so that it obeys its own manual: the zero test ([J 02.04.07] rule 6) and RETPREM ([J 02.04.07], part D). Our reconstruction copied the print in both rows.
+
+### Part B. The `f-payroll` object listings and run
+
+**B1. `f-payroll-j`: the groups of 90.05 that occur again (M7-9)**
+
+LOC values of "the print" are LOCs of the 1962 print of 90.05 (`test/goldens/90.05-payroll.storage-map`). LOC values of "ours" are LOCs of the object listing of `f-payroll-j` at `a465077`.
+
+| Difference | Class | Evidence |
+|---|---|---|
+| Buffer test: 1963 adds `TZE SYS)294` at 48 places and `TXL SYS)294,4,0` twice | change | The print shows `CAL BL)2 / ACL CP)+45 / SLW SYS)133` at LOC 00342 to 00344 (PDF p. 202), with no `TZE`. It shows `LXA BL)2,4 / SXA GN)089,4 / TSX IOC)9,4` at LOC 01157 to 01161 (PDF p. 210), with no `TXL`. Ours has the same words at 49 `CAL BL)n` sites and at LOC 00177 and 00225. |
+| Zero test: 1963 adds `NZT` and `TZE *+3` before all 7 `CAS` | change | The print holds 6 `CAS` words and no `NZT`, for example `CLA 3)HOURS / CAS CP)+5` at LOC 00612 to 00613 (PDF p. 205). [J 02.04.07] rule 6 states the rule that the 1963 words do: "For comparison purposes zero is considered an unsigned number". The print does not do it, and ours follows the print. The 7 operands of ours are `TS)` cells of our own design; the bare `CAS` is the form of the print. |
+| STOP RUN of 140,00: 1963 writes `TXI IOC)266,0` | change | The print shows `TSX SYS)177,4 / PZE IOC)1 / TXI IOC)40,0` at LOC 00524 to 00526 (PDF p. 204). Ours has the same three words at LOC 00405 to 00407 (D2.7, `decisions.md`). |
+| `TS)` of 8 words, set to 0 | change | The print shows `TS) BSS 7` at LOC 01657 and no `ORG TS)1` (PDF p. 215, scan read). 1963 prints 8 words for 90.05 and for this deck. Ours prints the 7 of the print as a constant (M4-4, `m4-codegen.md`). M4-4 says that our count for a second program has no proof; the same 8 in two 1963 programs implies a fixed block. |
+| DO register: 1963 writes `AXT GN)048,7`, ours `AXT GN)044,4` | change | The print shows `AXT GN)086,4` at LOC 00702 (PDF p. 206). Ours has the same form at LOC 00540 (M4-13). |
+| The `EQU` names of the pool | change | The print shows `GN)088 EQU CP)+37` before LOC 00702 (PDF p. 206) and the pool word `CP)+37 PZE 2)RATE+0` (PDF p. 216). Ours prints `GN)046`, `GN)048` and `GN)050 EQU CP)+31` to `+33` in the same place. The count of three names has no print; the form of each name has. |
+
+**B2. `f-payroll-j`: the new groups (M7-9)**
+
+Where a row says that 1963 keeps the 1962 words at a site of 90.05, the ground is the 90.05 table of M7-9, which lists no difference at that site.
+
+| Difference | Class | Evidence |
+|---|---|---|
+| Truncation: 1963 writes `LRS 35` and `DVP 10^n` before each of 19 stores into an external field; ours writes no division | undecided | No 1962 page shows a store through SYS)186. [J 90.02.18] gives SYS)186 one count and no test step. Our choice: the decision "the external-decimal store" of M6-9 (`m6-acceptance.md`), with RT-5 and D4.2: the handler drops the high-order digits. Ours has 19 `TXI SYS)186` words, so the 19 stores are the same stores. Leans to recovery error. The print splits a value before a convert: `CLA 5)NETPAY / LRS 35 / DVP CP)+24`, then SYS)267, at LOC 00423 to 00430 (PDF p. 203; D4.1 c). Thus the 1963 words are a mechanism of 1962. M6-9 knew the split and did not use it, because a value in a register has no declared digit count. |
+| Temporaries: 1963 uses `RS)n` and `k.RS)n`, and `RS)` of 52 words; ours uses `TS)n`, and `RS)` of 30 words | recovery error | The print parks a converted ADD source in result storage: `TXI SYS)268,1,1 / TXI SYS)269,1,5 / TXI SYS)275,1,5 / STO 3.RS)1 / CLA 2)BONDPURCHASES / ADD 3.RS)1` at LOC 01357 to 01364 (PDF p. 212, scan read). M7-9 lists no difference at that site, so 1963 parks there too. No word of the print addresses a `TS)` cell. [J 90.02.03] gives `RS)` to "the results of a CT statement", one set for each section, and says "N is the sum of maximum Result Storage used in each section". The fetch decision of M6-9 names this park of the print and rejects it, because our `RS)` size is a constant of the sample (M4-4). Thus ours parks in `TS)1` (LOC 00415) and prints the 30 of 90.05 for a different program. |
+| Order of the operands: 1963 computes `RATE × 40` first; an ADD CORRESPONDING loads the target first; also 145,00, 148,00, 156,00, 161,00, 166,00 | undecided | The print holds no sum of a field and a product, and no statement with two converted operands. Our choice: M4-10 rule b (`m4-codegen.md`), which its own text calls underdetermined, and the fetch scope of M6-9 (source first, once for all targets). The print agrees with both orders at its one site: statement 203 computes `HOURS * 1.5` first, then aligns 20 (LOC 00617 to 00626). It loads the ADD target first where no operand converts (`CLA 5)GROSS / ADD 4)GROSS`, LOC 00733). Leans weakly to recovery error: 1963 keeps the 1962 order at statement 203, so one rule gives both sites. |
+| Comparison of 152,00: 1963 puts the right side in the AC, with one more `TRA *+3`; ours puts the left side in the AC | undecided | The print holds no comparison with an expression on a side. Our choice: the decision "the comparison whose sides are expressions" of M6-9. Ours ends `CLA 1.RS)1 / ADD 1.RS)0 / CAS TS)3` with two `TRA` words (LOC 01326 to 01332). The print gives no rule: at statement 205 the computed side is the right side and is in the AC; at statement 203 the left side is in the AC. No lean. |
+| Alphameric compare of 130,00: 1963 writes `ANA` on one operand, ours on both | undecided | No comparand of the print crosses a word. Our choice: the decision "the comparison of a field across a word boundary" of M6-9, which copies the two `ANA CP)+30` of statement 200 (LOC 00531 and 00536, PDF p. 205). There each mask cuts a field of two characters. Here the field has six characters, and the mask only clears bit Q. `SLW` does not store Q, so the stored operand needs no mask; M7-9 does not say which operand keeps the mask in 1963. Leans weakly to recovery error: 1963 keeps both masks at statement 200. |
+| HIGH.VALUE of 136,00 and 137,00: 1963 uses a constant of two words, positioned in the AC; ours uses one word `747474747474` | undecided | The fields of the print start at byte 0: `CAL CP)+23 / LAS 2)EMPLOYEE.NUMBER,1` and `TXI SYS)245,1,6 / OCT 747474747474` (LOC 00332 to 00347, PDF p. 202). The fields of this deck start at bytes 1 and 4. Our choice: the same M6-9 decision for the compare (a spill to `RS)0`), and the form of the print for the SET (M4-9). M7-9 does not say which of the two the 1963 words do. Leans weakly to recovery error: 1963 keeps the 1962 words for the field at byte 0. |
+| STOP 1234: 1963 writes `HTR *+1` after the message; ours writes no word | undecided | [J 05.06.04] a states the halt: "The computer will stop, and hitting the START key will cause the object program to continue in execution." No page shows the words of `STOP n`. Our choice: D2.7 (`decisions.md`) puts the halt inside SYS)178, and the decision "`STOP n`" of M6-9 writes the display call alone. Leans to recovery error: [J 90.02.14] gives SYS)178 the display only, and the same routine serves STOP RUN and returns, so the halt was more likely a word of the program. The 1963 word also agrees with [F p. 54]: the program goes on at the next word (Open Question 69). |
+| Edited move of 146,00: 1963 writes `SYS)208,1,2`, `194,1,4`, `198,1,2`, `238,1,1`, `226,1,6`; ours writes `SYS)204,1,1`, `198,1,6`, `226,1,6` | undecided | [J 90.02.19] lists the steps of SYS)190 and gives no rule for their choice. The print has one run, with a source that holds no point and no sign: `SYS)214,1,2 / SYS)198,1,5 / SYS)226,1,7` (LOC 01373 to 01377, PDF p. 212, scan read). It cannot separate the two forms. Our choice: the decision "the SYS)190 test step" of M6-9, which says "SYS)204 against SYS)196 is our pick", and RT-5 (`runtime.md`), which counts digits and not characters. Leans weakly to recovery error: J names SYS)208 a count of characters to bypass, and gives SYS)238 the sign of the last character; 1963 uses both where ours has no step. This row touches the calling sequence of MOVPAK. The choice of the words is the compiler's, which is blind; the meaning of each step is MOVPAK's, which M7-2 makes contaminated. |
+| MOVE CORRESPONDING of 162,00: 1963 writes a masked move in line; ours calls SYS)182 and SYS)183 | change | [J 90.02.15]: SYS)183 "moves external decimal fields to external decimal fields". [J 90.02.16] prints the run as the example of "a Move of the type XD to XD": `TSX SYS)182,4 / TXI SYS)183,1,1 / TXI SYS)191,1,10 / TXI SYS)223,1,10`. [J 02.04.04] d: "Subroutines are normally used ... except where arrows have associated an \*." The chart of [J 02.04.03] (PDF p. 20, scan read) puts no star on the loop of external decimal, as definition §4.7.2 already reads it. Ours is the run of J, at LOC 01606 to 01616 (the decision "the external-to-external move" of M6-9). Strength: medium. J says "normally". The example of J has a sign and ours has none. The star by the external decimal box stands between its loop and the arrow to alphameric. |
+| Head: 1963 writes `USE 2`, `ORG PI)1`, `USE 1`; ours writes none | undecided | The print shows one block of counter 2, `USE 2 / ORG BL)1` at LOC 01666, after the code (PDF p. 215, scan read). Its head holds `USE 1 / BGN 2,PI)1 / USE 0` only. Our choice: M4-4 and M6-10 (`m6-acceptance.md`): one `ORG`, and no word for `PI)` where no subscript is a literal. [J 90.02.01] gives counter 2 the job of "initializing 'pointer words' with pre-determined constants", which admits a `PI)` block. M7-9 does not say what the block holds. No lean. |
+| Pool: 91 words in 1963, 83 in ours | no class of its own | The count is a sum. The truncation divisors, the HIGH.VALUE words, the `EQU` names and the loop constants each add or remove words. Each word takes the class of its group above. Ours prints `CP)` to `CP)+82`. |
+| Length: 1247 words in 1963, 1119 in ours | no class of its own | A sum of the rows of B1, B2 and B3. |
+
+**B3. `f-payroll-j`: the DO FOR of 144,00 (M7-9)**
+
+Our choice for each row is the decision "the external-decimal DO FOR index" of M6-9 (`m6-acceptance.md`), with "the DO FOR driving several indicators" and "the stride of part of a word". The print holds the loop for an internal index only (LOC 00702 to 00721, PDF pp. 206 to 207). [J 90.04.01] holds message 206,00, so the 1962 processor took an external index; no page shows its words.
+
+| Difference | Class | Evidence |
+|---|---|---|
+| 1963 keeps a binary copy of INDEX in `TS)8` and stores it to INDEX on each pass; ours reads INDEX back through SYS)182 on each pass | undecided | Ours: `LDI CP)+52 / STI SYS)132 / TSX SYS)182,4 / TXI SYS)184,1,2 / STO TS)1` at LOC 00555 to 00561. Leans weakly to change: the 1962 block has 7 words (`TS) BSS 7`, PDF p. 215), so it has no `TS)8`; the eighth word is new in 1963. |
+| 1963 stores `TS)6`, which no line reads | undecided | Ours has no like word. No source names a use of the cell. No lean. |
+| The end test: 1963 subtracts INDEX itself; ours subtracts the binary copy in `TS)1` | undecided | Ours: `CLA CP)+6 / SUB TS)1 / TPL GN)043` at LOC 00612 to 00614. The print: `CLA CP)+8 / SUB INDEX / TPL GN)085` at LOC 00717 to 00721, with INDEX internal. The 1963 word is the word of the print, used on a field of two BCD characters. Two readings stay open. The 1962 processor had the same word, and ours is a recovery error. Or 1962 converted the field, as "inefficient" in message 206,00 implies, and 1963 changed it. No lean that the evidence carries. This row causes the net pay row of B6. |
+| The 11-character step takes other constants | undecided | M7-9 says that both give the same word and byte for each start byte. Ours: `CLA CP)+11 / ADD PI)n / SUB CP)+29 / TPL *+2 / ADD CP)+29` (LOC 00570 to 00611). No page shows a step of part of a word. No lean; the result is the same. |
+
+The three bases agree, and M7-9 counts that as no difference.
+
+**B4. `f-payroll`: the object listing and the entry point (M7-9)**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| Order: 1963 puts the code first, from 00000, and the data after it; ours puts the data first | recovery error | [J 90.02.01]: Location Counter 0 holds "those instructions whose location is determined by the relative position of items in the source deck", and they are the procedure text and the fixed data areas. The 1960 deck has `*PROCEDURE` before `*DATA`, so the text of J puts the code first. Message 87,00 of [J 90.04.01], "PROGRAM FLOWS INTO \*DATA", needs data after code. M4-4 (`m4-codegen.md`) wrote "first the transmitted data areas ... then the procedure text" from the sample, where `*DATA` is first. D2.2 reads [J 90.02.01] as source order for the portions of one division. M4-4 did not carry it to the order of the divisions. Ours: `*DATA BSS 0` at 00000 and `START` at 00134. |
+| Entry point of the deck: 00000 in 1963, 00134 in ours | recovery error | It follows from the row above. [J 90.02.01] says the first word is "not necessarily PROGRAM.START", so both forms are legal; the order of the deck decides. |
+| INDEX: the 1963 dictionary prints it at 26216, outside the program, and the code addresses it there | undecided | M7-9 calls this reading "not certain". No J text puts an item outside the program. Ours puts INDEX at word 00133, byte 2, inside CURRENT (M3 data map). [J 90.01.03] iii bars a subscript variable from an area of a REDEF, but CURRENT is no such area. No lean. |
+| `END.OF.RUN` opens with `NOP 0` in 1963 and with `TSX SYS)177,4` in ours | undecided | M7-9 does not know what the word stands for. Statement 13,00 holds a MOVE CORRESPONDING of an empty group, a FILE with no file, and CLOSE ALL FILES. Our choice: M6-11 b and c (`m6-verbatim-deck.md`): the first two write no word. [J 90.04.01] holds message 97,00, "INVALID -CORRESPONDING- STATEMENT.", which 1963 prints here and ours does not. No J text says which word an invalid statement leaves. No lean. |
+| The rule behind B5: 1963 binds each CALL synonym to instance `1)` of its old name and writes each statement whole; ours makes no synonym and writes `PZE name,,0` | undecided | [J 02.04.05] 5 states the rule and no reaction: "The (old.name) in a CALL statement must be unique". Our choice: D4.13 (`decisions.md`) makes no synonym and prints 166,00; M6-11 a writes one `PZE name,,0` word and no other word of the unit. Both records say that no source shows the reaction. Leans to recovery error on three points. M6-9 found that no message of this deck names a deletion, "so the processor wrote code for each statement". The 1963 message, 101,00, is in the 1962 table, and J's own words for the fault are "sufficient qualifiers". [J 90.02.02] shows that the 1962 dictionary numbers like names `1)`, `2)`. |
+| The groups of `f-payroll-j` that occur again: truncation, temporary, order, STOP 1234, edited move, MOVE CORRESPONDING, loop, head, pool; the zero test at 7 places | as in B1 to B3 | Each group takes its class of B1, B2 or B3. The zero test is a change. The temporary group is a recovery error. MOVE CORRESPONDING is a change. The others are undecided. |
+| Length: 973 words in 1963, 705 in ours | no class of its own | A sum. Most of it is the 8 rows of B5. |
+
+GET and FILE with no file, FILE IN ERROR.FILE, and COPY have the same code on both sides (M7-9). These are agreements of M6-11 b and c.
+
+**B5. `f-payroll`: the M6-11 shapes (M7-9)**
+
+Each row has one cause: the binding of the CALL synonyms, the fifth row of B4. Each row is undecided for the reason of that row: [J 02.04.05] 5 states no reaction, D4.13 and M6-11 a closed the gap, and the evidence leans to recovery error. The Evidence column gives only what the row adds.
+
+| Difference | Class | Evidence |
+|---|---|---|
+| 5,00: `TRA COMPUTE.PAY`, 1 word, in 1963; 4 `PZE EMPLOYNO,,0` and no transfer in ours | undecided | Two things make the 1963 word: the binding, and a fold of a comparison of a field with itself. The fold prints `CONDITION TESTED IS ALWAYS SATISFIED.` The list of [J 90.04.01] runs from 0,00 to 209,00 and holds no such message (scan of PDF p. 181 read for the head of the list). Thus the binding leans to recovery error, and the fold leans to change. |
+| 11,00 and 12,00: a compare with HIGH.VALUE and a SET, 20 and 19 words, in 1963; 5 and 4 words in ours | undecided | The binding alone. With a bound synonym ours writes the words of statements 136,00 and 137,00 of `f-payroll-j`. The HIGH.VALUE row of B2 then applies too. |
+| 17,00: a conditional DO, 16 words, in 1963; a `PZE` and a DO in ours | undecided | The binding alone. M6-11 a drops the compare and keeps the arm. |
+| 19,00: the whole SET, 43 words, in 1963; 1 `PZE` in ours | undecided | The binding alone. In 1963 `DETAIL BONDEDUCT` addresses `1)BONDEDUCTION` of MASTER, so the SET subtracts the deduction of the master. |
+| 22,00: `SYS)243` and 9 `SYS)244` moves in 1963; 10 `PZE` in ours | undecided | The binding, and one more choice of ours: D4.13 prints 101,00 for `DPT` used as a qualifier, which it calls "a design decision under D0.4" (Open Question 56). 1963 takes the qualifier. |
+| 34,00 and 35,00: the ADD, the IF and the SET, 56 words, in 1963; 7 `PZE` and the transfers in ours | undecided | The binding alone. |
+| 36,00: the ADD, 17 words, and no word for the dubious MOVE in 1963; 4 `PZE` in ours | undecided | The binding. In 1963 both names of the MOVE address `1)BONDENOMINATION`, so the MOVE has one field for source and target. No 1962 message has the text `DUBIOUS MOVE`; message 84,00 is `ILLEGAL MOVE`. The class of that message belongs to the message part. |
+| 40,00: two ADDs through `LDI PI)2` and `LDI PI)3`, 34 words, in 1963; 2 `PZE` and `TRA NET` in ours | undecided | The binding. 1963 prints 98,00, `CHECK DATA DESCRIPTION OF ARRAY OF ELEMENTS`, which is in the 1962 table. No line stores the two indicators, so the 1963 words address no element. |
+
+**B6. The `FPAYRJ` run (M7-11)**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| The 1963 run halts at `STOP 1234`; ours prints the line and goes on to `STOP RUN` | undecided | Cause: the `HTR *+1` word of B2; the row takes that class, with its lean to recovery error. [J 05.06.04] a states the halt and the START key. Our machine takes the START at once (`runtime.md`, SYS)178, amended 2026-10-24). One more START gives the 1963 run the same path, because the word is `HTR *+1`. Thus the two runs differ in the operator, not in a result. |
+| The 18th line of `D4`: 1963 writes `1I00006A0800037501PT000B61 80000`; ours writes zeros round `03750` | undecided | No code group causes it. Both runs fill characters 13 to 17 with `03750` and no other character: the pairing of statement 162,00 agrees ([J 02.04.04] b). The other 27 characters are storage that no statement writes. Both decks reserve BONDORDER by `BSS` and load no word. Our choice: ED-6 (`emulator.md`): "Memory starts at +0 in every cell", "because no source attests a power-on value". No J text says what a loader leaves in such a cell. It is no change of the processor. No lean. |
+| The fields of `D3` and `D2` that ours prints as zeros hold other characters in 1963 | undecided | The same cause and record: ED-6. The places agree: 1963 has unset storage where ours has zeros, so both processors pair the same fields (the CORRESPONDING finding of M6-9). One value, `$70'00.76`, has the form of an edited field. On an employee line, only the move from DEPARTMENT.TOTAL of statement 148,00 writes that form into a field that ours leaves zero. Thus statement 148,00 probably ran one time in the 1963 run; see the hours row. Not verified against the tape. |
+| Each net pay is 2.40 to 8.00 higher in 1963 | undecided | Cause: the end test of the DO FOR (B3, third row); the row takes that class. The word of CURRENT holds `00`, the two characters of INDEX, and two blanks. As a binary number it is above 12 on each pass, so `SUB INDEX` ends the loop after pass 1. Each rate is above 0.999, so pass 1 adds no premium. Check: 116.20 − 113.00 = 3.20 = 2.00 + 1.20, entry 6 of TABLE; 378.94 − 370.94 = 8.00 = 3.00 + 5.00, entry 12; the range 2.40 to 8.00 is the range of the two premiums. This is an inference from the words of M7-9 and the values of M7-11. The loop lines of the `FPAYRJ` listing confirm or refute it. |
+| The hours of the first line of `D3`: 201.3 in 1963, 40.0 in ours | undecided | Not traced to a code group. M7-9 lists no difference in the move of HOURS. Likely cause: the first line of the 1963 tape is a department line of statement 148,00. PAYRECORD DEPARTMENT is unset storage in 1963, and CURRENT DEPARTMENT is the loaded `00`. If the first is greater, 148,00 files DEPARTMENT.TOTAL one time, and its HOURS is unset storage too. Then `MOVE BLANKS` makes the test false for each later line, because a blank in a numeric field is a zero ([J 02.05.05] note 3). Our `D3` holds 12 lines, not the 13 of the M7-11 table: 11 employee lines and the GT line (`test/goldens/f-payroll-j.report`). A 1963 tape of 13 lines fits this cause. Record: ED-6. Not verified against the tape. |
+| Each column of the GT line differs, for example hours 390.7 against 389.5 | undecided | Likely cause: ED-6 again. GRAND.TOTAL is a `BSS` area, and no statement sets it before statement 149,00 adds into it. Ours starts it at zero. The difference of 1.2 in the hours is then the first content of the field. The other columns have no writer (M6-9, the grand-total line), so 1963 edits unset storage there. Not verified: M7-11 gives two columns only. |
+
+**The count of this part**
+
+- Change: 7 (the six rows of B1, and MOVE CORRESPONDING of 162,00 at medium strength).
+- Recovery error: 3 (the temporaries; the code-first order; the entry point, which follows from the order).
+- Undecided: 29. Of them 9 are the one CALL binding (its rule row in B4 and the 8 rows of B5), and 4 rest on ED-6, the start value of storage. 16 lean to recovery error (9 of them the CALL binding), 1 leans to change, and 12 have no lean.
+- No class of its own: 4 sums and repeats. Contaminated: 0. The edited move row touches the calling sequence of MOVPAK. The choice of the steps is the compiler's and stays blind, so M7-2 does not reach the row.
+
+### Part C. The listings, the loader cards, the decks and the messages
+
+**The source listings (90.05 and `f-payroll`)**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| S1. No octal location column in 1963 (for example `71175` on 1,00), so the text starts 8 columns to the left | change | The 1962 print shows the column on every source page: `1,00   71175 MASTER` ([J 90.05], PDF p. 192, scan checked). Our column follows the print (M3-8, `m3-data.md`). Note: [J 02.02.01] B.1 lists three columns only: "First column - source program card sequence numbers", "Second column - statement number", "Third column - body of source program cards". It names no octal column. So the column possibly went before Jan 1962. The print still shows our form. |
+| S2. 1963 prints `X` in column 90 on a continued entry (90.05: 3,00, 21,00, 22,00, 103,00, 107,00, 181,00; `f-payroll`: 129,00; `f-payroll-j`: 88,00, 98,00, 124,00) | change | The 1962 print shows no mark to the right of 3,00, 21,00 or 22,00 (PDF p. 192, scan checked), nor of 103,00, 107,00 or 181,00 (golden lines 119, 124, 203, which equal the print). No J text describes the mark. |
+| S3. 1963 prints no `CTC`, `CTD` or `CTE` line | change | The print shows `CTC` under the control-card echo (PDF p. 192) and `CTD`, `CTE` before the message line (PDF p. 197), scans checked. [J 05.06.01] names the three letters for "the field test version of the CT Processor". Our record: M1-17 (`m1-front-end.md`). |
+| S4. Page head: 1963 prints `PAGE n` at the left, then the identification, the date and `CT0506` | change | Every page of the print opens `DATE 10/18/61  TIME  2.45  ACCOUNT ... ID. CT PUBLICATIONS  PAGE  n` (PDF pp. 192 to 216). Our head copies it field by field (M1-16 as amended, `m1-front-end.md`). No J text names `CT0506`. |
+| S5. The sequence number of `f-payroll` prints in column 1 in 1963, in column 9 in `a465077` | undecided | M1-15 (`m1-front-end.md`) put the serial at D+0 (column 9) as a reconstruction: "every serial in the sample is blank, so nothing attests it". [J 02.02.01] B.1 puts the sequence number in the "First column" and gives no print column. Both outputs put it first, so the evidence leans to neither class. |
+| S6. The `f-payroll` pages break at different statements | undecided | Our rule is 55 content lines a page, measured on all 25 pages of the print (M1-16 as amended). M7-9 reports no break difference for 90.05. So the cause is a feature that only the 1960 decks have, and no print shows how 1962 counted it. No lean. |
+| S7. 1963 starts the messages on a new page; `a465077` continues the source page | undecided | M1-18 (`m1-front-end.md`) chose the source page, and Open Question 71 records that no 1962 error listing survives. The only 1962 message print, the [J 90.04.01] dump (PDF p. 181), opens under a page head. That dump has no source before it, so it leans to neither class. |
+| S8. 1963 prints the message number ending in column 9, the code in column 13 and the text in column 18; `a465077` uses columns 7, 12 and 17 | recovery error | Scan measurement of the [J 90.04.01] dump, PDF p. 181, pitch fitted on the `THE FOLLOWING ERRORS ...` line, that line at column 1 (the M1-18 premise): `0,00` ends at column 9, the code `0` is at column 13, the text at column 18. 1963 matches the 1962 dump. M1-18 says it "keeps the 90.04 dump's own geometry", but the golden follows the transcription. The same scan puts the header `NUMBER` at column 4 and `CODE` at column 12; `a465077` prints them at 1 and 10. M7-9 does not record the 1963 header. |
+| S9. `a465077` ends the loader-card page with `DONE`; 1963 does not | change | The print ends the object listing with `DONE` ([J 90.05], PDF p. 216; storage-map golden). [J 05.06.01]: "Finally the word DONE is printed on-line when control is returned to CTM from the Compiler." |
+
+**The loader cards**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| L1. 1963 punches the deck name (`SAMPLE`, `FPAYRL`, `FPAYRJ`) in columns 1 to 6 | none: the jobs differ | The 1963 jobs carry a `$CMPLE` card with the job name in columns 8 to 13 (M7-8). Our decks carry `*COMPILE LIST`, which has no deck name. Both sides take columns 1 to 6 from the `$CMPLE` card: [J 90.08.01] and 90.08.02 ("deck.name, $CMPLE"); LD-1 (`loader.md`) and D7.11 punch it verbatim. The 1962 print shows the field blank for a `*COMPILE` job (PDF p. 198, scan checked). |
+| L2. 1963 punches the deck name (`SAMPL`) in columns 73 to 77; `a465077` leaves them blank. The card number in 78 to 80 agrees. | recovery error | [J 05.05] A: "the deck identification punched in columns 73-77, and a card sequence number punched in columns 78-80. The deck identification comes from columns 8 through 12 of the $CMPLE card." `SAMPL` is columns 8 to 12 of `$CMPLE SAMPLE`. Our deck writer punches only the serial, right-aligned in 73 to 80, even for a `$CMPLE` card (`emit_deck.dart` at `a465077`, line 73). No record cites [J 05.05]. The 1962 print shows 73 to 77 blank, but its job had no deck name. |
+| L3. 1963 punches activity `1` in column 23 of each `*SPEC` card; `a465077` leaves it blank (only column 23, as the M7-9 correction says) | change | The print shows all seven `*SPEC` cards with no activity (PDF p. 198, scan checked). [J 90.08.02] takes columns 22 to 23 from "SPECIF - ACTIVITY nn", and [J 03.02.05] says activity "may be left blank". No SPECIF card of the three decks gives ACTIVITY. |
+| L4. The date of `*CTEXT` and `*CTEND` differs (90.05) | none: the runs differ | [J 03.02.09]: the date and time "are supplied by the Compiler to specify when the deck was produced". Each side stamps its own run date. The form agrees. |
+| L5. 1963 leaves the time of `*CTEXT` blank; `a465077` prints `0.00` (`f-payroll`) | undecided | Our compiler always prints a time: the `--time` value or the clock (`bin/comtranc.dart` at `a465077`, line 240; form from LD-1). The value `0.00` is a run input. The [J 90.04.01] dump of 01/31/62 also prints `TIME` with no value (PDF p. 181). So a blank time occurs in a 1962 print too. Leans to no processor difference: the simulator run likely supplied no time. |
+
+**The object decks**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| O1. 90.05 deck: 69 cards (53 text) in 1963, 67 (51 text) in `a465077` | change | The print numbers `*CTEXT` 15 and `*CTEND` 67 (PDF pp. 198 and 216), so the 1962 deck had 67 cards (LD-2, `loader.md`). The two extra text cards carry the longer 1963 program; the object-listing rows of M7-9 hold the cause. |
+| O2. `f-payroll-j` deck: 74 cards (62 text) in 1963, 68 (56 text) in `a465077` | same class as the `f-payroll-j` object-listing rows | Both sides punch 19 data words a text card ([J 90.03.03]; M7-9 confirms the same card format). 1963 punches 1166 words, and 1166 / 19 gives 62 cards. The count follows from the object content, which another part classifies. |
+| O3. `f-payroll` deck: 49 cards (47 text) in 1963, 35 (33 text) in `a465077` | same class as the `f-payroll` object-listing rows | Same reasoning: 1963 punches 876 words, and 876 / 19 gives 47 cards. |
+| O4. Columns 73 to 77: the deck name in 1963, blank in `a465077` | recovery error | The finding of L2 ([J 05.05] A). Count it once. |
+| O5. Entry point of `f-payroll`: 00000 in 1963, 00134 in `a465077` | same class as the code-first order | It follows from the order. The entry is the first instruction, `START`. Our object listing puts the data at 00000 to 00133 and `START` at 00134 (run of `comtranc --emit-object` on `f-payroll.ctd`). 1963 puts the code first, from 00000. |
+
+**The messages**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| M1. `f-payroll-j`: one `'INDEX' HAS INEFFICIENT FORMAT FOR SUBSCRIPT VARIABLE.` at 9999,99 in 1963; three at 166,01, 166,03, 166,04 in `a465077`. The code (1) agrees. | undecided | D9.11 (`decisions.md`) marks the criterion of 206,00 "invented"; [J 90.04.01] gives only the text. [J 02.02.01] keeps 9999,99 for "errors which are not confined to a single source statement". The message names a property of the variable, not of one use. So the evidence leans to recovery error. |
+| M2. `f-payroll`: 29 messages in 1963, 55 in `a465077` | none: the sum of the rows below | — |
+| M3. Six CALL old names: 1963 prints `'1)EMPLOYEE.NUMBER' IS AN IMPROPERLY QUALIFIED NAME.` (101,00), code 2, at 1,00; `a465077` prints `IS NOT UNIQUE IN THIS SECTION.` (166,00), code 3, at 1,01 | undecided | D4.13 chose 166,00 and no synonym. [J 02.04.05] §5 states the rule but no message: "must be unique ... This requirement is met if ... sufficient qualifiers are used to identify it uniquely." Both texts exist in [J 90.04.01]. J's cure is qualifiers, the fault that 101,00 names, so the evidence leans to recovery error. The code is ours (D9.2); the clause digit is row M15. |
+| M4. 1963 prints no message for a CALL synonym; `a465077` prints 26 `IS AN UNDEFINED SYMBOL.` (108,00) | undecided | Follows from D4.13: our rejected CALL makes no synonym, so each use is undefined. 1963 binds the synonym to instance `1)` (M7-9). [J 02.04.05] §5 states the rule and not the repair. No lean. |
+| M5. 1963 prints `CONDITION TESTED IS ALWAYS SATISFIED.` and `NEVER SATISFIED.` at 5,00 and 5,01 | change | No such text is in the 1962 message file: [J 90.04.01], ids 0,00 to 209,00 (PDF pp. 181 to 185). The 1963 trigger also needs its synonym binding (M4). |
+| M6. 1963 prints `'ERROR.FILE' IS AN UNDEFINED SYMBOL.`, code 4, three times, with message 21,00 | undecided | M3-18 (`m3-data.md`) gives `FILE x IN f`, f "resolves to nothing", message 21 only, as "readings ours". [J 90.04.01] 108,00 has only its text. ERROR.FILE is declared nowhere, and M3-18 draws 108 for other names that resolve to nothing. So the evidence leans to recovery error. |
+| M7. 1963 prints `INVALID -CORRESPONDING- STATEMENT.` (97,00) at 13,00 | undecided | `m6-verbatim-deck.md` item c: GRAND.TOTAL (a deferred COPY, message 110) "has no entry below it", and the clause pairs no field, with no message. [J 02.04.04] and 90.04.01 give no criterion. 1963 flags 13,00 (GRAND.TOTAL as source) but not 23,00 (GRAND.TOTAL as a target), so its rule is not "empty operand" alone. No lean. |
+| M8. 1963 prints a `DUBIOUS MOVE` message at 36,02 | change | No such text is in [J 90.04.01] (ids 0,00 to 209,00). Our only like note is the non-historical 943,00 under `--pedantic` (D4.11). |
+| M9. 1963 prints `CHECK DATA DESCRIPTION OF ARRAY OF ELEMENTS` (98,00) at 40,02 and 40,03 | undecided | Follows from M4. With the 1963 binding, `TABLE.ITEM INSPREM (INDEX)` subscripts a field of MASTER, which has no dimension. Our own 98,00 criterion (message checklist, M3-20: "a subscripted reference to a flat item") fires on that. Without a synonym we print 108,00. Same lean as M4. |
+| M10. For PAYRECORD (three times) and CHECK (once), 1963 prints `'PAYRECORD' MUST BE RECORD NAME IN -FILE- CARD.` (17,00); `a465077` prints `RECORD 'PAYRECORD' MUST BE ON AN OUTPUT -FILE- CARD.` (19,00) | undecided | M3-18 maps `FILE x`, "a record on no output FILE card", to 19, as a reading of ours; the checklist marks 17,00 "no trigger remains". [J 90.04.01] gives both texts and no condition. Both texts fit a program with no FILE card. No lean. |
+| M11. `'ERROR.FILE' IS NOT A FILE.`: code 4 in 1963, code 3 in `a465077` | undecided | Severity is ours: D9.2 and `severity-notes.md`. [J 90.04.01] prints code 0 for every message "because the value may vary" (Open Question 65). No lean. |
+| M12. `NO -STOP RUN- IN PROGRAM.`: code 3 in 1963, code 4 in `a465077` | undecided | As M11: D9.2 puts 175 in C4. No lean. |
+| M13. `NO -STOP RUN- IN PROGRAM.` at 9999,99 in 1963, at 41,00 (the last statement) in `a465077` | recovery error | [J 02.02.01]: "The statement number 9999,99 is an exception. It is used to reference errors which are not confined to a single source statement." A missing STOP RUN belongs to no statement. Our parser reports it at the last card (`procedure_parser.dart` line 124 at `a465077`), and no record decides that. |
+| M14. `f-payroll`: the `'INDEX'` message at 9999,99 in 1963, at 40,01 in `a465077` | undecided | As M1 (D9.11; [J 02.02.01]). Leans to recovery error. |
+| M15. The clause digits of the statement number: 1963 prints 3,00, 4,00, 7,00, 6,01, 9,01, 36,03, 13,01, 21,00, 22,08 (and 1,00 in M3); `a465077` prints 3,01, 4,01, 7,01, 6,02, 9,02, 36,04, 13,02, 21,01, 22,04 (and 1,01). 23,03 agrees. | undecided | M2-6 (`m2-parser.md`) and D7.13 made the clause count ours. [J 02.02.01] gives only the form: the two digits "tell which clause is being referenced". No 1962 listing prints a non-zero clause digit (Open Question 71). No lean. |
+| M16. `a465077` prints the non-historical 140,00, `DATA DESCRIPTION CARD CODING CONFLICTS WITH ITS TYPE CODE. (NON-HISTORICAL.)` (our 906,00) | undecided | The text is ours and not in [J 90.04.01] (D9.7: our ids in the 900 range). D3.4 chose a warning for a name or level on the REDEF line, and states that "no J message number is attested for this case". [J 02.05.02] says "should", not "must". The 1962 message file has no text for this case, so the evidence leans to recovery error. |
+| M17. `a465077` prints the justification message 80,00 at 141,00; 1963 does not | undecided | The conflict comes from our default-justification rule, D3.5 ([J 02.05.01]: the highest level is left-justified). The level-1 TABLE is left-justified, and the level-2 TABLE.ITEM over it is not. [J 90.04.01] gives only the text of 80,00. No lean. |
+| M18. `a465077` prints seven `IMPROPERLY QUALIFIED NAME` (101,00) messages on the DPT synonyms; 1963 none | undecided | D4.13 forbids a qualified synonym, "a design decision under D0.4"; Open Question 56 holds the question. [J 02.03.03]: CALL makes "a one-word name", and J does not say whether one may be qualified. 1963 binds the synonym to instance `1)` and ignores the qualifier. No lean. |
+| M19. The 141,00 level message (81,00): 1963 prints `AND  -REDEF-.` with two spaces, `a465077` with one | recovery error | The scan of [J 90.04.01], PDF p. 182 (crop at 5x), shows two spaces before `-REDEF-` in 81,00 and in 80,00. The conversion has one. D9.5 stores each text "byte for byte as printed", but our catalog follows the conversion. The scan outranks the conversion (CLAUDE.md sections 8 and 9). A correction of the conversion needs Jack's authorization. |
+
+Count, 38 rows: 9 change (S1, S2, S3, S4, S9, L3, O1, M5, M8); 5 recovery error (S8, L2, O4, M13, M19), which are 4 findings, because L2 and O4 are one.
+18 undecided (S5, S6, S7, L5, M1, M3, M4, M6, M7, M9 to M12, M14 to M18). Of these, M1, M3, M6, M14 and M16 lean to recovery error. L5 leans to no processor difference.
+3 rows take the class of rows in another part (O2, O3, O5). 3 rows are no processor difference (L1, L4: the jobs or runs differ; M2: a sum).
+No row is contaminated under M7-2: this part holds neither MOVPAK nor Open Question 31.
+
+### Part D. The runtime library
+
+**M7-10: the six entries that differ**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| SYS)178: 1963 prints `␢␢AT␢␢` and the four pool words with their blanks; ours drops the blanks | undecided | `runtime.md` RT-2 calls the spacing a design decision. [J 05.06.04] gives only "AT xxxxx,yy STOP nnnnnn". The scan (PDF p. 107) sets that form in proportional type, so it fixes no spacing. Leans recovery error: the 1962 pool words carry fixed blanks (` STOP `, ` RUN  `, [J 90.05] listing PDF p. 216, CP)+26 to +29), and a routine that strips them has no use for them. |
+| SYS)294: the message text | undecided | RT-2 calls `BASE LOCATOR NOT LOADED` a design decision. No manual prints the text, and [J 90.04] holds no object-time message. Leans recovery error: [J 90.02.33] says "a reference is made to a Base Locator before the locator has been loaded", the same frame as the 1963 "A REFERENCE TO A DATA ITEM BEFORE THE ITEM WAS LOCATED". |
+| SYS)294: 1963 closes all files through SYS)266; ours closes none | undecided | RT-2 ends the run at `errorExit`. No record of ours names SYS)266. [J 90.02.33] says only "exits back to the CT Monitor". Leans recovery error: [J 90.02.29] lists SYS)266 in 1962, "a 'panic' Close-All-Files", with the same exit to the CT Monitor. |
+| SYS)260 and SYS)283: the words `PROCESSING TERMINATED DUE TO TAPE` and the kind | undecided | `m5-io.md` M5-8 says both texts are ours. Leans recovery error for SYS)260: [J 90.02.28] says it "prints an error message indicating processing terminated due to record length error", almost the 1963 words. The scan (PDF p. 167, dated 10/61) shows a lower-case description, not a quoted text. [J 90.02.32] gives SYS)283 no words. |
+| SYS)283: 1963 names the kind of error (one of five); ours prints `GET ERROR` | recovery error | [J 02.07.07] c: "the system prints an on-line message describing the type of error and the name and certain characteristics of the offending file". M5-8 names no type. Note: our three faults (M5-8) are host-image faults, so no 1962 type fits them. |
+| SYS)260 and SYS)283: 1963 adds the statement number from the word before the `TSX` | recovery error | The 1962 print opens each GET with the stamp word `TXH CP)+a,0,CP)+b` ([J 90.05] listing PDF p. 200, LOC 00177; p. 201, LOC 00221 and 00232). The same stamp in SYS)178's words is printed ([J 05.06.04]). `m4-codegen.md` M4-14 emits the word, and no handler of M5-8 reads it. The class rests on that implication, not on a stated text. |
+| SYS)283: 1963 adds the serial number, reel number and block count of the file; ours gives the name and a frame count | recovery error | [J 02.06.12]: SERIAL and REEL are "kept in the IOCS file block and ... printed on-line in certain error situations". [J 02.07.07] c asks for "the name and certain characteristics of the offending file". M5-8 prints no serial or reel. |
+| SYS)260: the same file details | undecided | M5-8 closed the gap. [J 02.07.06] iv says only "An error message is given on the on-line printer". [J 02.06.12] does not name which error situations. Leans recovery error: SYS)283 shares the rule above, and [J 02.07.06] calls record length errors the IOCS "EOB errors". |
+| SYS)260 and SYS)283: 1963 ends at SYS)266 and closes all files; ours closes none | undecided | M5-8 ends the run after the exit and names no close. [J 90.02.28] and [J 90.02.32] say only that the routine prints and "exits to the CT Monitor". Leans recovery error: [J 90.02.29] shows the 1962 "panic" close-all, SYS)266, with that exit. |
+| IOC)9: IOCS cuts a record longer than the buffer; rule 2 ends the run | undecided | `m5-io.md` M5-9 rule 2 is ours. [J 90.02.08] delegates IOC)9 to the 7090 IOCS. Leans recovery error: J puts the only object-time size check in generated code (SYS)264, [J 90.02.29]), so a 1962 IOC)9 with no check of its own is the likelier reading. |
+| IOC)1: 1963 stores `PZE L,,N` with a real L; ours stores L as 0 | recovery error | [J 90.02.08]: IOC)1 "locates (L) a list of files, and designates the number (N)". M5-3 stores 0 on purpose, because no compiled word reads L. |
+
+**M7-10: the notes on the agreements**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| SYS)175 and SYS)177 read the open and close options; ours reads neither | recovery error | [J 02.04.06]: CLOSE ALL FILES closes "in accordance with the close options exercised on the Loader \*SPEC card", and the default is "a rewind and unload". [J 03.02.05] and [J 90.08.02] give the open and close codes. `m5-io.md` M5-4 defers both on purpose. The 90.05 run does not show it: all seven files punch `N R` ([J 90.05] listing, the \*SPEC cards). |
+| IOC)8: IOCS returns with its exit address in index register 4; ours keeps the link there | undecided | M5-8 rules that index register 4 survives every exit. No J or F text gives the registers at a READ exit, and [J 90.02.08] delegates the READ to the 7090 IOCS. Leans to neither class. |
+| IOC)29 is word 42 of the IOCS, so it does not overlap IOC)40 | recovery error | The open item of `m5-io.md` says IOC)29 "covers cell 40". [J 90.02.07] says each entry "has been assigned a number", so 29 and 40 are numbers, not neighbouring cells. The overlap comes from the RT-1 address design (`runtime.md` RT-1). No run reaches it. |
+
+**M7-10: the MOVPAK deck**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| The 36 entries of the table (SYS)130 to 133, 180 to 245, 267 to 275) | contaminated | M7-2: the survey read 28 lines of MOVPAK. SYS)131 is also the cell of Open Question 31. |
+| The members move SYS)132 and 133 themselves; SYS)241 stores into SYS)133; the return changes index register 4 | contaminated | M7-2. |
+| No MOVPAK card stores into SYS)131; a member keeps the low four bits of a character | contaminated | M7-2 (MOVPAK and Open Question 31). |
+| SYS)198, 204 and 269 take each character as a digit; SYS)207, 208 and 271 pass over characters | contaminated | M7-2. |
+| SYS)245 copies its word place for place | contaminated | M7-2. |
+| A left sign follows the suppressed blanks | contaminated | M7-2. |
+| More than ten digits use the AC-MQ pair | contaminated | M7-2. |
+| SYS)268 keeps its decrement as the sign convention | contaminated | M7-2. |
+| `MZE` with a zero base locator goes to SYS)294 | contaminated | M7-2. |
+
+**M7-10: a value longer than the count**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| SYS)186 to 188: the first character holds the whole quotient, a value from 10 to 63 | contaminated | M7-2. |
+| SYS)186 to 188: a larger quotient stops at the machine's divide check | contaminated | M7-2. |
+| SYS)267: zero suppression takes that character as an index into a table of ten words | contaminated | M7-2. |
+| RT-4 and RT-5 drop the high-order digits, so the stored field differs | contaminated | M7-2. Both arm nothing, and that agrees. |
+
+**M7-10: IOCS `OPEN` and `CLOSE`**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| Input file at open: 1963 takes a buffer and starts the first read; ours reads at the first GET | recovery error | [F p. 39], input OPEN: "Subsequent records are brought into the portion of storage governed by the input/output control system, filling the area which has been allocated to the file." [J 02.07.01] sends OPEN and CLOSE to F, and J says nothing else. `m5-io.md` M5-7 rejected the read-ahead because "a sequential emulation never observes" it. |
+| Open file at open: 1963 sets its bits and clears its error history; ours opens it again at the first frame | undecided | M5-4 (amended 2026-09-12) and `runtime.md` RT-2 closed the gap. Ours also truncates the image of an open output file. No J or F text names an OPEN of an open file. Leans to neither class. |
+| Unloaded file at open: 1963 prints an error and waits, and the file stays closed; ours opens it again | undecided | `decisions.md` D6.3 makes a reopen undefined and its result a design decision. M5-4 reads no close code, so ours never unloads. Leans recovery error: [J 02.04.06] and [J 90.08.02] make rewind and unload the default close, so a 1962 reopen met an unloaded reel. |
+| Checkpoint file at open: 1963 opens it and keeps its place in `CPFILE`; ours refuses it | recovery error | [J 02.06.04] makes CHECKPOINT one of three file types. [F p. 39]: OPEN ALL FILES opens "all files specified in the environment description". [J 03.02.01] and [J 90.01.05] item 4 bring in BASIC IOCS when checkpoints are specified. M5-3 refuses the file because [J 90.08.01] column 28 gives it no code. That gap does not license the refusal. |
+| No rule of ours: the close of an input file gives its buffers back to the pool | recovery error | [F p. 41], input CLOSE step 3: "The storage area allocated to the file is released for the use of other files." D6.3 binds the same step. M5-7: "A buffer is never reassigned." |
+| No rule of ours: the close of an input file spaces the tape back over each block read ahead | undecided | No record of ours has read-ahead, so none needs the step. No manual names the reposition. Leans recovery error: the read at open of [F p. 39] implies blocks read ahead, and a no-rewind close ([J 03.02.05], N) leaves them past the program's place. |
+| No rule of ours: SYS)176 calls IOCS for a closed file when the option is unload and the file is not unloaded | undecided | M5-4 reads no close code. No J or F text names a close of a closed file. Leans to neither class. |
+| No rule of ours: SYS)177 gives the units back to the system | undecided | D0.7 emulates I/O at the IOCS level and keeps no unit table. [J 04.01.02] describes the Unit Availability table but names no step that frees a job's units. Leans to neither class. |
+
+**M7-10: the buffer pools**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| Unit: 1963 uses pools, and a file with no `*POOL` or `*GROUP` card joins the pool of its block size; ours gives each file one buffer | recovery error | [J 02.06.13]: "If POOL specifications are not provided at all, files will be grouped automatically by IOCS." [J 03.02.07]: with no such cards "the Loader will make its own assignments". [J 03.03.02]: one DEFINE for each pool, and ATTACH for its files. M5-7 and M5-10 take one buffer a file on purpose ("no pool sharing"). J does not state the grouping by block size. |
+| Size: 1963 adds two control words for each buffer and two for each pool; ours takes BLOCKSIZE words | undecided | M5-10 closed the gap. No J or F text gives the form of a buffer. Leans recovery error only weakly: [J 02.07.02] gives the buffer area to "the I/O system as operating storage", and the IOCS sets its form. |
+| Count: 1963 gives one buffer to each file, a second where storage allows, and more for output activity; ours gives one | recovery error | [J 02.06.14]: with no GROUP cards, "the compiler will attempt to assign at least 2 buffers to each file". [J 03.02.05]: activity "is used by the Loader in the allocation of buffer areas". `decisions.md` D7.3 binds both rules. M5-7 rejected the second buffer as unobservable. J names the compiler and 1963 does the work in the loader; D7.3 reads that as agency shorthand. |
+| Owner: in 1963 the pool owns a buffer, and a file takes and gives it back; ours keeps it with the file | recovery error | [J 02.07.02]: "Since the IOCS routine attempts dynamic optimization of buffer assignments, data blocks of a particular file may be located within any of the buffers associated with this or several files." M5-7: "A buffer is never reassigned." |
+
+**M7-10: N of IOC)1**
+
+| Difference | Class | Evidence |
+|---|---|---|
+| N counts files only | agrees; no class | M5-3 stores the count of the `*FILE` cards, as the 1963 loader does. |
+| The files of one `*FILEQU` card count as one | agrees; no class | `loader.md` LD-3 refuses `*FILEQU`, so no deck that ours loads differs. [J 03.02.07] also has such files "processed as a single file". |
+| The list at L holds more words than N: an `SVN` word before each group and before each file with no group, and SYS)175 and SYS)177 pass over them | undecided | M5-3 keeps the list in Dart, with no group words. [J 03.03.02]: "File Lists ... showing the group structure and the files assigned to the pool". Leans recovery error: J does not say that IOC)1 locates that list, but the 1963 list matches the J text. |
+
+Count: change 0, recovery error 12, undecided 15, contaminated 13 rows (the 36 MOVPAK entries are one row). Two N points agree and take no class.
+No 1963 object-time text appears in [J 90.04], which lists compile-time messages only. The nearest 1962 text is the description of SYS)260 in [J 90.02.28].
+
+**Step 5 is done.** Each difference of M7-9 to M7-11 has a class or a
+reason for none.
+
 <!-- manual links; generated by tool/linkify_manual_refs.dart -->
 
+[F p. 39]: ../../comtran-manuals/F28-8043/03-procedure-description.md#inputoutput-commands
+[F p. 41]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-file-command
+[F p. 54]: ../../comtran-manuals/F28-8043/03-procedure-description.md#the-do-command-with-named-end
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
+[J 02.02.01]: ../../comtran-manuals/J28-6169/02-compiler.md#b-finish-card
+[J 02.03.03]: ../../comtran-manuals/J28-6169/02-compiler.md#b-key-words
+[J 02.04.03]: ../../comtran-manuals/J28-6169/02-compiler.md#2-display
+[J 02.04.04]: ../../comtran-manuals/J28-6169/02-compiler.md#3-move
+[J 02.04.05]: ../../comtran-manuals/J28-6169/02-compiler.md#4-corresponding-option-with-move-and-add
+[J 02.04.06]: ../../comtran-manuals/J28-6169/02-compiler.md#6-set
+[J 02.04.07]: ../../comtran-manuals/J28-6169/02-compiler.md#c-conditional-statements
+[J 02.05.01]: ../../comtran-manuals/J28-6169/02-compiler.md#d-subscripting-and-indexing
+[J 02.05.02]: ../../comtran-manuals/J28-6169/02-compiler.md#1-record
+[J 02.05.05]: ../../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
+[J 02.06.04]: ../../comtran-manuals/J28-6169/02-compiler.md#c-file-environment-card
+[J 02.06.12]: ../../comtran-manuals/J28-6169/02-compiler.md#d-specif-environment-card
+[J 02.06.13]: ../../comtran-manuals/J28-6169/02-compiler.md#d-specif-environment-card
+[J 02.06.14]: ../../comtran-manuals/J28-6169/02-compiler.md#f-group-environment-card
+[J 02.07.01]: ../../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card
+[J 02.07.02]: ../../comtran-manuals/J28-6169/02-compiler.md#3-the-block
+[J 02.07.06]: ../../comtran-manuals/J28-6169/02-compiler.md#2-end-of-file-processing
+[J 02.07.07]: ../../comtran-manuals/J28-6169/02-compiler.md#3-input-error-processing
+[J 03.02.01]: ../../comtran-manuals/J28-6169/03-loader.md#c-requirements-for-loading-a-single-deck
 [J 03.02.05]: ../../comtran-manuals/J28-6169/03-loader.md#d-spec-card
+[J 03.02.07]: ../../comtran-manuals/J28-6169/03-loader.md#f-group-card
+[J 03.02.09]: ../../comtran-manuals/J28-6169/03-loader.md#j-start-card
+[J 03.03.02]: ../../comtran-manuals/J28-6169/03-loader.md#a-program-for-execution
+[J 04.01.02]: ../../comtran-manuals/J28-6169/04-monitor-and-supervisor.md#a-processing-a-job
+[J 05.05]: ../../comtran-manuals/J28-6169/05-systems-operation.md#0505-output-from-system
+[J 05.06.01]: ../../comtran-manuals/J28-6169/05-systems-operation.md#d-file-maintenance
+[J 05.06.04]: ../../comtran-manuals/J28-6169/05-systems-operation.md#b-loader-1
+[J 90.01.03]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
+[J 90.01.05]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
+[J 90.02.01]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#introduction
+[J 90.02.02]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.03]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.04]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.06]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.07]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
+[J 90.02.08]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ct-system-subroutines-and-communication-cells
+[J 90.02.09]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
+[J 90.02.11]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.14]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.15]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.16]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.18]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.19]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.28]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.29]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.32]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
+[J 90.02.33]: ../../comtran-manuals/J28-6169/90.02-generated-code.md#sys-reference-numbers
 [J 90.03]: ../../comtran-manuals/J28-6169/90.03-object-deck-format.md#appendix-9003
 [J 90.03.01]: ../../comtran-manuals/J28-6169/90.03-object-deck-format.md#introduction
 [J 90.03.03]: ../../comtran-manuals/J28-6169/90.03-object-deck-format.md#3-file-check-entry-specifications
+[J 90.04]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#appendix-9004
+[J 90.04.01]: ../../comtran-manuals/J28-6169/90.04-error-messages.md#error-messages-and-severity-codes
 [J 90.05]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#appendix-9005
+[J 90.08.01]: ../../comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md#appendix-9008
+[J 90.08.02]: ../../comtran-manuals/J28-6169/90.08-loader-symbolic-cards.md#a-the-file-card

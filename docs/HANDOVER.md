@@ -59,7 +59,7 @@ Terms that appear without expansion:
 | M5 stage 3 — FILE | Done 2026-09-13: IOC)9, one buffer for every file, blocking per D6.7, the tape lister and `--list-tapes`. The sample runs to end of job and prints its reports | `docs/design/m5-io.md` M5-9 to M5-11, `lib/src/runtime/iocs.dart`, `lib/src/runtime/tape.dart` |
 | M6 stage 1 — the sample | Done 2026-09-13: the two input tapes reconstructed from the printed report, the report golden, and the acceptance diff against PDF p. 217. Four findings, one of them the 1962 processor's own defect | `docs/design/m6-acceptance.md`, `test/fixtures/90.05-tapes/`, `test/goldens/90.05-payroll.report` |
 | M6 stage 2 — the second corpus | Done 2026-11-02. Chunk 2a (2026-09-14) keyed the 1960 program as printed, as a diagnostic corpus, and the applied deck with its five divergences. Chunk 2b recovered the six shapes the generator refused, because each one compiled in 1962 (Jack's rule of 2026-09-14). The applied deck runs over its tapes to end of job: 233 values compare, 77 match, and every difference has a named cause. `--run` obeys the D7.6 severity gate | `docs/design/m6-acceptance.md` M6-6 to M6-9, `test/fixtures/f-payroll-deck-notes.md`, `test/f_acceptance_test.dart` |
-| M7 | Opened 2026-11-21 (PR #215). The reconstruction of record is commit `a465077` (M7-1). The archive is fetched and its checksums recorded (M7-3) | `docs/design/m7-diff.md` |
+| M7 | Opened 2026-11-21 (PR #215), done 2026-11-22. The baseline is `a465077` (M7-1); M7-12 classifies each difference | `docs/design/m7-diff.md` |
 | M4 emulator core (early, 43 harvested opcodes) | Draft (PR #10); the machine runs a loaded program on it (RT-1) | `lib/src/emulator/` |
 | T1 deck CLI (`deckconv`) | Done 2026-08-03 | `bin/deckconv.dart` |
 | T2 VS Code punchcard editor | Done 2026-08-03 (PR #9) | `editors/vscode-punchcard/` |
@@ -163,8 +163,10 @@ cards. Jack, 2026-11-21:
 > **Jack's answer:** A · Name the twelve cards
 
 `tool/m7/ct_library.sh` labels them. M7-7 to M7-11 hold the library,
-the 1963 compile, the diffs, and the 1963 run of the corpus. The next
-task is step 5 of M7-4: classify each difference.
+the 1963 compile, the diffs, and the 1963 run of the corpus.
+**M7 is done (2026-11-22).** M7-12 classifies the 137 differences.
+The queue is empty. Two calls wait on Jack: whether master takes the
+recovery-error fixes, and the erratum below.
 
 ### Codegen defects the runtime exposed
 
@@ -372,7 +374,8 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **No candidate is open.** Four candidates are closed.
+  authorization. **One candidate is open**: messages 80,00
+  and 81,00 (M7-12). Four candidates are closed.
   The first, opened 2026-09-14 and closed on 2026-09-15: the reflowed
   block of PDF p. 217 held three cells that the scan contradicts. The
   DEPARTMENT 09 TOTALS line prints `0.00` in the fourth amount column,
@@ -651,11 +654,11 @@ PDF p. 217. It makes every milestone below testable at once.
   applied deck runs to end of job over its own tapes — **DONE
   2026-11-02**.
 - **M7 — The diff pass** — **OPENED 2026-11-21** after W3 and W4, as
-  Jack ruled on 2026-11-02 (`docs/design/m7-diff.md`). The seal ended then. Assemble the
-  1963 processor, and diff our reconstruction against it. Each difference is one
-  of two findings: a real change between January 1962 and July 1963, or an error
-  in our recovery. Treat MOVPAK and Open Question 31 as contaminated; D0.9 says
-  why. That result is the project's headline finding (D0.9).
+  Jack ruled on 2026-11-02 (`docs/design/m7-diff.md`). The seal ended then. The
+  1963 processor ran, and each difference with our reconstruction has a class:
+  a real change between January 1962 and July 1963, or an error in our
+  recovery. That result is the project's headline finding (D0.9). **Done
+  2026-11-22** (M7-12).
 - **Withdrawn 2026-09-14 — the 1960 shapes.** This bullet parked a stage
   for the shapes the generator refuses in the applied deck. Jack's rule
   of that date makes them chunk 2b's work, because each one compiled in
