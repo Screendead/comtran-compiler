@@ -165,7 +165,7 @@ twelve unlabeled `BCI` cards. Jack, 2026-11-21:
 `tool/m7/ct_library.sh` labels them. M7-7 holds each probe, and
 issue #261 built `CTSYS2.BIN`.
 M7-8: the 1963 processor compiles all three corpus decks.
-M7-9 diffs 90.05. Next: the `f-payroll` listings and punch decks (Mac).
+M7-9 diffs listings and decks. Next: the 1963 report run.
 
 ### Codegen defects the runtime exposed
 

@@ -13,7 +13,8 @@
 // J 90.03 binary card. HBC (CE066580) converts characters to this form,
 // three columns a word; it fills a symbolic card, and words 24 to 27 of a
 // binary card with columns 73 to 84 (CE067700 to CE067720). Thus a record
-// is columns 1 to 84, and columns 81 to 84 are blank.
+// is columns 1 to 84. On the tapes of M7-8, columns 81 to 84 are blank on a
+// symbolic card and hold a 0 punch on a binary card.
 //
 // Each line holds the card number from 1, then one of:
 // - TEXT and columns 1 to 80, when every column holds a character;
@@ -33,19 +34,28 @@ const _recordChars = 168;
 
 // The cards of an s709 BIN image. Each byte holds one 6-bit character,
 // and bit 0200 marks the first character of a record. A file mark is a
-// record of one character; the tool prints it as a line of its own.
-List<CardImage?> _tapeCards(Uint8List bytes) {
+// record of one character; the tool prints it as a line of its own. So is
+// any other record shorter than a card, as its characters.
+List<Object?> _tapeCards(Uint8List bytes) {
   final List<int> starts = [
     for (var i = 0; i < bytes.length; i++)
       if (bytes[i] & 0x80 != 0) i,
     bytes.length,
   ];
-  final cards = <CardImage?>[];
+  final cards = <Object?>[];
   for (var r = 0; r + 1 < starts.length; r++) {
     final int s = starts[r];
     final int length = starts[r + 1] - s;
     if (length == 1) {
       cards.add(null);
+      continue;
+    }
+    if (length < _recordChars) {
+      cards.add(
+        [
+          for (var i = s; i < s + length; i++) glyphFromBcd(bytes[i] & 0x3f)!,
+        ].join(),
+      );
       continue;
     }
     if (length != _recordChars) {
@@ -55,7 +65,7 @@ List<CardImage?> _tapeCards(Uint8List bytes) {
     int column(int c) =>
         ((bytes[s + 2 * c] & 0x3f) << 6) | (bytes[s + 2 * c + 1] & 0x3f);
     for (var c = 80; c < 84; c++) {
-      if (column(c) != 0) {
+      if (column(c) != 0 && column(c) != 0x200) {
         stderr.writeln('record ${r + 1}: column ${c + 1} is punched');
         exit(1);
       }
@@ -110,12 +120,19 @@ void main(List<String> args) {
   }
   final Uint8List bytes = File(args[0]).readAsBytesSync();
   final canon = String.fromCharCodes(bytes.take(6)) == 'CTDECK';
-  final List<CardImage?> cards = canon ? decodeCanon(bytes) : _tapeCards(bytes);
+  final List<Object?> cards = canon ? decodeCanon(bytes) : _tapeCards(bytes);
   var number = 0;
   for (final card in cards) {
-    stdout.writeln(card == null ? '-- file mark' : _line(++number, card));
+    stdout.writeln(switch (card) {
+      null => '-- file mark',
+      final String text =>
+        '-- record of ${text.length} characters: ${text.trimRight()}',
+      _ => _line(++number, card as CardImage),
+    });
   }
   if (o >= 0) {
-    File(args[2]).writeAsBytesSync(encodeCanon(cards.nonNulls.toList()));
+    File(
+      args[2],
+    ).writeAsBytesSync(encodeCanon(cards.whereType<CardImage>().toList()));
   }
 }
