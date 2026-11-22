@@ -162,10 +162,10 @@ twelve unlabeled `BCI` cards. Jack, 2026-11-21:
 
 > **Jack's answer:** A · Name the twelve cards
 
-`tool/m7/ct_library.sh` labels them, and one `SYSCOL` card (issue
-#248). The library job (#252) compiled 40 clean decks, then SUBUP
-failed; #261 built `CTSYS2.BIN`. M7-7 holds each cause.
-Next: the M7-8 compile on the Mac.
+`tool/m7/ct_library.sh` labels them. M7-7 holds each probe, and
+issue #261 built `CTSYS2.BIN`.
+M7-8: the 1963 processor compiles all three corpus decks.
+Next: step 3 of M7-4, the diff of the outputs.
 
 ### Codegen defects the runtime exposed
 
