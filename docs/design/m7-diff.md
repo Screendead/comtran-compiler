@@ -1701,7 +1701,9 @@ characters, 28 words. The compiler builds a card in the 28-word buffer
 `BWAR` (CE068060) and writes it with `IORT BWAR,,28` (CE067770). The
 first word is row 9 left (CE067160), and words 1 to 23 hold the rest
 of the row-binary card. Words 24 to 27 are filled for the off-line
-punch (CE067700 to CE067720). `tool/m7/punch_split.dart` reads
+punch (CE067700 to CE067720). *Amended 2026-11-22, M7-9:* the words
+are not row binary. Each word holds three columns, as the binary card
+of [J 90.03] does. "9L" is only the name of word 1 in the source. `tool/m7/punch_split.dart` reads
 162-character records only, so it lists no program on these tapes.
 Step 3 needs a reader for the 28-word record before it can compare
 the object decks.
@@ -1829,13 +1831,46 @@ The `f-payroll` lists differ in these ways:
   -FILE- CARD` messages agree in text and code. The statement number
   differs: 3,00 in 1963, 3,01 in `a465077`.
 
+**The reader of the punch record.** `tool/m7/punch_deck.dart` prints
+an object deck one card a line. It reads a 1963 punch tape or a canon
+deck of ours, so `diff` compares the two. The 28 words of a record
+are columns 1 to 84, three columns a word, row 12 in the high bit:
+
+- `HBC` converts characters to this form, three columns a word
+  (CE066580 to CE066880). It fills each symbolic card.
+- `DCHKS` puts the word count in word 1 and the checksum in word 2
+  (CE067110 to CE067230). These are the fields of the binary card of
+  [J 90.03.01], at the same places.
+- `HBC` fills words 24 to 27 of a binary card with columns 73 to 84
+  (CE067700 to CE067720).
+
+The `*CTEXT` test of `tool/m7/ctext_drop.dart` agrees: words 2 and 3
+are columns 7 to 12 on the library tapes of M7-7. The tool stops on a
+record of another length, or on a punch in columns 81 to 84.
+
+Each line holds the card number and one of these forms:
+
+| Card | Line |
+|---|---|
+| Every column holds a character | `TEXT` and columns 1 to 80 |
+| Any other card | `BIN`, the deck type, the word count, the sequence, the checksum test, the words from word 3 in octal, and columns 73 to 80 |
+
+On a text card, each data word carries its control group, `/gg` in
+octal ([J 90.03.03]). A file mark prints as `-- file mark`. With
+`-o`, the tool also writes the cards of a punch tape as a canon deck.
+
+The check of the reader: our 90.05 deck, written as 168-character
+records, reads back as the same canon deck, byte for byte. The 67
+cards print 15 `TEXT` lines, 51 `BIN` lines and the `*CTEND` card.
+Each checksum passes.
+
 **What is left of step 3.**
 
 - The source and object listings of the two `f-payroll` decks. Issue
   #263 holds only their first 120 lines and their messages. The Mac
   posts the full listings.
-- The object decks. They need a reader for the 28-word punch record
-  of M7-8.
+- The object decks. The Mac runs `tool/m7/punch_deck.dart` on the
+  three punch tapes of M7-8 and posts the lines.
 - The report. It needs a run of the 1963 object program over the
   input tapes, in a later entry.
 
@@ -1843,4 +1878,7 @@ The `f-payroll` lists differ in these ways:
 
 [J 02.01.01]: ../../comtran-manuals/J28-6169/02-compiler.md#0200-introduction
 [J 03.02.05]: ../../comtran-manuals/J28-6169/03-loader.md#d-spec-card
+[J 90.03]: ../../comtran-manuals/J28-6169/90.03-object-deck-format.md#appendix-9003
+[J 90.03.01]: ../../comtran-manuals/J28-6169/90.03-object-deck-format.md#introduction
+[J 90.03.03]: ../../comtran-manuals/J28-6169/90.03-object-deck-format.md#3-file-check-entry-specifications
 [J 90.05]: ../../comtran-manuals/J28-6169/90.05-sample-program.md#appendix-9005
