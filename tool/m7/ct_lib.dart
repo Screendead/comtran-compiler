@@ -7,6 +7,7 @@
 // Splice: dart run tool/m7/ct_lib.dart splice IN.BIN SUBUP.BIN OUT.BIN
 //   File 5 becomes SRDLOC and file 1 of the SUBUP output tape (the
 //   dictionary); file 6 becomes file 2 of that tape (the subroutine text).
+//   The SUBUP tape is read up to its double file mark.
 //
 // CT file 0 is the file whose first record is named CT. Every other record
 // and file mark of IN.BIN is copied unchanged. The tool prints the records
@@ -47,8 +48,10 @@ class Record {
 }
 
 /// Reads a tape as its files, each a list of records, and the parity rule
-/// of its binary records.
-(List<List<Record>>, bool) _read(String path) {
+/// of its binary records. With [toDoubleMark], the read stops at the first
+/// empty file, the double file mark that ends a written tape; the image can
+/// hold older records after it, and those are not read.
+(List<List<Record>>, bool) _read(String path, {bool toDoubleMark = false}) {
   final Uint8List bytes = File(path).readAsBytesSync();
   final files = <List<Record>>[[]];
   final odd = <bool>{};
@@ -66,6 +69,10 @@ class Record {
     final bool alone = i + 1 == bytes.length || bytes[i + 1] & 0x80 != 0;
     if (b == 0x8f && alone) {
       end();
+      if (toDoubleMark && files.last.isEmpty) {
+        files.removeLast();
+        break;
+      }
       files.add([]);
       continue;
     }
@@ -165,8 +172,8 @@ void main(List<String> args) {
     tape[ct + 5] = [_srdloc, _emptyDictionary];
     tape[ct + 6] = [];
   } else {
-    final (List<List<Record>> library, _) = _read(args[2]);
-    if (library.length < 3) {
+    final (List<List<Record>> library, _) = _read(args[2], toDoubleMark: true);
+    if (library.length < 2) {
       throw StateError('${args[2]}: fewer than two files');
     }
     tape[ct + 5] = [_srdloc, ...library[0]];

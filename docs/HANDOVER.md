@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-11-21. Audience: the next agent, or Jack. This file is the
+*Updated 2026-11-22. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -164,8 +164,8 @@ twelve unlabeled `BCI` cards. Jack, 2026-11-21:
 
 `tool/m7/ct_library.sh` labels them, and one `SYSCOL` card (issue
 #248). The library job (#252) compiled 40 clean decks, then SUBUP
-failed, then the rerun (#257). M7-7 holds both causes.
-Next: the Mac reruns the job.
+failed, then reruns #257 and #259. M7-7 holds each cause.
+Next: a Mac rerun.
 
 ### Codegen defects the runtime exposed
 

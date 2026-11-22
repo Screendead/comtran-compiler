@@ -1527,3 +1527,37 @@ SU022680). Each `*INSERT` card of the job has `TAPE` in columns 1 to 4,
 so the scan of the next card sets it again (SU006170 to SU006210).
 
 The next step: the Mac runs the library job again.
+
+**The result of the third library job (issue #259, 2026-11-22).** The
+Mac ran `tool/m7/ct_library.sh KIT` on master at `ecbd2c0`. X4 compiled
+40 of 40 decks clean, and `ctext_drop.dart` rewrote 40 `*CTEND` cards.
+SUBUP completed: it printed the dictionary of the 40 routines and
+`SUBROUTINE FILE UPDATE COMPLETED SUCCESSFULLY.` Thus the `EVD` card
+of the amended method passes the 1963 test.
+
+Step 4 then stopped. `ct_lib.dart splice` refused the SUBUP tape,
+`library.bin`, with `records mix odd and even parity`. The Mac counted
+the records of that tape:
+
+| Part of the tape | Records | Parity |
+|---|---|---|
+| File 1, the dictionary | 3 | odd |
+| File 2, the subroutine text | 54 | odd |
+| A double file mark | — | — |
+| After the double mark | 11, a file mark, 1, a file mark | one even character in the first record |
+
+The double file mark ends the tape that SUBUP wrote. The records after
+it are not part of the library. The run does not show which job wrote
+them. In the work folder, the X4 job runs before SUBUP with the same
+`sysut2.bin`.
+
+**The method for step 4, amended.** Two changes, and neither changes a
+1963 program:
+
+- `ct_lib.dart splice` reads the SUBUP tape up to its double file mark
+  only. It does not read the records after the mark, so it does not
+  check their parity.
+- `ct_library.sh` removes `sysut2.bin` before the SUBUP job, so SUBUP
+  writes its library on an empty tape.
+
+The next step: the Mac runs the library job again.
