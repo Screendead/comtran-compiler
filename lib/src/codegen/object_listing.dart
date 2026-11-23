@@ -27,9 +27,6 @@ const int _offsetEnd = 42;
 /// before the operation, and so prints alone (M4-8).
 const int _labelWidth = _operation - _label;
 
-/// [value] as the five octal digits a LOC or address column prints.
-String _octal5(int value) => value.toRadixString(8).padLeft(5, '0');
-
 /// One line with every field at its measured column. An omitted field
 /// prints nothing and takes no column.
 ///
@@ -51,15 +48,6 @@ String _objectListingLine({
   (_offsetEnd - offset.length + 1, offset),
   (_operation, operation),
   (_operand, operand),
-]).trimRight();
-
-/// The `LOC OCTAL CNTRL SYMBOLIC` header, which prints once on the first
-/// object page (M4-8 as amended 2026-08-09).
-String _objectListingHeader() => _line([
-  (1, 'LOC'),
-  (12, 'OCTAL'),
-  (25, 'CNTRL'),
-  (58, 'SYMBOLIC'),
 ]).trimRight();
 
 /// One line with each text placed at its column. A field that has
@@ -144,7 +132,11 @@ String writeObjectListing(
     options,
     id,
     page,
-    header: '$margin${_objectListingHeader()}',
+    // The column header prints once, on the first object page (M4-8 as
+    // amended 2026-08-09).
+    header:
+        margin +
+        _line([(1, 'LOC'), (12, 'OCTAL'), (25, 'CNTRL'), (58, 'SYMBOLIC')]),
   );
   return out.toString();
 }
@@ -186,7 +178,9 @@ List<String> _unit(AssemblyUnit unit, String offset) {
   final int? location = unit.location;
   final int? word = unit.word;
   final int? control = unit.control;
-  final String loc = location == null ? '' : _octal5(location);
+  final String loc = location == null
+      ? ''
+      : location.toRadixString(8).padLeft(5, '0');
   final String octal = word == null ? '' : octalColumn(word, unit.form);
   final String cntrl = control == null ? '' : controlColumn(control);
 
