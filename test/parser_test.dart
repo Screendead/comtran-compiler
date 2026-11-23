@@ -18,16 +18,16 @@ void main() {
     expect(result.diagnostics.single.message.number, '189,00');
     final ParseResult parse = runParser(result);
     // The parser adds 907 on card 2 and — the deck has no STOP RUN —
-    // 175 on the last card (D2.7).
+    // 175 on no card, at 9999,99 (D2.7; J 02.02.01).
     expect(parse.diagnostics.map((Diagnostic d) => d.message.number), [
       '907,00',
       '189,00',
       '175,00',
     ]);
-    expect(parse.diagnostics.map((Diagnostic d) => d.card!.cardNumber), [
+    expect(parse.diagnostics.map((Diagnostic d) => d.card?.cardNumber), [
       2,
       3,
-      3,
+      null,
     ]);
     expect(parse.maxSeverity, 4);
   });
