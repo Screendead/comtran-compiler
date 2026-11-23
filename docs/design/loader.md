@@ -109,6 +109,14 @@ the code generator. `test/layering_test.dart` holds this rule: it walks
 the imports and exports from `lib/src/runtime/machine.dart` and fails on
 a library under `lib/src/codegen/`.
 
+**Amended 2026-11-23 (M7-12, row L2).** A `$CMPLE` job punches its deck
+identification, columns 8 to 12 of the `$CMPLE` card, in columns 73 to
+77 of every deck card, and the serial in 78 to 80. [J 05.05] A states
+both fields. A `*COMPILE` job has no deck name (D7.12), so its serial
+still ends at column 80 and the 90.05 deck does not change. A serial
+past 999 keeps all its digits and covers the end of the deck
+identification. J states no wider form, so that rule is ours.
+
 ## LD-3. Our loader
 
 `lib/src/loader/loader.dart` makes one pass. The 1962 loader's second
@@ -209,6 +217,7 @@ marker line. `emit-stages.md` holds the conventions.
 [J 03.02.03]: ../../comtran-manuals/J28-6169/03-loader.md#c-file-card
 [J 03.02.05]: ../../comtran-manuals/J28-6169/03-loader.md#d-spec-card
 [J 03.02.09]: ../../comtran-manuals/J28-6169/03-loader.md#j-start-card
+[J 05.05]: ../../comtran-manuals/J28-6169/05-systems-operation.md#0505-output-from-system
 [J 90.01.04]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.01.05]: ../../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.03.01]: ../../comtran-manuals/J28-6169/90.03-object-deck-format.md#introduction
