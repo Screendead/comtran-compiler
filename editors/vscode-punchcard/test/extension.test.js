@@ -185,11 +185,6 @@ async function flush() {
   await new Promise((resolve) => setImmediate(resolve));
 }
 
-test('activate registers the new-deck command', () => {
-  freshActivate();
-  assert.ok(registeredCommands.has('comtran.newDeck'));
-});
-
 test('the new-deck command writes a valid one-card deck and opens it', async () => {
   freshActivate();
   const target = vscodeStub.Uri.file(path.join(__dirname, 'fixtures', 'new.ctd'));
