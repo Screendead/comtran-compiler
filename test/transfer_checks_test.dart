@@ -238,56 +238,24 @@ void main() {
       '            $call',
     ];
 
-    test('matching USING and GIVING lists draw nothing', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: section(' USING ARG GIVING T.', 'DO S USING IDX GIVING T.'),
-      );
-      expect(ids(result), isEmpty);
-    });
-
-    test('too many USING arguments draw 72,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: section(' USING ARG.', 'DO S USING IDX, FRAC.'),
-      );
-      expect(ids(result), ['72,00']);
-    });
-
-    test('too few USING arguments draw 73,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: section(' USING ARG, T.', 'DO S USING IDX.'),
-      );
-      expect(ids(result), ['73,00']);
-    });
-
-    test('too many GIVING results draw 74,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: section(' GIVING ARG.', 'DO S GIVING IDX, FRAC.'),
-      );
-      expect(ids(result), ['74,00']);
-    });
-
-    test('too few GIVING results draw 75,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: section(' GIVING ARG, T.', 'DO S GIVING IDX.'),
-      );
-      expect(ids(result), ['75,00']);
-    });
-
-    test('a bare DO of a USING or GIVING section draws nothing '
-        '(F p. 33)', () {
-      // The values already in the parameter and function fields serve;
-      // both clauses are optional on the DO.
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: section(' USING ARG GIVING T.', 'DO S.'),
-      );
-      expect(ids(result), isEmpty);
-    });
+    // The values already in the parameter and function fields serve a
+    // bare DO; both clauses are optional on it (F p. 33).
+    for (final (String declaration, String call, List<String> drawn) in [
+      (' USING ARG GIVING T.', 'DO S USING IDX GIVING T.', <String>[]),
+      (' USING ARG.', 'DO S USING IDX, FRAC.', ['72,00']),
+      (' USING ARG, T.', 'DO S USING IDX.', ['73,00']),
+      (' GIVING ARG.', 'DO S GIVING IDX, FRAC.', ['74,00']),
+      (' GIVING ARG, T.', 'DO S GIVING IDX.', ['75,00']),
+      (' USING ARG GIVING T.', 'DO S.', <String>[]),
+    ]) {
+      test('$call against$declaration draws $drawn', () {
+        final SemanticResult result = runJob(
+          data: _fields(),
+          procedure: section(declaration, call),
+        );
+        expect(ids(result), drawn);
+      });
+    }
 
     test('a statement target declares none, so any USING draws '
         '72,00', () {
@@ -303,53 +271,27 @@ void main() {
   });
 
   group('loop control (M3-20)', () {
-    test('an alphameric FOR index draws 76,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: [
-          "      RTN.        DISPLAY 'A'.",
-          '            DO RTN FOR ALPHA = 1(1)9.',
-        ],
-      );
-      expect(ids(result), ['76,00']);
-      expect(result.semanticDiagnostics.single.operands, ['ALPHA']);
-    });
-
-    test('an alphameric loop parameter draws 77,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: [
-          "      RTN.        DISPLAY 'A'.",
-          '            DO RTN FOR IDX = 1(1)ALPHA.',
-        ],
-      );
-      expect(ids(result), ['77,00']);
-      expect(result.semanticDiagnostics.single.operands, ['ALPHA']);
-    });
-
-    test('a fractional literal loop parameter draws 78,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: [
-          "      RTN.        DISPLAY 'A'.",
-          '            DO RTN FOR IDX = 1(0.5)9.',
-        ],
-      );
-      expect(ids(result), ['78,00']);
-      // NAME.1 is the loop control variable (J 90.04).
-      expect(result.semanticDiagnostics.single.operands, ['IDX']);
-    });
-
-    test('a whole numeric loop control draws nothing', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: [
-          "      RTN.        DISPLAY 'A'.",
-          '            DO RTN FOR IDX = 1(1)ARG.',
-        ],
-      );
-      expect(ids(result), isEmpty);
-    });
+    // NAME.1 of 78,00 is the loop control variable (J 90.04).
+    for (final (String control, List<String> drawn, String? operand) in [
+      ('ALPHA = 1(1)9', ['76,00'], 'ALPHA'),
+      ('IDX = 1(1)ALPHA', ['77,00'], 'ALPHA'),
+      ('IDX = 1(0.5)9', ['78,00'], 'IDX'),
+      ('IDX = 1(1)ARG', <String>[], null),
+    ]) {
+      test('FOR $control draws $drawn', () {
+        final SemanticResult result = runJob(
+          data: _fields(),
+          procedure: [
+            "      RTN.        DISPLAY 'A'.",
+            '            DO RTN FOR $control.',
+          ],
+        );
+        expect(ids(result), drawn);
+        if (operand != null) {
+          expect(result.semanticDiagnostics.single.operands, [operand]);
+        }
+      });
+    }
   });
 
   group('functions (M3-19)', () {
@@ -359,38 +301,24 @@ void main() {
       '            MOVE $call TO T.',
     ];
 
-    test('a name no GIVING clause lists draws 191,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: program('.', 'IDX ((ARG))'),
-      );
-      expect(ids(result), ['191,00']);
-      expect(result.semanticDiagnostics.single.operands, ['IDX']);
-    });
-
-    test('a matching argument count draws nothing', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: program(' GIVING IDX.', 'IDX ((ARG))'),
-      );
-      expect(ids(result), isEmpty);
-    });
-
-    test('too few arguments draw 30,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: program(', FRAC GIVING IDX.', 'IDX ((ARG))'),
-      );
-      expect(ids(result), ['30,00']);
-    });
-
-    test('too many arguments draw 68,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: program(' GIVING IDX.', 'IDX ((ARG, FRAC))'),
-      );
-      expect(ids(result), ['68,00']);
-    });
+    // 191,00 names the function.
+    for (final (String declaration, String call, List<String> drawn) in [
+      ('.', 'IDX ((ARG))', ['191,00']),
+      (' GIVING IDX.', 'IDX ((ARG))', <String>[]),
+      (', FRAC GIVING IDX.', 'IDX ((ARG))', ['30,00']),
+      (' GIVING IDX.', 'IDX ((ARG, FRAC))', ['68,00']),
+    ]) {
+      test('$call against$declaration draws $drawn', () {
+        final SemanticResult result = runJob(
+          data: _fields(),
+          procedure: program(declaration, call),
+        );
+        expect(ids(result), drawn);
+        if (drawn case ['191,00']) {
+          expect(result.semanticDiagnostics.single.operands, ['IDX']);
+        }
+      });
+    }
 
     test('a function is checked as a SET value and as an ADD source', () {
       for (final clause in ['SET T = IDX ((ARG)).', 'ADD IDX ((ARG)) TO T.']) {
