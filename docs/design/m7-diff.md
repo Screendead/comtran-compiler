@@ -2568,6 +2568,10 @@ the procedure parser reports message 175,00 at 9999,99, and the
 `$CMPLE` deck punches its deck name in columns 73 to 77
 (`loader.md` LD-2 as amended).
 
+*Amended 2026-11-23.* Row S8 is fixed on the same answer: the message
+lines and their header take the columns of the scan
+(`m1-front-end.md` M1-18 as amended).
+
 **Two slips in earlier entries, corrected in place.**
 
 - M7-9 put the product `RATE × 40` in 141,00. It is in 142,00

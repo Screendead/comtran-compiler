@@ -687,7 +687,7 @@ void main() {
         options,
         diagnostics: parse.diagnostics,
       ).text;
-      expect(listing, contains('   1,00    3    ILLEGAL SENTENCE STRUCTURE'));
+      expect(listing, contains('     1,00   3    ILLEGAL SENTENCE STRUCTURE'));
     });
 
     test('diagnostics in a one-clause sentence carry clause 01', () {
@@ -708,7 +708,7 @@ void main() {
         options,
         diagnostics: parse.diagnostics,
       ).text;
-      expect(listing, contains('   1,01    3    CONSECUTIVE'));
+      expect(listing, contains('     1,01   3    CONSECUTIVE'));
     });
   });
 

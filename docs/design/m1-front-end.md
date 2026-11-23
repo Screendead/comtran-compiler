@@ -246,6 +246,12 @@ source citation. Amend by updating this file and `decisions.md` together.*
   never the message id (D9.5). The trailer
   `SEVERITY LIMIT WAS NOT REACHED` prints when diagnostics were issued
   and no severity-5 stop occurred; no trailer otherwise (D9.1).
+  *Amended 2026-11-23 (M7-12, row S8).* The block took the columns of
+  the conversion, not of the dump. The scan of PDF p. 181, with the
+  `THE FOLLOWING ERRORS` line at column 1, puts `NUMBER` at column 4
+  and `CODE` at 12. A row ends its statement number at column 9 and
+  prints the code at 13 and the text at 18. The block now prints
+  those columns. A continuation line keeps its indent from the text.
 - **M1-19. Severities** come only from the table in
   `lib/src/lexer/severities.dart` (D9.2); every value is non-historical
   and carries its class justification. Our own messages take ids in the
