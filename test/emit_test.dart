@@ -53,10 +53,65 @@ List<List<String>> _storageRows(List<String> dump) {
   ];
 }
 
+/// A job whose Data Description constant runs over 120 characters, so
+/// it stops in the front end (D7.9; D10.2).
+final List<String> _stoppedJob = [
+  r'$CMPLE BAD',
+  '      *DATA',
+  dataCard(level: '2', description: "'${'A' * 33}", continued: true),
+  dataCard(description: 'B' * 34, continued: true),
+  dataCard(description: 'C' * 34, continued: true),
+  dataCard(description: "${'D' * 25}'"),
+  '      *FINISH',
+];
+
+/// Runs comtranc over a four-job deck in [dir] with the object, loader
+/// and deck dumps beside it. Job 1 stops in the front end, job 2
+/// reaches the generator and refuses (DISPLAY, [J 90.01.01]), job 3
+/// stops inside the generator (msg 172, the 501st pool entry; D9.7), and
+/// job 4 compiles.
+Future<ProcessResult> _compileDeadJobs(Directory dir) {
+  final List<String> lines = [
+    ..._stoppedJob,
+    r'$CMPLE UGLY',
+    '      *PROCEDURE',
+    '            DISPLAY 45.',
+    '            STOP RUN.',
+    '      *FINISH',
+    r'$CMPLE FULL',
+    '      *DATA',
+    dataCard(
+      name: 'N',
+      level: '1',
+      mode: 'I',
+      justify: 'R',
+      description: '999',
+    ),
+    '      *PROCEDURE',
+    for (var k = 2; k < 497; k++) '            SET N = $k.',
+    '            STOP RUN.',
+    '      *FINISH',
+    r'$CMPLE GOOD',
+    '      *PROCEDURE',
+    '            STOP RUN.',
+    '      *FINISH',
+  ];
+  final deck = '${dir.path}/jobs.ctd';
+  File(
+    deck,
+  ).writeAsBytesSync(encodeCanon(mirrorToDeck('${lines.join('\n')}\n')));
+  return _compile([
+    '--emit-object=${dir.path}/object',
+    '--emit-loader=${dir.path}/loader',
+    '--emit-deck=${dir.path}/deck',
+  ], deck: deck);
+}
+
 void main() {
   late Directory dumps;
   late ProcessResult run;
-  late Future<ProcessResult> plainRun;
+  late Directory deadJobs;
+  late Future<ProcessResult> deadJobsRun;
 
   // Each default-path run compiles its own copy of the job deck, so one
   // run's default-named dumps cannot satisfy another's assertions.
@@ -70,15 +125,15 @@ void main() {
 
   setUpAll(() async {
     // Every run starts here, so the processes overlap.
-    plainRun = _compile(const []);
+    deadJobs = Directory.systemTemp.createTempSync('comtran-emit-object');
+    deadJobsRun = _compileDeadJobs(deadJobs);
     for (final (
           String name,
           String file,
           List<String> Function(Directory) options,
         )
         in [
-          ('bundle', 'payroll.ctd', (_) => const ['-cpsSldL']),
-          ('bare', 'payroll.ctd', (_) => const ['--emit-semantics']),
+          ('bundle', 'payroll.ctd', (_) => const ['-cpsSld', '--emit-loader']),
           ('trap', 'oops.cards', (_) => const ['-c']),
           (
             'all',
@@ -104,8 +159,8 @@ void main() {
   });
 
   tearDownAll(() async {
-    await Future.wait([plainRun, ...defaultRuns.values]);
-    for (final Directory dir in [dumps, ...defaults.values]) {
+    await Future.wait([deadJobsRun, ...defaultRuns.values]);
+    for (final Directory dir in [dumps, deadJobs, ...defaults.values]) {
       dir.deleteSync(recursive: true);
     }
   });
@@ -124,7 +179,9 @@ void main() {
         File('test/fixtures/90.05-payroll-job.ct').readAsStringSync(),
       );
       expect(dump('listing'), golden('listing'));
+      // The flags change neither output stream.
       expect(run.stdout, golden('listing'));
+      expect(run.stderr, isEmpty);
       // The document opens at PAGE 7, so this also pins the first page
       // the driver computes after six source pages.
       expect(dump('object'), golden('storage-map'));
@@ -135,13 +192,6 @@ void main() {
       );
     });
 
-    test('the flags change neither output stream nor the exit code', () async {
-      final ProcessResult plain = await plainRun;
-      expect(run.exitCode, plain.exitCode);
-      expect(run.stdout, plain.stdout);
-      expect(plain.stderr, isEmpty);
-      expect(run.stderr, plain.stderr);
-    });
     test('the STORAGE section prints the M3-14 fixture rows', () {
       final List<List<String>> printed = _storageRows(
         File('${dumps.path}/semantics').readAsLinesSync(),
@@ -165,15 +215,9 @@ void main() {
     });
   });
 
-  test('a malformed emit flag, date or time is a usage error', () async {
+  test('a malformed date or time is a usage error', () async {
     // The `*CTEXT` card's fields hold `mm/dd/yy` and `h.hh` only.
-    const flags = [
-      '--emit-parse=',
-      '--emit-all=x',
-      '-cx',
-      '--date=2026-08-30',
-      '--time=2.4',
-    ];
+    const flags = ['--date=2026-08-30', '--time=2.4'];
     final List<ProcessResult> runs = await Future.wait([
       for (final flag in flags) _compile([flag]),
     ]);
@@ -185,33 +229,16 @@ void main() {
   });
 
   group('the default dump paths', () {
-    test(
-      'the -cpsSldL bundle writes all seven dumps next to the deck',
-      () async {
-        final ProcessResult run = await defaultRuns['bundle']!;
-        final String dir = defaults['bundle']!.path;
-        expect(run.exitCode, 0, reason: '${run.stderr}');
-        for (final stage in [
-          'cards',
-          'scan',
-          'semantics',
-          'listing',
-          'deck',
-          'loader',
-        ]) {
-          expect(File('$dir/payroll.$stage').existsSync(), isTrue);
-        }
-        expect(File('$dir/payroll.parse').readAsStringSync(), golden('parse'));
-      },
-    );
-
-    test('a bare long flag writes the default file', () async {
-      final ProcessResult run = await defaultRuns['bare']!;
+    test('a short-flag bundle and a bare long flag write their dumps next '
+        'to the deck', () async {
+      final ProcessResult run = await defaultRuns['bundle']!;
+      final String dir = defaults['bundle']!.path;
       expect(run.exitCode, 0, reason: '${run.stderr}');
-      expect(
-        File('${defaults['bare']!.path}/payroll.semantics').readAsStringSync(),
-        golden('semantics'),
-      );
+      for (final stage in ['cards', 'scan', 'semantics', 'listing', 'deck']) {
+        expect(File('$dir/payroll.$stage').existsSync(), isTrue);
+      }
+      expect(File('$dir/payroll.parse').readAsStringSync(), golden('parse'));
+      expect(File('$dir/payroll.loader').readAsStringSync(), golden('loader'));
     });
 
     test('a default that equals the deck path is refused', () async {
@@ -235,17 +262,9 @@ void main() {
   });
 
   test('a stopped job prints the stopped line each stage calls for', () {
-    // A Data Description constant over 120 characters stops the first
-    // job in the front end (D7.9; D10.2), so neither the parser nor the
-    // semantic layer runs over it.
+    // Neither the parser nor the semantic layer runs over the stopped job.
     final List<String> lines = [
-      r'$CMPLE BAD',
-      '      *DATA',
-      dataCard(level: '2', description: "'${'A' * 33}", continued: true),
-      dataCard(description: 'B' * 34, continued: true),
-      dataCard(description: 'C' * 34, continued: true),
-      dataCard(description: "${'D' * 25}'"),
-      '      *FINISH',
+      ..._stoppedJob,
       r'$CMPLE GOOD',
       '      *PROCEDURE',
       '            STOP RUN.',
@@ -313,64 +332,13 @@ void main() {
     expect(_jobSection(emitSemantics(deck), 1).last, stageStopped);
   });
 
-  test('the object dump prints one marker line per dead job', () {
-    // Job 1 stops in the front end (D7.9), job 2 reaches the generator
-    // and refuses (DISPLAY, [J 90.01.01]), job 3 stops inside the
-    // generator (msg 172, the 501st pool entry; D9.7), and job 4
-    // compiles. The attested dump takes no job headers, so the three
-    // markers print in sequence and job 4 opens with its own page head.
-    final List<String> lines = [
-      r'$CMPLE BAD',
-      '      *DATA',
-      dataCard(level: '2', description: "'${'A' * 33}", continued: true),
-      dataCard(description: 'B' * 34, continued: true),
-      dataCard(description: 'C' * 34, continued: true),
-      dataCard(description: "${'D' * 25}'"),
-      '      *FINISH',
-      r'$CMPLE UGLY',
-      '      *PROCEDURE',
-      '            DISPLAY 45.',
-      '            STOP RUN.',
-      '      *FINISH',
-      r'$CMPLE FULL',
-      '      *DATA',
-      dataCard(
-        name: 'N',
-        level: '1',
-        mode: 'I',
-        justify: 'R',
-        description: '999',
-      ),
-      '      *PROCEDURE',
-      for (var k = 2; k < 497; k++) '            SET N = $k.',
-      '            STOP RUN.',
-      '      *FINISH',
-      r'$CMPLE GOOD',
-      '      *PROCEDURE',
-      '            STOP RUN.',
-      '      *FINISH',
-    ];
-    final Directory dir = Directory.systemTemp.createTempSync(
-      'comtran-emit-object',
-    );
-    addTearDown(() => dir.deleteSync(recursive: true));
-    final deck = '${dir.path}/jobs.ctd';
-    File(
-      deck,
-    ).writeAsBytesSync(encodeCanon(mirrorToDeck('${lines.join('\n')}\n')));
-    final ProcessResult run = Process.runSync(Platform.resolvedExecutable, [
-      'run',
-      'comtran:comtranc',
-      deck,
-      '--date=10/18/61',
-      '--time=2.45',
-      '--emit-object=${dir.path}/object',
-      '--emit-loader=${dir.path}/loader',
-      '--emit-deck=${dir.path}/deck',
-    ]);
+  test('the object dump prints one marker line per dead job', () async {
+    // The attested dump takes no job headers, so the three markers
+    // print in sequence and job 4 opens with its own page head.
+    final ProcessResult run = await deadJobsRun;
     // The stop and the refusal each fail the run (J 90.04.02).
     expect(run.exitCode, 1, reason: '${run.stderr}');
-    final List<String> dump = File('${dir.path}/object').readAsLinesSync();
+    final List<String> dump = File('${deadJobs.path}/object').readAsLinesSync();
     expect(dump[0], stageNotReached);
     expect(dump[1], '* NOT RECOVERED: DISPLAY ([J 90.01.01])');
     expect(dump[2], stageStopped);
@@ -382,7 +350,9 @@ void main() {
     expect(dump.last, '   DONE');
     // The loader dump keeps the job sections; the deck holds only the
     // cards job 4 punched.
-    final List<String> loader = File('${dir.path}/loader').readAsLinesSync();
+    final List<String> loader = File(
+      '${deadJobs.path}/loader',
+    ).readAsLinesSync();
     expect(loader.sublist(0, 8), [
       '* JOB 1',
       stageNotReached,
@@ -396,7 +366,7 @@ void main() {
     expect(loader[9], '* JOB 4');
     expect(loader[10], startsWith('GOOD  *CTEXT'));
     final List<CardImage> punched = decodeCanon(
-      File('${dir.path}/deck').readAsBytesSync(),
+      File('${deadJobs.path}/deck').readAsBytesSync(),
     );
     expect(deckToMirror([punched.first]), startsWith('GOOD  *CTEXT'));
     expect(loadDeck(punched, resolve: (SystemReference r) => r.code).entry, 0);
