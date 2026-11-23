@@ -165,8 +165,25 @@ cards. Jack, 2026-11-21:
 `tool/m7/ct_library.sh` labels them. M7-7 to M7-11 hold the library,
 the 1963 compile, the diffs, and the 1963 run of the corpus.
 **M7 is done (2026-11-22).** M7-12 classifies the 137 differences.
-The queue is empty. Two calls wait on Jack: whether master takes the
-recovery-error fixes, and the erratum below.
+
+Issue #277 asked whether master takes the M7 fixes. Jack, 2026-11-23:
+
+> **Jack's answer:** A · Fix the seven compiler mistakes
+
+The seven are the compiler "recovery error" rows of M7-12.
+
+Issue #278 asked to correct `AND -REDEF-` to the two spaces of the
+p. 182 scan. Jack, 2026-11-23:
+
+> **Jack's answer:** A · Fix it
+
+It is applied.
+
+**The queue:** the seven compiler fixes of issue #277.
+
+**An erratum candidate waits for Jack:** the p. 182 scan prints
+`-GIVING-  PARAMETERS` (two spaces) in 74,00 and 75,00; the conversion
+holds one.
 
 ### Codegen defects the runtime exposed
 
@@ -459,18 +476,11 @@ binds work outside the definition.
   columns; the golden ends at the end-of-text line, and the stage-3 deck
   writer takes the trailer geometry from that entry.
 
-  Thirty-five corrections are authorized and
-  applied. The three most recent, all on
-  2026-09-15, are the three cells of the p. 217 report block. The two
-  before them, both on 2026-09-14, are the p. 217 note
-  with its report block and the p. 100 note on the six TABLE cards. The
-  one before those, on 2026-09-06, is the `*SPEC  06`
-  character on
-  PDF p. 198 above. The two before that, on 2026-08-10, are chunk A8's blank counts;
-  the three before those are chunk A7's blank counts, also 2026-08-10; the three before those are chunk A6's two blank counts and its
-  one content correction, also 2026-08-10; the three before those are chunk
-  A5's object-page blank counts, also 2026-08-10; the seven before those,
-  on 2026-08-09, are the
+  Thirty-six corrections are authorized and
+  applied: `AND  -REDEF-` on p. 182 (2026-11-23); three report-block cells of p. 217 (2026-09-15); the
+  p. 217 note and the p. 100 TABLE note (2026-09-14); `*SPEC  06` on
+  p. 198 (2026-09-06); the blank counts of chunks A5 to A8, with one
+  content correction in A6 (2026-08-10); and, on 2026-08-09, seven
   object-page blank counts above. The eleventh, also on 2026-08-09, corrected the
   object listing's
   column header on line 674, the only such header in the file. It held
