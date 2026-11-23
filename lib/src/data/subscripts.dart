@@ -208,7 +208,9 @@ final class SubscriptChecker {
   /// reports the cap through [walk], the pass that holds the clause. A
   /// CORRESPONDING pair counts its field under its group's subscripts:
   /// "The compiler simply appends the designated subscript to the
-  /// generated instructions" (J 02.04.05; M6-9).
+  /// generated instructions" (J 02.04.05; M6-9). The legality checker
+  /// counts those after resolution, so they number after every written
+  /// indicator.
   void countIndicator(
     DataItem array,
     NameReference reference,
@@ -267,9 +269,7 @@ final class SubscriptChecker {
       '${operator.text}${_notation(operand)}',
     TruthExpr(:final word) => word.text,
     FunctionCall(:final function, :final arguments) =>
-      '${function.text}((${_joined(arguments)}))',
+      '${function.text}'
+          '((${arguments.map((NameReference each) => each.text).join(',')}))',
   };
-
-  String _joined(List<NameReference> references) =>
-      references.map((NameReference each) => each.text).join(',');
 }
