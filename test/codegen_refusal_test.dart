@@ -1091,7 +1091,7 @@ void main() {
         dataCard(name: 'G11', level: '2', description: 'A(5)'),
       ];
       test('in a whole-word read, which drops the byte', () {
-        // The DO FOR steps the byte now; `CAS 0,r` cannot read it.
+        // The DO FOR steps the byte; `CAS 0,r` cannot read it.
         expect(
           _refuses([
             '            DO RTN FOR IDX = 1(1)12.',

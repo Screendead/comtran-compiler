@@ -1141,17 +1141,8 @@ void main() {
     List<String> chain(String statement) {
       final SemanticResult semantics = runJob(
         data: [
-          for (final (String name, String picture) in [
-            ('NUM', '999'),
-            ('FRAC', '9V9'),
-          ])
-            dataCard(
-              name: name,
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: picture,
-            ),
+          internalCard('NUM', '999'),
+          internalCard('FRAC', '9V9'),
           dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
           dataCard(name: 'EXM', level: '1', mode: 'E', description: '99R'),
         ],
@@ -1273,18 +1264,9 @@ void main() {
     List<String> chain(String statement) {
       final SemanticResult semantics = runJob(
         data: [
-          for (final (String name, String picture) in [
-            ('NUM', '999'),
-            ('FRC', '9V99'),
-            ('FR3', '9V999'),
-          ])
-            dataCard(
-              name: name,
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: picture,
-            ),
+          internalCard('NUM', '999'),
+          internalCard('FRC', '9V99'),
+          internalCard('FR3', '9V999'),
           dataCard(name: 'EXA', level: '1', mode: 'E', description: '99999V99'),
           dataCard(name: 'EXB', level: '1', mode: 'E', description: '999V99'),
           dataCard(name: 'NET', level: '1', description: r'$88889.99-'),
@@ -1563,14 +1545,8 @@ void main() {
       final SemanticResult semantics = runJob(
         data: [
           dataCard(name: 'TAB', level: '1', quantity: '12'),
-          for (final String name in ['CELL', 'NUM'])
-            dataCard(
-              name: name,
-              level: name == 'CELL' ? '2' : '1',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+          internalCard('CELL', '999', level: '2'),
+          internalCard('NUM', '999'),
           dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
           dataCard(name: 'EXM', level: '1', mode: 'E', description: '9R'),
         ],

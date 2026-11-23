@@ -84,7 +84,7 @@ void main() {
   });
 
   group('CORRESPONDING (D4.12; J 02.04.04)', () {
-    test('pairs match at the lowest level and are recorded for M4', () {
+    test('pairs match at the lowest level', () {
       final SemanticResult result = runJob(
         data: _exampleA(),
         procedure: ['            MOVE CORRESPONDING DATA.1 TO DATA.2.'],
