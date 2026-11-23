@@ -182,13 +182,13 @@ holds the other compiler fixes of M7-12, one item for each finding:
 
 1. The temporaries of `f-payroll-j`: park in `RS)`, not `TS)`
    ([J 90.02.03]).
-2. The columns of the message lines (the scan of PDF p. 181).
 
 Done on 2026-11-23: `NO -STOP RUN- IN PROGRAM.` prints at 9999,99
-([J 02.02.01]), and a `$CMPLE` deck punches its deck name in columns
-73 to 77 ([J 05.05] A; LD-2 as amended). The code comes first when
-`*PROCEDURE` comes first, and the entry point of `f-payroll` is 00000
-([J 90.02.01]; M4-4 as amended by M7-12).
+([J 02.02.01]); a `$CMPLE` deck punches its deck name in columns
+73 to 77 ([J 05.05] A; LD-2 as amended); the message lines take
+the columns of the scan of PDF p. 181 (M1-18 as amended); and the code
+comes first when `*PROCEDURE` comes first, so the entry point of
+`f-payroll` is 00000 ([J 90.02.01]; M4-4 as amended by M7-12).
 
 The fixes of the runtime library stay out (Jack's answer above).
 

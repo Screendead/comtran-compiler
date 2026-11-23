@@ -2013,7 +2013,7 @@ void main() {
       final ProcessResult run = await bands;
       for (final MapEntry(key: int severity, value: (_, String message))
           in _bands.entries) {
-        expect(run.stdout, contains('    $severity    $message'));
+        expect(run.stdout, contains('   $severity    $message'));
       }
       // Only severity 5 fails the process (D11.2).
       expect(run.exitCode, 0, reason: '${run.stderr}');

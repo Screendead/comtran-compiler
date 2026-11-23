@@ -2568,6 +2568,10 @@ the procedure parser reports message 175,00 at 9999,99, and the
 `$CMPLE` deck punches its deck name in columns 73 to 77
 (`loader.md` LD-2 as amended).
 
+*Amended 2026-11-23.* Row S8 is fixed on the same answer: the message
+lines and their header take the columns of the scan
+(`m1-front-end.md` M1-18 as amended).
+
 *Amended 2026-11-23.* Rows B4 (the order and the entry point) and O5
 are fixed on Jack's answer to issue #277. This amends M4-4
 (`m4-codegen.md`), whose word budget is locked. Location Counter 0
