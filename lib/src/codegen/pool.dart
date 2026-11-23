@@ -103,7 +103,7 @@ final class ConstantPool {
 
   /// A seed's handle. The entries exist from construction; this only
   /// names one for a machinery reference (the zero build, the truth
-  /// function's true value, the DO FOR unit bounds).
+  /// function's true value).
   PoolHandle seed(int value) {
     assert(value == 0 || value == 1, 'only 0 and 1 are seeded');
     return PoolHandle._(SubPool.literals, value);
@@ -154,7 +154,10 @@ final class ConstantPool {
   PoolLayout layout() {
     final rows = <PoolRow>[
       for (final MapEntry<int, (int, int)> e
-          in _literals.entries.toList()..sort(_literalOrder))
+          // Seeds first, written literals by source position, strides
+          // last: the three position-marker zones.
+          in _literals.entries.toList()
+            ..sort((a, b) => a.value.compareTo(b.value)))
         (
           subPool: SubPool.literals,
           key: e.key,
@@ -187,13 +190,6 @@ final class ConstantPool {
       for (var i = 0; i < rows.length; i++) (rows[i].subPool, rows[i].key): i,
     });
   }
-
-  /// Seeds first, written literals by source position, strides last —
-  /// the three position-marker zones.
-  static int _literalOrder(
-    MapEntry<int, (int, int)> a,
-    MapEntry<int, (int, int)> b,
-  ) => a.value.compareTo(b.value);
 }
 
 extension on (int, int) {
