@@ -6,6 +6,7 @@ library;
 import 'package:comtran/comtran_io.dart';
 import 'package:test/test.dart';
 
+import '../support/deck_fixtures.dart';
 import 'runtime_support.dart';
 
 void main() {
@@ -355,6 +356,73 @@ void main() {
       );
       expect(cycled.state.read(targetArea), characters('ZZABCD'));
       expect(cycled.state.read(targetArea + 1), characters('EFABZZ'));
+    });
+  });
+
+  group('a compiled program reaches the members (M4-17)', () {
+    test('the movers write their characters into storage', () {
+      // `SRC` sits at byte 2 of its group, so every mover here crosses a
+      // word boundary. HIGH.VALUE is the native `(` (D8.1).
+      final (JobCompilation job, Machine subject) = compiled(<String>[
+        '      *DATA',
+        dataCard(name: 'G', level: '1'),
+        dataCard(name: 'PAD', level: '2', description: 'A(2)'),
+        dataCard(name: 'SRC', level: '2', description: 'A(6)'),
+        dataCard(name: 'TGT', level: '1', description: 'A(6)'),
+        dataCard(name: 'WIDE', level: '1', description: 'A(12)'),
+        dataCard(name: 'ZED', level: '1', description: 'A(8)'),
+        '      *PROCEDURE',
+        '      START.  MOVE HIGH.VALUE TO SRC,',
+        '            MOVE SRC TO TGT,',
+        '            MOVE SRC TO WIDE,',
+        '            MOVE ZEROS TO ZED,',
+        '            MOVE BLANKS TO PAD.',
+        '            STOP RUN.',
+        '      *FINISH',
+      ]);
+      final int group = addressOf(job, 'G');
+      final int wide = addressOf(job, 'WIDE');
+      expect(subject.state.read(group), characters('  (((('));
+      expect(subject.state.read(group + 1), characters('((0000'));
+      expect(subject.state.read(addressOf(job, 'TGT')), characters('(((((('));
+      expect(subject.state.read(wide), characters('(((((('));
+      expect(subject.state.read(wide + 1), characters('      '));
+      expect(subject.state.read(addressOf(job, 'ZED')), characters('000000'));
+    });
+
+    test('the converts leave their values in internal-decimal fields', () {
+      // A literal into a group primes each numeric subfield: the group is
+      // alphameric, so the move is the in-line mask insert.
+      final (JobCompilation job, Machine subject) = compiled(<String>[
+        '      *DATA',
+        dataCard(name: 'G1', level: '1'),
+        dataCard(name: 'EXT', level: '2', mode: 'E', description: '999'),
+        dataCard(name: 'G2', level: '1'),
+        dataCard(name: 'EDT', level: '2', description: '8,889'),
+        dataCard(
+          name: 'NUM',
+          level: '1',
+          mode: 'I',
+          justify: 'R',
+          description: '999',
+        ),
+        dataCard(
+          name: 'TOT',
+          level: '1',
+          mode: 'I',
+          justify: 'R',
+          description: '9999',
+        ),
+        '      *PROCEDURE',
+        "      START.  MOVE '123' TO G1,",
+        "            MOVE '1,234' TO G2,",
+        '            MOVE EXT TO NUM,',
+        '            ADD EDT TO TOT.',
+        '            STOP RUN.',
+        '      *FINISH',
+      ]);
+      expect(subject.state.read(addressOf(job, 'NUM')), 123);
+      expect(subject.state.read(addressOf(job, 'TOT')), 1234);
     });
   });
 }
