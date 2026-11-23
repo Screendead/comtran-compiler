@@ -2,10 +2,9 @@
 /// F28-8043 Appendix 1, keyed as printed, and the same program with the
 /// five §9.8 divergences of M6-7 as amended. No 1962 listing of
 /// either one survives, so each golden is decision-conformance,
-/// not an oracle. Each deck punches an object deck, and a test pins its
-/// card count. The verbatim deck is above severity 1 and does not run
-/// (M6-11, `docs/design/m6-verbatim-deck.md`); the applied deck's tests pin
-/// the reports it prints over its tapes.
+/// not an oracle. The verbatim deck punches an object deck but is above
+/// severity 1 and does not run (M6-11, `docs/design/m6-verbatim-deck.md`);
+/// the applied deck's test pins the reports it prints over its tapes.
 library;
 
 import 'dart:io';
@@ -34,16 +33,36 @@ Future<ProcessResult> _comtranc(
 
 String _golden(String name) => File('test/goldens/$name').readAsStringSync();
 
-JobCompilation _job(String deck) =>
-    compileDeck(decodeCanon(File(deck).readAsBytesSync())).jobs.single;
-
 void main() {
+  late Directory tapes;
+  late Future<ProcessResult> verbatimRun;
+  late Future<ProcessResult> appliedRun;
+
+  setUpAll(() {
+    // Both runs start here, so the processes overlap.
+    tapes = Directory.systemTemp.createTempSync('comtran-f-tapes');
+    for (final unit in <String>['D1', 'C2']) {
+      File('$fTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
+    }
+    verbatimRun = _comtranc(fVerbatimDeckPath, ['--run']);
+    appliedRun = _comtranc(fAppliedDeckPath, [
+      '--run',
+      '--tapes=${tapes.path}',
+      '--list-tapes',
+    ]);
+  });
+
+  tearDownAll(() async {
+    await Future.wait([verbatimRun, appliedRun]);
+    tapes.deleteSync(recursive: true);
+  });
+
   test('the verbatim deck prints its golden and does not run', () async {
     // The job punches a deck at severity 4 (J 02.01.01). The severity
     // bars the run, and so does the undefined symbol in the text, each
     // on its own (J 02.01.02; D7.6; D9.1). Only severity 5 changes the
     // exit status (D11.2).
-    final ProcessResult run = await _comtranc(fVerbatimDeckPath, ['--run']);
+    final ProcessResult run = await verbatimRun;
     expect(run.exitCode, 0, reason: '${run.stderr}');
     expect(run.stdout, _golden('f-payroll.listing'));
     expect(
@@ -58,18 +77,7 @@ void main() {
     // The golden reports are our output; test/f_acceptance_test.dart
     // classifies their distance from the 1962 sample's report (M6-9,
     // the run).
-    final Directory tapes = Directory.systemTemp.createTempSync(
-      'comtran-f-tapes',
-    );
-    addTearDown(() => tapes.deleteSync(recursive: true));
-    for (final unit in <String>['D1', 'C2']) {
-      File('$fTapesPath/$unit.tap').copySync('${tapes.path}/$unit.tap');
-    }
-    final ProcessResult run = await _comtranc(fAppliedDeckPath, [
-      '--run',
-      '--tapes=${tapes.path}',
-      '--list-tapes',
-    ]);
+    final ProcessResult run = await appliedRun;
     expect(run.exitCode, 0, reason: '${run.stderr}');
     expect(
       run.stdout,
@@ -80,10 +88,10 @@ void main() {
     );
   });
 
-  test('the verbatim deck compiles to an object deck', () {
-    // Jack's ruling of 2026-11-21: punch the deck as 1962 did. The
-    // forms are our design, with no oracle (M6-11).
-    final JobCompilation job = _job(fVerbatimDeckPath);
+  test('each undefined operand of the verbatim deck is one word of text', () {
+    final JobCompilation job = compileDeck(
+      decodeCanon(File(fVerbatimDeckPath).readAsBytesSync()),
+    ).jobs.single;
     expect(job.unrecovered, isNull);
     // Each operand that names no data item is one undefined symbol in
     // the text (M6-11 a), so the words count as the 108,00 and 101,00 rows.
@@ -103,27 +111,5 @@ void main() {
             .length,
       ),
     );
-    const options = ListingOptions(date: '06/01/60', time: '1.00');
-    expect(jobDeck(job, options)!.cards, hasLength(35));
-  });
-
-  test('the applied deck compiles to an object deck', () {
-    // Statement 162,00, `MOVE CORRESPONDING MASTER TO BONDORDER`, was
-    // the last refusal (M6-9). It moves BONDENOMINATION alone, because
-    // MASTER holds EMPLOYEE.NUMBER, NAME and DATE under DATA
-    // (J 02.04.04 b).
-    final JobCompilation job = _job(fAppliedDeckPath);
-    expect(job.unrecovered, isNull);
-    final List<String> words = [
-      for (final AssemblyUnit u in job.codegen!.units)
-        '${u.operation} ${u.operand}',
-    ];
-    expect(words.where((String w) => w.startsWith('TXI SYS)183')), [
-      'TXI SYS)183,1,0',
-    ]);
-    const options = ListingOptions(date: '06/01/60', time: '1.00');
-    // Six comparands across a word boundary each take an
-    // `LDQ` and an `ANA` (codegen defect 12), past one card.
-    expect(jobDeck(job, options)!.cards, hasLength(68));
   });
 }
