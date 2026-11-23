@@ -50,11 +50,12 @@ String _refuses(
   List<String> environment = const [],
   List<String> flagged = const [],
   List<String>? frontEnd,
+  List<String> tail = _tail,
 }) {
   final SemanticResult semantics = runJob(
     data: data ?? _data(),
     environment: environment,
-    procedure: [...statements, ..._tail],
+    procedure: [...statements, ...tail],
   );
   expect(ids(semantics), flagged, reason: 'the program must reach the sizers');
   expect(semantics.stopped, isFalse);
@@ -1241,45 +1242,26 @@ void main() {
     test('a label bound to no word', () {
       // NOTE emits no word, so a trailing labelled NOTE never reaches
       // the binder; no _tail, whose words would take the label.
-      final SemanticResult semantics = runJob(
-        data: _data(),
-        procedure: [
+      expect(
+        _refuses([
           '            GO TO X.',
           '            STOP RUN.',
           '      X.    NOTE DONE.',
-        ],
+        ], tail: const []),
+        'a label bound to no word (no sample instance)',
       );
-      expect(ids(semantics), isEmpty);
-      expect(semantics.stopped, isFalse);
-      try {
-        runCodegen(semantics);
-        fail('generated code without refusing');
-      } on UnrecoveredShape catch (refusal) {
-        expect(refusal.shape, 'a label bound to no word (no sample instance)');
-      }
     });
 
     test('a procedure open at the end of the text', () {
       // No _tail here: its label would close the paragraph.
-      final SemanticResult semantics = runJob(
-        data: _data(),
-        procedure: [
+      expect(
+        _refuses([
           '            DO PARA.',
           '            STOP RUN.',
           '      PARA.  SET NUM = NUM + NUM.',
-        ],
+        ], tail: const []),
+        'a procedure open at the end of the text (no sample instance)',
       );
-      expect(ids(semantics), isEmpty);
-      expect(semantics.stopped, isFalse);
-      try {
-        runCodegen(semantics);
-        fail('generated code without refusing');
-      } on UnrecoveredShape catch (refusal) {
-        expect(
-          refusal.shape,
-          'a procedure open at the end of the text (no sample instance)',
-        );
-      }
     });
   });
 
