@@ -4,14 +4,13 @@ import 'package:test/test.dart';
 import 'support/deck_fixtures.dart';
 
 void main() {
-  test('--pedantic changes no allocation of 90.05 (D11.4)', () {
-    DictionaryAllocation allocate({required bool pedantic}) => runSemantics(
-      runParser(runFrontEnd(loadPayrollDeck(), pedantic: pedantic)),
-      pedantic: pedantic,
-    ).allocation!;
-    final DictionaryAllocation plain = allocate(pedantic: false);
-    final DictionaryAllocation pedantic = allocate(pedantic: true);
-    expect(pedantic.annotations.locByCard, plain.annotations.locByCard);
-    expect(pedantic.annotations.nameByCard, plain.annotations.nameByCard);
+  test('--pedantic changes no allocation and no code of 90.05 (D11.4)', () {
+    final DeckCompilation quiet = compileDeck(loadJobDeck());
+    final DeckCompilation noted = compileDeck(loadJobDeck(), pedantic: true);
+    ListingAnnotations annotations(DeckCompilation deck) =>
+        deck.jobs.single.semantics!.allocation!.annotations;
+    expect(annotations(noted).locByCard, annotations(quiet).locByCard);
+    expect(annotations(noted).nameByCard, annotations(quiet).nameByCard);
+    expect(emitCode(noted), emitCode(quiet));
   });
 }

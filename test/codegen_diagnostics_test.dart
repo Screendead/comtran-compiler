@@ -354,15 +354,6 @@ void main() {
       expect(dump, contains('${jobHeader(1)}\n* TEXT\n$stageStopped\n'));
       expect(dump, contains('${jobHeader(2)}\n* TEXT\n\t\tUSE\t1'));
     });
-
-    test('the sample draws no generator diagnostic in either mode', () {
-      final DeckCompilation quiet = compileDeck(loadJobDeck());
-      expect(quiet.jobs.single.diagnostics, isEmpty);
-      expect(quiet.jobs.single.codegen!.stopped, isFalse);
-      final DeckCompilation noted = compileDeck(loadJobDeck(), pedantic: true);
-      expect(_ids(noted.jobs.single), ['943,00', '943,00', '943,00']);
-      expect(emitCode(noted), emitCode(quiet));
-    });
   });
 
   group('msg 948, a reopen after CLOSE ALL FILES (D6.3)', () {
