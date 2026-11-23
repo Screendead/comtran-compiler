@@ -5,9 +5,6 @@
 /// *n* (1–35) is bit `35 - n` (22-6528-4 p. 7, external).
 // ignore: avoid_classes_with_only_static_members, reason: Word36 is a namespace of bit-field helpers over a plain int word (LNT-10); top-level names this generic (sign, tag, count, address) would collide with local identifiers in the emulator.
 abstract final class Word36 {
-  /// Bits per storage word.
-  static const int bits = 36;
-
   /// Mask of a full 36-bit word (S, 1–35).
   static const int wordMask = (1 << 36) - 1;
 
