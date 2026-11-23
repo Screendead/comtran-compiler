@@ -187,8 +187,6 @@ export class PunchcardEditorProvider
     return document.backup(context.destination, cancellation);
   }
 
-  // --- messages -----------------------------------------------------------
-
   private onMessage(
     document: PunchcardDocument,
     panel: vscode.WebviewPanel,
@@ -267,8 +265,6 @@ export class PunchcardEditorProvider
       cursor: Math.min(column + 1, COLUMN_COUNT),
     });
   }
-
-  // --- webview updates ----------------------------------------------------
 
   private refresh(document: PunchcardDocument, change: DeckChange): void {
     for (const panel of this.panelsByDocument.get(document) ?? []) {
@@ -372,8 +368,6 @@ export class PunchcardEditorProvider
     }
     return Math.max(0, Math.min(Math.trunc(index), document.cardCount - 1));
   }
-
-  // --- html ---------------------------------------------------------------
 
   private async html(): Promise<string> {
     const nonce = nonceOf();

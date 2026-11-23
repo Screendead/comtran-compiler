@@ -37,11 +37,6 @@ export function copyCard(card: Card): Card {
   return Uint16Array.from(card);
 }
 
-/** Whether no column of `card` is punched. */
-export function isBlankCard(card: Card): boolean {
-  return card.every((c) => c === 0);
-}
-
 /** Throws when `card` is not 80 columns of 12-bit values. */
 export function checkCard(card: Card): void {
   if (card.length !== COLUMN_COUNT) {

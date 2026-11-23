@@ -1,6 +1,6 @@
 /// The website's browser entry point.
 ///
-/// `tool/build_web.dart` compiles this file to `web/main.dart.js`. It
+/// `tool/build_web.dart` compiles this file to `web/main.wasm`. It
 /// crosses the JavaScript boundary and does nothing else: every decision
 /// about what to compile and what to print lives in
 /// `lib/src/web/web_compile.dart`, which `test/web_compile_test.dart` holds
