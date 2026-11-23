@@ -23,13 +23,7 @@ List<String> _fields() => [
   dataCard(name: 'ALPHA', level: '1', description: 'A(4)'),
   dataCard(name: 'ALPHA2', level: '1', description: 'A(4)'),
   dataCard(name: 'EXTNUM', level: '1', mode: 'E', description: '999'),
-  dataCard(
-    name: 'INTNUM',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
+  internalCard('INTNUM', '999'),
   dataCard(name: 'EDIT', level: '1', description: '8889.99'),
 ];
 
@@ -274,13 +268,7 @@ void main() {
       final SemanticResult result = runJob(
         data: [
           ..._fields(),
-          dataCard(
-            name: 'CNT',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '99',
-          ),
+          internalCard('CNT', '99'),
           dataCard(name: 'VGROUP', level: '1'),
           dataCard(
             name: 'VAR',
@@ -395,13 +383,7 @@ void main() {
     test('a figurative constant moved to a variable length field '
         'draws 180,00', () {
       final List<String> data = [
-        dataCard(
-          name: 'CNT',
-          level: '1',
-          mode: 'I',
-          justify: 'R',
-          description: '99',
-        ),
+        internalCard('CNT', '99'),
         dataCard(name: 'VGROUP', level: '1'),
         dataCard(
           name: 'VAR',

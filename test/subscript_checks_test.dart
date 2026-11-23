@@ -13,30 +13,12 @@ import 'support/deck_fixtures.dart';
 /// numeric MOVE target.
 List<String> _fields() => [
   dataCard(name: 'TAB', level: '1', quantity: '12'),
-  dataCard(
-    name: 'CELL',
-    level: '2',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
-  dataCard(name: 'IDX', level: '1', mode: 'I', justify: 'R', description: '99'),
-  dataCard(
-    name: 'FRAC',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '9V9',
-  ),
+  internalCard('CELL', '999', level: '2'),
+  internalCard('IDX', '99'),
+  internalCard('FRAC', '9V9'),
   dataCard(name: 'EXT', level: '1', mode: 'E', description: '99'),
   dataCard(name: 'ALPHA', level: '1', description: 'A(4)'),
-  dataCard(
-    name: 'NUM',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
+  internalCard('NUM', '999'),
 ];
 
 SemanticResult _move(String subscripted) => runJob(
@@ -88,16 +70,7 @@ void main() {
         '            END S.',
         '            $clause',
       ];
-      List<String> fields() => [
-        ..._fields(),
-        dataCard(
-          name: 'FN',
-          level: '1',
-          mode: 'I',
-          justify: 'R',
-          description: '99',
-        ),
-      ];
+      List<String> fields() => [..._fields(), internalCard('FN', '99')];
 
       test('a declared function draws 71,00 alone', () {
         final SemanticResult result = runJob(
@@ -276,13 +249,7 @@ void main() {
       final List<String> fields = [
         ..._fields(),
         dataCard(name: 'TAB2', level: '1', quantity: '12'),
-        dataCard(
-          name: 'CELL2',
-          level: '2',
-          mode: 'I',
-          justify: 'R',
-          description: '999',
-        ),
+        internalCard('CELL2', '999', level: '2'),
       ];
       // 45 literals shared by two arrays makes 90 distinct pairs: an
       // array-only key collapses each array to one entry, and a

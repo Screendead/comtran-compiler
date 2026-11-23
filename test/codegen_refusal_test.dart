@@ -14,41 +14,17 @@ import 'support/deck_fixtures.dart';
 /// and a condition name.
 List<String> _data() => [
   dataCard(name: 'TAB', level: '1', quantity: '12'),
-  dataCard(
-    name: 'CELL',
-    level: '2',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
+  internalCard('CELL', '999', level: '2'),
   dataCard(name: 'ATAB', level: '1', quantity: '12'),
   dataCard(name: 'ACEL', level: '2', description: 'A(6)'),
   dataCard(name: 'ALF', level: '1', description: 'A(6)'),
   dataCard(name: 'LONG', level: '1', description: 'A(12)'),
   dataCard(name: 'SEVEN', level: '1', description: 'A(7)'),
-  dataCard(name: 'IDX', level: '1', mode: 'I', justify: 'R', description: '99'),
-  dataCard(name: 'IDY', level: '1', mode: 'I', justify: 'R', description: '99'),
-  dataCard(
-    name: 'NUM',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
-  dataCard(
-    name: 'TOT',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
-  dataCard(
-    name: 'FRAC',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '9V9',
-  ),
+  internalCard('IDX', '99'),
+  internalCard('IDY', '99'),
+  internalCard('NUM', '999'),
+  internalCard('TOT', '999'),
+  internalCard('FRAC', '9V9'),
   dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
   dataCard(name: 'FLT', level: '1', mode: 'I', description: '9.9F9'),
   dataCard(name: 'EDT', level: '1', description: r'$889.99'),
@@ -306,16 +282,7 @@ void main() {
       expect(
         _refuses(
           ['            MOVE BIG TO EDT.'],
-          data: [
-            ..._data(),
-            dataCard(
-              name: 'BIG',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '9(9)',
-            ),
-          ],
+          data: [..._data(), internalCard('BIG', '9(9)')],
         ),
         'an aligned move of more than 10 digits (no sample instance)',
       );
@@ -704,13 +671,7 @@ void main() {
             ..._data(),
             dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
             dataCard(name: 'XTAB', level: '1', quantity: '12'),
-            dataCard(
-              name: 'XCEL',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+            internalCard('XCEL', '999', level: '2'),
           ],
           flagged: ['206,00'],
         ),
@@ -731,13 +692,7 @@ void main() {
             ..._data(),
             dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
             dataCard(name: 'XTAB', level: '1', quantity: '12'),
-            dataCard(
-              name: 'XCEL',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+            internalCard('XCEL', '999', level: '2'),
           ],
           flagged: ['206,00'],
         ),
@@ -883,16 +838,7 @@ void main() {
       expect(
         _refuses(
           ['            IF FRAC GT BIG THEN STOP RUN.'],
-          data: [
-            ..._data(),
-            dataCard(
-              name: 'BIG',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '9(10)',
-            ),
-          ],
+          data: [..._data(), internalCard('BIG', '9(10)')],
         ),
         'an aligned comparand of more than 10 digits (no sample instance)',
       );
@@ -902,16 +848,7 @@ void main() {
       expect(
         _refuses(
           ['            IF BIG * BIG GT 1 THEN STOP RUN.'],
-          data: [
-            ..._data(),
-            dataCard(
-              name: 'BIG',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '9(6)',
-            ),
-          ],
+          data: [..._data(), internalCard('BIG', '9(6)')],
         ),
         'an expression comparand of more than 10 digits (no sample instance)',
       );
@@ -987,36 +924,12 @@ void main() {
           ['            SET NUM = FA + FB + FC.'],
           data: [
             dataCard(name: 'R1', level: '1', type: 'RECORD'),
-            dataCard(
-              name: 'FA',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+            internalCard('FA', '999', level: '2'),
             dataCard(name: 'R2', level: '1', type: 'RECORD'),
-            dataCard(
-              name: 'FB',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+            internalCard('FB', '999', level: '2'),
             dataCard(name: 'R3', level: '1', type: 'RECORD'),
-            dataCard(
-              name: 'FC',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
-            dataCard(
-              name: 'NUM',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+            internalCard('FC', '999', level: '2'),
+            internalCard('NUM', '999'),
           ],
           environment: [
             environmentCard(
@@ -1343,13 +1256,7 @@ void main() {
           data: [
             ..._data(),
             dataCard(name: 'LREC', level: '1', type: 'RECORD'),
-            dataCard(
-              name: 'LIDX',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '99',
-            ),
+            internalCard('LIDX', '99', level: '2'),
           ],
           environment: [
             environmentCard(
@@ -1369,13 +1276,7 @@ void main() {
       final List<String> data = [
         ..._data(),
         dataCard(name: 'T11', level: '1', quantity: '12'),
-        dataCard(
-          name: 'F11',
-          level: '2',
-          mode: 'I',
-          justify: 'R',
-          description: '999',
-        ),
+        internalCard('F11', '999', level: '2'),
         dataCard(name: 'G11', level: '2', description: 'A(5)'),
       ];
       test('in a whole-word read, which drops the byte', () {
@@ -1815,13 +1716,7 @@ void main() {
               mode: 'E',
               description: '99999999999',
             ),
-            dataCard(
-              name: 'WIDEI',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '99999999999',
-            ),
+            internalCard('WIDEI', '99999999999'),
           ],
         ),
         'an external-decimal convert of more than 10 digits (RT-4)',
@@ -1832,16 +1727,7 @@ void main() {
       expect(
         _refuses(
           ['            MOVE EXT TO WIDEI.'],
-          data: [
-            ..._data(),
-            dataCard(
-              name: 'WIDEI',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '99999999999',
-            ),
-          ],
+          data: [..._data(), internalCard('WIDEI', '99999999999')],
         ),
         'an external-decimal convert of more than 10 digits (RT-4)',
       );
@@ -1871,13 +1757,7 @@ void main() {
           ['            MOVE WIDEI TO WIDEDT.'],
           data: [
             ..._data(),
-            dataCard(
-              name: 'WIDEI',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '9(12)',
-            ),
+            internalCard('WIDEI', '9(12)'),
             dataCard(name: 'WIDEDT', level: '1', description: '8889.99'),
           ],
         ),
@@ -1965,27 +1845,9 @@ void main() {
           ],
           data: [
             dataCard(name: 'TAB', level: '1', quantity: '12'),
-            dataCard(
-              name: 'ITEM',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '99',
-            ),
-            dataCard(
-              name: 'SUB',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '99',
-            ),
-            dataCard(
-              name: 'OUT',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '99',
-            ),
+            internalCard('ITEM', '99', level: '2'),
+            internalCard('SUB', '99'),
+            internalCard('OUT', '99'),
           ],
         ),
         'a table base ahead of address zero (no sample instance)',
@@ -2000,13 +1862,7 @@ List<String> _records() => [
   dataCard(name: 'FLD', level: '2', description: 'A(6)'),
   dataCard(name: 'OREC', level: '1', type: 'RECORD'),
   dataCard(name: 'OFLD', level: '2', description: 'A(6)'),
-  dataCard(
-    name: 'NUM',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
+  internalCard('NUM', '999'),
 ];
 
 String _input() => environmentCard(

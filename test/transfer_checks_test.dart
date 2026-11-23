@@ -12,17 +12,11 @@ import 'support/deck_fixtures.dart';
 /// A right-justified internal index, a fractional one, an alphameric
 /// field, and two numeric fields for the operand slots.
 List<String> _fields() => [
-  dataCard(name: 'IDX', level: '1', mode: 'I', justify: 'R', description: '99'),
-  dataCard(
-    name: 'FRAC',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '9V9',
-  ),
+  internalCard('IDX', '99'),
+  internalCard('FRAC', '9V9'),
   dataCard(name: 'ALPHA', level: '1', description: 'A(4)'),
-  dataCard(name: 'ARG', level: '1', mode: 'I', justify: 'R', description: '99'),
-  dataCard(name: 'T', level: '1', mode: 'I', justify: 'R', description: '99'),
+  internalCard('ARG', '99'),
+  internalCard('T', '99'),
 ];
 
 void main() {
@@ -226,15 +220,7 @@ void main() {
       // `999SSS` stands for values 000,000 to 999,000, all whole, so
       // 130,00 has no fractional part to discard.
       final SemanticResult result = runJob(
-        data: [
-          dataCard(
-            name: 'SCALED',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999SSS',
-          ),
-        ],
+        data: [internalCard('SCALED', '999SSS')],
         procedure: [
           "      ONE.        DISPLAY 'A'.",
           "      TWO.        DISPLAY 'B'.",

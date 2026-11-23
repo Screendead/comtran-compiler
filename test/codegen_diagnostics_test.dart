@@ -39,21 +39,9 @@ List<String> _namesThenStop(int count) => [
 List<String> _doFor(String index) => [
   '      *DATA',
   dataCard(name: 'TAB', level: '1', quantity: '12'),
-  dataCard(
-    name: 'CELL',
-    level: '2',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
-  dataCard(name: 'IDX', level: '1', mode: 'I', justify: 'R', description: '99'),
-  dataCard(
-    name: 'NUM',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
+  internalCard('CELL', '999', level: '2'),
+  internalCard('IDX', '99'),
+  internalCard('NUM', '999'),
   '      *PROCEDURE',
   '      START.  DO RTN FOR IDX = $index.',
   '            GO TO LAST.',
@@ -67,7 +55,7 @@ List<String> _doFor(String index) => [
 /// [count] distinct literals, each a `SET` sentence, then `STOP RUN.`
 List<String> _literals(int count) => [
   '      *DATA',
-  dataCard(name: 'N', level: '1', mode: 'I', justify: 'R', description: '999'),
+  internalCard('N', '999'),
   '      *PROCEDURE',
   for (var k = 2; k < 2 + count; k++) '            SET N = $k.',
   '            STOP RUN.',
@@ -76,7 +64,7 @@ List<String> _literals(int count) => [
 
 List<String> _procedure(List<String> sentences) => [
   '      *DATA',
-  dataCard(name: 'N', level: '1', mode: 'I', justify: 'R', description: '999'),
+  internalCard('N', '999'),
   '      *PROCEDURE',
   ...sentences,
   '      *FINISH',
@@ -383,27 +371,9 @@ void main() {
       dataCard(name: 'OREC', level: '1', type: 'RECORD'),
       dataCard(name: 'OFLD', level: '2', description: 'AAA'),
       dataCard(name: 'TAB', level: '1', quantity: '12'),
-      dataCard(
-        name: 'CELL',
-        level: '2',
-        mode: 'I',
-        justify: 'R',
-        description: '999',
-      ),
-      dataCard(
-        name: 'IDX',
-        level: '1',
-        mode: 'I',
-        justify: 'R',
-        description: '99',
-      ),
-      dataCard(
-        name: 'NUM',
-        level: '1',
-        mode: 'I',
-        justify: 'R',
-        description: '999',
-      ),
+      internalCard('CELL', '999', level: '2'),
+      internalCard('IDX', '99'),
+      internalCard('NUM', '999'),
       '      *ENVIRONMENT',
       environmentCard(
         name: 'TAPE1',
