@@ -1,12 +1,9 @@
 'use strict';
 
 // Executes media/punchcard.js in a real DOM (jsdom), against the extension's
-// own generated webview HTML, so the client-side script carries actual
-// regression protection: the cursor/keyboard model (onKey), rendering
-// (render, fillRow, fillProcedureRow), zoom, and vscode.getState/setState
-// persistence. Before this file, only test/editor.test.js's "every element
-// the webview script looks up exists in the html" test touched this file,
-// and it never executed the script.
+// own generated webview HTML. A DOM costs a tenth of a second to open, so
+// the rendering tests share one and the input model runs as one sequence on
+// another; node:test runs a file's tests in order.
 
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -175,15 +172,21 @@ function punch(card, column, glyph) {
   card[column - 1] = punchesFromBcd(bcdFromGlyph(glyph));
 }
 
+const rendered = openWebview();
+
+// A status flash leaves a timer running; closing the window clears it, so
+// the run does not wait it out.
+test.after(async () => (await rendered).window.close());
+
 test('the script builds the grid and reports ready on load', async () => {
-  const { document, posted } = await openWebview();
+  const { document, posted } = await rendered;
   assert.equal(document.querySelectorAll('.cell').length, 12 * 80);
   assert.equal(document.querySelectorAll('.ic').length, 80);
   assert.deepEqual(posted, [{ type: 'ready' }]);
 });
 
 test('a state message punches the grid and the interpreted row', async () => {
-  const { window, document } = await openWebview();
+  const { window, document } = await rendered;
   const card = blankCard();
   punch(card, 1, '1');
   postToWebview(window, stateMessage({ card, cardCount: 1, previews: ['1'] }));
@@ -195,121 +198,8 @@ test('a state message punches the grid and the interpreted row', async () => {
   assert.equal(document.querySelectorAll('.ic')[0].textContent, '1');
 });
 
-test('the deck-empty message hides the card and shows the empty notice', async () => {
-  const { window, document } = await openWebview();
-  postToWebview(
-    window,
-    stateMessage({ cardCount: 0, previews: [], columns: [], readout: [], kinds: [] }),
-  );
-  assert.equal(document.getElementById('card').classList.contains('hidden'), true);
-  assert.equal(document.getElementById('empty').classList.contains('hidden'), false);
-  assert.match(document.getElementById('status').textContent, /empty/);
-});
-
-test('arrow keys move the cursor and Enter posts a toggle at that cell', async () => {
-  const { window, document, posted } = await openWebview();
-  postToWebview(window, stateMessage({}));
-
-  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight' }));
-  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowDown' }));
-  posted.length = 0;
-  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter' }));
-
-  assert.equal(posted.length, 1);
-  assert.deepEqual(posted[0], { type: 'toggle', index: 0, column: 2, row: 4 });
-});
-
-test('Home and End jump to column 1 and column 80', async () => {
-  const { window, document } = await openWebview();
-  postToWebview(window, stateMessage({}));
-
-  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'End' }));
-  assert.equal(document.querySelectorAll('.ic.col-cur')[0].dataset.c, '80');
-
-  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Home' }));
-  assert.equal(document.querySelectorAll('.ic.col-cur')[0].dataset.c, '1');
-});
-
-test('PageUp and PageDown post a select message', async () => {
-  const { window, posted } = await openWebview();
-  postToWebview(window, stateMessage({ cardCount: 3, index: 1, previews: ['', '', ''] }));
-
-  posted.length = 0;
-  window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'PageDown' }));
-  assert.deepEqual(posted[0], { type: 'select', index: 2 });
-
-  posted.length = 0;
-  window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'PageUp' }));
-  assert.deepEqual(posted[0], { type: 'select', index: 0 });
-});
-
-test('Backspace clears the column to the left and Delete clears the current one', async () => {
-  const { window, posted } = await openWebview();
-  postToWebview(window, stateMessage({}));
-
-  window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight' }));
-  posted.length = 0;
-  window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Backspace' }));
-  assert.deepEqual(posted[0], { type: 'setColumn', index: 0, column: 1, punches: 0 });
-
-  posted.length = 0;
-  window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Delete' }));
-  assert.deepEqual(posted[0], { type: 'setColumn', index: 0, column: 1, punches: 0 });
-});
-
-test('type-to-punch mode turns a keystroke into a typeGlyph message', async () => {
-  const { window, document, posted } = await openWebview();
-  postToWebview(window, stateMessage({}));
-
-  const typeModeBox = document.getElementById('typeMode');
-  typeModeBox.checked = true;
-  typeModeBox.dispatchEvent(new window.Event('change'));
-
-  posted.length = 0;
-  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'a' }));
-  assert.deepEqual(posted[0], { type: 'typeGlyph', index: 0, column: 1, glyph: 'a' });
-
-  // Space still punches a blank column outside type mode's normal toggle...
-  posted.length = 0;
-  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: ' ' }));
-  assert.deepEqual(posted[0], { type: 'typeGlyph', index: 0, column: 1, glyph: ' ' });
-});
-
-test('space toggles the current cell when not in type mode', async () => {
-  const { window, posted } = await openWebview();
-  postToWebview(window, stateMessage({}));
-  posted.length = 0;
-  window.document.dispatchEvent(new window.KeyboardEvent('keydown', { key: ' ' }));
-  assert.deepEqual(posted[0], { type: 'toggle', index: 0, column: 1, row: 3 });
-});
-
-test('clicking a grid cell moves the cursor there and toggles it', async () => {
-  const { window, document, posted } = await openWebview();
-  postToWebview(window, stateMessage({}));
-
-  const cell = document.querySelector('.cell[data-c="5"][data-r="1"]');
-  assert.ok(cell);
-  posted.length = 0;
-  cell.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
-  assert.deepEqual(posted[0], { type: 'toggle', index: 0, column: 5, row: 1 });
-});
-
-test('clicking a card-list row selects that card', async () => {
-  const { window, document, posted } = await openWebview();
-  postToWebview(
-    window,
-    stateMessage({ cardCount: 2, index: 0, previews: ['FIRST', 'SECOND'] }),
-  );
-
-  const rows = document.querySelectorAll('#cardList li');
-  assert.equal(rows.length, 2);
-  posted.length = 0;
-  rows[1].dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
-  assert.deepEqual(posted[0], { type: 'select', index: 1 });
-});
-
 test('a data card in the card list colors its name field', async () => {
-  const { window, document } = await openWebview();
+  const { window, document } = await rendered;
   postToWebview(
     window,
     stateMessage({
@@ -323,8 +213,30 @@ test('a data card in the card list colors its name field', async () => {
   assert.equal(row.querySelector('.f-name').textContent, 'HOURS');
 });
 
+test('the deck-empty message hides the card and shows the empty notice', async () => {
+  const { window, document } = await rendered;
+  postToWebview(
+    window,
+    stateMessage({ cardCount: 0, previews: [], columns: [], readout: [], kinds: [] }),
+  );
+  assert.equal(document.getElementById('card').classList.contains('hidden'), true);
+  assert.equal(document.getElementById('empty').classList.contains('hidden'), false);
+  assert.match(document.getElementById('status').textContent, /empty/);
+});
+
+test('a status message flashes as a warning', async () => {
+  const { window, document } = await rendered;
+  postToWebview(window, stateMessage({}));
+  postToWebview(window, { type: 'status', text: "'%' is not a Set H source character" });
+  assert.equal(
+    document.getElementById('status').textContent,
+    "'%' is not a Set H source character",
+  );
+  assert.equal(document.getElementById('status').classList.contains('warn'), true);
+});
+
 test('zoom buttons change the column width and persist it', async () => {
-  const { window, document, saved } = await openWebview();
+  const { window, document, saved } = await rendered;
   postToWebview(window, stateMessage({}));
 
   const before = document.documentElement.style.getPropertyValue('--cw');
@@ -334,13 +246,61 @@ test('zoom buttons change the column width and persist it', async () => {
   assert.equal(saved.current.cw, parseInt(after, 10));
 });
 
-test('a status message flashes then reverts to the column status', async () => {
-  const { window, document } = await openWebview();
-  postToWebview(window, stateMessage({}));
-  postToWebview(window, { type: 'status', text: "'%' is not a Set H source character" });
-  assert.equal(
-    document.getElementById('status').textContent,
-    "'%' is not a Set H source character",
-  );
-  assert.equal(document.getElementById('status').classList.contains('warn'), true);
+test('the keyboard and the mouse move the cursor and post each edit', async () => {
+  const { window, document, posted } = await openWebview();
+  postToWebview(window, stateMessage({ cardCount: 3, index: 1, previews: ['', '', ''] }));
+  const key = (k) => () =>
+    document.dispatchEvent(new window.KeyboardEvent('keydown', { key: k }));
+  const click = (element) => () =>
+    element.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  const cursorColumn = () => document.querySelectorAll('.ic.col-cur')[0].dataset.c;
+
+  // The cursor opens on column 1, row index 3 (digit 1).
+  for (const [step, actions, message] of [
+    ['space outside type mode', [key(' ')], { type: 'toggle', index: 1, column: 1, row: 3 }],
+    [
+      'arrows, then Enter',
+      [key('ArrowRight'), key('ArrowDown'), key('Enter')],
+      { type: 'toggle', index: 1, column: 2, row: 4 },
+    ],
+    [
+      'Backspace clears the column to the left',
+      [key('Backspace')],
+      { type: 'setColumn', index: 1, column: 1, punches: 0 },
+    ],
+    [
+      'Delete clears the current column',
+      [key('Delete')],
+      { type: 'setColumn', index: 1, column: 1, punches: 0 },
+    ],
+    ['PageDown', [key('PageDown')], { type: 'select', index: 2 }],
+    ['PageUp', [key('PageUp')], { type: 'select', index: 0 }],
+    [
+      'a click on a grid cell',
+      [click(document.querySelector('.cell[data-c="5"][data-r="1"]'))],
+      { type: 'toggle', index: 1, column: 5, row: 1 },
+    ],
+    [
+      'a click on a card-list row',
+      [click(document.querySelectorAll('#cardList li')[2])],
+      { type: 'select', index: 2 },
+    ],
+  ]) {
+    actions.forEach((act) => act());
+    assert.deepEqual(posted.at(-1), message, step);
+  }
+
+  key('End')();
+  assert.equal(cursorColumn(), '80');
+  key('Home')();
+  assert.equal(cursorColumn(), '1');
+
+  const typeModeBox = document.getElementById('typeMode');
+  typeModeBox.checked = true;
+  typeModeBox.dispatchEvent(new window.Event('change'));
+  for (const glyph of ['a', ' ']) {
+    key(glyph)();
+    assert.deepEqual(posted.at(-1), { type: 'typeGlyph', index: 1, column: 1, glyph });
+  }
+  window.close();
 });
