@@ -136,18 +136,12 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
     then `PZE IOC)29 / PZE 0 / PZE 0`). Its `USE 2` word prints `MON PI)1`:
     counter 2 holds only the `BL)` block, so its end is `PI)`'s origin —
     two readings, one value (B7). Amended by M6-10.
-  **Amended 2026-11-23, M7-12 (`m7-diff.md`), on Jack's answer to issue
-  #277.** Location Counter 0 holds "those instructions whose location is
-  determined by the relative position of items in the source deck"
-  ([J 90.02.01]). Thus the order of the divisions decides the order of
-  the two portions. When the first `*PROCEDURE` group comes before the
-  first `*DATA` group, the procedure text starts at 00000 and the
-  transmitted areas follow it, from `*DATA BSS 0`. `USE 0` still opens
-  the counter at 00000. The 90.05 sample puts `*DATA` first and does not
-  change. The 1963 processor puts the code of `f-payroll` first (M7-9).
-  A deck that interleaves several groups of each division keeps the
-  order of the first group of each: no deck of ours has that shape, and
-  no print shows it.
+  **Amended 2026-11-23 (M7-12, issue #277).** Counter 0 holds its
+  words by "the relative position of items in the source deck"
+  ([J 90.02.01]). When the first `*PROCEDURE` group precedes the first
+  `*DATA` group, the text starts at 00000 and the areas follow it. A
+  deck that interleaves groups keeps the order of the first group of
+  each division; no deck or print shows that shape.
   Block sizing rules: `RS)` is the sum over sections of the maximum result
   storage each section uses ([J 90.02.03]) — cells two words each, D4.8's
   inference from the listing's LOC values, not stated by J;
