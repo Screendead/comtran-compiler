@@ -2663,6 +2663,31 @@ Where a row says that 1963 keeps the 1962 words at a site of 90.05, the ground i
 | Pool: 91 words in 1963, 83 in ours | no class of its own | The count is a sum. The truncation divisors, the HIGH.VALUE words, the `EQU` names and the loop constants each add or remove words. Each word takes the class of its group above. Ours prints `CP)` to `CP)+82`. |
 | Length: 1247 words in 1963, 1119 in ours | no class of its own | A sum of the rows of B1, B2 and B3. |
 
+*Amended 2026-11-23.* The row "Temporaries" is fixed on Jack's answer
+to issue #277. These rules amend M6-9 and M4-4. They live here because
+the M4 record is locked at its word budget:
+
+- A fetch takes the next `RS)` cell of its section, from `RS)1`, or
+  past an edited ADD source parked in `RS)n`.
+- A chain park in cell 0 stays in `RS)0`. Cell c of M4-10 moves past
+  the k fetch cells, to `RS)c+k`: 1963 prints `STQ RS)3+0` after its
+  fetches into `RS)1` and `RS)2`.
+- A comparison park takes the lowest chain cell that no open park
+  holds.
+- The DO FOR index keeps `TS)1`, as 1963 keeps it in `TS)` (B3).
+- Each section reserves two cells past the highest cell it names, and
+  one more for a product of a parenthesized sum, whose `XCA` step
+  leaves that cell unaddressed.
+
+No manual states the sizing rule. It agrees with [J 90.02.03], "N is
+the sum of maximum Result Storage used in each section". It gives all
+six sections of 90.05, 3, 2, 3, 3, 2 and 2 cells, the 30 words of the
+1962 print. Each WITHOLDING.TAX.ROUTINE holds the product of a sum. It
+gives four of the five sections of `f-payroll-j`. FICA.ROUTINE takes 6
+cells where 1963 takes 5, because the comparison of 152,00 parks in
+another order, a row that stays undecided. Thus `RS)` is 54 words, not
+52. The section constants of M4-4 and their refusals are gone.
+
 **B3. `f-payroll-j`: the DO FOR of 144,00 (M7-9)**
 
 Our choice for each row is the decision "the external-decimal DO FOR index" of M6-9 (`m6-acceptance.md`), with "the DO FOR driving several indicators" and "the stride of part of a word". The print holds the loop for an internal index only (LOC 00702 to 00721, PDF pp. 206 to 207). [J 90.04.01] holds message 206,00, so the 1962 processor took an external index; no page shows its words.

@@ -389,11 +389,11 @@ void main() {
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
-        'STO TS)1',
+        'STO RS)1',
         'LDQ CP)+2',
         'MPY CP)+3',
         'XCA ',
-        'CAS TS)1',
+        'CAS RS)1',
         'TRA GN)001',
         'TRA GN)001',
       ]);
@@ -448,22 +448,23 @@ void main() {
       return _procedureWords(semantics, 6);
     }
 
-    // The fetches of FICA and GROSS come first, into TS)1 and TS)2.
+    // The fetches of FICA and GROSS come first, into RS)1 and RS)2.
     const fetches = <String>[
       'LDI CP)+11',
       'STI SYS)132',
       'TSX SYS)182,4',
       'TXI SYS)184,1,5',
-      'STO TS)1',
+      'STO RS)1',
       'LDI CP)+12',
       'STI SYS)132',
       'TSX SYS)182,4',
       'TXI SYS)184,1,7',
-      'STO TS)2',
+      'STO RS)2',
     ];
 
     test('statement 152 parks the upscaled literal, then the chain', () {
-      // The chain is at scale 4, so 144.00 is upscaled by 100 into TS)3.
+      // The chain is at scale 4, so 144.00 is upscaled by 100 into RS)3,
+      // and the chain parks its first term past it, in RS)4 (M7-12).
       // LT takes the less slot, which falls into the THEN arm.
       expect(
         compare(
@@ -474,16 +475,16 @@ void main() {
           ...fetches,
           'LDQ CP)+3',
           'MPY CP)+4',
-          'STQ TS)3',
-          'LDQ TS)1',
+          'STQ RS)3',
+          'LDQ RS)1',
           'MPY CP)+4',
-          'STQ RS)1+0',
+          'STQ RS)4+0',
           'LDQ CP)+2',
-          'MPY TS)2',
+          'MPY RS)2',
           'STQ RS)0',
-          'CLA RS)1',
+          'CLA RS)4',
           'ADD RS)0',
-          'CAS TS)3',
+          'CAS RS)3',
           'TRA GN)001',
           'TRA GN)001',
         ],
@@ -496,7 +497,7 @@ void main() {
         '            IF 144.00 GT FICA + 0.03 * GROSS THEN STOP RUN.',
       );
       expect(words.sublist(words.length - 3), [
-        'CAS TS)3',
+        'CAS RS)3',
         'TRA GN)001',
         'TRA GN)001',
       ]);
@@ -513,17 +514,17 @@ void main() {
           'STI SYS)132',
           'TSX SYS)182,4',
           'TXI SYS)184,1,2',
-          'STO TS)1',
+          'STO RS)1',
           'LDI CP)+11',
           'STI SYS)132',
           'TSX SYS)182,4',
           'TXI SYS)184,1,7',
-          'STO TS)2',
+          'STO RS)2',
           'LDQ CP)+2',
-          'MPY TS)1',
+          'MPY RS)1',
           'MPY CP)+3',
           'XCA ',
-          'CAS TS)2',
+          'CAS RS)2',
           'TRA GN)001',
           'TRA GN)001',
         ],
@@ -548,19 +549,20 @@ void main() {
     });
 
     test('two expressions park the right one first', () {
+      // The chain parks its first term past the right side's park.
       expect(compare('            IF NUM + 1 = FRAC * 2 THEN STOP RUN.'), [
         'LDQ CP)+2',
         'MPY FRAC',
-        'STQ TS)1',
+        'STQ RS)1',
         'LDQ NUM',
         'MPY CP)+3',
-        'STQ RS)1+0',
+        'STQ RS)2+0',
         'LDQ CP)+1',
         'MPY CP)+3',
         'STQ RS)0',
-        'CLA RS)1',
+        'CLA RS)2',
         'ADD RS)0',
-        'CAS TS)1',
+        'CAS RS)1',
         'TRA GN)001',
         'TRA *+2',
         'TRA GN)001',
@@ -582,23 +584,23 @@ void main() {
       final List<String> words = compare(
         '            IF TR (FRAC + 1 GT 1) * 1 + FRAC GT 1 THEN STOP RUN.',
       );
-      // The outer park of the upscaled 1 is TS)1, so the inner one takes
-      // TS)2. The inner chain reads its RS)0 before the outer chain parks
-      // its first term in RS)1.
+      // The outer park of the upscaled 1 is RS)1, so the inner one takes
+      // RS)2. The inner chain reads its RS)0 before the outer chain parks
+      // its first term in RS)2, past the outer park.
       expect(words, [
         'LDQ CP)+1',
         'MPY CP)+2',
-        'STQ TS)1',
+        'STQ RS)1',
         'RIR 777777',
         'LDQ CP)+1',
         'MPY CP)+2',
-        'STQ TS)2',
+        'STQ RS)2',
         'LDQ CP)+1',
         'MPY CP)+2',
         'STQ RS)0',
         'CLA FRAC',
         'ADD RS)0',
-        'CAS TS)2',
+        'CAS RS)2',
         'TRA *+3',
         'TRA *+3',
         'TRA *+2',
@@ -609,10 +611,10 @@ void main() {
         'XCA ',
         'MPY CP)+1',
         'MPY CP)+2',
-        'STQ RS)1+0',
-        'CLA RS)1',
+        'STQ RS)2+0',
+        'CLA RS)2',
         'ADD FRAC',
-        'CAS TS)1',
+        'CAS RS)1',
         'TRA *+3',
         'TRA GN)001',
         'TRA GN)001',
@@ -909,8 +911,8 @@ void main() {
     test('a SET operand converts into a temporary cell', () {
       expect(fetch('            SET NUM = EXT + NUM.'), [
         ...convertExt,
-        'STO TS)1',
-        'CLA TS)1',
+        'STO RS)1',
+        'CLA RS)1',
         'ADD NUM',
         'STO NUM',
       ]);
@@ -919,9 +921,9 @@ void main() {
     test('a factor reads the cell with MPY', () {
       expect(fetch('            SET NUM = EXT * NUM.'), [
         ...convertExt,
-        'STO TS)1',
+        'STO RS)1',
         'LDQ NUM',
-        'MPY TS)1',
+        'MPY RS)1',
         'STQ NUM',
       ]);
     });
@@ -929,15 +931,15 @@ void main() {
     test('two operands take two cells, and a repeat reads its own', () {
       expect(fetch('            SET NUM = EXT + EXU - EXT.'), [
         ...convertExt,
-        'STO TS)1',
+        'STO RS)1',
         'LDI CP)+8',
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
-        'STO TS)2',
-        'CLA TS)1',
-        'ADD TS)2',
-        'SUB TS)1',
+        'STO RS)2',
+        'CLA RS)1',
+        'ADD RS)2',
+        'SUB RS)1',
         'STO NUM',
       ]);
     });
@@ -945,9 +947,9 @@ void main() {
     test('an ADD source converts, then adds from the cell', () {
       expect(fetch('            ADD EXT TO NUM.'), [
         ...convertExt,
-        'STO TS)1',
+        'STO RS)1',
         'CLA NUM',
-        'ADD TS)1',
+        'ADD RS)1',
         'STO NUM',
       ]);
     });
@@ -955,12 +957,12 @@ void main() {
     test('an ADD to two targets converts its source once', () {
       expect(fetch('            ADD EXT TO NUM, NUM.'), [
         ...convertExt,
-        'STO TS)1',
+        'STO RS)1',
         'CLA NUM',
-        'ADD TS)1',
+        'ADD RS)1',
         'STO NUM',
         'CLA NUM',
-        'ADD TS)1',
+        'ADD RS)1',
         'STO NUM',
       ]);
     });
@@ -972,8 +974,8 @@ void main() {
         'SLW SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
-        'STO TS)1',
-        'CLA TS)1',
+        'STO RS)1',
+        'CLA RS)1',
         'CAS NUM',
       ]);
     });
@@ -984,9 +986,9 @@ void main() {
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
-        'STO TS)1',
+        'STO RS)1',
         'CLA NUM',
-        'CAS TS)1',
+        'CAS RS)1',
       ]);
     });
 
@@ -995,14 +997,14 @@ void main() {
         '            SET NUM = TR (EXT GT NUM) * NUM.',
       );
       expect(words.where((String w) => w == 'TSX SYS)182,4'), hasLength(1));
-      expect(words.indexOf('STO TS)1'), lessThan(words.indexOf('CLA TS)1')));
+      expect(words.indexOf('STO RS)1'), lessThan(words.indexOf('CLA RS)1')));
     });
 
     test('each clause fetches again', () {
       final List<String> words = fetch(
         '            SET NUM = EXT + NUM, SET NUM = EXT + NUM.',
       );
-      expect(words.where((String w) => w == 'STO TS)1'), hasLength(2));
+      expect(words.where((String w) => w == 'STO RS)1'), hasLength(2));
     });
   });
 
@@ -1061,7 +1063,7 @@ void main() {
       'STI SYS)132',
       'TSX SYS)182,4',
       'TXI SYS)184,1,3',
-      'STO TS)1',
+      'STO RS)1',
     ];
 
     test('an unsigned target takes SYS)186 behind the SYS)180 call', () {
@@ -1116,7 +1118,7 @@ void main() {
     test('a SET reads the target through its fetch, then stores it', () {
       expect(store('            SET EXT = EXT + NUM.'), [
         ...fetchExt,
-        'CLA TS)1',
+        'CLA RS)1',
         'ADD NUM',
         'TSX SYS)180,4',
         'PZE EXT,,0',
@@ -1127,7 +1129,7 @@ void main() {
     test('an ADD target converts, adds, and stores back', () {
       expect(store('            ADD NUM TO EXT.'), [
         ...fetchExt,
-        'CLA TS)1',
+        'CLA RS)1',
         'ADD NUM',
         'TSX SYS)180,4',
         'PZE EXT,,0',
@@ -1142,13 +1144,13 @@ void main() {
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
-        'STO TS)2',
-        'CLA TS)1',
+        'STO RS)2',
+        'CLA RS)1',
         'ADD NUM',
         'TSX SYS)180,4',
         'PZE EXT,,0',
         'TXI SYS)186,1,3',
-        'CLA TS)2',
+        'CLA RS)2',
         'ADD NUM',
         'TSX SYS)180,4',
         'PZE EXM,,0',
@@ -1159,8 +1161,8 @@ void main() {
     test('a field added to itself takes one cell', () {
       expect(store('            ADD EXT TO EXT.'), [
         ...fetchExt,
-        'CLA TS)1',
-        'ADD TS)1',
+        'CLA RS)1',
+        'ADD RS)1',
         'TSX SYS)180,4',
         'PZE EXT,,0',
         'TXI SYS)186,1,3',
@@ -1169,10 +1171,11 @@ void main() {
 
     test('an edited ADD source parks before the target converts', () {
       final List<String> words = store('            ADD EDT TO EXT.');
-      expect(words.indexOf('STO RS)1'), lessThan(words.indexOf('STO TS)1')));
-      expect(words.sublist(words.indexOf('STO TS)1')), [
-        'STO TS)1',
-        'CLA TS)1',
+      // The target's cell numbers past the park.
+      expect(words.indexOf('STO RS)1'), lessThan(words.indexOf('STO RS)2')));
+      expect(words.sublist(words.indexOf('STO RS)2')), [
+        'STO RS)2',
+        'CLA RS)2',
         'ADD RS)1',
         'TSX SYS)180,4',
         'PZE EXT,,0',
@@ -1212,8 +1215,8 @@ void main() {
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
-        'STO TS)1',
-        'CLA TS)1',
+        'STO RS)1',
+        'CLA RS)1',
         'ADD 1)X',
         'TSX SYS)180,4',
         'PZE 2)X,,0',
@@ -1222,14 +1225,14 @@ void main() {
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
-        'STO TS)1',
+        'STO RS)1',
         'LDI CP)+8',
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,3',
-        'STO TS)2',
-        'CLA TS)2',
-        'ADD TS)1',
+        'STO RS)2',
+        'CLA RS)2',
+        'ADD RS)1',
         'TSX SYS)180,4',
         'PZE 2)Y,,3',
         'TXI SYS)186,1,3',
@@ -1427,15 +1430,15 @@ void main() {
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,7',
-        'STO TS)1',
+        'STO RS)1',
         'LDI CP)+7',
         'STI SYS)132',
         'TSX SYS)182,4',
         'TXI SYS)184,1,5',
-        'STO TS)2',
-        'CLA TS)1',
-        'SUB TS)2',
-        'SUB TS)2',
+        'STO RS)2',
+        'CLA RS)1',
+        'SUB RS)2',
+        'SUB RS)2',
         ...call,
       ]);
     });
@@ -1869,15 +1872,15 @@ void main() {
         '\tSTI SYS)132',
         '\tTSX SYS)182,4',
         '\tTXI SYS)184,1,5',
-        '\tSTO TS)1',
+        '\tSTO 1.RS)1',
         // The subscripted fetch of LOC 01445 to 01450, into a cell.
         '\tLDI PI)1',
         '\tSTI SYS)132',
         '\tTSX SYS)182,4',
         '\tTXI SYS)184,1,5',
-        '\tSTO TS)2',
-        '\tCLA TS)1',
-        '\tCAS TS)2',
+        '\tSTO 1.RS)2',
+        '\tCLA 1.RS)1',
+        '\tCAS 1.RS)2',
         '\tTRA *+3',
         '\tTRA GN)001',
         '\tTRA GN)001',
@@ -1891,14 +1894,14 @@ void main() {
         '\tSTI SYS)132',
         '\tTSX SYS)182,4',
         '\tTXI SYS)184,1,3',
-        '\tSTO TS)1',
+        '\tSTO 1.RS)1',
         '\tLDI CP)+15',
         '\tSTI SYS)132',
         '\tTSX SYS)182,4',
         '\tTXI SYS)184,1,3',
-        '\tSTO TS)2',
-        '\tCLA TS)2',
-        '\tADD TS)1',
+        '\tSTO 1.RS)2',
+        '\tCLA 1.RS)2',
+        '\tADD 1.RS)1',
         '\tTSX SYS)180,4',
         '\tPZE TOT,,0',
         '\tTXI SYS)186,1,3',
@@ -2260,8 +2263,8 @@ void main() {
           '\tSTI SYS)132',
           '\tTSX SYS)182,4',
           '\tTXI SYS)184,1,3',
-          '\tSTO TS)1',
-          '\tCLA TS)1',
+          '\tSTO RS)1',
+          '\tCLA RS)1',
           '\tADD NUM',
           '\tTSX SYS)180,4',
           '\tMON PI)1,,0',
@@ -2281,8 +2284,8 @@ void main() {
         '\tSTI SYS)132',
         '\tTSX SYS)182,4',
         '\tTXI SYS)184,1,3',
-        '\tSTO TS)1',
-        '\tCLA TS)1',
+        '\tSTO RS)2',
+        '\tCLA RS)2',
         '\tADD RS)1',
         '\tTSX SYS)180,4',
         '\tMON PI)1,,0',
@@ -2308,8 +2311,8 @@ void main() {
         '\tSTI SYS)132',
         '\tTSX SYS)182,4',
         '\tTXI SYS)184,1,3',
-        '\tSTO TS)1',
-        '\tCLA TS)1',
+        '\tSTO RS)1',
+        '\tCLA RS)1',
         '\tADD 2)XF',
         '\tTSX SYS)180,4',
         '\tMON PI)2,,0',
@@ -2437,8 +2440,8 @@ void main() {
           '\tSTI SYS)132',
           '\tTSX SYS)182,4',
           '\tTXI SYS)184,1,6',
-          '\tSTO TS)1',
-          '\tCLA TS)1',
+          '\tSTO RS)1',
+          '\tCLA RS)1',
           '\tADD NUM',
           '\tTSX SYS)180,4',
           '\tMON PI)1,,0',
@@ -2461,9 +2464,9 @@ void main() {
           '\tSTI SYS)132',
           '\tTSX SYS)182,4',
           '\tTXI SYS)184,1,3',
-          '\tSTO TS)1',
-          '\tCLA TS)1',
-          '\tADD TS)1',
+          '\tSTO RS)1',
+          '\tCLA RS)1',
+          '\tADD RS)1',
           '\tTSX SYS)180,4',
           '\tMON PI)1,,0',
           '\tTXI SYS)186,1,3',
@@ -2615,9 +2618,9 @@ void main() {
             '\tSTI SYS)132',
             '\tTSX SYS)182,4',
             '\tTXI SYS)184,1,3',
-            '\tSTO TS)1',
+            '\tSTO RS)1',
             '\tCLA 1)XF',
-            '\tADD TS)1',
+            '\tADD RS)1',
             '\tSTO 1)XF',
           ],
         );

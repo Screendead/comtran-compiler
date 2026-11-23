@@ -52,6 +52,7 @@ final class ProcedureText {
     required this.poolUnits,
     required this.constantIndicators,
     required this.undefinedSymbol,
+    required this.resultCells,
   });
 
   /// The assembly units, program order.
@@ -80,6 +81,10 @@ final class ProcedureText {
 
   /// Whether the text holds an undefined symbol (M6-11 a).
   final bool undefinedSymbol;
+
+  /// The result-storage cells each section reserves, section 0 first
+  /// (M4-4 as amended 2026-11-23).
+  final List<int> resultCells;
 }
 
 /// What the measuring pass diagnoses (M4-18): the sink the notes and
@@ -174,20 +179,6 @@ final class UnrecoveredShape implements Exception {
 /// sites, so no shape is attested and none is invented (CLAUDE.md §11;
 /// notes section 7).
 Never _unruled(String what) => throw UnrecoveredShape(what);
-
-/// The result-storage cells each section reserves, section 0 first, the
-/// last entry the undivided tail every later section shares.
-///
-/// Constants, and deliberately not a rule — the `TS)` precedent (Jack's
-/// ruling, 2026-08-15, the chunk B1 review record). The sample attests
-/// sections 0 to 2 reserving 3, 2 and 3 cells while referencing 2, 1 and
-/// 1, no tested rule reproduces those heads, and the 7-cell tail is
-/// unobservable: the program addresses one cell of it, at statement 221,
-/// and contradictory closures fit the rest. Section 3 therefore takes
-/// the tail's first word and a fourth section refuses. For any program
-/// but the sample this reservation is unverifiable, which is stated
-/// rather than hidden.
-const List<int> resultStorageCells = <int>[3, 2, 3, 7];
 
 /// The three outcomes of a skip vector, in slot order ([J 90.02.12]).
 enum _Outcome { greater, equal, less }
@@ -434,6 +425,11 @@ final class _Text {
   /// falls: the main program before the first one is section 0. It names
   /// the result-storage block a park addresses (catalogue 4.7).
   int _section = 0;
+
+  /// The highest result-storage cell each section has named, section 0
+  /// first. Every section reserves two cells past it (M4-4 as amended
+  /// 2026-11-23): `RS)0`, the cells up to it, and one more.
+  final List<int> _resultHigh = <int>[0];
 
   /// Names waiting for the next word. Two of them print one per line,
   /// the word on the last (M4-8).
@@ -748,6 +744,11 @@ final class _Text {
     );
   }
 
+  /// Raises the open section's reservation to cover [cell].
+  void _noteResultCell(int cell) {
+    _resultHigh[_section] = math.max(_resultHigh[_section], cell);
+  }
+
   /// `RS)n` or `k.RS)n` — one result-storage cell of the section the
   /// walk is in, two words a cell (D4.8).
   ///
@@ -756,15 +757,10 @@ final class _Text {
   /// LOC 00621 carries and no other reference does (M4-10).
   _Sym _resultCell(int cell, {bool offset = false}) {
     final int section = _section;
-    if (section >= resultStorageCells.length) {
-      _unruled('result storage in section $section (no sample instance)');
-    }
-    if (cell >= resultStorageCells[section]) {
-      _unruled('result-storage cell $cell of section $section (M4-10)');
-    }
+    _noteResultCell(cell);
     var word = 0;
     for (var i = 0; i < section; i++) {
-      word += 2 * resultStorageCells[i];
+      word += 2 * (image?.resultCells[i] ?? 0);
     }
     final name =
         '${section == 0 ? '' : '$section.'}${StorageBlock.rs.symbol}$cell';
@@ -940,6 +936,7 @@ final class _Text {
       poolWords: _layout.length,
       constantIndicators: _constantIndicators,
       undefinedSymbol: _undefinedSymbol,
+      resultCells: <int>[for (final int high in _resultHigh) high + 2],
       poolUnits: <AssemblyUnit>[
         if (placed != null)
           // An `OCT` entry echoes its word as its operand; a `PZE` entry
@@ -1294,7 +1291,7 @@ final class _Text {
   void _read(Op op, DataItem item) {
     final int? cell = _fetched[item];
     if (cell != null) {
-      _op(op, _blockWord(StorageBlock.ts, cell));
+      _op(op, _fetchCell(cell));
       return;
     }
     // A read outside a fetch scope would take the characters as binary.
@@ -1306,32 +1303,50 @@ final class _Text {
     _opItem(op, item);
   }
 
-  /// The temporary cell of each external-decimal operand the open fetch
-  /// scope converted. The `SYM)n` suffix counts from 1 (`image.dart`);
-  /// the one printed instance, `ANA TS)1` ([J 90.02.04]), is consistent
-  /// with it.
+  /// The cell of each external-decimal operand the open fetch scope
+  /// converted: a result-storage cell of the section, numbered from 1
+  /// past [_heldCell], as the 1962 print parks a converted ADD source in
+  /// `3.RS)1` (PDF p. 212; M7-12). The DO increment block alone fetches
+  /// into `TS)` ([_fetchTemporary]).
   final Map<DataItem, int> _fetched = Map<DataItem, int>.identity();
   bool _fetching = false;
 
-  /// The comparison parks still live past the fetch cells (M6-9). A
-  /// truth function inside the accumulator side of an expression
-  /// comparison parks above them.
-  int _parked = 0;
+  /// Whether the open fetch scope parks in `TS)`, not in `RS)`.
+  bool _fetchTemporary = false;
+
+  /// The highest result-storage cell a fetch of the open scope holds, or
+  /// 0 with none. A chain park numbers its cells past it.
+  int _fetchTop = 0;
+
+  /// The result-storage cell a park outside the fetch scope holds while
+  /// the scope runs, or 0 with none: the edited ADD source's park.
+  int _heldCell = 0;
+
+  /// The cells a chain park and a comparison park number past: the
+  /// fetch cells and the held cell (M7-12).
+  int get _parkBase => math.max(_fetchTop, _heldCell);
+
+  /// The comparison parks still live, counted in the numbering of the
+  /// chain parks (M6-9). A truth function inside the accumulator side
+  /// of an expression comparison parks above them.
+  final List<int> _comparisonCells = <int>[];
 
   /// Runs [body] with every external-decimal item of [operands] fetched
-  /// ahead of it into its own temporary cell (M6-9). The fetches run
-  /// before the first word of the body, so no convert can clobber a
-  /// live accumulator or MQ. A scope opened inside an open one, the
-  /// truth function's comparison, reads the outer scope's cells.
+  /// ahead of it into its own cell (M6-9). The fetches run before the
+  /// first word of the body, so no convert can clobber a live
+  /// accumulator or MQ. A scope opened inside an open one, the truth
+  /// function's comparison, reads the outer scope's cells.
   T _withFetches<T>(
     Iterable<DataItem> operands,
     T Function() body, {
     Set<DataItem> subscripted = const <DataItem>{},
+    bool temporary = false,
   }) {
     if (_fetching) {
       return body();
     }
     _fetching = true;
+    _fetchTemporary = temporary;
     try {
       for (final item in operands) {
         _fetch(item, subscripted: subscripted.contains(item));
@@ -1339,27 +1354,37 @@ final class _Text {
       return body();
     } finally {
       _fetching = false;
+      _fetchTemporary = false;
+      _fetchTop = 0;
       _fetched.clear();
     }
   }
 
-  /// Fetches the external-decimal [item] into the next temporary cell
-  /// of the open scope, unless the scope holds it already.
+  /// Fetches the external-decimal [item] into the next cell of the open
+  /// scope, unless the scope holds it already.
   void _fetch(DataItem item, {required bool subscripted}) {
     if (_sem(item).fieldClass != FieldClass.externalDecimal ||
         _fetched.containsKey(item)) {
       return;
     }
-    final int cell = _fetched.length + 1;
-    if (cell > temporaryStorageWords) {
-      _unruled('a temporary cell past the TS) reservation (M4-4)');
+    final int cell;
+    if (_fetchTemporary) {
+      // The DO increment block fetches its index alone.
+      cell = _fetched.length + 1;
+    } else {
+      cell = _parkBase + 1;
+      _fetchTop = cell;
     }
     _setup(item, target: false, subscripted: subscripted);
     _externalConvert(item);
-    _op(Op.sto, _blockWord(StorageBlock.ts, cell));
+    _op(Op.sto, _fetchCell(cell));
     _movpakClears();
     _fetched[item] = cell;
   }
+
+  /// The word that addresses fetch cell [cell] of the open scope.
+  _Sym _fetchCell(int cell) =>
+      _fetchTemporary ? _blockWord(StorageBlock.ts, cell) : _resultCell(cell);
 
   /// The data items an expression or a relation reads, in source order.
   /// A subscripted external-decimal item goes into [subscripted], whose
@@ -1826,6 +1851,7 @@ final class _Text {
         }
         _openSection = _sentenceLabel;
         _section += 1;
+        _resultHigh.add(0);
         // Every section carries a return cell (catalogue 4.1).
         _op(Op.axt, _Sym(() => '0', () => 0, Relocation.constant));
       case EndClause():
@@ -2129,30 +2155,34 @@ final class _Text {
     // converts into its cell at the block's head, and the stepped value
     // parks there too, because the stride words reuse the accumulator
     // before the exit test reads the value (M6-9).
-    _withFetches(external ? [indexItem] : const <DataItem>[], () {
-      _read(Op.cla, indexItem);
-      _op(Op.add, _cp(bounds[1]));
-      if (external) {
-        _op(Op.sto, _blockWord(StorageBlock.ts, _fetched[indexItem]!));
-        _externalStore(indexItem, _Register.ac);
-      } else {
-        _opItem(Op.sto, indexItem);
-      }
-      for (var i = 0; i < driven.length; i++) {
-        final _Sym indicator = _blockWord(
-          StorageBlock.pi,
-          _indicator(driven[i]),
-        );
-        _op(Op.cla, _cp(strides[i]));
-        _op(Op.add, indicator);
-        if (partial[i]) {
-          _byteCarry();
+    _withFetches(
+      external ? [indexItem] : const <DataItem>[],
+      temporary: true,
+      () {
+        _read(Op.cla, indexItem);
+        _op(Op.add, _cp(bounds[1]));
+        if (external) {
+          _op(Op.sto, _fetchCell(_fetched[indexItem]!));
+          _externalStore(indexItem, _Register.ac);
+        } else {
+          _opItem(Op.sto, indexItem);
         }
-        _op(Op.sto, indicator);
-      }
-      _op(Op.cla, _cp(bounds[2]));
-      _read(Op.sub, indexItem);
-    });
+        for (var i = 0; i < driven.length; i++) {
+          final _Sym indicator = _blockWord(
+            StorageBlock.pi,
+            _indicator(driven[i]),
+          );
+          _op(Op.cla, _cp(strides[i]));
+          _op(Op.add, indicator);
+          if (partial[i]) {
+            _byteCarry();
+          }
+          _op(Op.sto, indicator);
+        }
+        _op(Op.cla, _cp(bounds[2]));
+        _read(Op.sub, indexItem);
+      },
+    );
     _op(Op.tpl, _Sym(() => bodyEntry, entry.value, Relocation.relative));
     _callClears();
   }
@@ -3457,6 +3487,8 @@ final class _Text {
         final _Sym park = _resultCell(clause.targets.length);
         _op(Op.sto, park);
         _movpakClears();
+        // A target's fetch cell numbers past the park.
+        _heldCell = clause.targets.length;
         for (final NameReference target in clause.targets) {
           final DataItem item = _resolved(target);
           final int deficit = _addDeficit(source, item);
@@ -3472,6 +3504,7 @@ final class _Text {
           );
           _subscriptRecomputation(target);
         }
+        _heldCell = 0;
         return;
       }
       final targets = <DataItem>[
@@ -3725,13 +3758,15 @@ final class _Text {
       chainScale = scale > chainScale ? scale : chainScale;
     }
     final Set<int> outer = {..._parkedCells};
-    // The k-th cell that holds no park of an enclosing chain. At the top
-    // level every cell is free, so the numbering is the M4-10 rule's.
+    final Set<int> held = {...outer, ..._comparisonCells};
+    // The k-th cell that holds no park of an enclosing chain or
+    // comparison. At the top level every cell is free, so the numbering
+    // is the M4-10 rule's.
     int free(int k) {
       var cell = -1;
       for (var seen = -1; seen < k;) {
         cell++;
-        if (!outer.contains(cell)) {
+        if (!held.contains(cell)) {
           seen++;
         }
       }
@@ -3815,12 +3850,28 @@ final class _Text {
   /// the value sits in: `STQ` after a multiply, `STO` after a chain.
   void Function(Op op) _park(int cell, _Register register) {
     _parkedCells.add(cell);
+    final int word = _parkWord(cell);
     _op(
       register == _Register.mq ? Op.stq : Op.sto,
-      _resultCell(cell, offset: cell != 0 && register == _Register.mq),
+      _resultCell(word, offset: cell != 0 && register == _Register.mq),
     );
-    final _Sym read = _resultCell(cell);
+    final _Sym read = _resultCell(word);
     return (Op op) => _op(op, read);
+  }
+
+  /// The result-storage cell of park [cell]. Cell 0 is `RS)0`; every
+  /// other cell numbers past the fetch cells, as the 1963 processor
+  /// parks `STQ RS)3+0` past the fetches into `RS)1` and `RS)2`
+  /// (M7-12).
+  int _parkWord(int cell) => cell == 0 ? 0 : cell + _parkBase;
+
+  /// The lowest park cell past 0 that no open chain or comparison holds.
+  int _freePark() {
+    var cell = 1;
+    while (_parkedCells.contains(cell) || _comparisonCells.contains(cell)) {
+      cell++;
+    }
+    return cell;
   }
 
   /// The `RS)` cells parked by the open chains that the assembly has yet
@@ -3885,6 +3936,13 @@ final class _Text {
       }
       _leafOperand(leaf)(Op.mpy);
       return scale + _naturalScale(leaf);
+    }
+    if (complex is BinaryExpr) {
+      // The section reserves the cell the chain would park in, though
+      // the `XCA` step below leaves it unaddressed (M4-4 as amended
+      // 2026-11-23): both WITHOLDING.TAX.ROUTINE sections, 1962 and
+      // 1963, reserve one cell past every cell they name.
+      _noteResultCell(_parkWord(_freePark()));
     }
     final int scale = switch (complex) {
       TruthExpr() => _truthFunction(complex),
@@ -4244,7 +4302,7 @@ final class _Text {
   /// Both sides compare at the greater of their scales. The left
   /// expression, or the one expression, ends in the accumulator. The
   /// other side is the `CAS` operand: a name or a literal as it stands,
-  /// or built first and parked in a temporary cell when it must be
+  /// or built first and parked in a result-storage cell when it must be
   /// upscaled or computed.
   void _expressionComparison(
     Relation relation, {
@@ -4288,7 +4346,8 @@ final class _Text {
       _accumulatorSide(acc as BinaryExpr, scale);
       _compareStorage(storage);
     } else {
-      final _Sym parkCell = _comparisonPark();
+      final int parked = _freePark();
+      final _Sym parkCell = _resultCell(_parkWord(parked));
       if (storage is BinaryExpr) {
         final _Register register = _alignedExpression(storage, scale);
         _op(register == _Register.mq ? Op.stq : Op.sto, parkCell);
@@ -4299,11 +4358,11 @@ final class _Text {
           finish: () => _op(Op.stq, parkCell),
         );
       }
-      // A refusal aborts the job's code generation, so neither count
-      // needs a finally to restore it.
-      _parked++;
+      // A refusal aborts the job's code generation, so the list needs
+      // no finally to restore it.
+      _comparisonCells.add(parked);
       _accumulatorSide(acc as BinaryExpr, scale);
-      _parked--;
+      _comparisonCells.removeLast();
       _op(Op.cas, parkCell);
     }
     _vector(relation, !leftInAccumulator, trueTo: trueTo, falseTo: falseTo);
@@ -4331,17 +4390,6 @@ final class _Text {
       );
     }
     return value.register;
-  }
-
-  /// The temporary cell past the fetch cells and the parks still live
-  /// (M6-9). A truth function inside the accumulator side parks above
-  /// the outer park.
-  _Sym _comparisonPark() {
-    final int cell = _fetched.length + 1 + _parked;
-    if (cell > temporaryStorageWords) {
-      _unruled('a temporary cell past the TS) reservation (M4-4)');
-    }
-    return _blockWord(StorageBlock.ts, cell);
   }
 
   bool _builtInAccumulator(ArithExpr operand) => switch (operand) {

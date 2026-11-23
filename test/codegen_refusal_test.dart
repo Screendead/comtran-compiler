@@ -948,23 +948,6 @@ void main() {
       );
     });
 
-    test('a comparison park past the TS) reservation', () {
-      // Seven fetches fill TS)1 to TS)7, and the upscaled 1 needs an
-      // eighth cell.
-      final List<String> names = [for (var i = 1; i <= 7; i++) 'E$i'];
-      expect(
-        _refuses(
-          ['            IF ${names.join(' + ')} LT 1 THEN STOP RUN.'],
-          data: [
-            ..._data(),
-            for (final String name in names)
-              dataCard(name: name, level: '1', mode: 'E', description: '9V9'),
-          ],
-        ),
-        'a temporary cell past the TS) reservation (M4-4)',
-      );
-    });
-
     test('a subscripted external-decimal operand', () {
       expect(
         _refuses(
@@ -976,21 +959,6 @@ void main() {
           ],
         ),
         'a subscripted external-decimal operand (M6-9)',
-      );
-    });
-
-    test('an eighth temporary cell', () {
-      final List<String> names = [for (var i = 1; i <= 8; i++) 'EX$i'];
-      expect(
-        _refuses(
-          ['            SET NUM = ${names.join(' + ')}.'],
-          data: [
-            ..._data(),
-            for (final String name in names)
-              dataCard(name: name, level: '1', mode: 'E', description: '9'),
-          ],
-        ),
-        'a temporary cell past the TS) reservation (M4-4)',
       );
     });
 
@@ -1241,33 +1209,6 @@ void main() {
           '            + NUM + NUM + NUM + NUM) * 123456 * 2.',
         ]),
         'a product of a product past 10 digits (no sample instance)',
-      );
-    });
-
-    test('a result-storage cell past the section reservation', () {
-      // Section 0 reserves three cells and this chain parks four.
-      expect(
-        _refuses([
-          '            SET NUM = NUM * TOT + NUM * TOT + NUM * TOT + NUM',
-          '            * TOT.',
-        ]),
-        'result-storage cell 3 of section 0 (M4-10)',
-      );
-    });
-
-    test('result storage past the last reserved section', () {
-      // The reservation covers sections 0 to 3; the fourth has none.
-      expect(
-        _refuses([
-          for (var i = 1; i <= 3; i++) ...[
-            '      ${'S$i.'.padRight(12)}BEGIN SECTION.',
-            '            END S$i.',
-          ],
-          '      ${'S4.'.padRight(12)}BEGIN SECTION.',
-          '            SET NUM = NUM * TOT + NUM.',
-          '            END S4.',
-        ]),
-        'result storage in section 4 (no sample instance)',
       );
     });
   });

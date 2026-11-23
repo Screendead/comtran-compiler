@@ -937,6 +937,9 @@ the report our run prints against the page.
     constant fitted to the sample. A fetch in `RS)` would share those
     cells with the chain.
 
+  **Amended 2026-11-23 (M7-12).** A fetch now parks in `RS)` from
+  cell 1. `m7-diff.md`, part B2, holds the rule.
+
   The generator refuses five shapes on this path:
 
   - `an external-decimal store (M6-9)`, for an external target. The

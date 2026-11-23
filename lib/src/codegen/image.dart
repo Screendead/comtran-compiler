@@ -59,7 +59,11 @@ int baseLocatorWords(SemanticResult semantics) =>
 
 /// The object program's address layout (M4-4).
 final class ProgramImage {
-  ProgramImage({required this.inlineWords, required this.blockWords});
+  ProgramImage({
+    required this.inlineWords,
+    required this.blockWords,
+    required this.resultCells,
+  });
 
   /// Location Counter 0: the transmitted data areas at M3-6's offsets
   /// and the procedure text, in the order of their divisions in the
@@ -68,6 +72,10 @@ final class ProgramImage {
 
   /// Words reserved for each block of Location Counter 1.
   final Map<StorageBlock, int> blockWords;
+
+  /// The result-storage cells each section reserves, section 0 first.
+  /// Section k's cells follow those of every section before it.
+  final List<int> resultCells;
 
   /// Location Counter 1 begins where Location Counter 0 ends.
   int get counterOneOrigin => inlineWords;
