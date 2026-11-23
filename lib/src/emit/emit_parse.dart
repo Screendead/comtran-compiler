@@ -106,8 +106,6 @@ final class _ParseDump {
     }
   }
 
-  // --- Data ----------------------------------------------------------
-
   void _dataItem(DataItem item, int depth) {
     final DataEntry entry = item.entry;
     final int? level = entry.level;
@@ -162,8 +160,6 @@ final class _ParseDump {
       DataTypeCode.rcdmrk => const ['type RCDMRK'],
     };
   }
-
-  // --- Environment ---------------------------------------------------
 
   void _environmentCard(EnvironmentCard card, int depth) {
     final String number = _number(card.spec.cards.first);
@@ -274,8 +270,6 @@ final class _ParseDump {
       if (record.noControlWord) 'no-control-word',
     ]);
   }
-
-  // --- Procedure -----------------------------------------------------
 
   void _sentence(Sentence sentence, int depth) {
     final String? label = sentence.scan.label;
@@ -490,8 +484,6 @@ final class _ParseDump {
       _name(bareName, depth + 1);
     }
   }
-
-  // --- Expressions ---------------------------------------------------
 
   void _arith(ArithExpr expr, int depth, {String role = ''}) {
     switch (expr) {
