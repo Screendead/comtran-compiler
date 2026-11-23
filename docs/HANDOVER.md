@@ -402,35 +402,9 @@ binds work outside the definition.
   81,00, and the conversion held one (M7-12). Jack authorized the
   correction (issue #278). The message catalog and the `f-payroll`
   listing golden now hold two spaces.
-  The first, opened 2026-09-14 and closed on 2026-09-15: the reflowed
-  block of PDF p. 217 held three cells that the scan contradicts. The
-  DEPARTMENT 09 TOTALS line prints `0.00` in the fourth amount column,
-  where the transcription read `5.21`. The GT line prints `5.21` and
-  `36.00` in its fourth and fifth columns, and the transcription
-  omitted both. The column sums confirm all three
-  (`docs/design/m6-acceptance.md` M6-2). Jack authorized the three
-  cells, and the block now prints them.
-  The second, opened and closed on
-  2026-09-14: the F conversion's
-  note after the page-100 form (`comtran-manuals/F28-8043/a1-programming-example.md`)
-  read the six TABLE cards as one literal continued across six lines.
-  The form and the machine listing both show six level-2 entries, each
-  with its own quote marks and an empty continuation column (M6-6).
-  Jack authorized the correction, and the note now describes the six
-  entries. The third, opened 2026-09-13 and
-  closed on 2026-09-14: the p. 217 note described a printer practice
-  that does not exist. The block followed the note and assigned each
-  line's right-hand fields to the row above. The scan shows a skewed
-  print, and the arithmetic holds only along each line's own baseline
-  (M6-2). Jack authorized the correction, and the note and the block
-  now read the baselines. The definition's §9.7 carried the same
-  reading, corrected the same day. The fourth,
-  opened 2026-08-30, closed on 2026-09-06: the transcription of PDF
-  p. 198 read `*SPEC  05` on its twelfth card, file 6's, where the scan
-  reads `06` — the `*FILE  06` line above it prints the same weak-topped
-  6 (`docs/design/loader.md` LD-4; the review record of 2026-08-30 holds
-  the crop). Jack read the crop and authorized the correction, and the
-  conversion now reads `06`. Jack's call of 2026-08-09 took
+  The four earlier ones, closed 2026-09-06 to 2026-09-15, are in
+  `docs/design/m6-acceptance.md` M6-2 and M6-6 and
+  `docs/design/loader.md` LD-4. Jack's call of 2026-08-09 took
   option B: each chunk authorizes its own pages as it lands, and no set
   waits for the end of the scan pass. Chunks A2 to A4 measured seven
   object pages that print more blank lines between the head and the first
