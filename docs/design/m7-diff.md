@@ -2556,6 +2556,10 @@ conversion prints one, and `lib/src/lexer/message_catalog.dart`
 follows the conversion. 1963 prints two. A change to the conversion
 needs Jack's authorization (CLAUDE.md section 9).
 
+*Amended 2026-11-23.* Jack authorized the correction (issue #278). The
+conversion, the catalog and the `f-payroll` listing golden now hold two
+spaces before `-REDEF-` in 80,00 and 81,00.
+
 **Two slips in earlier entries, corrected in place.**
 
 - M7-9 put the product `RATE × 40` in 141,00. It is in 142,00
