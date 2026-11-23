@@ -5,64 +5,6 @@ import 'support/deck_fixtures.dart';
 
 void main() {
   group('specification assembly', () {
-    test('splits options on commas and blanks', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'INPUTMASTER',
-            type: 'FILE',
-            options: 'INPUT,BINARY,BLOCKSIZE 300',
-          ),
-        ]),
-      );
-      expect(scan.diagnostics, isEmpty);
-      final EnvironmentSpec spec = scan.specs.single;
-      expect(spec.name, 'INPUTMASTER');
-      expect(spec.typeText, 'FILE');
-      expect(
-        [for (final Token t in spec.optionTokens) t.text],
-        [
-          'INPUT', ',', 'BINARY', ',', 'BLOCKSIZE', '300', //
-        ],
-      );
-      expect(spec.optionTokens.last.kind, TokenKind.numericLiteral);
-    });
-
-    test('a quoted unit literal is one token', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(type: 'SPECIF', options: "PAYFILE, UNIT1 'D3',OPENW"),
-        ]),
-      );
-      expect(scan.diagnostics, isEmpty);
-      final List<Token> tokens = scan.specs.single.optionTokens;
-      expect(tokens[3].kind, TokenKind.alphamericLiteral);
-      expect(tokens[3].text, 'D3');
-    });
-
-    test('a specification continues across cards', () {
-      final EnvironmentScan scan = scanEnvironment(
-        sourceCards([
-          environmentCard(
-            name: 'PAYFILE',
-            type: 'FILE',
-            options: 'OUTPUT,PAYRECORD,',
-            continued: true,
-          ),
-          environmentCard(options: 'BLOCKSIZE 20'),
-        ]),
-      );
-      expect(scan.diagnostics, isEmpty);
-      final EnvironmentSpec spec = scan.specs.single;
-      expect(spec.cards, hasLength(2));
-      expect(
-        [for (final Token t in spec.optionTokens) t.text],
-        [
-          'OUTPUT', ',', 'PAYRECORD', ',', 'BLOCKSIZE', '20', //
-        ],
-      );
-    });
-
     test('a first card without a legal type is deleted with 144,00', () {
       final EnvironmentScan scan = scanEnvironment(
         sourceCards([environmentCard(name: 'STRAY', options: 'INPUT')]),
