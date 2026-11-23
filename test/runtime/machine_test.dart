@@ -1491,11 +1491,7 @@ void main() {
         subject.state.read(addressOf(job, 'XN')),
         Word36.fromSignMagnitude(1, 7),
       );
-      final int tab = addressOf(job, 'TAB');
-      expect(
-        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
-        <int>[0, 34, 0],
-      );
+      expect(_words(subject, job, 'TAB', 3), <int>[0, 34, 0]);
     });
 
     test('a chain rounds away from zero at the store', () {
@@ -1748,11 +1744,7 @@ void main() {
       expect(subject.state.read(addressOf(job, 'WM')), 1);
       expect(subject.state.read(addressOf(job, 'WA')), 2);
       expect(subject.state.read(addressOf(job, 'WI')), 3);
-      final int tab = addressOf(job, 'TAB');
-      expect(
-        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
-        <int>[0, 7, 0],
-      );
+      expect(_words(subject, job, 'TAB', 3), <int>[0, 7, 0]);
     });
 
     test('a subscript store reads a field from its own byte', () {
@@ -1830,19 +1822,11 @@ void main() {
     test('a SET and an ADD store into the element the index names', () {
       final (JobCompilation job, Machine subject) = compiled(_elementTargets);
       expect(subject.printed, <String>['AT 20,00 STOP RUN']);
-      final int tab = addressOf(job, 'TAB');
-      final int ft = addressOf(job, 'FT');
       // 4 into element 3, then 4 + 1 into element 1, then 12 into
       // element 2.
-      expect(
-        <int>[for (var k = 0; k < 3; k++) subject.state.read(tab + k)],
-        <int>[5, 12, 4],
-      );
+      expect(_words(subject, job, 'TAB', 3), <int>[5, 12, 4]);
       // 1.5 * 1.5 rounds to 2.3 at the store, and 4 aligns to 4.0: 6.3.
-      expect(
-        <int>[for (var k = 0; k < 3; k++) subject.state.read(ft + k)],
-        <int>[0, 63, 0],
-      );
+      expect(_words(subject, job, 'FT', 3), <int>[0, 63, 0]);
     });
 
     test('a CORRESPONDING clause stores into the element the index names', () {
@@ -1850,19 +1834,22 @@ void main() {
         _correspondingElements,
       );
       expect(subject.printed, <String>['AT 23,00 STOP RUN']);
-      List<int> words(String name, int count) {
-        final int at = addressOf(job, name);
-        return <int>[
-          for (var k = 0; k < count; k++) subject.state.read(at + k),
-        ];
-      }
-
       // The ADD of 1 lands in element 2, the I it set; the MOVE fills
       // element 1, the two ADDs double element 3, and the last ADD
       // adds 1 to element 2 of OTH, C2 and C3.
-      expect(words('TAB', 9), <int>[7, 8, 3, 1, 1, 0, 14, 16, 6]);
-      expect(words('T2', 3), <int>[0, 1, 0]);
-      expect(words('T3', 3), <int>[0, 1, 0]);
+      expect(_words(subject, job, 'TAB', 9), <int>[
+        7,
+        8,
+        3,
+        1,
+        1,
+        0,
+        14,
+        16,
+        6,
+      ]);
+      expect(_words(subject, job, 'T2', 3), <int>[0, 1, 0]);
+      expect(_words(subject, job, 'T3', 3), <int>[0, 1, 0]);
       expect(subject.state.read(addressOf(job, 'I')), 2);
     });
 
@@ -1947,16 +1934,8 @@ void main() {
       ]);
       // 040 into 99V99 is 40.00, and 12.34 into 99V9 drops to 12.3, the
       // quotient stored from the MQ.
-      final int up = addressOf(job, 'UP');
-      final int dn = addressOf(job, 'DN');
-      expect(
-        <int>[for (var k = 0; k < 2; k++) subject.state.read(up + k)],
-        <int>[0, 4000],
-      );
-      expect(
-        <int>[for (var k = 0; k < 2; k++) subject.state.read(dn + k)],
-        <int>[0, 123],
-      );
+      expect(_words(subject, job, 'UP', 2), <int>[0, 4000]);
+      expect(_words(subject, job, 'DN', 2), <int>[0, 123]);
     });
 
     test('a MOVE and an ADD align by the decimal point', () {
