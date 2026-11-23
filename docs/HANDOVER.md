@@ -178,18 +178,16 @@ messages 80,00 and 81,00. Jack, 2026-11-23:
 > **Jack's answer:** A · Fix it
 
 The erratum is applied (see "Rules that bind future work"). The queue
-holds the other compiler fixes of M7-12, one item for each finding:
+of the compiler fixes of M7-12 is empty.
 
-1. The order of the code and the data when `*PROCEDURE` comes first,
-   and the entry point that follows from it ([J 90.02.01]).
-2. Done 2026-11-23: the temporaries of `f-payroll-j` park in `RS)`,
-   and each section sizes its `RS)` cells ([J 90.02.03]; M4-4 and
-   M6-9 as amended).
-3. The deck name in columns 73 to 77 ([J 05.05] A).
-4. The columns of the message lines (the scan of PDF p. 181).
-
-`NO -STOP RUN- IN PROGRAM.` prints at 9999,99 since 2026-11-23
-([J 02.02.01]).
+Done on 2026-11-23: `NO -STOP RUN- IN PROGRAM.` prints at 9999,99
+([J 02.02.01]); a `$CMPLE` deck punches its deck name in columns
+73 to 77 ([J 05.05] A; LD-2 as amended); the message lines take
+the columns of the scan of PDF p. 181 (M1-18 as amended); the code
+comes first when `*PROCEDURE` comes first, so the entry point of
+`f-payroll` is 00000 ([J 90.02.01]; M4-4 as amended by M7-12); and the
+temporaries of `f-payroll-j` park in `RS)`, and each section sizes
+its `RS)` cells ([J 90.02.03]; `m7-diff.md`, part B2).
 
 The fixes of the runtime library stay out (Jack's answer above).
 

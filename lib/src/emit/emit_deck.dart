@@ -13,6 +13,7 @@ library;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import '../ast/control_ast.dart';
 import '../cards/canon_codec.dart';
 import '../cards/card_image.dart';
 import '../cards/text_codec.dart';
@@ -67,10 +68,11 @@ JobDeck? jobDeck(JobCompilation job, ListingOptions options) {
   }
   final symbolic = <String>[];
   final cards = <CardImage>[];
+  final String deckId = _deckIdentification(job);
   var serial = 0;
   void symbolicCard(String text) {
     serial++;
-    final line = '${text.padRight(72)}${serial.toString().padLeft(8)}';
+    final line = '${text.padRight(72)}${_cardIdentification(deckId, serial)}';
     symbolic.add(line);
     cards.add(mirrorToDeck('$line\n').single);
   }
@@ -95,13 +97,35 @@ JobDeck? jobDeck(JobCompilation job, ListingOptions options) {
     cards.add(
       binaryCard(
         textCard(sequence, entries.sublist(first, last)),
-        serial: '$serial',
+        serial: _cardIdentification(deckId, serial).trimLeft(),
       ),
     );
     first = last;
   }
   symbolicCard(bracket('*CTEND'));
   return JobDeck(symbolicCards: symbolic, cards: cards);
+}
+
+/// The deck identification of [job]: columns 8 to 12 of its `$CMPLE`
+/// card, "punched in columns 73-77" of each deck card ([J 05.05] A).
+/// Empty for a `*COMPILE` card, which has no deck.name field (D7.12):
+/// the 90.05 deck prints blank columns 73 to 77 (PDF pp. 198, 216).
+String _deckIdentification(JobCompilation job) {
+  final CompileCard? compile = job.parse?.compileCard;
+  if (compile == null || compile.historicalSpelling) {
+    return '';
+  }
+  return compile.card.textRange(8, 12);
+}
+
+/// Columns 73 to 80 of a deck card: [deckId] in 73 to 77 and the
+/// [serial] in 78 to 80 ([J 05.05] A). With no deck identification the
+/// serial ends at column 80 (LD-2). A serial past 999 keeps all its
+/// digits and covers the end of the deck identification; J gives the
+/// sequence three columns and states no wider form, so that is ours.
+String _cardIdentification(String deckId, int serial) {
+  final field = '${deckId.padRight(5)}${'$serial'.padLeft(3)}';
+  return field.substring(field.length - 8);
 }
 
 /// The canon bytes of every job's deck on [deck], in deck order.

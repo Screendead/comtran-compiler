@@ -308,7 +308,7 @@ void main() {
     final List<String> lines = result.listing.split('\n');
     final String number = result.diagnostics.first.number;
     final int row = lines.indexWhere(
-      (String line) => line.startsWith(number.padLeft(7)),
+      (String line) => line.startsWith(number.padLeft(9)),
     );
     expect(row, isNonNegative);
     expect(result.marks['listing']![row], '1:$number');

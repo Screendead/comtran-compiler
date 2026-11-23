@@ -2564,6 +2564,27 @@ spaces before `-REDEF-` in 80,00 and 81,00.
 the procedure parser reports message 175,00 at 9999,99, and the
 `f-payroll` listing golden prints it there.
 
+*Amended 2026-11-23.* Rows L2 and O4 are fixed on the same answer: a
+`$CMPLE` deck punches its deck name in columns 73 to 77
+(`loader.md` LD-2 as amended).
+
+*Amended 2026-11-23.* Row S8 is fixed on the same answer: the message
+lines and their header take the columns of the scan
+(`m1-front-end.md` M1-18 as amended).
+
+*Amended 2026-11-23.* Rows B4 (the order and the entry point) and O5
+are fixed on Jack's answer to issue #277. This amends M4-4
+(`m4-codegen.md`), whose word budget is locked. Location Counter 0
+holds its words by "the relative position of items in the source
+deck" ([J 90.02.01]). When the first `*PROCEDURE` group comes before
+the first `*DATA` group, the procedure text starts at 00000 and the
+transmitted areas follow it, from `*DATA BSS 0`. `USE 0` still opens
+the counter at 00000. `f-payroll` puts `START` at 00000 and
+`*DATA BSS 0` at 01003, and its end-of-text word names 00000. The
+90.05 sample does not change. A deck that interleaves several groups
+of each division keeps the order of the first group of each. No deck
+of ours has that shape, and no print shows it.
+
 **Two slips in earlier entries, corrected in place.**
 
 - M7-9 put the product `RATE × 40` in 141,00. It is in 142,00
@@ -2643,36 +2664,29 @@ Where a row says that 1963 keeps the 1962 words at a site of 90.05, the ground i
 | Length: 1247 words in 1963, 1119 in ours | no class of its own | A sum of the rows of B1, B2 and B3. |
 
 *Amended 2026-11-23.* The row "Temporaries" is fixed on Jack's answer
-to issue #277. The 1963 listing of `f-payroll-j` gives the cells. These
-rules now bind the generator. They amend M6-9 and M4-4, and they live
-here because the M4 record is locked at its word budget:
+to issue #277. These rules amend M6-9 and M4-4. They live here because
+the M4 record is locked at its word budget:
 
-- A fetch takes the next result-storage cell of its section, from
-  `RS)1`. An edited ADD source parks in `RS)n` first, so the fetch of
-  a target takes `RS)n+1` and up.
-- A chain park in cell 0 stays in `RS)0`. A chain park in cell c of
-  M4-10 moves past the k fetch cells, to `RS)c+k`. 1963 prints
-  `STQ RS)3+0` after its fetches into `RS)1` and `RS)2`.
+- A fetch takes the next `RS)` cell of its section, from `RS)1`, or
+  past an edited ADD source parked in `RS)n`.
+- A chain park in cell 0 stays in `RS)0`. Cell c of M4-10 moves past
+  the k fetch cells, to `RS)c+k`: 1963 prints `STQ RS)3+0` after its
+  fetches into `RS)1` and `RS)2`.
 - A comparison park takes the lowest chain cell that no open park
-  holds, and the chain of the other side skips it.
-- The DO FOR increment block keeps its index in `TS)1`. 1963 also
-  keeps that index in `TS)` (B3).
-- Each section reserves two cells past the highest cell it names. A
-  section that names no cell reserves 2.
-- A product of a parenthesized sum reserves one more cell: the cell
-  the sum would park in. The `XCA` step leaves it unaddressed.
+  holds.
+- The DO FOR index keeps `TS)1`, as 1963 keeps it in `TS)` (B3).
+- Each section reserves two cells past the highest cell it names, and
+  one more for a product of a parenthesized sum, whose `XCA` step
+  leaves that cell unaddressed.
 
-The two 1963 listings give the reservation of 11 sections. The rule
-gives all six of 90.05: 3, 2, 3, 3, 2 and 2 cells, the 30 words of
-the 1962 print. Both WITHOLDING.TAX.ROUTINE sections hold the product
-of a sum, and each reserves one cell more. The rule gives four of the
-five sections of `f-payroll-j`. FICA.ROUTINE reserves 6 cells where
-1963 reserves 5, because the comparison of 152,00 parks in another
-order, a row that stays undecided. Thus `RS)` prints 54 words, not 52.
-No manual states the rule. It fits the 11 sections, and it agrees
-with [J 90.02.03]: "N is the sum of maximum Result Storage used in
-each section". The section constants of M4-4 are gone, with the
-refusals of a cell past them and of a cell past the `TS)` reservation.
+No manual states the sizing rule. It agrees with [J 90.02.03], "N is
+the sum of maximum Result Storage used in each section". It gives all
+six sections of 90.05, 3, 2, 3, 3, 2 and 2 cells, the 30 words of the
+1962 print. Each WITHOLDING.TAX.ROUTINE holds the product of a sum. It
+gives four of the five sections of `f-payroll-j`. FICA.ROUTINE takes 6
+cells where 1963 takes 5, because the comparison of 152,00 parks in
+another order, a row that stays undecided. Thus `RS)` is 54 words, not
+52. The section constants of M4-4 and their refusals are gone.
 
 **B3. `f-payroll-j`: the DO FOR of 144,00 (M7-9)**
 

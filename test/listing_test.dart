@@ -43,12 +43,12 @@ void main() {
         const ListingOptions(date: '08/03/26', time: '1.00'),
       ).text;
       expect(listing, contains('THE FOLLOWING ERRORS WERE DETECTED'));
-      expect(listing, contains('NUMBER   CODE   MESSAGE'));
+      expect(listing, contains('   NUMBER  CODE  MESSAGE'));
       // The stray card is not a numbered statement: 9999,99.
       expect(listing, contains('9999,99'));
       // The unclosed literal is in statement 1: its row carries the
       // statement number and the severity, never the message id.
-      expect(listing, contains('   1,00    2    ALPHABETIC LITERAL'));
+      expect(listing, contains('     1,00   2    ALPHABETIC LITERAL'));
       expect(listing, isNot(contains('168,00')));
       expect(listing, contains('SEVERITY LIMIT WAS NOT REACHED'));
       expect(listing, isNot(contains('NO ERRORS')));
