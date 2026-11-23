@@ -67,6 +67,10 @@ void main() {
     var checked = 0;
     for (final path in files) {
       final String text = File(path).readAsStringSync();
+      final Set<String> bracketed = {
+        for (final RegExpMatch m in RegExp(r'\[([^\[\]]*)\]').allMatches(text))
+          m[1]!,
+      };
       linkBlockDefinitions(text).forEach((String label, String target) {
         final List<String> parts = target.split('#');
         expect(parts, hasLength(2), reason: '$path: $label');
@@ -77,7 +81,7 @@ void main() {
           contains(parts[1]),
           reason: '$path: $label',
         );
-        expect(text, contains('[$label]'), reason: '$path: $label');
+        expect(bracketed, contains(label), reason: '$path: $label');
         checked++;
       });
     }
