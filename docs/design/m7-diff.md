@@ -2561,10 +2561,17 @@ conversion, the catalog and the `f-payroll` listing golden now hold two
 spaces before `-REDEF-` in 80,00 and 81,00.
 
 *Amended 2026-11-23.* Rows B4 (the order and the entry point) and O5
-are fixed on Jack's answer to issue #277. Location Counter 0 now
-follows the order of the divisions in the deck (M4-4 as amended).
-`f-payroll` puts `START` at 00000 and `*DATA BSS 0` at 01003, after
-the code, and its end-of-text word names 00000.
+are fixed on Jack's answer to issue #277. This amends M4-4
+(`m4-codegen.md`), whose word budget is locked. Location Counter 0
+holds its words by "the relative position of items in the source
+deck" ([J 90.02.01]). When the first `*PROCEDURE` group comes before
+the first `*DATA` group, the procedure text starts at 00000 and the
+transmitted areas follow it, from `*DATA BSS 0`. `USE 0` still opens
+the counter at 00000. `f-payroll` puts `START` at 00000 and
+`*DATA BSS 0` at 01003, and its end-of-text word names 00000. The
+90.05 sample does not change. A deck that interleaves several groups
+of each division keeps the order of the first group of each. No deck
+of ours has that shape, and no print shows it.
 
 **Two slips in earlier entries, corrected in place.**
 
