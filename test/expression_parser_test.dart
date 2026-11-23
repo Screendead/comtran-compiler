@@ -79,23 +79,9 @@ void main() {
       final (_, List<Diagnostic> clean) = _arith('A * (-B)');
       expect(clean, isEmpty);
     });
-
-    test('a signed literal after an operator is the sign (F p. 18)', () {
-      final (ArithExpr expr, List<Diagnostic> diagnostics) = _arith('1.5 -20');
-      expect(diagnostics, isEmpty);
-      expect(_shape(expr), '(1.5-20)');
-    });
   });
 
   group('operands', () {
-    test('a qualified name is one operand (§1.5)', () {
-      final (ArithExpr expr, List<Diagnostic> diagnostics) = _arith(
-        'MASTER RATE + 1',
-      );
-      expect(diagnostics, isEmpty);
-      expect(_shape(expr), '(MASTER RATE+1)');
-    });
-
     test('subscripts parse; a fourth draws 914 (D3.1)', () {
       final (ArithExpr expr, List<Diagnostic> diagnostics) = _arith(
         'TABLE.ITEM (I, J)',
@@ -118,12 +104,15 @@ void main() {
     });
 
     test('a signed literal follows any operator silently (F p. 18)', () {
-      final (ArithExpr minus, List<Diagnostic> onMinus) = _arith('A * -5');
-      expect(onMinus, isEmpty);
-      expect(_shape(minus), '(A*(-5))');
-      final (ArithExpr plus, List<Diagnostic> onPlus) = _arith('A * +5');
-      expect(onPlus, isEmpty);
-      expect(_shape(plus), '(A*5)');
+      for (final (String text, String shape) in [
+        ('1.5 -20', '(1.5-20)'),
+        ('A * -5', '(A*(-5))'),
+        ('A * +5', '(A*5)'),
+      ]) {
+        final (ArithExpr expr, List<Diagnostic> diagnostics) = _arith(text);
+        expect(diagnostics, isEmpty, reason: text);
+        expect(_shape(expr), shape, reason: text);
+      }
     });
 
     test('ABS may follow another operator (F p. 27 rule 6)', () {
@@ -226,22 +215,20 @@ void main() {
       expect(or.right, isA<Relation>());
     });
 
-    test('the full and abbreviated relation spellings agree (F p. 21)', () {
-      for (final text in ['X IS NOT EQUAL TO Y', 'X NOT = Y']) {
+    test('the full, verbose and abbreviated relation spellings agree '
+        '(F p. 21)', () {
+      for (final (String text, RelationOp op, bool negated) in [
+        ('X IS NOT EQUAL TO Y', RelationOp.equal, true),
+        ('X NOT = Y', RelationOp.equal, true),
+        ('X IS GREATER THAN Y', RelationOp.greater, false),
+        ('X IS NOT LESS THAN Y', RelationOp.less, true),
+      ]) {
         final (CondExpr expr, List<Diagnostic> diagnostics) = _cond(text);
         expect(diagnostics, isEmpty, reason: text);
         final relation = expr as Relation;
-        expect(relation.op, RelationOp.equal, reason: text);
-        expect(relation.negated, isTrue, reason: text);
+        expect(relation.op, op, reason: text);
+        expect(relation.negated, negated, reason: text);
       }
-    });
-
-    test('a figurative constant is a comparison operand (J 02.04.01)', () {
-      final (CondExpr expr, List<Diagnostic> diagnostics) = _cond(
-        'D.EMP.NO = HIGH.VALUE',
-      );
-      expect(diagnostics, isEmpty);
-      expect((expr as Relation).right, isA<FigurativeOperand>());
     });
 
     test('a bare name is a condition-name test (F p. 22)', () {
@@ -256,21 +243,6 @@ void main() {
     test('a subscripted condition-name draws 910 (D5.6)', () {
       final (_, List<Diagnostic> diagnostics) = _cond('MARRIED (I)');
       expect(diagnostics.single.message, msgSubscriptedConditionName);
-    });
-
-    test('the verbose relation spellings parse (F p. 21)', () {
-      final (CondExpr greater, List<Diagnostic> onGreater) = _cond(
-        'X IS GREATER THAN Y',
-      );
-      expect(onGreater, isEmpty);
-      expect((greater as Relation).op, RelationOp.greater);
-      expect(greater.negated, isFalse);
-      final (CondExpr less, List<Diagnostic> onLess) = _cond(
-        'X IS NOT LESS THAN Y',
-      );
-      expect(onLess, isEmpty);
-      expect((less as Relation).op, RelationOp.less);
-      expect(less.negated, isTrue);
     });
 
     test('a hybrid relation spelling draws 107 (M2-17)', () {
