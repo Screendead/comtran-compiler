@@ -95,7 +95,6 @@ List<JobSlice> splitJobs(List<CardImage> deck) {
       }
       continue;
     }
-    // A job is open.
     if (isFinishCard(card)) {
       close(terminated: true);
       continue;

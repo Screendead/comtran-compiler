@@ -177,9 +177,5 @@ const Set<String> fRestrictedInDataDescription = {
 /// key-word list.
 const String programStartName = 'PROGRAM.START';
 
-/// PATTERN is registered as a reserved FILE-card word so the illegal-word
-/// check cannot claim it, pending its M5 syntax (decision D9.12).
-const String patternFileCardWord = 'PATTERN';
-
 /// The J classification of [word], or `null` when it is not a J key word.
 KeyWordClass? keyWordClassOf(String word) => jKeyWords[word];

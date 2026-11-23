@@ -257,7 +257,7 @@ const Message msgSubscriptedConditionName = Message.ours(
 
 /// Ours — an AT END clause that is a single imperative but not a
 /// transfer (`DO name`, `GO TO name`, or a bare name). Accepted at low
-/// severity per D6.6; `--pedantic` will raise it.
+/// severity per D6.6; `--pedantic` issues 922 in its place.
 const Message msgAtEndNotTransfer = Message.ours(
   '911,00',
   '-AT END- CLAUSE IS NOT A TRANSFER. ACCEPTED. (NON-HISTORICAL.)',

@@ -91,8 +91,6 @@ List<EnvironmentCard> parseEnvironmentGroup(
   return cards;
 }
 
-// --- Small token-cursor helpers, shared by every card type ---------------
-
 /// Reads a token of [kind] at [i]. Returns the advanced index and the
 /// token, or `null` when the slot is empty or of a different kind. A
 /// present-but-wrong-kind token is still consumed: once a keyword's
@@ -190,8 +188,6 @@ int _skipCommas(List<Token> tokens, int i) {
   }
   return j;
 }
-
-// --- FILE ------------------------------------------------------------------
 
 /// `INPUT`, `OUTPUT`, `CHECKPOINT` (J 02.06.03).
 const Map<String, FileDirection> _fileDirections = {
@@ -401,8 +397,6 @@ bool _isBarredName(String name) {
       keyWordClass == KeyWordClass.notDataOrProcedureName;
 }
 
-// --- SPECIF ------------------------------------------------------------
-
 /// Parses a `SPECIF` card (J 02.06.07–12). The name field is unused; the
 /// file the card modifies is the first option token.
 SpecifCard _parseSpecifCard(
@@ -600,8 +594,6 @@ bool _allDigits(String text) =>
     text.isNotEmpty &&
     text.split('').every((String c) => '0123456789'.contains(c));
 
-// --- POOL ------------------------------------------------------------------
-
 /// Parses a `POOL` card (J 02.06.13). The pool name is already
 /// `spec.name`.
 PoolCard _parsePoolCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
@@ -653,8 +645,6 @@ PoolCard _parsePoolCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
   }
   return card;
 }
-
-// --- GROUP -----------------------------------------------------------------
 
 /// Parses a `GROUP` card (J 02.06.13–14). Splitting a leading pool name
 /// from the file names is M3's (design note M2-3).
@@ -708,8 +698,6 @@ GroupCard _parseGroupCard(EnvironmentSpec spec, List<Diagnostic> diagnostics) {
   return card;
 }
 
-// --- CONTRL ------------------------------------------------------------
-
 /// Parses a `CONTRL` card (J 02.06.15–16), tracking [seenNames] across
 /// the whole environment group for the uniqueness check. Returns `null`
 /// when the card names no area at all, after diagnosing (D7.8: CONTRL
@@ -760,8 +748,6 @@ ContrlCard? _parseContrlCard(
   }
   return ContrlCard(spec, first, to);
 }
-
-// --- OPTION ------------------------------------------------------------
 
 /// Parses an `OPTION` card (J 02.06.16–17): two independent slots,
 /// COLLATE and CONSERVE, each separately scopeable via `IN`.
@@ -837,8 +823,6 @@ int _consumeIn(List<Token> tokens, int i, void Function(Token) setName) {
   }
   return i;
 }
-
-// --- COND ------------------------------------------------------------------
 
 /// Parses a `COND` card (J 02.06.17): a console-key condition name.
 CondCard _parseCondCard(

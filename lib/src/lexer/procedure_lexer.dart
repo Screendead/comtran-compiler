@@ -104,7 +104,6 @@ final class _ProcedureScanner {
   final List<Diagnostic> diagnostics;
   final int _firstDiagnostic;
 
-  // The open sentence, if any.
   bool _open = false;
   String? _label;
   int? _labelColumn;
@@ -113,7 +112,6 @@ final class _ProcedureScanner {
   List<SourceCard> _sentenceCards = [];
   bool _inNote = false;
 
-  // Per-card scan state.
   late SourceCard _card;
   late String _body;
   late Set<int> _illegal;
