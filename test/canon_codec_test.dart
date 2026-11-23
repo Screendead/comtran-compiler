@@ -47,36 +47,25 @@ void main() {
       expect(decodeCanon(encodeCanon(deck)), deck);
     });
 
-    test('rejects a short file', () {
-      expect(() => decodeCanon(Uint8List(5)), throwsA(isA<FormatException>()));
-    });
-
-    test('rejects a bad magic', () {
-      final Uint8List bytes = encodeCanon([]);
-      bytes[0] = 0x58;
-      expect(() => decodeCanon(bytes), throwsA(isA<FormatException>()));
-    });
-
-    test('rejects an unknown version', () {
-      final Uint8List bytes = encodeCanon([]);
-      bytes[6] = 2;
-      expect(() => decodeCanon(bytes), throwsA(isA<FormatException>()));
-    });
-
-    test('rejects nonzero flags', () {
-      final Uint8List bytes = encodeCanon([]);
-      bytes[7] = 1;
-      expect(() => decodeCanon(bytes), throwsA(isA<FormatException>()));
-    });
-
-    test('rejects a length that does not match the card count', () {
-      final Uint8List bytes = encodeCanon([CardImage.blank()]);
-      expect(
-        () => decodeCanon(Uint8List.sublistView(bytes, 0, bytes.length - 1)),
-        throwsA(isA<FormatException>()),
-      );
-      final padded = Uint8List(bytes.length + 1)..setAll(0, bytes);
-      expect(() => decodeCanon(padded), throwsA(isA<FormatException>()));
+    test('rejects a malformed file', () {
+      Uint8List header(int index, int value) =>
+          encodeCanon([])..[index] = value;
+      final Uint8List oneCard = encodeCanon([CardImage.blank()]);
+      final Map<String, Uint8List> files = {
+        'short': Uint8List(5),
+        'bad magic': header(0, 0x58),
+        'unknown version': header(6, 2),
+        'nonzero flags': header(7, 1),
+        'truncated card': Uint8List.sublistView(oneCard, 0, oneCard.length - 1),
+        'padded card': Uint8List(oneCard.length + 1)..setAll(0, oneCard),
+      };
+      files.forEach((String name, Uint8List bytes) {
+        expect(
+          () => decodeCanon(bytes),
+          throwsA(isA<FormatException>()),
+          reason: name,
+        );
+      });
     });
   });
 }
