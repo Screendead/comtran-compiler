@@ -13,30 +13,12 @@ import 'support/deck_fixtures.dart';
 /// numeric MOVE target.
 List<String> _fields() => [
   dataCard(name: 'TAB', level: '1', quantity: '12'),
-  dataCard(
-    name: 'CELL',
-    level: '2',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
-  dataCard(name: 'IDX', level: '1', mode: 'I', justify: 'R', description: '99'),
-  dataCard(
-    name: 'FRAC',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '9V9',
-  ),
+  internalCard('CELL', '999', level: '2'),
+  internalCard('IDX', '99'),
+  internalCard('FRAC', '9V9'),
   dataCard(name: 'EXT', level: '1', mode: 'E', description: '99'),
   dataCard(name: 'ALPHA', level: '1', description: 'A(4)'),
-  dataCard(
-    name: 'NUM',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
+  internalCard('NUM', '999'),
 ];
 
 SemanticResult _move(String subscripted) => runJob(
@@ -57,17 +39,52 @@ void main() {
       expect(result.semanticDiagnostics.single.operands, ['ALPHA']);
     });
 
-    test('a subscript count above the dimension count draws 70,00', () {
-      final SemanticResult result = _move('TAB CELL (IDX, IDX)');
-      expect(ids(result), ['70,00']);
-      expect(result.semanticDiagnostics.single.operands, ['TAB CELL']);
-    });
+    // NAME.1 of 70,00 and 71,00 is the array, not the variable (J 90.04).
+    // An undefined variable draws the triage 108,00 alone.
+    for (final (String name, String subscript, String id, String? operand) in [
+      (
+        'a subscript count above the dimension count draws 70,00',
+        'IDX, IDX',
+        '70,00',
+        'TAB CELL',
+      ),
+      (
+        'a subscripted subscript variable draws 71,00',
+        'TAB CELL (IDX)',
+        '71,00',
+        'TAB CELL',
+      ),
+      (
+        'an alphameric subscript variable draws 79,00',
+        'ALPHA',
+        '79,00',
+        'ALPHA',
+      ),
+      ('a fractional subscript variable draws 31,00', 'FRAC', '31,00', null),
+      (
+        'an external decimal subscript variable draws 206,00',
+        'EXT',
+        '206,00',
+        null,
+      ),
+      (
+        'an undefined subscript variable draws the triage 108,00 alone',
+        'NOSUCH',
+        '108,00',
+        null,
+      ),
+    ]) {
+      test(name, () {
+        final SemanticResult result = _move('TAB CELL ($subscript)');
+        expect(ids(result), [id]);
+        if (operand != null) {
+          expect(result.semanticDiagnostics.single.operands, [operand]);
+        }
+      });
+    }
 
-    test('a subscripted subscript variable draws 71,00', () {
-      final SemanticResult result = _move('TAB CELL (TAB CELL (IDX))');
-      expect(ids(result), ['71,00']);
-      // NAME.1 is the array, not the variable (J 90.04).
-      expect(result.semanticDiagnostics.single.operands, ['TAB CELL']);
+    test('206,00 is a warning, severity 1', () {
+      expect(messageSeverities['206,00'], 1);
     });
 
     test('a condition-name subscript draws 71,00', () {
@@ -88,16 +105,7 @@ void main() {
         '            END S.',
         '            $clause',
       ];
-      List<String> fields() => [
-        ..._fields(),
-        dataCard(
-          name: 'FN',
-          level: '1',
-          mode: 'I',
-          justify: 'R',
-          description: '99',
-        ),
-      ];
+      List<String> fields() => [..._fields(), internalCard('FN', '99')];
 
       test('a declared function draws 71,00 alone', () {
         final SemanticResult result = runJob(
@@ -157,17 +165,6 @@ void main() {
       }
     });
 
-    test('an alphameric subscript variable draws 79,00', () {
-      final SemanticResult result = _move('TAB CELL (ALPHA)');
-      expect(ids(result), ['79,00']);
-      expect(result.semanticDiagnostics.single.operands, ['ALPHA']);
-    });
-
-    test('a fractional subscript variable draws 31,00', () {
-      final SemanticResult result = _move('TAB CELL (FRAC)');
-      expect(ids(result), ['31,00']);
-    });
-
     test('a zero, negative, or fractional literal draws 182,00', () {
       final SemanticResult result = runJob(
         data: _fields(),
@@ -197,12 +194,6 @@ void main() {
       ]) {
         expect(ids(_move('TAB CELL ($subscript)')), drawn, reason: subscript);
       }
-    });
-
-    test('an external decimal subscript variable draws 206,00', () {
-      final SemanticResult result = _move('TAB CELL (EXT)');
-      expect(ids(result), ['206,00']);
-      expect(messageSeverities['206,00'], 1);
     });
 
     group('the other format rows', () {
@@ -243,12 +234,6 @@ void main() {
         expect(ids(result), ['206,00']);
       });
     });
-
-    test('an undefined subscript variable draws the triage 108,00 '
-        'alone', () {
-      final SemanticResult result = _move('TAB CELL (NOSUCH)');
-      expect(ids(result), ['108,00']);
-    });
   });
 
   group('the subscript counters (D9.7)', () {
@@ -276,13 +261,7 @@ void main() {
       final List<String> fields = [
         ..._fields(),
         dataCard(name: 'TAB2', level: '1', quantity: '12'),
-        dataCard(
-          name: 'CELL2',
-          level: '2',
-          mode: 'I',
-          justify: 'R',
-          description: '999',
-        ),
+        internalCard('CELL2', '999', level: '2'),
       ];
       // 45 literals shared by two arrays makes 90 distinct pairs: an
       // array-only key collapses each array to one entry, and a

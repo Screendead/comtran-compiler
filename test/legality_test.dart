@@ -23,15 +23,13 @@ List<String> _fields() => [
   dataCard(name: 'ALPHA', level: '1', description: 'A(4)'),
   dataCard(name: 'ALPHA2', level: '1', description: 'A(4)'),
   dataCard(name: 'EXTNUM', level: '1', mode: 'E', description: '999'),
-  dataCard(
-    name: 'INTNUM',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
+  internalCard('INTNUM', '999'),
   dataCard(name: 'EDIT', level: '1', description: '8889.99'),
 ];
+
+/// The ids [clause] draws as the one statement over [_fields].
+List<String> _draws(String clause) =>
+    ids(runJob(data: _fields(), procedure: ['            $clause']));
 
 /// J 02.04.04 example a: two hierarchies whose qualifier chains agree.
 List<String> _exampleA() => [
@@ -77,31 +75,16 @@ void main() {
     });
 
     test('a quoted literal source is alphameric-class', () {
-      expect(
-        ids(
-          runJob(
-            data: _fields(),
-            procedure: ["            MOVE 'AB' TO EDIT."],
-          ),
-        ),
-        ['84,00'],
-      );
+      expect(_draws("MOVE 'AB' TO EDIT."), ['84,00']);
     });
 
     test('every type may be moved to an alphameric field', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: [
-          '            MOVE EXTNUM TO ALPHA,',
-          '            MOVE EDIT TO ALPHA2.',
-        ],
-      );
-      expect(ids(result), isEmpty);
+      expect(_draws('MOVE EXTNUM TO ALPHA, MOVE EDIT TO ALPHA2.'), isEmpty);
     });
   });
 
   group('CORRESPONDING (D4.12; J 02.04.04)', () {
-    test('pairs match at the lowest level and are recorded for M4', () {
+    test('pairs match at the lowest level', () {
       final SemanticResult result = runJob(
         data: _exampleA(),
         procedure: ['            MOVE CORRESPONDING DATA.1 TO DATA.2.'],
@@ -237,36 +220,12 @@ void main() {
   group('comparisons (J 02.04.07)', () {
     test('a numeric operand compared to an alphameric operand draws '
         '107,00', () {
-      expect(
-        ids(
-          runJob(
-            data: _fields(),
-            procedure: ['            IF ALPHA = EXTNUM THEN STOP RUN.'],
-          ),
-        ),
-        ['107,00'],
-      );
+      expect(_draws('IF ALPHA = EXTNUM THEN STOP RUN.'), ['107,00']);
     });
 
     test('an edited operand compares as numeric (rule 3)', () {
-      expect(
-        ids(
-          runJob(
-            data: _fields(),
-            procedure: ['            IF EDIT = ALPHA THEN STOP RUN.'],
-          ),
-        ),
-        ['107,00'],
-      );
-      expect(
-        ids(
-          runJob(
-            data: _fields(),
-            procedure: ['            IF EDIT = INTNUM THEN STOP RUN.'],
-          ),
-        ),
-        isEmpty,
-      );
+      expect(_draws('IF EDIT = ALPHA THEN STOP RUN.'), ['107,00']);
+      expect(_draws('IF EDIT = INTNUM THEN STOP RUN.'), isEmpty);
     });
 
     test('a variable length item in a comparison draws 123,00 '
@@ -274,13 +233,7 @@ void main() {
       final SemanticResult result = runJob(
         data: [
           ..._fields(),
-          dataCard(
-            name: 'CNT',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '99',
-          ),
+          internalCard('CNT', '99'),
           dataCard(name: 'VGROUP', level: '1'),
           dataCard(
             name: 'VAR',
@@ -297,87 +250,37 @@ void main() {
 
   group('arithmetic operands (J 02.04.05 §6)', () {
     test('an alphameric operand inside an expression draws 25,00', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: ['            SET EXTNUM = ALPHA + 1.'],
-      );
-      expect(ids(result), ['25,00']);
+      expect(_draws('SET EXTNUM = ALPHA + 1.'), ['25,00']);
     });
 
     test('a pure copy SET of one alphameric field to another is '
         'legal', () {
-      final SemanticResult result = runJob(
-        data: _fields(),
-        procedure: ['            SET ALPHA = ALPHA2.'],
-      );
-      expect(ids(result), isEmpty);
+      expect(_draws('SET ALPHA = ALPHA2.'), isEmpty);
     });
 
     test('an alphameric ADD source or target draws 120,00', () {
-      expect(
-        ids(
-          runJob(
-            data: _fields(),
-            procedure: ['            ADD ALPHA TO EXTNUM.'],
-          ),
-        ),
-        ['120,00'],
-      );
-      expect(
-        ids(
-          runJob(
-            data: _fields(),
-            procedure: ['            ADD EXTNUM TO ALPHA.'],
-          ),
-        ),
-        ['120,00'],
-      );
+      expect(_draws('ADD ALPHA TO EXTNUM.'), ['120,00']);
+      expect(_draws('ADD EXTNUM TO ALPHA.'), ['120,00']);
     });
   });
 
   group('figurative constants (J 02.04.02 chart)', () {
     test('HIGH.VALUE moved to an internal decimal field draws '
         '82,00', () {
-      expect(
-        ids(
-          runJob(
-            data: _fields(),
-            procedure: ['            MOVE HIGH.VALUE TO INTNUM.'],
-          ),
-        ),
-        ['82,00'],
-      );
+      expect(_draws('MOVE HIGH.VALUE TO INTNUM.'), ['82,00']);
     });
 
     test('HIGH.VALUE compared to a numeric field draws 82,00 '
         '(J 02.04.01 b)', () {
-      expect(
-        ids(
-          runJob(
-            data: _fields(),
-            procedure: ['            IF EXTNUM = HIGH.VALUE THEN STOP RUN.'],
-          ),
-        ),
-        ['82,00'],
-      );
-      expect(
-        ids(
-          runJob(
-            data: _fields(),
-            procedure: ['            IF ALPHA = HIGH.VALUE THEN STOP RUN.'],
-          ),
-        ),
-        isEmpty,
-      );
+      expect(_draws('IF EXTNUM = HIGH.VALUE THEN STOP RUN.'), ['82,00']);
+      expect(_draws('IF ALPHA = HIGH.VALUE THEN STOP RUN.'), isEmpty);
     });
 
     test('SET takes the chart as MOVE does (J 02.04.02)', () {
-      List<String> setting(String clause) =>
-          ids(runJob(data: _fields(), procedure: ['            $clause']));
-      expect(setting('SET INTNUM = HIGH.VALUE.'), ['82,00']);
-      expect(setting('SET INTNUM = LOW.VALUE.'), ['82,00']);
-      expect(setting('SET ALPHA = HIGH.VALUE.'), isEmpty);
-      expect(setting('SET INTNUM = ZERO.'), isEmpty);
+      expect(_draws('SET INTNUM = HIGH.VALUE.'), ['82,00']);
+      expect(_draws('SET INTNUM = LOW.VALUE.'), ['82,00']);
+      expect(_draws('SET ALPHA = HIGH.VALUE.'), isEmpty);
+      expect(_draws('SET INTNUM = ZERO.'), isEmpty);
     });
 
     test('ZERO moves and compares everywhere silently', () {
@@ -395,13 +298,7 @@ void main() {
     test('a figurative constant moved to a variable length field '
         'draws 180,00', () {
       final List<String> data = [
-        dataCard(
-          name: 'CNT',
-          level: '1',
-          mode: 'I',
-          justify: 'R',
-          description: '99',
-        ),
+        internalCard('CNT', '99'),
         dataCard(name: 'VGROUP', level: '1'),
         dataCard(
           name: 'VAR',

@@ -42,34 +42,56 @@ List<String> _editedFormats(int entries) => [
 
 void main() {
   group('the capacity counters (M3-12; D9.7)', () {
-    test('the 26th QUANTITY IN draws 200,00 and stops', () {
-      final SemanticResult result = runJob(data: _variableFields(26));
-      expect(ids(result), ['200,00']);
-      expect(result.stopped, isTrue);
-      expect(ids(runJob(data: _variableFields(25))), isEmpty);
-    });
-
-    test('the 24th hierarchy level draws 201,00 and names the entry', () {
-      final SemanticResult result = runJob(data: _hierarchy(24));
-      expect(ids(result), ['201,00']);
-      expect(result.stopped, isTrue);
-      expect(result.semanticDiagnostics.single.text, contains("'FOOT'"));
-      expect(ids(runJob(data: _hierarchy(23))), isEmpty);
-    });
-
-    test('the 86th array dimension draws 203,00 and stops', () {
-      final SemanticResult result = runJob(data: _arrays(86));
-      expect(ids(result), ['203,00']);
-      expect(result.stopped, isTrue);
-      expect(ids(runJob(data: _arrays(85))), isEmpty);
-    });
-
-    test('the 36th distinct edited format draws 204,00 and stops', () {
-      final SemanticResult result = runJob(data: _editedFormats(36));
-      expect(ids(result), ['204,00']);
-      expect(result.stopped, isTrue);
-      expect(ids(runJob(data: _editedFormats(35))), isEmpty);
-    });
+    // Each counter fills at [max] and stops one past it, unless
+    // --no-table-limits lifts it.
+    for (final (
+          String name,
+          List<String> Function(int) deck,
+          int max,
+          String id,
+        )
+        in [
+          (
+            'the 26th QUANTITY IN draws 200,00 and stops',
+            _variableFields,
+            25,
+            '200,00',
+          ),
+          (
+            'the 24th hierarchy level draws 201,00 and names the entry',
+            _hierarchy,
+            23,
+            '201,00',
+          ),
+          (
+            'the 86th array dimension draws 203,00 and stops',
+            _arrays,
+            85,
+            '203,00',
+          ),
+          (
+            'the 36th distinct edited format draws 204,00 and stops',
+            _editedFormats,
+            35,
+            '204,00',
+          ),
+        ]) {
+      test(name, () {
+        expect(ids(runJob(data: deck(max))), isEmpty);
+        final SemanticResult result = runJob(data: deck(max + 1));
+        expect(ids(result), [id]);
+        expect(result.stopped, isTrue);
+        if (id == '201,00') {
+          expect(result.semanticDiagnostics.single.text, contains("'FOOT'"));
+        }
+        final SemanticResult lifted = runJob(
+          data: deck(max + 1),
+          tableLimits: false,
+        );
+        expect(ids(lifted), isEmpty);
+        expect(lifted.stopped, isFalse);
+      });
+    }
 
     test('a repeated edited format counts once (J 90.01.05 item c)', () {
       final SemanticResult result = runJob(
@@ -79,19 +101,6 @@ void main() {
         ],
       );
       expect(ids(result), isEmpty);
-    });
-
-    test('--no-table-limits lifts all four counters', () {
-      for (final List<String> data in [
-        _variableFields(26),
-        _hierarchy(24),
-        _arrays(86),
-        _editedFormats(36),
-      ]) {
-        final SemanticResult lifted = runJob(data: data, tableLimits: false);
-        expect(ids(lifted), isEmpty);
-        expect(lifted.stopped, isFalse);
-      }
     });
   });
 }
