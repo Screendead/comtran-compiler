@@ -184,11 +184,11 @@ holds the other compiler fixes of M7-12, one item for each finding:
    and the entry point that follows from it ([J 90.02.01]).
 2. The temporaries of `f-payroll-j`: park in `RS)`, not `TS)`
    ([J 90.02.03]).
-3. The deck name in columns 73 to 77 ([J 05.05] A).
-4. The columns of the message lines (the scan of PDF p. 181).
+3. The columns of the message lines (the scan of PDF p. 181).
 
-`NO -STOP RUN- IN PROGRAM.` prints at 9999,99 since 2026-11-23
-([J 02.02.01]).
+Done on 2026-11-23: `NO -STOP RUN- IN PROGRAM.` prints at 9999,99
+([J 02.02.01]), and a `$CMPLE` deck punches its deck name in columns
+73 to 77 ([J 05.05] A; LD-2 as amended).
 
 The fixes of the runtime library stay out (Jack's answer above).
 
