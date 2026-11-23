@@ -290,14 +290,19 @@ final class _ListingWriter {
     }
     _line('THE FOLLOWING ERRORS WERE DETECTED DURING COMPILATION-');
     _line('');
-    _line('NUMBER   CODE   MESSAGE');
+    // The columns are the scan's of the J 90.04.01 dump, PDF p. 181,
+    // measured with this line at column 1: NUMBER at column 4, CODE at
+    // 12, the statement number ending at 9, the code at 13 and the text
+    // at 18 (M7-12, row S8). A continuation line keeps its indent from
+    // the text column, so it moves one column with the text.
+    _line('   NUMBER  CODE  MESSAGE');
     _line('');
     for (final Diagnostic d in diagnostics) {
       final String number = diagnosticStatementNumber(result, d);
       final List<String> lines = d.text.split('\n');
-      _line('${number.padLeft(7)}    ${d.severity}    ${lines.first}', number);
+      _line('${number.padLeft(9)}   ${d.severity}    ${lines.first}', number);
       for (final String line in lines.skip(1)) {
-        _line(line, number);
+        _line(' $line', number);
       }
     }
     if (_maxSeverity < 5) {
