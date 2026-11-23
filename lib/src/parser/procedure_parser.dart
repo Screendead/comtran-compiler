@@ -114,14 +114,17 @@ final class ProcedureParser {
   /// STOP RUN (msg 175, D2.7), and the PROGRAM.START rules that need
   /// the whole program (D2.1: msg 141 on a duplicate — issued in
   /// place — and msg 143 when a DO addresses it). [anchor] is the card
-  /// program-level diagnostics attach to.
+  /// msg 66 attaches to when the program has no sentence.
   void finishProgram(SourceCard anchor) {
     final SourceCard at = _lastCard ?? anchor;
     if (_openSections.isNotEmpty) {
       diagnostics.reportAt(msgSectionsNotClosed, at);
     }
     if (!_sawStopRun) {
-      diagnostics.reportAt(msgNoStopRun, at);
+      // No statement owns a missing STOP RUN, so it prints at 9999,99,
+      // "used to reference errors which are not confined to a single
+      // source statement" (J 02.02.01; M7-12, row M13).
+      diagnostics.add(Diagnostic.wholeProgram(msgNoStopRun));
     }
     if (_programStartLabels.isNotEmpty) {
       for (final NameReference target in _doTargets) {

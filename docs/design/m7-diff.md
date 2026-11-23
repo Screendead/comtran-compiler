@@ -2560,6 +2560,10 @@ needs Jack's authorization (CLAUDE.md section 9).
 conversion, the catalog and the `f-payroll` listing golden now hold two
 spaces before `-REDEF-` in 80,00 and 81,00.
 
+*Amended 2026-11-23.* Row M13 is fixed on Jack's answer to issue #277:
+the procedure parser reports message 175,00 at 9999,99, and the
+`f-payroll` listing golden prints it there.
+
 **Two slips in earlier entries, corrected in place.**
 
 - M7-9 put the product `RATE × 40` in 141,00. It is in 142,00
