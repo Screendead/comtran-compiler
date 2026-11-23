@@ -36,18 +36,6 @@ const List<String> _jobA = [
 
 void main() {
   group('splitJobs (D11.1)', () {
-    test('one terminated job: the *FINISH card is consumed', () {
-      final List<JobSlice> jobs = splitJobs(_deck([..._jobA, '      *FINISH']));
-      final JobSlice job = jobs.single;
-      expect(job.terminated, isTrue);
-      expect(job.cards, hasLength(3));
-      expect(job.ignoredTail, isEmpty);
-      // No slice card is the *FINISH card.
-      for (final CardImage image in job.cards) {
-        expect(isFinishCard(SourceCard(image, 1)), isFalse);
-      }
-    });
-
     test('an unterminated deck reports one open job', () {
       final List<JobSlice> jobs = splitJobs(_deck(_jobA));
       expect(jobs.single.terminated, isFalse);

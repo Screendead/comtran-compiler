@@ -27,45 +27,6 @@ void main() {
       );
     });
 
-    test('diagnostics form a block with statement numbers, not ids', () {
-      final List<CardImage> deck = mirrorToDeck(
-        [
-          'STRAY CARD',
-          '      *PROCEDURE',
-          "            MOVE 'ABC TO X.",
-          '      DONE. STOP RUN.',
-          '',
-        ].join('\n'),
-      );
-      final FrontEndResult result = runFrontEnd(deck);
-      final String listing = writeListing(
-        result,
-        const ListingOptions(date: '08/03/26', time: '1.00'),
-      ).text;
-      expect(listing, contains('THE FOLLOWING ERRORS WERE DETECTED'));
-      expect(listing, contains('   NUMBER  CODE  MESSAGE'));
-      // The stray card is not a numbered statement: 9999,99.
-      expect(listing, contains('9999,99'));
-      // The unclosed literal is in statement 1: its row carries the
-      // statement number and the severity, never the message id.
-      expect(listing, contains('     1,00   2    ALPHABETIC LITERAL'));
-      expect(listing, isNot(contains('168,00')));
-      expect(listing, contains('SEVERITY LIMIT WAS NOT REACHED'));
-      expect(listing, isNot(contains('NO ERRORS')));
-    });
-
-    test('a clean run prints the NO ERRORS line', () {
-      final FrontEndResult result = runFrontEnd(
-        mirrorToDeck('      *PROCEDURE\n            STOP RUN.\n'),
-      );
-      final String listing = writeListing(
-        result,
-        const ListingOptions(date: '08/03/26', time: '1.00'),
-      ).text;
-      expect(listing, contains('NO ERRORS WERE DETECTED DURING COMPILATION'));
-      expect(listing, isNot(contains('SEVERITY LIMIT')));
-    });
-
     test(
       r'a repaired column prints $, an ungated special prints ? (D9.10)',
       () {

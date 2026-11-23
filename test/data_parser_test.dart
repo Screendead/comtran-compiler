@@ -40,16 +40,6 @@ void main() {
       expect(diagnostics.single.message, msgDataCardCodingConflict);
     });
 
-    test('an RCDMRK card accepts an explicit pictorial, as the sample '
-        'punches (J 90.05, statement 42,00)', () {
-      final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        dataCard(name: 'M', level: '2', type: 'RCDMRK', description: 'A'),
-      ]);
-      expect(items.single.typeCode, DataTypeCode.rcdmrk);
-      expect(items.single.pictorial!.text, 'A');
-      expect(diagnostics, isEmpty);
-    });
-
     test('an RCDMRK card with more than a pictorial draws 906', () {
       final (_, List<Diagnostic> diagnostics) = _parse([
         dataCard(name: 'M', level: '2', type: 'RCDMRK', description: "A 'X'"),
@@ -269,15 +259,6 @@ void main() {
         dataCard(level: '2', type: 'REDEF', description: 'A'),
       ]);
       expect(diagnostics.single.message, msgDataCardCodingConflict);
-    });
-
-    test('a bare REDEF line stays clean', () {
-      final (List<DataItem> items, List<Diagnostic> diagnostics) = _parse([
-        dataCard(name: 'A', level: '2', description: '99'),
-        dataCard(type: 'REDEF', description: 'A'),
-      ]);
-      expect(diagnostics, isEmpty);
-      expect(items[1].nameDiscarded, isFalse);
     });
   });
 

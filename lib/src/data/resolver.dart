@@ -2,10 +2,7 @@
 /// pass, and reference resolution over the procedure division.
 ///
 /// The triage and every site reading follow design notes M3-17 to
-/// M3-21 (`docs/design/m3-data.md`). The pipeline order is M3-17's:
-/// the dictionary and the CALL pass run before the environment binder,
-/// because CALL exists to give the Environment Description one-word
-/// names (J 02.03.03).
+/// M3-21 (`docs/design/m3-data.md`).
 library;
 
 import '../ast/data_ast.dart';
@@ -72,24 +69,11 @@ final class NameResolver extends ClauseWalk with OperandWalk {
 
   Sentence? _tableSentence;
 
-  late final SubscriptChecker _subscripts = SubscriptChecker(
+  late final SubscriptChecker subscripts = SubscriptChecker(
     mapper,
     this,
     tableLimits: tableLimits,
   );
-
-  /// The program's positional indicators, in `PI)` order (M4-4).
-  Iterable<(DataItem, String, List<ArithExpr>)> get positionalIndicators =>
-      _subscripts.indicators;
-
-  /// Counts the indicator of a CORRESPONDING pair's [field] under its
-  /// [group]'s subscripts, after resolution, so the appended indicators
-  /// number after every written one (M6-9).
-  void countAppendedIndicator(
-    DataItem field,
-    NameReference group,
-    ClauseWalk walk,
-  ) => _subscripts.countIndicator(field, group, walk);
 
   /// Set while the triage runs over a subscript expression. A condition
   /// name resolves there, so that M3-20's msg 71 speaks for it in place
@@ -518,7 +502,7 @@ final class NameResolver extends ClauseWalk with OperandWalk {
 
   DataItem _resolvedTo(NameReference ref, DataItem item) {
     dataResolutions[ref] = item;
-    _subscripts.check(ref, item);
+    subscripts.check(ref, item);
     return item;
   }
 
@@ -706,10 +690,9 @@ abstract base class ClauseWalk {
   /// walk.
   Sentence? get currentSentence => _sentence;
 
-  /// Sentences msg 177 deleted from the text (M3-20). A phase that
-  /// runs after the resolver overrides this with the resolver's set,
-  /// so a deleted sentence takes no further check.
-  Set<Sentence> get deletedSentences => const {};
+  /// Sentences msg 177 deleted from the text (M3-20): the walk skips
+  /// them, so a deleted sentence takes no further check.
+  Set<Sentence> get deletedSentences;
 
   void walkClauses(
     List<List<Sentence>> procedureGroups,

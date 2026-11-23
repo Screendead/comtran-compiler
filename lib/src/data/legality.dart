@@ -243,7 +243,7 @@ final class LegalityChecker extends ClauseWalk with OperandWalk {
   void _countAppended(DataItem field, NameReference operand) {
     if (operand.subscripts.isNotEmpty &&
         dimensionsOf(field, mapper.semantics) == operand.subscripts.length) {
-      resolver.countAppendedIndicator(field, operand, this);
+      resolver.subscripts.countIndicator(field, operand, this);
     }
   }
 
@@ -275,7 +275,9 @@ final class LegalityChecker extends ClauseWalk with OperandWalk {
   /// levels.
   Iterable<DataItem> _namedBelow(DataItem item) sync* {
     for (final DataItem child in item.children) {
-      if (child.nameDiscarded || !_pairable(child)) {
+      if (child.nameDiscarded ||
+          child.typeCode == DataTypeCode.cond ||
+          child.typeCode == DataTypeCode.redef) {
         continue;
       }
       if (child.entry.name.isEmpty) {
@@ -285,9 +287,6 @@ final class LegalityChecker extends ClauseWalk with OperandWalk {
       }
     }
   }
-
-  bool _pairable(DataItem item) =>
-      item.typeCode != DataTypeCode.cond && item.typeCode != DataTypeCode.redef;
 
   // ── ADD (J 02.04.05) ─────────────────────────────────────────────
 

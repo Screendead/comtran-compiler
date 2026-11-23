@@ -1,6 +1,6 @@
 /// Builds the public website (roadmap W1, `docs/HANDOVER.md`).
 ///
-/// Three outputs, none committed — the deploy builds the site, nobody
+/// Four outputs, none committed — the deploy builds the site, nobody
 /// commits it:
 ///
 /// - `web/sample.js`, the 90.05 job deck's mirror text as one JavaScript

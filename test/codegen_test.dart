@@ -64,15 +64,7 @@ void main() {
 
     test('an END with a paragraph open returns through its cell', () {
       final SemanticResult semantics = runJob(
-        data: [
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-        ],
+        data: [internalCard('NUM', '999')],
         procedure: [
           '            DO PARA.',
           '            STOP RUN.',
@@ -141,15 +133,7 @@ void main() {
   group('STOP n (D2.7; M6-9)', () {
     test('calls the display alone, with n right-justified', () {
       final SemanticResult semantics = runJob(
-        data: [
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-        ],
+        data: [internalCard('NUM', '999')],
         procedure: ['            STOP 1234.', '            STOP RUN.'],
       );
       expect(ids(semantics), isEmpty);
@@ -199,27 +183,9 @@ void main() {
     List<String> product(String statement) {
       final SemanticResult semantics = runJob(
         data: [
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-          dataCard(
-            name: 'TOT',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-          dataCard(
-            name: 'FRAC',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '9V9',
-          ),
+          internalCard('NUM', '999'),
+          internalCard('TOT', '999'),
+          internalCard('FRAC', '9V9'),
         ],
         procedure: [statement, '            STOP RUN.'],
       );
@@ -298,20 +264,8 @@ void main() {
     List<String> compare(String statement) {
       final SemanticResult semantics = runJob(
         data: [
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-          dataCard(
-            name: 'FRAC',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '9V9',
-          ),
+          internalCard('NUM', '999'),
+          internalCard('FRAC', '9V9'),
           dataCard(name: 'HRS', level: '1', mode: 'E', description: '99V9'),
         ],
         procedure: [statement, '            STOP RUN.'],
@@ -420,27 +374,9 @@ void main() {
             mode: 'E',
             description: '99',
           ),
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-          dataCard(
-            name: 'FRAC',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '9V9',
-          ),
-          dataCard(
-            name: 'BIG',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '9(8)',
-          ),
+          internalCard('NUM', '999'),
+          internalCard('FRAC', '9V9'),
+          internalCard('BIG', '9(8)'),
         ],
         procedure: [statement, '            STOP RUN.'],
       );
@@ -630,31 +566,13 @@ void main() {
     List<String> aligned(String statement, {List<String> then = const []}) {
       final SemanticResult semantics = runJob(
         data: [
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-          dataCard(
-            name: 'AMT',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '99V99',
-          ),
+          internalCard('NUM', '999'),
+          internalCard('AMT', '99V99'),
           dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
           dataCard(name: 'EXF', level: '1', mode: 'E', description: '99V99'),
           dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
           dataCard(name: 'ED3', level: '1', description: '899'),
-          dataCard(
-            name: 'N4',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '9(4)',
-          ),
+          internalCard('N4', '9(4)'),
           dataCard(name: 'E89', level: '1', description: '889.9'),
         ],
         procedure: [statement, ...then, '            STOP RUN.'],
@@ -872,13 +790,7 @@ void main() {
         data: [
           dataCard(name: 'IREC', level: '1', type: 'RECORD'),
           dataCard(name: 'IFLD', level: '2', description: '999'),
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
+          internalCard('NUM', '999'),
           dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
           dataCard(name: 'EXU', level: '1', mode: 'E', description: '999'),
         ],
@@ -1019,20 +931,8 @@ void main() {
         data: [
           dataCard(name: 'IREC', level: '1', type: 'RECORD'),
           dataCard(name: 'IFLD', level: '2', description: '999'),
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-          dataCard(
-            name: 'FRAC',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '9V9',
-          ),
+          internalCard('NUM', '999'),
+          internalCard('FRAC', '9V9'),
           dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
           dataCard(name: 'EXM', level: '1', mode: 'E', description: '99R'),
           dataCard(name: 'EXP', level: '1', mode: 'E', description: '99I'),
@@ -1188,13 +1088,7 @@ void main() {
     final SemanticResult semantics = runJob(
       data: [
         dataCard(name: 'SRC', level: '1'),
-        dataCard(
-          name: 'X',
-          level: '2',
-          mode: 'I',
-          justify: 'R',
-          description: '999',
-        ),
+        internalCard('X', '999', level: '2'),
         dataCard(name: 'Y', level: '2', mode: 'E', description: '999'),
         dataCard(name: 'DST', level: '1'),
         dataCard(name: 'X', level: '2', mode: 'E', description: '999'),
@@ -1247,17 +1141,8 @@ void main() {
     List<String> chain(String statement) {
       final SemanticResult semantics = runJob(
         data: [
-          for (final (String name, String picture) in [
-            ('NUM', '999'),
-            ('FRAC', '9V9'),
-          ])
-            dataCard(
-              name: name,
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: picture,
-            ),
+          internalCard('NUM', '999'),
+          internalCard('FRAC', '9V9'),
           dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
           dataCard(name: 'EXM', level: '1', mode: 'E', description: '99R'),
         ],
@@ -1339,20 +1224,8 @@ void main() {
       final SemanticResult semantics = runJob(
         data: [
           dataCard(name: 'IREC', level: '1', type: 'RECORD'),
-          dataCard(
-            name: 'IGRS',
-            level: '2',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-          dataCard(
-            name: 'FRAC',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '9V9',
-          ),
+          internalCard('IGRS', '999', level: '2'),
+          internalCard('FRAC', '9V9'),
         ],
         environment: [
           environmentCard(
@@ -1391,18 +1264,9 @@ void main() {
     List<String> chain(String statement) {
       final SemanticResult semantics = runJob(
         data: [
-          for (final (String name, String picture) in [
-            ('NUM', '999'),
-            ('FRC', '9V99'),
-            ('FR3', '9V999'),
-          ])
-            dataCard(
-              name: name,
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: picture,
-            ),
+          internalCard('NUM', '999'),
+          internalCard('FRC', '9V99'),
+          internalCard('FR3', '9V999'),
           dataCard(name: 'EXA', level: '1', mode: 'E', description: '99999V99'),
           dataCard(name: 'EXB', level: '1', mode: 'E', description: '999V99'),
           dataCard(name: 'NET', level: '1', description: r'$88889.99-'),
@@ -1681,14 +1545,8 @@ void main() {
       final SemanticResult semantics = runJob(
         data: [
           dataCard(name: 'TAB', level: '1', quantity: '12'),
-          for (final String name in ['CELL', 'NUM'])
-            dataCard(
-              name: name,
-              level: name == 'CELL' ? '2' : '1',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+          internalCard('CELL', '999', level: '2'),
+          internalCard('NUM', '999'),
           dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
           dataCard(name: 'EXM', level: '1', mode: 'E', description: '9R'),
         ],
@@ -1773,7 +1631,7 @@ void main() {
     /// items of 11 characters, R `99V999`, I and T `9V99`, all external
     /// decimal, and IDX an external `99`. Each line is a label, a tab,
     /// and the word.
-    List<String> lines() {
+    late final List<String> lines = () {
       final SemanticResult semantics = runJob(
         data: [
           dataCard(name: 'TAB', level: '1', quantity: '12'),
@@ -1798,7 +1656,7 @@ void main() {
         for (final AssemblyUnit u in runCodegen(semantics).units)
           '${u.labels.join(' ')}\t${u.operation} ${u.operand}',
       ];
-    }
+    }();
 
     List<String> between(List<String> all, String first, String last) {
       final int start = all.indexOf(first);
@@ -1806,7 +1664,7 @@ void main() {
     }
 
     test('each indicator steps its byte and carries at six', () {
-      expect(between(lines(), '\tCLA CP)+3', '\tTPL GN)004'), [
+      expect(between(lines, '\tCLA CP)+3', '\tTPL GN)004'), [
         '\tCLA CP)+3',
         '\tADD PI)1',
         '\tSUB CP)+4',
@@ -1826,10 +1684,9 @@ void main() {
     });
 
     test('the stride, the carry and the bases carry a byte', () {
-      final List<String> all = lines();
       // One word and five characters; six characters less one word.
-      expect(all, containsAll(['\tOCT 000005000001', '\tOCT 000005777777']));
-      expect(all, containsAll(['\tPZE R+0', '\tPZE I+0,,5']));
+      expect(lines, containsAll(['\tOCT 000005000001', '\tOCT 000005777777']));
+      expect(lines, containsAll(['\tPZE R+0', '\tPZE I+0,,5']));
     });
 
     test('a whole-word stride keeps three words and the byte of its base', () {
@@ -1866,7 +1723,7 @@ void main() {
     });
 
     test('the readers set SYS)132 from the indicator', () {
-      expect(between(lines(), 'RTN\tAXT 0', '\tTXI SYS)186,1,3'), [
+      expect(between(lines, 'RTN\tAXT 0', '\tTXI SYS)186,1,3'), [
         'RTN\tAXT 0',
         '\tLDI CP)+14',
         '\tSTI SYS)132',
@@ -1915,15 +1772,7 @@ void main() {
     // `GN)000`, which the sample's default path leaves it naming.
     void expectEntryOnProgramStart(List<String> procedure) {
       final SemanticResult semantics = runJob(
-        data: [
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-        ],
+        data: [internalCard('NUM', '999')],
         procedure: procedure,
       );
       expect(ids(semantics), isEmpty);
@@ -1972,15 +1821,7 @@ void main() {
     test('a second label binds nothing and owns no cell', () {
       // Msg 141: "MORE THAN ONE -PROGRAM.START-. FIRST USED."
       final SemanticResult semantics = runJob(
-        data: [
-          dataCard(
-            name: 'NUM',
-            level: '1',
-            mode: 'I',
-            justify: 'R',
-            description: '999',
-          ),
-        ],
+        data: [internalCard('NUM', '999')],
         procedure: <String>[
           '            DO PROGRAM.START.',
           '            GO TO WRAP.UP.',

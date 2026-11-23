@@ -119,7 +119,7 @@ SemanticResult runSemantics(
     dataResolutions: resolver.dataResolutions,
     correspondingPairs: pairs,
     keysConditions: resolver.keysConditions,
-    positionalIndicators: resolver.positionalIndicators.toList(),
+    positionalIndicators: resolver.subscripts.indicators.toList(),
     capacityDeletedSentences: resolver.deletedSentences,
     nameCount: resolver.names.count,
     semanticDiagnostics: List.unmodifiable(diagnostics.sublist(first)),

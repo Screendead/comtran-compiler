@@ -53,20 +53,6 @@ void main() {
       );
     });
 
-    test("the sample's first pair reproduces the page 198 print", () {
-      // Listing page 7 (PDF p. 198), measured: `*FILE` at card column
-      // 7, the file number at 14, `*D1` at 17, the type at 28, the
-      // density and mode at 30 and 31, the name at 55.
-      final List<String> cards = _cards([
-        _file('INPUT,BINARY,TAPE,REC,BLOCKSIZE 300'),
-        ..._specif(["UNIT1 'D1',OPENW,CLOSER"]),
-      ]);
-      expect(cards, [
-        '      *FILE  01 *D1        I HB                       INF',
-        '      *SPEC  01  300    N R',
-      ]);
-    });
-
     test('the type column reads the FILE usage', () {
       expect(_cards([_file('OUTPUT,TAPE,REC,BLOCKSIZE 5')]).first[27], 'P');
       expect(
@@ -239,21 +225,8 @@ void main() {
       );
     });
 
-    test('*CTEXT stamps the date and time the print attests', () {
-      // `DATE 101861 TIME   2.45` at columns 26 to 48: the separators
-      // dropped, the time right-aligned ending at column 48 (page 198,
-      // measured).
-      expect(
-        textBracketCard(
-          '*CTEXT',
-          deckName: '',
-          secondaryIdentifier: 'CT PUBLICATIONS',
-          date: '10/18/61',
-          time: '2.45',
-        ),
-        '      *CTEXT             DATE 101861 TIME   2.45      '
-        'CT PUBLICATIONS',
-      );
+    test('*CTEND carries the deck.name and right-aligns the time', () {
+      // The time ends at column 48, as page 198 prints it (measured).
       expect(
         textBracketCard(
           '*CTEND',

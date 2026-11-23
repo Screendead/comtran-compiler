@@ -1,9 +1,8 @@
 // The public website (roadmap W1).
 //
 // This file holds no compiler knowledge. It hands the typed text to the
-// compiled compiler and prints what comes back, so a later milestone fills
-// these panels with no change here. Everything it says about a stage is
-// caption text, and every caption names where its claim comes from.
+// compiled compiler and prints what comes back. Everything it says about a
+// stage is caption text, and every caption names where its claim comes from.
 
 import { compile, instantiate, invoke } from './main.mjs';
 import { SAMPLE } from './sample.js';

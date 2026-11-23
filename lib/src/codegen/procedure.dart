@@ -175,9 +175,7 @@ final class UnrecoveredShape implements Exception {
   String toString() => 'unrecovered shape: $shape';
 }
 
-/// A rule with no ground. The sample never reaches these
-/// sites, so no shape is attested and none is invented (CLAUDE.md §11;
-/// notes section 7).
+/// Refuses [what] as an [UnrecoveredShape].
 Never _unruled(String what) => throw UnrecoveredShape(what);
 
 /// The three outcomes of a skip vector, in slot order ([J 90.02.12]).
@@ -2211,8 +2209,7 @@ final class _Text {
       return;
     }
     final int scale = [p.$2, q.$2, r.$2].reduce(math.max);
-    int scaled((int, int) bound) =>
-        bound.$1 * math.pow(10, scale - bound.$2).toInt();
+    int scaled((int, int) bound) => bound.$1 * _pow10(scale - bound.$2);
     final int from = scaled(p);
     final int by = scaled(q);
     final int to = scaled(r);
@@ -3090,9 +3087,6 @@ final class _Text {
 
   // --- The figurative and literal fills (catalogue 4.4, 4.5) --------------
 
-  bool _highOrLow(Token figurative) =>
-      figurative.text.startsWith('HIGH') || figurative.text.startsWith('LOW');
-
   /// One fill unit per target: the descriptor prologue, `TSX SYS)182,4`,
   /// and the fill call — one `TXI`, plus the in-line `OCT` word that
   /// `SYS)245` alone carries ([J 90.02.25], [J 90.02.26]).
@@ -3106,7 +3100,8 @@ final class _Text {
     // The count is the target's storage extent, not its digit count
     // (notes 6.1 item 22).
     final int extent = _sem(item).storageChars;
-    if (_highOrLow(figurative)) {
+    if (figurative.text.startsWith('HIGH') ||
+        figurative.text.startsWith('LOW')) {
       _txi(245, extent);
       _oct(_fillWord(figurative));
       _movpakClears();
@@ -3208,7 +3203,8 @@ final class _Text {
 
   /// The shifted mask insert: the mask insert with the source aligned
   /// to the target's byte position first, which costs a second pool
-  /// word because `COM` no longer makes the select mask (catalogue 4.5).
+  /// word: the accumulator holds the shifted source, so `COM` cannot turn
+  /// the clear mask into the select mask (catalogue 4.5).
   void _shiftedMaskInsert(DataItem source, DataItem target, int length) {
     final int sB = _sem(source).byte;
     final int tB = _sem(target).byte;

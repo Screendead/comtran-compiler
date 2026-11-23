@@ -1,7 +1,7 @@
 # The public website
 
-This directory holds the W1 phase of the web track. `docs/HANDOVER.md`
-holds the track; `docs/design/web-copy.md` holds the register the copy
+This directory holds the public website. `docs/HANDOVER.md` holds the
+web track; `docs/design/web-copy.md` holds the register the copy
 obeys.
 
 The page runs this repository's compiler in a browser and prints all six
@@ -37,6 +37,7 @@ browser refuses to fetch one from a `file://` URL. Any static server does.
 | File | What it is |
 |---|---|
 | `index.html` | The compiler page. Committed. |
+| `tutorial.html` | The tutorial: run a program. Static. Committed. |
 | `reading-the-scans.html` | How a page scan becomes text. Static; it loads no compiler. Committed. |
 | `roadmap.html` | What is built, and what is not. Static. Committed. |
 | `sources.html` | The documents page: both manuals, both PDFs, and the language reference. Static. Committed. |
@@ -92,8 +93,8 @@ library the browser calls, and compares all six stages against the
 committed goldens. It runs in the normal `dart test` gate.
 
 The test runs on the Dart VM, so it proves the library and not the
-WebAssembly build. To check the build itself, load the page and compare the
-listing panel against `test/goldens/90.05-payroll.listing`.
+WebAssembly build. `tool/check_web_run.mjs` holds the build itself (see
+"The run").
 
 ## What holds the copy to its rules
 
@@ -157,10 +158,3 @@ Run it with Node 22 or later after the build:
 ```sh
 node tool/check_web_run.mjs
 ```
-
-## Not built yet
-
-W1 does not yet include the golden-diff panel. The deck download and the
-share link landed on 2026-08-10.
-
-W3 adds the stage-by-stage walk, and W4 the tutorial.

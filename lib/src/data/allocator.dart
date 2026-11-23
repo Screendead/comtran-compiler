@@ -22,8 +22,8 @@
 /// A word's value prints only for a programmer name, on the line where
 /// the name completes; a GN-named entry consumes its word without
 /// printing it. The whole model is a non-historical reconstruction
-/// verified value-by-value against the sample's printed column and the
-/// J 90.05 symbolic listing (M3-8 as amended; M3-23).
+/// from the sample's printed column and the J 90.05 symbolic listing
+/// (M3-8 as amended; M3-23).
 library;
 
 import '../ast/data_ast.dart';
@@ -89,8 +89,11 @@ final class DictionaryAllocation {
 
 /// Allocates the dictionary for [parse] (M3-8). Every generated name
 /// enters [names], the count the resolver's programmer names started
-/// (M4-5); a direct caller with no count to continue passes none.
-DictionaryAllocation allocateDictionary(ParseResult parse, {NameTally? names}) {
+/// (M4-5).
+DictionaryAllocation allocateDictionary(
+  ParseResult parse, {
+  required NameTally names,
+}) {
   final generatedNames = <DataItem, String>{};
   final dataWords = <DataItem, int>{};
   final synonymWords = <Token, int>{};
@@ -125,7 +128,7 @@ DictionaryAllocation allocateDictionary(ParseResult parse, {NameTally? names}) {
       for (var i = 0; i < count; i++) _gnName(++generated),
     ];
     for (var i = 0; i < count; i++) {
-      names?.enter(clause.anchor.card);
+      names.enter(clause.anchor.card);
     }
     take(count);
   }
@@ -138,7 +141,7 @@ DictionaryAllocation allocateDictionary(ParseResult parse, {NameTally? names}) {
       generated++;
       final String name = _gnName(generated);
       generatedNames[item] = name;
-      names?.enter(entry.cards.first);
+      names.enter(entry.cards.first);
       printName(entry.cards.first, name);
     } else {
       printLoc(_nameCompletionCard(entry), first);
@@ -154,7 +157,7 @@ DictionaryAllocation allocateDictionary(ParseResult parse, {NameTally? names}) {
       case ParsedProcedureGroup(:final List<Sentence> sentences):
         if (programEntryWord == null && sentences.isNotEmpty) {
           programEntryWord = take(1);
-          names?.enter(sentences.first.scan.cards.first);
+          names.enter(sentences.first.scan.cards.first);
           printName(sentences.first.scan.cards.first, 'GN)000');
         }
         for (final sentence in sentences) {

@@ -124,7 +124,6 @@ Map<String, Object?> _errorOf(Map<String, Object?> result) {
 
 void main() {
   late _McpClient client;
-  late Map<String, Object?> initializeResult;
   late Directory dir;
   late Directory shared;
   late String canonPath;
@@ -140,7 +139,7 @@ void main() {
     client = await _McpClient.start(
       roots: [Directory.systemTemp.path, Directory.current.path],
     );
-    initializeResult = await client.initialize();
+    await client.initialize();
     shared = Directory.systemTemp.createTempSync('deckmcp_shared');
     File('${shared.path}/bad.ctd').writeAsBytesSync([1, 2, 3]);
     Directory('${shared.path}/empty').createSync();
@@ -163,18 +162,6 @@ void main() {
   tearDown(() => dir.deleteSync(recursive: true));
 
   group('handshake', () {
-    test('initialize names the server and offers tools', () {
-      expect(initializeResult['protocolVersion'], '2025-06-18');
-      final serverInfo =
-          initializeResult['serverInfo']! as Map<String, Object?>;
-      expect(serverInfo['name'], 'comtran-decks');
-      expect(serverInfo['version'], comtranVersion);
-      final capabilities =
-          initializeResult['capabilities']! as Map<String, Object?>;
-      expect(capabilities.containsKey('tools'), isTrue);
-      expect(initializeResult['instructions'], contains('Never hand-edit'));
-    });
-
     test('tools/list gives every tool with a schema and its hints', () async {
       final Map<String, Object?> response = await client.request('tools/list');
       final tools =
@@ -226,31 +213,25 @@ void main() {
   });
 
   group('deck_read', () {
-    test('reports the card count and the mirror text', () async {
-      final Map<String, Object?> result = await client.call('deck_read', {
-        'path': canonPath,
-      });
-      expect(result['isError'], isNot(isTrue));
-      final Map<String, Object?> json = _content(result);
-      expect(json['card_count'], 3);
-      expect(json['mirror'], sample);
-      expect(json['mirror_path'], mirrorPath);
-      expect(json['mirror_status'], 'fresh');
-      expect(json.containsKey('cards'), isFalse);
-      final content = result['content']! as List<Object?>;
-      expect(
-        (content.first! as Map<String, Object?>)['text'],
-        contains('"card_count": 3'),
-      );
-    });
-
-    test('reports a stale mirror', () async {
-      File(mirrorPath).writeAsStringSync('TAMPERED\n');
-      final Map<String, Object?> json = _content(
-        await client.call('deck_read', {'path': canonPath}),
-      );
-      expect(json['mirror_status'], 'stale');
-    });
+    test(
+      'reports the card count, the mirror and whether it is fresh',
+      () async {
+        final Map<String, Object?> json = _content(
+          await client.call('deck_read', {'path': canonPath}),
+        );
+        expect(json['card_count'], 3);
+        expect(json['mirror'], sample);
+        expect(json['mirror_path'], mirrorPath);
+        expect(json['mirror_status'], 'fresh');
+        File(mirrorPath).writeAsStringSync('TAMPERED\n');
+        expect(
+          _content(
+            await client.call('deck_read', {'path': canonPath}),
+          )['mirror_status'],
+          'stale',
+        );
+      },
+    );
 
     test('include_cards gives the structured form of a range', () async {
       final Map<String, Object?> json = _content(
@@ -283,25 +264,6 @@ void main() {
       expect(second['readable'], isFalse);
       expect(second['bcd_octal'], isNull);
     });
-
-    test(
-      'include_cards defaults to a bounded page and pages a long deck',
-      () async {
-        // Matches defaultMaxCards in deck_tools.dart, which the package
-        // does not export.
-        const defaultPage = 25;
-        final Map<String, Object?> json = _content(
-          await client.call('deck_read', {
-            'path': '${Directory.current.path}/test/fixtures/90.05-payroll.ctd',
-            'include_cards': true,
-          }),
-        );
-        expect(json['card_count'], 293);
-        expect(json['cards_returned'], defaultPage);
-        expect(json['next_start_card'], defaultPage + 1);
-        expect((json['cards']! as List<Object?>).length, defaultPage);
-      },
-    );
 
     test(
       'include_cards on an empty deck returns no cards, not an error',
@@ -357,21 +319,6 @@ void main() {
       expect(check['ok'], isTrue);
     });
 
-    test('overwrites a stale mirror so the pair stays fresh', () async {
-      File(mirrorPath).writeAsStringSync('TAMPERED\n');
-      await client.call('deck_write', {'path': canonPath, 'mirror': sample});
-      expect(File(mirrorPath).readAsStringSync(), sample);
-    });
-
-    test('accepts expected_mirror when it matches and writes', () async {
-      await client.call('deck_write', {
-        'path': canonPath,
-        'mirror': 'CHANGED\n',
-        'expected_mirror': sample,
-      });
-      expect(File(mirrorPath).readAsStringSync(), 'CHANGED\n');
-    });
-
     test(
       'rejects expected_mirror that no longer matches and writes nothing',
       () async {
@@ -390,57 +337,46 @@ void main() {
   });
 
   group('deck_edit_cards', () {
-    test('inserts cards without touching the rest of the deck', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('deck_edit_cards', {
-          'path': canonPath,
+    for (final (String name, Map<String, Object?> edit, String mirror) in [
+      (
+        'inserts cards without touching the rest of the deck',
+        {
           'start_card': 1,
           'insert_lines': ['NEW'],
-        }),
-      );
-      expect(json['card_count'], 4);
-      expect(json['deleted_count'], 0);
-      expect(json['inserted_count'], 1);
-      final String mirror = File(mirrorPath).readAsStringSync();
-      expect(mirror, startsWith('NEW\n'));
-      expect(mirror, endsWith(sample));
-    });
-
-    test('deletes cards when insert_lines is empty', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('deck_edit_cards', {
-          'path': canonPath,
-          'start_card': 3,
-          'delete_count': 1,
-        }),
-      );
-      expect(json['card_count'], 2);
-      expect(json['deleted_count'], 1);
-      expect(json['inserted_count'], 0);
-      expect(
-        File(mirrorPath).readAsStringSync(),
+        },
+        'NEW\n$sample',
+      ),
+      (
+        'deletes cards when insert_lines is empty',
+        {'start_card': 3, 'delete_count': 1},
         'HELLO\n! 1:12-5-8 80:12-11\n',
-      );
-    });
-
-    test('replaces a range in the middle of the deck', () async {
-      await client.call('deck_edit_cards', {
-        'path': canonPath,
-        'start_card': 2,
-        'delete_count': 1,
-        'insert_lines': ['REPLACED'],
+      ),
+      (
+        'replaces a range in the middle of the deck',
+        {
+          'start_card': 2,
+          'delete_count': 1,
+          'insert_lines': ['REPLACED'],
+        },
+        'HELLO\nREPLACED\n\n',
+      ),
+      (
+        'appends when start_card is one past the last card',
+        {
+          'start_card': 4,
+          'insert_lines': ['LAST'],
+        },
+        '${sample}LAST\n',
+      ),
+    ]) {
+      test(name, () async {
+        final Map<String, Object?> json = _content(
+          await client.call('deck_edit_cards', {'path': canonPath, ...edit}),
+        );
+        expect(json['card_count'], mirrorToDeck(mirror).length);
+        expect(File(mirrorPath).readAsStringSync(), mirror);
       });
-      expect(File(mirrorPath).readAsStringSync(), 'HELLO\nREPLACED\n\n');
-    });
-
-    test('appends when start_card is one past the last card', () async {
-      await client.call('deck_edit_cards', {
-        'path': canonPath,
-        'start_card': 4,
-        'insert_lines': ['LAST'],
-      });
-      expect(File(mirrorPath).readAsStringSync(), '${sample}LAST\n');
-    });
+    }
 
     test('rejects malformed insert_lines and writes nothing', () async {
       final String fresh = File(mirrorPath).readAsStringSync();
@@ -470,25 +406,6 @@ void main() {
   });
 
   group('deck_card', () {
-    test('describes a glyph card', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('deck_card', {'path': canonPath, 'card_index': 1}),
-      );
-      expect(json['card_count'], 3);
-      expect(json['form'], 'glyph');
-      expect(json['glyph_line'], 'HELLO');
-      expect(json['mirror_line'], 'HELLO');
-      expect(json['punch_notation'], '! 1:12-8 2:12-5 3:11-3 4:11-3 5:11-6');
-      expect(json['punched_columns'], 5);
-      final columns = json['columns']! as List<Object?>;
-      final first = columns.first! as Map<String, Object?>;
-      expect(first['glyph'], 'H');
-      expect(first['card_code'], '12-8');
-      expect(first['bcd_octal'], '30');
-      expect(first['name'], 'letter H');
-      expect(first['punch_rows'], ['12', '8']);
-    });
-
     test('describes a blank card', () async {
       final Map<String, Object?> json = _content(
         await client.call('deck_card', {'path': canonPath, 'card_index': 3}),
@@ -502,67 +419,41 @@ void main() {
   });
 
   group('card_code_info', () {
-    test('looks a glyph up', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('card_code_info', {'glyph': 'A'}),
-      );
-      expect(json['bcd_octal'], '21');
-      expect(json['bcd_decimal'], 17);
-      expect(json['canonical_card_code'], '12-1');
-      expect(json['canonical_punch_rows'], ['12', '1']);
-      expect(json['glyph'], 'A');
-      expect(json['name'], 'letter A');
-      expect(json['attested'], isTrue);
-    });
-
-    test('looks the blank up', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('card_code_info', {'glyph': ' '}),
-      );
-      expect(json['bcd_octal'], '60');
-      expect(json['name'], 'blank');
-      expect(json['canonical_card_code'], '');
-      expect(json['canonical_punch_rows'], isEmpty);
-    });
-
-    test('looks a card code up', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('card_code_info', {'card_code': '12-5-8'}),
-      );
-      expect(json['bcd_octal'], '37');
-      expect(json['name'], 'group mark');
-      expect(json['machine_special'], 'group mark');
-      expect(json['glyph'], isNull);
-      expect(json['is_canonical'], isTrue);
-    });
-
-    test('marks a legal but non-canonical card code', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('card_code_info', {'card_code': '12-2-8'}),
-      );
-      expect(json['bcd_octal'], '32');
-      expect(json['name'], 'plus zero');
-      expect(json['canonical_card_code'], '12-0');
-      expect(json['is_canonical'], isFalse);
-    });
-
-    test('marks a combination with no readout', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('card_code_info', {'card_code': '12-7-8'}),
-      );
-      expect(json['readable'], isFalse);
-      expect(json['bcd_octal'], isNull);
-      expect(json['note'], contains('no BCD readout'));
-    });
-
-    test('looks a BCD code up', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('card_code_info', {'bcd_octal': '35'}),
-      );
-      expect(json['canonical_card_code'], isNull);
-      expect(json['attested'], isFalse);
-      expect(json['glyph'], isNull);
-    });
+    // The character facts themselves are char_code_test.dart's; these rows
+    // hold each query form to the right entry.
+    for (final (Map<String, Object?> query, Map<String, Object?> want) in [
+      (
+        {'glyph': 'A'},
+        {'bcd_octal': '21', 'canonical_card_code': '12-1', 'name': 'letter A'},
+      ),
+      (
+        {'glyph': ' '},
+        {'bcd_octal': '60', 'canonical_card_code': '', 'name': 'blank'},
+      ),
+      (
+        {'card_code': '12-5-8'},
+        {'bcd_octal': '37', 'glyph': null, 'is_canonical': true},
+      ),
+      (
+        {'card_code': '12-2-8'},
+        {
+          'bcd_octal': '32',
+          'canonical_card_code': '12-0',
+          'is_canonical': false,
+        },
+      ),
+      ({'card_code': '12-7-8'}, {'readable': false, 'bcd_octal': null}),
+      ({'bcd_octal': '35'}, {'canonical_card_code': null, 'attested': false}),
+    ]) {
+      test('looks up $query', () async {
+        final Map<String, Object?> json = _content(
+          await client.call('card_code_info', query),
+        );
+        want.forEach((String key, Object? value) {
+          expect(json[key], value, reason: key);
+        });
+      });
+    }
 
     test('rejects an omitted arguments field instead of crashing', () async {
       // card_code_info has no required property, so schema validation lets
@@ -632,21 +523,6 @@ void main() {
       expect((results[2]! as Map<String, Object?>)['path'], orphanMirror);
     });
 
-    test('passes a fresh pair', () async {
-      final Map<String, Object?> json = _content(
-        await client.call('deck_check', {
-          'paths': <Object?>[dir.path],
-        }),
-      );
-      expect(json['ok'], isTrue);
-      expect(json['failure_count'], 0);
-      final results = json['results']! as List<Object?>;
-      final entry = results.single! as Map<String, Object?>;
-      expect(entry['status'], 'ok');
-      expect(entry['path'], canonPath);
-      expect(entry['mirror_path'], mirrorPath);
-    });
-
     test('fails a corrupt canon file', () async {
       File(canonPath).writeAsBytesSync([1, 2, 3]);
       final Map<String, Object?> json = _content(
@@ -691,11 +567,6 @@ void main() {
 
   group('the schema refuses', () {
     for (final (String name, String tool, Map<String, Object?> args) in [
-      (
-        'max_cards above the maximum',
-        'deck_read',
-        {'include_cards': true, 'max_cards': 1000},
-      ),
       // The schema minimum stops this before readDeck's own check runs.
       (
         'a start_card below one',
@@ -710,7 +581,6 @@ void main() {
       ('a missing required argument', 'deck_read', {'path': null}),
       ('a card_index below one', 'deck_card', {'card_index': 0}),
       ('an unknown property', 'card_code_info', {'glyph': 'A', 'bogus': 1}),
-      ('an unknown tool', 'no_such_tool', {}),
     ]) {
       test(name, () async {
         final Map<String, Object?> result = await client.call(

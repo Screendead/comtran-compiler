@@ -267,14 +267,19 @@ text
     for (final MapEntry<String, String> page in site.pages.entries) {
       final String id = page.key.substring(sourcesDir.length + 1).split('/')[0];
       final List<String> words = typos[id] ?? const <String>[];
+      if (words.isEmpty) {
+        expect(sicMark.allMatches(page.value), isEmpty, reason: page.key);
+        continue;
+      }
+      final String prose = page.value
+          .replaceAll(sicMark, '')
+          .replaceAll(skip, '');
       var marked = 0;
       for (final word in words) {
         final pattern = RegExp(
           '(?<![A-Za-z])${RegExp.escape(word)}(?![A-Za-z])',
         );
-        final int printed = pattern
-            .allMatches(page.value.replaceAll(sicMark, '').replaceAll(skip, ''))
-            .length;
+        final int printed = pattern.allMatches(prose).length;
         final int hits = '$word$sicMark'.allMatches(page.value).length;
         if (hits != printed) {
           unmarked.add('${page.key}: $word printed $printed, marked $hits');
@@ -369,13 +374,12 @@ text
   });
 
   test('the reference dash check keeps only what the rules keep', () {
-    ({List<String> stray, int cited}) check(String html) => _dashes(html);
-    expect(check('<p>A rule — and a reason.</p>').stray, hasLength(1));
-    expect(check('<p>As printed "a — b" here.</p>').stray, isEmpty);
-    expect(check('<p>See (<a href="x">F p. 3</a> — the form).</p>').cited, 1);
-    expect(check('<p>A (side note — no source).</p>').stray, hasLength(1));
-    expect(check('<p><code>a — b</code></p>').stray, isEmpty);
-    expect(check('<h3>3.1 Files — the hierarchy</h3>').stray, hasLength(1));
-    expect(check('<table><tr><td>—</td></tr></table>').stray, isEmpty);
+    expect(_dashes('<p>A rule — and a reason.</p>').stray, hasLength(1));
+    expect(_dashes('<p>As printed "a — b" here.</p>').stray, isEmpty);
+    expect(_dashes('<p>See (<a href="x">F p. 3</a> — the form).</p>').cited, 1);
+    expect(_dashes('<p>A (side note — no source).</p>').stray, hasLength(1));
+    expect(_dashes('<p><code>a — b</code></p>').stray, isEmpty);
+    expect(_dashes('<h3>3.1 Files — the hierarchy</h3>').stray, hasLength(1));
+    expect(_dashes('<table><tr><td>—</td></tr></table>').stray, isEmpty);
   });
 }

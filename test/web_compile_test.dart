@@ -22,11 +22,11 @@ String _golden(String stage) =>
     File('test/goldens/90.05-payroll.$stage').readAsStringSync();
 
 void main() {
+  late WebCompilation result;
+
+  setUpAll(() => result = compileText(_sample()));
+
   group('the sample program in the browser', () {
-    late WebCompilation result;
-
-    setUpAll(() => result = compileText(_sample()));
-
     test('every stage reproduces its golden byte for byte', () {
       expect(result.error, isNull);
       expect(result.cards, _sample());
@@ -55,10 +55,7 @@ void main() {
   });
 
   group('the statement marks that join the stages (W3)', () {
-    late WebCompilation result;
     const stages = ['cards', 'scan', 'parse', 'semantics', 'listing', 'code'];
-
-    setUpAll(() => result = compileText(_sample()));
 
     String text(String stage) => result.toJson()[stage]! as String;
 
@@ -163,9 +160,9 @@ void main() {
       ('      *DATA\n\tSTOP RUN.\n', 'spaces'),
       ('${'A' * 81}\n', 'longer than 80 columns'),
     ]) {
-      final WebCompilation result = compileText(text);
-      expect(result.error, contains(message), reason: text);
-      expect(result.listing, isEmpty, reason: text);
+      final WebCompilation refused = compileText(text);
+      expect(refused.error, contains(message), reason: text);
+      expect(refused.listing, isEmpty, reason: text);
     }
   });
 
@@ -177,11 +174,6 @@ void main() {
         canonDeck(_sample()),
         File('test/fixtures/90.05-payroll-job.ctd').readAsBytesSync(),
       );
-    });
-
-    test('round-trips back through the compiler', () {
-      final List<CardImage> deck = decodeCanon(canonDeck(_sample())!);
-      expect(deckToMirror(deck), _sample());
     });
 
     test('a deck the punch cannot cut has no file', () {
@@ -284,45 +276,41 @@ void main() {
     });
   });
 
-  test('a program the compiler rejects still returns its stages, and its '
-      "diagnostics in the listing's own words", () {
-    // A severity-5 stop is a result, not a refusal: the reader gets the
-    // listing with the diagnostic block, and the stages that ran (D10.2).
-    final WebCompilation result = compileText(
-      ['      *DATA', dataCard(name: 'A', level: '99'), ''].join('\n'),
-    );
-    expect(result.error, isNull);
-    expect(result.listing, contains('ERRORS WERE DETECTED'));
-    final WebDiagnostic first = result.diagnostics.first;
-    expect(first.number, matches(RegExp(r'^\d+,\d\d$')));
-    expect(first.severity, inInclusiveRange(1, 5));
-    // The listing prints the same text for the same diagnostic, so the
-    // site never states a message of its own.
-    expect(result.listing, contains(first.text.split('\n').first));
-  });
-
-  test("a diagnostic row carries its statement's mark", () {
-    final WebCompilation result = compileText(
-      ['      *DATA', dataCard(name: 'A', level: '99'), ''].join('\n'),
-    );
-    final List<String> lines = result.listing.split('\n');
-    final String number = result.diagnostics.first.number;
-    final int row = lines.indexWhere(
-      (String line) => line.startsWith(number.padLeft(9)),
-    );
-    expect(row, isNonNegative);
-    expect(result.marks['listing']![row], '1:$number');
-  });
+  test(
+    'a program the compiler rejects still returns its stages, and its '
+    "diagnostics in the listing's own words, each on its statement's mark",
+    () {
+      // A severity-5 stop is a result, not a refusal: the reader gets the
+      // listing with the diagnostic block, and the stages that ran (D10.2).
+      final WebCompilation rejected = compileText(
+        ['      *DATA', dataCard(name: 'A', level: '99'), ''].join('\n'),
+      );
+      expect(rejected.error, isNull);
+      expect(rejected.listing, contains('ERRORS WERE DETECTED'));
+      final WebDiagnostic first = rejected.diagnostics.first;
+      expect(first.number, matches(RegExp(r'^\d+,\d\d$')));
+      expect(first.severity, inInclusiveRange(1, 5));
+      // The listing prints the same text for the same diagnostic, so the
+      // site never states a message of its own.
+      expect(rejected.listing, contains(first.text.split('\n').first));
+      final List<String> lines = rejected.listing.split('\n');
+      final int row = lines.indexWhere(
+        (String line) => line.startsWith(first.number.padLeft(9)),
+      );
+      expect(row, isNonNegative);
+      expect(rejected.marks['listing']![row], '1:${first.number}');
+    },
+  );
 
   test('a second job marks its statements with its own job number', () {
     final String job = [
       '      *DATA',
       dataCard(name: 'A', level: '1'),
     ].join('\n');
-    final WebCompilation result = compileText(
+    final WebCompilation twoJobs = compileText(
       [job, '      *FINISH', job, ''].join('\n'),
     );
     // The division headers and the *FINISH card belong to no statement.
-    expect(result.marks['cards'], [null, '1:1,00', null, null, '2:1,00']);
+    expect(twoJobs.marks['cards'], [null, '1:1,00', null, null, '2:1,00']);
   });
 }

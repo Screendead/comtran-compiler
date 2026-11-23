@@ -61,8 +61,7 @@ final RegExp _leadingNumber = RegExp(r'^\d+\.\s+');
 /// `file` that holds it, and its `lines` including the heading itself.
 typedef MirrorPart = ({String title, String file, List<String> lines});
 
-/// The anchor of the heading whose markdown text is [text]: the display
-/// form first, then GitHub's slug of it.
+/// The GitHub anchor of the heading whose markdown text is [text].
 String slugifyHeading(String text) => slugify(plainHeading(text));
 
 /// The mirror as repository-relative paths mapped to file contents, sorted
@@ -304,6 +303,6 @@ String _rewriteLinks(String line, Map<String, String> ownerOf, String self) =>
           if (owner == null || owner == self) {
             return '](#$slug)';
           }
-          return '](${owner == mirrorIndex ? mirrorIndex : owner}#$slug)';
+          return ']($owner#$slug)';
         })
         .replaceAll(_upLink, '](../../');

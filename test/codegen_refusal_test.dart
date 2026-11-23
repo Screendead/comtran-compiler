@@ -14,41 +14,17 @@ import 'support/deck_fixtures.dart';
 /// and a condition name.
 List<String> _data() => [
   dataCard(name: 'TAB', level: '1', quantity: '12'),
-  dataCard(
-    name: 'CELL',
-    level: '2',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
+  internalCard('CELL', '999', level: '2'),
   dataCard(name: 'ATAB', level: '1', quantity: '12'),
   dataCard(name: 'ACEL', level: '2', description: 'A(6)'),
   dataCard(name: 'ALF', level: '1', description: 'A(6)'),
   dataCard(name: 'LONG', level: '1', description: 'A(12)'),
   dataCard(name: 'SEVEN', level: '1', description: 'A(7)'),
-  dataCard(name: 'IDX', level: '1', mode: 'I', justify: 'R', description: '99'),
-  dataCard(name: 'IDY', level: '1', mode: 'I', justify: 'R', description: '99'),
-  dataCard(
-    name: 'NUM',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
-  dataCard(
-    name: 'TOT',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
-  dataCard(
-    name: 'FRAC',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '9V9',
-  ),
+  internalCard('IDX', '99'),
+  internalCard('IDY', '99'),
+  internalCard('NUM', '999'),
+  internalCard('TOT', '999'),
+  internalCard('FRAC', '9V9'),
   dataCard(name: 'EXT', level: '1', mode: 'E', description: '999'),
   dataCard(name: 'FLT', level: '1', mode: 'I', description: '9.9F9'),
   dataCard(name: 'EDT', level: '1', description: r'$889.99'),
@@ -74,11 +50,12 @@ String _refuses(
   List<String> environment = const [],
   List<String> flagged = const [],
   List<String>? frontEnd,
+  List<String> tail = _tail,
 }) {
   final SemanticResult semantics = runJob(
     data: data ?? _data(),
     environment: environment,
-    procedure: [...statements, ..._tail],
+    procedure: [...statements, ...tail],
   );
   expect(ids(semantics), flagged, reason: 'the program must reach the sizers');
   expect(semantics.stopped, isFalse);
@@ -97,76 +74,176 @@ String _refuses(
 
 void main() {
   group('the B1 refusal sites (M4-2 as amended)', () {
-    test('DISPLAY', () {
-      expect(_refuses(['            DISPLAY 45.']), 'DISPLAY ([J 90.01.01])');
-    });
-
-    test('the assigned GO TO', () {
-      expect(
-        _refuses(['            GO TO (RTN, RTN) ON IDX.']),
+    for (final (String statement, Object shape) in [
+      ('DISPLAY 45.', 'DISPLAY ([J 90.01.01])'),
+      (
+        'GO TO (RTN, RTN) ON IDX.',
         'the assigned GO TO (M4-12; no sample instance)',
-      );
-    });
-
-    test('DO EXACTLY', () {
-      expect(
-        _refuses(['            DO RTN EXACTLY 5 TIMES.']),
+      ),
+      (
+        'DO RTN EXACTLY 5 TIMES.',
         'DO EXACTLY / USING / GIVING (notes section 7)',
-      );
-    });
-
-    test('a multi-index DO', () {
-      expect(
-        _refuses(['            DO RTN FOR IDX = 1(1)2, IDY = 1(1)2.']),
+      ),
+      (
+        'DO RTN FOR IDX = 1(1)2, IDY = 1(1)2.',
         'a multi-index DO (notes section 7)',
-      );
-    });
-
-    test('a DO FOR driving no indicator', () {
-      expect(
-        _refuses(['            DO RTN FOR IDX = 1(1)12.']),
-        'a DO FOR driving no indicator',
-      );
-    });
-
-    test('SET of a condition name', () {
-      expect(_refuses(['            SET MARRIED.']), 'SET of a condition name');
-    });
-
-    test('SET with a target list', () {
-      expect(
-        _refuses(['            SET NUM, TOT = NUM + TOT.']),
+      ),
+      ('DO RTN FOR IDX = 1(1)12.', 'a DO FOR driving no indicator'),
+      ('SET MARRIED.', 'SET of a condition name'),
+      (
+        'SET NUM, TOT = NUM + TOT.',
         'SET with a target list (no sample instance)',
-      );
-    });
-
-    test('ON OVERFLOW', () {
-      expect(
-        _refuses(['            SET NUM = NUM + TOT, ON OVERFLOW GO TO RTN.']),
+      ),
+      (
+        'SET NUM = NUM + TOT, ON OVERFLOW GO TO RTN.',
         'ON OVERFLOW (notes section 7)',
-      );
-    });
-
-    test('ADD TRUNCATED', () {
-      expect(
-        _refuses(['            ADD NUM TO TOT TRUNCATED.']),
+      ),
+      (
+        'ADD NUM TO TOT TRUNCATED.',
         'ADD TRUNCATED / ON OVERFLOW (notes section 7)',
-      );
-    });
-
-    test('an ADD of a literal', () {
-      expect(
-        _refuses(['            ADD 1 TO NUM.']),
-        'an ADD of a literal (no sample instance)',
-      );
-    });
-
-    test('a subscripted ADD source', () {
-      expect(
-        _refuses(['            ADD TAB CELL (IDX) TO NUM.']),
+      ),
+      ('ADD 1 TO NUM.', 'an ADD of a literal (no sample instance)'),
+      (
+        'ADD TAB CELL (IDX) TO NUM.',
         'a subscripted ADD source (no sample instance)',
-      );
-    });
+      ),
+      (
+        'ADD FRAC TO NUM.',
+        'an ADD into a target of lesser scale (notes section 7)',
+      ),
+      ('MOVE 5 TO NUM.', 'a MOVE of a numeric literal (no sample instance)'),
+      (
+        'MOVE ATAB ACEL (IDX) TO ALF.',
+        'a subscripted alphameric move (notes section 7)',
+      ),
+      ('MOVE EDT TO NUM.', startsWith('a move of ')),
+      (
+        'MOVE TAB CELL (IDX) TO EDT.',
+        'a subscripted edited-store source (no sample instance)',
+      ),
+      (
+        'MOVE TAB CELL (IDX) TO NUM.',
+        'a subscripted internal-decimal move (no sample instance)',
+      ),
+      (
+        'MOVE FRAC TO NUM.',
+        'an internal-decimal move off its trigger (catalogue 4.6)',
+      ),
+      (
+        'MOVE ZERO TO TAB CELL (IDX).',
+        'a subscripted figurative target (notes section 7)',
+      ),
+      (
+        "MOVE 'ABCDEFG' TO SEVEN.",
+        'an in-line literal past one word (notes section 7)',
+      ),
+      ("IF ALF = 'ABCDEF' THEN STOP RUN.", startsWith('a comparison of ')),
+      (
+        'MOVE GS SRC TO TGT2.',
+        'an in-line move outside the four triggers (notes 4.5)',
+      ),
+      (
+        'MOVE LONG TO ALF.',
+        'an alphameric mover with the longer source (notes 3.3)',
+      ),
+      ('SET NUM = NUM / TOT.', startsWith('the operator ')),
+      (
+        'SET NUM = TAB CELL (IDX).',
+        'a subscripted chain operand (no sample instance)',
+      ),
+      (
+        'SET NUM = TAB CELL (IDX) + NUM.',
+        'a subscripted chain operand (no sample instance)',
+      ),
+      ('SET NUM = -NUM.', 'a chain of UnaryExpr (no sample instance)'),
+      ('SET NUM = -NUM + TOT.', 'the scale of UnaryExpr'),
+      (
+        'SET NUM = (NUM + TOT) * (TOT + NUM).',
+        'a product of two computed factors (no sample instance)',
+      ),
+      ('SET NUM = (-NUM) * TOT.', 'a factor of UnaryExpr'),
+      (
+        'SET NUM = NUM * TAB CELL (IDX).',
+        'a subscripted factor (no sample instance)',
+      ),
+      (
+        'SET FRAC = NUM + TOT.',
+        'a store below the target scale (no sample instance)',
+      ),
+      (
+        'IF MARRIED THEN STOP RUN.',
+        'a compound or condition-name comparison (no sample instance)',
+      ),
+      ('IF TR (NUM GT TOT) GT NUM THEN STOP RUN.', 'a comparison of TruthExpr'),
+      ('IF NUM GT TR (NUM GT TOT) THEN STOP RUN.', 'a comparison of TruthExpr'),
+      ("IF 'ABC' = ALF THEN STOP RUN.", startsWith('a comparison of ')),
+      (
+        'IF ALF = BLANKS THEN STOP RUN.',
+        'this figurative comparison (no sample instance)',
+      ),
+      ('SET NUM = 2.5F1.', 'a floating literal operand (no sample instance)'),
+      (
+        'IF NUM = 2.5F1 THEN STOP RUN.',
+        'a floating literal operand (no sample instance)',
+      ),
+      (
+        'SET NUM = FLT + TOT.',
+        'an arithmetic operand of floatingPoint (no sample instance)',
+      ),
+      (
+        'SET FLT = NUM.',
+        'an arithmetic operand of floatingPoint (no sample instance)',
+      ),
+      (
+        'IF FLT = NUM THEN STOP RUN.',
+        'an arithmetic operand of floatingPoint (no sample instance)',
+      ),
+      (
+        'DO RTN FOR FLT = 1(1)12.',
+        'an arithmetic operand of floatingPoint (no sample instance)',
+      ),
+      (
+        'DO RTN FOR IDX = NUM(1)12.',
+        'a DO FOR bound of NameOperand (no sample instance)',
+      ),
+      (
+        'DO RTN FOR IDX = -5(1)12.',
+        'a DO FOR bound of UnaryExpr (no sample instance)',
+      ),
+      (
+        'ADD EXT TO EXT, NUM.',
+        'an ADD clause that names an external-decimal field twice '
+            '(no sample instance)',
+      ),
+      (
+        'SET NUM = EDT + TOT.',
+        'an arithmetic operand of edited (no sample instance)',
+      ),
+      (
+        'SET EDT = NUM + TOT.',
+        'a store below the target scale (no sample instance)',
+      ),
+      (
+        'IF FRAC GT TAB CELL (IDX) THEN STOP RUN.',
+        'a subscripted comparand that needs upscaling (no sample instance)',
+      ),
+      (
+        'IF FRAC GT 1234567890 THEN STOP RUN.',
+        'an aligned comparand of more than 10 digits (no sample instance)',
+      ),
+      (
+        'IF TR (NUM GT TOT) GT NUM + 1 THEN STOP RUN.',
+        'a comparison of TruthExpr against an expression (no sample instance)',
+      ),
+      (
+        'SET NUM = NUM + TR (NUM GT TOT).',
+        'a chain of TruthExpr (no sample instance)',
+      ),
+    ]) {
+      test(statement, () {
+        expect(_refuses(['            $statement']), shape);
+      });
+    }
 
     test('an external-decimal field added into its own element', () {
       // One fetch cell serves the field, through its indicator or not.
@@ -268,13 +345,6 @@ void main() {
       });
     });
 
-    test('an ADD into a target of lesser scale', () {
-      expect(
-        _refuses(['            ADD FRAC TO NUM.']),
-        'an ADD into a target of lesser scale (notes section 7)',
-      );
-    });
-
     test('an edited ADD source into a target of lesser scale', () {
       expect(
         _refuses(
@@ -306,60 +376,9 @@ void main() {
       expect(
         _refuses(
           ['            MOVE BIG TO EDT.'],
-          data: [
-            ..._data(),
-            dataCard(
-              name: 'BIG',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '9(9)',
-            ),
-          ],
+          data: [..._data(), internalCard('BIG', '9(9)')],
         ),
         'an aligned move of more than 10 digits (no sample instance)',
-      );
-    });
-
-    test('a MOVE of a numeric literal', () {
-      expect(
-        _refuses(['            MOVE 5 TO NUM.']),
-        'a MOVE of a numeric literal (no sample instance)',
-      );
-    });
-
-    test('a subscripted alphameric move', () {
-      expect(
-        _refuses(['            MOVE ATAB ACEL (IDX) TO ALF.']),
-        'a subscripted alphameric move (notes section 7)',
-      );
-    });
-
-    test('an unattested class pair', () {
-      expect(
-        _refuses(['            MOVE EDT TO NUM.']),
-        startsWith('a move of '),
-      );
-    });
-
-    test('a subscripted edited-store source', () {
-      expect(
-        _refuses(['            MOVE TAB CELL (IDX) TO EDT.']),
-        'a subscripted edited-store source (no sample instance)',
-      );
-    });
-
-    test('a subscripted internal-decimal move', () {
-      expect(
-        _refuses(['            MOVE TAB CELL (IDX) TO NUM.']),
-        'a subscripted internal-decimal move (no sample instance)',
-      );
-    });
-
-    test('an internal-decimal move off its trigger', () {
-      expect(
-        _refuses(['            MOVE FRAC TO NUM.']),
-        'an internal-decimal move off its trigger (catalogue 4.6)',
       );
     });
 
@@ -448,48 +467,6 @@ void main() {
       }
     });
 
-    test('a subscripted figurative target', () {
-      expect(
-        _refuses(['            MOVE ZERO TO TAB CELL (IDX).']),
-        'a subscripted figurative target (notes section 7)',
-      );
-    });
-
-    test('an in-line literal past one word', () {
-      expect(
-        _refuses(["            MOVE 'ABCDEFG' TO SEVEN."]),
-        'an in-line literal past one word (notes section 7)',
-      );
-    });
-
-    test('an alphameric comparison against a literal', () {
-      expect(
-        _refuses(["            IF ALF = 'ABCDEF' THEN STOP RUN."]),
-        startsWith('a comparison of '),
-      );
-    });
-
-    test('an in-line move outside the four triggers', () {
-      expect(
-        _refuses(['            MOVE GS SRC TO TGT2.']),
-        'an in-line move outside the four triggers (notes 4.5)',
-      );
-    });
-
-    test('an alphameric mover with the longer source', () {
-      expect(
-        _refuses(['            MOVE LONG TO ALF.']),
-        'an alphameric mover with the longer source (notes 3.3)',
-      );
-    });
-
-    test('the operator', () {
-      expect(
-        _refuses(['            SET NUM = NUM / TOT.']),
-        startsWith('the operator '),
-      );
-    });
-
     test('the operator inside a product', () {
       // A quotient as the complex factor keeps its own refusal, not the
       // digit count of the product of a product (M6-9).
@@ -508,55 +485,6 @@ void main() {
       );
     });
 
-    test('a subscripted chain operand, one term', () {
-      expect(
-        _refuses(['            SET NUM = TAB CELL (IDX).']),
-        'a subscripted chain operand (no sample instance)',
-      );
-    });
-
-    test('a subscripted chain operand, several terms', () {
-      expect(
-        _refuses(['            SET NUM = TAB CELL (IDX) + NUM.']),
-        'a subscripted chain operand (no sample instance)',
-      );
-    });
-
-    test('a chain of a unary minus', () {
-      expect(
-        _refuses(['            SET NUM = -NUM.']),
-        'a chain of UnaryExpr (no sample instance)',
-      );
-    });
-
-    test('the scale of a unary minus', () {
-      expect(
-        _refuses(['            SET NUM = -NUM + TOT.']),
-        'the scale of UnaryExpr',
-      );
-    });
-
-    test('a product of two computed factors', () {
-      expect(
-        _refuses(['            SET NUM = (NUM + TOT) * (TOT + NUM).']),
-        'a product of two computed factors (no sample instance)',
-      );
-    });
-
-    test('a factor of a unary minus', () {
-      expect(
-        _refuses(['            SET NUM = (-NUM) * TOT.']),
-        'a factor of UnaryExpr',
-      );
-    });
-
-    test('a subscripted factor', () {
-      expect(
-        _refuses(['            SET NUM = NUM * TAB CELL (IDX).']),
-        'a subscripted factor (no sample instance)',
-      );
-    });
-
     test('an ADD into an edited element', () {
       // The plain ADD refuses an edited target the same way.
       expect(
@@ -572,110 +500,12 @@ void main() {
       );
     });
 
-    test('a store below the target scale', () {
-      expect(
-        _refuses(['            SET FRAC = NUM + TOT.']),
-        'a store below the target scale (no sample instance)',
-      );
-    });
-
-    test('a condition-name comparison', () {
-      expect(
-        _refuses(['            IF MARRIED THEN STOP RUN.']),
-        'a compound or condition-name comparison (no sample instance)',
-      );
-    });
-
-    test('a numeric comparison of a truth function', () {
-      expect(
-        _refuses(['            IF TR (NUM GT TOT) GT NUM THEN STOP RUN.']),
-        'a comparison of TruthExpr',
-      );
-    });
-
-    test('a numeric comparison against a truth function', () {
-      expect(
-        _refuses(['            IF NUM GT TR (NUM GT TOT) THEN STOP RUN.']),
-        'a comparison of TruthExpr',
-      );
-    });
-
-    test('an alphameric comparison of a literal', () {
-      expect(
-        _refuses(["            IF 'ABC' = ALF THEN STOP RUN."]),
-        startsWith('a comparison of '),
-      );
-    });
-
-    test('a blank figurative alphameric comparison', () {
-      expect(
-        _refuses(['            IF ALF = BLANKS THEN STOP RUN.']),
-        'this figurative comparison (no sample instance)',
-      );
-    });
-
-    test('a floating literal', () {
-      expect(
-        _refuses(['            SET NUM = 2.5F1.']),
-        'a floating literal operand (no sample instance)',
-      );
-    });
-
-    test('a floating literal in a comparison', () {
-      expect(
-        _refuses(['            IF NUM = 2.5F1 THEN STOP RUN.']),
-        'a floating literal operand (no sample instance)',
-      );
-    });
-
     test('an alphameric literal in arithmetic', () {
       // The parser reports the shape (msg 912) below the stop
       // severity, so the sizers still see it.
       expect(
         _refuses(["            SET NUM = 'AB' + TOT."]),
         'an alphameric literal operand (no sample instance)',
-      );
-    });
-
-    test('a floating-point chain operand', () {
-      expect(
-        _refuses(['            SET NUM = FLT + TOT.']),
-        'an arithmetic operand of floatingPoint (no sample instance)',
-      );
-    });
-
-    test('a floating-point SET target', () {
-      expect(
-        _refuses(['            SET FLT = NUM.']),
-        'an arithmetic operand of floatingPoint (no sample instance)',
-      );
-    });
-
-    test('a floating-point comparison', () {
-      expect(
-        _refuses(['            IF FLT = NUM THEN STOP RUN.']),
-        'an arithmetic operand of floatingPoint (no sample instance)',
-      );
-    });
-
-    test('a floating-point DO index', () {
-      expect(
-        _refuses(['            DO RTN FOR FLT = 1(1)12.']),
-        'an arithmetic operand of floatingPoint (no sample instance)',
-      );
-    });
-
-    test('a field-name DO FOR bound', () {
-      expect(
-        _refuses(['            DO RTN FOR IDX = NUM(1)12.']),
-        'a DO FOR bound of NameOperand (no sample instance)',
-      );
-    });
-
-    test('a negative DO FOR bound', () {
-      expect(
-        _refuses(['            DO RTN FOR IDX = -5(1)12.']),
-        'a DO FOR bound of UnaryExpr (no sample instance)',
       );
     });
 
@@ -704,13 +534,7 @@ void main() {
             ..._data(),
             dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
             dataCard(name: 'XTAB', level: '1', quantity: '12'),
-            dataCard(
-              name: 'XCEL',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+            internalCard('XCEL', '999', level: '2'),
           ],
           flagged: ['206,00'],
         ),
@@ -731,25 +555,11 @@ void main() {
             ..._data(),
             dataCard(name: 'EXI', level: '1', mode: 'E', description: '99'),
             dataCard(name: 'XTAB', level: '1', quantity: '12'),
-            dataCard(
-              name: 'XCEL',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+            internalCard('XCEL', '999', level: '2'),
           ],
           flagged: ['206,00'],
         ),
         'an external-decimal subscript variable (M6-9)',
-      );
-    });
-
-    test('an external-decimal field named twice in one ADD clause', () {
-      expect(
-        _refuses(['            ADD EXT TO EXT, NUM.']),
-        'an ADD clause that names an external-decimal field twice '
-        '(no sample instance)',
       );
     });
 
@@ -796,13 +606,6 @@ void main() {
       );
     });
 
-    test('an edited chain operand', () {
-      expect(
-        _refuses(['            SET NUM = EDT + TOT.']),
-        'an arithmetic operand of edited (no sample instance)',
-      );
-    });
-
     test('an edited ADD target', () {
       expect(
         _refuses(
@@ -813,13 +616,6 @@ void main() {
           ],
         ),
         'an arithmetic operand of edited (no sample instance)',
-      );
-    });
-
-    test('an edited SET target below the chain scale', () {
-      expect(
-        _refuses(['            SET EDT = NUM + TOT.']),
-        'a store below the target scale (no sample instance)',
       );
     });
 
@@ -865,34 +661,11 @@ void main() {
       );
     });
 
-    test('a subscripted comparand of lesser scale', () {
-      expect(
-        _refuses(['            IF FRAC GT TAB CELL (IDX) THEN STOP RUN.']),
-        'a subscripted comparand that needs upscaling (no sample instance)',
-      );
-    });
-
-    test('an aligned literal past ten digits', () {
-      expect(
-        _refuses(['            IF FRAC GT 1234567890 THEN STOP RUN.']),
-        'an aligned comparand of more than 10 digits (no sample instance)',
-      );
-    });
-
     test('an aligned field past ten digits', () {
       expect(
         _refuses(
           ['            IF FRAC GT BIG THEN STOP RUN.'],
-          data: [
-            ..._data(),
-            dataCard(
-              name: 'BIG',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '9(10)',
-            ),
-          ],
+          data: [..._data(), internalCard('BIG', '9(10)')],
         ),
         'an aligned comparand of more than 10 digits (no sample instance)',
       );
@@ -902,16 +675,7 @@ void main() {
       expect(
         _refuses(
           ['            IF BIG * BIG GT 1 THEN STOP RUN.'],
-          data: [
-            ..._data(),
-            dataCard(
-              name: 'BIG',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '9(6)',
-            ),
-          ],
+          data: [..._data(), internalCard('BIG', '9(6)')],
         ),
         'an expression comparand of more than 10 digits (no sample instance)',
       );
@@ -926,13 +690,6 @@ void main() {
           reason: zero,
         );
       }
-    });
-
-    test('a truth function against an expression', () {
-      expect(
-        _refuses(['            IF TR (NUM GT TOT) GT NUM + 1 THEN STOP RUN.']),
-        'a comparison of TruthExpr against an expression (no sample instance)',
-      );
     });
 
     test('an expression comparison inside a later term of a chain', () {
@@ -962,13 +719,6 @@ void main() {
       );
     });
 
-    test('a chain of a truth function, several terms', () {
-      expect(
-        _refuses(['            SET NUM = NUM + TR (NUM GT TOT).']),
-        'a chain of TruthExpr (no sample instance)',
-      );
-    });
-
     test('a mixed-class alphameric comparison', () {
       expect(
         _refuses(
@@ -987,36 +737,12 @@ void main() {
           ['            SET NUM = FA + FB + FC.'],
           data: [
             dataCard(name: 'R1', level: '1', type: 'RECORD'),
-            dataCard(
-              name: 'FA',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+            internalCard('FA', '999', level: '2'),
             dataCard(name: 'R2', level: '1', type: 'RECORD'),
-            dataCard(
-              name: 'FB',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+            internalCard('FB', '999', level: '2'),
             dataCard(name: 'R3', level: '1', type: 'RECORD'),
-            dataCard(
-              name: 'FC',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
-            dataCard(
-              name: 'NUM',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '999',
-            ),
+            internalCard('FC', '999', level: '2'),
+            internalCard('NUM', '999'),
           ],
           environment: [
             environmentCard(
@@ -1214,12 +940,24 @@ void main() {
   });
 
   group('the B4 refusal sites (M4-11)', () {
-    test('a subscripted accumulator comparand', () {
-      expect(
-        _refuses(['            IF TAB CELL (IDX) GT NUM THEN STOP RUN.']),
+    for (final (String statement, Object shape) in [
+      (
+        'IF TAB CELL (IDX) GT NUM THEN STOP RUN.',
         'a subscripted accumulator comparand (no sample instance)',
-      );
-    });
+      ),
+      (
+        'IF ATAB ACEL (IDX) = ALF THEN STOP RUN.',
+        'a subscripted alphameric comparand (no sample instance)',
+      ),
+      (
+        'IF LONG = LONG THEN STOP RUN.',
+        'a comparison past one word (M4-11, the SYS)162 boundary)',
+      ),
+    ]) {
+      test(statement, () {
+        expect(_refuses(['            $statement']), shape);
+      });
+    }
 
     test('an unscaled zero comparand', () {
       // Both attested zero builds scale; an integer storage operand
@@ -1230,25 +968,11 @@ void main() {
       );
     });
 
-    test('a subscripted alphameric comparand', () {
-      expect(
-        _refuses(['            IF ATAB ACEL (IDX) = ALF THEN STOP RUN.']),
-        'a subscripted alphameric comparand (no sample instance)',
-      );
-    });
-
     test('an unequal-length alphameric comparison', () {
       // The D3.3 fold and the D5.3 truncation each wait for a site.
       expect(
         _refuses(['            IF ALF = SEVEN THEN STOP RUN.']),
         'an unequal-length alphameric comparison (no sample instance)',
-      );
-    });
-
-    test('a comparison past one word', () {
-      expect(
-        _refuses(['            IF LONG = LONG THEN STOP RUN.']),
-        'a comparison past one word (M4-11, the SYS)162 boundary)',
       );
     });
   });
@@ -1343,13 +1067,7 @@ void main() {
           data: [
             ..._data(),
             dataCard(name: 'LREC', level: '1', type: 'RECORD'),
-            dataCard(
-              name: 'LIDX',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '99',
-            ),
+            internalCard('LIDX', '99', level: '2'),
           ],
           environment: [
             environmentCard(
@@ -1369,17 +1087,11 @@ void main() {
       final List<String> data = [
         ..._data(),
         dataCard(name: 'T11', level: '1', quantity: '12'),
-        dataCard(
-          name: 'F11',
-          level: '2',
-          mode: 'I',
-          justify: 'R',
-          description: '999',
-        ),
+        internalCard('F11', '999', level: '2'),
         dataCard(name: 'G11', level: '2', description: 'A(5)'),
       ];
       test('in a whole-word read, which drops the byte', () {
-        // The DO FOR steps the byte now; `CAS 0,r` cannot read it.
+        // The DO FOR steps the byte; `CAS 0,r` cannot read it.
         expect(
           _refuses([
             '            DO RTN FOR IDX = 1(1)12.',
@@ -1530,45 +1242,26 @@ void main() {
     test('a label bound to no word', () {
       // NOTE emits no word, so a trailing labelled NOTE never reaches
       // the binder; no _tail, whose words would take the label.
-      final SemanticResult semantics = runJob(
-        data: _data(),
-        procedure: [
+      expect(
+        _refuses([
           '            GO TO X.',
           '            STOP RUN.',
           '      X.    NOTE DONE.',
-        ],
+        ], tail: const []),
+        'a label bound to no word (no sample instance)',
       );
-      expect(ids(semantics), isEmpty);
-      expect(semantics.stopped, isFalse);
-      try {
-        runCodegen(semantics);
-        fail('generated code without refusing');
-      } on UnrecoveredShape catch (refusal) {
-        expect(refusal.shape, 'a label bound to no word (no sample instance)');
-      }
     });
 
     test('a procedure open at the end of the text', () {
       // No _tail here: its label would close the paragraph.
-      final SemanticResult semantics = runJob(
-        data: _data(),
-        procedure: [
+      expect(
+        _refuses([
           '            DO PARA.',
           '            STOP RUN.',
           '      PARA.  SET NUM = NUM + NUM.',
-        ],
+        ], tail: const []),
+        'a procedure open at the end of the text (no sample instance)',
       );
-      expect(ids(semantics), isEmpty);
-      expect(semantics.stopped, isFalse);
-      try {
-        runCodegen(semantics);
-        fail('generated code without refusing');
-      } on UnrecoveredShape catch (refusal) {
-        expect(
-          refusal.shape,
-          'a procedure open at the end of the text (no sample instance)',
-        );
-      }
     });
   });
 
@@ -1815,13 +1508,7 @@ void main() {
               mode: 'E',
               description: '99999999999',
             ),
-            dataCard(
-              name: 'WIDEI',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '99999999999',
-            ),
+            internalCard('WIDEI', '99999999999'),
           ],
         ),
         'an external-decimal convert of more than 10 digits (RT-4)',
@@ -1832,16 +1519,7 @@ void main() {
       expect(
         _refuses(
           ['            MOVE EXT TO WIDEI.'],
-          data: [
-            ..._data(),
-            dataCard(
-              name: 'WIDEI',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '99999999999',
-            ),
-          ],
+          data: [..._data(), internalCard('WIDEI', '99999999999')],
         ),
         'an external-decimal convert of more than 10 digits (RT-4)',
       );
@@ -1871,13 +1549,7 @@ void main() {
           ['            MOVE WIDEI TO WIDEDT.'],
           data: [
             ..._data(),
-            dataCard(
-              name: 'WIDEI',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '9(12)',
-            ),
+            internalCard('WIDEI', '9(12)'),
             dataCard(name: 'WIDEDT', level: '1', description: '8889.99'),
           ],
         ),
@@ -1965,27 +1637,9 @@ void main() {
           ],
           data: [
             dataCard(name: 'TAB', level: '1', quantity: '12'),
-            dataCard(
-              name: 'ITEM',
-              level: '2',
-              mode: 'I',
-              justify: 'R',
-              description: '99',
-            ),
-            dataCard(
-              name: 'SUB',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '99',
-            ),
-            dataCard(
-              name: 'OUT',
-              level: '1',
-              mode: 'I',
-              justify: 'R',
-              description: '99',
-            ),
+            internalCard('ITEM', '99', level: '2'),
+            internalCard('SUB', '99'),
+            internalCard('OUT', '99'),
           ],
         ),
         'a table base ahead of address zero (no sample instance)',
@@ -2000,13 +1654,7 @@ List<String> _records() => [
   dataCard(name: 'FLD', level: '2', description: 'A(6)'),
   dataCard(name: 'OREC', level: '1', type: 'RECORD'),
   dataCard(name: 'OFLD', level: '2', description: 'A(6)'),
-  dataCard(
-    name: 'NUM',
-    level: '1',
-    mode: 'I',
-    justify: 'R',
-    description: '999',
-  ),
+  internalCard('NUM', '999'),
 ];
 
 String _input() => environmentCard(

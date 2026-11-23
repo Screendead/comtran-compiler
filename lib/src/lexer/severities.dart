@@ -20,7 +20,8 @@
 ///
 /// The compiler reads severities from this table only; no severity
 /// constant appears in compiler code (D9.2). The build check that every
-/// catalog id has exactly one row lives in `test/severities_test.dart`.
+/// catalog id has exactly one row lives in
+/// `test/message_checklist_test.dart`.
 library;
 
 /// Severity value per message id; every row is a non-historical D9.2

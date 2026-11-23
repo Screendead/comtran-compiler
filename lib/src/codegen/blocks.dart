@@ -24,17 +24,6 @@ AssemblyUnit _use(int counter, {required int origin}) => AssemblyUnit(
   form: WordForm.prefix,
 );
 
-/// One `SYM) BSS n` reservation of Location Counter 1.
-AssemblyUnit _reservation(String symbol, int words, int origin) => AssemblyUnit(
-  operation: 'BSS',
-  operand: '$words',
-  location: origin,
-  labels: <String>[symbol],
-  word: counterWord(CounterOp.fixedReservation, words),
-  control: ControlGroup.locationCounter,
-  form: WordForm.prefix,
-);
-
 /// The two rows the listing opens with, ahead of the storage map: the
 /// counter-1 origin, and the program's `BGN` (M4-7.1). The storage map
 /// itself opens with `USE 0`.
@@ -118,7 +107,15 @@ List<AssemblyUnit> outOfLineBlocks(
       StorageBlock.bl,
       StorageBlock.pi,
     ])
-      _reservation(block.symbol, words(block), image.originOf(block)),
+      AssemblyUnit(
+        operation: 'BSS',
+        operand: '${words(block)}',
+        location: image.originOf(block),
+        labels: <String>[block.symbol],
+        word: counterWord(CounterOp.fixedReservation, words(block)),
+        control: ControlGroup.locationCounter,
+        form: WordForm.prefix,
+      ),
     ...poolUnits,
   ];
 }
