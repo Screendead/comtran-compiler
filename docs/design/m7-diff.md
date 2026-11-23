@@ -2560,6 +2560,12 @@ needs Jack's authorization (CLAUDE.md section 9).
 conversion, the catalog and the `f-payroll` listing golden now hold two
 spaces before `-REDEF-` in 80,00 and 81,00.
 
+*Amended 2026-11-23.* Rows B4 (the order and the entry point) and O5
+are fixed on Jack's answer to issue #277. Location Counter 0 now
+follows the order of the divisions in the deck (M4-4 as amended).
+`f-payroll` puts `START` at 00000 and `*DATA BSS 0` at 01003, after
+the code, and its end-of-text word names 00000.
+
 **Two slips in earlier entries, corrected in place.**
 
 - M7-9 put the product `RATE × 40` in 141,00. It is in 142,00

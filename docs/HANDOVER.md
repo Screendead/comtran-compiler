@@ -180,13 +180,14 @@ messages 80,00 and 81,00. Jack, 2026-11-23:
 The erratum is applied (see "Rules that bind future work"). The queue
 holds the other compiler fixes of M7-12, one item for each finding:
 
-1. The order of the code and the data when `*PROCEDURE` comes first,
-   and the entry point that follows from it ([J 90.02.01]).
-2. The temporaries of `f-payroll-j`: park in `RS)`, not `TS)`
+1. The temporaries of `f-payroll-j`: park in `RS)`, not `TS)`
    ([J 90.02.03]).
-3. The deck name in columns 73 to 77 ([J 05.05] A).
-4. `NO -STOP RUN- IN PROGRAM.` at 9999,99 ([J 02.02.01]).
-5. The columns of the message lines (the scan of PDF p. 181).
+2. The deck name in columns 73 to 77 ([J 05.05] A).
+3. `NO -STOP RUN- IN PROGRAM.` at 9999,99 ([J 02.02.01]).
+4. The columns of the message lines (the scan of PDF p. 181).
+
+Since 2026-11-23, the code comes first when `*PROCEDURE` comes first,
+and the entry point of `f-payroll` is 00000 ([J 90.02.01]).
 
 The fixes of the runtime library stay out (Jack's answer above).
 
