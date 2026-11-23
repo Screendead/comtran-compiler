@@ -97,7 +97,7 @@ CodegenResult runCodegen(
   // `*DATA` first; the 1960 program puts `*PROCEDURE` first, and its
   // code starts at word zero.
   final bool codeFirst = _procedureFirst(semantics);
-  final int textOrigin = codeFirst ? 0 : dataWords;
+  final textOrigin = codeFirst ? 0 : dataWords;
 
   // Two passes over the procedure text. The text's own addresses need
   // nothing but its order, but an `EQU` line prints an equated value in
