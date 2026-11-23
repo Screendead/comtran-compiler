@@ -39,17 +39,27 @@ void main() {
       expect(result.semanticDiagnostics.single.operands, ['ALPHA']);
     });
 
-    test('a subscript count above the dimension count draws 70,00', () {
-      final SemanticResult result = _move('TAB CELL (IDX, IDX)');
-      expect(ids(result), ['70,00']);
-      expect(result.semanticDiagnostics.single.operands, ['TAB CELL']);
-    });
+    // NAME.1 of 70,00 and 71,00 is the array, not the variable (J 90.04).
+    // An undefined variable draws the triage 108,00 alone.
+    for (final (String subscript, String id, String? operand) in [
+      ('IDX, IDX', '70,00', 'TAB CELL'),
+      ('TAB CELL (IDX)', '71,00', 'TAB CELL'),
+      ('ALPHA', '79,00', 'ALPHA'),
+      ('FRAC', '31,00', null),
+      ('EXT', '206,00', null),
+      ('NOSUCH', '108,00', null),
+    ]) {
+      test('the subscript ($subscript) draws $id', () {
+        final SemanticResult result = _move('TAB CELL ($subscript)');
+        expect(ids(result), [id]);
+        if (operand != null) {
+          expect(result.semanticDiagnostics.single.operands, [operand]);
+        }
+      });
+    }
 
-    test('a subscripted subscript variable draws 71,00', () {
-      final SemanticResult result = _move('TAB CELL (TAB CELL (IDX))');
-      expect(ids(result), ['71,00']);
-      // NAME.1 is the array, not the variable (J 90.04).
-      expect(result.semanticDiagnostics.single.operands, ['TAB CELL']);
+    test('206,00 is a warning, severity 1', () {
+      expect(messageSeverities['206,00'], 1);
     });
 
     test('a condition-name subscript draws 71,00', () {
@@ -130,17 +140,6 @@ void main() {
       }
     });
 
-    test('an alphameric subscript variable draws 79,00', () {
-      final SemanticResult result = _move('TAB CELL (ALPHA)');
-      expect(ids(result), ['79,00']);
-      expect(result.semanticDiagnostics.single.operands, ['ALPHA']);
-    });
-
-    test('a fractional subscript variable draws 31,00', () {
-      final SemanticResult result = _move('TAB CELL (FRAC)');
-      expect(ids(result), ['31,00']);
-    });
-
     test('a zero, negative, or fractional literal draws 182,00', () {
       final SemanticResult result = runJob(
         data: _fields(),
@@ -170,12 +169,6 @@ void main() {
       ]) {
         expect(ids(_move('TAB CELL ($subscript)')), drawn, reason: subscript);
       }
-    });
-
-    test('an external decimal subscript variable draws 206,00', () {
-      final SemanticResult result = _move('TAB CELL (EXT)');
-      expect(ids(result), ['206,00']);
-      expect(messageSeverities['206,00'], 1);
     });
 
     group('the other format rows', () {
@@ -215,12 +208,6 @@ void main() {
         ]);
         expect(ids(result), ['206,00']);
       });
-    });
-
-    test('an undefined subscript variable draws the triage 108,00 '
-        'alone', () {
-      final SemanticResult result = _move('TAB CELL (NOSUCH)');
-      expect(ids(result), ['108,00']);
     });
   });
 
