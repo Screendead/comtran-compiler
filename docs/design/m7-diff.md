@@ -2564,6 +2564,10 @@ spaces before `-REDEF-` in 80,00 and 81,00.
 the procedure parser reports message 175,00 at 9999,99, and the
 `f-payroll` listing golden prints it there.
 
+*Amended 2026-11-23.* Rows L2 and O4 are fixed on the same answer: a
+`$CMPLE` deck punches its deck name in columns 73 to 77
+(`loader.md` LD-2 as amended).
+
 **Two slips in earlier entries, corrected in place.**
 
 - M7-9 put the product `RATE × 40` in 141,00. It is in 142,00

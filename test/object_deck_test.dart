@@ -104,4 +104,28 @@ void main() {
       expect(deck.lastCard.substring(6, 12), '*CTEND');
     });
   });
+
+  test('a \$CMPLE deck punches its deck name in columns 73 to 77', () {
+    // "The deck identification comes from columns 8 through 12 of the
+    // \$CMPLE card", and the sequence number takes 78 to 80
+    // ([J 05.05] A). No sample program has a \$CMPLE card.
+    final List<String> lines = [
+      r'$CMPLE SAMPLE',
+      '      *PROCEDURE',
+      '            STOP RUN.',
+      '      *FINISH',
+    ];
+    final JobDeck deck = jobDeck(
+      compileDeck(mirrorToDeck('${lines.join('\n')}\n')).jobs.single,
+      _options,
+    )!;
+    expect(deck.cards.length, greaterThan(2));
+    for (final (int i, CardImage card) in deck.cards.indexed) {
+      final String columns = [
+        for (var column = 73; column <= 80; column++)
+          glyphFromBcd(bcdFromPunches(card.punchesAt(column))!),
+      ].join();
+      expect(columns, 'SAMPL${'${i + 1}'.padLeft(3)}');
+    }
+  });
 }
