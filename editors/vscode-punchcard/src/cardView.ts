@@ -25,19 +25,6 @@ import {
 /** A card column field (definition §1.9.1, F p. 37). */
 export type Field = DeckField;
 
-/** The four card fields of the generic (Procedure Description) form. */
-export const FIELDS: Field[] = GENERIC_FIELDS;
-
-/** The field of `fields` that contains `column` (1-based). */
-export function fieldAt(column: number, fields: Field[] = FIELDS): Field {
-  for (const f of fields) {
-    if (column >= f.start && column <= f.end) {
-      return f;
-    }
-  }
-  return fields[fields.length - 1];
-}
-
 /** What kind of read-out a column has. */
 export type ReadoutKind =
   | 'blank'

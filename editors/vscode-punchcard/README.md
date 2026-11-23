@@ -85,11 +85,13 @@ committed `configurationDefaults` is stale. One known limit: a literal that
 continues across cards is highlighted per line, so its continuation card
 shows plain text.
 
-A `.ct` file is a read-only mirror: `deckconv` generates it from the
-matching `.ctd` file, and this extension never writes it. Editing a
-`.ct` file in VS Code looks like a normal edit, but the next regeneration
-discards it. The extension shows a one-time notice the first time a `.ct`
-file is opened in a session.
+A `.ct` file is a mirror: `deckconv` generates it from the matching `.ctd`
+file. Saving a deck regenerates its mirror (`deckconv regen`). Saving a mirror
+rewrites its deck through `deckconv to-canon`, or rejects text that is not
+normal-form mirror text and leaves the deck unchanged
+(`docs/design/deck-format.md` §6). Both run from the nearest directory that
+holds a `pubspec.yaml`, so Dart must be on the path. The extension shows a
+one-time notice the first time a `.ct` file opens in a session.
 
 ## Manual citations in Dart files
 
@@ -166,8 +168,8 @@ outside this extension's scope. Install a packaged build with
 
 ## Limits
 
-- The editor reads and writes canon files only. It never touches the `.ct`
-  mirrors; `deckconv` generates those.
+- The editor reads and writes canon files only. `deckconv` writes the `.ct`
+  mirrors.
 - The webview has no dependencies. All CSS and JavaScript is inlined under a
   nonce with a strict Content Security Policy.
 - `out/` and `node_modules/` are build products. Do not commit them.
