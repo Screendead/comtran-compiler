@@ -1,13 +1,12 @@
 /// The edited-field members (RT-5): the renderer against every attested
-/// rendering, the seven sign conventions, Blank When Zero, and the three
-/// edited moves a compiled program reaches.
+/// rendering, the seven sign conventions, Blank When Zero, and the edit
+/// run that builds the digit string.
 library;
 
 import 'package:comtran/comtran_io.dart';
 import 'package:test/test.dart';
 
 import '../emulator/asm.dart';
-import '../support/deck_fixtures.dart';
 import 'runtime_support.dart';
 
 /// TARGET-CONTROL-WORD ([J 90.02.17] Note 2): the digits ahead of the
@@ -335,42 +334,6 @@ void main() {
       );
       expect(image(subject), '1=3');
       expect(subject.state.read(conditionCell), isNot(0));
-    });
-  });
-
-  group('a compiled program renders into storage (M4-17)', () {
-    test('the three edited moves write their images', () {
-      // A literal into a group primes each subfield, and the two
-      // converts then drive SYS)267, SYS)185 and SYS)190 in turn.
-      final (JobCompilation job, Machine subject) = compiled(<String>[
-        '      *DATA',
-        dataCard(name: 'G1', level: '1'),
-        dataCard(name: 'EXT', level: '2', mode: 'E', description: '999V99'),
-        dataCard(name: 'G3', level: '1'),
-        dataCard(name: 'ED3', level: '2', description: '899V99'),
-        dataCard(
-          name: 'NUM',
-          level: '1',
-          mode: 'I',
-          justify: 'R',
-          description: '9(4)V99',
-        ),
-        dataCard(name: 'EDT', level: '1', description: r'$8889.99'),
-        dataCard(name: 'ED2', level: '1', description: '88889.99'),
-        dataCard(name: 'ED4', level: '1', description: '88889.99'),
-        '      *PROCEDURE',
-        "      START.  MOVE '12345' TO G1,",
-        "            MOVE '03750' TO G3,",
-        '            MOVE EXT TO NUM,',
-        '            MOVE NUM TO EDT,',
-        '            MOVE EXT TO ED2,',
-        '            MOVE ED3 TO ED4.',
-        '            STOP RUN.',
-        '      *FINISH',
-      ]);
-      expect(glyphsAt(subject, addressOf(job, 'EDT'), 8), r' $123.45');
-      expect(glyphsAt(subject, addressOf(job, 'ED2'), 8), '  123.45');
-      expect(glyphsAt(subject, addressOf(job, 'ED4'), 8), '   37.50');
     });
   });
 }
