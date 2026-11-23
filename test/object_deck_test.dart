@@ -105,11 +105,11 @@ void main() {
     });
   });
 
-  test('a \$CMPLE deck punches its deck name in columns 73 to 77', () {
+  test(r'a $CMPLE deck punches its deck name in columns 73 to 77', () {
     // "The deck identification comes from columns 8 through 12 of the
-    // \$CMPLE card", and the sequence number takes 78 to 80
-    // ([J 05.05] A). No sample program has a \$CMPLE card.
-    final List<String> lines = [
+    // $CMPLE card", and the sequence number takes 78 to 80
+    // ([J 05.05] A). No sample program has a $CMPLE card.
+    final lines = <String>[
       r'$CMPLE SAMPLE',
       '      *PROCEDURE',
       '            STOP RUN.',
