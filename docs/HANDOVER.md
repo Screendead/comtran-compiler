@@ -182,8 +182,9 @@ holds the other compiler fixes of M7-12, one item for each finding:
 
 1. The order of the code and the data when `*PROCEDURE` comes first,
    and the entry point that follows from it ([J 90.02.01]).
-2. The temporaries of `f-payroll-j`: park in `RS)`, not `TS)`
-   ([J 90.02.03]).
+2. Done 2026-11-23: the temporaries of `f-payroll-j` park in `RS)`,
+   and each section sizes its `RS)` cells ([J 90.02.03]; M4-4 and
+   M6-9 as amended).
 3. The deck name in columns 73 to 77 ([J 05.05] A).
 4. The columns of the message lines (the scan of PDF p. 181).
 

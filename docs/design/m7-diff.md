@@ -2642,6 +2642,38 @@ Where a row says that 1963 keeps the 1962 words at a site of 90.05, the ground i
 | Pool: 91 words in 1963, 83 in ours | no class of its own | The count is a sum. The truncation divisors, the HIGH.VALUE words, the `EQU` names and the loop constants each add or remove words. Each word takes the class of its group above. Ours prints `CP)` to `CP)+82`. |
 | Length: 1247 words in 1963, 1119 in ours | no class of its own | A sum of the rows of B1, B2 and B3. |
 
+*Amended 2026-11-23.* The row "Temporaries" is fixed on Jack's answer
+to issue #277. The 1963 listing of `f-payroll-j` gives the cells. These
+rules now bind the generator. They amend M6-9 and M4-4, and they live
+here because the M4 record is locked at its word budget:
+
+- A fetch takes the next result-storage cell of its section, from
+  `RS)1`. An edited ADD source parks in `RS)n` first, so the fetch of
+  a target takes `RS)n+1` and up.
+- A chain park in cell 0 stays in `RS)0`. A chain park in cell c of
+  M4-10 moves past the k fetch cells, to `RS)c+k`. 1963 prints
+  `STQ RS)3+0` after its fetches into `RS)1` and `RS)2`.
+- A comparison park takes the lowest chain cell that no open park
+  holds, and the chain of the other side skips it.
+- The DO FOR increment block keeps its index in `TS)1`. 1963 also
+  keeps that index in `TS)` (B3).
+- Each section reserves two cells past the highest cell it names. A
+  section that names no cell reserves 2.
+- A product of a parenthesized sum reserves one more cell: the cell
+  the sum would park in. The `XCA` step leaves it unaddressed.
+
+The two 1963 listings give the reservation of 11 sections. The rule
+gives all six of 90.05: 3, 2, 3, 3, 2 and 2 cells, the 30 words of
+the 1962 print. Both WITHOLDING.TAX.ROUTINE sections hold the product
+of a sum, and each reserves one cell more. The rule gives four of the
+five sections of `f-payroll-j`. FICA.ROUTINE reserves 6 cells where
+1963 reserves 5, because the comparison of 152,00 parks in another
+order, a row that stays undecided. Thus `RS)` prints 54 words, not 52.
+No manual states the rule. It fits the 11 sections, and it agrees
+with [J 90.02.03]: "N is the sum of maximum Result Storage used in
+each section". The section constants of M4-4 are gone, with the
+refusals of a cell past them and of a cell past the `TS)` reservation.
+
 **B3. `f-payroll-j`: the DO FOR of 144,00 (M7-9)**
 
 Our choice for each row is the decision "the external-decimal DO FOR index" of M6-9 (`m6-acceptance.md`), with "the DO FOR driving several indicators" and "the stride of part of a word". The print holds the loop for an internal index only (LOC 00702 to 00721, PDF pp. 206 to 207). [J 90.04.01] holds message 206,00, so the 1962 processor took an external index; no page shows its words.

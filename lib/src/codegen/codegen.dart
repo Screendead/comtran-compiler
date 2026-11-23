@@ -21,12 +21,6 @@ import 'text_model.dart';
 
 export 'procedure.dart' show UnrecoveredShape;
 
-/// The words result storage reserves: [resultStorageCells], two words a
-/// cell (D4.8). The procedure walk addresses the same list section by
-/// section, so the reservation and the addressing cannot disagree.
-final int resultStorageWords =
-    2 * resultStorageCells.reduce((int a, int b) => a + b);
-
 /// The code generator's result over one job.
 final class CodegenResult {
   CodegenResult({
@@ -119,12 +113,16 @@ CodegenResult runCodegen(
   final image = ProgramImage(
     inlineWords: dataWords + text.words,
     blockWords: <StorageBlock, int>{
-      StorageBlock.rs: resultStorageWords,
+      // Two words a cell (D4.8). The second pass addresses the cells the
+      // first pass counted, so the reservation and the addressing cannot
+      // disagree.
+      StorageBlock.rs: 2 * text.resultCells.fold(0, (int a, int b) => a + b),
       StorageBlock.ts: temporaryStorageWords,
       StorageBlock.bl: baseLocatorWords(semantics),
       StorageBlock.pi: semantics.positionalIndicators.length,
       StorageBlock.cp: text.poolWords,
     },
+    resultCells: text.resultCells,
   );
   text = generateProcedure(semantics, origin: dataWords, image: image);
 
