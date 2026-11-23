@@ -1,6 +1,6 @@
 # Handover — COMTRAN project state
 
-*Updated 2026-11-22. Audience: the next agent, or Jack. This file is the
+*Updated 2026-11-23. Audience: the next agent, or Jack. This file is the
 state document for the project. It holds what the next stretch of work needs.
 Update it in the same commit that closes a milestone or a task, and update
 `README.md` with it. Git holds the project history.*
@@ -165,8 +165,30 @@ cards. Jack, 2026-11-21:
 `tool/m7/ct_library.sh` labels them. M7-7 to M7-11 hold the library,
 the 1963 compile, the diffs, and the 1963 run of the corpus.
 **M7 is done (2026-11-22).** M7-12 classifies the 137 differences.
-The queue is empty. Two calls wait on Jack: whether master takes the
-recovery-error fixes, and the erratum below.
+Two calls went to Jack on 2026-11-22.
+
+Issue #277 asked whether master takes the fixes for the recovery
+errors of the compiler. Jack, 2026-11-23:
+
+> **Jack's answer:** A · Fix the seven compiler mistakes
+
+Issue #278 asked whether the conversion may take the two spaces of
+messages 80,00 and 81,00. Jack, 2026-11-23:
+
+> **Jack's answer:** A · Fix it
+
+The erratum is applied (see "Rules that bind future work"). The queue
+holds the other compiler fixes of M7-12, one item for each finding:
+
+1. The order of the code and the data when `*PROCEDURE` comes first,
+   and the entry point that follows from it ([J 90.02.01]).
+2. The temporaries of `f-payroll-j`: park in `RS)`, not `TS)`
+   ([J 90.02.03]).
+3. The deck name in columns 73 to 77 ([J 05.05] A).
+4. `NO -STOP RUN- IN PROGRAM.` at 9999,99 ([J 02.02.01]).
+5. The columns of the message lines (the scan of PDF p. 181).
+
+The fixes of the runtime library stay out (Jack's answer above).
 
 ### Codegen defects the runtime exposed
 
@@ -374,8 +396,12 @@ binds work outside the definition.
   evidence and the date. Never delete an entry.
 - The definition stays design-free. Compiler design goes in `docs/design/`.
 - The conversions stay read-only. A change needs Jack's explicit
-  authorization. **One candidate is open**: messages 80,00
-  and 81,00 (M7-12). Four candidates are closed.
+  authorization. No candidate is open. Five candidates are closed.
+  The fifth, opened 2026-11-22 and closed on 2026-11-23: the scan of
+  PDF p. 182 prints two spaces before `-REDEF-` in messages 80,00 and
+  81,00, and the conversion held one (M7-12). Jack authorized the
+  correction (issue #278). The message catalog and the `f-payroll`
+  listing golden now hold two spaces.
   The first, opened 2026-09-14 and closed on 2026-09-15: the reflowed
   block of PDF p. 217 held three cells that the scan contradicts. The
   DEPARTMENT 09 TOTALS line prints `0.00` in the fourth amount column,
@@ -1038,7 +1064,10 @@ this project's own decision (Open Question 65).
 [J 02.05.05]: ../comtran-manuals/J28-6169/02-compiler.md#1-pictorials
 [J 02.07.01]: ../comtran-manuals/J28-6169/02-compiler.md#i-cond-environment-card
 [J 03.02.09]: ../comtran-manuals/J28-6169/03-loader.md#j-start-card
+[J 05.05]: ../comtran-manuals/J28-6169/05-systems-operation.md#0505-output-from-system
 [J 90.01.05]: ../comtran-manuals/J28-6169/90.01-deferred-features.md#1-language
 [J 90.02]: ../comtran-manuals/J28-6169/90.02-generated-code.md#appendix-9002
+[J 90.02.01]: ../comtran-manuals/J28-6169/90.02-generated-code.md#introduction
+[J 90.02.03]: ../comtran-manuals/J28-6169/90.02-generated-code.md#symbolic-listing
 [J 90.02.10]: ../comtran-manuals/J28-6169/90.02-generated-code.md#ioc-reference-numbers
 [J 90.04.02]: ../comtran-manuals/J28-6169/90.04-error-messages.md#a-error-messages
