@@ -1631,7 +1631,7 @@ void main() {
     /// items of 11 characters, R `99V999`, I and T `9V99`, all external
     /// decimal, and IDX an external `99`. Each line is a label, a tab,
     /// and the word.
-    List<String> lines() {
+    late final List<String> lines = () {
       final SemanticResult semantics = runJob(
         data: [
           dataCard(name: 'TAB', level: '1', quantity: '12'),
@@ -1656,7 +1656,7 @@ void main() {
         for (final AssemblyUnit u in runCodegen(semantics).units)
           '${u.labels.join(' ')}\t${u.operation} ${u.operand}',
       ];
-    }
+    }();
 
     List<String> between(List<String> all, String first, String last) {
       final int start = all.indexOf(first);
@@ -1664,7 +1664,7 @@ void main() {
     }
 
     test('each indicator steps its byte and carries at six', () {
-      expect(between(lines(), '\tCLA CP)+3', '\tTPL GN)004'), [
+      expect(between(lines, '\tCLA CP)+3', '\tTPL GN)004'), [
         '\tCLA CP)+3',
         '\tADD PI)1',
         '\tSUB CP)+4',
@@ -1684,10 +1684,9 @@ void main() {
     });
 
     test('the stride, the carry and the bases carry a byte', () {
-      final List<String> all = lines();
       // One word and five characters; six characters less one word.
-      expect(all, containsAll(['\tOCT 000005000001', '\tOCT 000005777777']));
-      expect(all, containsAll(['\tPZE R+0', '\tPZE I+0,,5']));
+      expect(lines, containsAll(['\tOCT 000005000001', '\tOCT 000005777777']));
+      expect(lines, containsAll(['\tPZE R+0', '\tPZE I+0,,5']));
     });
 
     test('a whole-word stride keeps three words and the byte of its base', () {
@@ -1724,7 +1723,7 @@ void main() {
     });
 
     test('the readers set SYS)132 from the indicator', () {
-      expect(between(lines(), 'RTN\tAXT 0', '\tTXI SYS)186,1,3'), [
+      expect(between(lines, 'RTN\tAXT 0', '\tTXI SYS)186,1,3'), [
         'RTN\tAXT 0',
         '\tLDI CP)+14',
         '\tSTI SYS)132',
