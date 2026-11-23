@@ -162,60 +162,34 @@ void main() {
     });
   });
 
-  group('FILE keyword coverage', () {
-    FileCard parse(String options) {
+  test('each FILE key word sets its option (J 02.06.04-05)', () {
+    // HOLD and SPANS: "The compiler does not differentiate" (J 02.06.04).
+    // The options field is 41 columns wide (J 02.06.01): each option
+    // text must fit inside it, on one card.
+    final Map<String, bool Function(FileCard)> options = {
+      'INPUT,CARD,MASTER,BLOCKSIZE 10': (FileCard c) => c.card && c.begin,
+      'INPUT,MASTER,BLOCKSIZE 10,HOLD': (FileCard c) => c.holdOrSpans,
+      'INPUT,MASTER,BLOCKSIZE 10,SPANS': (FileCard c) => c.holdOrSpans,
+      'INPUT,MASTER,BLOCKSIZE 10,BEGIN': (FileCard c) => c.begin && !c.card,
+      'INPUT,BLOCKSIZE 10,FOR LABEL ERR': (FileCard c) =>
+          c.forLabel!.text == 'ERR',
+      'OUTPUT,BLOCKSIZE 10,R,FIND LENGTH IN LEN': (FileCard c) =>
+          c.records.single.findLengthIn!.text == 'LEN',
+      'OUTPUT,BLOCKSIZE 10,R,PLACE LENGTH IN LEN': (FileCard c) =>
+          c.records.single.placeLengthIn!.text == 'LEN',
+      'OUTPUT,BLOCKSIZE 10,REC1,NO CONTROL WORD': (FileCard c) =>
+          c.records.single.noControlWord,
+    };
+    for (final MapEntry(key: text, value: isSet) in options.entries) {
       final _EnvParse result = _parse([
-        environmentCard(name: 'F', type: 'FILE', options: options),
+        environmentCard(name: 'F', type: 'FILE', options: text),
       ]);
-      expect(result.diagnostics, isEmpty, reason: options);
-      return result.cards.single as FileCard;
+      expect(result.diagnostics, isEmpty, reason: text);
+      expect(isSet(result.cards.single as FileCard), isTrue, reason: text);
     }
-
-    test('CARD forces BEGIN (J 02.06.04)', () {
-      final FileCard card = parse('INPUT,CARD,MASTER,BLOCKSIZE 10');
-      expect(card.card, isTrue);
-      expect(card.begin, isTrue);
-    });
-
-    test('HOLD and SPANS both set holdOrSpans, undifferentiated', () {
-      // "The compiler does not differentiate" (J 02.06.04).
-      expect(parse('INPUT,MASTER,BLOCKSIZE 10,HOLD').holdOrSpans, isTrue);
-      expect(parse('INPUT,MASTER,BLOCKSIZE 10,SPANS').holdOrSpans, isTrue);
-    });
-
-    test('BEGIN sets begin without forcing CARD', () {
-      final FileCard card = parse('INPUT,MASTER,BLOCKSIZE 10,BEGIN');
-      expect(card.begin, isTrue);
-      expect(card.card, isFalse);
-    });
-
-    test('FOR LABEL sets forLabel (J 02.06.04)', () {
-      // The options field is 41 columns wide (J 02.06.01): the option
-      // text below must fit inside it, on one card.
-      final FileCard card = parse('INPUT,BLOCKSIZE 10,FOR LABEL ERR');
-      expect(card.forLabel!.text, 'ERR');
-    });
-
-    test('FIND LENGTH IN sets the current record clause (J 02.06.05)', () {
-      final FileCard card = parse('OUTPUT,BLOCKSIZE 10,R,FIND LENGTH IN LEN');
-      expect(card.records.single.findLengthIn!.text, 'LEN');
-    });
-
-    test('PLACE LENGTH IN sets the current record clause (J 02.06.05)', () {
-      final FileCard card = parse('OUTPUT,BLOCKSIZE 10,R,PLACE LENGTH IN LEN');
-      expect(card.records.single.placeLengthIn!.text, 'LEN');
-    });
-
-    test('NO CONTROL WORD sets noControlWord on an output record', () {
-      final FileCard card = parse('OUTPUT,BLOCKSIZE 10,REC1,NO CONTROL WORD');
-      expect(card.records.single.noControlWord, isTrue);
-    });
   });
 
   group('SPECIF operand errors (D10.1)', () {
-    List<Diagnostic> diagnose(String options) =>
-        _parse([environmentCard(type: 'SPECIF', options: options)]).diagnostics;
-
     test('a literal first item draws 154,00', () {
       final _EnvParse result = _parse([
         environmentCard(type: 'SPECIF', options: "'D1',DEFER"),
@@ -224,38 +198,62 @@ void main() {
       expect((result.cards.single as SpecifCard).fileName, isNull);
     });
 
-    test('UNIT1 with no following literal draws 155,00', () {
-      expect(
-        diagnose('MASTER,UNIT1,DEFER').single.message,
+    // Each row: the options of one SPECIF card, and the one message
+    // the card draws.
+    final Map<String, (String, Message)> rows = {
+      'UNIT1 with no following literal draws 155,00': (
+        'MASTER,UNIT1,DEFER',
         msgUnitNeedsLiteral,
-      );
-    });
-
-    test('UNIT2 with no following literal draws 155,00', () {
-      expect(diagnose('MASTER,UNIT2 A1').single.message, msgUnitNeedsLiteral);
-    });
-
-    test('SERIAL with no following literal draws 156,00', () {
-      expect(diagnose('MASTER,SERIAL').single.message, msgSerialNeedsLiteral);
-    });
-
-    test('REEL with no following literal draws 157,00', () {
-      expect(diagnose('MASTER,REEL 12').single.message, msgReelNeedsLiteral);
-    });
-
-    test('RETAIN with no following integer draws 158,00', () {
-      expect(
-        diagnose("MASTER,RETAIN 'AB'").single.message,
+      ),
+      'UNIT2 with no following literal draws 155,00': (
+        'MASTER,UNIT2 A1',
+        msgUnitNeedsLiteral,
+      ),
+      'SERIAL with no following literal draws 156,00': (
+        'MASTER,SERIAL',
+        msgSerialNeedsLiteral,
+      ),
+      'REEL with no following literal draws 157,00': (
+        'MASTER,REEL 12',
+        msgReelNeedsLiteral,
+      ),
+      'RETAIN with no following integer draws 158,00': (
+        "MASTER,RETAIN 'AB'",
         msgRetainNeedsInteger,
-      );
-    });
-
-    test('ACTIVITY with no following integer draws 159,00', () {
-      expect(
-        diagnose('MASTER,ACTIVITY HIGH').single.message,
+      ),
+      'ACTIVITY with no following integer draws 159,00': (
+        'MASTER,ACTIVITY HIGH',
         msgActivityNeedsInteger,
-      );
-    });
+      ),
+      'an over-length REEL literal draws 160,00': (
+        "MASTER,REEL '12345'",
+        msgKeyWordLiteralTooLong,
+      ),
+      'an over-length UNIT1 literal draws 160,00': (
+        "MASTER,UNIT1 'A(1)234'",
+        msgKeyWordLiteralTooLong,
+      ),
+      'an out-of-range ACTIVITY integer draws the 153,00 fallback': (
+        'MASTER,ACTIVITY 100',
+        msgSpecifCardFormatError,
+      ),
+      'a non-numeric REEL literal draws the 153,00 fallback': (
+        "MASTER,REEL '12A'",
+        msgSpecifCardFormatError,
+      ),
+      'an over-length RETAIN number draws the 153,00 fallback': (
+        'MASTER,RETAIN 1234',
+        msgSpecifCardFormatError,
+      ),
+    };
+    for (final MapEntry(key: name, value: (options, message)) in rows.entries) {
+      test(name, () {
+        final _EnvParse result = _parse([
+          environmentCard(type: 'SPECIF', options: options),
+        ]);
+        expect(result.diagnostics.single.message, message);
+      });
+    }
 
     test('an over-length SERIAL literal draws 160,00 and is dropped', () {
       final _EnvParse result = _parse([
@@ -264,143 +262,54 @@ void main() {
       expect(result.diagnostics.single.message, msgKeyWordLiteralTooLong);
       expect((result.cards.single as SpecifCard).serial, isNull);
     });
-
-    test('an over-length REEL literal draws 160,00', () {
-      expect(
-        diagnose("MASTER,REEL '12345'").single.message,
-        msgKeyWordLiteralTooLong,
-      );
-    });
-
-    test('an over-length UNIT1 literal draws 160,00', () {
-      expect(
-        diagnose("MASTER,UNIT1 'A(1)234'").single.message,
-        msgKeyWordLiteralTooLong,
-      );
-    });
-
-    test('an out-of-range ACTIVITY integer draws the 153,00 fallback', () {
-      expect(
-        diagnose('MASTER,ACTIVITY 100').single.message,
-        msgSpecifCardFormatError,
-      );
-    });
-
-    test('a non-numeric REEL literal draws the 153,00 fallback', () {
-      expect(
-        diagnose("MASTER,REEL '12A'").single.message,
-        msgSpecifCardFormatError,
-      );
-    });
-
-    test('an over-length RETAIN number draws the 153,00 fallback', () {
-      expect(
-        diagnose('MASTER,RETAIN 1234').single.message,
-        msgSpecifCardFormatError,
-      );
-    });
   });
 
-  group('SPECIF label density (J 02.06.12)', () {
-    SpecifCard parse(String options) {
-      final _EnvParse result = _parse([
-        environmentCard(type: 'SPECIF', options: options),
-      ]);
-      expect(result.diagnostics, isEmpty);
-      return result.cards.single as SpecifCard;
-    }
-
-    test('HIGH/LOW after LABELS is the label density', () {
-      final SpecifCard card = parse('F1,LOW,LABELS,HIGH');
-      expect(card.density, 'LOW');
-      expect(card.labels, 'LABELS');
-      expect(card.labelDensity, 'HIGH');
-    });
-
-    test('HIGH/LOW after LABELN is the label density', () {
-      final SpecifCard card = parse('F1,LABELN,LOW');
-      expect(card.density, isNull);
-      expect(card.labels, 'LABELN');
-      expect(card.labelDensity, 'LOW');
-    });
-
-    test('HIGH/LOW without LABELS/LABELN is the file density', () {
-      final SpecifCard card = parse('F1,HIGH');
-      expect(card.density, 'HIGH');
-      expect(card.labelDensity, isNull);
-    });
-  });
-
-  group('SPECIF keyword coverage', () {
-    SpecifCard parse(String options) {
+  test('HIGH/LOW after LABELS or LABELN is the label density '
+      '(J 02.06.12)', () {
+    for (final (String options, String? density, String? labels, String? label)
+        in [
+          ('F1,LOW,LABELS,HIGH', 'LOW', 'LABELS', 'HIGH'),
+          ('F1,LABELN,LOW', null, 'LABELN', 'LOW'),
+          ('F1,HIGH', 'HIGH', null, null),
+        ]) {
       final _EnvParse result = _parse([
         environmentCard(type: 'SPECIF', options: options),
       ]);
       expect(result.diagnostics, isEmpty, reason: options);
-      return result.cards.single as SpecifCard;
+      final card = result.cards.single as SpecifCard;
+      expect(card.density, density, reason: options);
+      expect(card.labels, labels, reason: options);
+      expect(card.labelDensity, label, reason: options);
     }
+  });
 
-    test('UNIT2 takes a quoted literal (J 02.06.10)', () {
-      expect(parse("MASTER,UNIT2 'D2'").unit2, 'D2');
-    });
-
-    test('UNIT2 takes the bare * form (J 02.06.10)', () {
-      expect(parse('MASTER,UNIT2 *').unit2, '*');
-    });
-
-    test('DEFER sets defer (J 02.06.11)', () {
-      expect(parse('MASTER,DEFER').defer, isTrue);
-    });
-
-    test('OPENF sets openF (J 02.06.11)', () {
-      expect(parse('MASTER,OPENF').openF, isTrue);
-    });
-
-    test('CLOSEW sets closeMode (J 02.06.11)', () {
-      expect(parse('MASTER,CLOSEW').closeMode, 'CLOSEW');
-    });
-
-    test('ACTIVITY takes an integer 1-99 (J 02.06.11)', () {
-      expect(parse('MASTER,ACTIVITY 50').activity, 50);
-    });
-
-    test('CHECKC sets checkpoint (J 02.06.11)', () {
-      expect(parse('MASTER,CHECKC').checkpoint, 'CHECKC');
-    });
-
-    test('CHECKF sets checkpoint (J 02.06.11)', () {
-      expect(parse('MASTER,CHECKF').checkpoint, 'CHECKF');
-    });
-
-    test('CHKS is read silently as CHECKC (D7.2)', () {
-      // Appendix 90.08 mislabels CHECKC as CHKS; the parser accepts the
-      // mislabeling with no diagnostic and stores it as CHECKC.
-      expect(parse('MASTER,CHKS').checkpoint, 'CHECKC');
-    });
-
-    test('MULTI sets multi (J 02.06.11)', () {
-      expect(parse('MASTER,MULTI').multi, isTrue);
-    });
-
-    test('SEQ sets seq (J 02.06.12)', () {
-      expect(parse('MASTER,SEQ').seq, isTrue);
-    });
-
-    test('CKSUMS sets cksums (J 02.06.12)', () {
-      expect(parse('MASTER,CKSUMS').cksums, isTrue);
-    });
-
-    test('SERIAL takes a literal of 5 characters or fewer (J 02.06.12)', () {
-      expect(parse("MASTER,SERIAL '12'").serial, '12');
-    });
-
-    test('REEL takes a literal of 4 numeric characters (J 02.06.12)', () {
-      expect(parse("MASTER,REEL '1234'").reel, '1234');
-    });
-
-    test('RETAIN takes a number of 3 digits or fewer (J 02.06.12)', () {
-      expect(parse('MASTER,RETAIN 123').retain, '123');
-    });
+  test('each SPECIF key word sets its option (J 02.06.10-12; D7.2)', () {
+    // CHKS: Appendix 90.08 mislabels CHECKC as CHKS; the parser accepts
+    // the mislabeling with no diagnostic and stores it as CHECKC (D7.2).
+    final Map<String, bool Function(SpecifCard)> options = {
+      "UNIT2 'D2'": (SpecifCard c) => c.unit2 == 'D2',
+      'UNIT2 *': (SpecifCard c) => c.unit2 == '*',
+      'DEFER': (SpecifCard c) => c.defer,
+      'OPENF': (SpecifCard c) => c.openF,
+      'CLOSEW': (SpecifCard c) => c.closeMode == 'CLOSEW',
+      'ACTIVITY 50': (SpecifCard c) => c.activity == 50,
+      'CHECKC': (SpecifCard c) => c.checkpoint == 'CHECKC',
+      'CHECKF': (SpecifCard c) => c.checkpoint == 'CHECKF',
+      'CHKS': (SpecifCard c) => c.checkpoint == 'CHECKC',
+      'MULTI': (SpecifCard c) => c.multi,
+      'SEQ': (SpecifCard c) => c.seq,
+      'CKSUMS': (SpecifCard c) => c.cksums,
+      "SERIAL '12'": (SpecifCard c) => c.serial == '12',
+      "REEL '1234'": (SpecifCard c) => c.reel == '1234',
+      'RETAIN 123': (SpecifCard c) => c.retain == '123',
+    };
+    for (final MapEntry(key: option, value: isSet) in options.entries) {
+      final _EnvParse result = _parse([
+        environmentCard(type: 'SPECIF', options: 'MASTER,$option'),
+      ]);
+      expect(result.diagnostics, isEmpty, reason: option);
+      expect(isSet(result.cards.single as SpecifCard), isTrue, reason: option);
+    }
   });
 
   group('other card errors', () {
@@ -477,14 +386,6 @@ void main() {
   });
 
   group('COND key setting normalization (D9.16)', () {
-    test("KEYS '77' pads silently to 12 octal digits", () {
-      final _EnvParse result = _parse([
-        environmentCard(name: 'COND1', type: 'COND', options: "KEYS '77'"),
-      ]);
-      expect(result.diagnostics, isEmpty);
-      expect((result.cards.single as CondCard).setting, '000000000077');
-    });
-
     test('a short KEYS setting draws 925 under --pedantic (D9.16)', () {
       final List<String> lines = [
         environmentCard(name: 'COND1', type: 'COND', options: "KEYS '77'"),
@@ -493,6 +394,7 @@ void main() {
       expect(plain.diagnostics, isEmpty);
       final _EnvParse pedantic = _parse(lines, pedantic: true);
       expect(pedantic.diagnostics.single.message, msgCondKeyUnderLength);
+      expect((plain.cards.single as CondCard).setting, '000000000077');
       // The padded value is identical in both modes (D11.4).
       expect(
         (pedantic.cards.single as CondCard).setting,

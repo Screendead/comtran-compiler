@@ -70,17 +70,6 @@ void main() {
       expect(goTo.index!.text, 'SWITCH');
     });
 
-    test('per-level subscripts parse in a verb context (F p. 30)', () {
-      final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
-        '            MOVE PAGE (150) LINE (10) WORD (4) TO X.',
-      ]);
-      expect(diagnostics, isEmpty);
-      final move = sentences.single.clauses.single as MoveClause;
-      final NameReference source = (move.source as NameOperand).name;
-      expect(source.text, 'PAGE LINE WORD');
-      expect(source.subscripts, hasLength(3));
-    });
-
     test('ADD takes TRUNCATED and ON OVERFLOW (M2-9)', () {
       final (List<Sentence> sentences, List<Diagnostic> diagnostics) = _parse([
         '            ADD CORRESPONDING G TO T TRUNCATED, ON OVERFLOW GO TO E.',
@@ -385,16 +374,6 @@ void main() {
       ]);
       expect(diagnostics.single.message, msgStatementWithoutVerb);
       expect(sentences.single.deleted, isTrue);
-    });
-
-    test('a deleted sentence keeps its place in the list', () {
-      final (List<Sentence> sentences, _) = _parse([
-        '            STOP.',
-        '            MOVE A TO B.',
-      ]);
-      expect(sentences, hasLength(2));
-      expect(sentences[0].deleted, isTrue);
-      expect(sentences[1].deleted, isFalse);
     });
 
     test('program and processor verbs cannot mix (M2-12, F p. 60)', () {

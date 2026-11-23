@@ -163,8 +163,14 @@ void main() {
     }
   });
 
-  test('classes match the severity table', () {
+  test('classes match the severity table, row for row (D9.2)', () {
+    expect(messageSeverities.keys.toSet(), rows.keys.toSet());
     for (final Row row in rows.values) {
+      expect(
+        const {'C1', 'C2', 'C3', 'C4', 'C5'},
+        contains(row.severityClass),
+        reason: row.id,
+      );
       expect(
         row.severityClass,
         'C${messageSeverities[row.id]}',

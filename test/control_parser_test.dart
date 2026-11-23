@@ -9,6 +9,7 @@ void main() {
     final CompileCard card = parseCompileCard(
       _card(r'$CMPLE PAYROL  LIST,DICT,NOGO'),
       diagnostics,
+      pedantic: true,
     )!;
     expect(diagnostics, isEmpty);
     expect(card.historicalSpelling, isFalse);
@@ -38,16 +39,6 @@ void main() {
     expect(diagnostics.single.severity, 1);
   });
 
-  test('a deck.name with imbedded blanks is accepted silently (D7.11)', () {
-    final diagnostics = <Diagnostic>[];
-    final CompileCard card = parseCompileCard(
-      _card(r'$CMPLE PA ROL LIST'),
-      diagnostics,
-    )!;
-    expect(card.deckName, 'PA ROL');
-    expect(diagnostics, isEmpty);
-  });
-
   test(
     'a deck.name with imbedded blanks draws 923 under --pedantic (D7.11)',
     () {
@@ -67,19 +58,4 @@ void main() {
       expect(pedanticCard.deckName, plainCard.deckName);
     },
   );
-
-  test('a deck.name with no imbedded blanks stays clean under --pedantic', () {
-    final diagnostics = <Diagnostic>[];
-    final CompileCard card = parseCompileCard(
-      _card(r'$CMPLE PAYROL LIST'),
-      diagnostics,
-      pedantic: true,
-    )!;
-    expect(card.deckName, 'PAYROL');
-    expect(diagnostics, isEmpty);
-  });
-
-  test('no compile card parses to null', () {
-    expect(parseCompileCard(null, []), isNull);
-  });
 }

@@ -37,56 +37,34 @@ void main() {
       expect(deckToMirror(mirrorToDeck(text)), text);
     });
 
-    test('rejects text without a final newline', () {
-      expect(() => mirrorToDeck('ABC'), throwsA(isA<FormatException>()));
-    });
-
-    test('rejects CR characters', () {
-      expect(() => mirrorToDeck('ABC\r\n'), throwsA(isA<FormatException>()));
-    });
-
-    test('rejects trailing spaces', () {
-      expect(() => mirrorToDeck('ABC \n'), throwsA(isA<FormatException>()));
-    });
-
-    test('rejects glyphs outside the source set', () {
-      expect(() => mirrorToDeck('abc\n'), throwsA(isA<FormatException>()));
-      expect(() => mirrorToDeck('A#B\n'), throwsA(isA<FormatException>()));
-    });
-
-    test('rejects a glyph line longer than 80 columns', () {
-      expect(
-        () => mirrorToDeck('${'A' * 81}\n'),
-        throwsA(isA<FormatException>()),
-      );
-    });
-
     test('accepts a full 80-column glyph line', () {
       final text = '${'A' * 80}\n';
       expect(deckToMirror(mirrorToDeck(text)), text);
     });
 
-    test('rejects a punch line for a glyph-representable card', () {
-      expect(() => mirrorToDeck('! 2:9\n'), throwsA(isA<FormatException>()));
-    });
-
-    test('rejects malformed and out-of-order punch fields', () {
-      expect(() => mirrorToDeck('!\n'), throwsA(isA<FormatException>()));
-      expect(
-        () => mirrorToDeck('!  1:12-0\n'),
-        throwsA(isA<FormatException>()),
-      );
-      expect(() => mirrorToDeck('! 0:12-0\n'), throwsA(isA<FormatException>()));
-      expect(
-        () => mirrorToDeck('! 81:12-0\n'),
-        throwsA(isA<FormatException>()),
-      );
-      expect(() => mirrorToDeck('! 1:8-12\n'), throwsA(isA<FormatException>()));
-      expect(
-        () => mirrorToDeck('! 2:12-0 1:11-0\n'),
-        throwsA(isA<FormatException>()),
-      );
-      expect(() => mirrorToDeck('! 1:\n'), throwsA(isA<FormatException>()));
+    test('rejects malformed text', () {
+      for (final text in [
+        'ABC', // no final newline
+        'ABC\r\n',
+        'ABC \n', // trailing space
+        'abc\n', // outside the source set
+        'A#B\n',
+        '${'A' * 81}\n',
+        '! 2:9\n', // a punch line for a glyph-representable card
+        '!\n',
+        '!  1:12-0\n',
+        '! 0:12-0\n',
+        '! 81:12-0\n',
+        '! 1:8-12\n',
+        '! 2:12-0 1:11-0\n',
+        '! 1:\n',
+      ]) {
+        expect(
+          () => mirrorToDeck(text),
+          throwsA(isA<FormatException>()),
+          reason: text,
+        );
+      }
     });
   });
 

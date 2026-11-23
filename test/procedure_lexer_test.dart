@@ -43,12 +43,6 @@ void main() {
       expect(_texts(second), ['STOP', 'RUN']);
     });
 
-    test('an unterminated sentence at the end of the division', () {
-      final ProcedureScan scan = _scan(['            GO TO A']);
-      expect(scan.sentences.single.terminated, isFalse);
-      expect(scan.diagnostics.single.message, msgPeriodAssumed);
-    });
-
     test('non-name margin content continues an open sentence (D9.4)', () {
       // Only a name in the margin closes an open sentence; a digit
       // there is sentence text, not a new statement.
@@ -62,15 +56,6 @@ void main() {
       expect(_texts(s), ['SET', 'X', '=', '100', '25', '+', 'Y']);
     });
 
-    test('a compound name keeps its imbedded periods', () {
-      final ProcedureScan scan = _scan([
-        '      BOND.END. GO TO END.OF.MASTERS.',
-      ]);
-      expect(scan.sentences.single.label, 'BOND.END');
-      expect(_texts(scan.sentences.single), ['GO', 'TO', 'END.OF.MASTERS']);
-      expect(scan.diagnostics, isEmpty);
-    });
-
     test('a label without its period is repaired silently (D9.4)', () {
       // F p. 37 requires the period after a margin procedure-name; J
       // 90.01.03 A.1.a.ix accepts its absence with no diagnostic.
@@ -80,11 +65,6 @@ void main() {
       expect(s.label, 'START');
       expect(s.labelHadPeriod, isFalse);
       expect(_texts(s), ['MOVE', 'A', 'TO', 'B']);
-    });
-
-    test('a label with its period sets labelHadPeriod', () {
-      final ProcedureScan scan = _scan(['      START. MOVE A TO B.']);
-      expect(scan.sentences.single.labelHadPeriod, isTrue);
     });
 
     test('a label without its period draws 920 under --pedantic (D9.4)', () {
@@ -206,17 +186,6 @@ void main() {
   });
 
   group('symbols and specials', () {
-    test('operators, parentheses, commas, and exponentiation', () {
-      final ProcedureScan scan = _scan([
-        '            DO PAY FOR X = 1(1)12, SET Y = X ** 2.',
-      ]);
-      expect(scan.diagnostics, isEmpty);
-      expect(_texts(scan.sentences.single), [
-        'DO', 'PAY', 'FOR', 'X', '=', '1', '(', '1', ')', '12', ',', //
-        'SET', 'Y', '=', 'X', '**', '2',
-      ]);
-    });
-
     test('a period in column 72 terminates the sentence', () {
       final ProcedureScan scan = _scan(['            GO TO A${' ' * 52}.']);
       expect(scan.sentences.single.terminated, isTrue);

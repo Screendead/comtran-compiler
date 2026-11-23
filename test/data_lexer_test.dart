@@ -153,13 +153,10 @@ void main() {
         ],
       );
 
-      test('is silent in default mode', () {
-        expect(runFrontEnd(deck).diagnostics, isEmpty);
-      });
-
       test('draws 949,00 under --pedantic with each entry unchanged', () {
         final FrontEndResult plain = runFrontEnd(deck);
         final FrontEndResult pedantic = runFrontEnd(deck, pedantic: true);
+        expect(plain.diagnostics, isEmpty);
         expect(notes(pedantic), [
           (msgDanglingContinuation, 3, 72, 1, '2,00'),
           (msgDanglingContinuation, 5, 72, 1, '3,00'),
@@ -265,23 +262,6 @@ void main() {
       expect(tokens[1].text, '00 99');
     });
 
-    test('a constant continues across cards with no assumed blank', () {
-      final DataScan scan = scanDataDescription(
-        sourceCards([
-          dataCard(
-            name: 'C',
-            level: '2',
-            description: "'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFG",
-            continued: true,
-          ),
-          dataCard(description: "HIJ'"),
-        ]),
-      );
-      expect(scan.diagnostics, isEmpty);
-      final Token constant = scan.entries.single.descriptionTokens.single;
-      expect(constant.text, 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJ');
-    });
-
     test('an unclosed constant at the entry end draws 167,00, untrimmed', () {
       final DataScan scan = scanDataDescription(
         sourceCards([dataCard(name: 'C', level: '2', description: "'OPEN")]),
@@ -310,44 +290,40 @@ void main() {
       );
       // The join itself is unchanged (D11.4).
       expect(
+        plain.entries.single.descriptionTokens.single.text,
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJ',
+      );
+      expect(
         pedantic.entries.single.descriptionTokens.single.text,
         plain.entries.single.descriptionTokens.single.text,
       );
     });
 
-    test('a short constant joins across cards with no card-tail blanks', () {
-      final DataScan scan = scanDataDescription(
-        sourceCards([
-          dataCard(name: 'C', level: '2', description: "'AB", continued: true),
-          dataCard(description: "CD'"),
-        ]),
-      );
-      expect(scan.diagnostics, isEmpty);
-      expect(scan.entries.single.descriptionTokens.single.text, 'ABCD');
-    });
-
-    test('continuation-card leading blanks never pad a constant (D1.1)', () {
-      // The continuation's content starts twelve columns in; the parts
-      // still join with no padding or alignment between them.
-      final DataScan scan = scanDataDescription(
-        sourceCards([
-          dataCard(name: 'C', level: '2', description: "'AB", continued: true),
-          dataCard(description: "${' ' * 12}CD'"),
-        ]),
-      );
-      expect(scan.diagnostics, isEmpty);
-      expect(scan.entries.single.descriptionTokens.single.text, 'ABCD');
-    });
-
-    test("blanks after a continuation card's first content are kept", () {
-      final DataScan scan = scanDataDescription(
-        sourceCards([
-          dataCard(name: 'C', level: '2', description: "'AB", continued: true),
-          dataCard(description: "C D'"),
-        ]),
-      );
-      expect(scan.diagnostics, isEmpty);
-      expect(scan.entries.single.descriptionTokens.single.text, 'ABC D');
+    test('a continued constant joins with no card-tail or leading blanks '
+        '(D1.1)', () {
+      for (final (String second, String joined) in [
+        ("CD'", 'ABCD'),
+        ("${' ' * 12}CD'", 'ABCD'),
+        ("C D'", 'ABC D'),
+      ]) {
+        final DataScan scan = scanDataDescription(
+          sourceCards([
+            dataCard(
+              name: 'C',
+              level: '2',
+              description: "'AB",
+              continued: true,
+            ),
+            dataCard(description: second),
+          ]),
+        );
+        expect(scan.diagnostics, isEmpty, reason: second);
+        expect(
+          scan.entries.single.descriptionTokens.single.text,
+          joined,
+          reason: second,
+        );
+      }
     });
 
     test('an over-long pictorial draws 100,00', () {
@@ -373,7 +349,7 @@ void main() {
     test('a name-shaped run over 30 characters draws 901,00', () {
       // Unlike the pictorial case above, this run's characters ('B') do
       // not fit the format-character set, so it takes msgNameTooLong
-      // rather than msgPictorialTooLong (lib/src/lexer/data_lexer.dart).
+      // rather than msgPictorialTooLong.
       final DataScan scan = scanDataDescription(
         sourceCards([dataCard(name: 'W', level: '2', description: 'B' * 31)]),
       );

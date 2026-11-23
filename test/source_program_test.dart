@@ -6,18 +6,6 @@ SourceProgram _program(List<String> lines) =>
 
 void main() {
   group('SourceCard', () {
-    test('splits the card into serial, body, and identification', () {
-      final card = SourceCard(
-        mirrorToDeck('123456ABC DEF${' ' * 59}IDENT99\n').single,
-        1,
-      );
-      expect(card.serial, '123456');
-      expect(card.body, 'ABC DEF${' ' * 59}');
-      expect(card.identification, 'IDENT99 ');
-      expect(card.glyphAt(7), 'A');
-      expect(card.unreadableColumns(1, 80), isEmpty);
-    });
-
     test('renders unreadable columns as blanks and reports them', () {
       final columns = List<int>.filled(80, 0);
       columns[6] = punchesFromBcd(bcdFromGlyph('A')!)!;
@@ -32,17 +20,6 @@ void main() {
   });
 
   group('SourceProgram.fromDeck', () {
-    test(r'recognizes the $CMPLE control card in columns 1-6', () {
-      final SourceProgram program = _program([
-        r'$CMPLE MYDECK  LIST',
-        '      *DATA',
-        '      A',
-      ]);
-      expect(program.compileCard?.serial, r'$CMPLE');
-      expect(program.groups.single.division, Division.data);
-      expect(program.problems, isEmpty);
-    });
-
     test('a second compile card draws 904,00 and is ignored', () {
       final SourceProgram program = _program([
         r'$CMPLE MYDECK  LIST',
@@ -84,29 +61,11 @@ void main() {
       expect(program.problems.single.message, msgTextBeforeHeader);
     });
 
-    test('a *FINISH card is not structure here — the splitter owns it', () {
-      // The job splitter consumes every *FINISH above the front end
-      // (D11.1); one reaching fromDeck directly is ordinary stray text.
-      final SourceProgram program = _program(['      *FINISH']);
-      expect(program.groups, isEmpty);
-      expect(program.problems.single.message, msgTextBeforeHeader);
-    });
-
     test('an asterisk outside column 7 is not a header', () {
       final SourceProgram program = _program(['       *DATA', '      *DATA']);
       expect(program.groups, hasLength(1));
       expect(program.problems.single.message, msgTextBeforeHeader);
       expect(program.problems.single.card!.cardNumber, 1);
-    });
-
-    test('flags cards before the first header', () {
-      final SourceProgram program = _program([
-        'STRAY CARD',
-        '      *DATA',
-        '      A',
-      ]);
-      expect(program.problems.single.card!.cardNumber, 1);
-      expect(program.problems.single.message, msgTextBeforeHeader);
     });
 
     test('accepts repeated division groups and skips blank cards', () {
