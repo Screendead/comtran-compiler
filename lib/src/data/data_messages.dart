@@ -557,7 +557,7 @@ const Message msgLabelAreaTooLong = Message.ours(
 );
 
 /// Ours — a field described after a variable length array of the same
-/// hierarchy, which J 90.01.01 forbids; no catalog id covers it
+/// hierarchy, which J 90.01.04 forbids; no catalog id covers it
 /// (M3-16; M3-18).
 const Message msgFieldAfterVariableArray = Message.ours(
   '941,00',

@@ -226,7 +226,12 @@ final class VerbBinder extends ClauseWalk {
       // filed in those files wherein it is so classified"
       // (J 02.07.07).
       final List<FileCard> primary = files
-          .where((FileCard file) => _statesPrimary(file, record))
+          .where(
+            (FileCard file) => file.records.any(
+              (FileRecordClause clause) =>
+                  clause.name.text == record.name && clause.primary,
+            ),
+          )
           .toList();
       _processed.addAll(primary.isEmpty ? files : primary);
       return;
@@ -265,11 +270,6 @@ final class VerbBinder extends ClauseWalk {
         binder.boundRecords[file]!.any(
           (RecordInfo bound) => identical(bound, record),
         ),
-  );
-
-  bool _statesPrimary(FileCard file, RecordInfo record) => file.records.any(
-    (FileRecordClause clause) =>
-        clause.name.text == record.name && clause.primary,
   );
 
   /// The record a GET or FILE operand names. Msg 16 speaks for a name
@@ -331,7 +331,13 @@ final class VerbBinder extends ClauseWalk {
 
   void _checkFileCardNames(FileCard file) {
     for (final Token? name in [file.onError, file.forLabel]) {
-      if (name != null && !_namesProcedure(name.text)) {
+      if (name != null &&
+          !resolver.dictionary
+              .named(name.text)
+              .any(
+                (DictionaryEntry e) =>
+                    e.kind == NameKind.statement || e.kind == NameKind.section,
+              )) {
         diagnostics.report(msgUndefinedSymbol, name, operands: [name.text]);
       }
     }
@@ -340,13 +346,6 @@ final class VerbBinder extends ClauseWalk {
       _checkLengthField(clause.placeLengthIn, msgPlaceLengthFormat);
     }
   }
-
-  bool _namesProcedure(String name) => resolver.dictionary
-      .named(name)
-      .any(
-        (DictionaryEntry e) =>
-            e.kind == NameKind.statement || e.kind == NameKind.section,
-      );
 
   /// A length field holds a record length, so its format is ours:
   /// external or internal decimal with no fraction positions (M3-18).
@@ -462,10 +461,10 @@ final class VerbBinder extends ClauseWalk {
     }
   }
 
-  /// "No fields may be described after a variable length array in the
-  /// same hierarchy" (J 90.01.04): the field's own position depends on
-  /// a length only execution knows. The hierarchy is the top-level
-  /// entry (M3-11).
+  /// "Fields may not be defined following a variable length array as
+  /// part of the same data hierarchy" (J 90.01.04): the field's own
+  /// position depends on a length only execution knows. The hierarchy
+  /// is the top-level entry (M3-11).
   ///
   /// One row per entry, the attested id first (the M1-8 precedent):
   /// the array's own count field takes msg 105, an entry carrying a
