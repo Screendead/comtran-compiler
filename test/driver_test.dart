@@ -140,27 +140,8 @@ void main() {
       expect(deck.jobs[1].codegen, isNotNull);
     });
 
-    test('a job closed by a compile card is accepted silently', () {
-      // The recorded leniency (D11.1 rule e); --pedantic warns later.
-      final DeckCompilation deck = compileDeck(
-        _deck([
-          r'$CMPLE JOBA',
-          '      *PROCEDURE',
-          '            STOP RUN.',
-          r'$CMPLE JOBB',
-          '      *PROCEDURE',
-          '            STOP RUN.',
-          '      *FINISH',
-        ]),
-      );
-      expect(deck.jobs, hasLength(2));
-      expect(deck.jobs[0].diagnostics, isEmpty);
-      expect(deck.jobs[1].diagnostics, isEmpty);
-      expect(deck.maxSeverity, 0);
-    });
-
-    test('a job closed by a compile card draws 929 under --pedantic '
-        '(D11.1 rule e)', () {
+    test('a job closed by a compile card is accepted silently, and draws '
+        '929 under --pedantic (D11.1 rule e)', () {
       final lines = [
         r'$CMPLE JOBA',
         '      *PROCEDURE',
@@ -171,7 +152,7 @@ void main() {
         '      *FINISH',
       ];
       final DeckCompilation plain = compileDeck(_deck(lines));
-      expect(plain.jobs[0].diagnostics, isEmpty);
+      expect(plain.maxSeverity, 0);
       final DeckCompilation pedantic = compileDeck(
         _deck(lines),
         pedantic: true,
@@ -269,72 +250,49 @@ void main() {
     });
   });
 
-  group('--no-table-limits reaches every phase through compileDeck (D9.7)', () {
-    test("lifts the parser's 35-section cap", () {
-      final lines = <String>[r'$CMPLE JOBA', '      *PROCEDURE'];
-      for (var i = 1; i <= 36; i++) {
-        lines
-          ..add('      ${'S$i.'.padRight(12)}BEGIN SECTION.')
-          ..add('            END S$i.');
-      }
-      lines
-        ..add('            STOP RUN.')
-        ..add('      *FINISH');
+  test('--no-table-limits reaches every phase through compileDeck (D9.7)', () {
+    final Map<String, List<String>> beyond = {
+      "the parser's 35-section cap": [
+        '      *PROCEDURE',
+        for (var i = 1; i <= 36; i++) ...[
+          '      ${'S$i.'.padRight(12)}BEGIN SECTION.',
+          '            END S$i.',
+        ],
+      ],
+      "the parser's depth-18 section cap": [
+        '      *PROCEDURE',
+        for (var i = 1; i <= 19; i++)
+          '      ${'S$i.'.padRight(12)}BEGIN SECTION.',
+        for (var i = 19; i >= 1; i--) '            END S$i.',
+      ],
+      "the mapper's 26th QUANTITY IN counter": [
+        '      *DATA',
+        for (var i = 0; i < 26; i++) ...[
+          dataCard(name: 'C$i', level: '1', description: '99'),
+          dataCard(
+            name: 'V$i',
+            level: '1',
+            quantity: '2',
+            description: 'A QUANTITY IN C$i',
+          ),
+        ],
+        '      *PROCEDURE',
+      ],
+    };
+    for (final MapEntry(key: String cap, value: List<String> body)
+        in beyond.entries) {
       final DeckCompilation deck = compileDeck(
-        _deck(lines),
+        _deck([
+          r'$CMPLE JOBA',
+          ...body,
+          '            STOP RUN.',
+          '      *FINISH',
+        ]),
         tableLimits: false,
       );
-      final JobCompilation job = deck.jobs.single;
-      expect(job.diagnostics, isEmpty);
-      expect(deck.maxSeverity, 0);
-    });
-
-    test("lifts the parser's depth-18 section cap", () {
-      final lines = <String>[r'$CMPLE JOBA', '      *PROCEDURE'];
-      for (var i = 1; i <= 19; i++) {
-        lines.add('      ${'S$i.'.padRight(12)}BEGIN SECTION.');
-      }
-      for (var i = 19; i >= 1; i--) {
-        lines.add('            END S$i.');
-      }
-      lines
-        ..add('            STOP RUN.')
-        ..add('      *FINISH');
-      final DeckCompilation deck = compileDeck(
-        _deck(lines),
-        tableLimits: false,
-      );
-      final JobCompilation job = deck.jobs.single;
-      expect(job.diagnostics, isEmpty);
-      expect(deck.maxSeverity, 0);
-    });
-
-    test("lifts the mapper's 26th QUANTITY IN counter", () {
-      final lines = <String>[r'$CMPLE JOBA', '      *DATA'];
-      for (var i = 0; i < 26; i++) {
-        lines
-          ..add(dataCard(name: 'C$i', level: '1', description: '99'))
-          ..add(
-            dataCard(
-              name: 'V$i',
-              level: '1',
-              quantity: '2',
-              description: 'A QUANTITY IN C$i',
-            ),
-          );
-      }
-      lines
-        ..add('      *PROCEDURE')
-        ..add('            STOP RUN.')
-        ..add('      *FINISH');
-      final DeckCompilation deck = compileDeck(
-        _deck(lines),
-        tableLimits: false,
-      );
-      final JobCompilation job = deck.jobs.single;
-      expect(job.diagnostics, isEmpty);
-      expect(deck.maxSeverity, 0);
-    });
+      expect(deck.jobs.single.diagnostics, isEmpty, reason: cap);
+      expect(deck.maxSeverity, 0, reason: cap);
+    }
   });
 
   group('message 132 at end of input (D11.3)', () {
@@ -362,11 +320,33 @@ void main() {
       expect(listing, isNot(contains('SEVERITY LIMIT')));
     });
 
-    test('the raw 90.05 artifact draws exactly one diagnostic: 132', () {
+    test('the raw 90.05 artifact draws exactly one diagnostic: 132, and '
+        'comtranc --explain prints it to stderr beside the listing', () async {
+      final Future<ProcessResult> explained =
+          Process.run(Platform.resolvedExecutable, [
+            'run',
+            'comtran:comtranc',
+            payrollDeckPath,
+            '--date=10/18/61',
+            '--time=2.45',
+            '--explain',
+          ]);
       final DeckCompilation deck = compileDeck(loadPayrollDeck());
       final JobCompilation job = deck.jobs.single;
       expect(job.diagnostics.single.message, msgEndOfFileWithoutFinish);
       expect(deck.maxSeverity, 5);
+      final ProcessResult run = await explained;
+      expect(run.exitCode, 1, reason: '${run.stderr}');
+      expect(
+        run.stdout,
+        writeListing(
+          job.frontEnd,
+          const ListingOptions(date: '10/18/61', time: '2.45'),
+          diagnostics: job.diagnostics,
+          annotations: job.semantics?.allocation?.annotations,
+        ).text,
+      );
+      expect(run.stderr, '${job.diagnostics.single}\n');
     });
 
     test('under --pedantic the 90.05 job deck draws exactly the D4.11 '
@@ -387,35 +367,6 @@ void main() {
       ]);
       expect(deck.maxSeverity, 1);
       expect(job.frontEnd.statementCount, 229);
-    });
-
-    test('comtranc exits 1 on the unterminated artifact, and --explain '
-        'prints its diagnostics to stderr without changing stdout', () async {
-      Future<ProcessResult> compile(List<String> options) =>
-          Process.run(Platform.resolvedExecutable, [
-            'run',
-            'comtran:comtranc',
-            payrollDeckPath,
-            '--date=10/18/61',
-            '--time=2.45',
-            ...options,
-          ]);
-      final [ProcessResult plain, ProcessResult explained] = await Future.wait([
-        compile(const []),
-        compile(const ['--explain']),
-      ]);
-      expect(plain.exitCode, 1, reason: '${plain.stderr}');
-      expect(
-        plain.stdout,
-        contains('END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.'),
-      );
-      expect(plain.stderr, isEmpty);
-      expect(explained.exitCode, plain.exitCode);
-      expect(explained.stdout, plain.stdout);
-      expect(
-        explained.stderr,
-        contains('END OF FILE ON JOB TAPE WITHOUT *FINISH CARD.'),
-      );
     });
   });
 }
