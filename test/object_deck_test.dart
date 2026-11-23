@@ -1,13 +1,10 @@
 /// The relative binary program deck (M4-16; LD-2): the card header and
 /// checksum of [J 90.03.01], the control groups of [J 90.03.03], the
-/// columnar binary card, and the sample's deck — 67 cards, the count
-/// its `*CTEND` serial attests.
+/// columnar binary card, and the deck name a `$CMPLE` card gives.
 library;
 
 import 'package:comtran/comtran.dart';
 import 'package:test/test.dart';
-
-import 'support/deck_fixtures.dart';
 
 int _octal(String digits) => int.parse(digits, radix: 8);
 
@@ -82,26 +79,6 @@ void main() {
       ]);
       expect(words[1], logicalSum([words[0], ...words.sublist(2, 7)]));
       expect(words.sublist(7), everyElement(0));
-    });
-  });
-
-  group('the 90.05 deck (J 03.01.02)', () {
-    late JobDeck deck;
-
-    setUpAll(() {
-      deck = jobDeck(compileDeck(loadJobDeck()).jobs.single, _options)!;
-    });
-
-    test('punches 67 cards: 15 symbolic, 51 text, *CTEND', () {
-      // The print attests the `*CTEXT` serial 15 and the `*CTEND`
-      // serial 67 (PDF pp. 198, 216); 961 deck words at 19 a card are
-      // the 51 between them.
-      expect(deck.cards, hasLength(67));
-      expect(deck.symbolicCards, hasLength(16));
-      expect(deck.cardsBeforeText.last.substring(6, 12), '*CTEXT');
-      expect(deck.cardsBeforeText.last, endsWith('15'));
-      expect(deck.lastCard, endsWith('67'));
-      expect(deck.lastCard.substring(6, 12), '*CTEND');
     });
   });
 

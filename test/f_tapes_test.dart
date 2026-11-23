@@ -11,21 +11,13 @@ import 'package:test/test.dart';
 
 import '../tool/f_tapes_source.dart';
 import '../tool/sample_tapes_source.dart' show characterWord;
+import 'runtime/runtime_support.dart';
 import 'support/deck_fixtures.dart';
 
 List<int> imageOf(String unit) =>
     File('$fTapesPath/$unit.tap').readAsBytesSync();
 
-/// The blocks of the image [unit] holds. The reader throws for an image
-/// that ends with no file mark, so a listing of blocks proves one.
-List<List<int>> blocksOf(String unit) {
-  final reader = TapeReader(imageOf(unit));
-  final blocks = <List<int>>[];
-  for (List<int>? block = reader.read(); block != null; block = reader.read()) {
-    blocks.add(block);
-  }
-  return blocks;
-}
+List<List<int>> blocksOf(String unit) => tapeBlocks(imageOf(unit));
 
 /// The field of [line] at the 1-based record columns [from] to [to].
 String field(String line, int from, int to) =>

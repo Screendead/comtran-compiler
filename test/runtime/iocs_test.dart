@@ -106,16 +106,6 @@ int _lxa(int cell) => typeB(0x15C, address: cell, tag: 4);
 /// punched in the `IOST` word (M5-6).
 int _sxa(int at) => typeB(0x19C, address: at, tag: 4);
 
-/// The frames the image of [unit] holds, up to its file mark (M5-2).
-List<List<int>> _frames(Directory tapes, String unit) {
-  final reader = TapeReader(File('${tapes.path}/$unit.tap').readAsBytesSync());
-  final frames = <List<int>>[];
-  for (List<int>? frame = reader.read(); frame != null; frame = reader.read()) {
-    frames.add(frame);
-  }
-  return frames;
-}
-
 void main() {
   group('IOC)8, the READ subroutine (J 90.02.08)', () {
     test('the records of a block locate in turn, then the next block', () {
@@ -416,7 +406,9 @@ void main() {
         tapes: tapes,
       );
       expect(subject.run(maxSteps: 30).outcome, RunOutcome.endOfJob);
-      final List<List<int>> frames = _frames(tapes, 'D1');
+      final List<List<int>> frames = tapeBlocks(
+        File('${tapes.path}/D1.tap').readAsBytesSync(),
+      );
       expect(frames.map((List<int> frame) => frame.length), <int>[
         256,
         192,
@@ -511,9 +503,12 @@ void main() {
         tapes: tapes,
       );
       expect(subject.run(maxSteps: 10).outcome, RunOutcome.endOfJob);
-      expect(_frames(tapes, 'D1'), <List<int>>[
-        <int>[11, 12],
-      ]);
+      expect(
+        tapeBlocks(File('${tapes.path}/D1.tap').readAsBytesSync()),
+        <List<int>>[
+          <int>[11, 12],
+        ],
+      );
     });
 
     test('with no host image the block fills and the write is dropped', () {

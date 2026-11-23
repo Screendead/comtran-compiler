@@ -5,24 +5,14 @@ library;
 
 import 'dart:io';
 
-import 'package:comtran/comtran_io.dart';
 import 'package:test/test.dart';
 
 import '../tool/sample_tapes_source.dart';
+import 'runtime/runtime_support.dart';
 import 'support/deck_fixtures.dart';
 
-/// The blocks of the image [unit] holds. The reader throws for an image
-/// that ends with no file mark, so a listing of blocks proves one.
-List<List<int>> blocksOf(String unit) {
-  final reader = TapeReader(
-    File('$sampleTapesPath/$unit.tap').readAsBytesSync(),
-  );
-  final blocks = <List<int>>[];
-  for (List<int>? block = reader.read(); block != null; block = reader.read()) {
-    blocks.add(block);
-  }
-  return blocks;
-}
+List<List<int>> blocksOf(String unit) =>
+    tapeBlocks(File('$sampleTapesPath/$unit.tap').readAsBytesSync());
 
 void main() {
   test('the committed images are the ones the generator writes', () {

@@ -83,6 +83,18 @@ LoaderFile loaderFile(
   unit2: '',
 )..blocksize = blocksize;
 
+/// The blocks of the tape image [bytes], up to its file mark. The reader
+/// throws for an image that ends with no file mark, so a list of blocks
+/// proves one (M5-2).
+List<List<int>> tapeBlocks(List<int> bytes) {
+  final reader = TapeReader(bytes);
+  final blocks = <List<int>>[];
+  for (List<int>? block = reader.read(); block != null; block = reader.read()) {
+    blocks.add(block);
+  }
+  return blocks;
+}
+
 /// Writes the image of [blocks], closed by a file mark, to the file
 /// unit [unit] reads in [tapes] (M5-2; M5-3).
 File tapeImage(Directory tapes, String unit, List<List<int>> blocks) =>
