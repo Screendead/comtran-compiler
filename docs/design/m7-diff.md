@@ -2572,6 +2572,19 @@ the procedure parser reports message 175,00 at 9999,99, and the
 lines and their header take the columns of the scan
 (`m1-front-end.md` M1-18 as amended).
 
+*Amended 2026-11-23.* Rows B4 (the order and the entry point) and O5
+are fixed on Jack's answer to issue #277. This amends M4-4
+(`m4-codegen.md`), whose word budget is locked. Location Counter 0
+holds its words by "the relative position of items in the source
+deck" ([J 90.02.01]). When the first `*PROCEDURE` group comes before
+the first `*DATA` group, the procedure text starts at 00000 and the
+transmitted areas follow it, from `*DATA BSS 0`. `USE 0` still opens
+the counter at 00000. `f-payroll` puts `START` at 00000 and
+`*DATA BSS 0` at 01003, and its end-of-text word names 00000. The
+90.05 sample does not change. A deck that interleaves several groups
+of each division keeps the order of the first group of each. No deck
+of ours has that shape, and no print shows it.
+
 **Two slips in earlier entries, corrected in place.**
 
 - M7-9 put the product `RATE × 40` in 141,00. It is in 142,00

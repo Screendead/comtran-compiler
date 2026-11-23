@@ -121,11 +121,10 @@ M6, after M5 lands the IOCS handlers; M4 executes I/O-free programs.
 - **M4-4. Location counters and the address model.** The compiler uses
   three pseudo location counters ([J 90.02.01]), and the LOC column prints
   displacements from the first word of the object program:
-  - **Location Counter 0** — in-line text: first the transmitted data
-    areas, in source order at M3-6's offsets (the sample: `*DATA BSS 0` at
-    00000 through TABLE's last word at 00164), then the procedure text
-    continuing on the same counter (GN)000/START at 00165 through the last
-    generated word).
+  - **Location Counter 0** — in-line text: the transmitted data areas
+    at M3-6's offsets and the procedure text, in the order of their
+    divisions (amended by M7-12, `m7-diff.md`). The sample: `*DATA BSS 0`
+    at 00000 through TABLE at 00164, then GN)000/START at 00165.
   - **Location Counter 1** — begins where counter 0 ends: out-of-line
     routines and the working-storage blocks, reserved in the attested
     order `RS)`, `TS)`, `BL)`, `PI)`, then the constant pool `CP)`

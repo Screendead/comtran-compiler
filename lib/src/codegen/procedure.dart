@@ -106,17 +106,25 @@ final class CodegenChecks {
 }
 
 /// Generates the procedure text of [semantics], the first word at
-/// [origin].
+/// [origin], the transmitted areas from [dataOrigin] (M4-4 as amended
+/// by M7-12).
 ///
 /// [image] is `null` on the measuring pass, when no address past the
 /// text is known yet; [checks] rides on that pass alone.
 ProcedureText generateProcedure(
   SemanticResult semantics, {
   required int origin,
+  required int dataOrigin,
   ProgramImage? image,
   CodegenChecks? checks,
 }) {
-  final text = _Text(semantics, origin: origin, image: image, checks: checks);
+  final text = _Text(
+    semantics,
+    origin: origin,
+    dataOrigin: dataOrigin,
+    image: image,
+    checks: checks,
+  );
   var entry = true;
   try {
     for (final ParsedGroup group in semantics.parse.groups) {
@@ -247,10 +255,15 @@ typedef _DoEdge = ({List<String> callers, String target, Token at, int clause});
 
 /// The emitter: one word at a time, in program order.
 final class _Text {
-  _Text(this.semantics, {required int origin, this.image, this.checks})
-    : _origin = origin,
-      _location = origin,
-      _generated = semantics.allocation?.generatedCount ?? 0 {
+  _Text(
+    this.semantics, {
+    required int origin,
+    required this.dataOrigin,
+    this.image,
+    this.checks,
+  }) : _origin = origin,
+       _location = origin,
+       _generated = semantics.allocation?.generatedCount ?? 0 {
     _pool = ConstantPool(onEntry: _poolEntry);
     // Every program's fixed names: the five block heads, printed at
     // `BSS 0` too, the head row's `PI)1`, and the pointer block's
@@ -310,6 +323,9 @@ final class _Text {
   final CodegenChecks? checks;
 
   final int _origin;
+
+  /// The first word of the first transmitted area.
+  final int dataOrigin;
   final List<AssemblyUnit> _units = <AssemblyUnit>[];
   late final ConstantPool _pool;
 
@@ -1023,11 +1039,11 @@ final class _Text {
   }
 
   /// The first word of each transmitted area, on Location Counter 0.
-  /// The areas run from word zero in declaration order, and the
-  /// procedure text follows them (M3-6; M4-4).
+  /// The areas run from [dataOrigin] in declaration order (M3-6; M4-4
+  /// as amended by M7-12).
   late final Map<DataItem, int> _areaOrigins = () {
     final origins = Map<DataItem, int>.identity();
-    var origin = 0;
+    int origin = dataOrigin;
     for (final AreaInfo area in semantics.areas) {
       origins[area.root] = origin;
       origin += area.extentWords;

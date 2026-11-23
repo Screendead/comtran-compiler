@@ -61,8 +61,9 @@ int baseLocatorWords(SemanticResult semantics) =>
 final class ProgramImage {
   ProgramImage({required this.inlineWords, required this.blockWords});
 
-  /// Location Counter 0: the transmitted data areas at M3-6's offsets,
-  /// then the procedure text continuing on the same counter.
+  /// Location Counter 0: the transmitted data areas at M3-6's offsets
+  /// and the procedure text, in the order of their divisions in the
+  /// deck (M4-4 as amended by M7-12).
   final int inlineWords;
 
   /// Words reserved for each block of Location Counter 1.

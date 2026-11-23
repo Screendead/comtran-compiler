@@ -12,6 +12,7 @@ library;
 import '../data/data_map.dart';
 import '../lexer/diagnostic.dart';
 import '../loader/control_group.dart';
+import '../parser/parser.dart';
 import 'blocks.dart';
 import 'control_cards.dart';
 import 'image.dart';
@@ -86,11 +87,17 @@ CodegenResult runCodegen(
   bool pedantic = false,
   bool tableLimits = true,
 }) {
-  final List<AssemblyUnit> data = storageMapUnits(semantics);
   final int dataWords = semantics.areas.fold(
     0,
     (int total, AreaInfo area) => total + area.extentWords,
   );
+  // Location Counter 0 holds the procedure text and the transmitted
+  // areas in the relative position of their divisions in the deck
+  // ([J 90.02.01]; M4-4 as amended by M7-12). The 90.05 sample puts
+  // `*DATA` first; the 1960 program puts `*PROCEDURE` first, and its
+  // code starts at word zero.
+  final bool codeFirst = _procedureFirst(semantics);
+  final textOrigin = codeFirst ? 0 : dataWords;
 
   // Two passes over the procedure text. The text's own addresses need
   // nothing but its order, but an `EQU` line prints an equated value in
@@ -105,7 +112,14 @@ CodegenResult runCodegen(
   );
   ProcedureText text;
   try {
-    text = generateProcedure(semantics, origin: dataWords, checks: checks);
+    // The word count does not depend on where the areas sit, so the
+    // measuring pass takes any data origin.
+    text = generateProcedure(
+      semantics,
+      origin: textOrigin,
+      dataOrigin: 0,
+      checks: checks,
+    );
   } on StopCompilation {
     // A severity-5 diagnostic stops the phase at the point of
     // detection (D9.1); the capacity checks (D9.7, C5) are this
@@ -126,13 +140,21 @@ CodegenResult runCodegen(
       StorageBlock.cp: text.poolWords,
     },
   );
-  text = generateProcedure(semantics, origin: dataWords, image: image);
+  final int dataOrigin = codeFirst ? text.words : 0;
+  text = generateProcedure(
+    semantics,
+    origin: textOrigin,
+    dataOrigin: dataOrigin,
+    image: image,
+  );
+  final List<AssemblyUnit> data = storageMapUnits(semantics, dataOrigin);
 
   return CodegenResult(
     units: <AssemblyUnit>[
       ...counterHead(image),
-      ...data,
-      ...text.units,
+      counterZeroHead,
+      if (codeFirst) ...<AssemblyUnit>[...text.units, ...data],
+      if (!codeFirst) ...<AssemblyUnit>[...data, ...text.units],
       ...pointerInitialization(image, text.constantIndicators),
       ...outOfLineBlocks(image, text.poolUnits),
       // The end-of-text line ([J 90.03.04]): the word's address field
@@ -152,4 +174,19 @@ CodegenResult runCodegen(
     controlCards: cards,
     undefinedSymbol: text.undefinedSymbol,
   );
+}
+
+/// Whether the job's first `*PROCEDURE` group comes before its first
+/// `*DATA` group. A job with no `*DATA` group has no areas, so either
+/// answer places the same words.
+bool _procedureFirst(SemanticResult semantics) {
+  for (final ParsedGroup group in semantics.parse.groups) {
+    if (group is ParsedProcedureGroup) {
+      return true;
+    }
+    if (group is ParsedDataGroup) {
+      return false;
+    }
+  }
+  return false;
 }
