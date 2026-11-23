@@ -442,8 +442,6 @@ ArithExpr parseFunctionCall(
   return FunctionCall(function, arguments);
 }
 
-// --- Conditional expressions ---------------------------------------------
-
 /// Parses a conditional expression (lowest precedence: OR; AND binds
 /// tighter, F p. 105 rule 3).
 CondExpr parseCondExpr(TokenCursor cursor, List<Diagnostic> diagnostics) {

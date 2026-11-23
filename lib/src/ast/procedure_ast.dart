@@ -30,8 +30,6 @@ final class NameReference {
   Token get anchor => words.first;
 }
 
-// --- Arithmetic expressions (§4.1) -----------------------------------------
-
 /// An arithmetic expression node.
 sealed class ArithExpr {
   /// The token the node anchors to, for provenance.
@@ -134,8 +132,6 @@ final class FunctionCall extends ArithExpr {
   Token get anchor => function.anchor;
 }
 
-// --- Conditional expressions (§5.3) ----------------------------------------
-
 /// A conditional expression node.
 sealed class CondExpr {
   /// The token the node anchors to, for provenance.
@@ -220,8 +216,6 @@ final class NotExpr extends CondExpr {
   @override
   Token get anchor => word;
 }
-
-// --- Clauses ---------------------------------------------------------------
 
 /// One clause of a sentence. [clause] is its two-digit position for
 /// `n,cc` statement numbers: the conditional clause takes 01 when
@@ -640,8 +634,6 @@ final class DeferredVerbClause extends Clause {
   Token get anchor => verb;
 }
 
-// --- Sentences -------------------------------------------------------------
-
 /// One parsed sentence.
 final class Sentence {
   Sentence(this.scan, this.clauses, {required this.deleted});
@@ -659,8 +651,6 @@ final class Sentence {
   /// statement number.
   final bool deleted;
 }
-
-// --- Clause traversal ------------------------------------------------------
 
 /// Every clause of [clauses], nested ones included: IF arms, ON
 /// OVERFLOW slots, and AT END slots.
