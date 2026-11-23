@@ -59,13 +59,13 @@ void main() {
         'truncated card': Uint8List.sublistView(oneCard, 0, oneCard.length - 1),
         'padded card': Uint8List(oneCard.length + 1)..setAll(0, oneCard),
       };
-      files.forEach((String name, Uint8List bytes) {
+      for (final MapEntry(key: name, value: bytes) in files.entries) {
         expect(
           () => decodeCanon(bytes),
           throwsA(isA<FormatException>()),
           reason: name,
         );
-      });
+      }
     });
   });
 }
