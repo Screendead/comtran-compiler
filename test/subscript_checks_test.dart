@@ -41,15 +41,40 @@ void main() {
 
     // NAME.1 of 70,00 and 71,00 is the array, not the variable (J 90.04).
     // An undefined variable draws the triage 108,00 alone.
-    for (final (String subscript, String id, String? operand) in [
-      ('IDX, IDX', '70,00', 'TAB CELL'),
-      ('TAB CELL (IDX)', '71,00', 'TAB CELL'),
-      ('ALPHA', '79,00', 'ALPHA'),
-      ('FRAC', '31,00', null),
-      ('EXT', '206,00', null),
-      ('NOSUCH', '108,00', null),
+    for (final (String name, String subscript, String id, String? operand) in [
+      (
+        'a subscript count above the dimension count draws 70,00',
+        'IDX, IDX',
+        '70,00',
+        'TAB CELL',
+      ),
+      (
+        'a subscripted subscript variable draws 71,00',
+        'TAB CELL (IDX)',
+        '71,00',
+        'TAB CELL',
+      ),
+      (
+        'an alphameric subscript variable draws 79,00',
+        'ALPHA',
+        '79,00',
+        'ALPHA',
+      ),
+      ('a fractional subscript variable draws 31,00', 'FRAC', '31,00', null),
+      (
+        'an external decimal subscript variable draws 206,00',
+        'EXT',
+        '206,00',
+        null,
+      ),
+      (
+        'an undefined subscript variable draws the triage 108,00 alone',
+        'NOSUCH',
+        '108,00',
+        null,
+      ),
     ]) {
-      test('the subscript ($subscript) draws $id', () {
+      test(name, () {
         final SemanticResult result = _move('TAB CELL ($subscript)');
         expect(ids(result), [id]);
         if (operand != null) {

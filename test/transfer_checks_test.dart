@@ -240,15 +240,51 @@ void main() {
 
     // The values already in the parameter and function fields serve a
     // bare DO; both clauses are optional on it (F p. 33).
-    for (final (String declaration, String call, List<String> drawn) in [
-      (' USING ARG GIVING T.', 'DO S USING IDX GIVING T.', <String>[]),
-      (' USING ARG.', 'DO S USING IDX, FRAC.', ['72,00']),
-      (' USING ARG, T.', 'DO S USING IDX.', ['73,00']),
-      (' GIVING ARG.', 'DO S GIVING IDX, FRAC.', ['74,00']),
-      (' GIVING ARG, T.', 'DO S GIVING IDX.', ['75,00']),
-      (' USING ARG GIVING T.', 'DO S.', <String>[]),
-    ]) {
-      test('$call against$declaration draws $drawn', () {
+    for (final (
+          String name,
+          String declaration,
+          String call,
+          List<String> drawn,
+        )
+        in [
+          (
+            'matching USING and GIVING lists draw nothing',
+            ' USING ARG GIVING T.',
+            'DO S USING IDX GIVING T.',
+            <String>[],
+          ),
+          (
+            'too many USING arguments draw 72,00',
+            ' USING ARG.',
+            'DO S USING IDX, FRAC.',
+            ['72,00'],
+          ),
+          (
+            'too few USING arguments draw 73,00',
+            ' USING ARG, T.',
+            'DO S USING IDX.',
+            ['73,00'],
+          ),
+          (
+            'too many GIVING results draw 74,00',
+            ' GIVING ARG.',
+            'DO S GIVING IDX, FRAC.',
+            ['74,00'],
+          ),
+          (
+            'too few GIVING results draw 75,00',
+            ' GIVING ARG, T.',
+            'DO S GIVING IDX.',
+            ['75,00'],
+          ),
+          (
+            'a bare DO of a USING or GIVING section draws nothing (F p. 33)',
+            ' USING ARG GIVING T.',
+            'DO S.',
+            <String>[],
+          ),
+        ]) {
+      test(name, () {
         final SemanticResult result = runJob(
           data: _fields(),
           procedure: section(declaration, call),
@@ -272,13 +308,39 @@ void main() {
 
   group('loop control (M3-20)', () {
     // NAME.1 of 78,00 is the loop control variable (J 90.04).
-    for (final (String control, List<String> drawn, String? operand) in [
-      ('ALPHA = 1(1)9', ['76,00'], 'ALPHA'),
-      ('IDX = 1(1)ALPHA', ['77,00'], 'ALPHA'),
-      ('IDX = 1(0.5)9', ['78,00'], 'IDX'),
-      ('IDX = 1(1)ARG', <String>[], null),
-    ]) {
-      test('FOR $control draws $drawn', () {
+    for (final (
+          String name,
+          String control,
+          List<String> drawn,
+          String? operand,
+        )
+        in [
+          (
+            'an alphameric FOR index draws 76,00',
+            'ALPHA = 1(1)9',
+            ['76,00'],
+            'ALPHA',
+          ),
+          (
+            'an alphameric loop parameter draws 77,00',
+            'IDX = 1(1)ALPHA',
+            ['77,00'],
+            'ALPHA',
+          ),
+          (
+            'a fractional literal loop parameter draws 78,00',
+            'IDX = 1(0.5)9',
+            ['78,00'],
+            'IDX',
+          ),
+          (
+            'a whole numeric loop control draws nothing',
+            'IDX = 1(1)ARG',
+            <String>[],
+            null,
+          ),
+        ]) {
+      test(name, () {
         final SemanticResult result = runJob(
           data: _fields(),
           procedure: [
@@ -302,13 +364,39 @@ void main() {
     ];
 
     // 191,00 names the function.
-    for (final (String declaration, String call, List<String> drawn) in [
-      ('.', 'IDX ((ARG))', ['191,00']),
-      (' GIVING IDX.', 'IDX ((ARG))', <String>[]),
-      (', FRAC GIVING IDX.', 'IDX ((ARG))', ['30,00']),
-      (' GIVING IDX.', 'IDX ((ARG, FRAC))', ['68,00']),
-    ]) {
-      test('$call against$declaration draws $drawn', () {
+    for (final (
+          String name,
+          String declaration,
+          String call,
+          List<String> drawn,
+        )
+        in [
+          (
+            'a name no GIVING clause lists draws 191,00',
+            '.',
+            'IDX ((ARG))',
+            ['191,00'],
+          ),
+          (
+            'a matching argument count draws nothing',
+            ' GIVING IDX.',
+            'IDX ((ARG))',
+            <String>[],
+          ),
+          (
+            'too few arguments draw 30,00',
+            ', FRAC GIVING IDX.',
+            'IDX ((ARG))',
+            ['30,00'],
+          ),
+          (
+            'too many arguments draw 68,00',
+            ' GIVING IDX.',
+            'IDX ((ARG, FRAC))',
+            ['68,00'],
+          ),
+        ]) {
+      test(name, () {
         final SemanticResult result = runJob(
           data: _fields(),
           procedure: program(declaration, call),

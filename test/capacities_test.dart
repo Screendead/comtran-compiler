@@ -42,26 +42,48 @@ List<String> _editedFormats(int entries) => [
 
 void main() {
   group('the capacity counters (M3-12; D9.7)', () {
-    // Each table, its deck at the limit and one past it, and the message.
-    final cases = <(String, List<String> Function(int), int, String)>[
-      ('QUANTITY IN', _variableFields, 25, '200,00'),
-      ('hierarchy level', _hierarchy, 23, '201,00'),
-      ('array dimension', _arrays, 85, '203,00'),
-      ('distinct edited format', _editedFormats, 35, '204,00'),
-    ];
+    // Each counter fills at [max] and stops one past it, unless
+    // --no-table-limits lifts it.
     for (final (
-          String table,
+          String name,
           List<String> Function(int) deck,
           int max,
           String id,
         )
-        in cases) {
-      test('one $table past $max draws $id and stops; '
-          '--no-table-limits lifts it', () {
+        in [
+          (
+            'the 26th QUANTITY IN draws 200,00 and stops',
+            _variableFields,
+            25,
+            '200,00',
+          ),
+          (
+            'the 24th hierarchy level draws 201,00 and names the entry',
+            _hierarchy,
+            23,
+            '201,00',
+          ),
+          (
+            'the 86th array dimension draws 203,00 and stops',
+            _arrays,
+            85,
+            '203,00',
+          ),
+          (
+            'the 36th distinct edited format draws 204,00 and stops',
+            _editedFormats,
+            35,
+            '204,00',
+          ),
+        ]) {
+      test(name, () {
         expect(ids(runJob(data: deck(max))), isEmpty);
         final SemanticResult result = runJob(data: deck(max + 1));
         expect(ids(result), [id]);
         expect(result.stopped, isTrue);
+        if (id == '201,00') {
+          expect(result.semanticDiagnostics.single.text, contains("'FOOT'"));
+        }
         final SemanticResult lifted = runJob(
           data: deck(max + 1),
           tableLimits: false,
@@ -70,13 +92,6 @@ void main() {
         expect(lifted.stopped, isFalse);
       });
     }
-
-    test('201,00 names the entry', () {
-      expect(
-        runJob(data: _hierarchy(24)).semanticDiagnostics.single.text,
-        contains("'FOOT'"),
-      );
-    });
 
     test('a repeated edited format counts once (J 90.01.05 item c)', () {
       final SemanticResult result = runJob(
