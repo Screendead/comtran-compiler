@@ -140,8 +140,8 @@ void main() {
       expect(deck.jobs[1].codegen, isNotNull);
     });
 
-    test('a job closed by a compile card is accepted silently, and draws '
-        '929 under --pedantic (D11.1 rule e)', () {
+    test('a job closed by a compile card is accepted silently, and '
+        'draws 929 under --pedantic (D11.1 rule e)', () {
       final lines = [
         r'$CMPLE JOBA',
         '      *PROCEDURE',
